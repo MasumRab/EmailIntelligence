@@ -6,7 +6,8 @@ import {
   type Activity, type InsertActivity,
   type DashboardStats
 } from "@shared/schema";
-import { AIEngine, type AIAnalysis, type AccuracyValidation } from "./ai-engine";
+import { db } from "./db";
+import { eq, desc, ilike, count, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -39,173 +40,110 @@ export interface IStorage {
   simulateGmailSync(): Promise<{ synced: number; newEmails: Email[] }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private emails: Map<number, Email>;
-  private categories: Map<number, Category>;
-  private activities: Map<number, Activity>;
-  private currentUserId: number;
-  private currentEmailId: number;
-  private currentCategoryId: number;
-  private currentActivityId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.emails = new Map();
-    this.categories = new Map();
-    this.activities = new Map();
-    this.currentUserId = 1;
-    this.currentEmailId = 1;
-    this.currentCategoryId = 1;
-    this.currentActivityId = 1;
-
-    this.initializeData();
-  }
-
-  private initializeData(): void {
-    // Initialize categories
-    const defaultCategories: InsertCategory[] = [
-      { name: "Work & Business", description: "Professional emails, meetings, projects", color: "#34A853", count: 234 },
-      { name: "Personal & Family", description: "Personal conversations, family updates", color: "#4285F4", count: 156 },
-      { name: "Finance & Banking", description: "Bills, statements, transactions", color: "#FBBC04", count: 89 },
-      { name: "Promotions & Marketing", description: "Newsletters, offers, advertisements", color: "#EA4335", count: 145 },
-      { name: "Travel", description: "Travel bookings, itineraries, confirmations", color: "#9C27B0", count: 23 },
-      { name: "Healthcare", description: "Medical appointments, health updates", color: "#00BCD4", count: 12 },
-    ];
-
-    defaultCategories.forEach(category => {
-      const id = this.currentCategoryId++;
-      this.categories.set(id, { ...category, id });
-    });
-
-    // Initialize sample emails
-    const sampleEmails: InsertEmail[] = [
-      {
-        sender: "John Doe",
-        senderEmail: "john.doe@company.com",
-        subject: "Q4 Budget Review Meeting - Tomorrow 2 PM",
-        content: "Hi team, I've scheduled our quarterly budget review for tomorrow at 2 PM in the main conference room. Please bring your departmental budget reports and be prepared to discuss any variances from our projections.",
-        preview: "Hi team, I've scheduled our quarterly budget review for tomorrow at 2 PM in the main conference room...",
-        time: "2:30 PM",
-        categoryId: 1,
-        labels: ["Work & Business", "Meeting"],
-        confidence: 95,
-        isStarred: false,
-        isRead: false,
-      },
-      {
-        sender: "American Bank",
-        senderEmail: "noreply@americanbank.com",
-        subject: "Your Monthly Statement is Ready",
-        content: "Dear Valued Customer, Your account statement for March 2024 is now available for download. You can access it through your online banking portal or mobile app.",
-        preview: "Dear Valued Customer, Your account statement for March 2024 is now available for download...",
-        time: "Yesterday",
-        categoryId: 3,
-        labels: ["Finance & Banking", "Statement"],
-        confidence: 98,
-        isStarred: false,
-        isRead: false,
-      },
-      {
-        sender: "Sarah Foster",
-        senderEmail: "sarah.foster@gmail.com",
-        subject: "Weekend Plans & Family BBQ",
-        content: "Hey! Hope you're doing well. We're planning a family BBQ this weekend and would love for you to join us. Let me know if you can make it!",
-        preview: "Hey! Hope you're doing well. We're planning a family BBQ this weekend and would love for you to join us...",
-        time: "Mar 15",
-        categoryId: 2,
-        labels: ["Personal & Family", "Social"],
-        confidence: 92,
-        isStarred: true,
-        isRead: false,
-      },
-    ];
-
-    sampleEmails.forEach(email => {
-      const id = this.currentEmailId++;
-      this.emails.set(id, { ...email, id });
-    });
-
-    // Initialize recent activities
-    const sampleActivities: InsertActivity[] = [
-      {
-        type: "label",
-        description: "Auto-labeled 12 emails",
-        details: "Work & Business category",
-        timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-        icon: "fas fa-tag",
-        iconBg: "bg-green-50 text-green-600",
-      },
-      {
-        type: "category",
-        description: "Created new category",
-        details: '"Healthcare" detected',
-        timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-        icon: "fas fa-brain",
-        iconBg: "bg-blue-50 text-blue-600",
-      },
-      {
-        type: "sync",
-        description: "Synced with Gmail",
-        details: "45 new emails processed",
-        timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        icon: "fas fa-sync",
-        iconBg: "bg-purple-50 text-purple-600",
-      },
-      {
-        type: "review",
-        description: "Low confidence labels",
-        details: "3 emails need review",
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        icon: "fas fa-exclamation-triangle",
-        iconBg: "bg-yellow-50 text-yellow-600",
-      },
-    ];
-
-    sampleActivities.forEach(activity => {
-      const id = this.currentActivityId++;
-      this.activities.set(id, { ...activity, id });
-    });
-  }
-
-  // User methods
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   // Email methods
   async getAllEmails(): Promise<EmailWithCategory[]> {
-    const emails = Array.from(this.emails.values());
-    return emails.map(email => ({
-      ...email,
-      category: email.categoryId ? this.categories.get(email.categoryId) : undefined,
+    const result = await db
+      .select({
+        id: emails.id,
+        sender: emails.sender,
+        senderEmail: emails.senderEmail,
+        subject: emails.subject,
+        content: emails.content,
+        preview: emails.preview,
+        time: emails.time,
+        categoryId: emails.categoryId,
+        labels: emails.labels,
+        confidence: emails.confidence,
+        isStarred: emails.isStarred,
+        isRead: emails.isRead,
+        category: categories,
+      })
+      .from(emails)
+      .leftJoin(categories, eq(emails.categoryId, categories.id))
+      .orderBy(desc(emails.id));
+
+    return result.map(row => ({
+      id: row.id,
+      sender: row.sender,
+      senderEmail: row.senderEmail,
+      subject: row.subject,
+      content: row.content,
+      preview: row.preview,
+      time: row.time,
+      categoryId: row.categoryId,
+      labels: row.labels,
+      confidence: row.confidence,
+      isStarred: row.isStarred,
+      isRead: row.isRead,
+      category: row.category || undefined,
     }));
   }
 
   async getEmailById(id: number): Promise<EmailWithCategory | undefined> {
-    const email = this.emails.get(id);
-    if (!email) return undefined;
+    const result = await db
+      .select({
+        id: emails.id,
+        sender: emails.sender,
+        senderEmail: emails.senderEmail,
+        subject: emails.subject,
+        content: emails.content,
+        preview: emails.preview,
+        time: emails.time,
+        categoryId: emails.categoryId,
+        labels: emails.labels,
+        confidence: emails.confidence,
+        isStarred: emails.isStarred,
+        isRead: emails.isRead,
+        category: categories,
+      })
+      .from(emails)
+      .leftJoin(categories, eq(emails.categoryId, categories.id))
+      .where(eq(emails.id, id));
+
+    const row = result[0];
+    if (!row) return undefined;
+
     return {
-      ...email,
-      category: email.categoryId ? this.categories.get(email.categoryId) : undefined,
+      id: row.id,
+      sender: row.sender,
+      senderEmail: row.senderEmail,
+      subject: row.subject,
+      content: row.content,
+      preview: row.preview,
+      time: row.time,
+      categoryId: row.categoryId,
+      labels: row.labels,
+      confidence: row.confidence,
+      isStarred: row.isStarred,
+      isRead: row.isRead,
+      category: row.category || undefined,
     };
   }
 
   async createEmail(insertEmail: InsertEmail): Promise<Email> {
-    const id = this.currentEmailId++;
-    const email: Email = { ...insertEmail, id };
-    this.emails.set(id, email);
+    const [email] = await db
+      .insert(emails)
+      .values(insertEmail)
+      .returning();
     
     // Update category count
     if (email.categoryId) {
@@ -216,99 +154,177 @@ export class MemStorage implements IStorage {
   }
 
   async updateEmail(id: number, emailUpdate: Partial<Email>): Promise<Email | undefined> {
-    const email = this.emails.get(id);
-    if (!email) return undefined;
+    const [updatedEmail] = await db
+      .update(emails)
+      .set(emailUpdate)
+      .where(eq(emails.id, id))
+      .returning();
     
-    const updatedEmail = { ...email, ...emailUpdate };
-    this.emails.set(id, updatedEmail);
-    return updatedEmail;
+    return updatedEmail || undefined;
   }
 
   async getEmailsByCategory(categoryId: number): Promise<EmailWithCategory[]> {
-    const emails = Array.from(this.emails.values()).filter(email => email.categoryId === categoryId);
-    return emails.map(email => ({
-      ...email,
-      category: this.categories.get(categoryId),
+    const result = await db
+      .select({
+        id: emails.id,
+        sender: emails.sender,
+        senderEmail: emails.senderEmail,
+        subject: emails.subject,
+        content: emails.content,
+        preview: emails.preview,
+        time: emails.time,
+        categoryId: emails.categoryId,
+        labels: emails.labels,
+        confidence: emails.confidence,
+        isStarred: emails.isStarred,
+        isRead: emails.isRead,
+        category: categories,
+      })
+      .from(emails)
+      .leftJoin(categories, eq(emails.categoryId, categories.id))
+      .where(eq(emails.categoryId, categoryId))
+      .orderBy(desc(emails.id));
+
+    return result.map(row => ({
+      id: row.id,
+      sender: row.sender,
+      senderEmail: row.senderEmail,
+      subject: row.subject,
+      content: row.content,
+      preview: row.preview,
+      time: row.time,
+      categoryId: row.categoryId,
+      labels: row.labels,
+      confidence: row.confidence,
+      isStarred: row.isStarred,
+      isRead: row.isRead,
+      category: row.category || undefined,
     }));
   }
 
   async searchEmails(query: string): Promise<EmailWithCategory[]> {
-    const lowerQuery = query.toLowerCase();
-    const emails = Array.from(this.emails.values()).filter(email =>
-      email.subject.toLowerCase().includes(lowerQuery) ||
-      email.sender.toLowerCase().includes(lowerQuery) ||
-      email.content.toLowerCase().includes(lowerQuery)
-    );
-    
-    return emails.map(email => ({
-      ...email,
-      category: email.categoryId ? this.categories.get(email.categoryId) : undefined,
+    const result = await db
+      .select({
+        id: emails.id,
+        sender: emails.sender,
+        senderEmail: emails.senderEmail,
+        subject: emails.subject,
+        content: emails.content,
+        preview: emails.preview,
+        time: emails.time,
+        categoryId: emails.categoryId,
+        labels: emails.labels,
+        confidence: emails.confidence,
+        isStarred: emails.isStarred,
+        isRead: emails.isRead,
+        category: categories,
+      })
+      .from(emails)
+      .leftJoin(categories, eq(emails.categoryId, categories.id))
+      .where(sql`
+        ${emails.subject} ILIKE ${`%${query}%`} OR 
+        ${emails.sender} ILIKE ${`%${query}%`} OR 
+        ${emails.content} ILIKE ${`%${query}%`}
+      `)
+      .orderBy(desc(emails.id));
+
+    return result.map(row => ({
+      id: row.id,
+      sender: row.sender,
+      senderEmail: row.senderEmail,
+      subject: row.subject,
+      content: row.content,
+      preview: row.preview,
+      time: row.time,
+      categoryId: row.categoryId,
+      labels: row.labels,
+      confidence: row.confidence,
+      isStarred: row.isStarred,
+      isRead: row.isRead,
+      category: row.category || undefined,
     }));
   }
 
   // Category methods
   async getAllCategories(): Promise<Category[]> {
-    return Array.from(this.categories.values());
+    return await db.select().from(categories).orderBy(categories.name);
   }
 
   async getCategoryById(id: number): Promise<Category | undefined> {
-    return this.categories.get(id);
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category || undefined;
   }
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const id = this.currentCategoryId++;
-    const category: Category = { ...insertCategory, id };
-    this.categories.set(id, category);
+    const [category] = await db
+      .insert(categories)
+      .values(insertCategory)
+      .returning();
     return category;
   }
 
   async updateCategory(id: number, categoryUpdate: Partial<Category>): Promise<Category | undefined> {
-    const category = this.categories.get(id);
-    if (!category) return undefined;
+    const [updatedCategory] = await db
+      .update(categories)
+      .set(categoryUpdate)
+      .where(eq(categories.id, id))
+      .returning();
     
-    const updatedCategory = { ...category, ...categoryUpdate };
-    this.categories.set(id, updatedCategory);
-    return updatedCategory;
+    return updatedCategory || undefined;
   }
 
   async updateCategoryCount(categoryId: number): Promise<void> {
-    const category = this.categories.get(categoryId);
-    if (!category) return;
-    
-    const emailCount = Array.from(this.emails.values()).filter(email => email.categoryId === categoryId).length;
-    category.count = emailCount;
-    this.categories.set(categoryId, category);
+    const [{ emailCount }] = await db
+      .select({ emailCount: count() })
+      .from(emails)
+      .where(eq(emails.categoryId, categoryId));
+
+    await db
+      .update(categories)
+      .set({ count: emailCount })
+      .where(eq(categories.id, categoryId));
   }
 
   // Activity methods
   async getAllActivities(): Promise<Activity[]> {
-    return Array.from(this.activities.values()).sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    return await db.select().from(activities).orderBy(desc(activities.timestamp));
   }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const id = this.currentActivityId++;
-    const activity: Activity = { ...insertActivity, id };
-    this.activities.set(id, activity);
+    const [activity] = await db
+      .insert(activities)
+      .values(insertActivity)
+      .returning();
     return activity;
   }
 
   async getRecentActivities(limit: number = 10): Promise<Activity[]> {
-    const activities = await this.getAllActivities();
-    return activities.slice(0, limit);
+    return await db
+      .select()
+      .from(activities)
+      .orderBy(desc(activities.timestamp))
+      .limit(limit);
   }
 
   // Dashboard methods
   async getDashboardStats(): Promise<DashboardStats> {
-    const totalEmails = this.emails.size;
-    const autoLabeled = Array.from(this.emails.values()).filter(email => email.confidence && email.confidence > 80).length;
-    const categoriesCount = this.categories.size;
-    
+    const [totalEmailsResult] = await db
+      .select({ count: count() })
+      .from(emails);
+
+    const [autoLabeledResult] = await db
+      .select({ count: count() })
+      .from(emails)
+      .where(sql`${emails.confidence} > 80`);
+
+    const [categoriesResult] = await db
+      .select({ count: count() })
+      .from(categories);
+
     return {
-      totalEmails,
-      autoLabeled,
-      categories: categoriesCount,
+      totalEmails: totalEmailsResult.count,
+      autoLabeled: autoLabeledResult.count,
+      categories: categoriesResult.count,
       timeSaved: "14.2h",
       weeklyGrowth: {
         totalEmails: 12,
@@ -321,7 +337,7 @@ export class MemStorage implements IStorage {
 
   async simulateGmailSync(): Promise<{ synced: number; newEmails: Email[] }> {
     // Simulate finding new emails during sync
-    const newEmailsData = [
+    const newEmailsData: InsertEmail[] = [
       {
         sender: "Tech Newsletter",
         senderEmail: "newsletter@techworld.com",
@@ -329,7 +345,7 @@ export class MemStorage implements IStorage {
         content: "This week in technology: Major breakthroughs in AI, new framework releases, and industry insights you shouldn't miss.",
         preview: "This week in technology: Major breakthroughs in AI, new framework releases...",
         time: "Just now",
-        categoryId: 4, // Promotions
+        categoryId: null,
         labels: ["Newsletter", "Technology"],
         confidence: 89,
         isStarred: false,
@@ -342,7 +358,7 @@ export class MemStorage implements IStorage {
         content: "This is a reminder that you have an appointment scheduled for tomorrow at 3:00 PM. Please arrive 15 minutes early.",
         preview: "This is a reminder that you have an appointment scheduled for tomorrow at 3:00 PM...",
         time: "5 min ago",
-        categoryId: 6, // Healthcare
+        categoryId: null,
         labels: ["Healthcare", "Appointment"],
         confidence: 96,
         isStarred: false,
@@ -373,4 +389,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
