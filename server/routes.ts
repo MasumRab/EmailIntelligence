@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertEmailSchema, insertCategorySchema, insertActivitySchema } from "@shared/schema";
+import { pythonNLP } from "./python-bridge";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -158,33 +159,268 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI categorization simulation
+  // Advanced AI Analysis
+  app.post("/api/ai/analyze", async (req, res) => {
+    try {
+      const { subject, content } = req.body;
+      
+      if (!subject || !content) {
+        return res.status(400).json({ message: "Subject and content are required" });
+      }
+
+      const analysis = await pythonNLP.analyzeEmail(subject, content);
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error("AI analysis error:", error);
+      res.status(500).json({ message: "Failed to analyze email with AI" });
+    }
+  });
+
+  // Enhanced AI categorization with accuracy validation
   app.post("/api/ai/categorize", async (req, res) => {
     try {
-      const { emailId, categoryId, confidence } = req.body;
+      const { emailId, autoAnalyze } = req.body;
       
-      const email = await storage.updateEmail(emailId, {
-        categoryId: categoryId,
-        confidence: confidence || 95,
-      });
-      
+      const email = await storage.getEmailById(emailId);
       if (!email) {
         return res.status(404).json({ message: "Email not found" });
       }
 
-      // Create activity for AI categorization
+      let analysis;
+      if (autoAnalyze) {
+        // Use advanced AI analysis
+        analysis = await pythonNLP.analyzeEmail(email.subject, email.content);
+        
+        // Find matching category
+        const categories = await storage.getAllCategories();
+        const matchingCategory = categories.find(cat => 
+          analysis.categories.some(aiCat => 
+            cat.name.toLowerCase().includes(aiCat.toLowerCase()) ||
+            aiCat.toLowerCase().includes(cat.name.toLowerCase())
+          )
+        );
+
+        if (matchingCategory) {
+          // Update email with AI analysis results
+          const updatedEmail = await storage.updateEmail(emailId, {
+            categoryId: matchingCategory.id,
+            confidence: Math.round(analysis.confidence * 100),
+            labels: analysis.suggested_labels,
+          });
+
+          // Create detailed activity
+          await storage.createActivity({
+            type: "label",
+            description: "Advanced AI analysis completed",
+            details: `${analysis.categories.join(", ")} | Confidence: ${Math.round(analysis.confidence * 100)}% | ${analysis.validation.reliable ? 'High' : 'Low'} reliability`,
+            timestamp: new Date().toISOString(),
+            icon: "fas fa-brain",
+            iconBg: analysis.validation.reliable ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600",
+          });
+
+          res.json({ 
+            success: true, 
+            email: updatedEmail, 
+            analysis,
+            categoryAssigned: matchingCategory.name
+          });
+        } else {
+          // No matching category found, suggest creating new one
+          res.json({ 
+            success: false, 
+            analysis,
+            suggestion: "create_category",
+            suggestedCategory: analysis.categories[0],
+            message: "No matching category found. Consider creating a new category."
+          });
+        }
+      } else {
+        // Manual categorization (existing logic)
+        const { categoryId, confidence } = req.body;
+        
+        const updatedEmail = await storage.updateEmail(emailId, {
+          categoryId: categoryId,
+          confidence: confidence || 95,
+        });
+
+        await storage.createActivity({
+          type: "label",
+          description: "Manual email categorization",
+          details: `Email "${email.subject}" manually categorized`,
+          timestamp: new Date().toISOString(),
+          icon: "fas fa-user",
+          iconBg: "bg-blue-50 text-blue-600",
+        });
+        
+        res.json({ success: true, email: updatedEmail });
+      }
+    } catch (error) {
+      console.error("Categorization error:", error);
+      res.status(500).json({ message: "Failed to categorize email" });
+    }
+  });
+
+  // Batch AI processing
+  app.post("/api/ai/batch-analyze", async (req, res) => {
+    try {
+      const { emailIds } = req.body;
+      
+      if (!emailIds || !Array.isArray(emailIds)) {
+        return res.status(400).json({ message: "Email IDs array is required" });
+      }
+
+      const results = [];
+      const categories = await storage.getAllCategories();
+      
+      for (const emailId of emailIds.slice(0, 10)) { // Limit to 10 emails for performance
+        try {
+          const email = await storage.getEmailById(emailId);
+          if (!email) continue;
+
+          const analysis = await pythonNLP.analyzeEmail(email.subject, email.content);
+          
+          // Find best matching category
+          const matchingCategory = categories.find(cat => 
+            analysis.categories.some(aiCat => 
+              cat.name.toLowerCase().includes(aiCat.toLowerCase()) ||
+              aiCat.toLowerCase().includes(cat.name.toLowerCase())
+            )
+          );
+
+          if (matchingCategory && analysis.validation.reliable) {
+            await storage.updateEmail(emailId, {
+              categoryId: matchingCategory.id,
+              confidence: Math.round(analysis.confidence * 100),
+              labels: analysis.suggested_labels,
+            });
+
+            results.push({
+              emailId,
+              success: true,
+              category: matchingCategory.name,
+              confidence: analysis.confidence,
+              analysis
+            });
+          } else {
+            results.push({
+              emailId,
+              success: false,
+              reason: matchingCategory ? 'low_confidence' : 'no_matching_category',
+              analysis
+            });
+          }
+        } catch (error) {
+          results.push({
+            emailId,
+            success: false,
+            reason: 'analysis_error',
+            error: error.message
+          });
+        }
+      }
+
+      // Create batch activity
+      const successCount = results.filter(r => r.success).length;
       await storage.createActivity({
         type: "label",
-        description: "AI categorized email",
-        details: `Email "${email.subject}" categorized`,
+        description: "Batch AI analysis completed",
+        details: `${successCount}/${emailIds.length} emails successfully analyzed and categorized`,
         timestamp: new Date().toISOString(),
-        icon: "fas fa-brain",
-        iconBg: "bg-blue-50 text-blue-600",
+        icon: "fas fa-layer-group",
+        iconBg: "bg-purple-50 text-purple-600",
       });
-      
-      res.json({ success: true, email });
+
+      res.json({
+        success: true,
+        results,
+        summary: {
+          total: emailIds.length,
+          processed: results.length,
+          successful: successCount,
+          failed: results.length - successCount
+        }
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to categorize email" });
+      console.error("Batch analysis error:", error);
+      res.status(500).json({ message: "Failed to perform batch analysis" });
+    }
+  });
+
+  // AI accuracy validation endpoint
+  app.post("/api/ai/validate", async (req, res) => {
+    try {
+      const { emailId, userFeedback, correctCategory } = req.body;
+      
+      const email = await storage.getEmailById(emailId);
+      if (!email) {
+        return res.status(404).json({ message: "Email not found" });
+      }
+
+      // Perform fresh analysis
+      const analysis = await pythonNLP.analyzeEmail(email.subject, email.content);
+      
+      // Calculate accuracy based on user feedback
+      const isCorrect = userFeedback === 'correct';
+      const accuracyScore = isCorrect ? 1.0 : 0.0;
+      
+      // Update email if user provided correction
+      if (correctCategory && !isCorrect) {
+        const categories = await storage.getAllCategories();
+        const category = categories.find(c => c.name === correctCategory);
+        
+        if (category) {
+          await storage.updateEmail(emailId, {
+            categoryId: category.id,
+            confidence: 90, // High confidence for human correction
+          });
+        }
+      }
+
+      // Log validation activity
+      await storage.createActivity({
+        type: "review",
+        description: "AI accuracy validation",
+        details: `User feedback: ${userFeedback}${correctCategory ? ` | Corrected to: ${correctCategory}` : ''}`,
+        timestamp: new Date().toISOString(),
+        icon: "fas fa-check-circle",
+        iconBg: isCorrect ? "bg-green-50 text-green-600" : "bg-orange-50 text-orange-600",
+      });
+
+      res.json({
+        success: true,
+        validation: {
+          original_analysis: analysis,
+          user_feedback: userFeedback,
+          accuracy_score: accuracyScore,
+          corrected_category: correctCategory
+        }
+      });
+    } catch (error) {
+      console.error("Validation error:", error);
+      res.status(500).json({ message: "Failed to validate AI analysis" });
+    }
+  });
+
+  // AI engine health check
+  app.get("/api/ai/health", async (_req, res) => {
+    try {
+      const isHealthy = await pythonNLP.testConnection();
+      
+      res.json({
+        status: isHealthy ? 'healthy' : 'degraded',
+        python_nlp: isHealthy,
+        fallback_available: true,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.json({
+        status: 'error',
+        python_nlp: false,
+        fallback_available: true,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 

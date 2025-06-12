@@ -6,6 +6,7 @@ import {
   type Activity, type InsertActivity,
   type DashboardStats
 } from "@shared/schema";
+import { AIEngine, type AIAnalysis, type AccuracyValidation } from "./ai-engine";
 
 export interface IStorage {
   // User methods

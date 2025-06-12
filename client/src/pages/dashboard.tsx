@@ -4,11 +4,13 @@ import { StatsCards } from "@/components/stats-cards";
 import { CategoryOverview } from "@/components/category-overview";
 import { RecentActivity } from "@/components/recent-activity";
 import { EmailList } from "@/components/email-list";
+import { AIAnalysisPanel } from "@/components/ai-analysis-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Bell, FolderSync } from "lucide-react";
+import { Search, Bell, FolderSync, Brain, Zap, BarChart3, Settings } from "lucide-react";
 import { useState } from "react";
 import type { DashboardStats, Category, EmailWithCategory, Activity } from "@shared/schema";
 
