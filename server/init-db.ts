@@ -106,7 +106,7 @@ export async function initializeDatabase() {
       if (emailCount > 0) {
         await db.update(categories)
           .set({ count: emailCount })
-          .where(db.$eq(categories.id, category.id));
+          .where(eq(categories.id, category.id));
       }
     }
 
