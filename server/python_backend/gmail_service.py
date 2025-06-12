@@ -1,3 +1,4 @@
+
 """
 Gmail Service Adapter for Python Backend
 Bridges Python FastAPI backend with existing Gmail NLP services
@@ -15,24 +16,26 @@ import sys
 logger = logging.getLogger(__name__)
 
 class GmailAIService:
-    """Async adapter for Gmail AI services"""
+    """Gmail AI service for Python backend"""
     
     def __init__(self):
-        self.python_nlp_path = os.path.join(os.path.dirname(__file__), '..', 'python_nlp')
+        self.nlp_path = os.path.join(os.path.dirname(__file__), '..', 'python_nlp')
+        self.gmail_script = os.path.join(self.nlp_path, 'gmail_integration.py')
+        self.retrieval_script = os.path.join(self.nlp_path, 'smart_retrieval.py')
         
     async def sync_gmail_emails(
-        self,
+        self, 
         max_emails: int = 500,
         query_filter: str = "newer_than:1d",
         include_ai_analysis: bool = True,
         strategies: List[str] = None,
         time_budget_minutes: int = 15
     ) -> Dict[str, Any]:
-        """Sync Gmail emails with AI analysis"""
+        """Sync emails from Gmail with AI analysis"""
         try:
             cmd = [
                 sys.executable,
-                os.path.join(self.python_nlp_path, 'gmail_integration.py'),
+                self.gmail_script,
                 '--sync-emails',
                 '--max-emails', str(max_emails),
                 '--query-filter', query_filter,
@@ -48,12 +51,22 @@ class GmailAIService:
             result = await self._execute_async_command(cmd)
             
             return {
-                "success": True,
-                "processedCount": result.get('emails_processed', 0),
+                "success": result.get('success', False),
+                "processedCount": result.get('processed_count', 0),
                 "emailsCreated": result.get('emails_created', 0),
                 "errorsCount": result.get('errors_count', 0),
-                "batchInfo": result.get('batch_info', {}),
-                "statistics": result.get('statistics', {}),
+                "batchInfo": {
+                    "batchId": result.get('batch_id', f'batch_{int(datetime.now().timestamp())}'),
+                    "queryFilter": query_filter,
+                    "timestamp": datetime.now().isoformat()
+                },
+                "statistics": {
+                    "totalProcessed": result.get('total_processed', 0),
+                    "successfulExtractions": result.get('successful_extractions', 0),
+                    "failedExtractions": result.get('failed_extractions', 0),
+                    "aiAnalysesCompleted": result.get('ai_analyses_completed', 0),
+                    "lastSync": datetime.now().isoformat()
+                },
                 "error": result.get('error')
             }
             
@@ -64,9 +77,19 @@ class GmailAIService:
                 "processedCount": 0,
                 "emailsCreated": 0,
                 "errorsCount": 1,
-                "error": str(e),
-                "batchInfo": {},
-                "statistics": {}
+                "batchInfo": {
+                    "batchId": f'error_{int(datetime.now().timestamp())}',
+                    "queryFilter": query_filter,
+                    "timestamp": datetime.now().isoformat()
+                },
+                "statistics": {
+                    "totalProcessed": 0,
+                    "successfulExtractions": 0,
+                    "failedExtractions": 1,
+                    "aiAnalysesCompleted": 0,
+                    "lastSync": datetime.now().isoformat()
+                },
+                "error": str(e)
             }
     
     async def execute_smart_retrieval(
@@ -75,12 +98,12 @@ class GmailAIService:
         max_api_calls: int = 100,
         time_budget_minutes: int = 30
     ) -> Dict[str, Any]:
-        """Execute smart Gmail retrieval"""
+        """Execute smart Gmail retrieval with multiple strategies"""
         try:
             cmd = [
                 sys.executable,
-                os.path.join(self.python_nlp_path, 'smart_retrieval.py'),
-                '--execute-retrieval',
+                self.retrieval_script,
+                '--execute-strategies',
                 '--max-api-calls', str(max_api_calls),
                 '--time-budget', str(time_budget_minutes)
             ]
@@ -91,10 +114,9 @@ class GmailAIService:
             result = await self._execute_async_command(cmd)
             
             return {
-                "success": True,
+                "success": result.get('success', False),
                 "strategiesExecuted": result.get('strategies_executed', []),
-                "emailsRetrieved": result.get('emails_retrieved', 0),
-                "apiCallsUsed": result.get('api_calls_used', 0),
+                "totalEmails": result.get('total_emails', 0),
                 "performance": result.get('performance', {}),
                 "error": result.get('error')
             }
@@ -104,8 +126,8 @@ class GmailAIService:
             return {
                 "success": False,
                 "strategiesExecuted": [],
-                "emailsRetrieved": 0,
-                "apiCallsUsed": 0,
+                "totalEmails": 0,
+                "performance": {},
                 "error": str(e)
             }
     
@@ -114,7 +136,7 @@ class GmailAIService:
         try:
             cmd = [
                 sys.executable,
-                os.path.join(self.python_nlp_path, 'smart_retrieval.py'),
+                self.retrieval_script,
                 '--list-strategies'
             ]
             
@@ -126,16 +148,32 @@ class GmailAIService:
             return []
     
     async def get_performance_metrics(self) -> Optional[Dict[str, Any]]:
-        """Get Gmail performance metrics"""
+        """Get Gmail API performance metrics"""
         try:
             cmd = [
                 sys.executable,
-                os.path.join(self.python_nlp_path, 'retrieval_monitor.py'),
-                '--get-metrics'
+                self.retrieval_script,
+                '--get-performance'
             ]
             
             result = await self._execute_async_command(cmd)
-            return result.get('metrics')
+            
+            if result.get('success'):
+                return {
+                    "overallStatus": {
+                        "status": "healthy",
+                        "avgEfficiency": result.get('avg_efficiency', 0.85),
+                        "activeStrategies": result.get('active_strategies', 0)
+                    },
+                    "quotaStatus": {
+                        "dailyUsage": {
+                            "percentage": result.get('quota_used_percent', 25)
+                        }
+                    },
+                    "alerts": result.get('alerts', []),
+                    "recommendations": result.get('recommendations', [])
+                }
+            return None
             
         except Exception as e:
             logger.error(f"Failed to get performance metrics: {e}")
@@ -148,7 +186,7 @@ class GmailAIService:
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                cwd=self.python_nlp_path
+                cwd=self.nlp_path
             )
             
             stdout, stderr = await process.communicate()
@@ -156,15 +194,14 @@ class GmailAIService:
             if process.returncode != 0:
                 error_msg = stderr.decode() if stderr else "Unknown error"
                 logger.error(f"Command failed: {error_msg}")
-                return {"error": error_msg}
+                return {"success": False, "error": error_msg}
             
-            # Parse JSON output
             try:
                 return json.loads(stdout.decode())
-            except json.JSONDecodeError:
-                # If not JSON, return raw output
-                return {"output": stdout.decode(), "stderr": stderr.decode()}
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse response: {e}")
+                return {"success": False, "error": f"Invalid JSON response: {e}"}
                 
         except Exception as e:
             logger.error(f"Command execution failed: {e}")
-            return {"error": str(e)}
+            return {"success": False, "error": str(e)}
