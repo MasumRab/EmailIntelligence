@@ -65,20 +65,18 @@ export function Sidebar({ categories }: SidebarProps) {
             
             return (
               <li key={item.href}>
-                <Link href={item.href}>
-                  <a className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive 
-                      ? "bg-blue-50 text-blue-600 font-medium" 
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}>
-                    <Icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                    {item.count && (
-                      <Badge variant="secondary" className="ml-auto">
-                        {item.count}
-                      </Badge>
-                    )}
-                  </a>
+                <Link href={item.href} className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive 
+                    ? "bg-blue-50 text-blue-600 font-medium" 
+                    : "hover:bg-gray-100 text-gray-700"
+                }`}>
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                  {item.count && (
+                    <Badge variant="secondary" className="ml-auto">
+                      {item.count}
+                    </Badge>
+                  )}
                 </Link>
               </li>
             );
