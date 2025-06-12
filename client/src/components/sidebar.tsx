@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Category } from "@shared/schema";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   categories: Category[];
@@ -62,7 +63,7 @@ export function Sidebar({ categories }: SidebarProps) {
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href || (item.href === "/" && location === "/dashboard");
-            
+
             return (
               <li key={item.href}>
                 <Link href={item.href} className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${

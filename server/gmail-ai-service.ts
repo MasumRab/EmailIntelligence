@@ -106,8 +106,95 @@ export class GmailAIService {
 
   async syncGmailEmails(config: GmailSyncConfig): Promise<GmailSyncResult> {
     try {
-      // For now, simulate the sync until Python service is fully integrated
-      const result = await storage.simulateGmailSync();
+      const result = await this.executePythonSync(config);
+      return {
+        success: result.success,
+        processedCount: result.processed_count || 0,
+        emails: result.emails || [],
+        batchInfo: {
+          batchId: result.batch_id || `batch_${Date.now()}`,
+          queryFilter: config.queryFilter,
+          timestamp: new Date().toISOString()
+        },
+        statistics: {
+          totalProcessed: result.total_processed || 0,
+          successfulExtractions: result.successful_extractions || 0,
+          failedExtractions: result.failed_extractions || 0,
+          aiAnalysesCompleted: result.ai_analyses_completed || 0,
+          lastSync: new Date().toISOString()
+        },
+        error: result.error
+      };
+    } catch (error) {
+      return {
+        success: false,
+        processedCount: 0,
+        emails: [],
+        batchInfo: {
+          batchId: `error_${Date.now()}`,
+          queryFilter: config.queryFilter,
+          timestamp: new Date().toISOString()
+        },
+        statistics: {
+          totalProcessed: 0,
+          successfulExtractions: 0,
+          failedExtractions: 1,
+          aiAnalysesCompleted: 0,
+          lastSync: new Date().toISOString()
+        },
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  private async executePythonSync(config: GmailSyncConfig): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const args = [
+        this.pythonScriptPath,
+        '--sync-emails',
+        '--max-emails', config.maxEmails.toString(),
+        '--query-filter', config.queryFilter,
+        '--time-budget', config.timeBudgetMinutes.toString()
+      ];
+
+      if (config.includeAIAnalysis) {
+        args.push('--include-ai-analysis');
+      }
+
+      if (config.strategies && config.strategies.length > 0) {
+        args.push('--strategies', ...config.strategies);
+      }
+
+      const pythonProcess = spawn('python3', args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let output = '';
+      let errorOutput = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(`Python process exited with code ${code}: ${errorOutput}`));
+          return;
+        }
+
+        try {
+          const result = JSON.parse(output);
+          resolve(result);
+        } catch (parseError) {
+          reject(new Error(`Failed to parse Python output: ${parseError}`));
+        }
+      });
+    });
+  }
 
       return {
         success: true,
@@ -362,6 +449,64 @@ export class GmailAIService {
       alertCount: metrics.alerts.length,
       recommendationCount: metrics.recommendations.length
     };
+  }
+async getRetrievalStrategies(): Promise<RetrievalStrategy[]> {
+    try {
+      const result = await this.executePythonCommand([
+        this.pythonScriptPath,
+        '--get-strategies'
+      ]);
+      return result.strategies || [];
+    } catch (error) {
+      console.error('Failed to get retrieval strategies:', error);
+      return [];
+    }
+  }
+
+  async getPerformanceMetrics(): Promise<PerformanceMetrics | null> {
+    try {
+      const result = await this.executePythonCommand([
+        this.pythonScriptPath,
+        '--get-performance'
+      ]);
+      return result.metrics || null;
+    } catch (error) {
+      console.error('Failed to get performance metrics:', error);
+      return null;
+    }
+  }
+
+  private async executePythonCommand(args: string[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn('python3', args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let output = '';
+      let errorOutput = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(`Python process exited with code ${code}: ${errorOutput}`));
+          return;
+        }
+
+        try {
+          const result = JSON.parse(output);
+          resolve(result);
+        } catch (parseError) {
+          reject(new Error(`Failed to parse Python output: ${parseError}`));
+        }
+      });
+    });
   }
 }
 
