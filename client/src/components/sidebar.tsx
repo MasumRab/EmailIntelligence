@@ -91,13 +91,11 @@ export function Sidebar({ categories }: SidebarProps) {
           <ul className="space-y-1">
             {categories.map((category) => (
               <li key={category.id}>
-                <Link href={`/category/${category.id}`}>
-                  <a className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-                    <div className={`w-3 h-3 rounded-full ${getCategoryColor(category.color)}`}></div>
-                    <span className="text-sm">{category.name}</span>
-                    <span className="ml-auto text-xs text-gray-500">{category.count}</span>
-                  </a>
-                </Link>
+                <div className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 cursor-pointer">
+                  <div className={`w-3 h-3 rounded-full ${getCategoryColor(category.color)}`}></div>
+                  <span className="text-sm">{category.name}</span>
+                  <span className="ml-auto text-xs text-gray-500">{category.count}</span>
+                </div>
               </li>
             ))}
           </ul>
