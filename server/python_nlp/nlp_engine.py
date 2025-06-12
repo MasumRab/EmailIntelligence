@@ -675,3 +675,353 @@ def main():
 
 if __name__ == '__main__':
     main()
+#!/usr/bin/env python3
+import sys
+import json
+import re
+from datetime import datetime
+from typing import Dict, List, Any
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class NLPEngine:
+    def __init__(self):
+        self.sentiment_lexicon = {
+            'positive': {
+                'excellent': 1.0, 'amazing': 0.9, 'fantastic': 0.9, 'wonderful': 0.8,
+                'great': 0.7, 'good': 0.6, 'nice': 0.5, 'pleased': 0.6, 'happy': 0.7,
+                'satisfied': 0.6, 'thank': 0.5, 'thanks': 0.6, 'grateful': 0.7,
+                'appreciate': 0.6, 'love': 0.8, 'perfect': 0.9, 'success': 0.7,
+                'achievement': 0.7, 'congratulations': 0.8, 'approve': 0.6, 'accept': 0.5,
+                'agree': 0.5, 'brilliant': 0.8, 'outstanding': 0.9
+            },
+            'negative': {
+                'terrible': -1.0, 'awful': -0.9, 'horrible': -0.9, 'disaster': -0.8,
+                'bad': -0.6, 'poor': -0.5, 'disappointed': -0.7, 'frustrated': -0.6,
+                'angry': -0.8, 'upset': -0.6, 'problem': -0.4, 'issue': -0.4,
+                'error': -0.5, 'mistake': -0.4, 'wrong': -0.4, 'failed': -0.6,
+                'failure': -0.7, 'broken': -0.5, 'difficult': -0.4, 'trouble': -0.5,
+                'concern': -0.4, 'worry': -0.5, 'urgent': -0.3, 'emergency': -0.6,
+                'critical': -0.5, 'serious': -0.4, 'complaint': -0.6, 'complain': -0.6,
+                'reject': -0.6, 'deny': -0.5, 'refuse': -0.5, 'cancel': -0.4
+            }
+        }
+
+    def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
+        """Main analysis function"""
+        try:
+            full_text = f"{subject}\n\n{content}"
+            
+            # Core analysis
+            topic = self._extract_topic(full_text)
+            sentiment = self._analyze_sentiment(full_text)
+            intent = self._detect_intent(full_text)
+            urgency = self._assess_urgency(full_text)
+            confidence = self._calculate_confidence(full_text, sentiment, intent, urgency)
+            categories = self._categorize_email(full_text)
+            keywords = self._extract_keywords(full_text)
+            reasoning = self._generate_reasoning(categories, sentiment, intent, urgency)
+            suggested_labels = self._suggest_labels(categories, intent, urgency)
+            risk_flags = self._detect_risk_flags(full_text, confidence, urgency)
+            
+            # Validation
+            validation = self._validate_analysis(confidence, categories, sentiment)
+            
+            return {
+                'topic': topic,
+                'sentiment': sentiment,
+                'intent': intent,
+                'urgency': urgency,
+                'confidence': confidence,
+                'categories': categories,
+                'keywords': keywords,
+                'reasoning': reasoning,
+                'suggested_labels': suggested_labels,
+                'risk_flags': risk_flags,
+                'validation': {
+                    'validation_method': validation.method,
+                    'score': validation.score,
+                    'reliable': validation.reliable,
+                    'feedback': validation.feedback
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in email analysis: {str(e)}")
+            return self._get_fallback_analysis(str(e))
+
+    def _extract_topic(self, text: str) -> str:
+        """Extract main topic from email"""
+        # Simple keyword-based topic extraction
+        topics = {
+            'Meeting': ['meeting', 'conference', 'call', 'discussion', 'appointment'],
+            'Project': ['project', 'task', 'deadline', 'milestone', 'deliverable'],
+            'Finance': ['payment', 'invoice', 'bill', 'budget', 'cost', 'expense'],
+            'Travel': ['flight', 'hotel', 'trip', 'travel', 'booking', 'reservation'],
+            'Personal': ['family', 'friend', 'personal', 'birthday', 'celebration'],
+            'Health': ['doctor', 'medical', 'health', 'appointment', 'clinic'],
+            'Support': ['help', 'support', 'issue', 'problem', 'assistance']
+        }
+        
+        text_lower = text.lower()
+        topic_scores = {}
+        
+        for topic, keywords in topics.items():
+            score = sum(1 for keyword in keywords if keyword in text_lower)
+            if score > 0:
+                topic_scores[topic] = score
+        
+        if topic_scores:
+            return max(topic_scores, key=topic_scores.get)
+        return 'General Communication'
+
+    def _analyze_sentiment(self, text: str) -> str:
+        """Analyze sentiment using lexicon-based approach"""
+        text_lower = text.lower()
+        positive_score = 0.0
+        negative_score = 0.0
+        
+        for word, weight in self.sentiment_lexicon['positive'].items():
+            count = len(re.findall(r'\b' + re.escape(word) + r'\b', text_lower))
+            positive_score += count * weight
+        
+        for word, weight in self.sentiment_lexicon['negative'].items():
+            count = len(re.findall(r'\b' + re.escape(word) + r'\b', text_lower))
+            negative_score += abs(count * weight)
+        
+        if positive_score > negative_score + 0.5:
+            return 'positive'
+        elif negative_score > positive_score + 0.5:
+            return 'negative'
+        return 'neutral'
+
+    def _detect_intent(self, text: str) -> str:
+        """Detect email intent"""
+        intent_patterns = {
+            'request': r'\b(please|could you|would you|can you|need|require|request)\b',
+            'inquiry': r'\b(question|ask|wonder|curious|information|details|clarification)\b',
+            'scheduling': r'\b(schedule|calendar|meeting|appointment|time|date|available)\b',
+            'urgent_action': r'\b(urgent|asap|immediately|emergency|critical|priority)\b',
+            'gratitude': r'\b(thank|thanks|grateful|appreciate)\b',
+            'complaint': r'\b(complaint|complain|issue|problem|dissatisfied|unhappy)\b',
+            'follow_up': r'\b(follow up|follow-up|checking in|status|update|progress)\b',
+            'confirmation': r'\b(confirm|confirmation|verify|check|acknowledge)\b'
+        }
+        
+        text_lower = text.lower()
+        intent_scores = {}
+        
+        for intent, pattern in intent_patterns.items():
+            matches = re.findall(pattern, text_lower)
+            if matches:
+                intent_scores[intent] = len(matches)
+        
+        if intent_scores:
+            return max(intent_scores, key=intent_scores.get)
+        return 'informational'
+
+    def _assess_urgency(self, text: str) -> str:
+        """Assess urgency level"""
+        text_lower = text.lower()
+        
+        if re.search(r'\b(emergency|urgent|asap|immediately|critical|crisis|disaster)\b', text_lower):
+            return 'critical'
+        elif re.search(r'\b(soon|quickly|priority|important|deadline|time-sensitive)\b', text_lower):
+            return 'high'
+        elif re.search(r'\b(when you can|next week|upcoming|planned|scheduled)\b', text_lower):
+            return 'medium'
+        return 'low'
+
+    def _calculate_confidence(self, text: str, sentiment: str, intent: str, urgency: str) -> float:
+        """Calculate confidence score"""
+        base_confidence = 0.7
+        
+        # Text length factor
+        word_count = len(text.split())
+        if word_count > 100:
+            base_confidence += 0.1
+        elif word_count < 20:
+            base_confidence -= 0.1
+        
+        # Clear indicators boost confidence
+        if sentiment != 'neutral':
+            base_confidence += 0.05
+        if intent != 'informational':
+            base_confidence += 0.05
+        if urgency in ['high', 'critical']:
+            base_confidence += 0.1
+        
+        return min(max(base_confidence, 0.1), 0.95)
+
+    def _categorize_email(self, text: str) -> List[str]:
+        """Categorize email content"""
+        categories = []
+        text_lower = text.lower()
+        
+        category_patterns = {
+            'Work & Business': [
+                r'\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|colleague|office|work|business|professional|corporate|company|organization)\b',
+                r'\b(employee|staff|manager|supervisor|director|executive|department|division|quarterly|annual|monthly|weekly|daily)\b'
+            ],
+            'Finance & Banking': [
+                r'\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|money|financial|insurance|investment|loan|mortgage)\b',
+                r'\$[\d,]+|\b\d+\s?(dollars?|USD|EUR|GBP)\b',
+                r'\b(tax|taxes|irs|refund|audit|accountant|bookkeeping|overdraft|bankruptcy)\b'
+            ],
+            'Healthcare': [
+                r'\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|treatment|therapy|checkup|surgery|dental|pharmacy)\b',
+                r'\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|medicare|medicaid|covid|coronavirus|vaccine)\b'
+            ],
+            'Personal & Family': [
+                r'\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|dinner|lunch|home|house|kids|children)\b',
+                r'\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|graduation|baby|party|celebration)\b'
+            ],
+            'Travel': [
+                r'\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|airport|airline|passport|visa|itinerary)\b',
+                r'\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|tickets|confirmation)\b'
+            ],
+            'Technology': [
+                r'\b(software|hardware|computer|laptop|mobile|app|application|website|internet|email|password|account|login)\b',
+                r'\b(server|database|API|code|programming|development|tech|technical|IT|support|troubleshoot|install)\b'
+            ]
+        }
+        
+        for category, patterns in category_patterns.items():
+            score = 0
+            for pattern in patterns:
+                matches = re.findall(pattern, text_lower)
+                score += len(matches)
+            if score > 0:
+                categories.append(category)
+        
+        return categories[:3] if categories else ['General']
+
+    def _extract_keywords(self, text: str) -> List[str]:
+        """Extract important keywords"""
+        stop_words = {
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+            'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did',
+            'will', 'would', 'could', 'should', 'can', 'may', 'might', 'must', 'this', 'that',
+            'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them'
+        }
+        
+        words = re.findall(r'\b[a-zA-Z]{3,}\b', text.lower())
+        word_freq = {}
+        
+        for word in words:
+            if word not in stop_words:
+                word_freq[word] = word_freq.get(word, 0) + 1
+        
+        return sorted(word_freq.keys(), key=word_freq.get, reverse=True)[:8]
+
+    def _generate_reasoning(self, categories: List[str], sentiment: str, intent: str, urgency: str) -> str:
+        """Generate reasoning for the analysis"""
+        parts = []
+        
+        if categories:
+            parts.append(f"Categorized as {', '.join(categories)} based on content analysis")
+        
+        if sentiment != 'neutral':
+            parts.append(f"Sentiment detected as {sentiment}")
+        
+        if intent != 'informational':
+            parts.append(f"Intent identified as {intent.replace('_', ' ')}")
+        
+        if urgency in ['high', 'critical']:
+            parts.append(f"Marked as {urgency} urgency")
+        
+        return '. '.join(parts) + '.' if parts else 'General email analysis completed.'
+
+    def _suggest_labels(self, categories: List[str], intent: str, urgency: str) -> List[str]:
+        """Suggest labels for the email"""
+        labels = categories.copy()
+        
+        if intent != 'informational':
+            labels.append(intent.replace('_', ' ').title())
+        
+        if urgency in ['high', 'critical']:
+            labels.append(f'{urgency.title()} Priority')
+        
+        return list(set(labels))[:6]
+
+    def _detect_risk_flags(self, text: str, confidence: float, urgency: str) -> List[str]:
+        """Detect potential risk flags"""
+        flags = []
+        
+        if confidence < 0.5:
+            flags.append('low_confidence')
+        
+        if urgency in ['high', 'critical']:
+            flags.append('urgent_content')
+        
+        # Spam indicators
+        spam_patterns = [
+            r'\b(free|winner|congratulations|claim|prize|lottery)\b',
+            r'\b(click here|act now|limited time|exclusive offer)\b'
+        ]
+        
+        text_lower = text.lower()
+        spam_score = sum(len(re.findall(pattern, text_lower)) for pattern in spam_patterns)
+        if spam_score > 2:
+            flags.append('potential_spam')
+        
+        return flags
+
+    def _validate_analysis(self, confidence: float, categories: List[str], sentiment: str):
+        """Validate the analysis results"""
+        class ValidationResult:
+            def __init__(self, method: str, score: float, reliable: bool, feedback: str):
+                self.method = method
+                self.score = score
+                self.reliable = reliable
+                self.feedback = feedback
+        
+        score = confidence
+        reliable = confidence > 0.6 and len(categories) > 0
+        
+        if reliable:
+            feedback = "Analysis completed with high confidence"
+        else:
+            feedback = "Analysis completed with moderate confidence"
+        
+        return ValidationResult("pattern_matching", score, reliable, feedback)
+
+    def _get_fallback_analysis(self, error_msg: str) -> Dict[str, Any]:
+        """Fallback analysis when main analysis fails"""
+        return {
+            'topic': 'General Communication',
+            'sentiment': 'neutral',
+            'intent': 'informational',
+            'urgency': 'low',
+            'confidence': 0.3,
+            'categories': ['General'],
+            'keywords': [],
+            'reasoning': f'Fallback analysis due to error: {error_msg}',
+            'suggested_labels': ['General'],
+            'risk_flags': ['analysis_error'],
+            'validation': {
+                'validation_method': 'fallback',
+                'score': 0.3,
+                'reliable': False,
+                'feedback': 'Analysis failed, using fallback method'
+            }
+        }
+
+def main():
+    if len(sys.argv) != 3:
+        print(json.dumps({'error': 'Invalid arguments. Usage: python nlp_engine.py <subject> <content>'}))
+        sys.exit(1)
+    
+    subject = sys.argv[1]
+    content = sys.argv[2]
+    
+    engine = NLPEngine()
+    result = engine.analyze_email(subject, content)
+    
+    print(json.dumps(result))
+
+if __name__ == "__main__":
+    main()

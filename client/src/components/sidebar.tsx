@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Category } from "@shared/schema";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   categories: Category[];
@@ -62,23 +63,21 @@ export function Sidebar({ categories }: SidebarProps) {
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href || (item.href === "/" && location === "/dashboard");
-            
+
             return (
               <li key={item.href}>
-                <Link href={item.href}>
-                  <a className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive 
-                      ? "bg-blue-50 text-blue-600 font-medium" 
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}>
-                    <Icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                    {item.count && (
-                      <Badge variant="secondary" className="ml-auto">
-                        {item.count}
-                      </Badge>
-                    )}
-                  </a>
+                <Link href={item.href} className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive 
+                    ? "bg-blue-50 text-blue-600 font-medium" 
+                    : "hover:bg-gray-100 text-gray-700"
+                }`}>
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                  {item.count && (
+                    <Badge variant="secondary" className="ml-auto">
+                      {item.count}
+                    </Badge>
+                  )}
                 </Link>
               </li>
             );
@@ -93,13 +92,11 @@ export function Sidebar({ categories }: SidebarProps) {
           <ul className="space-y-1">
             {categories.map((category) => (
               <li key={category.id}>
-                <Link href={`/category/${category.id}`}>
-                  <a className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-                    <div className={`w-3 h-3 rounded-full ${getCategoryColor(category.color)}`}></div>
-                    <span className="text-sm">{category.name}</span>
-                    <span className="ml-auto text-xs text-gray-500">{category.count}</span>
-                  </a>
-                </Link>
+                <div className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 cursor-pointer">
+                  <div className={`w-3 h-3 rounded-full ${getCategoryColor(category.color)}`}></div>
+                  <span className="text-sm">{category.name}</span>
+                  <span className="ml-auto text-xs text-gray-500">{category.count}</span>
+                </div>
               </li>
             ))}
           </ul>
