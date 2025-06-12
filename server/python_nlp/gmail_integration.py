@@ -13,6 +13,30 @@ import logging
 import asyncio
 from collections import deque
 import hashlib
+import os
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# If modifying these SCOPES, delete the file token.json.
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
+# Path for token.json, configurable via environment variable
+TOKEN_JSON_PATH = os.getenv('GMAIL_TOKEN_PATH', 'token.json')
+
+# Credentials content will be loaded from GMAIL_CREDENTIALS_JSON environment variable
+# CREDENTIALS_PATH is now a placeholder for where it *would* be if it were a file.
+# Users should set GMAIL_CREDENTIALS_JSON instead of creating credentials.json
+CREDENTIALS_PATH = 'credentials.json' # Placeholder, not directly used if GMAIL_CREDENTIALS_JSON is set.
+GMAIL_CREDENTIALS_ENV_VAR = 'GMAIL_CREDENTIALS_JSON'
+
 
 @dataclass
 class RateLimitConfig:
@@ -212,11 +236,125 @@ class GmailDataCollector:
         self.cache = EmailCache()
         self.logger = logging.getLogger(__name__)
         
-        # In production, this would be initialized with actual Gmail API credentials
-        self.gmail_service = None  # Placeholder for Gmail API service
+        self.gmail_service = None
+        self._load_credentials()
+        if not self.gmail_service:
+            self._authenticate()
         
+    def _load_credentials(self):
+        """Loads API credentials from storage.
+        Uses TOKEN_JSON_PATH which can be set by GMAIL_TOKEN_PATH env var.
+        """
+        creds = None
+        token_path = TOKEN_JSON_PATH # Uses the global TOKEN_JSON_PATH
+        if os.path.exists(token_path):
+            try:
+                creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+            except Exception as e:
+                self.logger.error(f"Error loading credentials from {token_path}: {e}")
+                creds = None # Ensure creds is None if loading fails
+
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                self.logger.info(f"Refreshing expired credentials from {token_path}...")
+                try:
+                    creds.refresh(Request())
+                except Exception as e:
+                    self.logger.error(f"Error refreshing credentials: {e}")
+                    # Potentially delete token.json and force re-authentication
+                    if os.path.exists(token_path):
+                        try:
+                            os.remove(token_path)
+                            self.logger.info(f"Removed invalid token file: {token_path}")
+                        except OSError as oe:
+                            self.logger.error(f"Error removing token file {token_path}: {oe}")
+                    creds = None # Force re-authentication
+            # If creds are still None (not loaded or refresh failed), _authenticate will be called
+
+        if creds:
+            self.gmail_service = build('gmail', 'v1', credentials=creds)
+            self._store_credentials(creds) # Store potentially refreshed credentials
+        else:
+            self.gmail_service = None # Ensure service is None if no valid creds
+
+    def _store_credentials(self, creds):
+        """Stores API credentials.
+        Uses TOKEN_JSON_PATH which can be set by GMAIL_TOKEN_PATH env var.
+        """
+        token_path = TOKEN_JSON_PATH # Uses the global TOKEN_JSON_PATH
+        try:
+            with open(token_path, 'w') as token_file:
+                token_file.write(creds.to_json())
+            self.logger.info(f"Credentials stored in {token_path}")
+        except OSError as e:
+            self.logger.error(f"Error storing credentials to {token_path}: {e}")
+
+    def _authenticate(self):
+        """Authenticates the user and obtains credentials using GMAIL_CREDENTIALS_JSON env var."""
+        creds = None
+        credentials_json_str = os.getenv(GMAIL_CREDENTIALS_ENV_VAR)
+
+        if not credentials_json_str:
+            self.logger.error(
+                f"Environment variable {GMAIL_CREDENTIALS_ENV_VAR} is not set. "
+                "This variable should contain the JSON content of your Google Cloud credentials file."
+            )
+            # Attempt to fall back to local credentials.json if GMAIL_CREDENTIALS_JSON is not set
+            # This maintains previous behavior if the env var is not set, but logs a warning.
+            self.logger.warning(
+                f"Attempting to use local '{CREDENTIALS_PATH}' as fallback for OAuth. "
+                f"It is recommended to set the {GMAIL_CREDENTIALS_ENV_VAR} environment variable."
+            )
+            if os.path.exists(CREDENTIALS_PATH):
+                 try:
+                    flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
+                 except Exception as e:
+                    self.logger.error(f"Error loading fallback credentials from {CREDENTIALS_PATH}: {e}")
+                    return # Exit if fallback also fails
+            else:
+                self.logger.error(
+                    f"Fallback credentials file '{CREDENTIALS_PATH}' not found. "
+                    "Please set the GMAIL_CREDENTIALS_JSON environment variable or provide the file."
+                )
+                return # Exit if no credentials source is found
+        else:
+            try:
+                credentials_info = json.loads(credentials_json_str)
+                flow = InstalledAppFlow.from_client_config(credentials_info, SCOPES)
+            except json.JSONDecodeError:
+                self.logger.error(
+                    f"Invalid JSON content in {GMAIL_CREDENTIALS_ENV_VAR}. "
+                    "Please ensure it's a valid JSON string."
+                )
+                return
+            except Exception as e: # Catch other potential errors from from_client_config
+                self.logger.error(f"Error loading credentials from {GMAIL_CREDENTIALS_ENV_VAR}: {e}")
+                return
+
+
+        # TODO: This will block if run in a non-interactive environment.
+        # Consider alternative flows for server-side applications (e.g., service accounts
+        # or a web-based OAuth flow where the user is redirected).
+        # For this subtask, we assume an environment where user interaction is possible.
+        try:
+            creds = flow.run_local_server(port=0)
+        except Exception as e: # Catch generic exception from run_local_server
+             self.logger.error(f"OAuth flow failed: {e}")
+             return
+
+
+        if creds:
+            self._store_credentials(creds)
+            self.gmail_service = build('gmail', 'v1', credentials=creds)
+            self.logger.info("Authentication successful, Gmail service initialized.")
+        else:
+            self.logger.error("Failed to obtain credentials.")
+            # Potentially raise an exception or handle this state appropriately
+
     def set_gmail_service(self, service):
-        """Set the Gmail API service instance"""
+        """Set the Gmail API service instance (Deprecated if using OAuth within class)"""
+        # This method might be deprecated or changed if OAuth is handled internally
+        self.logger.warning("set_gmail_service is called, but OAuth is now handled internally.")
         self.gmail_service = service
     
     async def collect_emails_incremental(
@@ -319,16 +457,25 @@ class GmailDataCollector:
         """
         # Simulate Gmail API response with realistic structure
         if self.gmail_service:
-            # Actual Gmail API call would be:
-            # return self.gmail_service.users().messages().list(
-            #     userId='me',
-            #     q=query,
-            #     pageToken=page_token,
-            #     maxResults=max_results
-            # ).execute()
-            pass
-        
-        # Simulated response for development
+            try:
+                # Actual Gmail API call
+                return self.gmail_service.users().messages().list(
+                    userId='me',
+                    q=query,
+                    pageToken=page_token,
+                    maxResults=max_results
+                ).execute()
+            except HttpError as error:
+                self.logger.error(f'An API error occurred: {error}')
+                # Implement more sophisticated error handling and retry logic if needed
+                return {"messages": [], "resultSizeEstimate": 0} # Return empty on error
+            except Exception as e:
+                self.logger.error(f"Unexpected error in _get_message_list: {e}")
+                return {"messages": [], "resultSizeEstimate": 0}
+
+
+        # Fallback to simulated response if gmail_service is not available
+        self.logger.warning("Gmail service not available, using simulated response for _get_message_list.")
         return await self._simulate_gmail_response(query, page_token, max_results)
     
     async def _simulate_gmail_response(
@@ -398,25 +545,82 @@ class GmailDataCollector:
         
         try:
             if self.gmail_service:
-                # Actual Gmail API call would be:
-                # message = self.gmail_service.users().messages().get(
-                #     userId='me',
-                #     id=message_id,
-                #     format='full'
-                # ).execute()
-                pass
+            try:
+                # Actual Gmail API call
+                message = self.gmail_service.users().messages().get(
+                    userId='me',
+                    id=message_id,
+                    format='full'  # 'metadata' or 'raw' could also be used depending on needs
+                ).execute()
+
+                # Process the message payload to extract relevant fields
+                # This part will depend on the structure of the Gmail API response
+                email_data = self._parse_message_payload(message)
+
+                if email_data:
+                    # Cache the email
+                    self.cache.cache_email(email_data)
+                    return email_data
+                else:
+                    self.logger.warning(f"Could not parse email data for message {message_id}")
+                    return None
+
+            except HttpError as error:
+                self.logger.error(f'An API error occurred while fetching message {message_id}: {error}')
+                # Handle different types of errors (e.g., 404 Not Found, 403 Forbidden)
+                return None
+            except Exception as e:
+                self.logger.error(f"Unexpected error retrieving message {message_id}: {e}")
+                return None
+
+        # Fallback to simulated response if gmail_service is not available
+        self.logger.warning(f"Gmail service not available, using simulated content for message {message_id}.")
+        email_data = await self._simulate_email_content(message_id)
+        self.cache.cache_email(email_data)
+        return email_data
             
-            # Simulate message content for development
-            email_data = await self._simulate_email_content(message_id)
+    def _parse_message_payload(self, message: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Parses the raw message payload from Gmail API."""
+        try:
+            headers = {h['name']: h['value'] for h in message.get('payload', {}).get('headers', [])}
             
-            # Cache the email
-            self.cache.cache_email(email_data)
-            
-            return email_data
-            
+            # Simplified content extraction (plaintext preferred)
+            # Real implementation would need to handle multipart messages, base64 decoding, etc.
+            content = ""
+            if 'parts' in message['payload']:
+                for part in message['payload']['parts']:
+                    if part['mimeType'] == 'text/plain' and 'data' in part['body']:
+                        import base64
+                        content = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
+                        break
+                    # Could add more part types (e.g., text/html)
+            elif 'body' in message['payload'] and 'data' in message['payload']['body']:
+                 import base64
+                 content = base64.urlsafe_b64decode(message['payload']['body']['data']).decode('utf-8')
+
+
+            return {
+                "message_id": message['id'],
+                "thread_id": message.get('threadId', ""),
+                "subject": headers.get('Subject', ""),
+                "sender": headers.get('From', ""), # This often includes name and email
+                "sender_email": self._extract_email_address(headers.get('From', "")),
+                "content": content,
+                "labels": message.get('labelIds', []),
+                "timestamp": datetime.fromtimestamp(int(message['internalDate']) / 1000).isoformat()
+            }
         except Exception as e:
-            self.logger.error(f"Error retrieving message {message_id}: {e}")
+            self.logger.error(f"Error parsing message payload for {message.get('id')}: {e}")
             return None
+
+    def _extract_email_address(self, sender_header: str) -> str:
+        """Extracts the email address from a 'From' header string."""
+        # Simple extraction, might need a more robust regex for complex cases
+        import re
+        match = re.search(r'<([^>]+)>', sender_header)
+        if match:
+            return match.group(1)
+        return sender_header # Return the whole string if no angle brackets found
     
     async def _simulate_email_content(self, message_id: str) -> Dict[str, Any]:
         """Simulate email content for development"""
@@ -514,22 +718,55 @@ class GmailDataCollector:
 
 async def main():
     """Example usage of Gmail data collector"""
-    collector = GmailDataCollector()
+    # Note: The main function would need to be async if _authenticate might run an async flow,
+    # or _authenticate needs to be run in a way that doesn't block asyncio loop if used elsewhere.
+    # For now, assuming _authenticate might block or run its own loop for console apps.
     
+    # Note: The dummy credentials.json creation is removed.
+    # The user must now configure environment variables.
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+    logger = logging.getLogger(__name__)
+
+
+    collector = GmailDataCollector() # This will trigger authentication if needed
+
+    if not collector.gmail_service:
+        logger.error("Gmail service initialization failed. Please check logs for details.")
+        print("--------------------------------------------------------------------------------------")
+        print("Gmail Service Initialization Failed!")
+        print("--------------------------------------------------------------------------------------")
+        print("Please ensure the following environment variables are correctly set:")
+        print(f"1. {GMAIL_CREDENTIALS_ENV_VAR}: Should contain the JSON string of your Google Cloud credentials.")
+        print(f"   Example: export {GMAIL_CREDENTIALS_ENV_VAR}='{{ \"installed\": {{ ... }} }}'")
+        print(f"   (Alternatively, as a fallback, place a 'credentials.json' file in the script's directory: {os.getcwd()})")
+        print(f"2. GMAIL_TOKEN_PATH (Optional): Specify a custom path for 'token.json'.")
+        print(f"   Defaults to '{TOKEN_JSON_PATH}' in the script's directory: {os.getcwd()}")
+        print("If running for the first time, you might need to go through the OAuth2 authentication flow in your browser.")
+        print("Check the console logs for more detailed error messages from the application.")
+        print("--------------------------------------------------------------------------------------")
+        return
+
     # Execute daily sync strategy
     try:
-        batch = await collector.execute_collection_strategy("daily_sync")
-        print(f"Collected {batch.total_count} emails in batch {batch.batch_id}")
-        
-        # Print first few emails
-        for email in batch.messages[:3]:
-            print(f"Subject: {email['subject']}")
-            print(f"From: {email['sender']} <{email['sender_email']}>")
-            print(f"Preview: {email['content'][:100]}...")
-            print("---")
+        # Need an event loop to run async functions
+        loop = asyncio.get_event_loop()
+        batch = loop.run_until_complete(collector.execute_collection_strategy("daily_sync"))
+
+        if batch:
+            print(f"Collected {batch.total_count} emails in batch {batch.batch_id}")
+
+            # Print first few emails
+            for email in batch.messages[:3]:
+                print(f"Subject: {email['subject']}")
+                print(f"From: {email['sender']} <{email['sender_email']}>")
+                print(f"Preview: {email['content'][:100]}...")
+                print("---")
+        else:
+            print("No emails collected or collection failed.")
             
     except Exception as e:
         print(f"Collection failed: {e}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # asyncio.run(main()) # main is not an async function
+    main()

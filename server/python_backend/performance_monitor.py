@@ -10,9 +10,11 @@ from datetime import datetime, timedelta
 from collections import defaultdict, deque
 import json
 import psutil
-import sqlite3
+# import sqlite3 # Removed SQLite
 
 logger = logging.getLogger(__name__)
+
+# dataclasses remain the same
 
 @dataclass
 class PerformanceMetric:
@@ -34,72 +36,30 @@ class SystemHealth:
     uptime: float
 
 class PerformanceMonitor:
-    """Performance monitoring for email processing"""
+    """Performance monitoring for email processing (In-memory version)"""
 
-    def __init__(self, db_path: str = "performance.db"):
+    def __init__(self): # Removed db_path
         self.metrics_history = defaultdict(deque)
-        self.performance_data = {}
+        # self.performance_data = {} # This was not used, can be removed
         self.alert_thresholds = {
-            'processing_time': 5.0,  # seconds
-            'error_rate': 0.1,  # 10%
-            'memory_usage': 0.8,  # 80%
-            "cpu_usage": 80.0,
-            "memory_usage": 85.0,
-            "disk_usage": 90.0,
-            "response_time": 5000.0,  # milliseconds
-            "error_rate": 10.0  # percentage
+            'processing_time': 5.0,  # seconds # This specific key is not used in _check_alerts
+            'error_rate': 0.1,       # 10% # This specific key is not used in _check_alerts
+            # 'memory_usage': 0.8,     # 80% # This is covered by system health alert thresholds
+            "cpu_usage": 80.0,       # Used by system health and _check_alerts if metric 'cpu_usage' recorded
+            "memory_usage": 85.0,    # Used by system health and _check_alerts if metric 'memory_usage' recorded
+            "disk_usage": 90.0,      # Used by system health
+            "response_time": 5000.0, # milliseconds # Used by _check_alerts
+            # "error_rate": 10.0     # percentage # This is covered by email processing error rate
         }
-        self.db_path = db_path
-        self.metrics_buffer = deque(maxlen=1000)
-        self.service_metrics = defaultdict(list)
-        self.init_database()
+        # self.db_path = db_path # Removed
+        self.metrics_buffer = deque(maxlen=1000) # In-memory buffer for metrics
+        self.alerts_buffer = deque(maxlen=100) # In-memory buffer for alerts
+        self.system_health_history = deque(maxlen=100) # In-memory for system health
+        # self.service_metrics = defaultdict(list) # This was not used, can be removed
+        # self.init_database() # Removed SQLite database initialization
+        logger.info("PerformanceMonitor initialized (in-memory mode). SQLite persistence removed.")
 
-    def init_database(self):
-        """Initialize performance monitoring database"""
-        conn = sqlite3.connect(self.db_path)
-
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS performance_metrics (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL,
-                metric_name TEXT NOT NULL,
-                value REAL NOT NULL,
-                tags TEXT,
-                metadata TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS system_health (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL,
-                status TEXT NOT NULL,
-                cpu_usage REAL,
-                memory_usage REAL,
-                disk_usage REAL,
-                process_count INTEGER,
-                uptime REAL,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS performance_alerts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL,
-                alert_type TEXT NOT NULL,
-                severity TEXT NOT NULL,
-                message TEXT NOT NULL,
-                metric_value REAL,
-                threshold REAL,
-                resolved BOOLEAN DEFAULT FALSE,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-
-        conn.commit()
-        conn.close()
+    # init_database method removed as SQLite is no longer used.
 
     async def record_email_processing(
         self,
@@ -256,65 +216,35 @@ class PerformanceMonitor:
 
         self.metrics_buffer.append(metric)
 
-        # Store in database
-        await self._store_metric(metric)
+        # Store in database (Removed)
+        # await self._store_metric(metric)
+        logger.debug(f"Metric recorded (in-memory): {metric.metric_name} = {metric.value}")
 
-        # Check for alerts
+        # Check for alerts (in-memory)
         await self._check_alerts(metric)
 
-    async def _store_metric(self, metric: PerformanceMetric):
-        """Store metric in database"""
-        conn = sqlite3.connect(self.db_path)
-
-        conn.execute("""
-            INSERT INTO performance_metrics
-            (timestamp, metric_name, value, tags, metadata)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            metric.timestamp.isoformat(),
-            metric.metric_name,
-            metric.value,
-            json.dumps(metric.tags),
-            json.dumps(metric.metadata)
-        ))
-
-        conn.commit()
-        conn.close()
+    # _store_metric method removed
 
     async def _check_alerts(self, metric: PerformanceMetric):
-        """Check if metric triggers any alerts"""
+        """Check if metric triggers any alerts and store them in-memory."""
         threshold = self.alert_thresholds.get(metric.metric_name)
         if threshold and metric.value > threshold:
-            await self._create_alert(
-                alert_type=metric.metric_name,
-                severity="warning" if metric.value < threshold * 1.2 else "critical",
-                message=f"{metric.metric_name} exceeded threshold: {metric.value:.2f} > {threshold}",
-                metric_value=metric.value,
-                threshold=threshold
-            )
+            alert_message = f"{metric.metric_name} exceeded threshold: {metric.value:.2f} > {threshold}"
+            severity = "warning" if metric.value < threshold * 1.2 else "critical"
 
-    async def _create_alert(self, alert_type: str, severity: str, message: str,
-                          metric_value: float, threshold: float):
-        """Create a performance alert"""
-        conn = sqlite3.connect(self.db_path)
+            alert_data = {
+                "timestamp": datetime.now().isoformat(),
+                "alert_type": metric.metric_name,
+                "severity": severity,
+                "message": alert_message,
+                "metric_value": metric.value,
+                "threshold": threshold,
+                "resolved": False # In-memory alerts are not resolved in this simple model
+            }
+            self.alerts_buffer.append(alert_data)
+            logger.warning(f"Performance Alert [{severity}]: {alert_message}")
 
-        conn.execute("""
-            INSERT INTO performance_alerts
-            (timestamp, alert_type, severity, message, metric_value, threshold)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            datetime.now().isoformat(),
-            alert_type,
-            severity,
-            message,
-            metric_value,
-            threshold
-        ))
-
-        conn.commit()
-        conn.close()
-
-        logger.warning(f"Performance Alert [{severity}]: {message}")
+    # _create_alert method (DB part) removed. Alert logging is now in _check_alerts.
 
     async def get_system_health(self) -> SystemHealth:
         """Get current system health status"""
@@ -345,13 +275,15 @@ class PerformanceMonitor:
                 uptime=uptime
             )
 
-            # Record system health
-            await self._store_system_health(health)
+            # Record system health (in-memory)
+            self.system_health_history.append(health)
+            # await self._store_system_health(health) # Removed DB storage
 
             return health
 
         except Exception as e:
             logger.error(f"Error getting system health: {e}")
+            # Return a SystemHealth object even in case of error
             return SystemHealth(
                 status="unknown",
                 cpu_usage=0.0,
@@ -361,120 +293,77 @@ class PerformanceMonitor:
                 uptime=0.0
             )
 
-    async def _store_system_health(self, health: SystemHealth):
-        """Store system health in database"""
-        conn = sqlite3.connect(self.db_path)
-
-        conn.execute("""
-            INSERT INTO system_health
-            (timestamp, status, cpu_usage, memory_usage, disk_usage, process_count, uptime)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            datetime.now().isoformat(),
-            health.status,
-            health.cpu_usage,
-            health.memory_usage,
-            health.disk_usage,
-            health.process_count,
-            health.uptime
-        ))
-
-        conn.commit()
-        conn.close()
+    # _store_system_health method removed
 
     async def get_metrics_summary(self, hours: int = 24) -> Dict[str, Any]:
-        """Get performance metrics summary for the past N hours"""
-        conn = sqlite3.connect(self.db_path)
-
+        """Get performance metrics summary for the past N hours from in-memory buffer."""
         since_time = datetime.now() - timedelta(hours=hours)
 
-        cursor = conn.execute("""
-            SELECT metric_name,
-                   COUNT(*) as count,
-                   AVG(value) as avg_value,
-                   MIN(value) as min_value,
-                   MAX(value) as max_value,
-                   STDEV(value) as std_dev
-            FROM performance_metrics
-            WHERE timestamp > ?
-            GROUP BY metric_name
-        """, (since_time.isoformat(),))
+        # Filter metrics from buffer
+        relevant_metrics = [m for m in self.metrics_buffer if m.timestamp > since_time]
 
-        metrics_summary = {}
-        for row in cursor.fetchall():
-            metrics_summary[row[0]] = {
-                "count": row[1],
-                "average": row[2],
-                "minimum": row[3],
-                "maximum": row[4],
-                "std_deviation": row[5] or 0.0
+        metrics_summary_temp = defaultdict(list)
+        for metric in relevant_metrics:
+            metrics_summary_temp[metric.metric_name].append(metric.value)
+
+        final_metrics_summary = {}
+        for name, values in metrics_summary_temp.items():
+            count = len(values)
+            avg = sum(values) / count if count > 0 else 0
+            # Basic stats, can add min, max, std_dev if numpy/statistics is allowed or implemented manually
+            final_metrics_summary[name] = {
+                "count": count,
+                "average": avg,
+                "sum": sum(values),
+                "values": values # Could be large, consider removing for actual summary
             }
 
-        # Get recent alerts
-        cursor = conn.execute("""
-            SELECT alert_type, severity, COUNT(*) as count
-            FROM performance_alerts
-            WHERE timestamp > ? AND resolved = FALSE
-            GROUP BY alert_type, severity
-        """, (since_time.isoformat(),))
+        # Filter alerts from buffer
+        relevant_alerts = [a for a in self.alerts_buffer if datetime.fromisoformat(a['timestamp']) > since_time and not a['resolved']]
+        alerts_summary_temp = defaultdict(lambda: defaultdict(int))
+        for alert in relevant_alerts:
+            alerts_summary_temp[alert['alert_type']][alert['severity']] += 1
 
-        alerts_summary = []
-        for row in cursor.fetchall():
-            alerts_summary.append({
-                "type": row[0],
-                "severity": row[1],
-                "count": row[2]
-            })
+        final_alerts_summary = []
+        for alert_type, severities in alerts_summary_temp.items():
+            for severity, count in severities.items():
+                 final_alerts_summary.append({
+                    "type": alert_type,
+                    "severity": severity,
+                    "count": count
+                })
 
-        conn.close()
 
         return {
             "time_range_hours": hours,
-            "metrics": metrics_summary,
-            "alerts": alerts_summary,
-            "total_metrics": sum(m["count"] for m in metrics_summary.values())
+            "metrics": final_metrics_summary,
+            "alerts": final_alerts_summary,
+            "total_metrics_recorded_in_buffer_for_period": len(relevant_metrics)
         }
 
     async def get_service_performance(self, service_name: str, hours: int = 24) -> Dict[str, Any]:
-        """Get performance data for a specific service"""
-        conn = sqlite3.connect(self.db_path)
-
+        """Get performance data for a specific service from in-memory buffer."""
         since_time = datetime.now() - timedelta(hours=hours)
 
-        cursor = conn.execute("""
-            SELECT timestamp, metric_name, value, tags, metadata
-            FROM performance_metrics
-            WHERE timestamp > ? AND tags LIKE ?
-            ORDER BY timestamp DESC
-        """, (since_time.isoformat(), f'%{service_name}%'))
+        service_data_points = []
+        for metric in self.metrics_buffer:
+            if metric.timestamp > since_time and metric.tags.get("service") == service_name:
+                 service_data_points.append(metric) # Store the whole PerformanceMetric object
 
-        service_data = []
-        for row in cursor.fetchall():
-            service_data.append({
-                "timestamp": row[0],
-                "metric_name": row[1],
-                "value": row[2],
-                "tags": json.loads(row[3]) if row[3] else {},
-                "metadata": json.loads(row[4]) if row[4] else {}
-            })
-
-        conn.close()
-
-        # Calculate service-specific metrics
-        response_times = [d["value"] for d in service_data if d["metric_name"] == "response_time"]
-        error_counts = [d["value"] for d in service_data if d["metric_name"] == "error_count"]
+        response_times = [m.value for m in service_data_points if m.metric_name == "response_time"]
+        error_counts = [m.value for m in service_data_points if m.metric_name == "error_count"] # Assuming error_count is 1 per error
 
         avg_response_time = sum(response_times) / len(response_times) if response_times else 0
-        total_errors = sum(error_counts) if error_counts else 0
+        total_errors = sum(error_counts) # Sum of values (e.g., if value is 1 per error)
 
         return {
             "service_name": service_name,
             "time_range_hours": hours,
-            "total_requests": len(service_data),
-            "average_response_time": avg_response_time,
+            "total_requests_or_metrics": len(service_data_points), # More generic name
+            "average_response_time_ms": avg_response_time,
             "total_errors": total_errors,
-            "error_rate": (total_errors / len(service_data) * 100) if service_data else 0,
-            "data_points": service_data
+            "error_rate_percentage": (total_errors / len(response_times) * 100) if response_times else 0, # Error rate based on response_time metrics
+            "data_points": [vars(m) for m in service_data_points] # Convert dataclasses to dicts for output
         }
 
     async def track_function_performance(self, func_name: str):
@@ -578,44 +467,14 @@ class PerformanceMonitor:
         return recommendations
 
     async def cleanup_old_data(self, days: int = 30):
-        """Clean up old performance data"""
-        conn = sqlite3.connect(self.db_path)
-
-        cutoff_date = datetime.now() - timedelta(days=days)
-
-        # Clean up old metrics
-        cursor = conn.execute("""
-            DELETE FROM performance_metrics
-            WHERE timestamp < ?
-        """, (cutoff_date.isoformat(),))
-
-        metrics_deleted = cursor.rowcount
-
-        # Clean up old system health data
-        cursor = conn.execute("""
-            DELETE FROM system_health
-            WHERE timestamp < ?
-        """, (cutoff_date.isoformat(),))
-
-        health_deleted = cursor.rowcount
-
-        # Clean up resolved alerts
-        cursor = conn.execute("""
-            DELETE FROM performance_alerts
-            WHERE timestamp < ? AND resolved = TRUE
-        """, (cutoff_date.isoformat(),))
-
-        alerts_deleted = cursor.rowcount
-
-        conn.commit()
-        conn.close()
-
-        logger.info(f"Cleaned up old data: {metrics_deleted} metrics, {health_deleted} health records, {alerts_deleted} alerts")
-
+        """Clean up old performance data (No longer needed for in-memory)"""
+        # This method is no longer needed as deques handle fixed-size history.
+        # If specific cleanup of in-memory buffers were needed, it would go here.
+        logger.info("cleanup_old_data called, but not applicable for in-memory PerformanceMonitor.")
         return {
-            "metrics_deleted": metrics_deleted,
-            "health_records_deleted": health_deleted,
-            "alerts_deleted": alerts_deleted
+            "metrics_deleted": 0, # No direct deletion like from DB
+            "health_records_deleted": 0,
+            "alerts_deleted": 0
         }
 
 async def main():
