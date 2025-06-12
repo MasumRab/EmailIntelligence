@@ -18,17 +18,75 @@ export const categories = pgTable("categories", {
 
 export const emails = pgTable("emails", {
   id: serial("id").primaryKey(),
+  
+  // Core identifiers
+  messageId: text("message_id").unique(),
+  threadId: text("thread_id"),
+  historyId: text("history_id"),
+  
+  // Basic email properties
   sender: text("sender").notNull(),
   senderEmail: text("sender_email").notNull(),
   subject: text("subject").notNull(),
   content: text("content").notNull(),
+  contentHtml: text("content_html"),
   preview: text("preview").notNull(),
+  snippet: text("snippet"),
+  
+  // Recipients
+  toAddresses: text("to_addresses").array(),
+  ccAddresses: text("cc_addresses").array(),
+  bccAddresses: text("bcc_addresses").array(),
+  replyTo: text("reply_to"),
+  
+  // Timestamps
   time: text("time").notNull(),
-  categoryId: integer("category_id").references(() => categories.id),
+  internalDate: text("internal_date"),
+  
+  // Gmail-specific properties
+  labelIds: text("label_ids").array(),
   labels: text("labels").array(),
-  confidence: integer("confidence").default(95),
+  category: text("category"), // primary, social, promotions, updates, forums
+  
+  // Message state
+  isUnread: boolean("is_unread").default(true),
   isStarred: boolean("is_starred").default(false),
-  isRead: boolean("is_read").default(false),
+  isImportant: boolean("is_important").default(false),
+  isDraft: boolean("is_draft").default(false),
+  isSent: boolean("is_sent").default(false),
+  isSpam: boolean("is_spam").default(false),
+  isTrash: boolean("is_trash").default(false),
+  isChat: boolean("is_chat").default(false),
+  
+  // Content properties
+  hasAttachments: boolean("has_attachments").default(false),
+  attachmentCount: integer("attachment_count").default(0),
+  sizeEstimate: integer("size_estimate"),
+  
+  // Security and authentication
+  spfStatus: text("spf_status"), // pass, fail, neutral, etc.
+  dkimStatus: text("dkim_status"),
+  dmarcStatus: text("dmarc_status"),
+  isEncrypted: boolean("is_encrypted").default(false),
+  isSigned: boolean("is_signed").default(false),
+  
+  // Priority and handling
+  priority: text("priority").default("normal"), // low, normal, high
+  isAutoReply: boolean("is_auto_reply").default(false),
+  mailingList: text("mailing_list"),
+  
+  // Thread and conversation
+  inReplyTo: text("in_reply_to"),
+  references: text("references").array(),
+  isFirstInThread: boolean("is_first_in_thread").default(true),
+  
+  // AI analysis results
+  categoryId: integer("category_id").references(() => categories.id),
+  confidence: integer("confidence").default(95),
+  analysisMetadata: text("analysis_metadata"), // JSON string for additional metadata
+  
+  // Legacy compatibility
+  isRead: boolean("is_read").default(false), // Computed from isUnread
 });
 
 export const activities = pgTable("activities", {
