@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertEmailSchema, insertCategorySchema, insertActivitySchema } from "@shared/schema";
 import { pythonNLP } from "./python-bridge";
+import { gmailAIService } from "./gmail-ai-service";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
