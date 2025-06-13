@@ -54,9 +54,28 @@ if %errorlevel% equ 0 (
             call conda activate "%PROJECT_CONDA_ENV_NAME%"
             if !errorlevel! neq 0 (
                 echo WARNING: Failed to activate Conda environment: %PROJECT_CONDA_ENV_NAME%.
-                echo It might not exist or Conda needs setup (e.g., conda init for your shell).
-                echo Falling back to standard venv.
-                set "PROJECT_CONDA_ENV_NAME=your_conda_env_name"
+                echo Attempting to create the Conda environment...
+                call conda create -n "%PROJECT_CONDA_ENV_NAME%" python=3.9 -y
+                if !errorlevel! neq 0 (
+                    echo WARNING: Failed to create Conda environment: %PROJECT_CONDA_ENV_NAME%.
+                    echo It might not exist or Conda needs setup (e.g., conda init for your shell).
+                    echo Falling back to standard venv.
+                    set "PROJECT_CONDA_ENV_NAME=your_conda_env_name"
+                ) else (
+                    echo Successfully created Conda environment: %PROJECT_CONDA_ENV_NAME%.
+                    echo Attempting to activate the newly created environment...
+                    call conda activate "%PROJECT_CONDA_ENV_NAME%"
+                    if !errorlevel! neq 0 (
+                        echo WARNING: Failed to activate newly created Conda environment: %PROJECT_CONDA_ENV_NAME%.
+                        echo Falling back to standard venv.
+                        set "PROJECT_CONDA_ENV_NAME=your_conda_env_name"
+                    ) else (
+                        set "CONDA_ENV_ACTIVATED_BY_SCRIPT=1"
+                        set "PYTHON_EXE=%CONDA_PREFIX%\python.exe"
+                        echo Successfully activated newly created Conda environment: %PROJECT_CONDA_ENV_NAME%
+                        echo Using Python from Conda env: %PYTHON_EXE%
+                    )
+                )
             ) else (
                 set "CONDA_ENV_ACTIVATED_BY_SCRIPT=1"
                 set "PYTHON_EXE=%CONDA_PREFIX%\python.exe"
