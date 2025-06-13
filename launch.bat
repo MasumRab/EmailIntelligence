@@ -111,13 +111,14 @@ if not defined CONDA_DEFAULT_ENV and not defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
     if defined IS_POWERSHELL (
         if exist "%VENV_DIR%\Scripts\Activate.ps1" (
             echo Activating venv for PowerShell...
-            powershell -NoProfile -ExecutionPolicy Bypass -Command "& {& '%CD%\%VENV_DIR%\Scripts\Activate.ps1'; $env:ACTIVATION_SUCCESSFUL='true'}"
-            if "!ACTIVATION_SUCCESSFUL!"=="true" (
-                echo PowerShell venv activation script part executed.
+            set "ACTIVATION_STATUS="
+            FOR /F "tokens=*" %%i IN ('powershell -NoProfile -ExecutionPolicy Bypass -Command "& ""%CD%\%VENV_DIR%\Scripts\Activate.ps1""; if ($?) { Write-Host ""PS_ACTIVATE_SUCCESS"" }"') DO SET "ACTIVATION_STATUS=%%i"
+            if "!ACTIVATION_STATUS!"=="PS_ACTIVATE_SUCCESS" (
+                echo PowerShell venv activation successful.
                 set "VENV_ACTIVATED_BY_SCRIPT=1"
                 set "PYTHON_EXE=%CD%\%VENV_DIR%\Scripts\python.exe"
             ) else (
-                echo PowerShell venv activation failed or did not confirm.
+                echo PowerShell venv activation failed or script did not confirm success.
             )
         ) else (
             echo %VENV_DIR%\Scripts\Activate.ps1 not found. Cannot activate for PowerShell.
