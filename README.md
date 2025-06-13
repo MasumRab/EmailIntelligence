@@ -1,6 +1,88 @@
-# Project Title (Replace with Actual Title)
+# EmailIntelligence
 
-This project is a full-stack application with a Node.js/TypeScript backend, a Python FastAPI backend for AI/NLP tasks, and a React frontend.
+EmailIntelligence is a full-stack application that provides intelligent email analysis and management capabilities. It combines a Node.js/TypeScript backend, a Python FastAPI backend for AI/NLP tasks, and a React frontend to deliver a comprehensive email intelligence solution.
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Configuration](#configuration)
+- [Security Considerations](#security-considerations)
+- [Gmail API Integration Setup](#gmail-api-integration-setup)
+- [Running the Application](#running-the-application)
+- [AI System Overview](#ai-system-overview)
+- [Building for Production](#building-for-production)
+- [Database](#database)
+- [Extension System](#extension-system)
+
+## Project Overview
+
+EmailIntelligence helps users analyze, categorize, and manage their emails more efficiently through:
+- Sentiment analysis of email content
+- Topic classification and categorization
+- Intent recognition
+- Urgency detection
+- Smart filtering and organization
+
+The project uses a modular architecture with a unified launcher system, comprehensive environment management, and an extensions framework for easy customization.
+
+## Project Structure
+
+The project is organized into the following main components:
+
+- **client/** - React frontend application
+- **server/** - Backend services
+  - **server/python_nlp/** - Python NLP and AI components
+  - **server/python_backend/** - Python FastAPI backend
+- **deployment/** - Deployment configurations and scripts
+- **extensions/** - Extension system for adding custom functionality
+- **tests/** - Test suite for the application
+- **launch.py**, **launch.bat**, **launch.sh** - Unified launcher scripts
+
+## Quick Start
+
+The easiest way to get started with EmailIntelligence is to use the unified launcher system:
+
+### Windows
+
+```bash
+# Clone the repository
+git clone <repository_url>
+cd EmailIntelligence
+
+# Run the application in development mode
+launch.bat --stage dev
+```
+
+### Linux/macOS
+
+```bash
+# Clone the repository
+git clone <repository_url>
+cd EmailIntelligence
+
+# Make the launcher script executable
+chmod +x launch.sh
+
+# Run the application in development mode
+./launch.sh --stage dev
+```
+
+For more detailed setup instructions, see the [Prerequisites](#prerequisites) and [Setup](#setup) sections below.
+
+## Documentation
+
+This project includes several specialized documentation files:
+
+- [Environment Management](README_ENV_MANAGEMENT.md) - Details about the Python environment management system
+- [Launcher System](LAUNCHER.md) - Information about the unified launcher system
+- [Deployment Frameworks](DEPLOYMENT.md) - Overview of deployment options and configurations
+- [Python Style Guide](PYTHON_STYLE_GUIDE.md) - Coding standards for Python code in the project
+- [Deployment README](deployment/README.md) - Specific deployment instructions and configurations
 
 ## Prerequisites
 
@@ -183,6 +265,8 @@ npm run build
 ```
 This will build the frontend and the Node.js backend. The Python server needs to be run separately in a production environment.
 
+For more advanced deployment options, refer to the [Deployment Frameworks](DEPLOYMENT.md) documentation.
+
 ## Database
 
 The application uses a database. Schema push/migrations can be handled by:
@@ -190,3 +274,30 @@ The application uses a database. Schema push/migrations can be handled by:
 npm run db:push
 ```
 Ensure your `DATABASE_URL` environment variable is correctly configured.
+
+## Extension System
+
+EmailIntelligence includes a powerful extension system that allows you to add custom functionality to the application. Extensions can enhance the AI capabilities, add new features, or modify existing functionality.
+
+### Available Extensions
+
+The project comes with an example extension that demonstrates how to use the extension system:
+
+- **Example Extension**: Enhances sentiment analysis with emojis and detailed metrics
+
+### Managing Extensions
+
+You can manage extensions using the launcher script:
+
+```bash
+# List all installed extensions
+python launch.py --list-extensions
+
+# Install an extension from a Git repository
+python launch.py --install-extension https://github.com/username/extension.git
+
+# Create a new extension template
+python launch.py --create-extension my_extension
+```
+
+For more information about the extension system, see the [Environment Management](README_ENV_MANAGEMENT.md#extension-system) documentation.

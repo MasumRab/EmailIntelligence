@@ -1,0 +1,4 @@
+# No additional dependencies required for this extension
+# If you need to add dependencies, list them here, one per line
+# Example:
+# emoji==1.7.0
