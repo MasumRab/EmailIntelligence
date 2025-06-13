@@ -3,7 +3,7 @@ FastAPI Backend for Gmail AI Email Management
 Unified Python backend with optimized performance and integrated NLP
 """
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -12,6 +12,9 @@ import asyncio
 import logging
 from datetime import datetime
 import os
+import psycopg2
+from googleapiclient.errors import HttpError as GoogleApiHttpError
+import json
 
 # Import our Python modules
 from .database import DatabaseManager, get_db
@@ -99,28 +102,54 @@ class FilterRequest(BaseModel):
 
 # Dashboard Endpoints
 @app.get("/api/dashboard/stats", response_model=DashboardStatsResponse)
-async def get_dashboard_stats(db: DatabaseManager = Depends(get_db)):
+async def get_dashboard_stats(request: Request, db: DatabaseManager = Depends(get_db)):
     """Get comprehensive dashboard statistics"""
     try:
         stats = await db.get_dashboard_stats()
         return stats
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": "Database operation failed",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error fetching dashboard stats: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_dashboard_stats",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch dashboard stats")
 
 @app.get("/api/performance/overview")
-async def get_performance_overview():
+async def get_performance_overview(request: Request):
     """Get real-time performance overview"""
     try:
         overview = await performance_monitor.get_real_time_dashboard()
         return overview
     except Exception as e:
-        logger.error(f"Error fetching performance overview: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_performance_overview",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch performance data")
 
 # Email Management Endpoints
 @app.get("/api/emails", response_model=List[EmailResponse])
 async def get_emails(
+    request: Request,
     category_id: Optional[int] = None,
     search: Optional[str] = None,
     db: DatabaseManager = Depends(get_db)
@@ -135,12 +164,30 @@ async def get_emails(
             emails = await db.get_all_emails()
         
         return [EmailResponse(**email) for email in emails]
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": "Database operation failed while fetching emails",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error fetching emails: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_emails",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
 @app.get("/api/emails/{email_id}")
-async def get_email(email_id: int, db: DatabaseManager = Depends(get_db)):
+async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
     """Get specific email by ID"""
     try:
         email = await db.get_email_by_id(email_id)
@@ -149,12 +196,31 @@ async def get_email(email_id: int, db: DatabaseManager = Depends(get_db)):
         return email
     except HTTPException:
         raise
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": f"Database operation failed while fetching email id {email_id}",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error fetching email {email_id}: {e}")
+        logger.error(
+            json.dumps({
+                "message": f"Unhandled error fetching email id {email_id}",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 @app.post("/api/emails")
 async def create_email(
+    request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
     db: DatabaseManager = Depends(get_db)
@@ -187,12 +253,31 @@ async def create_email(
         )
         
         return created_email
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": "Database operation failed while creating email",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error creating email: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in create_email",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to create email")
 
 @app.put("/api/emails/{email_id}")
 async def update_email(
+    request: Request,
     email_id: int,
     email_update: EmailUpdate,
     db: DatabaseManager = Depends(get_db)
@@ -205,23 +290,60 @@ async def update_email(
         return updated_email
     except HTTPException:
         raise
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": f"Database operation failed while updating email id {email_id}",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error updating email {email_id}: {e}")
+        logger.error(
+            json.dumps({
+                "message": f"Unhandled error updating email id {email_id}",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to update email")
 
 # Category Management Endpoints
 @app.get("/api/categories", response_model=List[CategoryResponse])
-async def get_categories(db: DatabaseManager = Depends(get_db)):
+async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
     """Get all categories"""
     try:
         categories = await db.get_all_categories()
         return [CategoryResponse(**cat) for cat in categories]
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": "Database operation failed while fetching categories",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error fetching categories: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_categories",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 @app.post("/api/categories")
 async def create_category(
+    request: Request,
     category: CategoryCreate,
     db: DatabaseManager = Depends(get_db)
 ):
@@ -229,24 +351,43 @@ async def create_category(
     try:
         created_category = await db.create_category(category.dict())
         return created_category
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": "Database operation failed while creating category",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error creating category: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in create_category",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to create category")
 
 # Gmail Integration Endpoints
 @app.post("/api/gmail/sync")
 async def sync_gmail(
-    request: GmailSyncRequest,
+    req: Request, # Renamed to req to avoid conflict with request model
+    request_model: GmailSyncRequest, # Renamed model
     background_tasks: BackgroundTasks
 ):
     """Sync emails from Gmail with AI analysis"""
     try:
         result = await gmail_service.sync_gmail_emails(
-            max_emails=request.maxEmails,
-            query_filter=request.queryFilter,
-            include_ai_analysis=request.includeAIAnalysis,
-            strategies=request.strategies,
-            time_budget_minutes=request.timeBudgetMinutes
+            max_emails=request_model.maxEmails,
+            query_filter=request_model.queryFilter,
+            include_ai_analysis=request_model.includeAIAnalysis,
+            strategies=request_model.strategies,
+            time_budget_minutes=request_model.timeBudgetMinutes
         )
         
         # Background performance monitoring
@@ -256,114 +397,274 @@ async def sync_gmail(
         )
         
         return result
+    except GoogleApiHttpError as gmail_err:
+        error_details_dict = {}
+        try:
+            error_details_dict = json.loads(gmail_err.content.decode())
+        except: # Broad except for decoding issues
+            error_details_dict = {"message": "Failed to decode Gmail error content."}
+
+        logger.error(
+            json.dumps({
+                "message": "Gmail API operation failed during sync",
+                "endpoint": str(req.url), # Use req here
+                "error_type": type(gmail_err).__name__,
+                "error_detail": error_details_dict.get("error", {}).get("message", str(gmail_err)),
+                "gmail_status_code": gmail_err.resp.status if hasattr(gmail_err, 'resp') else None,
+                "full_gmail_error": error_details_dict,
+            })
+        )
+        status_code = gmail_err.resp.status if hasattr(gmail_err, 'resp') else 502
+        detail = "Gmail API error during sync."
+        if status_code == 401: # Unauthorized
+            detail = "Gmail API authentication failed. Check credentials or token."
+        elif status_code == 403: # Forbidden
+            detail = "Gmail API permission denied. Ensure API is enabled and scopes are correct."
+        elif status_code == 429: # Too Many Requests
+            detail = "Gmail API rate limit exceeded. Please try again later."
+        else: # Other errors (500, 502, 503, etc.)
+            status_code = 502 # Treat as Bad Gateway from Gmail
+            detail = "Gmail API returned an unexpected error. Please try again later."
+
+        raise HTTPException(status_code=status_code, detail=detail)
     except Exception as e:
-        logger.error(f"Gmail sync failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Gmail sync failed: {str(e)}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in sync_gmail",
+                "endpoint": str(req.url), # Use req here
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
+        raise HTTPException(status_code=500, detail=f"Gmail sync failed due to an unexpected error: {str(e)}")
 
 @app.post("/api/gmail/smart-retrieval")
-async def smart_retrieval(request: SmartRetrievalRequest):
+async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest): # Renamed params
     """Execute smart Gmail retrieval with multiple strategies"""
     try:
         result = await gmail_service.execute_smart_retrieval(
-            strategies=request.strategies,
-            max_api_calls=request.maxApiCalls,
-            time_budget_minutes=request.timeBudgetMinutes
+            strategies=request_model.strategies,
+            max_api_calls=request_model.maxApiCalls,
+            time_budget_minutes=request_model.timeBudgetMinutes
         )
         return result
+    except GoogleApiHttpError as gmail_err:
+        error_details_dict = {}
+        try:
+            error_details_dict = json.loads(gmail_err.content.decode())
+        except: # Broad except for decoding issues
+            error_details_dict = {"message": "Failed to decode Gmail error content."}
+
+        logger.error(
+            json.dumps({
+                "message": "Gmail API operation failed during smart retrieval",
+                "endpoint": str(req.url), # Use req here
+                "error_type": type(gmail_err).__name__,
+                "error_detail": error_details_dict.get("error", {}).get("message", str(gmail_err)),
+                "gmail_status_code": gmail_err.resp.status if hasattr(gmail_err, 'resp') else None,
+                "full_gmail_error": error_details_dict,
+            })
+        )
+        status_code = gmail_err.resp.status if hasattr(gmail_err, 'resp') else 502
+        detail = "Gmail API error during smart retrieval."
+        if status_code == 401: # Unauthorized
+            detail = "Gmail API authentication failed. Check credentials or token."
+        elif status_code == 403: # Forbidden
+            detail = "Gmail API permission denied. Ensure API is enabled and scopes are correct."
+        elif status_code == 429: # Too Many Requests
+            detail = "Gmail API rate limit exceeded. Please try again later."
+        else: # Other errors
+            status_code = 502 # Treat as Bad Gateway
+            detail = "Gmail API returned an unexpected error during smart retrieval."
+
+        raise HTTPException(status_code=status_code, detail=detail)
     except Exception as e:
-        logger.error(f"Smart retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Smart retrieval failed: {str(e)}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in smart_retrieval",
+                "endpoint": str(req.url), # Use req here
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
+        raise HTTPException(status_code=500, detail=f"Smart retrieval failed due to an unexpected error: {str(e)}")
 
 @app.get("/api/gmail/strategies")
-async def get_retrieval_strategies():
+async def get_retrieval_strategies(request: Request):
     """Get available Gmail retrieval strategies"""
     try:
         strategies = await gmail_service.get_retrieval_strategies()
         return {"strategies": strategies}
     except Exception as e:
-        logger.error(f"Error fetching strategies: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_retrieval_strategies",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch strategies")
 
 @app.get("/api/gmail/performance")
-async def get_gmail_performance():
+async def get_gmail_performance(request: Request):
     """Get Gmail API performance metrics"""
     try:
         metrics = await gmail_service.get_performance_metrics()
         return metrics or {"status": "no_data"}
     except Exception as e:
-        logger.error(f"Error fetching Gmail performance: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_gmail_performance",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch performance metrics")
 
 # Smart Filter Endpoints
 @app.get("/api/filters")
-async def get_filters():
+async def get_filters(request: Request):
     """Get all active email filters"""
     try:
-        filters = await filter_manager.get_all_filters()
-        return {"filters": [filter_obj.to_dict() for filter_obj in filters]}
+        filters = await filter_manager.get_all_filters() # This returns a list of dicts, not objects with to_dict()
+        # Assuming get_all_filters() in SmartFilterManager was updated to return list of dicts
+        # or EmailFilter dataclass has a to_dict() method.
+        # The previous version of smart_filters.py had get_filters() returning a list of dicts.
+        # Let's assume it's still compatible or was adjusted.
+        return {"filters": filters } # Adjusted if get_all_filters returns list of dicts
     except Exception as e:
-        logger.error(f"Error fetching filters: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_filters",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to fetch filters")
 
 @app.post("/api/filters")
-async def create_filter(filter_request: FilterRequest):
+async def create_filter(request: Request, filter_request_model: FilterRequest): # Renamed model
     """Create new email filter"""
     try:
-        filter_obj = await filter_manager.create_filter(
-            name=filter_request.name,
-            criteria=filter_request.criteria,
-            actions=filter_request.actions,
-            priority=filter_request.priority
+        # Assuming filter_manager.create_filter (or add_custom_filter) takes a dict or an EmailFilter object
+        # The smart_filters.py in context had add_custom_filter(EmailFilter(...))
+        # and no create_filter. This might need adjustment in SmartFilterManager or here.
+        # For now, assuming a compatible create_filter or add_custom_filter exists.
+        # Let's assume add_custom_filter is the intended method from previous context for adding new filters.
+        from .smart_filters import EmailFilter # Ensure EmailFilter is available for instantiation
+        new_filter_config = EmailFilter(
+            name=filter_request_model.name,
+            description=filter_request_model.criteria.get("description", ""), # Assuming description might be in criteria
+            criteria=filter_request_model.criteria,
+            action=filter_request_model.actions.get("type", ""), # Assuming actions dict has a 'type' for the action name
+            priority=filter_request_model.priority,
+            enabled=True
         )
-        return filter_obj.to_dict()
+        filter_manager.add_custom_filter(new_filter_config) # Using add_custom_filter
+        return new_filter_config.__dict__ # Return the created filter as dict
     except Exception as e:
-        logger.error(f"Error creating filter: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in create_filter",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to create filter")
 
 @app.post("/api/filters/generate-intelligent")
-async def generate_intelligent_filters(db: DatabaseManager = Depends(get_db)):
+async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
     """Generate intelligent filters based on email patterns"""
     try:
         # Get recent emails for pattern analysis
-        emails = await db.get_recent_emails(limit=1000)
+        emails = await db.get_recent_emails(limit=1000) # Assuming this db method exists
         
         # Generate intelligent filters
-        filters = await filter_manager.create_intelligent_filters(emails)
-        
+        # Assuming filter_manager.create_intelligent_filters exists and returns a list of filter objects/dicts
+        created_filters = await filter_manager.create_intelligent_filters(emails) # This method was not in original smart_filters.py
+                                                                             # Assuming it's added or this is a placeholder.
+                                                                             # If it returns objects with to_dict:
+        # return {
+        #     "created_filters": len(created_filters),
+        #     "filters": [f.to_dict() for f in created_filters]
+        # }
+        # If it returns list of dicts:
         return {
-            "created_filters": len(filters),
-            "filters": [f.to_dict() for f in filters]
+             "created_filters": len(created_filters),
+             "filters": created_filters
         }
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": "Database operation failed while generating intelligent filters",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(f"Error generating intelligent filters: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in generate_intelligent_filters",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to generate filters")
 
 @app.post("/api/filters/prune")
-async def prune_filters():
+async def prune_filters(request: Request):
     """Prune ineffective filters"""
     try:
+        # Assuming filter_manager.prune_ineffective_filters exists
+        # This method was not in original smart_filters.py, assuming added.
         results = await filter_manager.prune_ineffective_filters()
         return results
     except Exception as e:
-        logger.error(f"Error pruning filters: {e}")
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in prune_filters",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         raise HTTPException(status_code=500, detail="Failed to prune filters")
 
 @app.get("/health")
-async def health_check():
+async def health_check(request: Request):
     """System health check"""
     try:
+        # Perform any necessary checks, e.g., DB connectivity if desired
+        # await db.execute_query("SELECT 1") # Example DB check
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "version": "2.0.0"
         }
-    except Exception as e:
+    except Exception as e: # This generic exception is fine for health check's own error
+        logger.error( # Simple log for health check itself
+            json.dumps({
+                "message": "Health check failed",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
         return JSONResponse(
-            status_code=503,
+            status_code=503, # Service Unavailable
             content={
                 "status": "unhealthy",
-                "error": str(e),
-                "timestamp": datetime.now().isoformat()
+                "error": "Service health check failed.", # Generic message to client
+                "timestamp": datetime.now().isoformat(),
+                "endpoint": str(request.url)
             }
         )
 

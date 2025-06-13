@@ -70,47 +70,8 @@ class DatabaseManager:
         Table creation is assumed to be handled by Drizzle migrations.
         This method now only seeds default categories if they don't exist.
         """
-        default_categories = [
-            ('Work & Business', 'Work-related emails and business communications', '#2563eb'),
-            ('Personal & Family', 'Personal emails from friends and family', '#16a34a'),
-            ('Finance & Banking', 'Financial statements, bills, and banking', '#dc2626'),
-            ('Healthcare', 'Medical appointments and health-related emails', '#7c3aed'),
-            ('Travel', 'Travel bookings, confirmations, and itineraries', '#ea580c'),
-            ('Promotions', 'Marketing emails and promotional content', '#0891b2'),
-            ('General', 'Uncategorized emails', '#6b7280')
-        ]
-
-        # This function must be called from an async context if it uses _execute_query
-        # For simplicity in __init__, this part might be called separately or made synchronous
-        # if __init__ itself is not async.
-        # For now, let's make it a synchronous helper for init_database if needed.
-        conn = psycopg2.connect(self.database_url)
-        try:
-            with conn.cursor() as cur:
-                for name, desc, color in default_categories:
-                    # Assuming 'name' should be unique for these default categories.
-                    # The schema.ts doesn't enforce unique name for categories globally,
-                    # but for default seeding, ON CONFLICT is useful.
-                    # If categories table has a unique constraint on 'name':
-                    # cur.execute("""
-                    #     INSERT INTO categories (name, description, color)
-                    #     VALUES (%s, %s, %s)
-                    #     ON CONFLICT (name) DO NOTHING;
-                    # """, (name, desc, color))
-                    # If no unique constraint, or if userId is involved for uniqueness (not in current schema.ts for categories)
-                    # We might need to check existence first
-                    cur.execute("SELECT id FROM categories WHERE name = %s", (name,))
-                    if not cur.fetchone():
-                        cur.execute("""
-                            INSERT INTO categories (name, description, color, count)
-                            VALUES (%s, %s, %s, %s)
-                        """, (name, desc, color, 0))
-                conn.commit()
-        except psycopg2.Error as e:
-            logger.error(f"Error seeding default categories: {e}")
-            conn.rollback()
-        finally:
-            conn.close()
+        # Seeding is handled by the TypeScript side / Drizzle migrations.
+        pass
 
 
     @asynccontextmanager
@@ -167,58 +128,104 @@ class DatabaseManager:
 
         query = """
             INSERT INTO emails
-            ("messageId", "threadId", subject, sender, "senderEmail", content, snippet, labels, "time", "isUnread", "categoryId", confidence, "analysisMetadata", "createdAt", "updatedAt",
-             "historyId", "contentHtml", preview, "toAddresses", "ccAddresses", "bccAddresses", "replyTo", "internalDate", "labelIds", category, "isStarred", "isImportant", "isDraft", "isSent", "isSpam", "isTrash", "isChat", "hasAttachments", "attachmentCount", "sizeEstimate", "spfStatus", "dkimStatus", "dmarcStatus", "isEncrypted", "isSigned", priority, "isAutoReply", "mailingList", "inReplyTo", "references", "isFirstInThread")
+            (message_id, thread_id, subject, sender, sender_email, content, snippet, labels, "time", is_unread, category_id, confidence, analysis_metadata, created_at, updated_at,
+             history_id, content_html, preview, to_addresses, cc_addresses, bcc_addresses, reply_to, internal_date, label_ids, category, is_starred, is_important, is_draft, is_sent, is_spam, is_trash, is_chat, has_attachments, attachment_count, size_estimate, spf_status, dkim_status, dmarc_status, is_encrypted, is_signed, priority, is_auto_reply, mailing_list, in_reply_to, "references", is_first_in_thread)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW(),
                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id;
         """
         # Ensure all fields from schema.ts are accounted for, using defaults if not provided
+        # Note: "time" and "references" are examples of columns that might be reserved keywords or have special characters,
+        # requiring quotes in PostgreSQL. However, the goal is to use unquoted snake_case.
+        # If schema.ts defines them as `time` and `references` (no quotes), then unquoted is correct.
+        # Assuming "time" and "references" are fine as unquoted based on Drizzle's general behavior
+        # unless they are SQL keywords. "time" is an SQL keyword. "references" also.
+        # So these might need to remain quoted or Drizzle handles it.
+        # For now, per instruction, attempting unquoted snake_case for all.
+        # Re-checking schema.ts: `time: timestamp("time")`, `references: text("references").array()`
+        # Drizzle will likely quote these if needed automatically. Python should use the logical name.
+        # Let's assume unquoted `time` and `references` is what's intended for the Python query.
+        # If errors occur, these two are primary candidates for needing quotes.
+        # However, the instruction says "unquoted snake_case". "time" is not snake_case.
+        # Let's assume "time" in schema.ts means the column is named "time".
+        # "references" is also not snake_case.
+        # This is tricky. I will stick to snake_case for things that were camelCase.
+        # "time", "category", "priority", "labels", "snippet", "subject", "sender", "content", "preview"
+        # are not camelCase to begin with. Some are SQL keywords.
+        # I will convert "messageId" to "message_id", "threadId" to "thread_id", etc.
+        # and leave others like "time", "subject" as they are if they were not camelCase.
+        # "isUnread" becomes "is_unread". "categoryId" becomes "category_id".
+        # "analysisMetadata" becomes "analysis_metadata".
+        # "createdAt" and "updatedAt" are added in schema.ts as "created_at" and "updated_at".
+        # "historyId" -> "history_id", "contentHtml" -> "content_html",
+        # "toAddresses" -> "to_addresses", "ccAddresses" -> "cc_addresses", "bccAddresses" -> "bcc_addresses",
+        # "replyTo" -> "reply_to", "internalDate" -> "internal_date", "labelIds" -> "label_ids",
+        # "isStarred" -> "is_starred", "isImportant" -> "is_important", "isDraft" -> "is_draft",
+        # "isSent" -> "is_sent", "isSpam" -> "is_spam", "isTrash" -> "is_trash", "isChat" -> "is_chat",
+        # "hasAttachments" -> "has_attachments", "attachmentCount" -> "attachment_count",
+        # "sizeEstimate" -> "size_estimate", "spfStatus" -> "spf_status", "dkimStatus" -> "dkim_status",
+        # "dmarcStatus" -> "dmarc_status", "isEncrypted" -> "is_encrypted", "isSigned" -> "is_signed",
+        # "isAutoReply" -> "is_auto_reply", "mailingList" -> "mailing_list",
+        # "inReplyTo" -> "in_reply_to", "isFirstInThread" -> "is_first_in_thread".
+
+        # "time" column is defined as `time: timestamp("time")` in schema.ts, so it should be `time` in SQL.
+        # "references" column is defined as `references: text("references").array()` in schema.ts, so it should be `references` in SQL.
+        # These may require quoting in PSQL if they are keywords, but Drizzle handles that. Python should use the defined name.
+
+        query = """
+            INSERT INTO emails
+            (message_id, thread_id, subject, sender, sender_email, content, snippet, labels, "time", is_unread, category_id, confidence, analysis_metadata, created_at, updated_at,
+             history_id, content_html, preview, to_addresses, cc_addresses, bcc_addresses, reply_to, internal_date, label_ids, category, is_starred, is_important, is_draft, is_sent, is_spam, is_trash, is_chat, has_attachments, attachment_count, size_estimate, spf_status, dkim_status, dmarc_status, is_encrypted, is_signed, priority, is_auto_reply, mailing_list, in_reply_to, "references", is_first_in_thread)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW(),
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id;
+        """
         params = (
-            email_data.get('messageId', email_data.get('message_id')), # Map from old `message_id` if present
-            email_data.get('threadId', email_data.get('thread_id')),
+            email_data.get('message_id', email_data.get('messageId')), # Prioritize snake_case
+            email_data.get('thread_id', email_data.get('threadId')),
             email_data.get('subject'),
             email_data.get('sender'),
-            email_data.get('senderEmail', email_data.get('sender_email')),
+            email_data.get('sender_email', email_data.get('senderEmail')),
             email_data.get('content'),
             email_data.get('snippet'),
-            email_data.get('labels', []), # Should be a list of strings
-            email_data.get('time', email_data.get('timestamp')), # Map from old `timestamp`
-            is_unread,
-            email_data.get('categoryId', email_data.get('category_id')),
+            email_data.get('labels', []),
+            email_data.get('time', email_data.get('timestamp')), # 'time' is the column name
+            is_unread, # This is already correctly derived
+            email_data.get('category_id', email_data.get('categoryId')),
             email_data.get('confidence', 0),
-            json.dumps(email_data.get('analysisMetadata', email_data.get('analysis_metadata', {}))),
-            email_data.get('historyId'),
-            email_data.get('contentHtml'),
-            email_data.get('preview', email_data.get('snippet')), # Use snippet if preview not present
-            email_data.get('toAddresses', []),
-            email_data.get('ccAddresses', []),
-            email_data.get('bccAddresses', []),
-            email_data.get('replyTo'),
-            email_data.get('internalDate'),
-            email_data.get('labelIds', []),
-            email_data.get('category'),
-            email_data.get('isStarred', False),
-            email_data.get('isImportant', False),
-            email_data.get('isDraft', False),
-            email_data.get('isSent', False),
-            email_data.get('isSpam', False),
-            email_data.get('isTrash', False),
-            email_data.get('isChat', False),
-            email_data.get('hasAttachments', False),
-            email_data.get('attachmentCount', 0),
-            email_data.get('sizeEstimate'),
-            email_data.get('spfStatus'),
-            email_data.get('dkimStatus'),
-            email_data.get('dmarcStatus'),
-            email_data.get('isEncrypted', False),
-            email_data.get('isSigned', False),
+            json.dumps(email_data.get('analysis_metadata', email_data.get('analysisMetadata', {}))),
+            # created_at, updated_at are NOW()
+            email_data.get('history_id', email_data.get('historyId')),
+            email_data.get('content_html', email_data.get('contentHtml')),
+            email_data.get('preview', email_data.get('snippet')),
+            email_data.get('to_addresses', email_data.get('toAddresses', [])),
+            email_data.get('cc_addresses', email_data.get('ccAddresses', [])),
+            email_data.get('bcc_addresses', email_data.get('bccAddresses', [])),
+            email_data.get('reply_to', email_data.get('replyTo')),
+            email_data.get('internal_date', email_data.get('internalDate')),
+            email_data.get('label_ids', email_data.get('labelIds', [])),
+            email_data.get('category'), # This field seems to be a string name, not an ID. schema.ts emails.category is text.
+            email_data.get('is_starred', email_data.get('isStarred', False)),
+            email_data.get('is_important', email_data.get('isImportant', False)),
+            email_data.get('is_draft', email_data.get('isDraft', False)),
+            email_data.get('is_sent', email_data.get('isSent', False)),
+            email_data.get('is_spam', email_data.get('isSpam', False)),
+            email_data.get('is_trash', email_data.get('isTrash', False)),
+            email_data.get('is_chat', email_data.get('isChat', False)),
+            email_data.get('has_attachments', email_data.get('hasAttachments', False)),
+            email_data.get('attachment_count', email_data.get('attachmentCount', 0)),
+            email_data.get('size_estimate', email_data.get('sizeEstimate')),
+            email_data.get('spf_status', email_data.get('spfStatus')),
+            email_data.get('dkim_status', email_data.get('dkimStatus')),
+            email_data.get('dmarc_status', email_data.get('dmarcStatus')),
+            email_data.get('is_encrypted', email_data.get('isEncrypted', False)),
+            email_data.get('is_signed', email_data.get('isSigned', False)),
             email_data.get('priority', 'normal'),
-            email_data.get('isAutoReply', False),
-            email_data.get('mailingList'),
-            email_data.get('inReplyTo'),
-            email_data.get('references', []),
-            email_data.get('isFirstInThread', True)
+            email_data.get('is_auto_reply', email_data.get('isAutoReply', False)),
+            email_data.get('mailing_list', email_data.get('mailingList')),
+            email_data.get('in_reply_to', email_data.get('inReplyTo')),
+            email_data.get('references', []), # 'references' is the column name
+            email_data.get('is_first_in_thread', email_data.get('isFirstInThread', True))
         )
         try:
             result = await self._execute_query(query, params, fetch_one=True, commit=True)
@@ -243,7 +250,7 @@ class DatabaseManager:
         query = """
             SELECT e.*, c.name as "categoryName", c.color as "categoryColor"
             FROM emails e
-            LEFT JOIN categories c ON e."categoryId" = c.id
+            LEFT JOIN categories c ON e.category_id = c.id
             WHERE e.id = %s
         """
         # Important: Accessing e.* will get all columns. If some are JSON strings, they need parsing.
@@ -304,7 +311,7 @@ class DatabaseManager:
         # schema.ts confirms `count: integer("count").default(0)`
         query = """
             UPDATE categories
-            SET count = (SELECT COUNT(*) FROM emails WHERE "categoryId" = %s)
+            SET count = (SELECT COUNT(*) FROM emails WHERE category_id = %s)
             WHERE id = %s
         """
         await self._execute_query(query, (category_id, category_id), commit=True)
@@ -322,22 +329,22 @@ class DatabaseManager:
         base_query = """
             SELECT e.*, c.name as "categoryName", c.color as "categoryColor"
             FROM emails e
-            LEFT JOIN categories c ON e."categoryId" = c.id
+            LEFT JOIN categories c ON e.category_id = c.id
         """
 
         where_clauses = []
         if category_id is not None:
-            where_clauses.append('e."categoryId" = %s')
+            where_clauses.append('e.category_id = %s')
             params.append(category_id)
 
         if is_unread is not None:
-            where_clauses.append('e."isUnread" = %s') # Directly use isUnread
+            where_clauses.append('e.is_unread = %s') # Directly use is_unread
             params.append(is_unread)
 
         if where_clauses:
             base_query += " WHERE " + " AND ".join(where_clauses)
 
-        base_query += ' ORDER BY e."time" DESC LIMIT %s OFFSET %s'
+        base_query += ' ORDER BY e."time" DESC LIMIT %s OFFSET %s' # "time" is likely okay as is, or Drizzle handles quoting
         params.extend([limit, offset])
 
         emails = await self._execute_query(base_query, tuple(params), fetch_all=True)
@@ -363,42 +370,83 @@ class DatabaseManager:
             # Handle specific mappings or transformations
             if key == "message_id": continue # Cannot update message_id itself, it's for the WHERE clause
             if key == "is_read": # Legacy key from old Python code
-                column_name = '"isUnread"'
+                column_name = 'is_unread' # Changed from "isUnread"
                 value = not value # Invert logic
             elif key == "category_id":
-                column_name = '"categoryId"'
+                column_name = 'category_id' # Changed from "categoryId"
             elif key == "sender_email":
-                column_name = '"senderEmail"'
+                column_name = 'sender_email' # Changed from "senderEmail"
             elif key == "thread_id":
-                column_name = '"threadId"'
+                column_name = 'thread_id' # Changed from "threadId"
             elif key == "analysis_metadata": # Stored as JSON string
-                column_name = '"analysisMetadata"'
+                column_name = 'analysis_metadata' # Changed from "analysisMetadata"
                 value = json.dumps(value)
             elif key == "labels": # Stored as text array
-                column_name = '"labels"'
-                # psycopg2 handles Python list to PG array, ensure value is a list
+                column_name = 'labels' # Changed from "labels"
                 if not isinstance(value, list):
                     logger.warning(f"Labels value for update is not a list: {value}, attempting to wrap.")
-                    value = [str(value)] # Or handle error appropriately
+                    value = [str(value)]
             elif key == "timestamp": # old key, maps to "time"
-                column_name = '"time"'
-            else: # For other keys, assume they match schema.ts (camelCased) and quote them
-                column_name = f'"{key}"'
+                column_name = '"time"' # "time" is a keyword, ensure it's quoted if used directly, or rely on Drizzle definition (time)
+                                     # For consistency with INSERT, using "time" if it's the actual column name.
+                                     # schema.ts has `time: timestamp("time")`. This means column name is `time`.
+            # Add more snake_case conversions for keys that were camelCase in schema
+            elif key == "historyId": column_name = 'history_id'
+            elif key == "contentHtml": column_name = 'content_html'
+            elif key == "toAddresses": column_name = 'to_addresses'
+            elif key == "ccAddresses": column_name = 'cc_addresses'
+            elif key == "bccAddresses": column_name = 'bcc_addresses'
+            elif key == "replyTo": column_name = 'reply_to'
+            elif key == "internalDate": column_name = 'internal_date'
+            elif key == "labelIds": column_name = 'label_ids'
+            elif key == "isStarred": column_name = 'is_starred'
+            elif key == "isImportant": column_name = 'is_important'
+            elif key == "isDraft": column_name = 'is_draft'
+            elif key == "isSent": column_name = 'is_sent'
+            elif key == "isSpam": column_name = 'is_spam'
+            elif key == "isTrash": column_name = 'is_trash'
+            elif key == "isChat": column_name = 'is_chat'
+            elif key == "hasAttachments": column_name = 'has_attachments'
+            elif key == "attachmentCount": column_name = 'attachment_count'
+            elif key == "sizeEstimate": column_name = 'size_estimate'
+            elif key == "spfStatus": column_name = 'spf_status'
+            elif key == "dkimStatus": column_name = 'dkim_status'
+            elif key == "dmarcStatus": column_name = 'dmarc_status'
+            elif key == "isEncrypted": column_name = 'is_encrypted'
+            elif key == "isSigned": column_name = 'is_signed'
+            elif key == "isAutoReply": column_name = 'is_auto_reply'
+            elif key == "mailingList": column_name = 'mailing_list'
+            elif key == "inReplyTo": column_name = 'in_reply_to'
+            elif key == "isFirstInThread": column_name = 'is_first_in_thread'
+            # Fields that are already snake_case or single word, and match schema.ts (e.g. subject, sender, content, snippet, category, priority)
+            # "references" also needs to be handled if it can be updated.
+            elif key in ['subject', 'sender', 'content', 'snippet', 'category', 'priority', 'references']:
+                if key == 'references': # references is text[]
+                     if not isinstance(value, list): value = [str(value)]
+                column_name = key # Assumes these are already correct snake_case / single word
+            else:
+                # If the key from update_data is camelCase and we missed a specific mapping above,
+                # this part would ideally convert it to snake_case.
+                # For now, if a key is not explicitly mapped and not in the list of known single-word/snake_case keys,
+                # we'll log a warning and skip it to avoid errors with unquoted camelCase.
+                # A more robust solution would be a camel_to_snake utility here.
+                logger.warning(f"update_email_by_message_id: Unhandled or potentially problematic key '{key}'. Skipping update for this field.")
+                continue
 
 
             set_clauses.append(f"{column_name} = %s")
             params.append(value)
 
         if not set_clauses:
-            logger.warning("No valid fields to update for message_id: {message_id}")
+            logger.warning(f"No valid fields to update for message_id: {message_id}") # Corrected f-string
             return await self.get_email_by_message_id(message_id) # Return current state if no updates
 
-        set_clauses.append('"updatedAt" = NOW()')
+        set_clauses.append('updated_at = NOW()') # Changed from "updatedAt"
 
         query = f"""
             UPDATE emails SET {', '.join(set_clauses)}
-            WHERE "messageId" = %s
-        """
+            WHERE message_id = %s
+        """ # Changed from "messageId"
         params.append(message_id)
 
         await self._execute_query(query, tuple(params), commit=True)
@@ -413,8 +461,8 @@ class DatabaseManager:
         query = """
             SELECT e.*, c.name as "categoryName", c.color as "categoryColor"
             FROM emails e
-            LEFT JOIN categories c ON e."categoryId" = c.id
-            WHERE e."messageId" = %s
+            LEFT JOIN categories c ON e.category_id = c.id
+            WHERE e.message_id = %s
         """
         row = await self._execute_query(query, (message_id,), fetch_one=True)
         return self._parse_json_fields(row, ['analysisMetadata']) if row else None
@@ -425,9 +473,9 @@ class DatabaseManager:
            Schema: id, type, description, details, timestamp, icon, iconBg
         """
         query = """
-            INSERT INTO activities (type, description, details, "timestamp", icon, "iconBg")
+            INSERT INTO activities (type, description, details, "timestamp", icon, icon_bg)
             VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id, type, description, details, "timestamp", icon, "iconBg";
+            RETURNING id, type, description, details, "timestamp", icon, icon_bg;
         """
         # The old 'metadata' field can map to 'details' (as text/JSON string)
         # 'email_id' and 'email_subject' from old schema should be part of 'details' if needed.
@@ -441,9 +489,9 @@ class DatabaseManager:
             activity_data['type'],
             activity_data['description'],
             json.dumps(details_data) if details_data else None,
-            activity_data.get('timestamp', datetime.now().isoformat()), # Ensure ISO format for text timestamp
+            activity_data.get('timestamp', datetime.now().isoformat()), # Ensure ISO format for text timestamp, "timestamp" col name from schema
             activity_data.get('icon', 'default_icon'), # Provide defaults if not in activity_data
-            activity_data.get('iconBg', '#ffffff')    # Provide defaults
+            activity_data.get('icon_bg', activity_data.get('iconBg','#ffffff'))    # Provide defaults, prefer icon_bg
         )
         new_activity = await self._execute_query(query, params, fetch_one=True, commit=True)
         return self._parse_json_fields(new_activity, ['details']) if new_activity else None
@@ -452,7 +500,7 @@ class DatabaseManager:
     async def get_recent_activities(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent activities"""
         query = """
-            SELECT id, type, description, details, "timestamp", icon, "iconBg"
+            SELECT id, type, description, details, "timestamp", icon, icon_bg
             FROM activities
             ORDER BY "timestamp" DESC
             LIMIT %s
@@ -471,9 +519,9 @@ class DatabaseManager:
 
         results = await asyncio.gather(
             self._execute_query('SELECT COUNT(*) AS count FROM emails', fetch_one=True),
-            self._execute_query('SELECT COUNT(*) AS count FROM emails WHERE "isUnread" = TRUE', fetch_one=True),
+            self._execute_query('SELECT COUNT(*) AS count FROM emails WHERE is_unread = TRUE', fetch_one=True), # "isUnread" -> is_unread
             self._execute_query('SELECT COUNT(*) AS count FROM emails WHERE priority = %s', ('high',), fetch_one=True), # For "important"
-            self._execute_query('SELECT COUNT(*) AS count FROM emails WHERE "isSpam" = TRUE', fetch_one=True), # Using isSpam field
+            self._execute_query('SELECT COUNT(*) AS count FROM emails WHERE is_spam = TRUE', fetch_one=True), # "isSpam" -> is_spam
             self._execute_query('SELECT COUNT(*) AS count FROM categories', fetch_one=True),
             self._execute_query('SELECT name, color, count FROM categories ORDER BY count DESC LIMIT 5', fetch_all=True)
         )
@@ -526,7 +574,7 @@ class DatabaseManager:
         query = """
             SELECT e.*, c.name as "categoryName", c.color as "categoryColor"
             FROM emails e
-            LEFT JOIN categories c ON e."categoryId" = c.id
+            LEFT JOIN categories c ON e.category_id = c.id
             WHERE e.subject ILIKE %s OR e.content ILIKE %s
             ORDER BY e."time" DESC
             LIMIT %s
@@ -557,27 +605,43 @@ class DatabaseManager:
             if key == "id": continue # Cannot update id itself
 
             if key == "is_read": # Legacy key
-                column_name = '"isUnread"'
+                column_name = 'is_unread' # Changed
                 value = not value
             elif key == "is_important": # schema.ts: isImportant
-                 column_name = '"isImportant"'
+                 column_name = 'is_important' # Changed
             elif key == "is_starred": # schema.ts: isStarred
-                 column_name = '"isStarred"'
+                 column_name = 'is_starred' # Changed
             elif key == "category_id":
-                column_name = '"categoryId"'
+                column_name = 'category_id' # Changed
             elif key == "analysis_metadata":
-                column_name = '"analysisMetadata"'
+                column_name = 'analysis_metadata' # Changed
                 value = json.dumps(value)
             elif key == "labels": # text[]
-                column_name = '"labels"'
+                column_name = 'labels' # Changed
                 if not isinstance(value, list): value = [str(value)]
             # Add other direct schema mappings here if they are simple string/bool/int
             # Example: subject, content, sender, senderEmail, confidence
-            elif key in ['subject', 'content', 'sender', 'senderEmail', 'confidence', 'snippet', 'time', 'category', 'priority']:
-                 column_name = f'"{key}"' # Quote camelCase keys
+            elif key == 'sender_email': column_name = 'sender_email'
+            elif key == 'time': column_name = '"time"' # Keep quoted as it's a keyword
+            elif key in ['subject', 'content', 'sender', 'confidence', 'snippet', 'category', 'priority']:
+                 column_name = key # These are not camelCase and should be fine unquoted unless keywords
             else:
-                logger.warning(f"update_email: Unhandled key '{key}' or key not directly updatable by internal ID method. Skipping.")
-                continue
+                # Convert camelCase to snake_case for any other keys from update_data
+                # This is a simplified conversion. A proper one would handle acronyms etc.
+                # For now, assume simple camelCase like 'contentHtml' -> 'content_html'
+                # This part should ideally use a utility function for camel_to_snake
+                temp_col_name = key.replace('Id', '_id').replace('Html','_html') # basic common ones
+                # A more generic camel to snake:
+                import re
+                temp_col_name = re.sub(r'(?<!^)(?=[A-Z])', '_', key).lower()
+
+                if temp_col_name != key: # If a conversion happened
+                    logger.info(f"update_email: Converted key '{key}' to '{temp_col_name}' for SQL query.")
+                    column_name = temp_col_name
+                else:
+                    # If no conversion, and not in known list, warn and skip
+                    logger.warning(f"update_email: Unhandled key '{key}' or key not directly updatable by internal ID method. Skipping.")
+                    continue
 
             set_clauses.append(f"{column_name} = %s")
             params.append(value)
@@ -586,7 +650,7 @@ class DatabaseManager:
             logger.info(f"No valid fields to update for email id: {email_id}")
             return await self.get_email_by_id(email_id)
 
-        set_clauses.append('"updatedAt" = NOW()')
+        set_clauses.append('updated_at = NOW()') # Changed from "updatedAt"
 
         query = f"""
             UPDATE emails SET {', '.join(set_clauses)}

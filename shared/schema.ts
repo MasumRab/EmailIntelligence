@@ -87,6 +87,10 @@ export const emails = pgTable("emails", {
   
   // Legacy compatibility
   isRead: boolean("is_read").default(false), // Computed from isUnread
+
+  // Timestamps for record creation and updates
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const activities = pgTable("activities", {

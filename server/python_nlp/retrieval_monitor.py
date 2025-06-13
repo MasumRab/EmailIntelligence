@@ -11,6 +11,16 @@ from datetime import datetime, timedelta
 import logging
 from collections import defaultdict, deque
 import statistics
+# Added imports:
+from datetime import datetime # Ensure datetime is directly available
+
+RETRIEVAL_LOG_FILE = "retrieval_metrics_log.jsonl"
+LOG_INTERVAL_SECONDS = 300
+
+def json_default_converter(o):
+    if isinstance(o, datetime):
+        return o.isoformat()
+    raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
 
 @dataclass
 class RetrievalMetrics:
@@ -41,6 +51,8 @@ class RetrievalMonitor:
         self.metrics_buffer = defaultdict(deque)
         self.alert_thresholds = AdaptiveThresholds()
         self.logger = logging.getLogger(__name__)
+        self.LOG_INTERVAL_SECONDS = LOG_INTERVAL_SECONDS # Make it instance variable
+        self.RETRIEVAL_LOG_FILE = RETRIEVAL_LOG_FILE
         
         # Performance tracking
         self.strategy_performance = defaultdict(dict)
@@ -53,7 +65,56 @@ class RetrievalMonitor:
         # Adaptive optimization state
         self.optimization_history = []
         self.performance_trends = defaultdict(list)
-        
+
+        # Start periodic file logging task
+        asyncio.create_task(self._periodic_logger_task())
+
+    async def _log_metrics_to_file(self):
+        """Logs current in-memory retrieval metrics to a JSONL file and clears buffers."""
+        logged_anything = False
+        try:
+            with open(self.RETRIEVAL_LOG_FILE, 'a') as f:
+                metrics_buffer_copy = self.metrics_buffer.copy() # Shallow copy of dict
+
+                for strategy_name, metrics_deque in metrics_buffer_copy.items():
+                    current_deque_copy = list(metrics_deque) # Copy of the deque for this strategy
+                    if not current_deque_copy:
+                        continue
+
+                    for metric_obj in current_deque_copy:
+                        log_entry = asdict(metric_obj)
+                        log_entry['type'] = 'retrieval_metric'
+                        # strategy_name is already in RetrievalMetrics dataclass, but good to have consistently
+                        log_entry['strategy_name_key'] = strategy_name
+                        log_entry['timestamp_logged'] = datetime.now().isoformat()
+                        f.write(json.dumps(log_entry, default=json_default_converter) + '\n')
+
+                    # Clear the original deque for this strategy after its contents are written
+                    self.metrics_buffer[strategy_name].clear()
+                    logged_anything = True
+
+            if logged_anything:
+                self.logger.info(f"Successfully logged retrieval metrics to {self.RETRIEVAL_LOG_FILE}")
+
+        except IOError as e:
+            self.logger.error(f"IOError writing retrieval metrics to {self.RETRIEVAL_LOG_FILE}: {e}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error logging retrieval metrics to file: {e}")
+
+    async def _periodic_logger_task(self):
+        """Periodically logs metrics to a file."""
+        while True:
+            try:
+                await asyncio.sleep(self.LOG_INTERVAL_SECONDS)
+                self.logger.info("Periodic retrieval logger task triggered.")
+                await self._log_metrics_to_file()
+            except asyncio.CancelledError:
+                self.logger.info("Periodic retrieval logger task cancelled.")
+                break
+            except Exception as e:
+                self.logger.error(f"Error in periodic retrieval logger task: {e}")
+                await asyncio.sleep(self.LOG_INTERVAL_SECONDS / 2) # Shorter sleep on error
+
     def record_retrieval_metrics(self, metrics: RetrievalMetrics):
         """Record real-time retrieval metrics"""
         strategy_buffer = self.metrics_buffer[metrics.strategy_name]
