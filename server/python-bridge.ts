@@ -1,11 +1,13 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import type { AIAnalysis, AccuracyValidation } from './ai-engine'; // Import backend types
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export interface PythonNLPResult {
+// This interface represents the direct output from the Python script
+interface PythonScriptOutput {
   topic: string;
   sentiment: 'positive' | 'negative' | 'neutral';
   intent: string;
@@ -17,12 +19,14 @@ export interface PythonNLPResult {
   suggested_labels: string[];
   risk_flags: string[];
   validation: {
-    validation_method: string;
+    validation_method: string; // Note: snake_case from Python
     score: number;
     reliable: boolean;
     feedback: string;
   };
 }
+
+export type MappedNLPResult = AIAnalysis & { validation: AccuracyValidation };
 
 export class PythonNLPBridge {
   private pythonScriptPath: string;
@@ -31,7 +35,28 @@ export class PythonNLPBridge {
     this.pythonScriptPath = path.join(__dirname, 'python_nlp', 'nlp_engine.py');
   }
 
-  async analyzeEmail(subject: string, content: string): Promise<PythonNLPResult> {
+  private mapPythonOutputToNLPResult(pyOutput: PythonScriptOutput): MappedNLPResult {
+    return {
+      topic: pyOutput.topic,
+      sentiment: pyOutput.sentiment,
+      intent: pyOutput.intent,
+      urgency: pyOutput.urgency,
+      confidence: pyOutput.confidence,
+      categories: pyOutput.categories,
+      keywords: pyOutput.keywords,
+      reasoning: pyOutput.reasoning,
+      suggestedLabels: pyOutput.suggested_labels, // map snake_case to camelCase
+      riskFlags: pyOutput.risk_flags,           // map snake_case to camelCase
+      validation: {
+        validationMethod: pyOutput.validation.validation_method as AccuracyValidation['validationMethod'], // map snake_case to camelCase and assert type
+        score: pyOutput.validation.score,
+        reliable: pyOutput.validation.reliable,
+        feedback: pyOutput.validation.feedback,
+      },
+    };
+  }
+
+  async analyzeEmail(subject: string, content: string): Promise<MappedNLPResult> {
     return new Promise((resolve, reject) => {
       const python = spawn('python3', [this.pythonScriptPath, subject, content], {
         stdio: ['pipe', 'pipe', 'pipe']
@@ -51,14 +76,13 @@ export class PythonNLPBridge {
       python.on('close', (code) => {
         if (code !== 0) {
           console.error('Python NLP Error:', errorOutput);
-          // Fallback to JavaScript analysis
           resolve(this.getFallbackAnalysis(subject, content));
           return;
         }
 
         try {
-          const result = JSON.parse(output.trim());
-          resolve(result);
+          const result: PythonScriptOutput = JSON.parse(output.trim());
+          resolve(this.mapPythonOutputToNLPResult(result));
         } catch (parseError) {
           console.error('Failed to parse Python NLP output:', parseError);
           resolve(this.getFallbackAnalysis(subject, content));
@@ -72,7 +96,7 @@ export class PythonNLPBridge {
     });
   }
 
-  private getFallbackAnalysis(subject: string, content: string): PythonNLPResult {
+  private getFallbackAnalysis(subject: string, content: string): MappedNLPResult {
     // Enhanced JavaScript fallback with better pattern matching
     const fullText = `${subject}\n\n${content}`.toLowerCase();
     
@@ -82,6 +106,12 @@ export class PythonNLPBridge {
     const urgency = this.assessUrgencyFallback(fullText);
     const keywords = this.extractKeywordsFallback(fullText);
     
+    // const categories = this.categorizeWithPatterns(fullText); // Removed duplicate
+    // const sentiment = this.analyzeSentimentFallback(fullText); // Removed duplicate
+    // const intent = this.detectIntentFallback(fullText); // Removed duplicate
+    // const urgency = this.assessUrgencyFallback(fullText); // Removed duplicate
+    // const keywords = this.extractKeywordsFallback(fullText); // Removed duplicate
+
     return {
       topic: categories[0] || 'General Communication',
       sentiment,
@@ -91,10 +121,10 @@ export class PythonNLPBridge {
       categories,
       keywords,
       reasoning: 'JavaScript fallback analysis with enhanced pattern matching',
-      suggested_labels: [...categories, intent.replace('_', ' ')].filter(Boolean),
-      risk_flags: urgency === 'critical' ? ['urgent_content'] : [],
+      suggestedLabels: [...categories, intent.replace('_', ' ')].filter(Boolean),
+      riskFlags: urgency === 'critical' ? ['urgent_content'] : [],
       validation: {
-        validation_method: 'javascript_fallback',
+        validationMethod: 'javascript_fallback' as AccuracyValidation['validationMethod'],
         score: 0.65,
         reliable: true,
         feedback: 'Analysis completed using JavaScript fallback with good reliability'
@@ -259,6 +289,7 @@ export class PythonNLPBridge {
   async testConnection(): Promise<boolean> {
     try {
       const result = await this.analyzeEmail('Test Subject', 'Test content for connection verification.');
+      // Access reliable from the mapped structure
       return result.validation.reliable;
     } catch (error) {
       console.error('Python NLP connection test failed:', error);
