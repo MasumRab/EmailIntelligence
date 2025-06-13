@@ -1,76 +1,183 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: EmailIntelligence Launcher for Windows
-:: This batch file launches the EmailIntelligence application with the specified arguments
-
-:: Check if Python is installed
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Python is not installed or not in PATH. Please install Python 3.8 or higher.
-    pause
-    exit /b 1
-)
-
-:: Define the virtual environment directory name
+:: === Configuration ===
+:: Specify your project's Conda environment name here if applicable
+set "PROJECT_CONDA_ENV_NAME=your_conda_env_name"
+:: Specify your project's venv directory name
 set "VENV_DIR=venv"
 
-:: Check if uv is installed
-uv --version >nul 2>&1
+:: === PowerShell Detection ===
+:: Check if running in PowerShell (powershell.exe or pwsh.exe)
+set "IS_POWERSHELL="
+echo "%COMSPEC%" | findstr /I /C:"powershell.exe" >nul && set "IS_POWERSHELL=1"
+echo "%COMSPEC%" | findstr /I /C:"pwsh.exe" >nul && set "IS_POWERSHELL=1"
+if defined IS_POWERSHELL (
+    echo Running in PowerShell.
+)
+
+:: === Conda Environment Handling ===
+set "CONDA_ENV_ACTIVATED_BY_SCRIPT="
+set "VENV_ACTIVATED_BY_SCRIPT="
+set "PYTHON_EXE=python"
+
+:: Check if Conda is available
+where conda >nul 2>&1
 if %errorlevel% equ 0 (
-    echo uv is installed. Using uv to create and manage the virtual environment.
-    :: Create the virtual environment using uv if it doesn't exist
-    if not exist "%VENV_DIR%" (
-        uv venv "%VENV_DIR%"
-        if !errorlevel! neq 0 (
-            echo Failed to create virtual environment with uv. Please check for errors.
-            pause
-            exit /b 1
+    echo Conda is available.
+    :: Check if already in a Conda environment
+    if defined CONDA_DEFAULT_ENV (
+        echo Already in a Conda environment: %CONDA_DEFAULT_ENV%
+        set "PYTHON_EXE=%CONDA_PREFIX%\python.exe"
+        echo Using Python from active Conda env: %PYTHON_EXE%
+        if /I "%CONDA_DEFAULT_ENV%"=="%PROJECT_CONDA_ENV_NAME%" (
+            echo Current Conda environment matches project environment. Using it.
+        ) else (
+            if "%PROJECT_CONDA_ENV_NAME%" NEQ "your_conda_env_name" (
+                echo Current Conda environment (%CONDA_DEFAULT_ENV%) does not match project specific one (%PROJECT_CONDA_ENV_NAME%).
+                echo Attempting to activate project Conda environment: %PROJECT_CONDA_ENV_NAME%
+                call conda activate "%PROJECT_CONDA_ENV_NAME%"
+                if !errorlevel! neq 0 (
+                    echo WARNING: Failed to activate Conda environment: %PROJECT_CONDA_ENV_NAME%. Will use current Conda env: %CONDA_DEFAULT_ENV%.
+                    echo Please ensure it exists and Conda is configured correctly.
+                ) else (
+                    echo Successfully activated Conda environment: %PROJECT_CONDA_ENV_NAME%
+                    set "CONDA_ENV_ACTIVATED_BY_SCRIPT=1"
+                    set "PYTHON_EXE=%CONDA_PREFIX%\python.exe"
+                    echo Using Python from newly activated Conda env: %PYTHON_EXE%
+                )
+            )
         )
-    )
-    :: Activate the virtual environment
-    call "%VENV_DIR%\Scripts\activate.bat"
-    :: Install dependencies using uv pip
-    uv pip install -r requirements.txt
-    if !errorlevel! neq 0 (
-        echo Failed to install dependencies with uv pip. Please check for errors.
-        pause
-        exit /b 1
+    ) else (
+        if "%PROJECT_CONDA_ENV_NAME%" NEQ "your_conda_env_name" (
+            echo Not in a Conda environment. Attempting to activate project Conda environment: %PROJECT_CONDA_ENV_NAME%
+            call conda activate "%PROJECT_CONDA_ENV_NAME%"
+            if !errorlevel! neq 0 (
+                echo WARNING: Failed to activate Conda environment: %PROJECT_CONDA_ENV_NAME%.
+                echo It might not exist or Conda needs setup (e.g., conda init for your shell).
+                echo Falling back to standard venv.
+                set "PROJECT_CONDA_ENV_NAME=your_conda_env_name"
+            ) else (
+                set "CONDA_ENV_ACTIVATED_BY_SCRIPT=1"
+                set "PYTHON_EXE=%CONDA_PREFIX%\python.exe"
+                echo Successfully activated Conda environment: %PROJECT_CONDA_ENV_NAME%
+                echo Using Python from Conda env: %PYTHON_EXE%
+            )
+        )
     )
 ) else (
-    echo uv is not installed. Falling back to python -m venv.
-    :: Check if the virtual environment directory exists
-    if not exist "%VENV_DIR%" (
-        echo Creating virtual environment using python -m venv.
-        python -m venv "%VENV_DIR%"
-        if !errorlevel! neq 0 (
-            echo Failed to create virtual environment with python -m venv. Please check for errors.
+    echo Conda is not available or not in PATH.
+)
+
+:: === Standard Venv Handling (if no Conda environment is active or activated by script) ===
+if not defined CONDA_DEFAULT_ENV and not defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
+    echo Proceeding with standard venv setup.
+    where python >nul 2>&1
+    if %errorlevel% neq 0 (
+        if not exist "%VENV_DIR%\Scripts\python.exe" (
+            echo Python is not installed, not in PATH, and no venv Python found. Please install Python 3.8 or higher.
             pause
             exit /b 1
         )
     )
-    :: Activate the virtual environment
-    call "%VENV_DIR%\Scripts\activate.bat"
-    :: Install dependencies using pip
-    pip install -r requirements.txt
-    if !errorlevel! neq 0 (
-        echo Failed to install dependencies with pip. Please check for errors.
-        pause
-        exit /b 1
+
+    set "ACTIVATION_SUCCESSFUL="
+    if defined IS_POWERSHELL (
+        if exist "%VENV_DIR%\Scripts\Activate.ps1" (
+            echo Activating venv for PowerShell...
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "& {& '%CD%\%VENV_DIR%\Scripts\Activate.ps1'; $env:ACTIVATION_SUCCESSFUL='true'}"
+            if "!ACTIVATION_SUCCESSFUL!"=="true" (
+                echo PowerShell venv activation script part executed.
+                set "VENV_ACTIVATED_BY_SCRIPT=1"
+                set "PYTHON_EXE=%CD%\%VENV_DIR%\Scripts\python.exe"
+            ) else (
+                echo PowerShell venv activation failed or did not confirm.
+            )
+        ) else (
+            echo %VENV_DIR%\Scripts\Activate.ps1 not found. Cannot activate for PowerShell.
+        )
+    ) else (
+        if exist "%VENV_DIR%\Scriptsctivate.bat" (
+            echo Activating venv for Command Prompt...
+            call "%VENV_DIR%\Scriptsctivate.bat"
+            set "VENV_ACTIVATED_BY_SCRIPT=1"
+            set "PYTHON_EXE=%CD%\%VENV_DIR%\Scripts\python.exe"
+        ) else (
+             echo %VENV_DIR%\Scriptsctivate.bat not found. Cannot activate for Command Prompt.
+        )
+    )
+
+    :: Create venv and install dependencies if not already in an active Conda environment
+    :: And if venv activation (or attempt) was made
+    if defined VENV_ACTIVATED_BY_SCRIPT (
+        where uv >nul 2>&1
+        if %errorlevel% equ 0 (
+            echo uv is installed. Using uv.
+            if not exist "%VENV_DIR%\pyvenv.cfg" ( :: More reliable venv check
+                uv venv "%VENV_DIR%" --python "%PYTHON_EXE%"
+                if !errorlevel! neq 0 (
+                    echo Failed to create venv with uv.
+                    pause
+                    exit /b 1
+                )
+            )
+            echo Installing dependencies with uv...
+            uv pip install -r requirements.txt
+            if !errorlevel! neq 0 (
+                echo Failed to install deps with uv.
+                pause
+                exit /b 1
+            )
+        ) else (
+            echo uv not found. Falling back to python -m venv and pip.
+             if not exist "%VENV_DIR%\pyvenv.cfg" ( :: More reliable venv check
+                echo Creating virtual environment using python -m venv.
+                "%PYTHON_EXE%" -m venv "%VENV_DIR%"
+                if !errorlevel! neq 0 (
+                    echo Failed to create venv.
+                    pause
+                    exit /b 1
+                )
+            )
+            echo Installing dependencies with pip...
+            "%PYTHON_EXE%" -m pip install -r requirements.txt
+            if !errorlevel! neq 0 (
+                echo Failed to install deps.
+                pause
+                exit /b 1
+            )
+        )
+    ) else (
+        if not defined CONDA_DEFAULT_ENV (
+             echo WARNING: Could not activate venv. Python from PATH will be used if available.
+        )
     )
 )
 
-:: Execute the Python script
-python launch.py %*
 
-:: Check if the script exited with an error
+:: === Execute the Application ===
+echo Using Python executable: %PYTHON_EXE%
+echo Launching application: %PYTHON_EXE% launch.py %*
+%PYTHON_EXE% launch.py %*
+
 if %errorlevel% neq 0 (
     echo.
-    echo The application exited with an error. Please check the logs above.
+    echo The application exited with an error.
     pause
 )
 
-:: Deactivate the virtual environment upon exiting
-call "%VENV_DIR%\Scripts\deactivate.bat"
+:: === Deactivation ===
+if defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
+    echo Deactivating Conda environment...
+    call conda deactivate
+)
+:: Venv deactivation from batch is tricky for PowerShell context as it runs in sub-shell.
+:: For cmd.exe, deactivate.bat is called if venv was activated by script.
+if defined VENV_ACTIVATED_BY_SCRIPT and not defined IS_POWERSHELL (
+    if exist "%VENV_DIR%\Scripts\deactivate.bat" (
+        echo Deactivating venv...
+        call "%VENV_DIR%\Scripts\deactivate.bat"
+    )
+)
 
 endlocal
