@@ -340,18 +340,28 @@ def prepare_environment(args: argparse.Namespace) -> bool:
         if not download_nltk_data():
             return False
     
+    python_executable = get_python_executable() # Get python executable for managers
+
     # Load extensions if not skipped
     if not args.skip_extensions:
         from deployment.extensions import extensions_manager
-        extensions_manager.load_extensions()
-        extensions_manager.initialize_extensions()
+        extensions_manager.set_python_executable(python_executable) # Set python executable
+        if not extensions_manager.load_extensions():
+            logger.error("Failed to load one or more extensions.")
+            return False
+        if not extensions_manager.initialize_extensions():
+            logger.error("Failed to initialize one or more extensions.")
+            return False
     
     # Download models if needed
     if not args.skip_models:
         from deployment.models import models_manager
+        # models_manager does not require python_executable to be set explicitly for now
         if not models_manager.list_models():
             logger.info("No models found. Downloading default models...")
-            models_manager.download_default_models()
+            if not models_manager.download_default_models():
+                logger.error("Failed to download default models.")
+                return False
     
     return True
 
@@ -503,6 +513,7 @@ def run_application(args: argparse.Namespace) -> int:
             return 1
     elif args.stage == "dev" or not args.stage: # Default to local development mode
         logger.info("Running in local development mode (backend and frontend).")
+        unexpected_exit = False
         backend_process = start_backend(args, python_executable)
         frontend_process = start_frontend(args)
 
@@ -530,12 +541,14 @@ def run_application(args: argparse.Namespace) -> int:
                     # Check if either process has exited unexpectedly
                     if backend_process.poll() is not None:
                         logger.error(f"Backend process {backend_process.pid} exited unexpectedly.")
+                        unexpected_exit = True
                         if frontend_process.poll() is None:
                             logger.info(f"Terminating frontend process {frontend_process.pid}...")
                             frontend_process.terminate()
                         break
                     if frontend_process.poll() is not None:
                         logger.error(f"Frontend process {frontend_process.pid} exited unexpectedly.")
+                        unexpected_exit = True
                         if backend_process.poll() is None:
                             logger.info(f"Terminating backend process {backend_process.pid}...")
                             backend_process.terminate()
@@ -554,10 +567,17 @@ def run_application(args: argparse.Namespace) -> int:
                         p.terminate()
                         try: p.wait(timeout=1)
                         except subprocess.TimeoutExpired: p.kill()
+            if unexpected_exit:
+                logger.error("One or more services exited unexpectedly.")
+                return 1
 
         elif backend_process: # Only backend started and frontend failed earlier
             logger.info("Only backend process is running. Waiting for it to complete.")
             backend_process.wait()
+            # If backend exits with an error code, it might be an unexpected exit
+            if backend_process.returncode != 0:
+                 logger.error(f"Backend process exited with code: {backend_process.returncode}")
+                 return 1
         # (No case for only frontend, as backend failure would terminate it)
 
     elif args.stage == "test":
@@ -763,9 +783,28 @@ def main() -> int:
         return 0
     
     # Extensions management
+    # Ensure python_executable is set for extensions_manager if any extension command is run
+    # This is a bit repetitive but ensures it's set if --skip-prepare was used.
+    # A more elegant solution might involve a global setup for managers.
+    if args.list_extensions or args.install_extension or \
+       args.uninstall_extension or args.update_extension or args.create_extension:
+        from deployment.extensions import extensions_manager
+        if not extensions_manager.python_executable or extensions_manager.python_executable == sys.executable: # Check if it needs setting
+            # This check is to avoid overriding if already set by prepare_environment
+            # to a venv python. If it's None or system python, and we are in venv, update it.
+            current_launcher_python_exec = get_python_executable()
+            if extensions_manager.python_executable != current_launcher_python_exec:
+                extensions_manager.set_python_executable(current_launcher_python_exec)
+                logger.debug(f"Set python_executable for extensions_manager in main() to: {current_launcher_python_exec}")
+
+
     if args.list_extensions:
         from deployment.extensions import extensions_manager
-        extensions_manager.load_extensions()
+        # load_extensions might be needed if prepare_environment was skipped
+        # However, list_extensions in its current form doesn't strictly need them loaded,
+        # it lists based on discovery. If it were to list *loaded* extensions, this would change.
+        # For now, assuming list_extensions can operate without full load_extensions() if needed.
+        # extensions_manager.load_extensions() # Potentially add this if list shows *active* extensions
         extensions = extensions_manager.list_extensions()
         
         print(f"Found {len(extensions)} extensions:")
@@ -780,6 +819,11 @@ def main() -> int:
     
     if args.install_extension:
         from deployment.extensions import extensions_manager
+        # Ensure prepare_environment or equivalent setup for venv has run if installing.
+        if not args.skip_prepare: # If prepare_environment ran, venv should be ready.
+            pass # Dependencies should be in venv.
+        else: # If skipping prepare, user is responsible for environment.
+            logger.warning("Skipping prepare_environment. Ensure correct Python environment for extension installation.")
         success = extensions_manager.install_extension(args.install_extension)
         return 0 if success else 1
     
@@ -790,6 +834,11 @@ def main() -> int:
     
     if args.update_extension:
         from deployment.extensions import extensions_manager
+        # Similar to install, ensure environment is appropriate.
+        if not args.skip_prepare:
+            pass
+        else:
+            logger.warning("Skipping prepare_environment. Ensure correct Python environment for extension update.")
         success = extensions_manager.update_extension(args.update_extension)
         return 0 if success else 1
     
