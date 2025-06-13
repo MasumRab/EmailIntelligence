@@ -19,6 +19,14 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+/**
+ * Integrates Vite middleware with an Express app for development with Hot Module Replacement (HMR).
+ *
+ * Sets up Vite in middleware mode, attaches its middleware to the Express app, and serves a dynamically transformed `index.html` on all unmatched routes. Ensures the latest client HTML is loaded from disk and cache-busted on each request. Errors during HTML transformation are passed to Express error handling.
+ *
+ * @param app - The Express application instance.
+ * @param server - The HTTP server used for Vite HMR.
+ */
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
