@@ -115,39 +115,6 @@ class SmartFilterManager:
                 performance_metrics TEXT,
                 is_active BOOLEAN DEFAULT 1
             )
-        """)
-        
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS filter_performance (
-                performance_id TEXT PRIMARY KEY,
-                filter_id TEXT,
-                measurement_date TEXT,
-                accuracy REAL,
-                precision_score REAL,
-                recall_score REAL,
-                f1_score REAL,
-                processing_time_ms REAL,
-                emails_processed INTEGER,
-                true_positives INTEGER,
-                false_positives INTEGER,
-                false_negatives INTEGER,
-                FOREIGN KEY (filter_id) REFERENCES email_filters (filter_id)
-            )
-        """)
-        
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS google_scripts (
-                script_id TEXT PRIMARY KEY,
-                script_name TEXT NOT NULL,
-                script_type TEXT,
-                script_content TEXT,
-                version TEXT,
-                created_date TEXT,
-                last_modified TEXT,
-                is_deployed BOOLEAN DEFAULT 0,
-                performance_score REAL DEFAULT 0.0,
-                error_count INTEGER DEFAULT 0
-            )
             """,
             """
             CREATE TABLE IF NOT EXISTS filter_performance (
@@ -1157,6 +1124,127 @@ class SmartFilterManager:
             false_positives=row["false_positives"],
             false_negatives=row["false_negatives"]
         ) for row in rows]
+
+    def get_active_filters_sorted(self) -> List[EmailFilter]:
+        """Loads all active filters from the database, sorted by priority."""
+        query = "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
+        rows = self._db_fetchall(query)
+        filters = []
+        for row in rows:
+            filters.append(EmailFilter(
+                filter_id=row["filter_id"],
+                name=row["name"],
+                description=row["description"],
+                criteria=json.loads(row["criteria"]),
+                actions=json.loads(row["actions"]),
+                priority=row["priority"],
+                effectiveness_score=row["effectiveness_score"],
+                created_date=datetime.fromisoformat(row["created_date"]),
+                last_used=datetime.fromisoformat(row["last_used"]),
+                usage_count=row["usage_count"],
+                false_positive_rate=row["false_positive_rate"],
+                performance_metrics=json.loads(row["performance_metrics"]),
+            ))
+        return filters
+
+    def _execute_filter_actions(self, email_data: Dict[str, Any], actions: Dict[str, Any]) -> List[str]:
+        """
+        Executes the defined actions on the email_data dictionary.
+        Returns a list of descriptions of actions taken.
+        """
+        actions_taken_summary = []
+
+        if actions.get("add_label"):
+            label = actions["add_label"]
+            if "labels" not in email_data:
+                email_data["labels"] = []
+            if label not in email_data["labels"]:
+                email_data["labels"].append(label)
+            actions_taken_summary.append(f"Added label: {label}")
+
+        if actions.get("mark_important"):
+            email_data["is_important_override"] = True # Use an override field
+            actions_taken_summary.append("Marked as important")
+
+        if actions.get("archive"):
+            email_data["should_archive_override"] = True
+            actions_taken_summary.append("Marked for archive")
+
+        if actions.get("mark_read"):
+            email_data["is_read_override"] = True
+            actions_taken_summary.append("Marked as read")
+
+        if actions.get("set_priority_high"): # Specific action from BSFM
+            email_data["priority_override"] = "high"
+            actions_taken_summary.append("Set priority to high")
+
+        if actions.get("set_low_priority"): # Specific action from BSFM
+            email_data["priority_override"] = "low"
+            actions_taken_summary.append("Set priority to low")
+
+        if actions.get("mark_as_spam"): # Specific action from BSFM
+            email_data["is_spam_override"] = True
+            email_data["priority_override"] = "low" # Typically spam is low priority
+            actions_taken_summary.append("Marked as spam")
+
+        # For category overrides, BSFM used specific action names
+        # We can map them or use a generic "set_category" in NSFM's action definition
+        # Example: action "set_category_finance" from BSFM
+        if actions.get("action_name") == "set_category_finance": # Hypothetical action name in NSFM
+             email_data["category_name_override"] = "Finance & Banking"
+             actions_taken_summary.append("Categorized as Finance & Banking")
+        elif actions.get("category_override"): # More generic way
+             email_data["category_name_override"] = actions["category_override"]
+             actions_taken_summary.append(f"Categorized as {actions['category_override']}")
+
+
+        # This part needs to be adapted based on how NSFM actions are structured.
+        # The above are examples based on BSFM's direct manipulations.
+        # NSFM actions are like: "actions": {"add_label": "Work/High Priority", "mark_important": True}
+
+        return actions_taken_summary
+
+    def apply_filters_to_email_data(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Apply all active, sorted filters to an email data dictionary.
+        Modifies email_data in place and returns a summary of actions.
+        """
+        applied_filter_results = []
+        sorted_filters = self.get_active_filters_sorted()
+
+        email_actions_summary = {
+            "filters_matched": [],
+            "actions_taken": [],
+            "modified_fields": {} # To track what changed in email_data
+        }
+
+        for filter_obj in sorted_filters:
+            match_result = self._apply_filter_to_email(filter_obj, email_data)
+
+            if match_result:
+                self.logger.info(f"Email matched filter: {filter_obj.name}")
+                # Update usage stats for the matched filter
+                filter_obj.usage_count += 1
+                filter_obj.last_used = datetime.now()
+                self._update_filter(filter_obj) # Save updated stats to DB
+
+                # Execute actions defined in the filter
+                action_descriptions = self._execute_filter_actions(email_data, filter_obj.actions)
+
+                email_actions_summary["filters_matched"].append(filter_obj.name)
+                email_actions_summary["actions_taken"].extend(action_descriptions)
+
+                # For simplicity, we'll assume BSFM's "stop at first match for certain high-priority actions"
+                # This can be configured in the filter's actions dict if needed e.g. "stop_processing": True
+                if filter_obj.actions.get("mark_as_spam") or filter_obj.actions.get("set_priority_high"):
+                    self.logger.info(f"Stopping further filter processing due to action in {filter_obj.name}")
+                    break
+
+        # To report modified fields, we'd need to compare original email_data to current.
+        # For now, this is a conceptual placeholder.
+        # email_actions_summary["modified_fields"] = ...
+
+        return email_actions_summary
 
 def main():
     """Example usage of smart filter manager"""
