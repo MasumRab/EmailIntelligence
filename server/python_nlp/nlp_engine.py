@@ -73,47 +73,38 @@ class NLPEngine:
         text = re.sub(r'[^\w\s]', '', text)
         return text
 
-    def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
-        """Enhanced sentiment analysis with confidence scoring using a loaded model or TextBlob."""
-        if self.sentiment_model:
-            try:
-                # Assuming the model is a scikit-learn pipeline that handles preprocessing (e.g., vectorization)
-                # And it has methods predict() and predict_proba()
-                # The classes_ attribute should tell us the order of probabilities
-                prediction = self.sentiment_model.predict([text])[0]
-                probabilities = self.sentiment_model.predict_proba([text])[0]
+    def _analyze_sentiment_model(self, text: str) -> Optional[Dict[str, Any]]:
+        """Analyzes sentiment using the loaded sklearn model."""
+        if not self.sentiment_model:
+            return None
+        try:
+            prediction = self.sentiment_model.predict([text])[0]
+            probabilities = self.sentiment_model.predict_proba([text])[0]
+            confidence = max(probabilities)
+            polarity = 0.0
+            if prediction == 'positive':
+                polarity = confidence
+            elif prediction == 'negative':
+                polarity = -confidence
+            return {
+                'sentiment': str(prediction),
+                'polarity': polarity,
+                'subjectivity': 0.5,  # Default subjectivity
+                'confidence': float(confidence),
+                'method_used': 'model_sentiment'
+            }
+        except Exception as e:
+            logger.error(f"Error using sentiment model: {e}. Trying fallback.")
+            return None
 
-                # Assuming classes are ordered e.g. ['negative', 'neutral', 'positive']
-                # Or the model has a classes_ attribute
-                class_labels = self.sentiment_model.classes_
-                confidence = max(probabilities)
-
-                # Polarity and subjectivity are harder to get directly from a generic classifier.
-                # We'll set polarity based on prediction and default subjectivity.
-                # This part might need refinement based on how the sentiment model is trained.
-                polarity = 0.0
-                if prediction == 'positive':
-                    polarity = confidence # Use confidence as a proxy for polarity strength
-                elif prediction == 'negative':
-                    polarity = -confidence
-
-                return {
-                    'sentiment': str(prediction), # Ensure it's a string
-                    'polarity': polarity,
-                    'subjectivity': 0.5,  # Default subjectivity, TextBlob is better for this
-                    'confidence': float(confidence),
-                    'method_used': 'model_sentiment'
-                }
-            except Exception as e:
-                logger.error(f"Error using sentiment model: {e}. Falling back to TextBlob/simple analysis.")
-                # Fall through to TextBlob/simple analysis
-
-        # Fallback to TextBlob if NLTK is available
-        if HAS_NLTK:
+    def _analyze_sentiment_textblob(self, text: str) -> Optional[Dict[str, Any]]:
+        """Analyzes sentiment using TextBlob as a fallback."""
+        if not HAS_NLTK:
+            return None
+        try:
             blob = TextBlob(text)
             polarity = blob.sentiment.polarity
             subjectivity = blob.sentiment.subjectivity
-
             if polarity > 0.1:
                 sentiment_label = 'positive'
                 confidence = min(polarity + 0.5, 1.0)
@@ -122,8 +113,7 @@ class NLPEngine:
                 confidence = min(abs(polarity) + 0.5, 1.0)
             else:
                 sentiment_label = 'neutral'
-                confidence = 0.7 # Default confidence for TextBlob neutral
-
+                confidence = 0.7  # Default confidence for TextBlob neutral
             return {
                 'sentiment': sentiment_label,
                 'polarity': polarity,
@@ -131,18 +121,24 @@ class NLPEngine:
                 'confidence': confidence,
                 'method_used': 'fallback_textblob_sentiment'
             }
+        except Exception as e: # pylint: disable=broad-except
+            logger.error(f"Error during TextBlob sentiment analysis: {e}")
+            return None
 
-        # Absolute fallback (simple keyword-based if NLTK/TextBlob also failed or unavailable)
+    def _analyze_sentiment_keyword(self, text: str) -> Dict[str, Any]:
+        """Analyzes sentiment using keyword matching as a final fallback."""
         text_lower = text.lower()
         positive_words = ['good', 'great', 'excellent', 'thank', 'please', 'welcome', 'happy', 'love']
         negative_words = ['bad', 'terrible', 'problem', 'issue', 'error', 'failed', 'hate', 'angry']
         positive_count = sum(1 for word in positive_words if word in text_lower)
         negative_count = sum(1 for word in negative_words if word in text_lower)
 
-        if positive_count > negative_count: sentiment_label, pol, conf = 'positive', 0.5, 0.6
-        elif negative_count > positive_count: sentiment_label, pol, conf = 'negative', -0.5, 0.6
-        else: sentiment_label, pol, conf = 'neutral', 0.0, 0.5
-
+        if positive_count > negative_count:
+            sentiment_label, pol, conf = 'positive', 0.5, 0.6
+        elif negative_count > positive_count:
+            sentiment_label, pol, conf = 'negative', -0.5, 0.6
+        else:
+            sentiment_label, pol, conf = 'neutral', 0.0, 0.5
         return {
             'sentiment': sentiment_label,
             'polarity': pol,
@@ -151,20 +147,33 @@ class NLPEngine:
             'method_used': 'fallback_keyword_sentiment'
         }
 
+    def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
+        """Enhanced sentiment analysis with confidence scoring using a loaded model or TextBlob."""
+        analysis_result = self._analyze_sentiment_model(text)
+        if analysis_result:
+            return analysis_result
 
-    def _analyze_topic(self, text: str) -> Dict[str, Any]:
-        """Identify main topic of the email using a loaded model or keyword-based fallback."""
-        if self.topic_model:
-            try:
-                prediction = self.topic_model.predict([text])[0]
-                probabilities = self.topic_model.predict_proba([text])[0]
-                confidence = float(max(probabilities))
-                return {'topic': str(prediction), 'confidence': confidence, 'method_used': 'model_topic'}
-            except Exception as e:
-                logger.error(f"Error using topic model: {e}. Falling back to keyword-based analysis.")
-                # Fall through to keyword-based
+        analysis_result = self._analyze_sentiment_textblob(text)
+        if analysis_result:
+            return analysis_result
 
-        # Fallback keyword-based logic
+        return self._analyze_sentiment_keyword(text)
+
+    def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
+        """Analyzes topic using the loaded sklearn model."""
+        if not self.topic_model:
+            return None
+        try:
+            prediction = self.topic_model.predict([text])[0]
+            probabilities = self.topic_model.predict_proba([text])[0]
+            confidence = float(max(probabilities))
+            return {'topic': str(prediction), 'confidence': confidence, 'method_used': 'model_topic'}
+        except Exception as e:
+            logger.error(f"Error using topic model: {e}. Trying fallback.")
+            return None
+
+    def _analyze_topic_keyword(self, text: str) -> Dict[str, Any]:
+        """Analyzes topic using keyword matching as a fallback."""
         topics = {
             'Work & Business': ['meeting', 'conference', 'project', 'deadline', 'client', 'presentation', 'report', 'proposal'],
             'Finance & Banking': ['payment', 'invoice', 'bill', 'statement', 'account', 'credit', 'debit', 'transfer', 'money', 'financial'],
@@ -178,32 +187,46 @@ class NLPEngine:
             score = sum(1 for keyword in keywords if keyword in text_lower)
             topic_scores[topic] = score
 
-        if any(score > 0 for score in topic_scores.values()): # Check if any keyword matched
+        if any(score > 0 for score in topic_scores.values()):  # Check if any keyword matched
             best_topic = max(topic_scores, key=topic_scores.get)
-            confidence = min(topic_scores[best_topic] / 5.0, 0.9)
+            # Normalize confidence: score / num_keywords_for_topic (approx), capped.
+            # A simple heuristic: assume an average of 5-10 keywords define a topic well.
+            # A higher number of matched keywords from a list for a specific topic gives higher confidence.
+            # Max score for a topic is the number of keywords in its list.
+            # Confidence can be (matched_keywords / total_keywords_for_that_topic), but that's complex.
+            # Using matched_keywords / 5.0 is a simpler proxy.
+            confidence = min(topic_scores[best_topic] / 5.0, 0.9) # Max confidence 0.9 for keyword based
             return {'topic': best_topic, 'confidence': max(0.1, confidence), 'method_used': 'fallback_keyword_topic'}
         else:
             return {'topic': 'General', 'confidence': 0.5, 'method_used': 'fallback_keyword_topic'}
 
+    def _analyze_topic(self, text: str) -> Dict[str, Any]:
+        """Identify main topic of the email using a loaded model or keyword-based fallback."""
+        analysis_result = self._analyze_topic_model(text)
+        if analysis_result:
+            return analysis_result
+        return self._analyze_topic_keyword(text)
 
-    def _analyze_intent(self, text: str) -> Dict[str, Any]:
-        """Determine the intent of the email using a loaded model or regex-based fallback."""
-        if self.intent_model:
-            try:
-                prediction = self.intent_model.predict([text])[0]
-                probabilities = self.intent_model.predict_proba([text])[0]
-                confidence = float(max(probabilities))
-                return {'intent': str(prediction), 'confidence': confidence, 'method_used': 'model_intent'}
-            except Exception as e:
-                logger.error(f"Error using intent model: {e}. Falling back to regex-based analysis.")
-                # Fall through to regex-based
+    def _analyze_intent_model(self, text: str) -> Optional[Dict[str, Any]]:
+        """Analyzes intent using the loaded sklearn model."""
+        if not self.intent_model:
+            return None
+        try:
+            prediction = self.intent_model.predict([text])[0]
+            probabilities = self.intent_model.predict_proba([text])[0]
+            confidence = float(max(probabilities))
+            return {'intent': str(prediction), 'confidence': confidence, 'method_used': 'model_intent'}
+        except Exception as e:
+            logger.error(f"Error using intent model: {e}. Trying fallback.")
+            return None
 
-        # Fallback regex-based logic
+    def _analyze_intent_regex(self, text: str) -> Dict[str, Any]:
+        """Analyzes intent using regex matching as a fallback."""
         intent_patterns = {
             'request': r'\b(please|could you|would you|can you|need|require|request)\b',
             'inquiry': r'\b(question|ask|wonder|curious|information|details|clarification)\b',
             'scheduling': r'\b(schedule|calendar|meeting|appointment|time|date|available)\b',
-            'urgent_action': r'\b(urgent|asap|immediately|emergency|critical|priority)\b', # This might overlap with urgency
+            'urgent_action': r'\b(urgent|asap|immediately|emergency|critical|priority)\b',
             'gratitude': r'\b(thank|thanks|grateful|appreciate)\b',
             'complaint': r'\b(complaint|complain|issue|problem|dissatisfied|unhappy)\b',
             'follow_up': r'\b(follow up|follow-up|checking in|status|update|progress)\b',
@@ -217,24 +240,34 @@ class NLPEngine:
 
         if any(score > 0 for score in intent_scores.values()):
             best_intent = max(intent_scores, key=intent_scores.get)
+            # Confidence heuristic: number of matches / 3 (arbitrary scaling factor)
             confidence = min(intent_scores[best_intent] / 3.0, 0.9)
             return {'intent': best_intent, 'confidence': max(0.1, confidence), 'method_used': 'fallback_regex_intent'}
         else:
             return {'intent': 'informational', 'confidence': 0.6, 'method_used': 'fallback_regex_intent'}
 
+    def _analyze_intent(self, text: str) -> Dict[str, Any]:
+        """Determine the intent of the email using a loaded model or regex-based fallback."""
+        analysis_result = self._analyze_intent_model(text)
+        if analysis_result:
+            return analysis_result
+        return self._analyze_intent_regex(text)
 
-    def _analyze_urgency(self, text: str) -> Dict[str, Any]:
-        """Assess the urgency level of the email"""
-        if self.urgency_model:
-            try:
-                prediction = self.urgency_model.predict([text])[0]
-                probabilities = self.urgency_model.predict_proba([text])[0]
-                confidence = float(max(probabilities))
-                return {'urgency': str(prediction), 'confidence': confidence, 'method_used': 'model_urgency'}
-            except Exception as e:
-                logger.error(f"Error using urgency model: {e}. Falling back to regex-based analysis.")
-                # Fall through to regex based
+    def _analyze_urgency_model(self, text: str) -> Optional[Dict[str, Any]]:
+        """Analyzes urgency using the loaded sklearn model."""
+        if not self.urgency_model:
+            return None
+        try:
+            prediction = self.urgency_model.predict([text])[0]
+            probabilities = self.urgency_model.predict_proba([text])[0]
+            confidence = float(max(probabilities))
+            return {'urgency': str(prediction), 'confidence': confidence, 'method_used': 'model_urgency'}
+        except Exception as e:
+            logger.error(f"Error using urgency model: {e}. Trying fallback.")
+            return None
 
+    def _analyze_urgency_regex(self, text: str) -> Dict[str, Any]:
+        """Analyzes urgency using regex matching as a fallback."""
         text_lower = text.lower()
         if re.search(r'\b(emergency|urgent|asap|immediately|critical|crisis|disaster)\b', text_lower):
             urgency_label, conf = 'critical', 0.9
@@ -245,6 +278,13 @@ class NLPEngine:
         else:
             urgency_label, conf = 'low', 0.5
         return {'urgency': urgency_label, 'confidence': conf, 'method_used': 'fallback_regex_urgency'}
+
+    def _analyze_urgency(self, text: str) -> Dict[str, Any]:
+        """Assess the urgency level of the email"""
+        analysis_result = self._analyze_urgency_model(text)
+        if analysis_result:
+            return analysis_result
+        return self._analyze_urgency_regex(text)
 
     def _extract_keywords(self, text: str) -> List[str]:
         """Extract important keywords from text"""
@@ -316,9 +356,12 @@ class NLPEngine:
                 matches = re.findall(pattern, text_lower)
                 score += len(matches)
             if score > 0:
+                # Could also store score if needed later for confidence of categorization
                 categories.append(category)
 
-        return categories[:3] if categories else ['General']
+        if not categories:
+            return ['General']
+        return categories[:3] # Return top 3 matched categories or fewer
 
     def _calculate_confidence(self, analysis_results: List[Dict[str, Any]]) -> float:
         """Calculate overall confidence score"""
@@ -352,7 +395,7 @@ class NLPEngine:
         if not parts:
             return "No significant insights detected from the email content through automated analysis."
 
-        return ". ".join(parts) + "."
+        return f"{'. '.join(parts)}."
 
     def _suggest_labels(self, categories: List[str], urgency: str) -> List[str]:
         """Suggest labels for the email"""
@@ -519,49 +562,10 @@ class NLPEngine:
             keywords = self._extract_keywords(cleaned_text) # Uses TextBlob if available
             categories = self._categorize_content(cleaned_text) # Regex-based
 
-            # Consolidate results
-            # Confidence calculation might need to be revisited if models are very different
-            # For now, let's assume each analysis function returns a 'confidence' field.
-            analysis_results_for_confidence = [
-                r for r in [sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis] if r and 'confidence' in r
-            ]
-            overall_confidence = self._calculate_confidence(analysis_results_for_confidence) if analysis_results_for_confidence else 0.5
-
-
-            reasoning = self._generate_reasoning(
-                sentiment_analysis, topic_analysis, 
-                intent_analysis, urgency_analysis
+            return self._build_final_analysis_response(
+                sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis,
+                categories, keywords, risk_analysis_flags
             )
-
-            validation_input = {
-                'sentiment': sentiment_analysis, 'topic': topic_analysis,
-                'intent': intent_analysis, 'urgency': urgency_analysis
-            }
-            # Filter out None results before passing to _validate_analysis
-            validation_input_filtered = {k: v for k, v in validation_input.items() if v is not None}
-            validation = self._validate_analysis(validation_input_filtered)
-
-
-            return {
-                'topic': topic_analysis.get('topic', 'General') if topic_analysis else 'General',
-                'sentiment': sentiment_analysis.get('sentiment', 'neutral') if sentiment_analysis else 'neutral',
-                'intent': intent_analysis.get('intent', 'informational') if intent_analysis else 'informational',
-                'urgency': urgency_analysis.get('urgency', 'low') if urgency_analysis else 'low',
-                'confidence': overall_confidence,
-                'categories': categories,
-                'keywords': keywords,
-                'reasoning': reasoning,
-                'suggested_labels': self._suggest_labels(categories, urgency_analysis.get('urgency', 'low') if urgency_analysis else 'low'),
-                'risk_flags': risk_analysis_flags, # Use the direct output from _detect_risk_factors
-                'validation': validation,
-                # Include individual model confidences for transparency if needed
-                'details': {
-                    'sentiment_analysis': sentiment_analysis,
-                    'topic_analysis': topic_analysis,
-                    'intent_analysis': intent_analysis,
-                    'urgency_analysis': urgency_analysis,
-                }
-            }
 
         except Exception as e:
             error_msg = f"NLP analysis failed: {str(e)}"
@@ -586,45 +590,70 @@ def main():
     engine = NLPEngine()
 
     if args.health_check:
-        models_available = []
-        if engine.sentiment_model: models_available.append("sentiment")
-        if engine.topic_model: models_available.append("topic")
-        if engine.intent_model: models_available.append("intent")
-        if engine.urgency_model: models_available.append("urgency")
-
-        all_models_loaded = (engine.sentiment_model is not None and
-                             engine.topic_model is not None and
-                             engine.intent_model is not None and
-                             engine.urgency_model is not None)
-
-        health_status = {
-            "status": "ok" if all_models_loaded else "degraded",
-            "models_available": models_available,
-            "performance": {}, # Placeholder
-            "timestamp": datetime.now().isoformat()
-        }
-        if args.output_format == 'json':
-            print(json.dumps(health_status))
-        else:
-            print(json.dumps(health_status, indent=2))
+        _perform_health_check(engine, args.output_format)
         sys.exit(0)
 
     if args.analyze_email:
-        if not args.subject and not args.content:
-            # If called with --analyze-email but no subject/content, could be an error or expect empty analysis
-            logger.warning("Analysis requested with empty subject and content.")
-
-        result = engine.analyze_email(args.subject, args.content)
-        if args.output_format == 'json':
-            print(json.dumps(result)) # Compact JSON for machine readability
-        else:
-            print(json.dumps(result, indent=2)) # Pretty print for text output
+        _perform_email_analysis_cli(engine, args.subject, args.content, args.output_format)
         sys.exit(0)
 
     # Backward compatibility / Default behavior
     # This part handles the old way of calling: python nlp_engine.py "subject" "content"
     # It also serves as a default if no specific action like --health-check or --analyze-email is given.
     # Check if any of the new flags were used. If so, and they weren't handled above, it's an invalid combo or missing action.
+
+    def _build_final_analysis_response(self, sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis,
+                                     categories, keywords, risk_analysis_flags) -> Dict[str, Any]:
+        """Helper function to consolidate analysis results and build the final response dictionary."""
+
+        analysis_results_for_confidence = [
+            r for r in [sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis] if r and 'confidence' in r
+        ]
+        overall_confidence = self._calculate_confidence(analysis_results_for_confidence) if analysis_results_for_confidence else 0.5
+
+        reasoning = self._generate_reasoning(
+            sentiment_analysis, topic_analysis,
+            intent_analysis, urgency_analysis
+        )
+
+        validation_input = {
+            'sentiment': sentiment_analysis, 'topic': topic_analysis,
+            'intent': intent_analysis, 'urgency': urgency_analysis
+        }
+        validation_input_filtered = {k: v for k, v in validation_input.items() if v is not None}
+        validation = self._validate_analysis(validation_input_filtered)
+
+        # Determine default values for primary analysis fields
+        final_topic = topic_analysis.get('topic', 'General') if topic_analysis else 'General'
+        final_sentiment = sentiment_analysis.get('sentiment', 'neutral') if sentiment_analysis else 'neutral'
+        final_intent = intent_analysis.get('intent', 'informational') if intent_analysis else 'informational'
+        final_urgency = urgency_analysis.get('urgency', 'low') if urgency_analysis else 'low'
+
+        suggested_labels = self._suggest_labels(categories, final_urgency)
+
+        return {
+            'topic': final_topic,
+            'sentiment': final_sentiment,
+            'intent': final_intent,
+            'urgency': final_urgency,
+            'confidence': overall_confidence,
+            'categories': categories,
+            'keywords': keywords,
+            'reasoning': reasoning,
+            'suggested_labels': suggested_labels,
+            'risk_flags': risk_analysis_flags,
+            'validation': validation,
+            'details': {
+                'sentiment_analysis': sentiment_analysis,
+                'topic_analysis': topic_analysis,
+                'intent_analysis': intent_analysis,
+                'urgency_analysis': urgency_analysis,
+            }
+        }
+
+# This is the main function to be kept (argparse based)
+def main():
+    # Basic logging for CLI usage, can be overridden by Gunicorn's logger in production
     # If no new flags are present, and we have enough sys.argv, assume old style.
 
     # Prioritize new flags. If specific flags like --analyze-email or --health-check are used,
@@ -632,24 +661,7 @@ def main():
     # If script reaches here, it means no specific action flag was triggered.
     # We can check for positional arguments for backward compatibility.
 
-    if len(sys.argv) > 1 and not any(flag in sys.argv for flag in ['--analyze-email', '--health-check', '--subject', '--content', '--output-format']):
-        # Likely old style invocation if no known flags are present
-        if len(sys.argv) < 3: # Allow content to be empty
-            # This was the old error message, adapting it slightly
-            err_msg = {'error': 'Invalid arguments for old-style invocation. Usage: python nlp_engine.py "<subject>" "<content>"'}
-            if args.output_format == 'json': print(json.dumps(err_msg))
-            else: print(json.dumps(err_msg, indent=2))
-            sys.exit(1)
-
-        subject_old = sys.argv[1]
-        content_old = sys.argv[2] if len(sys.argv) > 2 else ""
-
-        logger.info("Processing with backward compatibility mode (positional arguments).")
-        result = engine.analyze_email(subject_old, content_old)
-        if args.output_format == 'json': # Respect output format even for old style
-            print(json.dumps(result))
-        else:
-            print(json.dumps(result, indent=2))
+    if _handle_backward_compatible_cli_invocation(engine, args, sys.argv):
         sys.exit(0)
 
     # If no action flag and no old-style arguments, print help.
@@ -664,6 +676,72 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+def _perform_health_check(engine: NLPEngine, output_format: str):
+    """Performs a health check and prints the status."""
+    models_available = []
+    if engine.sentiment_model: models_available.append("sentiment")
+    if engine.topic_model: models_available.append("topic")
+    if engine.intent_model: models_available.append("intent")
+    if engine.urgency_model: models_available.append("urgency")
+
+    all_models_loaded = all(model is not None for model in [
+        engine.sentiment_model, engine.topic_model,
+        engine.intent_model, engine.urgency_model
+    ])
+
+    health_status = {
+        "status": "ok" if all_models_loaded else "degraded",
+        "models_available": models_available,
+        "nltk_available": HAS_NLTK,
+        "sklearn_available": HAS_SKLEARN_AND_JOBLIB,
+        "timestamp": datetime.now().isoformat()
+    }
+    if output_format == 'json':
+        print(json.dumps(health_status))
+    else:
+        # Pretty print for text output, even if it's JSON structure
+        print(json.dumps(health_status, indent=2))
+
+def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, output_format: str):
+    """Performs email analysis based on CLI arguments and prints the result."""
+    if not subject and not content:
+        # If called with --analyze-email but no subject/content, could be an error or expect empty analysis
+        logger.warning("Analysis requested with empty subject and content.")
+
+    result = engine.analyze_email(subject, content)
+    if output_format == 'json':
+        print(json.dumps(result))  # Compact JSON for machine readability
+    else:
+        print(json.dumps(result, indent=2))  # Pretty print for text output
+
+def _handle_backward_compatible_cli_invocation(engine: NLPEngine, args: argparse.Namespace, argv: List[str]) -> bool:
+    """
+    Handles backward compatible CLI invocation using positional arguments.
+    Returns True if invocation was handled, False otherwise.
+    """
+    # Check if any known flags are present. If so, it's not an old-style invocation.
+    known_flags = ['--analyze-email', '--health-check', '--subject', '--content', '--output-format']
+    if any(flag in argv for flag in known_flags):
+        return False
+
+    # Old style: python nlp_engine.py "subject" "content"
+    # len(argv) will be at least 1 (script name)
+    if len(argv) > 1: # Script name + at least one arg
+        if len(argv) < 3: # Script name, subject, (optional) content
+             # Allow content to be empty for old style, but subject must be there if any arg is given
+            err_msg = {'error': 'Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py "<subject>" "[content]"'}
+            if args.output_format == 'json': print(json.dumps(err_msg))
+            else: print(json.dumps(err_msg, indent=2))
+            sys.exit(1) # Exit here as it's an error in argument usage for this mode
+
+        subject_old = argv[1]
+        content_old = argv[2] if len(argv) > 2 else ""
+
+        logger.info("Processing with backward compatibility mode (positional arguments).")
+        # Use the already defined _perform_email_analysis_cli for consistency in output
+        _perform_email_analysis_cli(engine, subject_old, content_old, args.output_format)
+        return True
+    return False
 
 if __name__ == "__main__":
     main()
