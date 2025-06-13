@@ -54,11 +54,52 @@ class SmartFilterManager:
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
         
+    def _get_db_connection(self) -> sqlite3.Connection:
+        """Get a new database connection."""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row # Access columns by name
+        return conn
+
+    def _db_execute(self, query: str, params: tuple = ()):
+        """Execute a query (INSERT, UPDATE, DELETE)."""
+        conn = self._get_db_connection()
+        try:
+            conn.execute(query, params)
+            conn.commit()
+        except sqlite3.Error as e:
+            self.logger.error(f"Database error: {e} with query: {query[:100]}")
+            # Optionally re-raise or handle
+        finally:
+            conn.close()
+
+    def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
+        """Execute a query and fetch one row."""
+        conn = self._get_db_connection()
+        try:
+            cursor = conn.execute(query, params)
+            return cursor.fetchone()
+        except sqlite3.Error as e:
+            self.logger.error(f"Database error: {e} with query: {query[:100]}")
+            return None
+        finally:
+            conn.close()
+
+    def _db_fetchall(self, query: str, params: tuple = ()) -> List[sqlite3.Row]:
+        """Execute a query and fetch all rows."""
+        conn = self._get_db_connection()
+        try:
+            cursor = conn.execute(query, params)
+            return cursor.fetchall()
+        except sqlite3.Error as e:
+            self.logger.error(f"Database error: {e} with query: {query[:100]}")
+            return []
+        finally:
+            conn.close()
+
     def _init_filter_db(self):
         """Initialize filter database"""
-        conn = sqlite3.connect(self.db_path)
-        
-        conn.execute("""
+        queries = [
+            """
             CREATE TABLE IF NOT EXISTS email_filters (
                 filter_id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -107,11 +148,49 @@ class SmartFilterManager:
                 performance_score REAL DEFAULT 0.0,
                 error_count INTEGER DEFAULT 0
             )
-        """)
-        
-        conn.commit()
-        conn.close()
-    
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS filter_performance (
+                performance_id TEXT PRIMARY KEY,
+                filter_id TEXT,
+                measurement_date TEXT,
+                accuracy REAL,
+                precision_score REAL,
+                recall_score REAL,
+                f1_score REAL,
+                processing_time_ms REAL,
+                emails_processed INTEGER,
+                true_positives INTEGER,
+                false_positives INTEGER,
+                false_negatives INTEGER,
+                FOREIGN KEY (filter_id) REFERENCES email_filters (filter_id)
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS google_scripts (
+                script_id TEXT PRIMARY KEY,
+                script_name TEXT NOT NULL,
+                script_type TEXT,
+                script_content TEXT,
+                version TEXT,
+                created_date TEXT,
+                last_modified TEXT,
+                is_deployed BOOLEAN DEFAULT 0,
+                performance_score REAL DEFAULT 0.0,
+                error_count INTEGER DEFAULT 0
+            )
+            """
+        ]
+        conn = self._get_db_connection()
+        try:
+            for query in queries:
+                conn.execute(query)
+            conn.commit()
+        except sqlite3.Error as e:
+            self.logger.error(f"Database initialization error: {e}")
+        finally:
+            conn.close()
+
     def _load_filter_templates(self) -> Dict[str, Dict[str, Any]]:
         """Load intelligent filter templates"""
         return {
@@ -121,10 +200,10 @@ class SmartFilterManager:
                         r".*@(company\.com|organization\.org)",
                         r".*(manager|director|ceo|president).*@.*"
                     ],
-                    "subject_keywords": ["urgent", "important", "asap", "deadline", "meeting"],
-                    "content_keywords": ["project", "budget", "proposal", "contract"],
+                    "subject_keywords": ["urgent", "important", "asap", "deadline", "meeting"], # Already lowercase
+                    "content_keywords": ["project", "budget", "proposal", "contract"], # Already lowercase
                     "time_sensitivity": "high",
-                    "exclude_patterns": ["newsletter", "unsubscribe", "automated"]
+                    "exclude_patterns": ["newsletter", "unsubscribe", "automated"] # Already lowercase
                 },
                 "actions": {
                     "add_label": "Work/High Priority",
@@ -142,9 +221,9 @@ class SmartFilterManager:
                         r".*@(bank|credit|finance|accounting).*",
                         r".*(invoice|billing|payment).*@.*"
                     ],
-                    "subject_keywords": ["invoice", "statement", "payment", "receipt", "bill"],
-                    "attachment_types": ["pdf", "xlsx", "csv"],
-                    "content_keywords": ["amount", "due", "balance", "transaction"]
+                    "subject_keywords": ["invoice", "statement", "payment", "receipt", "bill"], # Already lowercase
+                    "attachment_types": ["pdf", "xlsx", "csv"], # Case-insensitive usually, but good to be consistent
+                    "content_keywords": ["amount", "due", "balance", "transaction"] # Already lowercase
                 },
                 "actions": {
                     "add_label": "Finance/Documents",
@@ -164,9 +243,9 @@ class SmartFilterManager:
                         r".*automated.*",
                         r".*notification.*@.*"
                     ],
-                    "subject_keywords": ["notification", "alert", "update", "reminder"],
-                    "content_keywords": ["automated", "do not reply", "unsubscribe"],
-                    "exclude_keywords": ["urgent", "important", "action required"]
+                    "subject_keywords": ["notification", "alert", "update", "reminder"], # Already lowercase
+                    "content_keywords": ["automated", "do not reply", "unsubscribe"], # Already lowercase
+                    "exclude_keywords": ["urgent", "important", "action required"] # Already lowercase
                 },
                 "actions": {
                     "add_label": "Automated/Notifications",
@@ -180,8 +259,8 @@ class SmartFilterManager:
             
             "promotional_emails": {
                 "criteria": {
-                    "subject_keywords": ["sale", "discount", "offer", "deal", "promotion", "%", "save"],
-                    "content_keywords": ["unsubscribe", "promotional", "marketing", "advertisement"],
+                    "subject_keywords": ["sale", "discount", "offer", "deal", "promotion", "%", "save"], # Already lowercase
+                    "content_keywords": ["unsubscribe", "promotional", "marketing", "advertisement"], # Already lowercase
                     "from_patterns": [r".*@(marketing|promo|deals|offers).*"],
                     "list_unsubscribe_header": True
                 },
@@ -198,9 +277,9 @@ class SmartFilterManager:
             "personal_communications": {
                 "criteria": {
                     "from_patterns": [r".*@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com)"],
-                    "exclude_patterns": [r".*noreply.*", r".*automated.*"],
-                    "subject_exclude": ["newsletter", "promotion", "unsubscribe"],
-                    "content_personal_indicators": ["how are you", "hope you", "let me know", "talk soon"]
+                    "exclude_patterns": [r".*noreply.*", r".*automated.*"], # These are regex, not keywords for keyword list
+                    "subject_exclude": ["newsletter", "promotion", "unsubscribe"], # Already lowercase
+                    "content_personal_indicators": ["how are you", "hope you", "let me know", "talk soon"] # Already lowercase
                 },
                 "actions": {
                     "add_label": "Personal",
@@ -213,10 +292,10 @@ class SmartFilterManager:
             
             "security_alerts": {
                 "criteria": {
-                    "subject_keywords": ["security", "login", "password", "suspicious", "breach", "alert"],
+                    "subject_keywords": ["security", "login", "password", "suspicious", "breach", "alert"], # Already lowercase
                     "from_patterns": [r".*security.*@.*", r".*@.*(google|microsoft|apple)\.com"],
-                    "content_keywords": ["unauthorized", "verify", "suspicious activity", "security alert"],
-                    "urgency_indicators": ["immediate", "verify now", "action required"]
+                    "content_keywords": ["unauthorized", "verify", "suspicious activity", "security alert"], # Already lowercase
+                    "urgency_indicators": ["immediate", "verify now", "action required"] # Already lowercase
                 },
                 "actions": {
                     "add_label": "Security/Alerts",
@@ -248,59 +327,97 @@ class SmartFilterManager:
         # Analyze email patterns
         patterns = self._analyze_email_patterns(email_samples)
         
-        # Generate filters from templates
-        for template_name, template in self.filter_templates.items():
-            if self._should_create_filter(template, patterns):
-                filter_obj = self._create_filter_from_template(template_name, template)
-                created_filters.append(filter_obj)
-                self._save_filter(filter_obj)
+        # Create filters from templates
+        template_filters = self._create_filters_from_templates(patterns)
+        created_filters.extend(template_filters)
         
         # Create custom filters based on discovered patterns
-        custom_filters = self._create_custom_filters(patterns)
+        custom_filters = self._create_custom_filters(patterns) # This method already saves the filters
         created_filters.extend(custom_filters)
         
         self.logger.info(f"Created {len(created_filters)} intelligent filters")
         return created_filters
-    
+
+    def _create_filters_from_templates(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
+        """Creates filters based on predefined templates and analyzed patterns."""
+        template_filters = []
+        for template_name, template_data in self.filter_templates.items():
+            if self._should_create_filter(template_data, patterns):
+                filter_obj = self._create_filter_from_template(template_name, template_data)
+                self._save_filter(filter_obj) # Save the filter
+                template_filters.append(filter_obj)
+        return template_filters
+
+    def _extract_patterns_from_single_email(self, email: Dict[str, Any]) -> Dict[str, Any]:
+        """Extracts various pattern elements from a single email."""
+        email_patterns = {}
+
+        sender_domain = self._extract_domain(email.get('senderEmail', ''))
+        if sender_domain:
+            email_patterns["sender_domain"] = sender_domain # Store single domain
+
+        subject_words = self._extract_keywords(email.get('subject', ''))
+        if subject_words:
+            email_patterns["subject_keywords"] = subject_words # Store list of words
+
+        content_words = self._extract_keywords(email.get('content', ''))
+        if content_words:
+            email_patterns["content_keywords"] = content_words # Store list of words
+
+        category = email.get('category') or email.get('ai_analysis', {}).get('topic', 'unknown')
+        email_patterns["category"] = category # Store single category
+
+        if email.get('isImportant') or email.get('isStarred'):
+            # Combine subject and content words for importance, ensure no duplicates if that's desired
+            # For now, simple concatenation is fine as Counter will handle frequency.
+            email_patterns["importance_keywords"] = list(set(subject_words + content_words))
+
+
+        # For automation indicators, we want to associate them with the email's characteristics
+        if self._is_automated_email(email):
+            # Collect words and domain that indicated automation for this email
+            automation_flags = set(subject_words)
+            if sender_domain:
+                automation_flags.add(sender_domain)
+            email_patterns["automation_flags"] = list(automation_flags)
+
+        return email_patterns
+
     def _analyze_email_patterns(self, email_samples: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Analyze email samples to discover patterns"""
-        patterns = {
+        """Analyze email samples to discover patterns by aggregating findings from each email."""
+        # Initialize aggregated patterns structure
+        aggregated_patterns = {
             "sender_domains": Counter(),
             "subject_keywords": Counter(),
             "content_keywords": Counter(),
-            "time_patterns": defaultdict(list),
+            "time_patterns": defaultdict(list), # time_patterns not currently populated by _extract_patterns_from_single_email
             "category_distributions": Counter(),
-            "importance_indicators": set(),
-            "automation_indicators": set()
+            "importance_indicators": Counter(), # Changed to Counter for frequency
+            "automation_indicators": Counter()  # Changed to Counter for frequency
         }
-        
+
         for email in email_samples:
-            # Analyze sender domains
-            sender_domain = self._extract_domain(email.get('senderEmail', ''))
-            if sender_domain:
-                patterns["sender_domains"][sender_domain] += 1
+            individual_email_patterns = self._extract_patterns_from_single_email(email)
+
+            if "sender_domain" in individual_email_patterns:
+                aggregated_patterns["sender_domains"][individual_email_patterns["sender_domain"]] += 1
             
-            # Analyze subject keywords
-            subject_words = self._extract_keywords(email.get('subject', ''))
-            patterns["subject_keywords"].update(subject_words)
+            if "subject_keywords" in individual_email_patterns:
+                aggregated_patterns["subject_keywords"].update(individual_email_patterns["subject_keywords"])
             
-            # Analyze content keywords
-            content_words = self._extract_keywords(email.get('content', ''))
-            patterns["content_keywords"].update(content_words)
+            if "content_keywords" in individual_email_patterns:
+                aggregated_patterns["content_keywords"].update(individual_email_patterns["content_keywords"])
             
-            # Analyze categories
-            category = email.get('category') or email.get('ai_analysis', {}).get('topic', 'unknown')
-            patterns["category_distributions"][category] += 1
+            if "category" in individual_email_patterns:
+                aggregated_patterns["category_distributions"][individual_email_patterns["category"]] += 1
             
-            # Detect importance indicators
-            if email.get('isImportant') or email.get('isStarred'):
-                patterns["importance_indicators"].update(subject_words + content_words)
+            if "importance_keywords" in individual_email_patterns:
+                aggregated_patterns["importance_indicators"].update(individual_email_patterns["importance_keywords"])
             
-            # Detect automation indicators
-            if self._is_automated_email(email):
-                patterns["automation_indicators"].update(subject_words + [sender_domain])
-        
-        return patterns
+            if "automation_flags" in individual_email_patterns:
+                aggregated_patterns["automation_indicators"].update(individual_email_patterns["automation_flags"])
+
+        return aggregated_patterns
     
     def _extract_domain(self, email_address: str) -> str:
         """Extract domain from email address"""
@@ -481,89 +598,157 @@ class SmartFilterManager:
         }
         
         # Load all filters
-        filters = self._load_all_filters()
-        pruning_results["total_analyzed"] = len(filters)
+        all_filters = self._load_all_filters() # Load all, including inactive ones for this evaluation
+        pruning_results["total_analyzed"] = len(all_filters)
+
+        active_filters_map = {f.filter_id: f for f in all_filters if self._is_filter_active_in_db(f.filter_id)} # Check DB for active status
         
-        for filter_obj in filters:
-            action = self._evaluate_filter_for_pruning(filter_obj)
+        actions_to_take = defaultdict(list)
+        filters_to_keep_for_redundancy_check = []
+
+        for filter_obj in all_filters:
+            # Only evaluate active filters for pruning actions like disable/optimize.
+            # Potentially, an inactive filter could be pruned if it's very old and meets pruning criteria.
+            # For now, let's focus evaluation on active ones, or those that should be active.
+            # The _evaluate_filter_for_pruning can also consider if a filter is currently inactive.
             
-            if action == "prune":
-                self._delete_filter(filter_obj.filter_id)
-                pruning_results["pruned_filters"].append({
-                    "filter_id": filter_obj.filter_id,
-                    "name": filter_obj.name,
-                    "reason": "Low effectiveness or high false positive rate"
-                })
+            evaluation_action = self._evaluate_filter_for_pruning(filter_obj) # This method might need adjustment
             
-            elif action == "disable":
-                self._disable_filter(filter_obj.filter_id)
-                pruning_results["disabled_filters"].append({
-                    "filter_id": filter_obj.filter_id,
-                    "name": filter_obj.name,
-                    "reason": "Underutilized but potentially useful"
-                })
-            
-            elif action == "optimize":
-                optimized_filter = self._optimize_filter(filter_obj)
-                self._update_filter(optimized_filter)
-                pruning_results["updated_filters"].append({
-                    "filter_id": filter_obj.filter_id,
-                    "name": filter_obj.name,
-                    "changes": "Criteria optimized for better performance"
-                })
-        
-        # Remove redundant filters
-        redundant_pairs = self._find_redundant_filters(filters)
-        for filter1_id, filter2_id in redundant_pairs:
-            # Keep the more effective one
-            filter1 = next(f for f in filters if f.filter_id == filter1_id)
-            filter2 = next(f for f in filters if f.filter_id == filter2_id)
-            
-            if filter1.effectiveness_score < filter2.effectiveness_score:
-                self._delete_filter(filter1_id)
-                pruning_results["pruned_filters"].append({
-                    "filter_id": filter1_id,
-                    "name": filter1.name,
-                    "reason": f"Redundant with {filter2.name}"
-                })
-            else:
-                self._delete_filter(filter2_id)
-                pruning_results["pruned_filters"].append({
-                    "filter_id": filter2_id,
-                    "name": filter2.name,
-                    "reason": f"Redundant with {filter1.name}"
-                })
+            if evaluation_action == "prune":
+                actions_to_take["prune"].append(filter_obj)
+            elif evaluation_action == "disable":
+                # Only disable if it was active
+                if filter_obj.filter_id in active_filters_map:
+                    actions_to_take["disable"].append(filter_obj)
+                else: # If already inactive, it might be kept or pruned based on other rules (e.g. age)
+                    filters_to_keep_for_redundancy_check.append(filter_obj) # Or it's just ignored
+            elif evaluation_action == "optimize":
+                # Only optimize if it was active
+                if filter_obj.filter_id in active_filters_map:
+                    actions_to_take["optimize"].append(filter_obj)
+                else: # If inactive, but could be optimized, what to do? For now, ignore.
+                    filters_to_keep_for_redundancy_check.append(filter_obj)
+            else: # "keep"
+                if filter_obj.filter_id in active_filters_map: # Only active filters are kept for redundancy
+                    filters_to_keep_for_redundancy_check.append(filter_obj)
+                # If inactive and "keep", it remains inactive and not part of active redundancy checks.
+
+        # Execute actions
+        for filter_obj in actions_to_take["prune"]:
+            self._delete_filter(filter_obj.filter_id)
+            pruning_results["pruned_filters"].append({"filter_id": filter_obj.filter_id, "name": filter_obj.name, "reason": "Pruned by evaluation"})
+            if filter_obj.filter_id in active_filters_map: del active_filters_map[filter_obj.filter_id]
+
+        for filter_obj in actions_to_take["disable"]:
+            self._disable_filter(filter_obj.filter_id)
+            pruning_results["disabled_filters"].append({"filter_id": filter_obj.filter_id, "name": filter_obj.name, "reason": "Disabled by evaluation"})
+            if filter_obj.filter_id in active_filters_map: del active_filters_map[filter_obj.filter_id]
+
+        for filter_obj in actions_to_take["optimize"]:
+            optimized_filter = self._optimize_filter(filter_obj) # Assume _optimize_filter returns the modified object
+            self._update_filter(optimized_filter)
+            pruning_results["updated_filters"].append({"filter_id": optimized_filter.filter_id, "name": optimized_filter.name, "changes": "Criteria optimized"})
+            # No change to active_filters_map key, but its value (filter_obj) is now stale if map holds objects.
+            # If map holds IDs, then it's fine. Let's assume filters_to_keep_for_redundancy_check holds latest objects if needed.
+            # For simplicity, we'll use the remaining filters in active_filters_map for redundancy check.
+            # Update: filters_to_keep_for_redundancy_check should be used instead.
+            # The optimized filter remains active.
+            active_filters_map[filter_obj.filter_id] = optimized_filter # Update with optimized version
+
+        # Update filters_to_keep_for_redundancy_check to reflect optimizations
+        final_filters_for_redundancy_check = []
+        for f_obj in filters_to_keep_for_redundancy_check:
+            if f_obj.filter_id in active_filters_map: # If it was kept and active
+                 final_filters_for_redundancy_check.append(active_filters_map[f_obj.filter_id])
+
+        # Remove redundant filters from the set of currently active and kept filters
+        # This should operate on filters that are currently considered active after the above pruning/disabling.
+        self._prune_redundant_filters(final_filters_for_redundancy_check, pruning_results)
         
         self.logger.info(f"Pruning completed: {len(pruning_results['pruned_filters'])} pruned, "
                         f"{len(pruning_results['disabled_filters'])} disabled, "
                         f"{len(pruning_results['updated_filters'])} optimized")
         
         return pruning_results
-    
+
+    def _is_filter_active_in_db(self, filter_id: str) -> bool:
+        """Check if a filter is currently marked as active in the database."""
+        # This is a helper, assumes _load_filter or similar would respect is_active,
+        # but _load_all_filters was changed to load all for full eval.
+        # So we need a direct check.
+        row = self._db_fetchone("SELECT is_active FROM email_filters WHERE filter_id = ?", (filter_id,))
+        return row['is_active'] == 1 if row else False
+
+    def _prune_redundant_filters(self, active_kept_filters: List[EmailFilter], pruning_results: Dict[str, Any]):
+        """Finds and prunes redundant filters from the provided list."""
+        # Sort filters by effectiveness (desc) to prefer keeping more effective ones
+        sorted_filters = sorted(active_kept_filters, key=lambda f: f.effectiveness_score, reverse=True)
+
+        deleted_ids_due_to_redundancy: Set[str] = set()
+
+        for i, filter1 in enumerate(sorted_filters):
+            if filter1.filter_id in deleted_ids_due_to_redundancy:
+                continue # Skip if already marked for deletion
+
+            for j in range(i + 1, len(sorted_filters)):
+                filter2 = sorted_filters[j]
+                if filter2.filter_id in deleted_ids_due_to_redundancy:
+                    continue
+
+                similarity = self._calculate_filter_similarity(filter1, filter2)
+                if similarity > self.pruning_criteria["redundancy_threshold"]:
+                    # filter1 is more effective or earlier in list, so prune filter2
+                    self._delete_filter(filter2.filter_id) # Actual deletion
+                    pruning_results["pruned_filters"].append({
+                        "filter_id": filter2.filter_id,
+                        "name": filter2.name,
+                        "reason": f"Redundant with {filter1.name} (similarity: {similarity:.2f})"
+                    })
+                    deleted_ids_due_to_redundancy.add(filter2.filter_id)
+
     def _evaluate_filter_for_pruning(self, filter_obj: EmailFilter) -> str:
         """Evaluate if filter should be pruned, disabled, or optimized"""
+        # This evaluation should ideally know if the filter is currently active from DB.
+        # For now, let's assume filter_obj reflects its current DB state accurately enough for evaluation.
+        # Or, add a parameter is_currently_active.
+        # For simplicity, we assume filter_obj.effectiveness_score etc. are up-to-date.
+
         criteria = self.pruning_criteria
         
-        # Check effectiveness
-        if filter_obj.effectiveness_score < criteria["effectiveness_threshold"]:
-            return "prune"
-        
-        # Check false positive rate
+        # Rule 1: Very low effectiveness = prune
+        if filter_obj.effectiveness_score < criteria["effectiveness_threshold"] * 0.5: # Stricter for direct prune
+             return "prune"
+
+        # Rule 2: High false positive rate = prune
         if filter_obj.false_positive_rate > criteria["false_positive_threshold"]:
             return "prune"
         
-        # Check usage
-        days_since_creation = (datetime.now() - filter_obj.created_date).days
-        if (filter_obj.usage_count < criteria["usage_threshold"] and 
-            days_since_creation > criteria["age_threshold_days"]):
+        # Rule 3: Old and unused (if it were active, this implies it should be disabled)
+        # If it's already inactive, this rule might mean prune if it's very old.
+        # Let's assume this rule is primarily for active filters to become disabled.
+        days_since_last_used = (datetime.now() - filter_obj.last_used).days # More relevant than created_date
+        # This rule is tricky if the filter was already inactive.
+        # Let's assume we are evaluating an "active" filter for this condition.
+        # If _is_filter_active_in_db(filter_obj.filter_id) : (check added to caller)
+        if (filter_obj.usage_count < criteria["usage_threshold"] and
+                days_since_last_used > criteria["age_threshold_days"]):
+            return "disable" # Candidate for disabling if it was active
+
+        # Rule 4: Performance suggests optimization (for active filters)
+        # if _is_filter_active_in_db(filter_obj.filter_id): (check added to caller)
+        performance = self._get_filter_performance(filter_obj.filter_id) # This fetches latest performance
+        if performance and (performance.accuracy < criteria["accuracy_threshold"] or
+                              performance.f1_score < criteria["f1_threshold"]):
+            # Check if effectiveness is not too low for optimization
+            if filter_obj.effectiveness_score > criteria["effectiveness_threshold"] * 0.7: # Avoid optimizing hopeless filters
+                return "optimize"
+            else: # Low effectiveness and poor perf might mean prune or disable
+                return "disable" # Or prune if it also meets other prune criteria
+
+        # Rule 5: Low effectiveness but not terrible, and not high FP = disable rather than prune
+        if filter_obj.effectiveness_score < criteria["effectiveness_threshold"]:
             return "disable"
-        
-        # Check if filter needs optimization
-        performance = self._get_filter_performance(filter_obj.filter_id)
-        if performance and (performance.accuracy < criteria["accuracy_threshold"] or 
-                          performance.f1_score < criteria["f1_threshold"]):
-            return "optimize"
-        
+
         return "keep"
     
     def _optimize_filter(self, filter_obj: EmailFilter) -> EmailFilter:
@@ -677,96 +862,146 @@ class SmartFilterManager:
         
         start_time = datetime.now()
         
-        # Apply filter to test emails
-        results = []
-        for email in test_emails:
-            predicted = self._apply_filter_to_email(filter_obj, email)
-            actual = email.get('expected_filter_match', False)
-            results.append((predicted, actual))
+        # Get results of applying filter to emails
+        application_results, processing_time_ms = self._get_filter_application_results(filter_obj, test_emails, start_time)
         
-        processing_time = (datetime.now() - start_time).total_seconds() * 1000
-        
-        # Calculate metrics
-        true_positives = sum(1 for pred, actual in results if pred and actual)
-        false_positives = sum(1 for pred, actual in results if pred and not actual)
-        false_negatives = sum(1 for pred, actual in results if not pred and actual)
-        true_negatives = sum(1 for pred, actual in results if not pred and not actual)
-        
-        precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0
-        recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
-        accuracy = (true_positives + true_negatives) / len(results) if results else 0
-        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+        # Calculate performance metrics
+        metrics_dict = self._calculate_performance_metrics_from_results(application_results, len(test_emails))
         
         performance = FilterPerformance(
             filter_id=filter_id,
-            accuracy=accuracy,
-            precision=precision,
-            recall=recall,
-            f1_score=f1_score,
-            processing_time_ms=processing_time,
+            accuracy=metrics_dict["accuracy"],
+            precision=metrics_dict["precision"],
+            recall=metrics_dict["recall"],
+            f1_score=metrics_dict["f1_score"],
+            processing_time_ms=processing_time_ms,
             emails_processed=len(test_emails),
-            true_positives=true_positives,
-            false_positives=false_positives,
-            false_negatives=false_negatives
+            true_positives=metrics_dict["true_positives"],
+            false_positives=metrics_dict["false_positives"],
+            false_negatives=metrics_dict["false_negatives"]
         )
         
         # Save performance metrics
         self._save_filter_performance(performance)
         
         # Update filter effectiveness
-        filter_obj.effectiveness_score = f1_score
-        filter_obj.false_positive_rate = false_positives / len(results) if results else 0
+        filter_obj.effectiveness_score = performance.f1_score # Use the F1 from FilterPerformance object
+        filter_obj.false_positive_rate = metrics_dict["false_positive_rate"]
         self._update_filter(filter_obj)
         
         return performance
+
+    def _get_filter_application_results(self, filter_obj: EmailFilter, test_emails: List[Dict[str, Any]], start_time: datetime) -> Tuple[List[Tuple[bool, bool]], float]:
+        """Applies a filter to test emails and returns predicted vs actual results, and processing time."""
+        results = []
+        for email in test_emails:
+            predicted = self._apply_filter_to_email(filter_obj, email)
+            actual = email.get('expected_filter_match', False) # Assuming 'expected_filter_match' key exists
+            results.append((predicted, actual))
+
+        processing_time_ms = (datetime.now() - start_time).total_seconds() * 1000
+        return results, processing_time_ms
+
+    def _calculate_performance_metrics_from_results(self, results: List[Tuple[bool, bool]], total_emails: int) -> Dict[str, float]:
+        """Calculates various performance metrics from (predicted, actual) results."""
+        true_positives = sum(1 for pred, actual in results if pred and actual)
+        false_positives = sum(1 for pred, actual in results if pred and not actual)
+        false_negatives = sum(1 for pred, actual in results if not pred and actual)
+        true_negatives = sum(1 for pred, actual in results if not pred and not actual)
+
+        precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0.0
+        recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0.0
+        accuracy = (true_positives + true_negatives) / total_emails if total_emails > 0 else 0.0
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+        false_positive_rate = false_positives / total_emails if total_emails > 0 else 0.0
+
+        return {
+            "true_positives": true_positives,
+            "false_positives": false_positives,
+            "false_negatives": false_negatives,
+            "true_negatives": true_negatives,
+            "precision": precision,
+            "recall": recall,
+            "accuracy": accuracy,
+            "f1_score": f1_score,
+            "false_positive_rate": false_positive_rate
+        }
     
+    def _check_sender_patterns(self, criteria_block: Dict[str, Any], email: Dict[str, Any]) -> bool:
+        """Check sender patterns against email."""
+        sender = email.get('senderEmail', '')
+        # Uses re.search for regex matching, re.IGNORECASE for case-insensitivity.
+        return any(re.search(pattern, sender, re.IGNORECASE) for pattern in criteria_block)
+
+    def _check_subject_keywords(self, criteria_block: List[str], email: Dict[str, Any], operator: str, min_matches: int) -> bool:
+        """Check subject keywords against email subject."""
+        subject = email.get('subject', '').lower()
+        keyword_matches = sum(1 for keyword in criteria_block if keyword.lower() in subject)
+
+        if operator == "AND":
+            return keyword_matches == len(criteria_block) # All keywords must match
+        elif operator == "OR":
+            return keyword_matches >= min_matches
+        return False # Should not happen if operator is valid
+
+    def _check_content_keywords(self, criteria_block: List[str], email: Dict[str, Any]) -> bool:
+        """Check content keywords against email content."""
+        content = email.get('content', '').lower()
+        # Assumes OR logic for content keywords: any keyword match is sufficient.
+        return any(keyword.lower() in content for keyword in criteria_block)
+
+    def _check_exclusion_patterns(self, criteria_block: List[str], email: Dict[str, Any]) -> bool:
+        """Check exclusion patterns (regex) against email subject and content. Returns True if no exclusions match."""
+        text_to_check = f"{email.get('subject', '')} {email.get('content', '')}" # No .lower() here, regex handles case if needed via IGNORECASE
+        # If any exclusion pattern matches, the check fails (returns False).
+        # Assuming criteria_block contains regex patterns.
+        if any(re.search(pattern, text_to_check, re.IGNORECASE) for pattern in criteria_block):
+            return False # Exclusion found (pattern matched)
+        return True # No exclusions matched
+
     def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
-        """Apply filter to email and return match result"""
+        """Apply filter to email and return match result by evaluating various criteria checks."""
         criteria = filter_obj.criteria
-        
-        # Check sender patterns
+
         if "from_patterns" in criteria:
-            sender = email.get('senderEmail', '')
-            if not any(re.search(pattern, sender, re.IGNORECASE) for pattern in criteria["from_patterns"]):
+            if not self._check_sender_patterns(criteria["from_patterns"], email):
                 return False
         
-        # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get('subject', '').lower()
-            keyword_matches = sum(1 for keyword in criteria["subject_keywords"] if keyword.lower() in subject)
-            
-            operator = criteria.get("keyword_operator", "OR")
-            min_matches = criteria.get("min_keyword_matches", 1)
-            
-            if operator == "AND" and keyword_matches < len(criteria["subject_keywords"]):
-                return False
-            elif operator == "OR" and keyword_matches < min_matches:
+            operator = criteria.get("keyword_operator", "OR") # Default OR
+            min_matches = criteria.get("min_keyword_matches", 1) # Default 1 for OR
+            if operator == "AND": # For AND, all keywords must match
+                min_matches = len(criteria["subject_keywords"])
+            if not self._check_subject_keywords(criteria["subject_keywords"], email, operator, min_matches):
                 return False
         
-        # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get('content', '').lower()
-            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+            # Assuming OR logic for content keywords by default (any match is enough)
+            # If specific AND/min_matches logic is needed, it should be structured like subject_keywords
+            if not self._check_content_keywords(criteria["content_keywords"], email):
                 return False
         
-        # Check exclusion patterns
-        if "exclude_patterns" in criteria:
-            text = f"{email.get('subject', '')} {email.get('content', '')}".lower()
-            if any(pattern.lower() in text for pattern in criteria["exclude_patterns"]):
+        if "exclude_patterns" in criteria: # Renamed from exclude_keywords for clarity
+            if not self._check_exclusion_patterns(criteria["exclude_patterns"], email):
                 return False
         
+        # Add other criteria checks here following the same pattern, e.g.:
+        # if "attachment_types" in criteria:
+        #     if not self._check_attachment_types(criteria["attachment_types"], email):
+        #         return False
+
         return True
     
     # Database operations
     def _save_filter(self, filter_obj: EmailFilter):
         """Save filter to database"""
-        conn = sqlite3.connect(self.db_path)
-        conn.execute("""
+        query = """
             INSERT OR REPLACE INTO email_filters 
             (filter_id, name, description, criteria, actions, priority, effectiveness_score,
-             created_date, last_used, usage_count, false_positive_rate, performance_metrics)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+             created_date, last_used, usage_count, false_positive_rate, performance_metrics, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        params = (
             filter_obj.filter_id,
             filter_obj.name,
             filter_obj.description,
@@ -778,17 +1013,15 @@ class SmartFilterManager:
             filter_obj.last_used.isoformat(),
             filter_obj.usage_count,
             filter_obj.false_positive_rate,
-            json.dumps(filter_obj.performance_metrics)
-        ))
-        conn.commit()
-        conn.close()
-    
+            json.dumps(filter_obj.performance_metrics),
+            True # Assuming save means it's active
+        )
+        self._db_execute(query, params)
+
     def _load_filter(self, filter_id: str) -> Optional[EmailFilter]:
-        """Load filter from database"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.execute("SELECT * FROM email_filters WHERE filter_id = ?", (filter_id,))
-        row = cursor.fetchone()
-        conn.close()
+        """Load a specific filter from database, regardless of active status."""
+        query = "SELECT * FROM email_filters WHERE filter_id = ?"
+        row = self._db_fetchone(query, (filter_id,))
         
         if not row:
             return None
@@ -805,64 +1038,62 @@ class SmartFilterManager:
             last_used=datetime.fromisoformat(row[8]),
             usage_count=row[9],
             false_positive_rate=row[10],
-            performance_metrics=json.loads(row[11])
+            performance_metrics=json.loads(row["performance_metrics"]),
+            # is_active=row["is_active"] == 1 # Assuming EmailFilter dataclass gets an is_active field
+            # For now, EmailFilter dataclass does not have is_active. Callers can use _is_filter_active_in_db if needed.
         )
-    
+
     def _load_all_filters(self) -> List[EmailFilter]:
-        """Load all active filters"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.execute("SELECT * FROM email_filters WHERE is_active = 1")
-        rows = cursor.fetchall()
-        conn.close()
+        """Load all filters from the database, regardless of active status."""
+        query = "SELECT * FROM email_filters" # Changed to load all
+        rows = self._db_fetchall(query)
         
         filters = []
         for row in rows:
             filters.append(EmailFilter(
-                filter_id=row[0],
-                name=row[1],
-                description=row[2],
-                criteria=json.loads(row[3]),
-                actions=json.loads(row[4]),
-                priority=row[5],
-                effectiveness_score=row[6],
-                created_date=datetime.fromisoformat(row[7]),
-                last_used=datetime.fromisoformat(row[8]),
-                usage_count=row[9],
-                false_positive_rate=row[10],
-                performance_metrics=json.loads(row[11])
+                filter_id=row["filter_id"],
+                name=row["name"],
+                description=row["description"],
+                criteria=json.loads(row["criteria"]),
+                actions=json.loads(row["actions"]),
+                priority=row["priority"],
+                effectiveness_score=row["effectiveness_score"],
+                created_date=datetime.fromisoformat(row["created_date"]),
+                last_used=datetime.fromisoformat(row["last_used"]),
+                usage_count=row["usage_count"],
+                false_positive_rate=row["false_positive_rate"],
+                performance_metrics=json.loads(row["performance_metrics"]),
+                # is_active=row["is_active"] == 1 # As above, EmailFilter dataclass would need this
             ))
-        
         return filters
-    
+
     def _update_filter(self, filter_obj: EmailFilter):
-        """Update filter in database"""
+        """Update filter in database. This will also set it to active."""
+        # _save_filter handles INSERT OR REPLACE, and currently always sets is_active = True.
+        # This might need refinement if updating a filter should not automatically re-activate it.
+        # For pruning/optimization, typically an updated filter remains/becomes active.
         self._save_filter(filter_obj)
-    
+
     def _delete_filter(self, filter_id: str):
-        """Delete filter from database"""
-        conn = sqlite3.connect(self.db_path)
-        conn.execute("DELETE FROM email_filters WHERE filter_id = ?", (filter_id,))
-        conn.commit()
-        conn.close()
-    
+        """Permanently delete filter and its performance metrics from database."""
+        self._db_execute("DELETE FROM email_filters WHERE filter_id = ?", (filter_id,))
+        self._db_execute("DELETE FROM filter_performance WHERE filter_id = ?", (filter_id,))
+
     def _disable_filter(self, filter_id: str):
         """Disable filter without deleting"""
-        conn = sqlite3.connect(self.db_path)
-        conn.execute("UPDATE email_filters SET is_active = 0 WHERE filter_id = ?", (filter_id,))
-        conn.commit()
-        conn.close()
-    
+        query = "UPDATE email_filters SET is_active = 0 WHERE filter_id = ?"
+        self._db_execute(query, (filter_id,))
+
     def _save_filter_performance(self, performance: FilterPerformance):
         """Save filter performance metrics"""
-        conn = sqlite3.connect(self.db_path)
-        performance_id = f"{performance.filter_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
-        conn.execute("""
+        query = """
             INSERT INTO filter_performance 
             (performance_id, filter_id, measurement_date, accuracy, precision_score, recall_score,
              f1_score, processing_time_ms, emails_processed, true_positives, false_positives, false_negatives)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+        """
+        performance_id = f"{performance.filter_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        params = (
             performance_id,
             performance.filter_id,
             datetime.now().isoformat(),
@@ -875,21 +1106,18 @@ class SmartFilterManager:
             performance.true_positives,
             performance.false_positives,
             performance.false_negatives
-        ))
-        conn.commit()
-        conn.close()
-    
+        )
+        self._db_execute(query, params)
+
     def _get_filter_performance(self, filter_id: str) -> Optional[FilterPerformance]:
         """Get latest performance metrics for filter"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.execute("""
+        query = """
             SELECT * FROM filter_performance 
             WHERE filter_id = ? 
             ORDER BY measurement_date DESC 
             LIMIT 1
-        """, (filter_id,))
-        row = cursor.fetchone()
-        conn.close()
+        """
+        row = self._db_fetchone(query, (filter_id,))
         
         if not row:
             return None
@@ -903,34 +1131,31 @@ class SmartFilterManager:
             processing_time_ms=row[7],
             emails_processed=row[8],
             true_positives=row[9],
-            false_positives=row[10],
-            false_negatives=row[11]
+            false_positives=row["false_positives"],
+            false_negatives=row["false_negatives"]
         )
-    
+
     def _get_filter_performance_history(self, filter_id: str, days: int = 30) -> List[FilterPerformance]:
         """Get performance history for filter"""
-        conn = sqlite3.connect(self.db_path)
         cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
-        
-        cursor = conn.execute("""
+        query = """
             SELECT * FROM filter_performance 
             WHERE filter_id = ? AND measurement_date >= ?
             ORDER BY measurement_date DESC
-        """, (filter_id, cutoff_date))
-        rows = cursor.fetchall()
-        conn.close()
+        """
+        rows = self._db_fetchall(query, (filter_id, cutoff_date))
         
         return [FilterPerformance(
-            filter_id=row[1],
-            accuracy=row[3],
-            precision=row[4],
-            recall=row[5],
-            f1_score=row[6],
-            processing_time_ms=row[7],
-            emails_processed=row[8],
-            true_positives=row[9],
-            false_positives=row[10],
-            false_negatives=row[11]
+            filter_id=row["filter_id"],
+            accuracy=row["accuracy"],
+            precision=row["precision_score"], # Note: column name precision_score in DB
+            recall=row["recall_score"],       # Note: column name recall_score in DB
+            f1_score=row["f1_score"],
+            processing_time_ms=row["processing_time_ms"],
+            emails_processed=row["emails_processed"],
+            true_positives=row["true_positives"],
+            false_positives=row["false_positives"],
+            false_negatives=row["false_negatives"]
         ) for row in rows]
 
 def main():
