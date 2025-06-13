@@ -215,18 +215,18 @@ class GmailAIService {
 
       return {
         success: true,
-        processedCount: result.newEmails || 0,
-        emails: [],
+        processedCount: result.synced || 0, // Use result.synced (number)
+        emails: result.newEmails,           // Populate with actual new emails
         batchInfo: {
           batchId: `smart_${Date.now()}`,
           queryFilter: strategies.join(','),
           timestamp: new Date().toISOString()
         },
         statistics: {
-          totalProcessed: result.newEmails || 0,
-          successfulExtractions: result.newEmails || 0,
+          totalProcessed: result.synced || 0,        // Use result.synced
+          successfulExtractions: result.synced || 0, // Use result.synced
           failedExtractions: 0,
-          aiAnalysesCompleted: result.newEmails || 0,
+          aiAnalysesCompleted: result.synced || 0,   // Use result.synced (assuming all are analyzed)
           lastSync: new Date().toISOString()
         }
       };

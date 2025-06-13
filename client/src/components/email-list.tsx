@@ -104,12 +104,12 @@ export function EmailList({ emails, loading }: EmailListProps) {
                   {email.preview}
                 </p>
                 <div className="flex items-center space-x-2 mt-2">
-                  {email.category && (
+                  {email.categoryData && (
                     <Badge 
                       variant="secondary" 
-                      className={`text-xs ${getCategoryBadgeColor(email.category.name)}`}
+                      className={`text-xs ${getCategoryBadgeColor(email.categoryData.name)}`}
                     >
-                      {email.category.name}
+                      {email.categoryData.name}
                     </Badge>
                   )}
                   {email.labels?.map((label, index) => (
