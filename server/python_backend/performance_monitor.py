@@ -11,8 +11,18 @@ from collections import defaultdict, deque
 import json
 import psutil
 # import sqlite3 # Removed SQLite
+from dataclasses import asdict # Added
+from datetime import datetime # Ensure datetime is directly available
 
 logger = logging.getLogger(__name__)
+
+PERFORMANCE_LOG_FILE = "performance_metrics_log.jsonl"
+LOG_INTERVAL_SECONDS = 300
+
+def json_default_converter(o):
+    if isinstance(o, datetime):
+        return o.isoformat()
+    raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
 
 # dataclasses remain the same
 
@@ -28,6 +38,7 @@ class PerformanceMetric:
 @dataclass
 class SystemHealth:
     """System health status"""
+    timestamp: datetime # Added timestamp to SystemHealth for logging
     status: str  # healthy, warning, critical
     cpu_usage: float
     memory_usage: float
@@ -57,7 +68,73 @@ class PerformanceMonitor:
         self.system_health_history = deque(maxlen=100) # In-memory for system health
         # self.service_metrics = defaultdict(list) # This was not used, can be removed
         # self.init_database() # Removed SQLite database initialization
-        logger.info("PerformanceMonitor initialized (in-memory mode). SQLite persistence removed.")
+        logger.info("PerformanceMonitor initialized (in-memory mode with file logging).")
+        self.LOG_INTERVAL_SECONDS = LOG_INTERVAL_SECONDS # Make it instance variable for potential override
+        self.PERFORMANCE_LOG_FILE = PERFORMANCE_LOG_FILE
+
+        # Start periodic file logging task
+        asyncio.create_task(self._periodic_logger_task())
+
+    async def _log_metrics_to_file(self):
+        """Logs current in-memory metrics, alerts, and system health to a JSONL file and clears buffers."""
+        logged_anything = False
+        try:
+            with open(self.PERFORMANCE_LOG_FILE, 'a') as f:
+                # Log PerformanceMetrics
+                current_metrics_buffer_copy = list(self.metrics_buffer)
+                if current_metrics_buffer_copy:
+                    for metric in current_metrics_buffer_copy:
+                        log_entry = asdict(metric)
+                        log_entry['type'] = 'performance_metric'
+                        log_entry['timestamp_logged'] = datetime.now().isoformat()
+                        f.write(json.dumps(log_entry, default=json_default_converter) + '\n')
+                    self.metrics_buffer.clear() # Clear after successful write
+                    logged_anything = True
+
+                # Log Alerts
+                current_alerts_buffer_copy = list(self.alerts_buffer)
+                if current_alerts_buffer_copy:
+                    for alert in current_alerts_buffer_copy: # Alerts are already dicts
+                        log_entry = alert.copy() # Make a copy before modifying
+                        log_entry['type'] = 'alert'
+                        log_entry['timestamp_logged'] = datetime.now().isoformat()
+                        f.write(json.dumps(log_entry, default=json_default_converter) + '\n')
+                    self.alerts_buffer.clear() # Clear after successful write
+                    logged_anything = True
+
+                # Log SystemHealth
+                current_system_health_history_copy = list(self.system_health_history)
+                if current_system_health_history_copy:
+                    for health_record in current_system_health_history_copy:
+                        log_entry = asdict(health_record)
+                        log_entry['type'] = 'system_health'
+                        log_entry['timestamp_logged'] = datetime.now().isoformat()
+                        f.write(json.dumps(log_entry, default=json_default_converter) + '\n')
+                    self.system_health_history.clear() # Clear after successful write
+                    logged_anything = True
+
+            if logged_anything:
+                 logger.info(f"Successfully logged performance data to {self.PERFORMANCE_LOG_FILE}")
+
+        except IOError as e:
+            logger.error(f"IOError writing performance metrics to {self.PERFORMANCE_LOG_FILE}: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error logging performance metrics to file: {e}")
+
+    async def _periodic_logger_task(self):
+        """Periodically logs metrics to a file."""
+        while True:
+            try:
+                await asyncio.sleep(self.LOG_INTERVAL_SECONDS)
+                logger.info("Periodic logger task triggered.")
+                await self._log_metrics_to_file()
+            except asyncio.CancelledError:
+                logger.info("Periodic logger task cancelled.")
+                break
+            except Exception as e:
+                logger.error(f"Error in periodic logger task: {e}")
+                # Continue loop even if one attempt fails, but maybe sleep a bit longer
+                await asyncio.sleep(self.LOG_INTERVAL_SECONDS / 2) # Shorter sleep on error before retry
 
     # init_database method removed as SQLite is no longer used.
 
@@ -263,10 +340,11 @@ class PerformanceMonitor:
                 status = "warning"
 
             if (cpu_usage > self.alert_thresholds["cpu_usage"] * 1.2 or
-                memory.percent > self.alert_thresholds["memory_usage"] * 1.2):
+                memory.percent > self.alert_thresholds["memory_usage"] * 1.2): # More stringent for critical
                 status = "critical"
 
             health = SystemHealth(
+                timestamp=datetime.now(), # Add timestamp
                 status=status,
                 cpu_usage=cpu_usage,
                 memory_usage=memory.percent,
@@ -285,6 +363,7 @@ class PerformanceMonitor:
             logger.error(f"Error getting system health: {e}")
             # Return a SystemHealth object even in case of error
             return SystemHealth(
+                timestamp=datetime.now(), # Add timestamp
                 status="unknown",
                 cpu_usage=0.0,
                 memory_usage=0.0,

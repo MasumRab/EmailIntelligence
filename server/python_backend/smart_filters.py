@@ -136,7 +136,7 @@ class SmartFilterManager:
             )
         ]
     
-    async def apply_filters(self, email_data: Dict[str, Any]) -> List[FilterResult]:
+    async def apply_filters_to_email(self, email_data: Dict[str, Any]) -> List[FilterResult]:
         """Apply all filters to an email"""
         results = []
         
@@ -284,19 +284,19 @@ class SmartFilterManager:
             actions_taken.append("Set priority to high")
         
         elif action == "set_category_finance":
-            email_data["category_id"] = 3  # Finance & Banking
+            email_data["category_name_override"] = "Finance & Banking"
             actions_taken.append("Categorized as Finance & Banking")
         
         elif action == "set_category_health":
-            email_data["category_id"] = 4  # Healthcare
+            email_data["category_name_override"] = "Healthcare"
             actions_taken.append("Categorized as Healthcare")
         
         elif action == "set_category_travel":
-            email_data["category_id"] = 5  # Travel
+            email_data["category_name_override"] = "Travel"
             actions_taken.append("Categorized as Travel")
         
         elif action == "set_category_personal":
-            email_data["category_id"] = 2  # Personal & Family
+            email_data["category_name_override"] = "Personal & Family"
             actions_taken.append("Categorized as Personal & Family")
         
         elif action == "set_low_priority":
@@ -309,9 +309,12 @@ class SmartFilterManager:
             actions_taken.append("Marked as spam")
         
         elif action == "set_category_newsletter":
-            email_data["category_id"] = 6  # Promotions
+            # Assuming "Newsletter" is a sub-category or a label, and "Promotions" is the general category.
+            # If "Newsletter" should be a main category, this would be: email_data["category_name_override"] = "Newsletter"
+            # For now, let's assume "Promotions" is the target main category for newsletters if not overridden by AI.
+            email_data["category_name_override"] = "Promotions"
             email_data["labels"] = email_data.get("labels", []) + ["Newsletter"]
-            actions_taken.append("Categorized as Newsletter")
+            actions_taken.append("Categorized as Promotions (Newsletter)")
         
         return "; ".join(actions_taken)
     
@@ -439,7 +442,7 @@ async def main():
     }
     
     # Apply filters
-    results = await filter_manager.apply_filters(sample_email)
+    results = await filter_manager.apply_filters_to_email(sample_email)
     
     print(f"Applied {len(results)} filters:")
     for result in results:
