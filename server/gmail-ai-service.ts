@@ -196,84 +196,6 @@ class GmailAIService {
     });
   }
 
-      return {
-        success: true,
-        processedCount: result.newEmails || 0,
-        emails: [],
-        batchInfo: {
-          batchId: `batch_${Date.now()}`,
-          queryFilter: config.queryFilter,
-          timestamp: new Date().toISOString()
-        },
-        statistics: {
-          totalProcessed: result.newEmails || 0,
-          successfulExtractions: result.newEmails || 0,
-          failedExtractions: 0,
-          aiAnalysesCompleted: result.newEmails || 0,
-          lastSync: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      console.error('Gmail sync failed:', error);
-      return {
-        success: false,
-        processedCount: 0,
-        emails: [],
-        batchInfo: {
-          batchId: '',
-          queryFilter: config.queryFilter,
-          timestamp: new Date().toISOString()
-        },
-        statistics: {
-          totalProcessed: 0,
-          successfulExtractions: 0,
-          failedExtractions: 0,
-          aiAnalysesCompleted: 0,
-          lastSync: new Date().toISOString()
-        },
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async getRetrievalStrategies(): Promise<RetrievalStrategy[]> {
-    return [
-      {
-        name: "inbox_priority",
-        queryFilter: "in:inbox is:important",
-        priority: 1,
-        batchSize: 100,
-        frequency: "hourly",
-        maxEmailsPerRun: 100,
-        includeFolders: ["INBOX"],
-        excludeFolders: ["SPAM", "TRASH"],
-        dateRangeDays: 7
-      },
-      {
-        name: "recent_unread",
-        queryFilter: "is:unread newer_than:3d",
-        priority: 2,
-        batchSize: 200,
-        frequency: "daily",
-        maxEmailsPerRun: 200,
-        includeFolders: ["INBOX", "SENT"],
-        excludeFolders: ["SPAM", "TRASH"],
-        dateRangeDays: 3
-      },
-      {
-        name: "starred_emails",
-        queryFilter: "is:starred",
-        priority: 3,
-        batchSize: 50,
-        frequency: "weekly",
-        maxEmailsPerRun: 50,
-        includeFolders: ["INBOX"],
-        excludeFolders: ["SPAM", "TRASH"],
-        dateRangeDays: 30
-      }
-    ];
-  }
-
   async executeSmartRetrieval(
     strategies: string[] = [],
     maxApiCalls: number = 100,
@@ -328,38 +250,6 @@ class GmailAIService {
         },
         error: error instanceof Error ? error.message : 'Unknown error'
       };
-    }
-  }
-
-  async getPerformanceMetrics(): Promise<PerformanceMetrics | null> {
-    return {
-      timestamp: new Date().toISOString(),
-      overallStatus: {
-        status: 'healthy',
-        avgEfficiency: 85,
-        avgLatencyMs: 150,
-        errorRate: 0.02,
-        totalStrategies: 3,
-        activeStrategies: 3
-      },
-      quotaStatus: {
-        dailyUsage: {
-          used: 50000,
-          limit: 1000000000,
-          percentage: 0.005,
-          remaining: 999950000
-        },
-        hourlyUsage: {
-          used: 12,
-          limit: 250,
-          percentage: 4.8,
-          remaining: 238
-        },
-        projectedDailyUsage: 288
-      },
-      strategyPerformance: [],
-      alerts: [],
-      recommendations: []
     };
   }
 
