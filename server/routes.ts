@@ -5,7 +5,15 @@ import { insertEmailSchema, insertCategorySchema, insertActivitySchema, type Ema
 import { pythonNLP, type MappedNLPResult } from "./python-bridge"; // Import MappedNLPResult
 import { gmailAIService } from "./gmail-ai-service";
 import { z } from "zod";
-import type { AIAnalysis, AccuracyValidation } from "./ai-engine"; // Added AccuracyValidation
+import type { AIAnalysis, AccuracyValidation } from "./ai-engine"; /**
+ * Registers all HTTP API routes for dashboard statistics, categories, emails, activities, AI analysis and categorization, Gmail synchronization, performance monitoring, AI training, optimization, and utility endpoints on the provided Express app, and returns an HTTP server instance.
+ *
+ * @param app - The Express application instance to register routes on.
+ * @returns The created HTTP server with all routes registered.
+ *
+ * @remark
+ * The registered routes include endpoints for CRUD operations on categories, emails, and activities; advanced AI-powered email analysis and categorization (including batch and validation workflows); Gmail synchronization and smart retrieval; performance and quota monitoring; AI model training and optimization; and utility endpoints for alerts and recommendations. Most endpoints handle errors by returning appropriate HTTP status codes and JSON error messages.
+ */
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats
