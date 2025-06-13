@@ -1,10 +1,19 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertEmailSchema, insertCategorySchema, insertActivitySchema } from "@shared/schema";
-import { pythonNLP } from "./python-bridge";
+import { insertEmailSchema, insertCategorySchema, insertActivitySchema, type EmailWithCategory } from "@shared/schema";
+import { pythonNLP, type MappedNLPResult } from "./python-bridge"; // Import MappedNLPResult
 import { gmailAIService } from "./gmail-ai-service";
 import { z } from "zod";
+import type { AIAnalysis, AccuracyValidation } from "./ai-engine"; /**
+ * Registers all HTTP API routes for dashboard statistics, categories, emails, activities, AI analysis and categorization, Gmail synchronization, performance monitoring, AI training, optimization, and utility endpoints on the provided Express app, and returns an HTTP server instance.
+ *
+ * @param app - The Express application instance to register routes on.
+ * @returns The created HTTP server with all routes registered.
+ *
+ * @remark
+ * The registered routes include endpoints for CRUD operations on categories, emails, and activities; advanced AI-powered email analysis and categorization (including batch and validation workflows); Gmail synchronization and smart retrieval; performance and quota monitoring; AI model training and optimization; and utility endpoints for alerts and recommendations. Most endpoints handle errors by returning appropriate HTTP status codes and JSON error messages.
+ */
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats
@@ -188,15 +197,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Email not found" });
       }
 
-      let analysis;
+      let analysis: MappedNLPResult | undefined; // Updated type to MappedNLPResult
       if (autoAnalyze) {
         // Use advanced AI analysis
         analysis = await pythonNLP.analyzeEmail(email.subject, email.content);
         
         // Find matching category
         const categories = await storage.getAllCategories();
+        // analysis is now MappedNLPResult, which includes 'validation'
+        // and has camelCase 'suggestedLabels' and 'riskFlags'
         const matchingCategory = categories.find(cat => 
-          analysis.categories.some(aiCat => 
+          analysis!.categories.some((aiCat: string) =>
             cat.name.toLowerCase().includes(aiCat.toLowerCase()) ||
             aiCat.toLowerCase().includes(cat.name.toLowerCase())
           )
@@ -206,38 +217,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Update email with AI analysis results
           const updatedEmail = await storage.updateEmail(emailId, {
             categoryId: matchingCategory.id,
-            confidence: Math.round(analysis.confidence * 100),
-            labels: analysis.suggested_labels,
+            confidence: Math.round(analysis!.confidence * 100), // Used non-null assertion
+            labels: analysis!.suggestedLabels, // Fixed typo: suggested_labels to suggestedLabels
           });
 
           // Create detailed activity
           await storage.createActivity({
             type: "label",
             description: "Advanced AI analysis completed",
-            details: `${analysis.categories.join(", ")} | Confidence: ${Math.round(analysis.confidence * 100)}% | ${analysis.validation.reliable ? 'High' : 'Low'} reliability`,
+            details: `${analysis!.categories.join(", ")} | Confidence: ${Math.round(analysis!.confidence * 100)}% | ${analysis!.validation.reliable ? 'High' : 'Low'} reliability`,
             timestamp: new Date().toISOString(),
             icon: "fas fa-brain",
-            iconBg: analysis.validation.reliable ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600",
+            iconBg: analysis!.validation.reliable ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600",
           });
 
           res.json({ 
             success: true, 
             email: updatedEmail, 
-            analysis,
+            analysis, // analysis can be undefined here if autoAnalyze is false, but it's guarded by if (autoAnalyze)
             categoryAssigned: matchingCategory.name
           });
         } else {
           // No matching category found, suggest creating new one
           res.json({ 
             success: false, 
-            analysis,
+            analysis, // analysis can be undefined here
             suggestion: "create_category",
-            suggestedCategory: analysis.categories[0],
+            suggestedCategory: analysis!.categories[0], // Used non-null assertion, potentially unsafe if analysis is undefined
             message: "No matching category found. Consider creating a new category."
           });
         }
       } else {
         // Manual categorization (existing logic)
+        // analysis remains undefined here
         const { categoryId, confidence } = req.body;
         
         const updatedEmail = await storage.updateEmail(emailId, {
@@ -279,11 +291,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const email = await storage.getEmailById(emailId);
           if (!email) continue;
 
-          const analysis = await pythonNLP.analyzeEmail(email.subject, email.content);
+          const analysis: MappedNLPResult = await pythonNLP.analyzeEmail(email.subject, email.content); // Updated type to MappedNLPResult
           
           // Find best matching category
           const matchingCategory = categories.find(cat => 
-            analysis.categories.some(aiCat => 
+            analysis.categories.some((aiCat: string) =>
               cat.name.toLowerCase().includes(aiCat.toLowerCase()) ||
               aiCat.toLowerCase().includes(cat.name.toLowerCase())
             )
@@ -293,7 +305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.updateEmail(emailId, {
               categoryId: matchingCategory.id,
               confidence: Math.round(analysis.confidence * 100),
-              labels: analysis.suggested_labels,
+              labels: analysis.suggestedLabels, // Fixed typo: suggested_labels to suggestedLabels
             });
 
             results.push({
@@ -311,12 +323,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               analysis
             });
           }
-        } catch (error) {
+        } catch (error) { // error is unknown here
           results.push({
             emailId,
             success: false,
             reason: 'analysis_error',
-            error: error.message
+            error: error instanceof Error ? error.message : String(error) // Handled unknown error
           });
         }
       }

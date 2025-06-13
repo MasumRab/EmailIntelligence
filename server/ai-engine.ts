@@ -46,7 +46,7 @@ class HuggingFaceModel implements FreeLanguageModel {
       ]);
 
       return {
-        sentiment: sentiment as "positive" | "negative" | "neutral",
+        sentiment: sentiment.sentiment,
         categories: classification.categories,
         confidence: Math.min(sentiment.confidence || 0.5, classification.confidence || 0.5),
         keywords: this.extractKeywords(text),
@@ -61,7 +61,7 @@ class HuggingFaceModel implements FreeLanguageModel {
     }
   }
 
-  private async analyzeSentiment(text: string) {
+  private async analyzeSentiment(text: string): Promise<{ sentiment: "positive" | "negative" | "neutral", confidence: number }> {
     // Simulate sentiment analysis using pattern matching
     const positiveWords = ["good", "great", "excellent", "happy", "pleased", "thank", "wonderful"];
     const negativeWords = ["bad", "terrible", "awful", "angry", "disappointed", "upset", "problem", "issue"];
@@ -70,9 +70,20 @@ class HuggingFaceModel implements FreeLanguageModel {
     const positiveCount = words.filter(word => positiveWords.some(pos => word.includes(pos))).length;
     const negativeCount = words.filter(word => negativeWords.some(neg => word.includes(neg))).length;
     
-    if (positiveCount > negativeCount) return "positive";
-    if (negativeCount > positiveCount) return "negative";
-    return "neutral";
+    let sentiment: "positive" | "negative" | "neutral";
+    let confidence: number;
+
+    if (positiveCount > negativeCount) {
+      sentiment = "positive";
+      confidence = Math.min(0.5 + (positiveCount - negativeCount) * 0.1, 0.9); // Confidence increases with more positive words
+    } else if (negativeCount > positiveCount) {
+      sentiment = "negative";
+      confidence = Math.min(0.5 + (negativeCount - positiveCount) * 0.1, 0.9); // Confidence increases with more negative words
+    } else {
+      sentiment = "neutral";
+      confidence = 0.6; // Neutral sentiment has a base confidence
+    }
+    return { sentiment, confidence };
   }
 
   private async classifyText(text: string) {
