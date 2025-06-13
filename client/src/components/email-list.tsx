@@ -9,6 +9,14 @@ interface EmailListProps {
   loading: boolean;
 }
 
+/**
+ * Renders a list of emails with sender details, subject, preview, and associated badges, including loading and empty states.
+ *
+ * Displays skeleton loaders when loading, a message if no emails are found, and a styled list of emails with category, labels, and confidence indicators. Each email is clickable, simulating an open action.
+ *
+ * @param emails - Array of email objects with category and metadata to display.
+ * @param loading - Whether to show loading skeletons instead of email content.
+ */
 export function EmailList({ emails, loading }: EmailListProps) {
   if (loading) {
     return (
