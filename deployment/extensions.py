@@ -17,9 +17,6 @@ import pkgutil
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple, Union, Callable
 
-# Import environment manager
-from deployment.env_manager import env_manager
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -101,12 +98,16 @@ class Extension:
 class ExtensionsManager:
     """Manages extensions for the EmailIntelligence application."""
     
-    def __init__(self, root_dir: Path = ROOT_DIR):
+    def __init__(self, root_dir: Path = ROOT_DIR, python_executable: Optional[str] = None):
         """Initialize the extensions manager."""
         self.root_dir = root_dir
         self.extensions_dir = root_dir / "extensions"
         self.extensions: Dict[str, Extension] = {}
-        self.env_manager = env_manager
+        self.python_executable = python_executable if python_executable else sys.executable
+
+    def set_python_executable(self, python_executable: str):
+        """Set the Python executable path."""
+        self.python_executable = python_executable
     
     def discover_extensions(self) -> List[Extension]:
         """Discover available extensions."""
@@ -150,6 +151,7 @@ class ExtensionsManager:
     def load_extensions(self) -> bool:
         """Load all available extensions."""
         extensions = self.discover_extensions()
+        all_loaded = True
         
         for extension in extensions:
             if extension.enabled:
@@ -158,19 +160,22 @@ class ExtensionsManager:
                     logger.info(f"Loaded extension: {extension.name}")
                 else:
                     logger.error(f"Failed to load extension: {extension.name}")
+                    all_loaded = False
         
-        return True
+        return all_loaded
     
     def initialize_extensions(self) -> bool:
         """Initialize all loaded extensions."""
+        all_initialized = True
         for name, extension in self.extensions.items():
             if extension.enabled:
                 if extension.initialize():
                     logger.info(f"Initialized extension: {name}")
                 else:
                     logger.error(f"Failed to initialize extension: {name}")
+                    all_initialized = False
         
-        return True
+        return all_initialized
     
     def shutdown_extensions(self) -> bool:
         """Shutdown all loaded extensions."""
@@ -258,7 +263,7 @@ class ExtensionsManager:
             requirements_file = self.extensions_dir / name / "requirements.txt"
             if requirements_file.exists():
                 # Install the requirements
-                python = self.env_manager.get_python_executable()
+                python = self.python_executable
                 subprocess.check_call([python, "-m", "pip", "install", "-r", str(requirements_file)])
             
             logger.info(f"Installed extension: {name}")
@@ -306,7 +311,7 @@ class ExtensionsManager:
             requirements_file = extension_dir / "requirements.txt"
             if requirements_file.exists():
                 # Install the requirements
-                python = self.env_manager.get_python_executable()
+                python = self.python_executable
                 subprocess.check_call([python, "-m", "pip", "install", "-r", str(requirements_file)])
             
             logger.info(f"Updated extension: {name}")
