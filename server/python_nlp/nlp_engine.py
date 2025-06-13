@@ -507,9 +507,9 @@ class NLPEngine:
             # Multi-model analysis
             # These methods will internally use models if available, or fall back.
             sentiment_analysis = self._analyze_sentiment(cleaned_text)
-            topic_analysis = self._analyze_topic(cleaned_text) # Will be updated in next step
-            intent_analysis = self._analyze_intent(cleaned_text) # Will be updated in next step
-            urgency_analysis = self._analyze_urgency(cleaned_text) # Already updated
+            topic_analysis = self._analyze_topic(cleaned_text)
+            intent_analysis = self._analyze_intent(cleaned_text)
+            urgency_analysis = self._analyze_urgency(cleaned_text)
 
             # This method is regex-based, no model to load for it currently per its implementation
             risk_analysis_flags = self._detect_risk_factors(cleaned_text)
@@ -568,28 +568,7 @@ class NLPEngine:
             logger.exception("Exception in analyze_email:") # Log full traceback
             return self._get_fallback_analysis(error_msg)
 
-def main():
-    # Basic logging for CLI usage, can be overridden by Gunicorn's logger in production
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
-
-    if len(sys.argv) < 3: # Allow content to be empty
-        print(json.dumps({'error': 'Invalid arguments. Usage: python nlp_engine.py "<subject>" "<content>"'}))
-        sys.exit(1)
-
-    subject = sys.argv[1]
-    # Content can be empty, handle that case
-    content = sys.argv[2] if len(sys.argv) > 2 else ""
-
-
-    engine = NLPEngine()
-    result = engine.analyze_email(subject, content)
-
-    print(json.dumps(result, indent=2)) # Pretty print for readability
-
-if __name__ == "__main__":
-    # main() # Comment out old main call, new main will be called directly if __name__ == "__main__"
-
+# This is the main function to be kept (argparse based)
 def main():
     # Basic logging for CLI usage, can be overridden by Gunicorn's logger in production
     logging.basicConfig(stream=sys.stdout, level=logging.INFO,

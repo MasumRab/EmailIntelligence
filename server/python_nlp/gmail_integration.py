@@ -541,42 +541,49 @@ class GmailDataCollector:
         # Check cache first
         cached_email = self.cache.get_cached_email(message_id)
         if cached_email:
+            self.logger.debug(f"Cache hit for message {message_id}")
             return cached_email
-        
-        try:
-            if self.gmail_service:
+        self.logger.debug(f"Cache miss for message {message_id}")
+
+        if self.gmail_service:
             try:
-                # Actual Gmail API call
+                self.logger.debug(f"Attempting to fetch message {message_id} from Gmail API.")
                 message = self.gmail_service.users().messages().get(
                     userId='me',
                     id=message_id,
-                    format='full'  # 'metadata' or 'raw' could also be used depending on needs
+                    format='full'
                 ).execute()
+                self.logger.debug(f"Successfully fetched message {message_id} from API.")
 
-                # Process the message payload to extract relevant fields
-                # This part will depend on the structure of the Gmail API response
                 email_data = self._parse_message_payload(message)
 
                 if email_data:
-                    # Cache the email
                     self.cache.cache_email(email_data)
+                    self.logger.debug(f"Successfully parsed and cached message {message_id}.")
                     return email_data
                 else:
-                    self.logger.warning(f"Could not parse email data for message {message_id}")
-                    return None
-
+                    self.logger.warning(f"Could not parse email data for message {message_id}. This message will not be processed further.")
+                    return None  # Parsing failure, do not simulate for this specific case
             except HttpError as error:
-                self.logger.error(f'An API error occurred while fetching message {message_id}: {error}')
-                # Handle different types of errors (e.g., 404 Not Found, 403 Forbidden)
-                return None
+                self.logger.error(f'API error fetching message {message_id}: {error}. Falling back to simulation.')
+                # Fall through to simulation block below
             except Exception as e:
-                self.logger.error(f"Unexpected error retrieving message {message_id}: {e}")
-                return None
+                self.logger.error(f"Unexpected error retrieving message {message_id}: {e}. Falling back to simulation.")
+                # Fall through to simulation block below
+        else:
+            self.logger.warning(f"Gmail service not available. Falling back to simulation for message {message_id}.")
+            # Fall through to simulation block below
 
-        # Fallback to simulated response if gmail_service is not available
-        self.logger.warning(f"Gmail service not available, using simulated content for message {message_id}.")
+        # Fallback to simulated response if API call failed or service was unavailable
+        self.logger.info(f"Using simulated content for message {message_id}.")
         email_data = await self._simulate_email_content(message_id)
+
+        # Ensure message_id is present in simulated data for caching
+        if 'message_id' not in email_data: # _simulate_email_content should guarantee this
+            email_data['message_id'] = message_id
+
         self.cache.cache_email(email_data)
+        self.logger.debug(f"Cached simulated content for message {message_id}.")
         return email_data
             
     def _parse_message_payload(self, message: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -748,9 +755,7 @@ async def main():
 
     # Execute daily sync strategy
     try:
-        # Need an event loop to run async functions
-        loop = asyncio.get_event_loop()
-        batch = loop.run_until_complete(collector.execute_collection_strategy("daily_sync"))
+        batch = await collector.execute_collection_strategy("daily_sync")
 
         if batch:
             print(f"Collected {batch.total_count} emails in batch {batch.batch_id}")
@@ -766,7 +771,7 @@ async def main():
             
     except Exception as e:
         print(f"Collection failed: {e}")
+        logger.exception("Exception in main execution:")
 
 if __name__ == "__main__":
-    # asyncio.run(main()) # main is not an async function
-    main()
+    asyncio.run(main())
