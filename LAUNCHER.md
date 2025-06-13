@@ -32,17 +32,20 @@ The EmailIntelligence Launcher is a unified way to run the EmailIntelligence app
 
 ### Environment Setup
 
-- `--no-venv`: Don't create or use a virtual environment
-- `--update-deps`: Update dependencies before launching
-- `--skip-torch-cuda-test`: Skip CUDA availability test for PyTorch
-- `--reinstall-torch`: Reinstall PyTorch (useful for CUDA issues)
-- `--skip-python-version-check`: Skip Python version check
-- `--no-download-nltk`: Skip downloading NLTK data
-- `--skip-prepare`: Skip preparation steps
+- `--no-venv`: Don't create or use a virtual environment. This also skips all Python dependency installation steps. The user is responsible for managing their environment.
+- `--update-deps`: Update dependencies before launching (applies if venv is used).
+- `--skip-torch-cuda-test`: Skip CUDA availability test for PyTorch.
+- `--reinstall-torch`: Reinstall PyTorch (useful for CUDA issues).
+- `--skip-python-version-check`: Skip Python version check.
+- `--no-download-nltk`: Skip downloading NLTK data.
+- `--skip-prepare`: Skip all environment preparation steps (Python version check, venv, dependencies, NLTK data).
+- `--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}`: Set the logging level for the launcher script. Default is INFO.
 
 ### Application Stage
 
-- `--stage {dev,test,staging,prod}`: Specify the application stage to run (default: dev)
+- `--stage {dev,test}`: Specify the application mode.
+  - `dev`: For running the application (backend/frontend). (Default)
+  - `test`: For running tests (runs a default suite if no specific test flags like --unit are given).
 
 ### Server Configuration
 
@@ -82,7 +85,7 @@ The EmailIntelligence Launcher is a unified way to run the EmailIntelligence app
 - `--no-half`: Disable half-precision for models
 - `--force-cpu`: Force CPU mode even if GPU is available
 - `--low-memory`: Enable low memory mode
-- `--system-info`: Print system information
+- `--system-info`: Print detailed system, Python, and project configuration information then exit.
 
 ### Networking Options
 
@@ -146,15 +149,10 @@ python launch.py --system-info
 
 ## Directory Structure
 
-- `deployment/`: Contains deployment-related scripts and configurations
-  - `env_manager.py`: Manages the Python environment
-  - `extensions.py`: Manages extensions
-  - `models.py`: Manages machine learning models
-  - `run_app.py`: Runs the application in different stages
-  - `test_stages.py`: Manages testing for different stages
-- `extensions/`: Contains installed extensions
-- `models/`: Contains downloaded models
-- `venv/`: Contains the virtual environment
+- `deployment/`: Contains scripts and modules used by `launch.py` for specific tasks like extension management (`extensions_manager.py`), model management (`models_manager.py`), and test execution (`test_stages.py`).
+- `extensions/`: Contains installed extensions.
+- `models/`: Contains downloaded models.
+- `venv/`: Contains the Python virtual environment created by `launch.py` (unless `--no-venv` is used).
 
 ## Creating Extensions
 
@@ -175,18 +173,16 @@ This will create a new extension template in the `extensions/my_extension` direc
 
 You can customize the launcher by modifying the following files:
 
-- `launch.py`: The main launcher script
-- `deployment/env_manager.py`: Environment management
-- `deployment/extensions.py`: Extensions management
-- `deployment/models.py`: Models management
-- `deployment/run_app.py`: Application running
-- `deployment/test_stages.py`: Testing management
+- `launch.py`: The main launcher script, which now integrates environment management.
+- `deployment/extensions_manager.py`: Manages extensions.
+- `deployment/models_manager.py`: Manages machine learning models.
+- `deployment/test_stages.py`: Manages testing for different stages.
 
 ## Troubleshooting
 
 ### Virtual Environment Issues
 
-If you encounter issues with the virtual environment, try running with the `--no-venv` argument:
+If you encounter issues with the virtual environment (e.g., creation failures), you can try running with the `--no-venv` argument. Remember that this makes you responsible for installing all Python dependencies:
 
 ```
 python launch.py --no-venv
