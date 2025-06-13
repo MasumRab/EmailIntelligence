@@ -63,18 +63,7 @@ export class DatabaseStorage implements IStorage {
   async getAllEmails(): Promise<EmailWithCategory[]> {
     const result = await db
       .select({
-        id: emails.id,
-        sender: emails.sender,
-        senderEmail: emails.senderEmail,
-        subject: emails.subject,
-        content: emails.content,
-        preview: emails.preview,
-        time: emails.time,
-        categoryId: emails.categoryId,
-        labels: emails.labels,
-        confidence: emails.confidence,
-        isStarred: emails.isStarred,
-        isRead: emails.isRead,
+        email: emails,
         category: categories,
       })
       .from(emails)
@@ -82,37 +71,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(emails.id));
 
     return result.map(row => ({
-      id: row.id,
-      sender: row.sender,
-      senderEmail: row.senderEmail,
-      subject: row.subject,
-      content: row.content,
-      preview: row.preview,
-      time: row.time,
-      categoryId: row.categoryId,
-      labels: row.labels,
-      confidence: row.confidence,
-      isStarred: row.isStarred,
-      isRead: row.isRead,
-      category: row.category || undefined,
+      ...row.email,
+      categoryData: row.category || undefined,
     }));
   }
 
   async getEmailById(id: number): Promise<EmailWithCategory | undefined> {
     const result = await db
       .select({
-        id: emails.id,
-        sender: emails.sender,
-        senderEmail: emails.senderEmail,
-        subject: emails.subject,
-        content: emails.content,
-        preview: emails.preview,
-        time: emails.time,
-        categoryId: emails.categoryId,
-        labels: emails.labels,
-        confidence: emails.confidence,
-        isStarred: emails.isStarred,
-        isRead: emails.isRead,
+        email: emails,
         category: categories,
       })
       .from(emails)
@@ -123,19 +90,8 @@ export class DatabaseStorage implements IStorage {
     if (!row) return undefined;
 
     return {
-      id: row.id,
-      sender: row.sender,
-      senderEmail: row.senderEmail,
-      subject: row.subject,
-      content: row.content,
-      preview: row.preview,
-      time: row.time,
-      categoryId: row.categoryId,
-      labels: row.labels,
-      confidence: row.confidence,
-      isStarred: row.isStarred,
-      isRead: row.isRead,
-      category: row.category || undefined,
+      ...row.email,
+      categoryData: row.category || undefined,
     };
   }
 
@@ -166,18 +122,7 @@ export class DatabaseStorage implements IStorage {
   async getEmailsByCategory(categoryId: number): Promise<EmailWithCategory[]> {
     const result = await db
       .select({
-        id: emails.id,
-        sender: emails.sender,
-        senderEmail: emails.senderEmail,
-        subject: emails.subject,
-        content: emails.content,
-        preview: emails.preview,
-        time: emails.time,
-        categoryId: emails.categoryId,
-        labels: emails.labels,
-        confidence: emails.confidence,
-        isStarred: emails.isStarred,
-        isRead: emails.isRead,
+        email: emails,
         category: categories,
       })
       .from(emails)
@@ -186,37 +131,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(emails.id));
 
     return result.map(row => ({
-      id: row.id,
-      sender: row.sender,
-      senderEmail: row.senderEmail,
-      subject: row.subject,
-      content: row.content,
-      preview: row.preview,
-      time: row.time,
-      categoryId: row.categoryId,
-      labels: row.labels,
-      confidence: row.confidence,
-      isStarred: row.isStarred,
-      isRead: row.isRead,
-      category: row.category || undefined,
+      ...row.email,
+      categoryData: row.category || undefined,
     }));
   }
 
   async searchEmails(query: string): Promise<EmailWithCategory[]> {
     const result = await db
       .select({
-        id: emails.id,
-        sender: emails.sender,
-        senderEmail: emails.senderEmail,
-        subject: emails.subject,
-        content: emails.content,
-        preview: emails.preview,
-        time: emails.time,
-        categoryId: emails.categoryId,
-        labels: emails.labels,
-        confidence: emails.confidence,
-        isStarred: emails.isStarred,
-        isRead: emails.isRead,
+        email: emails,
         category: categories,
       })
       .from(emails)
@@ -229,19 +152,8 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(emails.id));
 
     return result.map(row => ({
-      id: row.id,
-      sender: row.sender,
-      senderEmail: row.senderEmail,
-      subject: row.subject,
-      content: row.content,
-      preview: row.preview,
-      time: row.time,
-      categoryId: row.categoryId,
-      labels: row.labels,
-      confidence: row.confidence,
-      isStarred: row.isStarred,
-      isRead: row.isRead,
-      category: row.category || undefined,
+      ...row.email,
+      categoryData: row.category || undefined,
     }));
   }
 
