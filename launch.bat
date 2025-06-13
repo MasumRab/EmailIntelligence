@@ -25,6 +25,13 @@ set "PYTHON_EXE=python"
 where conda >nul 2>&1
 if %errorlevel% equ 0 (
     echo Conda is available.
+    if /I "%PROJECT_CONDA_ENV_NAME%" == "your_conda_env_name" (
+        echo INFO: Project specific Conda environment name is set to the default placeholder 'your_conda_env_name'.
+        echo This script will not attempt to activate or create this specific Conda environment.
+        echo If you wish to use a project-specific Conda environment, please edit this script
+        echo and set PROJECT_CONDA_ENV_NAME to your desired environment name.
+        echo Falling back to checking for an existing active Conda environment or using standard venv.
+    )
     :: Check if already in a Conda environment
     if defined CONDA_DEFAULT_ENV (
         echo Already in a Conda environment: %CONDA_DEFAULT_ENV%
@@ -116,13 +123,13 @@ if not defined CONDA_DEFAULT_ENV and not defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
             echo %VENV_DIR%\Scripts\Activate.ps1 not found. Cannot activate for PowerShell.
         )
     ) else (
-        if exist "%VENV_DIR%\Scriptsctivate.bat" (
+        if exist "%VENV_DIR%\Scripts\activate.bat" (
             echo Activating venv for Command Prompt...
-            call "%VENV_DIR%\Scriptsctivate.bat"
+            call "%VENV_DIR%\Scripts\activate.bat"
             set "VENV_ACTIVATED_BY_SCRIPT=1"
             set "PYTHON_EXE=%CD%\%VENV_DIR%\Scripts\python.exe"
         ) else (
-             echo %VENV_DIR%\Scriptsctivate.bat not found. Cannot activate for Command Prompt.
+             echo %VENV_DIR%\Scripts\activate.bat not found. Cannot activate for Command Prompt.
         )
     )
 
