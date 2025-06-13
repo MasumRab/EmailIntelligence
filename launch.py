@@ -109,7 +109,10 @@ ROOT_DIR = Path(__file__).resolve().parent
 # These are initially named with _standalone to avoid conflict
 # and will be renamed later.
 
-def check_python_version_standalone() -> bool:
+# --- Start of functions that were migrated and renamed ---
+# The _standalone suffix is removed from definitions and calls directly.
+
+def check_python_version() -> bool:
     """Check if the Python version is supported."""
     current_version = sys.version_info[:2]
     if current_version < PYTHON_MIN_VERSION:
@@ -120,18 +123,18 @@ def check_python_version_standalone() -> bool:
                       f"Recommended version is {'.'.join(map(str, PYTHON_MAX_VERSION))} or lower.")
     return True
 
-def is_venv_available_standalone() -> bool:
+def is_venv_available() -> bool:
     """Check if a virtual environment is available."""
-    venv_path = ROOT_DIR / VENV_DIR # Uses ROOT_DIR from launch.py
+    venv_path = ROOT_DIR / VENV_DIR
     if os.name == 'nt':  # Windows
         return venv_path.exists() and (venv_path / "Scripts" / "python.exe").exists()
     else:  # Unix-based systems
         return venv_path.exists() and (venv_path / "bin" / "python").exists()
 
-def create_venv_standalone() -> bool:
+def create_venv() -> bool:
     """Create a virtual environment."""
-    venv_path = ROOT_DIR / VENV_DIR # Uses ROOT_DIR from launch.py
-    if venv_path.exists(): # Check existence using the path
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
         logger.info(f"Virtual environment already exists at {venv_path}")
         return True
     
@@ -143,9 +146,9 @@ def create_venv_standalone() -> bool:
         logger.error(f"Failed to create virtual environment: {e}")
         return False
 
-def get_python_executable_standalone() -> str:
+def get_python_executable() -> str:
     """Get the Python executable path."""
-    if is_venv_available_standalone(): # Calls the standalone version
+    if is_venv_available(): # Internal call uses the final name
         if os.name == 'nt':  # Windows
             return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
         else:  # Unix-based systems
@@ -156,8 +159,7 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
     """Install or update requirements from a file.
     requirements_file_path_str is relative to ROOT_DIR.
     """
-    python = get_python_executable_standalone() # Calls the standalone version
-    # Ensure requirements_file_path_str is interpreted relative to ROOT_DIR
+    python = get_python_executable() # Internal call uses the final name
     requirements_path = ROOT_DIR / requirements_file_path_str
     
     if not requirements_path.exists():
@@ -171,106 +173,22 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
     
     logger.info(f"{'Updating' if update else 'Installing'} dependencies from {requirements_path.name}...")
     try:
-        subprocess.check_call(cmd)
+        # Using subprocess.run to capture output for better error reporting (as per previous subtask)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install dependencies: {e}")
+        logger.error(f"Failed to install dependencies from {requirements_path.name}.")
+        logger.error(f"pip stdout:\n{e.stdout}")
+        logger.error(f"pip stderr:\n{e.stderr}")
         return False
 
-# --- End of migrated functions ---
-
-# Comment out original functions
-# def check_python_version() -> bool:
-#     """Check if the Python version is supported."""
-#     current_version = sys.version_info[:2]
-#     if current_version < PYTHON_MIN_VERSION:
-#         logger.error(f"Python {'.'.join(map(str, PYTHON_MIN_VERSION))} or higher is required")
-#         return False
-#     if current_version > PYTHON_MAX_VERSION:
-#         logger.warning(f"Python {'.'.join(map(str, current_version))} is not officially supported. "
-#                       f"Recommended version is {'.'.join(map(str, PYTHON_MAX_VERSION))} or lower.")
-#     return True
-#
-# def is_venv_available() -> bool:
-#     """Check if a virtual environment is available."""
-#     venv_path = ROOT_DIR / VENV_DIR
-#     return venv_path.exists() and (venv_path / "Scripts" / "python.exe").exists() if os.name == 'nt' else \
-#            (venv_path / "bin" / "python").exists()
-#
-# def create_venv() -> bool:
-#     """Create a virtual environment."""
-#     venv_path = ROOT_DIR / VENV_DIR
-#     if venv_path.exists():
-#         logger.info(f"Virtual environment already exists at {venv_path}")
-#         return True
-#
-#     logger.info(f"Creating virtual environment at {venv_path}")
-#     try:
-#         venv.create(venv_path, with_pip=True)
-#         return True
-#     except Exception as e:
-#         logger.error(f"Failed to create virtual environment: {e}")
-#         return False
-#
-# def get_python_executable() -> str:
-#     """Get the Python executable path."""
-#     if is_venv_available(): # This would now call the new is_venv_available
-#         if os.name == 'nt':
-#             return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
-#         else:
-#             return str(ROOT_DIR / VENV_DIR / "bin" / "python")
-#     return sys.executable
-#
-# def install_dependencies(update: bool = False) -> bool:
-#     """Install or update dependencies."""
-#     python = get_python_executable() # This would now call the new get_python_executable
-#     requirements_path = ROOT_DIR / REQUIREMENTS_FILE # Default requirements file
-#
-#     if not requirements_path.exists():
-#         logger.error(f"Requirements file not found at {requirements_path}")
-#         return False
-#
-#     cmd = [python, "-m", "pip", "install"]
-#     if update:
-#         cmd.append("--upgrade")
-#     cmd.extend(["-r", str(requirements_path)])
-#
-#     logger.info(f"{'Updating' if update else 'Installing'} dependencies...")
-#     try:
-#         subprocess.check_call(cmd)
-#         return True
-#     except subprocess.CalledProcessError as e:
-#         logger.error(f"Failed to install dependencies: {e}")
-#         return False
-
-# Rename standalone functions to take over the original names
-check_python_version = check_python_version_standalone
-is_venv_available = is_venv_available_standalone
-create_venv = create_venv_standalone
-get_python_executable = get_python_executable_standalone
-
-# The new function for installing requirements was install_requirements_from_file.
-# We want launch.py's main dependency installer to be this.
-# The original install_dependencies took only 'update'. The new one takes 'requirements_file_path_str' and 'update'.
-# We will alias install_dependencies to install_requirements_from_file.
-# The call sites of install_dependencies will need to be updated if they don't pass the requirements file path.
-# For now, let's make install_dependencies the more capable function.
+# Alias for backward compatibility or consistent naming if preferred elsewhere
 install_dependencies = install_requirements_from_file
 
+# --- End of functions that were migrated and renamed ---
 
-# Adjust get_python_executable to ensure it calls the new is_venv_available (already done by renaming)
-# No change needed here as get_python_executable_standalone already called is_venv_available_standalone
-
-# Adjust install_dependencies (which is now install_requirements_from_file)
-# to ensure it calls the new get_python_executable (already done by renaming)
-# No change needed here as install_requirements_from_file already called get_python_executable_standalone
-
-# Clean up the _standalone aliases from global scope if they are no longer needed
-del check_python_version_standalone
-del is_venv_available_standalone
-del create_venv_standalone
-del get_python_executable_standalone
-# del install_requirements_from_file # install_dependencies is now an alias to this
+# Original functions are now fully replaced.
+# The aliasing and del operations for _standalone versions are no longer needed.
 
 def check_torch_cuda() -> bool:
     """Check if PyTorch with CUDA is available."""
@@ -317,15 +235,38 @@ def download_nltk_data() -> bool:
     python = get_python_executable()
     
     logger.info("Downloading NLTK data...")
+    cmd = [
+        python, "-c",
+        "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); print('NLTK data download initiated.')"
+    ]
     try:
-        subprocess.check_call([
-            python, "-c", 
-            "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
-        ])
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        logger.info("NLTK data download process completed.")
+        if result.stdout:
+            logger.debug(f"NLTK download stdout:\n{result.stdout}")
+        if result.stderr: # NLTK often prints to stderr even on success for some messages
+            logger.debug(f"NLTK download stderr:\n{result.stderr}") # Use debug for potentially noisy stderr
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to download NLTK data: {e}")
+        logger.error("Failed to download NLTK data.")
+        if e.stdout: # Only log if there's actual content
+            logger.error(f"NLTK download stdout:\n{e.stdout}")
+        if e.stderr: # Only log if there's actual content
+            logger.error(f"NLTK download stderr:\n{e.stderr}")
         return False
+
+# Helper function to get the primary requirements file (factored out in a previous task)
+def _get_primary_requirements_file() -> str:
+    """Determines the primary requirements file to use.
+    Prefers requirements_versions.txt, falls back to requirements.txt.
+    Returns the file name string (relative to ROOT_DIR).
+    """
+    versions_file_path = ROOT_DIR / REQUIREMENTS_VERSIONS_FILE
+    if versions_file_path.exists():
+        return REQUIREMENTS_VERSIONS_FILE
+    else:
+        logger.info(f"'{REQUIREMENTS_VERSIONS_FILE}' not found, attempting to use '{REQUIREMENTS_FILE}'.")
+        return REQUIREMENTS_FILE
 
 def prepare_environment(args: argparse.Namespace) -> bool:
     """Prepare the environment for running the application."""
@@ -333,40 +274,35 @@ def prepare_environment(args: argparse.Namespace) -> bool:
     # from deployment.env_manager import env_manager # This line is removed.
     
     # Check Python version
-    if not args.skip_python_version_check and not check_python_version(): # Use local function
+    if not args.skip_python_version_check and not check_python_version():
         return False
     
     # Create virtual environment if needed and install/update dependencies
     if not args.no_venv:
-        if not is_venv_available(): # Use local function
+        if not is_venv_available():
             logger.info("Virtual environment not found. Creating...")
-            if not create_venv(): # Use local function
+            if not create_venv():
                 logger.error("Failed to create virtual environment. Exiting.")
                 return False
             # Install/update dependencies after creating venv
-            primary_req_file_to_install = REQUIREMENTS_VERSIONS_FILE
-            if not (ROOT_DIR / primary_req_file_to_install).exists():
-                logger.info(f"{REQUIREMENTS_VERSIONS_FILE} not found, falling back to {REQUIREMENTS_FILE}.")
-                primary_req_file_to_install = REQUIREMENTS_FILE
-
-            logger.info(f"Installing base dependencies from {primary_req_file_to_install} into new venv...")
+            # Use the helper function _get_primary_requirements_file (as per previous subtask)
+            primary_req_file_to_install = _get_primary_requirements_file()
+            logger.info(f"Installing base dependencies from {Path(primary_req_file_to_install).name} into new venv...")
             if not install_dependencies(primary_req_file_to_install, args.update_deps):
-                logger.error(f"Failed to install base dependencies from {primary_req_file_to_install} in new venv. Exiting.")
+                logger.error(f"Failed to install base dependencies from {Path(primary_req_file_to_install).name} in new venv. Exiting.")
                 return False
         elif args.update_deps: # If venv exists, only update if requested
-            primary_req_file_to_update = REQUIREMENTS_VERSIONS_FILE
-            if not (ROOT_DIR / primary_req_file_to_update).exists():
-                logger.info(f"{REQUIREMENTS_VERSIONS_FILE} not found, falling back to {REQUIREMENTS_FILE} for update check.")
-                primary_req_file_to_update = REQUIREMENTS_FILE
-
-            logger.info(f"Updating base dependencies from {primary_req_file_to_update} in existing venv...")
+            # Use the helper function _get_primary_requirements_file
+            primary_req_file_to_update = _get_primary_requirements_file()
+            logger.info(f"Updating base dependencies from {Path(primary_req_file_to_update).name} in existing venv...")
             if not install_dependencies(primary_req_file_to_update, True): # Force update True
-                logger.error(f"Failed to update base dependencies from {primary_req_file_to_update}. Exiting.")
+                logger.error(f"Failed to update base dependencies from {Path(primary_req_file_to_update).name}. Exiting.")
                 return False
         else:
             # Even if not updating, log which primary file is considered active or would be used.
-            chosen_req_file = REQUIREMENTS_VERSIONS_FILE if (ROOT_DIR / REQUIREMENTS_VERSIONS_FILE).exists() else REQUIREMENTS_FILE
-            logger.info(f"Virtual environment found. Primary requirements file: {chosen_req_file}. Skipping dependency installation unless --update-deps is used.")
+            # Use the helper function _get_primary_requirements_file
+            chosen_req_file = _get_primary_requirements_file()
+            logger.info(f"Virtual environment found. Primary requirements file: {Path(chosen_req_file).name}. Skipping dependency installation unless --update-deps is used.")
 
         # Handle stage-specific requirements after base requirements
         # This replaces the logic from env_manager.setup_environment_for_stage()
@@ -375,38 +311,33 @@ def prepare_environment(args: argparse.Namespace) -> bool:
             # Assuming DEV_REQUIREMENTS_FILE would be defined, let's use a string literal for now
             # Or better, define it as a constant if it's standard
             dev_req_path = ROOT_DIR / "requirements-dev.txt"
-            if dev_req_path.exists():
-                stage_requirements_file = "requirements-dev.txt"
+            dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
+            if dev_req_path_obj.exists():
+                stage_requirements_file_path = "requirements-dev.txt"
         elif args.stage == "test":
-            # Assuming TEST_REQUIREMENTS_FILE would be defined
-            test_req_path = ROOT_DIR / "requirements-test.txt"
-            if test_req_path.exists():
-                stage_requirements_file = "requirements-test.txt"
+            test_req_path_obj = ROOT_DIR / "requirements-test.txt"
+            if test_req_path_obj.exists():
+                stage_requirements_file_path = "requirements-test.txt"
 
-        if stage_requirements_file:
-            logger.info(f"Installing stage-specific requirements for '{args.stage}' stage from {stage_requirements_file}...")
-            if not install_dependencies(stage_requirements_file, args.update_deps): # Use local function
-                logger.error(f"Failed to install stage-specific dependencies from {stage_requirements_file}. Exiting.")
+        if stage_requirements_file_path:
+            logger.info(f"Installing stage-specific requirements for '{args.stage}' stage from {Path(stage_requirements_file_path).name}...")
+            if not install_dependencies(stage_requirements_file_path, args.update_deps):
+                logger.error(f"Failed to install stage-specific dependencies from {Path(stage_requirements_file_path).name}. Exiting.")
                 return False
     
     # Check PyTorch CUDA
     if TORCH_CUDA_REQUIRED and not args.skip_torch_cuda_test:
-        # Removed: system_info = env_manager.get_system_info()
-        if not check_torch_cuda(): # This function uses local get_python_executable
+        if not check_torch_cuda():
             if args.reinstall_torch:
                 logger.info("PyTorch CUDA not found. Reinstalling PyTorch with CUDA support as requested.")
-                # Removed: env_manager.uninstall_package and env_manager.install_package calls
-                if not reinstall_torch(): # Use local function
+                if not reinstall_torch():
                     logger.error("Failed to reinstall PyTorch with CUDA. Please check manually.")
-                    # Depending on how critical this is, you might return False.
             else:
                 logger.warning("PyTorch CUDA is not available. Use --reinstall-torch to attempt reinstallation, or --skip-torch-cuda-test to ignore.")
     
     # Download NLTK data
     if not args.no_download_nltk:
-        # Removed: python = env_manager.get_python_executable()
-        if not download_nltk_data(): # This function uses local get_python_executable
-            # Error is logged within download_nltk_data
+        if not download_nltk_data():
             return False
     
     # Load extensions if not skipped
@@ -631,62 +562,100 @@ def run_application(args: argparse.Namespace) -> int:
 
     elif args.stage == "test":
         logger.info("Running application in 'test' stage (executing tests)...")
-        # This section replicates the test execution logic from main() when specific test args are given.
-        # If --stage test is used, it implies running all relevant tests.
-        from deployment.test_stages import test_stages # Moved import here
+        logger.info(f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided.")
+        from deployment.test_stages import test_stages # Moved import here for locality
 
-        test_success = True
-        # Determine which tests to run. If --stage test is given, maybe run all?
-        # Or expect other flags like --unit, --integration to be combined.
-        # For now, let's assume if --stage test is set, it runs a default suite (e.g., unit and integration).
-        # If specific flags like --unit are also given, the logic in main() before run_application would handle it.
-        # This part is for when ONLY --stage test is the primary command.
+        test_run_success = True # Assume success initially
 
-        # If specific test arguments (like --unit, --integration) are NOT provided,
-        # then --stage test could imply a default set of tests.
-        # However, the current structure in main() already checks for --unit, --integration etc.
-        # before calling run_application.
-        # So, if run_application is called with args.stage == "test", it means those specific
-        # test flags were NOT set.
-        # This part of the code might be simplified if --stage test implies specific test runs
-        # that are not covered by the --unit, --integration args directly in main().
-
-        # Let's refine this: if --stage test is specified, it should run a comprehensive suite.
-        # The existing logic in main() for --unit etc. handles specific test runs.
-        # If neither --unit nor other specific test flags are given, but --stage test is,
-        # then we run a default set.
-
-        if not (args.unit or args.integration or args.e2e or args.performance or args.security):
-            logger.info("No specific test types provided with --stage test. Running unit and integration tests by default.")
-            if hasattr(test_stages, 'run_unit_tests'):
-                 test_success = test_stages.run_unit_tests(args.coverage, args.debug) and test_success
-            else:
-                logger.warning("test_stages.run_unit_tests not found.")
-            if hasattr(test_stages, 'run_integration_tests'):
-                test_success = test_stages.run_integration_tests(args.coverage, args.debug) and test_success
-            else:
-                logger.warning("test_stages.run_integration_tests not found.")
-            # Add other default tests if needed
+        # Run unit tests by default
+        if hasattr(test_stages, 'run_unit_tests'):
+            logger.info("Running unit tests (default for --stage test)...")
+            if not test_stages.run_unit_tests(args.coverage, args.debug):
+                test_run_success = False
+                logger.error("Unit tests failed.")
         else:
-            # If specific flags like --unit were passed, they would be handled by the block in main().
-            # This path (args.stage == "test" inside run_application) would ideally not be hit
-            # if those flags caused an early exit in main().
-            # However, to be safe, we can state that specific test flags should be used, or rely on the default above.
-            logger.info("Specific test flags (--unit, --integration, etc.) were likely handled before run_application.")
-            logger.info("If you see this, it means --stage test was passed alongside other specific test flags OR those specific test flags were not handled in main().")
-            # Fallback to the default set if somehow specific flags didn't trigger tests in main()
-            if hasattr(test_stages, 'run_unit_tests'):
-                 test_success = test_stages.run_unit_tests(args.coverage, args.debug) and test_success
-            if hasattr(test_stages, 'run_integration_tests'):
-                test_success = test_stages.run_integration_tests(args.coverage, args.debug) and test_success
+            logger.warning("test_stages.run_unit_tests not found, cannot run unit tests.")
+            # Consider if this should be a failure for the 'test' stage
+            # test_run_success = False
 
-        return 0 if test_success else 1
-    # Staging and Prod are no longer valid choices here as per argparser modification.
-    # else:
-    #    logger.error(f"Unknown or unsupported stage for direct execution: {args.stage}")
-    #    return 1
+        # Run integration tests by default
+        if hasattr(test_stages, 'run_integration_tests'):
+            logger.info("Running integration tests (default for --stage test)...")
+            if not test_stages.run_integration_tests(args.coverage, args.debug):
+                test_run_success = False
+                logger.error("Integration tests failed.")
+        else:
+            logger.warning("test_stages.run_integration_tests not found, cannot run integration tests.")
+            # Consider if this should be a failure for the 'test' stage
+            # test_run_success = False
 
-    return 0 # Assuming success if processes managed by signal handler or exited cleanly
+        logger.info(f"Default test suite execution finished. Success: {test_run_success}")
+        return 0 if test_run_success else 1
+
+    return 0 # Assuming success if processes managed by signal handler or exited cleanly for other stages
+
+def _print_system_info():
+    """Prints detailed system information."""
+    print("\n--- System Information ---")
+    print(f"Operating System: {platform.system()} {platform.release()} ({platform.version()})")
+    print(f"Processor: {platform.processor()}")
+    try:
+        print(f"CPU Cores: {os.cpu_count()}")
+    except NotImplementedError:
+        print("CPU Cores: Not available")
+
+    print(f"\n--- Python Environment ---")
+    print(f"Python Version: {sys.version.splitlines()[0]}")
+    print(f"System Python Executable: {sys.executable}")
+    print(f"Launcher's Perceived Python Executable: {get_python_executable()}")
+    print(f"Project Root Directory (ROOT_DIR): {ROOT_DIR}")
+    print(f"Virtual Environment Directory (VENV_DIR): {ROOT_DIR / VENV_DIR}")
+    print(f"Venv Active (according to launcher): {is_venv_available()}")
+
+    print("\n--- Requirements Files ---")
+    for req_file_name in [REQUIREMENTS_FILE, REQUIREMENTS_VERSIONS_FILE, "requirements-dev.txt", "requirements-test.txt"]:
+        req_file_path = ROOT_DIR / req_file_name
+        status = "Found" if req_file_path.exists() else "Not Found"
+        print(f"{req_file_name}: {status} at {req_file_path}")
+
+    print("\n--- PyTorch Information ---")
+    # Check if PyTorch is installed before trying to import or run check_torch_cuda
+    # This avoids ModuleNotFoundError if torch isn't even in the environment.
+    # A more robust check might involve trying to import torch.
+    try:
+        # Attempt a lightweight check first using pkg_resources if available,
+        # or directly try importing torch if that's preferred.
+        # For simplicity, directly call check_torch_cuda and let it handle import errors if any.
+        # However, check_torch_cuda itself calls get_python_executable and runs a subprocess.
+        python_exec = get_python_executable()
+        torch_version_proc = subprocess.run([python_exec, "-c", "import torch; print(torch.__version__)"], capture_output=True, text=True)
+        if torch_version_proc.returncode == 0:
+            print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
+            check_torch_cuda() # This will print CUDA availability
+        else:
+            print("PyTorch Version: Not installed or importable with current Python executable.")
+            logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
+    except Exception as e:
+        print(f"PyTorch Information: Error checking PyTorch - {e}")
+
+
+    print("\n--- Memory Information ---")
+    try:
+        import psutil
+        virtual_mem = psutil.virtual_memory()
+        swap_mem = psutil.swap_memory()
+        print(f"Total RAM: {virtual_mem.total / (1024**3):.2f} GB")
+        print(f"Available RAM: {virtual_mem.available / (1024**3):.2f} GB")
+        print(f"Used RAM: {virtual_mem.used / (1024**3):.2f} GB ({virtual_mem.percent}%)")
+        print(f"Total Swap: {swap_mem.total / (1024**3):.2f} GB")
+        print(f"Used Swap: {swap_mem.used / (1024**3):.2f} GB ({swap_mem.percent}%)")
+    except ImportError:
+        print("Memory Information: `psutil` module not found. Install with `pip install psutil` for detailed memory stats.")
+    except Exception as e:
+        print(f"Memory Information: Error getting memory info - {e}")
+
+    print("\n--- End of System Information ---")
+
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
@@ -790,10 +759,7 @@ def main() -> int:
     
     # System information
     if args.system_info:
-        # from deployment.env_manager import env_manager # Removed this import
-        # env_manager.print_system_info() # Removed this call
-        logger.info("The --system-info option is temporarily disabled as part of refactoring.")
-        print("System information display is temporarily disabled.")
+        _print_system_info()
         return 0
     
     # Extensions management
