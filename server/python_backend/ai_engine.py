@@ -50,7 +50,7 @@ class AdvancedAIEngine:
     def __init__(self):
         self.python_nlp_path = os.path.join(os.path.dirname(__file__), '..', 'python_nlp')
         self.ai_training_script = os.path.join(self.python_nlp_path, 'ai_training.py')
-        self.nlp_service_script = os.path.join(self.python_nlp_path, 'nlp_service.py')
+        self.nlp_service_script = os.path.join(self.python_nlp_path, 'nlp_engine.py')
         
     async def initialize(self):
         """Initialize AI engine"""

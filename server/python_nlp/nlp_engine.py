@@ -7,6 +7,7 @@ Advanced natural language processing with multiple AI models and validation
 import sys
 import json
 import logging
+import argparse
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import re
@@ -585,6 +586,105 @@ def main():
     result = engine.analyze_email(subject, content)
 
     print(json.dumps(result, indent=2)) # Pretty print for readability
+
+if __name__ == "__main__":
+    # main() # Comment out old main call, new main will be called directly if __name__ == "__main__"
+
+def main():
+    # Basic logging for CLI usage, can be overridden by Gunicorn's logger in production
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
+    parser = argparse.ArgumentParser(description="Enhanced NLP Engine for Gmail AI Email Management")
+    parser.add_argument('--analyze-email', action='store_true', help="Perform email analysis.")
+    parser.add_argument('--subject', type=str, default="", help="Subject of the email.")
+    parser.add_argument('--content', type=str, default="", help="Content of the email.")
+    parser.add_argument('--health-check', action='store_true', help="Perform a health check.")
+    parser.add_argument('--output-format', type=str, default="text", choices=['json', 'text'],
+                        help="Output format (json or text).")
+
+    args = parser.parse_args()
+    engine = NLPEngine()
+
+    if args.health_check:
+        models_available = []
+        if engine.sentiment_model: models_available.append("sentiment")
+        if engine.topic_model: models_available.append("topic")
+        if engine.intent_model: models_available.append("intent")
+        if engine.urgency_model: models_available.append("urgency")
+
+        all_models_loaded = (engine.sentiment_model is not None and
+                             engine.topic_model is not None and
+                             engine.intent_model is not None and
+                             engine.urgency_model is not None)
+
+        health_status = {
+            "status": "ok" if all_models_loaded else "degraded",
+            "models_available": models_available,
+            "performance": {}, # Placeholder
+            "timestamp": datetime.now().isoformat()
+        }
+        if args.output_format == 'json':
+            print(json.dumps(health_status))
+        else:
+            print(json.dumps(health_status, indent=2))
+        sys.exit(0)
+
+    if args.analyze_email:
+        if not args.subject and not args.content:
+            # If called with --analyze-email but no subject/content, could be an error or expect empty analysis
+            logger.warning("Analysis requested with empty subject and content.")
+
+        result = engine.analyze_email(args.subject, args.content)
+        if args.output_format == 'json':
+            print(json.dumps(result)) # Compact JSON for machine readability
+        else:
+            print(json.dumps(result, indent=2)) # Pretty print for text output
+        sys.exit(0)
+
+    # Backward compatibility / Default behavior
+    # This part handles the old way of calling: python nlp_engine.py "subject" "content"
+    # It also serves as a default if no specific action like --health-check or --analyze-email is given.
+    # Check if any of the new flags were used. If so, and they weren't handled above, it's an invalid combo or missing action.
+    # If no new flags are present, and we have enough sys.argv, assume old style.
+
+    # Prioritize new flags. If specific flags like --analyze-email or --health-check are used,
+    # they should handle execution and exit.
+    # If script reaches here, it means no specific action flag was triggered.
+    # We can check for positional arguments for backward compatibility.
+
+    if len(sys.argv) > 1 and not any(flag in sys.argv for flag in ['--analyze-email', '--health-check', '--subject', '--content', '--output-format']):
+        # Likely old style invocation if no known flags are present
+        if len(sys.argv) < 3: # Allow content to be empty
+            # This was the old error message, adapting it slightly
+            err_msg = {'error': 'Invalid arguments for old-style invocation. Usage: python nlp_engine.py "<subject>" "<content>"'}
+            if args.output_format == 'json': print(json.dumps(err_msg))
+            else: print(json.dumps(err_msg, indent=2))
+            sys.exit(1)
+
+        subject_old = sys.argv[1]
+        content_old = sys.argv[2] if len(sys.argv) > 2 else ""
+
+        logger.info("Processing with backward compatibility mode (positional arguments).")
+        result = engine.analyze_email(subject_old, content_old)
+        if args.output_format == 'json': # Respect output format even for old style
+            print(json.dumps(result))
+        else:
+            print(json.dumps(result, indent=2))
+        sys.exit(0)
+
+    # If no action flag and no old-style arguments, print help.
+    # This condition might be tricky if --subject and --content are passed without --analyze-email.
+    # The current argparse setup makes --subject/--content default to "" if not provided,
+    # so they don't inherently trigger analysis without --analyze-email.
+
+    # If --analyze-email was not specified, and --health-check was not specified,
+    # and we didn't fall into backward compatibility, then print usage.
+    # This handles cases like `python nlp_engine.py --subject "test"` (no action)
+    if not args.analyze_email and not args.health_check:
+        parser.print_help()
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
