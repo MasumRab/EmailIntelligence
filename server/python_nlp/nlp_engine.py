@@ -1,34 +1,45 @@
 #!/usr/bin/env python3
 """
-Enhanced NLP Engine for Gmail AI Email Management
-Advanced natural language processing with multiple AI models and validation
+Enhanced NLP Engine for Gmail AI Email Management.
+
+This module provides advanced natural language processing capabilities with multiple AI models
+and validation for analyzing email content.
 """
 
-import sys
+import argparse
 import json
 import logging
-import argparse
-from typing import Dict, List, Any, Optional, Tuple
-from datetime import datetime
-import re
 import os
+import re
+import sys
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Try to import optional dependencies
 try:
     import nltk
     from textblob import TextBlob
-    import joblib # For loading scikit-learn models
+    import joblib
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
 except ImportError:
     HAS_NLTK = False
-    HAS_SKLEARN_AND_JOBLIB = False # Assume if one is missing, model loading won't work
-    print("Warning: NLTK, scikit-learn or joblib not available. Model loading and/or advanced NLP features will be disabled.", file=sys.stderr)
+    HAS_SKLEARN_AND_JOBLIB = False
+    print(
+        "Warning: NLTK, scikit-learn or joblib not available. "
+        "Model loading and/or advanced NLP features will be disabled.",
+        file=sys.stderr
+    )
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-# Define paths for pre-trained models (assuming they are in the same directory or a specified model directory)
-MODEL_DIR = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__)) # Default to script's directory
+# Define paths for pre-trained models
+MODEL_DIR = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__))
 SENTIMENT_MODEL_PATH = os.path.join(MODEL_DIR, "sentiment_model.pkl")
 TOPIC_MODEL_PATH = os.path.join(MODEL_DIR, "topic_model.pkl")
 INTENT_MODEL_PATH = os.path.join(MODEL_DIR, "intent_model.pkl")
@@ -36,14 +47,25 @@ URGENCY_MODEL_PATH = os.path.join(MODEL_DIR, "urgency_model.pkl")
 
 
 class NLPEngine:
+    """
+    Natural Language Processing engine for email analysis.
+    
+    This class provides methods for analyzing email content using various NLP techniques,
+    including sentiment analysis, topic identification, intent detection, and urgency assessment.
+    """
+    
     def __init__(self):
+        """Initialize the NLP engine and load required models."""
+        # Initialize stop words if NLTK is available
         self.stop_words = set(nltk.corpus.stopwords.words('english')) if HAS_NLTK else set()
 
+        # Initialize model attributes
         self.sentiment_model = None
         self.topic_model = None
         self.intent_model = None
         self.urgency_model = None
 
+        # Load models if dependencies are available
         if HAS_SKLEARN_AND_JOBLIB:
             logger.info("Attempting to load NLP models...")
             self.sentiment_model = self._load_model(SENTIMENT_MODEL_PATH)
@@ -51,41 +73,72 @@ class NLPEngine:
             self.intent_model = self._load_model(INTENT_MODEL_PATH)
             self.urgency_model = self._load_model(URGENCY_MODEL_PATH)
         else:
-            logger.warning("Scikit-learn or joblib not available. NLP models will not be loaded. Using fallback logic.")
+            logger.warning(
+                "Scikit-learn or joblib not available. "
+                "NLP models will not be loaded. Using fallback logic."
+            )
 
-    def _load_model(self, model_path: str) -> Any:
-        """Helper function to load a pickled model file."""
+    def _load_model(self, model_path: str) -> Optional[Any]:
+        """
+        Load a pickled model file from the specified path.
+        
+        Args:
+            model_path: Path to the model file
+            
+        Returns:
+            Loaded model object or None if loading fails
+        """
         try:
             if os.path.exists(model_path):
                 model = joblib.load(model_path)
                 logger.info(f"Successfully loaded model from {model_path}")
                 return model
-            else:
-                logger.warning(f"Model file not found at {model_path}. This model will be unavailable.")
-                return None
+            
+            logger.warning(f"Model file not found at {model_path}. This model will be unavailable.")
+            return None
         except Exception as e:
             logger.error(f"Error loading model from {model_path}: {e}")
             return None
 
     def _preprocess_text(self, text: str) -> str:
-        """Basic text cleaning and normalization"""
+        """
+        Perform basic text cleaning and normalization.
+        
+        Args:
+            text: Raw text to preprocess
+            
+        Returns:
+            Preprocessed text
+        """
         text = text.lower()
         text = re.sub(r'[^\w\s]', '', text)
         return text
 
     def _analyze_sentiment_model(self, text: str) -> Optional[Dict[str, Any]]:
-        """Analyzes sentiment using the loaded sklearn model."""
+        """
+        Analyze sentiment using the loaded sklearn model.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing sentiment analysis results or None if analysis fails
+        """
         if not self.sentiment_model:
             return None
+            
         try:
             prediction = self.sentiment_model.predict([text])[0]
             probabilities = self.sentiment_model.predict_proba([text])[0]
             confidence = max(probabilities)
+            
+            # Calculate polarity based on sentiment prediction
             polarity = 0.0
             if prediction == 'positive':
                 polarity = confidence
             elif prediction == 'negative':
                 polarity = -confidence
+                
             return {
                 'sentiment': str(prediction),
                 'polarity': polarity,
@@ -98,13 +151,24 @@ class NLPEngine:
             return None
 
     def _analyze_sentiment_textblob(self, text: str) -> Optional[Dict[str, Any]]:
-        """Analyzes sentiment using TextBlob as a fallback."""
+        """
+        Analyze sentiment using TextBlob as a fallback method.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing sentiment analysis results or None if analysis fails
+        """
         if not HAS_NLTK:
             return None
+            
         try:
             blob = TextBlob(text)
             polarity = blob.sentiment.polarity
             subjectivity = blob.sentiment.subjectivity
+            
+            # Determine sentiment label and confidence based on polarity
             if polarity > 0.1:
                 sentiment_label = 'positive'
                 confidence = min(polarity + 0.5, 1.0)
@@ -114,6 +178,7 @@ class NLPEngine:
             else:
                 sentiment_label = 'neutral'
                 confidence = 0.7  # Default confidence for TextBlob neutral
+                
             return {
                 'sentiment': sentiment_label,
                 'polarity': polarity,
@@ -121,107 +186,236 @@ class NLPEngine:
                 'confidence': confidence,
                 'method_used': 'fallback_textblob_sentiment'
             }
-        except Exception as e: # pylint: disable=broad-except
+        except Exception as e:
             logger.error(f"Error during TextBlob sentiment analysis: {e}")
             return None
 
     def _analyze_sentiment_keyword(self, text: str) -> Dict[str, Any]:
-        """Analyzes sentiment using keyword matching as a final fallback."""
+        """
+        Analyze sentiment using keyword matching as a final fallback method.
+        
+        This method is used when both model-based and TextBlob-based analyses are unavailable.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing sentiment analysis results
+        """
         text_lower = text.lower()
-        positive_words = ['good', 'great', 'excellent', 'thank', 'please', 'welcome', 'happy', 'love']
-        negative_words = ['bad', 'terrible', 'problem', 'issue', 'error', 'failed', 'hate', 'angry']
+        
+        # Define sentiment keyword lists
+        positive_words = [
+            'good', 'great', 'excellent', 'thank', 'please', 
+            'welcome', 'happy', 'love'
+        ]
+        negative_words = [
+            'bad', 'terrible', 'problem', 'issue', 'error', 
+            'failed', 'hate', 'angry'
+        ]
+        
+        # Count occurrences of sentiment words
         positive_count = sum(1 for word in positive_words if word in text_lower)
         negative_count = sum(1 for word in negative_words if word in text_lower)
 
+        # Determine sentiment based on word counts
         if positive_count > negative_count:
-            sentiment_label, pol, conf = 'positive', 0.5, 0.6
+            sentiment_label = 'positive'
+            polarity = 0.5
+            confidence = 0.6
         elif negative_count > positive_count:
-            sentiment_label, pol, conf = 'negative', -0.5, 0.6
+            sentiment_label = 'negative'
+            polarity = -0.5
+            confidence = 0.6
         else:
-            sentiment_label, pol, conf = 'neutral', 0.0, 0.5
+            sentiment_label = 'neutral'
+            polarity = 0.0
+            confidence = 0.5
+            
         return {
             'sentiment': sentiment_label,
-            'polarity': pol,
+            'polarity': polarity,
             'subjectivity': 0.5,
-            'confidence': conf,
+            'confidence': confidence,
             'method_used': 'fallback_keyword_sentiment'
         }
 
     def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
-        """Enhanced sentiment analysis with confidence scoring using a loaded model or TextBlob."""
+        """
+        Perform sentiment analysis using available methods in order of preference.
+        
+        This method tries multiple approaches in the following order:
+        1. Machine learning model (if available)
+        2. TextBlob analysis (if available)
+        3. Simple keyword matching (as final fallback)
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing sentiment analysis results
+        """
+        # Try model-based analysis first
         analysis_result = self._analyze_sentiment_model(text)
         if analysis_result:
             return analysis_result
 
+        # Try TextBlob analysis if model fails
         analysis_result = self._analyze_sentiment_textblob(text)
         if analysis_result:
             return analysis_result
 
+        # Use keyword matching as final fallback
         return self._analyze_sentiment_keyword(text)
 
     def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
-        """Analyzes topic using the loaded sklearn model."""
+        """
+        Analyze topic using the loaded sklearn model.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing topic analysis results or None if analysis fails
+        """
         if not self.topic_model:
             return None
+            
         try:
             prediction = self.topic_model.predict([text])[0]
             probabilities = self.topic_model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            return {'topic': str(prediction), 'confidence': confidence, 'method_used': 'model_topic'}
+            
+            return {
+                'topic': str(prediction), 
+                'confidence': confidence, 
+                'method_used': 'model_topic'
+            }
         except Exception as e:
             logger.error(f"Error using topic model: {e}. Trying fallback.")
             return None
 
     def _analyze_topic_keyword(self, text: str) -> Dict[str, Any]:
-        """Analyzes topic using keyword matching as a fallback."""
+        """
+        Analyze topic using keyword matching as a fallback method.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing topic analysis results
+        """
+        # Define topic categories and their associated keywords
         topics = {
-            'Work & Business': ['meeting', 'conference', 'project', 'deadline', 'client', 'presentation', 'report', 'proposal'],
-            'Finance & Banking': ['payment', 'invoice', 'bill', 'statement', 'account', 'credit', 'debit', 'transfer', 'money', 'financial'],
-            'Personal & Family': ['family', 'personal', 'friend', 'birthday', 'anniversary', 'vacation', 'holiday', 'weekend', 'dinner', 'lunch'],
-            'Health & Wellness': ['doctor', 'medical', 'health', 'hospital', 'clinic', 'appointment', 'prescription', 'medicine', 'treatment', 'therapy'],
-            'Travel & Leisure': ['travel', 'flight', 'hotel', 'booking', 'reservation', 'trip', 'vacation', 'destination', 'airport', 'airline']
+            'Work & Business': [
+                'meeting', 'conference', 'project', 'deadline', 'client', 
+                'presentation', 'report', 'proposal'
+            ],
+            'Finance & Banking': [
+                'payment', 'invoice', 'bill', 'statement', 'account', 
+                'credit', 'debit', 'transfer', 'money', 'financial'
+            ],
+            'Personal & Family': [
+                'family', 'personal', 'friend', 'birthday', 'anniversary', 
+                'vacation', 'holiday', 'weekend', 'dinner', 'lunch'
+            ],
+            'Health & Wellness': [
+                'doctor', 'medical', 'health', 'hospital', 'clinic', 
+                'appointment', 'prescription', 'medicine', 'treatment', 'therapy'
+            ],
+            'Travel & Leisure': [
+                'travel', 'flight', 'hotel', 'booking', 'reservation', 
+                'trip', 'vacation', 'destination', 'airport', 'airline'
+            ]
         }
+        
+        # Calculate scores for each topic
         topic_scores = {}
         text_lower = text.lower()
         for topic, keywords in topics.items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             topic_scores[topic] = score
 
-        if any(score > 0 for score in topic_scores.values()):  # Check if any keyword matched
+        # Determine the best matching topic
+        if any(score > 0 for score in topic_scores.values()):
             best_topic = max(topic_scores, key=topic_scores.get)
-            # Normalize confidence: score / num_keywords_for_topic (approx), capped.
-            # A simple heuristic: assume an average of 5-10 keywords define a topic well.
-            # A higher number of matched keywords from a list for a specific topic gives higher confidence.
-            # Max score for a topic is the number of keywords in its list.
-            # Confidence can be (matched_keywords / total_keywords_for_that_topic), but that's complex.
-            # Using matched_keywords / 5.0 is a simpler proxy.
-            confidence = min(topic_scores[best_topic] / 5.0, 0.9) # Max confidence 0.9 for keyword based
-            return {'topic': best_topic, 'confidence': max(0.1, confidence), 'method_used': 'fallback_keyword_topic'}
+            
+            # Calculate confidence score
+            # Using a simple heuristic: matched_keywords / 5.0 (capped at 0.9)
+            confidence = min(topic_scores[best_topic] / 5.0, 0.9)
+            
+            return {
+                'topic': best_topic, 
+                'confidence': max(0.1, confidence), 
+                'method_used': 'fallback_keyword_topic'
+            }
         else:
-            return {'topic': 'General', 'confidence': 0.5, 'method_used': 'fallback_keyword_topic'}
+            return {
+                'topic': 'General', 
+                'confidence': 0.5, 
+                'method_used': 'fallback_keyword_topic'
+            }
 
     def _analyze_topic(self, text: str) -> Dict[str, Any]:
-        """Identify main topic of the email using a loaded model or keyword-based fallback."""
+        """
+        Identify the main topic of the email using available methods.
+        
+        This method tries multiple approaches in the following order:
+        1. Machine learning model (if available)
+        2. Keyword matching (as fallback)
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing topic analysis results
+        """
+        # Try model-based analysis first
         analysis_result = self._analyze_topic_model(text)
         if analysis_result:
             return analysis_result
+            
+        # Use keyword matching as fallback
         return self._analyze_topic_keyword(text)
 
     def _analyze_intent_model(self, text: str) -> Optional[Dict[str, Any]]:
-        """Analyzes intent using the loaded sklearn model."""
+        """
+        Analyze intent using the loaded sklearn model.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing intent analysis results or None if analysis fails
+        """
         if not self.intent_model:
             return None
+            
         try:
             prediction = self.intent_model.predict([text])[0]
             probabilities = self.intent_model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            return {'intent': str(prediction), 'confidence': confidence, 'method_used': 'model_intent'}
+            
+            return {
+                'intent': str(prediction), 
+                'confidence': confidence, 
+                'method_used': 'model_intent'
+            }
         except Exception as e:
             logger.error(f"Error using intent model: {e}. Trying fallback.")
             return None
 
     def _analyze_intent_regex(self, text: str) -> Dict[str, Any]:
-        """Analyzes intent using regex matching as a fallback."""
+        """
+        Analyze intent using regex pattern matching as a fallback method.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing intent analysis results
+        """
+        # Define intent patterns for regex matching
         intent_patterns = {
             'request': r'\b(please|could you|would you|can you|need|require|request)\b',
             'inquiry': r'\b(question|ask|wonder|curious|information|details|clarification)\b',
@@ -232,169 +426,360 @@ class NLPEngine:
             'follow_up': r'\b(follow up|follow-up|checking in|status|update|progress)\b',
             'confirmation': r'\b(confirm|confirmation|verify|check|acknowledge)\b'
         }
+        
+        # Calculate scores for each intent
         intent_scores = {}
         text_lower = text.lower()
         for intent, pattern in intent_patterns.items():
             matches = re.findall(pattern, text_lower)
             intent_scores[intent] = len(matches)
 
+        # Determine the best matching intent
         if any(score > 0 for score in intent_scores.values()):
             best_intent = max(intent_scores, key=intent_scores.get)
-            # Confidence heuristic: number of matches / 3 (arbitrary scaling factor)
+            
+            # Calculate confidence score
+            # Using a simple heuristic: number of matches / 3 (capped at 0.9)
             confidence = min(intent_scores[best_intent] / 3.0, 0.9)
-            return {'intent': best_intent, 'confidence': max(0.1, confidence), 'method_used': 'fallback_regex_intent'}
+            
+            return {
+                'intent': best_intent, 
+                'confidence': max(0.1, confidence), 
+                'method_used': 'fallback_regex_intent'
+            }
         else:
-            return {'intent': 'informational', 'confidence': 0.6, 'method_used': 'fallback_regex_intent'}
+            return {
+                'intent': 'informational', 
+                'confidence': 0.6, 
+                'method_used': 'fallback_regex_intent'
+            }
 
     def _analyze_intent(self, text: str) -> Dict[str, Any]:
-        """Determine the intent of the email using a loaded model or regex-based fallback."""
+        """
+        Determine the intent of the email using available methods.
+        
+        This method tries multiple approaches in the following order:
+        1. Machine learning model (if available)
+        2. Regex pattern matching (as fallback)
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing intent analysis results
+        """
+        # Try model-based analysis first
         analysis_result = self._analyze_intent_model(text)
         if analysis_result:
             return analysis_result
+            
+        # Use regex matching as fallback
         return self._analyze_intent_regex(text)
 
     def _analyze_urgency_model(self, text: str) -> Optional[Dict[str, Any]]:
-        """Analyzes urgency using the loaded sklearn model."""
+        """
+        Analyze urgency using the loaded sklearn model.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing urgency analysis results or None if analysis fails
+        """
         if not self.urgency_model:
             return None
+            
         try:
             prediction = self.urgency_model.predict([text])[0]
             probabilities = self.urgency_model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            return {'urgency': str(prediction), 'confidence': confidence, 'method_used': 'model_urgency'}
+            
+            return {
+                'urgency': str(prediction), 
+                'confidence': confidence, 
+                'method_used': 'model_urgency'
+            }
         except Exception as e:
             logger.error(f"Error using urgency model: {e}. Trying fallback.")
             return None
 
     def _analyze_urgency_regex(self, text: str) -> Dict[str, Any]:
-        """Analyzes urgency using regex matching as a fallback."""
+        """
+        Analyze urgency using regex pattern matching as a fallback method.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing urgency analysis results
+        """
         text_lower = text.lower()
+        
+        # Check for critical urgency indicators
         if re.search(r'\b(emergency|urgent|asap|immediately|critical|crisis|disaster)\b', text_lower):
-            urgency_label, conf = 'critical', 0.9
+            urgency_label = 'critical'
+            confidence = 0.9
+        # Check for high urgency indicators
         elif re.search(r'\b(soon|quickly|priority|important|deadline|time-sensitive)\b', text_lower):
-            urgency_label, conf = 'high', 0.8
+            urgency_label = 'high'
+            confidence = 0.8
+        # Check for medium urgency indicators
         elif re.search(r'\b(when you can|next week|upcoming|planned|scheduled)\b', text_lower):
-            urgency_label, conf = 'medium', 0.6
+            urgency_label = 'medium'
+            confidence = 0.6
+        # Default to low urgency
         else:
-            urgency_label, conf = 'low', 0.5
-        return {'urgency': urgency_label, 'confidence': conf, 'method_used': 'fallback_regex_urgency'}
+            urgency_label = 'low'
+            confidence = 0.5
+            
+        return {
+            'urgency': urgency_label, 
+            'confidence': confidence, 
+            'method_used': 'fallback_regex_urgency'
+        }
 
     def _analyze_urgency(self, text: str) -> Dict[str, Any]:
-        """Assess the urgency level of the email"""
+        """
+        Assess the urgency level of the email using available methods.
+        
+        This method tries multiple approaches in the following order:
+        1. Machine learning model (if available)
+        2. Regex pattern matching (as fallback)
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary containing urgency analysis results
+        """
+        # Try model-based analysis first
         analysis_result = self._analyze_urgency_model(text)
         if analysis_result:
             return analysis_result
+            
+        # Use regex matching as fallback
         return self._analyze_urgency_regex(text)
 
     def _extract_keywords(self, text: str) -> List[str]:
-        """Extract important keywords from text"""
+        """
+        Extract important keywords from text.
+        
+        This method uses TextBlob and NLTK if available, otherwise falls back to
+        a simple word matching approach.
+        
+        Args:
+            text: Text to extract keywords from
+            
+        Returns:
+            List of extracted keywords
+        """
+        # Simple keyword extraction if NLTK is not available
         if not HAS_NLTK:
-            # Simple keyword extraction without NLTK
             words = text.lower().split()
             keywords = []
-            important_words = ['meeting', 'project', 'deadline', 'urgent', 'important', 
-                             'work', 'business', 'personal', 'family', 'email']
+            important_words = [
+                'meeting', 'project', 'deadline', 'urgent', 'important',
+                'work', 'business', 'personal', 'family', 'email'
+            ]
+            
             for word in words:
                 if len(word) > 3 and word in important_words:
                     keywords.append(word)
-            return keywords[:10]
+                    
+            return keywords[:10]  # Limit to top 10 keywords
 
-        # Remove stopwords and extract important terms
+        # Advanced keyword extraction with TextBlob and NLTK
         blob = TextBlob(text)
-
-        # Get noun phrases as potential keywords
         keywords = []
+
+        # Extract noun phrases as potential keywords
         for phrase in blob.noun_phrases:
-            if len(phrase.split()) <= 3:  # Keep short phrases
+            if len(phrase.split()) <= 3:  # Keep only short phrases (up to 3 words)
                 keywords.append(phrase)
 
-        # Add important single words
+        # Extract important single words (not in stopwords and longer than 3 chars)
         words = blob.words
-        important_words = [word for word in words 
-                          if len(word) > 3 and word.lower() not in self.stop_words]
+        important_words = [
+            word for word in words 
+            if len(word) > 3 and word.lower() not in self.stop_words
+        ]
 
-        keywords.extend(important_words[:10])  # Limit to top 10
-
-        return list(set(keywords))[:15]  # Remove duplicates and limit
+        # Add top 10 important words
+        keywords.extend(important_words[:10])
+        
+        # Remove duplicates and limit to 15 keywords
+        return list(set(keywords))[:15]
 
     def _categorize_content(self, text: str) -> List[str]:
-        """Categorize email content based on keywords"""
+        """
+        Categorize email content based on keyword patterns.
+        
+        This method uses regex pattern matching to identify the categories
+        that best match the email content.
+        
+        Args:
+            text: Text to categorize
+            
+        Returns:
+            List of matched categories (up to 3)
+        """
         categories = []
         text_lower = text.lower()
 
+        # Define category patterns for content categorization
         category_patterns = {
             'Work & Business': [
-                r'\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|colleague|office|work|business|professional|corporate|company|organization)\b',
-                r'\b(employee|staff|manager|supervisor|director|executive|department|division|quarterly|annual|monthly|weekly|daily)\b'
+                r'\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|'
+                r'colleague|office|work|business|professional|corporate|company|organization)\b',
+                
+                r'\b(employee|staff|manager|supervisor|director|executive|department|division|'
+                r'quarterly|annual|monthly|weekly|daily)\b'
             ],
             'Finance & Banking': [
-                r'\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|money|financial|insurance|investment|loan|mortgage)\b',
+                r'\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|'
+                r'money|financial|insurance|investment|loan|mortgage)\b',
+                
                 r'\$[\d,]+|\b\d+\s?(dollars?|USD|EUR|GBP)\b',
+                
                 r'\b(tax|taxes|irs|refund|audit|accountant|bookkeeping|overdraft|bankruptcy)\b'
             ],
             'Healthcare': [
-                r'\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|treatment|therapy|checkup|surgery|dental|pharmacy)\b',
-                r'\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|medicare|medicaid|covid|coronavirus|vaccine)\b'
+                r'\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|'
+                r'treatment|therapy|checkup|surgery|dental|pharmacy)\b',
+                
+                r'\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|'
+                r'medicare|medicaid|covid|coronavirus|vaccine)\b'
             ],
             'Personal & Family': [
-                r'\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|dinner|lunch|home|house|kids|children)\b',
-                r'\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|graduation|baby|party|celebration)\b'
+                r'\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|'
+                r'dinner|lunch|home|house|kids|children)\b',
+                
+                r'\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|'
+                r'graduation|baby|party|celebration)\b'
             ],
             'Travel': [
-                r'\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|airport|airline|passport|visa|itinerary)\b',
-                r'\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|tickets|confirmation)\b'
+                r'\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|'
+                r'airport|airline|passport|visa|itinerary)\b',
+                
+                r'\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|'
+                r'tickets|confirmation)\b'
             ],
             'Technology': [
-                r'\b(software|hardware|computer|laptop|mobile|app|application|website|internet|email|password|account|login)\b',
-                r'\b(server|database|API|code|programming|development|tech|technical|IT|support|troubleshoot|install)\b'
+                r'\b(software|hardware|computer|laptop|mobile|app|application|website|'
+                r'internet|email|password|account|login)\b',
+                
+                r'\b(server|database|API|code|programming|development|tech|technical|'
+                r'IT|support|troubleshoot|install)\b'
             ]
         }
 
+        # Calculate scores for each category
+        category_scores = {}
         for category, patterns in category_patterns.items():
             score = 0
             for pattern in patterns:
                 matches = re.findall(pattern, text_lower)
                 score += len(matches)
+                
             if score > 0:
-                # Could also store score if needed later for confidence of categorization
+                category_scores[category] = score
                 categories.append(category)
 
-        if not categories:
-            return ['General']
-        return categories[:3] # Return top 3 matched categories or fewer
+        # Sort categories by score (descending)
+        if categories:
+            categories.sort(key=lambda cat: category_scores[cat], reverse=True)
+            return categories[:3]  # Return top 3 matched categories
+            
+        # Default category if no matches found
+        return ['General']
 
     def _calculate_confidence(self, analysis_results: List[Dict[str, Any]]) -> float:
-        """Calculate overall confidence score"""
+        """
+        Calculate overall confidence score based on individual analysis results.
+        
+        Args:
+            analysis_results: List of analysis result dictionaries
+            
+        Returns:
+            Overall confidence score (0.0-0.95)
+        """
+        if not analysis_results:
+            return 0.5  # Default confidence if no results
+            
+        # Sum confidence scores from all analysis results
         total_confidence = sum(result['confidence'] for result in analysis_results)
+        
+        # Calculate average and cap at 0.95
         return min(total_confidence / len(analysis_results), 0.95)
 
-    def _generate_reasoning(self, sentiment: Dict[str, Any], topic: Dict[str, Any], intent: Dict[str, Any], urgency: Dict[str, Any]) -> str:
-        """Generate human-readable reasoning for the analysis, indicating if fallbacks were used."""
+    def _generate_reasoning(self, 
+                           sentiment: Optional[Dict[str, Any]], 
+                           topic: Optional[Dict[str, Any]], 
+                           intent: Optional[Dict[str, Any]], 
+                           urgency: Optional[Dict[str, Any]]) -> str:
+        """
+        Generate human-readable reasoning for the analysis results.
+        
+        This method creates a natural language explanation of the analysis results,
+        indicating which methods were used (AI model or fallback).
+        
+        Args:
+            sentiment: Sentiment analysis results
+            topic: Topic analysis results
+            intent: Intent analysis results
+            urgency: Urgency analysis results
+            
+        Returns:
+            Human-readable explanation of the analysis
+        """
         parts = []
 
         def get_method_suffix(analysis_result: Optional[Dict[str, Any]]) -> str:
-            if analysis_result and 'method_used' in analysis_result and 'fallback' in analysis_result['method_used']:
-                return f" (using fallback: {analysis_result['method_used'].replace('fallback_', '')})"
-            elif analysis_result and 'method_used' in analysis_result and 'model' in analysis_result['method_used']:
+            """Generate a suffix indicating which method was used for analysis."""
+            if not analysis_result or 'method_used' not in analysis_result:
+                return " (method unknown)"
+                
+            method = analysis_result['method_used']
+            if 'fallback' in method:
+                return f" (using fallback: {method.replace('fallback_', '')})"
+            elif 'model' in method:
                 return " (using AI model)"
+                
             return " (method unknown)"
 
-
+        # Add sentiment reasoning if significant
         if sentiment and sentiment.get('sentiment') != 'neutral':
-            parts.append(f"Sentiment analysis detected {sentiment['sentiment']} sentiment{get_method_suffix(sentiment)}")
+            parts.append(
+                f"Sentiment analysis detected {sentiment['sentiment']} sentiment"
+                f"{get_method_suffix(sentiment)}"
+            )
 
+        # Add topic reasoning if significant
         if topic and topic.get('topic') != 'General':
-            parts.append(f"Identified topic: {topic['topic']}{get_method_suffix(topic)}")
+            parts.append(
+                f"Identified topic: {topic['topic']}"
+                f"{get_method_suffix(topic)}"
+            )
 
+        # Add intent reasoning if significant
         if intent and intent.get('intent') != 'informational':
-            parts.append(f"Detected intent: {intent['intent']}{get_method_suffix(intent)}")
+            parts.append(
+                f"Detected intent: {intent['intent']}"
+                f"{get_method_suffix(intent)}"
+            )
 
+        # Add urgency reasoning if significant
         if urgency and urgency.get('urgency') != 'low':
-            parts.append(f"Assessed urgency level: {urgency['urgency']}{get_method_suffix(urgency)}")
+            parts.append(
+                f"Assessed urgency level: {urgency['urgency']}"
+                f"{get_method_suffix(urgency)}"
+            )
 
+        # Return default message if no significant insights
         if not parts:
             return "No significant insights detected from the email content through automated analysis."
 
+        # Join all parts with periods
         return f"{'. '.join(parts)}."
 
     def _suggest_labels(self, categories: List[str], urgency: str) -> List[str]:

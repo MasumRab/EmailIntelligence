@@ -38,11 +38,16 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "https://*.replit.dev"],
+    allow_origins=["http://localhost:5000", "http://localhost:5173", "https://*.replit.dev"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Set up metrics if in production or staging environment
+if os.getenv("NODE_ENV") in ["production", "staging"]:
+    from .metrics import setup_metrics
+    setup_metrics(app)
 
 # Initialize services
 gmail_service = GmailAIService()
