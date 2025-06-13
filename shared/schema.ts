@@ -133,7 +133,7 @@ export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type Activity = typeof activities.$inferSelect;
 
 export type EmailWithCategory = Email & {
-  category?: Category;
+  categoryData?: Category; // Renamed from 'category' to avoid collision
 };
 
 export type DashboardStats = {
