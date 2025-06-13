@@ -10,6 +10,8 @@ import sys
 import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+from .utils.async_utils import _execute_async_command
+from server.python_nlp.nlp_engine import NLPEngine as FallbackNLPEngine # Renamed for clarity
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,8 @@ class AdvancedAIEngine:
         self.python_nlp_path = os.path.join(os.path.dirname(__file__), '..', 'python_nlp')
         self.ai_training_script = os.path.join(self.python_nlp_path, 'ai_training.py')
         self.nlp_service_script = os.path.join(self.python_nlp_path, 'nlp_engine.py')
+        # Instantiate the NLP engine for fallback analysis
+        self.fallback_nlp_engine = FallbackNLPEngine()
         
     async def initialize(self):
         """Initialize AI engine"""
@@ -73,7 +77,7 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await self._execute_async_command(cmd)
+            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
             
             if 'error' in result:
                 # Fallback to basic analysis
@@ -101,7 +105,7 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await self._execute_async_command(cmd)
+            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
             
             # Cleanup temporary file
             try:
@@ -141,7 +145,7 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await self._execute_async_command(cmd)
+            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
             
             return {
                 "status": "healthy" if result.get('status') == 'ok' else "degraded",
@@ -173,73 +177,25 @@ class AdvancedAIEngine:
             logger.error(f"AI Engine cleanup failed: {e}")
     
     def _get_fallback_analysis(self, subject: str, content: str) -> AIAnalysisResult:
-        """Fallback analysis when AI service is unavailable"""
-        # Basic keyword-based analysis
-        text = f"{subject} {content}".lower()
+        """Fallback analysis when AI service is unavailable, using NLPEngine's simple fallback."""
         
-        # Basic sentiment
-        positive_words = ['good', 'great', 'excellent', 'thank', 'please', 'welcome']
-        negative_words = ['bad', 'terrible', 'problem', 'issue', 'error', 'failed']
-        
-        positive_count = sum(1 for word in positive_words if word in text)
-        negative_count = sum(1 for word in negative_words if word in text)
-        
-        if positive_count > negative_count:
-            sentiment = 'positive'
-        elif negative_count > positive_count:
-            sentiment = 'negative'
-        else:
-            sentiment = 'neutral'
-        
-        # Basic urgency
-        urgent_words = ['urgent', 'asap', 'immediately', 'critical', 'emergency']
-        urgency = 'high' if any(word in text for word in urgent_words) else 'low'
-        
-        # Basic keywords
-        keywords = []
-        common_keywords = ['meeting', 'project', 'report', 'deadline', 'update', 'review']
-        for keyword in common_keywords:
-            if keyword in text:
-                keywords.append(keyword)
-        
+        # Use the _get_simple_fallback_analysis from the NLPEngine instance
+        # This method already provides: topic, sentiment, intent (default), urgency,
+        # confidence (default), categories, keywords (empty), reasoning.
+        fallback_data = self.fallback_nlp_engine._get_simple_fallback_analysis(subject, content)
+
+        # Adapt the result to AIAnalysisResult structure.
+        # Most fields should align or have sensible defaults from _get_simple_fallback_analysis.
         return AIAnalysisResult({
-            'topic': 'general_communication',
-            'sentiment': sentiment,
-            'intent': 'information_sharing',
-            'urgency': urgency,
-            'confidence': 0.3,  # Low confidence for fallback
-            'categories': ['general'],
-            'keywords': keywords,
-            'reasoning': 'Fallback analysis - AI service unavailable',
-            'suggested_labels': ['general'],
-            'risk_flags': [],
-            'category_id': None
+            'topic': fallback_data.get('topic', 'general_communication'),
+            'sentiment': fallback_data.get('sentiment', 'neutral'),
+            'intent': fallback_data.get('intent', 'information_sharing'), # NLPEngine fallback gives 'informational'
+            'urgency': fallback_data.get('urgency', 'low'),
+            'confidence': fallback_data.get('confidence', 0.3), # NLPEngine fallback gives 0.6, we can override if needed
+            'categories': fallback_data.get('categories', ['general']),
+            'keywords': fallback_data.get('keywords', []), # NLPEngine fallback gives empty list
+            'reasoning': fallback_data.get('reasoning', 'Fallback analysis - AI service unavailable'),
+            'suggested_labels': fallback_data.get('suggested_labels', ['general']),
+            'risk_flags': fallback_data.get('risk_flags', []),
+            'category_id': None # Not provided by this simple fallback
         })
-    
-    async def _execute_async_command(self, cmd: List[str]) -> Dict[str, Any]:
-        """Execute command asynchronously"""
-        try:
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                cwd=self.python_nlp_path
-            )
-            
-            stdout, stderr = await process.communicate()
-            
-            if process.returncode != 0:
-                error_msg = stderr.decode() if stderr else "Unknown error"
-                logger.error(f"AI command failed: {error_msg}")
-                return {"error": error_msg}
-            
-            # Parse JSON output
-            try:
-                return json.loads(stdout.decode())
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse AI response: {e}")
-                return {"error": f"Invalid JSON response: {e}"}
-                
-        except Exception as e:
-            logger.error(f"AI command execution failed: {e}")
-            return {"error": str(e)}
