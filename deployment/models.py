@@ -19,9 +19,6 @@ import shutil
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple, Union
 
-# Import environment manager
-from deployment.env_manager import env_manager
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -39,7 +36,6 @@ class ModelsManager:
         """Initialize the models manager."""
         self.root_dir = root_dir
         self.models_dir = root_dir / "models"
-        self.env_manager = env_manager
         
         # Create the models directory if it doesn't exist
         if not self.models_dir.exists():
