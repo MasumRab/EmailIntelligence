@@ -15,6 +15,9 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
+from server.python_nlp.text_utils import clean_text
+from server.python_nlp.action_item_extractor import ActionItemExtractor # Import ActionItemExtractor
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -65,6 +68,9 @@ class NLPEngine:
         self.intent_model = None
         self.urgency_model = None
 
+        # Initialize ActionItemExtractor
+        self.action_item_extractor = ActionItemExtractor()
+
         # Load models if dependencies are available
         if HAS_SKLEARN_AND_JOBLIB:
             logger.info("Attempting to load NLP models...")
@@ -102,7 +108,7 @@ class NLPEngine:
 
     def _preprocess_text(self, text: str) -> str:
         """
-        Perform basic text cleaning and normalization.
+        Perform basic text cleaning and normalization using the shared utility.
         
         Args:
             text: Raw text to preprocess
@@ -110,9 +116,7 @@ class NLPEngine:
         Returns:
             Preprocessed text
         """
-        text = text.lower()
-        text = re.sub(r'[^\w\s]', '', text)
-        return text
+        return clean_text(text)
 
     def _analyze_sentiment_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
@@ -851,7 +855,8 @@ class NLPEngine:
                 'score': 0.5,
                 'reliable': False,
                 'feedback': 'Analysis failed, using fallback method'
-            }
+            },
+            'action_items': [] # Include empty list for action items
         }
 
     def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
@@ -912,8 +917,22 @@ class NLPEngine:
                 'score': 0.6,
                 'reliable': False,
                 'feedback': 'Basic analysis - NLTK/models not available or failed'
-            }
+            },
+            'action_items': [] # Include empty list for action items
         }
+
+    def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
+        """
+        Analyze text for action items using ActionItemExtractor.
+        """
+        logger.info("Analyzing for action items...")
+        try:
+            actions = self.action_item_extractor.extract_actions(text)
+            logger.info(f"Action item analysis completed. Found {len(actions)} potential actions.")
+            return actions
+        except Exception as e:
+            logger.error(f"Error during action item analysis: {e}", exc_info=True)
+            return []
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         """
@@ -930,65 +949,62 @@ class NLPEngine:
 
             # Basic preprocessing (primarily for non-model based methods or as initial step)
             # Model pipelines should ideally handle their own specific preprocessing.
+            logger.info("Preprocessing email text...")
             cleaned_text = self._preprocess_text(full_text)
+            logger.info("Email text preprocessed successfully.")
 
             # Multi-model analysis
             # These methods will internally use models if available, or fall back.
+            logger.info("Analyzing sentiment...")
             sentiment_analysis = self._analyze_sentiment(cleaned_text)
+            logger.info(f"Sentiment analysis completed. Method: {sentiment_analysis.get('method_used', 'unknown')}")
+
+            logger.info("Analyzing topic...")
             topic_analysis = self._analyze_topic(cleaned_text)
+            logger.info(f"Topic analysis completed. Method: {topic_analysis.get('method_used', 'unknown')}")
+
+            logger.info("Analyzing intent...")
             intent_analysis = self._analyze_intent(cleaned_text)
+            logger.info(f"Intent analysis completed. Method: {intent_analysis.get('method_used', 'unknown')}")
+
+            logger.info("Analyzing urgency...")
             urgency_analysis = self._analyze_urgency(cleaned_text)
+            logger.info(f"Urgency analysis completed. Method: {urgency_analysis.get('method_used', 'unknown')}")
 
             # This method is regex-based, no model to load for it currently per its implementation
+            logger.info("Detecting risk factors...")
             risk_analysis_flags = self._detect_risk_factors(cleaned_text)
+            logger.info(f"Risk factor detection completed. Flags: {risk_analysis_flags}")
 
 
             # Extract keywords and entities
+            logger.info("Extracting keywords...")
             keywords = self._extract_keywords(cleaned_text) # Uses TextBlob if available
-            categories = self._categorize_content(cleaned_text) # Regex-based
+            logger.info(f"Keyword extraction completed. Keywords: {keywords}")
 
-            return self._build_final_analysis_response(
+            logger.info("Categorizing content...")
+            categories = self._categorize_content(cleaned_text) # Regex-based
+            logger.info(f"Content categorization completed. Categories: {categories}")
+
+            logger.info("Analyzing action items...")
+            action_items = self._analyze_action_items(full_text) # Use full_text for action items for broader context before cleaning for other models
+            logger.info(f"Action item analysis completed. Found {len(action_items)} potential actions.")
+
+            logger.info("Building final analysis response...")
+            response = self._build_final_analysis_response(
                 sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis,
-                categories, keywords, risk_analysis_flags
+                categories, keywords, risk_analysis_flags, action_items
             )
+            logger.info("Final analysis response built successfully.")
+            return response
 
         except Exception as e:
             error_msg = f"NLP analysis failed: {str(e)}"
             logger.exception("Exception in analyze_email:") # Log full traceback
             return self._get_fallback_analysis(error_msg)
 
-# This is the main function to be kept (argparse based)
-def main():
-    # Basic logging for CLI usage, can be overridden by Gunicorn's logger in production
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
-
-    parser = argparse.ArgumentParser(description="Enhanced NLP Engine for Gmail AI Email Management")
-    parser.add_argument('--analyze-email', action='store_true', help="Perform email analysis.")
-    parser.add_argument('--subject', type=str, default="", help="Subject of the email.")
-    parser.add_argument('--content', type=str, default="", help="Content of the email.")
-    parser.add_argument('--health-check', action='store_true', help="Perform a health check.")
-    parser.add_argument('--output-format', type=str, default="text", choices=['json', 'text'],
-                        help="Output format (json or text).")
-
-    args = parser.parse_args()
-    engine = NLPEngine()
-
-    if args.health_check:
-        _perform_health_check(engine, args.output_format)
-        sys.exit(0)
-
-    if args.analyze_email:
-        _perform_email_analysis_cli(engine, args.subject, args.content, args.output_format)
-        sys.exit(0)
-
-    # Backward compatibility / Default behavior
-    # This part handles the old way of calling: python nlp_engine.py "subject" "content"
-    # It also serves as a default if no specific action like --health-check or --analyze-email is given.
-    # Check if any of the new flags were used. If so, and they weren't handled above, it's an invalid combo or missing action.
-
     def _build_final_analysis_response(self, sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis,
-                                     categories, keywords, risk_analysis_flags) -> Dict[str, Any]:
+                                     categories, keywords, risk_analysis_flags, action_items) -> Dict[str, Any]:
         """Helper function to consolidate analysis results and build the final response dictionary."""
 
         analysis_results_for_confidence = [
@@ -1033,12 +1049,40 @@ def main():
                 'topic_analysis': topic_analysis,
                 'intent_analysis': intent_analysis,
                 'urgency_analysis': urgency_analysis,
-            }
+            },
+            'action_items': action_items
         }
 
 # This is the main function to be kept (argparse based)
 def main():
     # Basic logging for CLI usage, can be overridden by Gunicorn's logger in production
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
+    parser = argparse.ArgumentParser(description="Enhanced NLP Engine for Gmail AI Email Management")
+    parser.add_argument('--analyze-email', action='store_true', help="Perform email analysis.")
+    parser.add_argument('--subject', type=str, default="", help="Subject of the email.")
+    parser.add_argument('--content', type=str, default="", help="Content of the email.")
+    parser.add_argument('--health-check', action='store_true', help="Perform a health check.")
+    parser.add_argument('--output-format', type=str, default="text", choices=['json', 'text'],
+                        help="Output format (json or text).")
+
+    args = parser.parse_args()
+    engine = NLPEngine()
+
+    if args.health_check:
+        _perform_health_check(engine, args.output_format)
+        sys.exit(0)
+
+    if args.analyze_email:
+        _perform_email_analysis_cli(engine, args.subject, args.content, args.output_format)
+        sys.exit(0)
+
+    # Backward compatibility / Default behavior
+    # This part handles the old way of calling: python nlp_engine.py "subject" "content"
+    # It also serves as a default if no specific action like --health-check or --analyze-email is given.
+    # Check if any of the new flags were used. If so, and they weren't handled above, it's an invalid combo or missing action.
+
     # If no new flags are present, and we have enough sys.argv, assume old style.
 
     # Prioritize new flags. If specific flags like --analyze-email or --health-check are used,
@@ -1046,7 +1090,7 @@ def main():
     # If script reaches here, it means no specific action flag was triggered.
     # We can check for positional arguments for backward compatibility.
 
-    if _handle_backward_compatible_cli_invocation(engine, args, sys.argv):
+    if _handle_backward_compatible_cli_invocation(engine, args, sys.argv): # type: ignore
         sys.exit(0)
 
     # If no action flag and no old-style arguments, print help.

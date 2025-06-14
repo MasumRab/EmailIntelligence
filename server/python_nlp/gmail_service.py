@@ -15,21 +15,37 @@ import sys # Added
 from .gmail_integration import GmailDataCollector, EmailBatch, RateLimitConfig
 from .gmail_metadata import GmailMetadataExtractor, GmailMessage
 from .data_strategy import DataCollectionStrategy, EmailSample
-from .ai_training import ModelTrainer, PromptEngineer, ModelConfig
+# AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
+# if all AI analysis is delegated to AdvancedAIEngine.
+# from .ai_training import ModelTrainer, PromptEngineer, ModelConfig
+
+# Import AdvancedAIEngine (assuming it's now the primary way to get AI analysis)
+# Adjust the import path as necessary based on your project structure.
+# This assumes AdvancedAIEngine is in a module that can be imported.
+# If it's in python_backend, the path needs to be correct.
+# For now, let's assume a placeholder for where AdvancedAIEngine would be imported from.
+# from server.python_backend.ai_engine import AdvancedAIEngine
+# Placeholder: If AdvancedAIEngine is not easily importable due to circular deps or structure,
+# this part of the refactoring (direct usage of AdvancedAIEngine object) might need adjustment.
+# For this step, we'll mock its presence or assume it's passed in.
 
 class GmailAIService:
     """Complete Gmail integration with AI processing and metadata extraction"""
     
-    def __init__(self, rate_config: Optional[RateLimitConfig] = None):
+    def __init__(self, rate_config: Optional[RateLimitConfig] = None, advanced_ai_engine: Optional[Any] = None): # Allow passing AdvancedAIEngine
         self.collector = GmailDataCollector(rate_config)
         self.metadata_extractor = GmailMetadataExtractor()
         self.data_strategy = DataCollectionStrategy()
-        self.model_trainer = ModelTrainer()
-        self.prompt_engineer = PromptEngineer()
-        # Changed for more specific logger name
+        # self.model_trainer = ModelTrainer() # Potentially remove if not used directly
+        # self.prompt_engineer = PromptEngineer() # Potentially remove
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
-        # Added path definitions for scripts
+        # This is key for the refactoring: GmailAIService will use AdvancedAIEngine
+        # If not passed, a placeholder or default might be instantiated, or an error raised.
+        # For now, let's assume it's required or a default is handled by the caller.
+        self.advanced_ai_engine = advanced_ai_engine
+
+        # Path definitions for scripts (like smart_retrieval.py) might still be relevant
         self.nlp_path = os.path.dirname(__file__)
         self.retrieval_script = os.path.join(self.nlp_path, 'smart_retrieval.py')
         
@@ -102,41 +118,24 @@ class GmailAIService:
         Comprehensive Gmail sync with metadata extraction and AI analysis
         """
         self.logger.info(f"Starting Gmail sync with filter: {query_filter}, max_emails: {max_emails}")
-        
         try:
-            email_batch = await self.collector.collect_emails_incremental(
-                query_filter=query_filter,
-                max_emails=max_emails
-            )
+            # 1. Fetch emails
+            email_batch = await self._fetch_emails_from_gmail(query_filter, max_emails)
+            if not email_batch:
+                # _fetch_emails_from_gmail would have logged the error
+                return {'success': False, 'error': 'Failed to fetch emails.', 'processed_count': 0, 'emails': [], 'statistics': self.stats.copy()}
+
+            # 2. Process and Analyze emails
+            processed_db_emails = await self._process_and_analyze_batch(email_batch, include_ai_analysis)
             
-            processed_emails = []
-            
-            # Process each email for complete metadata extraction
-            for gmail_msg in email_batch.messages:
-                try:
-                    gmail_metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
-                    training_sample = self.metadata_extractor.to_training_format(gmail_metadata)
-                    
-                    if include_ai_analysis:
-                        ai_analysis = await self._perform_ai_analysis(training_sample)
-                        training_sample['ai_analysis'] = ai_analysis
-                    
-                    db_email = self._convert_to_db_format(gmail_metadata, training_sample)
-                    processed_emails.append(db_email)
-                    self.stats['successful_extractions'] += 1
-                    
-                except Exception as e:
-                    self.logger.error(f"Failed to process email {gmail_msg.get('id', 'unknown')}: {e}", exc_info=True)
-                    self.stats['failed_extractions'] += 1
-                    continue
-            
-            self.stats['total_processed'] += len(processed_emails)
+            # 3. Store/Return results (Storing is not explicitly handled here, focus on processing)
+            self.stats['total_processed'] += len(processed_db_emails) # Assuming all processed emails are successfully converted
             self.stats['last_sync'] = datetime.now().isoformat()
             
             return {
                 'success': True,
-                'processed_count': len(processed_emails),
-                'emails': processed_emails,
+                'processed_count': len(processed_db_emails),
+                'emails': processed_db_emails, # These are now in DB format
                 'batch_info': {
                     'batch_id': email_batch.batch_id,
                     'query_filter': email_batch.query_filter,
@@ -147,69 +146,140 @@ class GmailAIService:
             
         except Exception as e:
             self.logger.error(f"Gmail sync failed: {e}", exc_info=True)
-            return {
-                'success': False,
-                'error': str(e),
-                'processed_count': 0,
-                'emails': [],
-                'statistics': self.stats.copy()
-            }
-    
-    async def _perform_ai_analysis(self, email_sample: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform comprehensive AI analysis on email sample"""
+            return {'success': False, 'error': str(e), 'processed_count': 0, 'emails': [], 'statistics': self.stats.copy()}
+
+    async def _fetch_emails_from_gmail(self, query_filter: str, max_emails: int) -> Optional[EmailBatch]:
+        """Helper to fetch emails using GmailDataCollector."""
+        self.logger.info(f"Fetching emails with query: {query_filter}, max: {max_emails}")
         try:
-            text_content = f"{email_sample.get('subject', '')} {email_sample.get('content', '')}"
-            sample = EmailSample(
-                id=email_sample['id'],
-                subject=email_sample['subject'],
-                content=email_sample['content'],
-                sender=email_sample['sender_email'],
-                timestamp=email_sample['timestamp'],
-                labels={},
-                metadata={}
+            email_batch = await self.collector.collect_emails_incremental(
+                query_filter=query_filter,
+                max_emails=max_emails
+            )
+            self.logger.info(f"Fetched {len(email_batch.messages)} emails in batch {email_batch.batch_id}")
+            return email_batch
+        except Exception as e:
+            self.logger.error(f"Failed to fetch email batch: {e}", exc_info=True)
+            return None
+
+    async def _process_and_analyze_batch(self, email_batch: EmailBatch, include_ai_analysis: bool) -> List[Dict[str, Any]]:
+        """Helper to process metadata, perform AI analysis, and convert to DB format for a batch of emails."""
+        processed_db_emails = []
+        self.logger.info(f"Processing {len(email_batch.messages)} emails from batch {email_batch.batch_id}")
+        for gmail_msg in email_batch.messages:
+            try:
+                gmail_metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
+
+                # The 'training_sample' here is a bit of a misnomer if it's just for AI analysis input
+                # It's essentially the data structure expected by _perform_ai_analysis or _convert_to_db_format
+                email_data_for_analysis = {
+                    'id': gmail_metadata.message_id, # Ensure an ID is present
+                    'subject': gmail_metadata.subject,
+                    'content': gmail_metadata.body_plain or gmail_metadata.snippet or "", # Ensure content is not None
+                    'sender_email': gmail_metadata.from_address, # Ensure this field matches what _perform_ai_analysis expects
+                    'timestamp': gmail_metadata.date, # Ensure timestamp is present
+                }
+
+                ai_analysis_result = None
+                if include_ai_analysis:
+                    ai_analysis_result = await self._perform_ai_analysis(email_data_for_analysis)
+
+                db_email = self._convert_to_db_format(gmail_metadata, ai_analysis_result) # Pass ai_analysis_result directly
+                processed_db_emails.append(db_email)
+                self.stats['successful_extractions'] += 1
+
+            except Exception as e:
+                self.logger.error(f"Failed to process email {gmail_msg.get('id', 'unknown')}: {e}", exc_info=True)
+                self.stats['failed_extractions'] += 1
+                continue
+        return processed_db_emails
+
+    async def _perform_ai_analysis(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Perform AI analysis on email data using AdvancedAIEngine.
+        `email_data` should contain 'subject' and 'content'.
+        """
+        if not self.advanced_ai_engine:
+            self.logger.error("AdvancedAIEngine not available for AI analysis.")
+            return self._get_basic_fallback_analysis_structure("AdvancedAIEngine not configured")
+
+        self.logger.debug(f"Performing AI analysis for email ID: {email_data.get('id', 'unknown')}")
+        try:
+            # AdvancedAIEngine is expected to have an `analyze_email` method
+            # that takes subject and content, and returns an object or dict with analysis.
+            analysis_result_obj = await self.advanced_ai_engine.analyze_email(
+                subject=email_data.get('subject', ''),
+                content=email_data.get('content', '')
             )
             
-            processed_sample = self.data_strategy.preprocess_email(sample)
-            annotation = self.data_strategy.annotate_email(processed_sample)
-            features = self.model_trainer.feature_extractor.extract_features(text_content)
-            
-            analysis_result = {
-                'topic': annotation.topic,
-                'sentiment': annotation.sentiment,
-                'intent': annotation.intent,
-                'urgency': annotation.urgency,
-                'confidence': annotation.confidence,
-                'keywords': annotation.keywords,
-                'entities': annotation.entities,
-                'reasoning': annotation.reasoning,
-                'suggested_labels': annotation.suggested_labels,
-                'risk_flags': annotation.risk_flags,
-                'features': features,
-                'processing_timestamp': datetime.now().isoformat()
-            }
-            
+            # Assuming analyze_email returns an object with a to_dict() method or is a dict
+            if hasattr(analysis_result_obj, 'to_dict'):
+                analysis_dict = analysis_result_obj.to_dict()
+            elif isinstance(analysis_result_obj, dict):
+                analysis_dict = analysis_result_obj
+            else:
+                self.logger.error(f"Unexpected AI analysis result type for email {email_data.get('id', 'unknown')}")
+                return self._get_basic_fallback_analysis_structure("Unexpected AI result type")
+
             self.stats['ai_analyses_completed'] += 1
-            return analysis_result
+            self.logger.info(f"AI analysis successful for email ID: {email_data.get('id', 'unknown')}. Topic: {analysis_dict.get('topic')}")
+            return analysis_dict
             
         except Exception as e:
-            self.logger.error(f"AI analysis failed for email {email_sample.get('id', 'unknown')}: {e}", exc_info=True)
-            return {
-                'error': str(e), 'topic': 'unknown',
-                'sentiment': 'neutral',
-                'intent': 'information',
-                'urgency': 'low',
-                'confidence': 0.0
+            self.logger.error(f"AI analysis failed for email {email_data.get('id', 'unknown')}: {e}", exc_info=True)
+            return self._get_basic_fallback_analysis_structure(str(e))
+
+    def _get_basic_fallback_analysis_structure(self, error_message: str) -> Dict[str, Any]:
+        """Returns a minimal AI analysis structure in case of errors during _perform_ai_analysis."""
+        return {
+            'error': error_message, 'topic': 'unknown', 'sentiment': 'neutral',
+            'intent': 'unknown', 'urgency': 'low', 'confidence': 0.0,
+            'keywords': [], 'categories': ['unknown'], 'reasoning': f'Fallback due to error: {error_message}',
+            'suggested_labels': ['unknown'], 'risk_flags': ['analysis_failed']
+        }
+
+    def _convert_to_db_format(self, gmail_metadata: GmailMessage, ai_analysis_result: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Convert Gmail metadata and AI analysis (if available) to database format."""
+
+        ai_topic = 'unknown'
+        ai_confidence = 0.0
+        analysis_metadata_payload = {}
+
+        if ai_analysis_result:
+            ai_topic = ai_analysis_result.get('topic', 'unknown')
+            ai_confidence = ai_analysis_result.get('confidence', 0.0)
+            # Ensure all expected keys from ai_analysis_result are included for analysisMetadata
+            analysis_metadata_payload['ai_analysis'] = {
+                'topic': ai_topic,
+                'sentiment': ai_analysis_result.get('sentiment', 'neutral'),
+                'intent': ai_analysis_result.get('intent', 'unknown'),
+                'urgency': ai_analysis_result.get('urgency', 'low'),
+                'confidence': ai_confidence,
+                'categories': ai_analysis_result.get('categories', []),
+                'keywords': ai_analysis_result.get('keywords', []),
+                'reasoning': ai_analysis_result.get('reasoning', ''),
+                'suggested_labels': ai_analysis_result.get('suggested_labels', []),
+                'risk_flags': ai_analysis_result.get('risk_flags', []),
+                'action_items': ai_analysis_result.get('action_items', []), # Ensure action_items are included
+                # Add any other fields that are part of AIAnalysisResult.to_dict()
             }
-    
-    def _convert_to_db_format(self, gmail_metadata: GmailMessage, training_sample: Dict[str, Any]) -> Dict[str, Any]:
-        """Convert Gmail metadata and AI analysis to database format"""
+        else:
+            # Handle case where AI analysis was skipped or failed
+            analysis_metadata_payload['ai_analysis'] = self._get_basic_fallback_analysis_structure("AI analysis not performed or failed")
+            ai_topic = analysis_metadata_payload['ai_analysis']['topic']
+            ai_confidence = analysis_metadata_payload['ai_analysis']['confidence']
+
+
+        category_id = self._map_topic_to_category_id(ai_topic)
         
-        # Determine category ID based on AI analysis
-        category_id = self._map_topic_to_category_id(
-            training_sample.get('ai_analysis', {}).get('topic', 'unknown')
-        )
+        # Common metadata to include regardless of AI analysis success/failure
+        analysis_metadata_payload.update({
+            'importance_markers': gmail_metadata.importance_markers,
+            'thread_info': gmail_metadata.thread_info,
+            'custom_headers': gmail_metadata.custom_headers,
+            'attachments_summary': [{'filename': att.get('filename'), 'size': att.get('size')} for att in gmail_metadata.attachments]
+        })
         
-        # Create comprehensive database record
         db_email = {
             # Core identifiers
             'messageId': gmail_metadata.message_id,
@@ -272,14 +342,8 @@ class GmailAIService:
             
             # AI analysis results
             'categoryId': category_id,
-            'confidence': int(training_sample.get('ai_analysis', {}).get('confidence', 0) * 100),
-            'analysisMetadata': json.dumps({
-                'ai_analysis': training_sample.get('ai_analysis', {}),
-                'importance_markers': gmail_metadata.importance_markers,
-                'thread_info': gmail_metadata.thread_info,
-                'custom_headers': gmail_metadata.custom_headers,
-                'attachments': gmail_metadata.attachments
-            }),
+            'confidence': int(ai_confidence * 100), # Use confidence from AI analysis
+            'analysisMetadata': json.dumps(analysis_metadata_payload),
             
             'isRead': not gmail_metadata.is_unread
         }
@@ -531,15 +595,19 @@ async def main():
     # Get a logger for the main function
     main_logger = logging.getLogger(__name__) # This will use the root logger if not further specified
 
-    service = GmailAIService()
-    
+    # For testing, if AdvancedAIEngine is required, you'd mock it or instantiate it:
+    # from server.python_backend.ai_engine import AdvancedAIEngine # Adjust import
+    # advanced_ai_engine_instance = AdvancedAIEngine()
+    # await advanced_ai_engine_instance.initialize() # If it has an async init
+    # service = GmailAIService(advanced_ai_engine=advanced_ai_engine_instance)
+    service = GmailAIService(advanced_ai_engine=None) # Test without full AI engine if it's complex to set up
     main_logger.info("Starting example usage of GmailAIService...")
     # Sync recent emails with AI analysis
     # Reduced max_emails for quicker testing, set include_ai_analysis to False if NLP models aren't set up
     sync_result = await service.sync_gmail_emails(
         query_filter="newer_than:1d",
         max_emails=2, # Very few for testing
-        include_ai_analysis=False # Assuming AI models might not be fully available/needed for this test
+        include_ai_analysis=True # Set to True to test the new _perform_ai_analysis flow
     )
     main_logger.info(f"Sync result success: {sync_result.get('success')}, Processed: {sync_result.get('processed_count')}")
     if not sync_result.get('success'):

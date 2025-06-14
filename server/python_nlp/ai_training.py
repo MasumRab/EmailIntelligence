@@ -15,6 +15,9 @@ from collections import Counter, defaultdict
 import hashlib
 import os
 
+from server.python_nlp.text_utils import clean_text
+
+
 @dataclass
 class ModelConfig:
     """Configuration for AI model training"""
@@ -226,7 +229,8 @@ class ModelTrainer:
         
         for sample in samples:
             email_text = f"{sample.get('subject', '')} {sample.get('content', '')}"
-            feature_vector = self.feature_extractor.extract_features(email_text)
+            cleaned_text = clean_text(email_text)  # Use shared cleaning function
+            feature_vector = self.feature_extractor.extract_features(cleaned_text)
             features.append(feature_vector)
             labels.append(sample.get('labels', {}).get(target_field, 'unknown'))
         
