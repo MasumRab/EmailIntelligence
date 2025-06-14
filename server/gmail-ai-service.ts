@@ -97,7 +97,7 @@ interface PerformanceMetrics {
   }>;
 }
 
-export class GmailAIService {
+class GmailAIService {
   private pythonScriptPath: string;
 
   constructor() {
