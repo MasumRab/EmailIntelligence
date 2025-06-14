@@ -277,27 +277,54 @@ class DataCollectionStrategy:
             
         return counts
     
-    def annotate_email(self, email: EmailSample, annotator_id: str = "auto") -> AnnotationSchema:
+    def annotate_email(self, email: EmailSample, annotator_id: str = "auto", external_analysis_results: Optional[Dict[str, Any]] = None) -> AnnotationSchema:
         """
-        Create structured annotation for email sample
-        In production, this would involve human annotators
+        Create structured annotation for email sample.
+        If `external_analysis_results` (e.g., from NLPEngine) are provided,
+        they will be prioritized over internal basic prediction methods.
+        Internal predictions serve as a basic fallback for data generation scenarios.
         """
-        # Auto-generate annotation based on guidelines
+        if external_analysis_results:
+            self.logger.info(f"Using external analysis results for email ID: {email.id}")
+            # Ensure keys from external_analysis_results match AnnotationSchema fields
+            # and provide defaults if some keys are missing.
+            topic = external_analysis_results.get('topic', self._predict_topic(email.content + " " + email.subject, is_fallback=True))
+            sentiment = external_analysis_results.get('sentiment', self._predict_sentiment(email.content + " " + email.subject, is_fallback=True))
+            intent = external_analysis_results.get('intent', self._predict_intent(email.content + " " + email.subject, is_fallback=True))
+            urgency = external_analysis_results.get('urgency', self._predict_urgency(email.content + " " + email.subject, is_fallback=True))
+            # Keywords and entities might also come from external_analysis_results
+            keywords = external_analysis_results.get('keywords', self._extract_keywords(email.content + " " + email.subject))
+            entities = external_analysis_results.get('entities', self._extract_entities(email.content)) # Assuming entities are not part of NLPEngine's typical output or need separate extraction.
+            confidence = external_analysis_results.get('confidence', 0.9) # Higher confidence if from advanced engine
+            annotator_id_suffix = "_external"
+        else:
+            self.logger.info(f"Using internal basic prediction for email ID: {email.id}")
+            topic = self._predict_topic(email.content + " " + email.subject)
+            sentiment = self._predict_sentiment(email.content + " " + email.subject)
+            intent = self._predict_intent(email.content + " " + email.subject)
+            urgency = self._predict_urgency(email.content + " " + email.subject)
+            entities = self._extract_entities(email.content)
+            keywords = self._extract_keywords(email.content + " " + email.subject)
+            confidence = 0.65  # Lower confidence for basic internal prediction
+            annotator_id_suffix = "_internal_basic"
+
         annotation = AnnotationSchema(
-            topic=self._predict_topic(email.content + " " + email.subject),
-            sentiment=self._predict_sentiment(email.content + " " + email.subject),
-            intent=self._predict_intent(email.content + " " + email.subject),
-            urgency=self._predict_urgency(email.content + " " + email.subject),
-            entities=self._extract_entities(email.content),
-            keywords=self._extract_keywords(email.content + " " + email.subject),
-            confidence=0.85,  # Default confidence for auto-annotation
-            annotator_id=annotator_id
+            topic=topic,
+            sentiment=sentiment,
+            intent=intent,
+            urgency=urgency,
+            entities=entities,
+            keywords=keywords,
+            confidence=confidence,
+            annotator_id=f"{annotator_id}{annotator_id_suffix}"
         )
         
         return annotation
     
-    def _predict_topic(self, text: str) -> str:
-        """Predict topic based on keyword matching"""
+    def _predict_topic(self, text: str, is_fallback: bool = False) -> str:
+        """Predict topic based on keyword matching. Optionally marked as fallback."""
+        prefix = "[Fallback] " if is_fallback else ""
+        self.logger.debug(f"{prefix}Predicting topic for text: '{text[:50]}...'")
         text_lower = text.lower()
         topic_scores = {}
         
@@ -305,21 +332,36 @@ class DataCollectionStrategy:
             score = sum(1 for keyword in keywords if keyword in text_lower)
             topic_scores[topic] = score
             
-        return max(topic_scores, key=topic_scores.get) if topic_scores else "other"
+        result = max(topic_scores, key=topic_scores.get) if any(s > 0 for s in topic_scores.values()) else "other"
+        self.logger.debug(f"{prefix}Predicted topic: {result}")
+        return result
     
-    def _predict_sentiment(self, text: str) -> str:
-        """Predict sentiment based on keyword matching"""
+    def _predict_sentiment(self, text: str, is_fallback: bool = False) -> str:
+        """Predict sentiment based on keyword matching. Optionally marked as fallback."""
+        prefix = "[Fallback] " if is_fallback else ""
+        self.logger.debug(f"{prefix}Predicting sentiment for text: '{text[:50]}...'")
         text_lower = text.lower()
         sentiment_scores = {}
         
         for sentiment, keywords in self.annotation_guidelines["sentiment_indicators"].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             sentiment_scores[sentiment] = score
-            
-        return max(sentiment_scores, key=sentiment_scores.get) if sentiment_scores else "neutral"
+
+        # Basic tie-breaking: prefer non-neutral if scores are equal
+        if sentiment_scores.get("positive", 0) > 0 and sentiment_scores["positive"] == sentiment_scores.get("negative", 0):
+            result = "positive" # Or some other logic
+        elif sentiment_scores.get("negative", 0) > 0 and sentiment_scores["negative"] == sentiment_scores.get("positive", 0):
+            result = "negative"
+        else:
+            result = max(sentiment_scores, key=sentiment_scores.get) if any(s > 0 for s in sentiment_scores.values()) else "neutral"
+
+        self.logger.debug(f"{prefix}Predicted sentiment: {result}")
+        return result
     
-    def _predict_intent(self, text: str) -> str:
-        """Predict intent based on pattern matching"""
+    def _predict_intent(self, text: str, is_fallback: bool = False) -> str:
+        """Predict intent based on pattern matching. Optionally marked as fallback."""
+        prefix = "[Fallback] " if is_fallback else ""
+        self.logger.debug(f"{prefix}Predicting intent for text: '{text[:50]}...'")
         text_lower = text.lower()
         intent_scores = {}
         
@@ -327,10 +369,14 @@ class DataCollectionStrategy:
             score = sum(1 for pattern in patterns if pattern in text_lower)
             intent_scores[intent] = score
             
-        return max(intent_scores, key=intent_scores.get) if intent_scores else "information"
+        result = max(intent_scores, key=intent_scores.get) if any(s > 0 for s in intent_scores.values()) else "information"
+        self.logger.debug(f"{prefix}Predicted intent: {result}")
+        return result
     
-    def _predict_urgency(self, text: str) -> str:
-        """Predict urgency based on signal matching"""
+    def _predict_urgency(self, text: str, is_fallback: bool = False) -> str:
+        """Predict urgency based on signal matching. Optionally marked as fallback."""
+        prefix = "[Fallback] " if is_fallback else ""
+        self.logger.debug(f"{prefix}Predicting urgency for text: '{text[:50]}...'")
         text_lower = text.lower()
         urgency_scores = {}
         
@@ -338,9 +384,9 @@ class DataCollectionStrategy:
             score = sum(1 for signal in signals if signal in text_lower)
             urgency_scores[urgency] = score
             
-        if urgency_scores:
-            return max(urgency_scores, key=urgency_scores.get)
-        return "low"
+        result = max(urgency_scores, key=urgency_scores.get) if any(s > 0 for s in urgency_scores.values()) else "low"
+        self.logger.debug(f"{prefix}Predicted urgency: {result}")
+        return result
     
     def _extract_entities(self, text: str) -> List[str]:
         """Extract named entities from text"""
