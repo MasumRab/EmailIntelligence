@@ -1,0 +1,61 @@
+# Base stage
+FROM python:3.10-slim as base
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY server/python_backend /app/server/python_backend
+COPY server/python_nlp /app/server/python_nlp
+COPY shared /app/shared
+
+# Set PYTHONPATH
+ENV PYTHONPATH /app
+ENV PYTHONUNBUFFERED 1
+ENV PORT 8000
+ENV APP_ENV development # Default APP_ENV
+ENV NODE_ENV development # Default NODE_ENV
+ENV PYTHONUTF8 1
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Development stage
+FROM base as development
+
+# Set APP_ENV and NODE_ENV for development
+ENV APP_ENV development
+ENV NODE_ENV development
+
+# Install development dependencies
+RUN pip install --no-cache-dir black flake8 pylint pytest
+# Add other development dependencies as needed, e.g. from a dev-requirements.txt
+
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "server.python_backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Production stage
+FROM base as production
+
+# Set APP_ENV and NODE_ENV for production
+ENV APP_ENV production
+ENV NODE_ENV production
+
+# Install production dependencies
+RUN pip install --no-cache-dir gunicorn prometheus-client
+# Add other production dependencies as needed
+
+EXPOSE 8000
+CMD ["gunicorn", "server.python_backend.main:app", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
