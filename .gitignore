@@ -22,3 +22,4 @@ config.local.*
 # Ignore all dotfiles (hidden files)
 .*
 __pycache__/
+diagnosis_message.txt
