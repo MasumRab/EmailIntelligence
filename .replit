@@ -15,7 +15,12 @@ run = ["npm", "run", "start"]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
 [workflows]
+runButton = "Research Interface"
 
 [[workflows.workflow]]
 name = "Project"
@@ -34,3 +39,12 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Research Interface"
+author = 2336747
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 simple_research_ui.py"
