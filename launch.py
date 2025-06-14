@@ -356,12 +356,20 @@ def prepare_environment(args: argparse.Namespace) -> bool:
     # Download models if needed
     if not args.skip_models:
         from deployment.models import models_manager
+        logger.info(f"DEBUG: args.skip_models is False. Checking models...")
+        current_models = models_manager.list_models()
+        logger.info(f"DEBUG: models_manager.list_models() returned: {current_models}")
         # models_manager does not require python_executable to be set explicitly for now
-        if not models_manager.list_models():
-            logger.info("No models found. Downloading default models...")
+        if not current_models: # If "models" dir was truly empty initially
+            logger.info("No models found (list_models was empty). Downloading default models...")
             if not models_manager.download_default_models():
                 logger.error("Failed to download default models.")
-                return False
+                # Logged error, but will proceed to create_placeholder_nlp_models anyway
+
+        # Always attempt to create/verify NLP placeholders if models are not skipped
+        logger.info("Ensuring NLP placeholder models exist...")
+        if not models_manager.create_placeholder_nlp_models():
+            logger.warning("Failed to create/verify some placeholder NLP models. NLP functionality might be limited.")
     
     return True
 
