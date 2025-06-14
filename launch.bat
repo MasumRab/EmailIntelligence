@@ -4,31 +4,50 @@ setlocal enabledelayedexpansion
 :: === Error Handling Setup ===
 set "ERROR_LEVEL=0"
 set "ERROR_MESSAGE="
+:: EmailIntelligence Launcher for Windows
+:: This batch file launches the EmailIntelligence application with the specified arguments
 
-:: === PowerShell Detection ===
-:: Check if running in PowerShell (powershell.exe or pwsh.exe)
-set "IS_POWERSHELL="
-echo "%COMSPEC%" | findstr /I /C:"powershell.exe" >nul && set "IS_POWERSHELL=1"
-echo "%COMSPEC%" | findstr /I /C:"pwsh.exe" >nul && set "IS_POWERSHELL=1"
-
-:: If running in PowerShell, execute the PowerShell script instead
-if defined IS_POWERSHELL (
-    echo Detected PowerShell environment. Switching to PowerShell script...
-    
-    if not exist "%~dp0launch.ps1" (
-        echo ERROR: PowerShell script "%~dp0launch.ps1" not found.
-        echo This script is required when running from PowerShell.
-        echo Please ensure the file exists in the same directory as this batch file.
+:: Check if conda is installed
+conda --version >nul 2>&1
+if %errorlevel% equ 0 (
+    set "CONDA_ENV_NAME=emailintelligence_env"
+    set "PYTHON_VERSION=3.12"
+    conda env list | findstr /I "%CONDA_ENV_NAME%" >nul
+    if %errorlevel% neq 0 (
+        echo Creating conda environment %CONDA_ENV_NAME% with Python %PYTHON_VERSION% ...
+        conda create -y -n %CONDA_ENV_NAME% python=%PYTHON_VERSION%
+        if %errorlevel% neq 0 (
+            echo Failed to create conda environment. Please check for errors.
+            pause
+            exit /b 1
+        )
+    ) else (
+        echo Conda environment %CONDA_ENV_NAME% already exists.
+    )
+    call conda activate %CONDA_ENV_NAME%
+    pip install -r requirements.txt
+    if %errorlevel% neq 0 (
+        echo Failed to install dependencies with pip in conda env. Please check for errors.
         pause
         exit /b 1
     )
-    
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0launch.ps1" %*
-    set "EXIT_CODE=%errorlevel%"
-    if %EXIT_CODE% neq 0 (
-        echo PowerShell script exited with error code: %EXIT_CODE%
+    python launch.py %*
+    if %errorlevel% neq 0 (
+        echo.
+        echo The application exited with an error. Please check the logs above.
+        pause
     )
-    exit /b %EXIT_CODE%
+    call conda deactivate
+    endlocal
+    exit /b 0
+)
+
+:: Check if Python is installed
+python --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Python is not installed or not in PATH. Please install Python 3.8 or higher.
+    pause
+    exit /b 1
 )
 
 :: === Configuration ===
