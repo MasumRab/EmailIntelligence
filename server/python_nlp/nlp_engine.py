@@ -13,7 +13,7 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from server.python_nlp.text_utils import clean_text
 from server.python_nlp.action_item_extractor import ActionItemExtractor # Import ActionItemExtractor
@@ -716,10 +716,10 @@ class NLPEngine:
         # Calculate average and cap at 0.95
         return min(total_confidence / len(analysis_results), 0.95)
 
-    def _generate_reasoning(self, 
-                           sentiment: Optional[Dict[str, Any]], 
-                           topic: Optional[Dict[str, Any]], 
-                           intent: Optional[Dict[str, Any]], 
+    def _generate_reasoning(self,
+                           sentiment: Optional[Dict[str, Any]],
+                           topic: Optional[Dict[str, Any]],
+                           intent: Optional[Dict[str, Any]],
                            urgency: Optional[Dict[str, Any]]) -> str:
         """
         Generate human-readable reasoning for the analysis results.
