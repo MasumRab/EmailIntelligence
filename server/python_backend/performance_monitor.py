@@ -476,6 +476,13 @@ class PerformanceMonitor:
 
             return wrapper
         return decorator
+        
+    def track(self, func):
+        """
+        Convenience wrapper for track_function_performance that automatically uses the function name.
+        This allows using the decorator without parameters: @performance_monitor.track
+        """
+        return self.track_function_performance(func.__name__)(func)
 
     async def get_optimization_recommendations(self) -> List[Dict[str, Any]]:
         """Get performance optimization recommendations"""
