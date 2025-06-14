@@ -3,4 +3,4 @@
 # Example:
 # pytest
 # flake8
-nltk
+nltk==3.6.5
