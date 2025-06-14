@@ -8,7 +8,7 @@ sentiment analysis enhancement to the EmailIntelligence application.
 
 import logging
 import re
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 
 # Configure logging
 logger = logging.getLogger(__name__)
