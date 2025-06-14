@@ -95,7 +95,7 @@ def _setup_signal_handlers():
     signal.signal(signal.SIGTERM, _handle_sigint)
 
 # Constants
-PYTHON_MIN_VERSION = (3, 8)
+PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 11)
 VENV_DIR = "venv"
 REQUIREMENTS_FILE = "requirements.txt"
