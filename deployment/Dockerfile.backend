@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python dependencies
 COPY requirements.txt .
+# Ensure reliable network connectivity for pip to download packages.
+# --no-cache-dir is used to keep the image size smaller.
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
@@ -40,6 +42,8 @@ ENV APP_ENV development
 ENV NODE_ENV development
 
 # Install development dependencies
+# Ensure reliable network connectivity for pip to download packages.
+# --no-cache-dir is used to keep the image size smaller.
 RUN pip install --no-cache-dir black flake8 pylint pytest
 # Add other development dependencies as needed, e.g. from a dev-requirements.txt
 
