@@ -4,21 +4,7 @@ This directory contains deployment configurations and scripts for the EmailIntel
 
 ## Deployment Environments
 
-### 1. Local Development Environment
-
-The local development environment is designed for quick testing and development on your local machine.
-
-**Features:**
-- Hot-reloading for quick development
-- Direct access to the file system
-- Simple setup with minimal dependencies
-
-**Usage:**
-```bash
-python deployment/deploy.py local up
-```
-
-### 2. Docker-based Development Environment
+### 1. Docker-based Development Environment
 
 The Docker-based development environment provides a consistent development experience across different machines.
 
@@ -61,6 +47,36 @@ The production environment is optimized for performance, security, and reliabili
 python deployment/deploy.py prod up
 ```
 
+## Understanding the Configuration
+
+This section explains the core components of the deployment setup.
+
+### Dockerfiles
+
+-   **`Dockerfile.backend`**: This is a multi-stage Dockerfile for the Python backend.
+    -   A `base` stage installs common dependencies.
+    -   A `development` stage builds upon `base`, includes development tools (like linters, hot-reloading servers), and is used for the `dev` environment.
+    -   A `production` stage also builds upon `base` but installs production-grade servers (e.g., Gunicorn) and is optimized for performance. This is used for `staging` and `prod` environments.
+    The `deploy.py` script, via Docker Compose, ensures the correct target stage is built and used for each environment.
+-   **`Dockerfile.frontend`**: This Dockerfile builds the frontend application, typically for production deployments. For development, the frontend might be served using a Node.js development server directly (as configured in `docker-compose.dev.yml`).
+
+### Docker Compose Setup
+
+The Docker Compose configuration now uses a base file and environment-specific override files:
+
+-   **`docker-compose.yml` (Base File):** Defines common services, networks, and volumes shared across all environments. For example, the `postgres` service definition is usually here. The `backend` service defined here might point to a default stage in `Dockerfile.backend`.
+-   **`docker-compose.<env>.yml` (Override Files):**
+    -   `docker-compose.dev.yml`: Tailors the setup for development. It overrides services defined in the base file (e.g., to use the `development` stage of `Dockerfile.backend`, mount local code for hot-reloading) and adds development-specific services (e.g., a Node.js dev server for the frontend).
+    -   `docker-compose.stag.yml`: Configures the staging environment, typically overriding services to use production-like settings and the `production` stage of `Dockerfile.backend`.
+    -   `docker-compose.prod.yml`: Configures the production environment, also using the `production` stage of `Dockerfile.backend` and including production-specific settings for services like Nginx, frontend, and monitoring tools.
+
+When `deploy.py` runs a command for an environment (e.g., `dev`), it effectively uses a command like:
+`docker-compose -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml <command>`
+This layering allows for a clean separation of common configurations from environment-specific adjustments.
+
+### NGINX Configurations
+The NGINX configurations located in the `nginx/` directory have been refactored. Common settings (like SSL protocols, security headers, basic proxy parameters) are extracted into `common_*.conf` snippet files. Environment-specific files (`production.conf`, `staging.conf`) then include these common snippets and add their own specific directives (e.g., server names, SSL certificate paths, caching rules). This reduces redundancy and improves maintainability.
+
 ## Deployment Commands
 
 The deployment script supports the following commands:
@@ -77,17 +93,20 @@ The deployment script supports the following commands:
 
 ## Directory Structure
 
-- `Dockerfile.dev`: Docker configuration for development
-- `Dockerfile.staging`: Docker configuration for staging
-- `Dockerfile.production`: Docker configuration for production
-- `Dockerfile.frontend`: Docker configuration for the frontend
-- `docker-compose.dev.yml`: Docker Compose configuration for development
-- `docker-compose.staging.yml`: Docker Compose configuration for staging
-- `docker-compose.production.yml`: Docker Compose configuration for production
-- `nginx/`: Nginx configurations for different environments
-- `monitoring/`: Prometheus and Grafana configurations
-- `deploy.py`: Deployment script
-- `local_dev.py`: Local development server script
+- `Dockerfile.backend`: Multi-stage Dockerfile for the Python backend (base, development, production).
+- `Dockerfile.frontend`: Dockerfile for the frontend application.
+- `docker-compose.yml`: Base Docker Compose configuration, defining common services like databases.
+- `docker-compose.dev.yml`: Docker Compose overrides for the development environment.
+- `docker-compose.stag.yml`: Docker Compose overrides for the staging environment.
+- `docker-compose.prod.yml`: Docker Compose overrides for the production environment.
+- `nginx/`: Contains Nginx configurations. These have been refactored to use common snippets (e.g., `common_ssl_settings.conf`, `common_proxy_backend.conf`) included by environment-specific files like `production.conf` and `staging.conf`.
+  - `nginx/production.conf`: Nginx configuration for the production environment.
+  - `nginx/staging.conf`: Nginx configuration for the staging environment.
+  - `nginx/default.conf`: Basic Nginx configuration, potentially for development or as a fallback.
+  - `nginx/common_*.conf`: Common configuration snippets shared across environments.
+- `monitoring/`: Prometheus and Grafana configurations.
+- `deploy.py`: Main deployment script (acts as a wrapper around Docker Compose).
+- `extensions.py`, `migrate.py`, `models.py`, `run_tests.py`, `setup_env.py`, `test_stages.py`: Auxiliary Python scripts for deployment, testing, or utility functions.
 
 ## Prerequisites
 
@@ -110,21 +129,24 @@ The following environment variables are used by the deployment framework:
 
 ## Getting Started
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/EmailIntelligence.git
-   cd EmailIntelligence
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/yourusername/EmailIntelligence.git
+    cd EmailIntelligence
+    ```
 
-2. Set up the local development environment:
-   ```bash
-   python deployment/deploy.py local build
-   python deployment/deploy.py local up
-   ```
+2.  **Set up the Docker-based development environment:**
+    This is the recommended way to get started for a consistent environment.
+    ```bash
+    python deployment/deploy.py dev build
+    python deployment/deploy.py dev up
+    ```
 
-3. Access the application:
-   - Backend: http://localhost:8000
-   - Frontend: http://localhost:5173
+3.  **Access the application (Docker-based dev):**
+    - Backend: http://localhost:8000 (or as configured)
+    - Frontend: http://localhost:5173 (or as configured)
+
+    *(Note: For pure local development without Docker, you would typically run the backend and frontend services manually. For example, for a Python backend: `python server/main.py` and for a Node.js frontend: `npm run dev` from within the client directory. Refer to specific service documentation for manual setup details.)*
 
 ## Continuous Integration/Continuous Deployment (CI/CD)
 
