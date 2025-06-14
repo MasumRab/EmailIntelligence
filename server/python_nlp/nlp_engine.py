@@ -421,6 +421,46 @@ class NLPEngine:
             }
         }
 
+    def analyze_text(self, text: str) -> Dict[str, Any]:
+        """
+        Analyze arbitrary text content (compatible with simple_research_ui.py)
+        """
+        try:
+            words = text.split()
+            sentences = text.split('.')
+            
+            # Basic preprocessing
+            cleaned_text = self._preprocess_text(text)
+            
+            # Get sentiment analysis
+            sentiment_analysis = self._analyze_sentiment(cleaned_text)
+            
+            # Calculate sentiment score for compatibility
+            sentiment_score = sentiment_analysis.get('polarity', 0.0)
+            
+            return {
+                'word_count': len(words),
+                'sentence_count': len([s for s in sentences if s.strip()]),
+                'sentiment_score': sentiment_score,
+                'sentiment': sentiment_analysis.get('sentiment', 'neutral'),
+                'confidence': sentiment_analysis.get('confidence', 0.5),
+                'analysis_type': 'advanced_nlp' if HAS_NLTK else 'basic'
+            }
+            
+        except Exception as e:
+            # Fallback analysis
+            words = text.split()
+            sentences = text.split('.')
+            
+            return {
+                'word_count': len(words),
+                'sentence_count': len([s for s in sentences if s.strip()]),
+                'sentiment_score': 0.0,
+                'sentiment': 'neutral',
+                'confidence': 0.3,
+                'analysis_type': 'fallback'
+            }
+
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         """
         Comprehensive email analysis using multiple NLP techniques

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 Environment Setup Script for Gmail AI Research Interface
@@ -15,14 +14,14 @@ def check_python_version():
     """Check if Python version meets requirements"""
     required_version = (3, 11)
     current_version = sys.version_info[:2]
-    
+
     print(f"🐍 Python {current_version[0]}.{current_version[1]} detected")
-    
+
     if current_version < required_version:
         print(f"❌ Python {required_version[0]}.{required_version[1]}+ required")
         print(f"   Current version: {current_version[0]}.{current_version[1]}")
         return False
-    
+
     print(f"✅ Python version check passed")
     return True
 
@@ -30,7 +29,7 @@ def install_package(package_name, import_name=None):
     """Install a package if not already installed"""
     if import_name is None:
         import_name = package_name
-    
+
     try:
         importlib.import_module(import_name)
         print(f"✅ {package_name} already installed")
@@ -52,11 +51,11 @@ def setup_nltk():
     try:
         import nltk
         print("📚 Setting up NLTK data...")
-        
+
         # Create NLTK data directory if it doesn't exist
         nltk_data_dir = os.path.expanduser('~/nltk_data')
         os.makedirs(nltk_data_dir, exist_ok=True)
-        
+
         # Download required NLTK data
         datasets = [
             'punkt',
@@ -66,14 +65,14 @@ def setup_nltk():
             'averaged_perceptron_tagger',
             'brown'
         ]
-        
+
         for dataset in datasets:
             try:
                 nltk.download(dataset, quiet=True, download_dir=nltk_data_dir)
                 print(f"✅ NLTK {dataset} downloaded")
             except Exception as e:
                 print(f"⚠️  Failed to download {dataset}: {e}")
-        
+
         return True
     except ImportError:
         print("⚠️  NLTK not available, will use fallback analysis")
@@ -87,40 +86,40 @@ def install_core_packages():
         ("uvicorn[standard]", "uvicorn"),
         ("python-multipart", "multipart"),
         ("jinja2", "jinja2"),
-        
+
         # Database and async support
         ("asyncpg", "asyncpg"),
         ("pydantic", "pydantic"),
-        
+
         # NLP and AI packages
         ("nltk", "nltk"),
         ("scikit-learn", "sklearn"),
         ("numpy", "numpy"),
         ("pandas", "pandas"),
-        
+
         # Additional utilities
         ("python-dotenv", "dotenv"),
         ("aiofiles", "aiofiles"),
         ("httpx", "httpx"),
     ]
-    
+
     print("📦 Installing core packages...")
     all_successful = True
-    
+
     for package_name, import_name in packages:
         if not install_package(package_name, import_name):
             all_successful = False
-    
+
     return all_successful
 
 def fix_nlp_engine():
     """Fix the NLP engine missing method issue"""
     nlp_engine_path = Path("server/python_nlp/nlp_engine.py")
-    
+
     if not nlp_engine_path.exists():
         print("⚠️  NLP engine file not found, creating basic implementation...")
         return create_basic_nlp_engine()
-    
+
     # Check if analyze_text method exists
     try:
         with open(nlp_engine_path, 'r') as f:
@@ -133,6 +132,70 @@ def fix_nlp_engine():
                 return add_analyze_text_method(nlp_engine_path, content)
     except Exception as e:
         print(f"❌ Error checking NLP engine: {e}")
+        return False
+
+def add_analyze_text_method(nlp_engine_path, content):
+    """Add missing analyze_text method to existing NLP engine"""
+    analyze_text_method = '''
+    def analyze_text(self, text: str) -> Dict[str, Any]:
+        """
+        Analyze arbitrary text content (compatible with simple_research_ui.py)
+        """
+        try:
+            words = text.split()
+            sentences = text.split('.')
+
+            # Basic preprocessing
+            cleaned_text = self._preprocess_text(text)
+
+            # Get sentiment analysis
+            sentiment_analysis = self._analyze_sentiment(cleaned_text)
+
+            # Calculate sentiment score for compatibility
+            sentiment_score = sentiment_analysis.get('polarity', 0.0)
+
+            return {
+                'word_count': len(words),
+                'sentence_count': len([s for s in sentences if s.strip()]),
+                'sentiment_score': sentiment_score,
+                'sentiment': sentiment_analysis.get('sentiment', 'neutral'),
+                'confidence': sentiment_analysis.get('confidence', 0.5),
+                'analysis_type': 'advanced_nlp' if HAS_NLTK else 'basic'
+            }
+
+        except Exception as e:
+            # Fallback analysis
+            words = text.split()
+            sentences = text.split('.')
+
+            return {
+                'word_count': len(words),
+                'sentence_count': len([s for s in sentences if s.strip()]),
+                'sentiment_score': 0.0,
+                'sentiment': 'neutral',
+                'confidence': 0.3,
+                'analysis_type': 'fallback'
+            }
+'''
+
+    try:
+        # Insert the method before the analyze_email method
+        if 'def analyze_email(' in content:
+            insertion_point = content.find('def analyze_email(')
+            new_content = content[:insertion_point] + analyze_text_method + '\n    ' + content[insertion_point:]
+        else:
+            # If analyze_email doesn't exist, add at the end of the class
+            class_end = content.rfind('def main():')
+            if class_end == -1:
+                class_end = len(content)
+            new_content = content[:class_end] + analyze_text_method + '\n\n' + content[class_end:]
+
+        with open(nlp_engine_path, 'w') as f:
+            f.write(new_content)
+        print("✅ analyze_text method added to NLP engine")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to add analyze_text method: {e}")
         return False
 
 def create_basic_nlp_engine():
@@ -149,21 +212,21 @@ from datetime import datetime
 
 class NLPEngine:
     """Basic NLP engine with fallback implementations"""
-    
+
     def __init__(self):
         self.sentiment_keywords = {
             'positive': ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic'],
             'negative': ['bad', 'terrible', 'awful', 'horrible', 'disappointing', 'poor'],
             'urgent': ['urgent', 'asap', 'immediately', 'emergency', 'critical', 'deadline']
         }
-    
+
     def analyze_text(self, text: str) -> Dict[str, Any]:
         """Analyze text and return comprehensive results"""
         if not text or not isinstance(text, str):
             return self._empty_analysis()
-        
+
         text_lower = text.lower()
-        
+
         return {
             'sentiment': self._analyze_sentiment(text_lower),
             'urgency': self._analyze_urgency(text_lower),
@@ -173,12 +236,12 @@ class NLPEngine:
             'char_count': len(text),
             'analysis_timestamp': datetime.now().isoformat()
         }
-    
+
     def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
         """Basic sentiment analysis"""
         positive_count = sum(1 for word in self.sentiment_keywords['positive'] if word in text)
         negative_count = sum(1 for word in self.sentiment_keywords['negative'] if word in text)
-        
+
         if positive_count > negative_count:
             sentiment = 'positive'
             confidence = min(0.8, 0.5 + (positive_count - negative_count) * 0.1)
@@ -188,18 +251,18 @@ class NLPEngine:
         else:
             sentiment = 'neutral'
             confidence = 0.6
-        
+
         return {
             'label': sentiment,
             'confidence': confidence,
             'positive_indicators': positive_count,
             'negative_indicators': negative_count
         }
-    
+
     def _analyze_urgency(self, text: str) -> Dict[str, Any]:
         """Basic urgency analysis"""
         urgent_count = sum(1 for word in self.sentiment_keywords['urgent'] if word in text)
-        
+
         if urgent_count > 0:
             urgency = 'high'
             confidence = min(0.9, 0.7 + urgent_count * 0.1)
@@ -209,48 +272,48 @@ class NLPEngine:
         else:
             urgency = 'low'
             confidence = 0.7
-        
+
         return {
             'level': urgency,
             'confidence': confidence,
             'indicators': urgent_count
         }
-    
+
     def _extract_keywords(self, text: str) -> List[str]:
         """Basic keyword extraction"""
         # Remove common stop words and extract meaningful words
         stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'will', 'would', 'could', 'should'}
-        
+
         words = re.findall(r'\\b\\w{3,}\\b', text.lower())
         keywords = [word for word in words if word not in stop_words]
-        
+
         # Return top 10 most frequent keywords
         from collections import Counter
         word_freq = Counter(keywords)
         return [word for word, count in word_freq.most_common(10)]
-    
+
     def _identify_topics(self, text: str) -> List[str]:
         """Basic topic identification"""
         topics = []
-        
+
         # Work/Business topics
         if any(word in text for word in ['meeting', 'project', 'deadline', 'business', 'work', 'office', 'team']):
             topics.append('work_business')
-        
+
         # Personal topics
         if any(word in text for word in ['family', 'friend', 'personal', 'birthday', 'party', 'vacation']):
             topics.append('personal_family')
-        
+
         # Finance topics
         if any(word in text for word in ['payment', 'invoice', 'bank', 'money', 'budget', 'financial']):
             topics.append('finance_banking')
-        
+
         # Technology topics
         if any(word in text for word in ['software', 'app', 'technology', 'computer', 'digital', 'online']):
             topics.append('technology')
-        
+
         return topics if topics else ['general']
-    
+
     def _empty_analysis(self) -> Dict[str, Any]:
         """Return empty analysis structure"""
         return {
@@ -263,7 +326,7 @@ class NLPEngine:
             'analysis_timestamp': datetime.now().isoformat()
         }
 '''
-    
+
     try:
         os.makedirs("server/python_nlp", exist_ok=True)
         with open("server/python_nlp/nlp_engine.py", 'w') as f:
@@ -278,22 +341,22 @@ def main():
     """Main setup function"""
     print("🚀 Setting up Gmail AI Research Interface Environment...")
     print("=" * 60)
-    
+
     # Check Python version
     if not check_python_version():
         print("❌ Setup failed: Python version requirements not met")
         sys.exit(1)
-    
+
     # Install core packages
     if not install_core_packages():
         print("⚠️  Some packages failed to install, but continuing...")
-    
+
     # Setup NLTK
     setup_nltk()
-    
+
     # Fix NLP engine
     fix_nlp_engine()
-    
+
     print("=" * 60)
     print("✅ Environment setup complete!")
     print("🎯 You can now run: python3 simple_research_ui.py")
