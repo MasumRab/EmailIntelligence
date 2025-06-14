@@ -8,6 +8,9 @@ import json
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 import logging
+import os # Added
+import subprocess # Added
+import sys # Added
 
 from .gmail_integration import GmailDataCollector, EmailBatch, RateLimitConfig
 from .gmail_metadata import GmailMetadataExtractor, GmailMessage
@@ -23,7 +26,12 @@ class GmailAIService:
         self.data_strategy = DataCollectionStrategy()
         self.model_trainer = ModelTrainer()
         self.prompt_engineer = PromptEngineer()
-        self.logger = logging.getLogger(__name__)
+        # Changed for more specific logger name
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+
+        # Added path definitions for scripts
+        self.nlp_path = os.path.dirname(__file__)
+        self.retrieval_script = os.path.join(self.nlp_path, 'smart_retrieval.py')
         
         # Processing statistics
         self.stats = {
@@ -33,6 +41,56 @@ class GmailAIService:
             'ai_analyses_completed': 0,
             'last_sync': None
         }
+
+    # Added _execute_async_command method
+    async def _execute_async_command(self, cmd: List[str], cwd: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Execute command asynchronously.
+        Returns a dictionary with 'success': True/False and other command output.
+        """
+        try:
+            self.logger.debug(f"Executing async command: {' '.join(cmd)} in {cwd or '.'}")
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=cwd
+            )
+
+            stdout, stderr = await process.communicate()
+            stdout_decoded = stdout.decode().strip() if stdout else ""
+            stderr_decoded = stderr.decode().strip() if stderr else ""
+
+            if process.returncode != 0:
+                error_msg = stderr_decoded or stdout_decoded or "Unknown error during command execution."
+                self.logger.error(f"Async command failed (return code {process.returncode}): {cmd}. Error: {error_msg}")
+                return {"success": False, "error": error_msg, "return_code": process.returncode}
+
+            if stdout_decoded:
+                try:
+                    parsed_output = json.loads(stdout_decoded)
+                    if isinstance(parsed_output, dict) and 'success' not in parsed_output:
+                        # If script provides JSON dict but no 'success' field, assume true as command didn't fail
+                        parsed_output['success'] = True
+                    elif not isinstance(parsed_output, dict): # Handle cases where script returns non-dict JSON (e.g. list, string)
+                         return {"success": True, "data": parsed_output}
+                    return parsed_output
+                except json.JSONDecodeError as e:
+                    self.logger.warning(f"Command {cmd} output was not valid JSON, but command succeeded. Output: {stdout_decoded[:200]}...")
+                    return {"success": True, "output": stdout_decoded, "error": f"Non-JSON output: {str(e)}"} # Script success, but output not JSON
+            else:
+                self.logger.info(f"Command {cmd} executed successfully with no stdout.")
+                return {"success": True, "output": ""} # Script success, no output
+
+        except FileNotFoundError as e:
+            self.logger.error(f"Async command failed: Executable not found for {cmd}. Error: {e}")
+            return {"success": False, "error": f"Executable not found: {cmd[0]}. {str(e)}"}
+        except PermissionError as e:
+            self.logger.error(f"Async command failed: Permission denied for {cmd}. Error: {e}")
+            return {"success": False, "error": f"Permission denied for {cmd[0]}. {str(e)}"}
+        except Exception as e:
+            self.logger.error(f"Generic async command execution failed for {cmd}: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
     
     async def sync_gmail_emails(
         self, 
@@ -43,10 +101,9 @@ class GmailAIService:
         """
         Comprehensive Gmail sync with metadata extraction and AI analysis
         """
-        self.logger.info(f"Starting Gmail sync with filter: {query_filter}")
+        self.logger.info(f"Starting Gmail sync with filter: {query_filter}, max_emails: {max_emails}")
         
         try:
-            # Collect emails with rate limiting
             email_batch = await self.collector.collect_emails_incremental(
                 query_filter=query_filter,
                 max_emails=max_emails
@@ -57,25 +114,19 @@ class GmailAIService:
             # Process each email for complete metadata extraction
             for gmail_msg in email_batch.messages:
                 try:
-                    # Extract complete Gmail metadata
                     gmail_metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
-                    
-                    # Convert to training format for AI analysis
                     training_sample = self.metadata_extractor.to_training_format(gmail_metadata)
                     
-                    # Perform AI analysis if requested
                     if include_ai_analysis:
                         ai_analysis = await self._perform_ai_analysis(training_sample)
                         training_sample['ai_analysis'] = ai_analysis
                     
-                    # Convert to database format
                     db_email = self._convert_to_db_format(gmail_metadata, training_sample)
                     processed_emails.append(db_email)
-                    
                     self.stats['successful_extractions'] += 1
                     
                 except Exception as e:
-                    self.logger.error(f"Failed to process email {gmail_msg.get('id', 'unknown')}: {e}")
+                    self.logger.error(f"Failed to process email {gmail_msg.get('id', 'unknown')}: {e}", exc_info=True)
                     self.stats['failed_extractions'] += 1
                     continue
             
@@ -91,26 +142,23 @@ class GmailAIService:
                     'query_filter': email_batch.query_filter,
                     'timestamp': email_batch.timestamp.isoformat()
                 },
-                'statistics': self.stats
+                'statistics': self.stats.copy()
             }
             
         except Exception as e:
-            self.logger.error(f"Gmail sync failed: {e}")
+            self.logger.error(f"Gmail sync failed: {e}", exc_info=True)
             return {
                 'success': False,
                 'error': str(e),
                 'processed_count': 0,
                 'emails': [],
-                'statistics': self.stats
+                'statistics': self.stats.copy()
             }
     
     async def _perform_ai_analysis(self, email_sample: Dict[str, Any]) -> Dict[str, Any]:
         """Perform comprehensive AI analysis on email sample"""
         try:
-            # Prepare text for analysis
             text_content = f"{email_sample.get('subject', '')} {email_sample.get('content', '')}"
-            
-            # Create email sample for data strategy processing
             sample = EmailSample(
                 id=email_sample['id'],
                 subject=email_sample['subject'],
@@ -121,11 +169,8 @@ class GmailAIService:
                 metadata={}
             )
             
-            # Preprocess and annotate
             processed_sample = self.data_strategy.preprocess_email(sample)
             annotation = self.data_strategy.annotate_email(processed_sample)
-            
-            # Extract features for model training
             features = self.model_trainer.feature_extractor.extract_features(text_content)
             
             analysis_result = {
@@ -147,10 +192,9 @@ class GmailAIService:
             return analysis_result
             
         except Exception as e:
-            self.logger.error(f"AI analysis failed for email {email_sample.get('id', 'unknown')}: {e}")
+            self.logger.error(f"AI analysis failed for email {email_sample.get('id', 'unknown')}: {e}", exc_info=True)
             return {
-                'error': str(e),
-                'topic': 'unknown',
+                'error': str(e), 'topic': 'unknown',
                 'sentiment': 'neutral',
                 'intent': 'information',
                 'urgency': 'low',
@@ -178,7 +222,7 @@ class GmailAIService:
             'subject': gmail_metadata.subject,
             'content': gmail_metadata.body_plain or gmail_metadata.snippet,
             'contentHtml': gmail_metadata.body_html,
-            'preview': gmail_metadata.snippet[:200] + '...' if len(gmail_metadata.snippet) > 200 else gmail_metadata.snippet,
+            'preview': (gmail_metadata.snippet[:200] + '...') if gmail_metadata.snippet and len(gmail_metadata.snippet) > 200 else gmail_metadata.snippet,
             'snippet': gmail_metadata.snippet,
             'time': gmail_metadata.date or datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'internalDate': gmail_metadata.internal_date,
@@ -237,7 +281,6 @@ class GmailAIService:
                 'attachments': gmail_metadata.attachments
             }),
             
-            # Legacy compatibility
             'isRead': not gmail_metadata.is_unread
         }
         
@@ -246,26 +289,16 @@ class GmailAIService:
     def _map_topic_to_category_id(self, topic: str) -> Optional[int]:
         """Map AI-detected topic to database category ID"""
         topic_mappings = {
-            'work_business': 1,
-            'personal_family': 2, 
-            'finance_banking': 3,
-            'promotions': 4,
-            'travel': 5,
-            'healthcare': 6
+            'work_business': 1, 'personal_family': 2, 'finance_banking': 3,
+            'promotions': 4, 'travel': 5, 'healthcare': 6
         }
-        return topic_mappings.get(topic)
+        return topic_mappings.get(topic.lower())
     
     async def train_models_from_gmail_data(
-        self, 
-        training_query: str = "newer_than:30d",
-        max_training_emails: int = 5000
+        self, training_query: str = "newer_than:30d", max_training_emails: int = 5000
     ) -> Dict[str, Any]:
-        """Train AI models using Gmail data"""
-        
-        self.logger.info("Starting model training from Gmail data")
-        
+        self.logger.info(f"Starting model training from Gmail data. Query: {training_query}, Max emails: {max_training_emails}")
         try:
-            # Collect training data
             training_batch = await self.collector.collect_emails_incremental(
                 query_filter=training_query,
                 max_emails=max_training_emails
@@ -278,28 +311,25 @@ class GmailAIService:
                     metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
                     training_format = self.metadata_extractor.to_training_format(metadata)
                     
-                    # Create structured training sample
                     sample_dict = {
-                        'subject': training_format['subject'],
-                        'content': training_format['content'],
+                        'subject': training_format['subject'], 'content': training_format['content'],
                         'sender': training_format['sender_email'],
                         'labels': {
                             'topic': self._infer_topic_from_metadata(metadata),
                             'sentiment': self._infer_sentiment_from_metadata(metadata),
                             'intent': self._infer_intent_from_metadata(metadata),
                             'urgency': self._infer_urgency_from_metadata(metadata)
-                        }
-                    }
+                        }}
                     training_samples.append(sample_dict)
-                    
                 except Exception as e:
-                    self.logger.warning(f"Failed to process training sample: {e}")
+                    self.logger.warning(f"Skipping training sample due to processing error: {e}", exc_info=True)
                     continue
             
-            # Train models for different tasks
+            if not training_samples:
+                 self.logger.warning("No training samples collected, aborting model training.")
+                 return {'success': False, 'error': 'No training samples collected.', 'training_samples_count': 0}
+
             training_results = {}
-            
-            # Topic modeling
             topic_config = ModelConfig(
                 model_type='topic_modeling',
                 algorithm='naive_bayes',
@@ -309,14 +339,10 @@ class GmailAIService:
             )
             
             features, labels = self.model_trainer.prepare_training_data(training_samples, 'topic')
-            topic_result = self.model_trainer.train_naive_bayes(features, labels, topic_config)
-            training_results['topic_model'] = {
-                'model_id': topic_result.model_id,
-                'accuracy': topic_result.accuracy,
-                'f1_score': topic_result.f1_score
-            }
+            if features and labels:
+                topic_result = self.model_trainer.train_naive_bayes(features, labels, topic_config)
+                training_results['topic_model'] = {'model_id': topic_result.model_id, 'accuracy': topic_result.accuracy, 'f1_score': topic_result.f1_score}
             
-            # Sentiment analysis
             sentiment_config = ModelConfig(
                 model_type='sentiment_analysis',
                 algorithm='logistic_regression',
@@ -326,29 +352,17 @@ class GmailAIService:
             )
             
             features, labels = self.model_trainer.prepare_training_data(training_samples, 'sentiment')
-            sentiment_result = self.model_trainer.train_logistic_regression(features, labels, sentiment_config)
-            training_results['sentiment_model'] = {
-                'model_id': sentiment_result.model_id,
-                'accuracy': sentiment_result.accuracy,
-                'f1_score': sentiment_result.f1_score
-            }
+            if features and labels:
+                sentiment_result = self.model_trainer.train_logistic_regression(features, labels, sentiment_config)
+                training_results['sentiment_model'] = {'model_id': sentiment_result.model_id, 'accuracy': sentiment_result.accuracy, 'f1_score': sentiment_result.f1_score}
             
-            # Generate optimized prompts
             prompt_templates = self.prompt_engineer.generate_email_classification_prompts()
             training_results['prompt_templates'] = list(prompt_templates.keys())
             
-            return {
-                'success': True,
-                'training_samples_count': len(training_samples),
-                'models_trained': training_results,
-                'training_timestamp': datetime.now().isoformat()
-            }
-            
+            return {'success': True, 'training_samples_count': len(training_samples), 'models_trained': training_results, 'training_timestamp': datetime.now().isoformat()}
         except Exception as e:
-            self.logger.error(f"Model training failed: {e}")
-            return {
-                'success': False,
-                'error': str(e),
+            self.logger.error(f"Model training failed: {e}", exc_info=True)
+            return {'success': False, 'error': str(e),
                 'training_samples_count': 0
             }
     
@@ -420,39 +434,151 @@ class GmailAIService:
                 'tokens_available': getattr(self.collector.rate_limiter, 'tokens', 0),
                 'requests_in_window': len(getattr(self.collector.rate_limiter, 'request_times', []))
             },
-            'cache_stats': {
-                # Could add cache hit/miss ratios here
-                'cache_enabled': True
-            }
+            'cache_stats': {'cache_enabled': True }
         }
 
+    # --- Methods moved from backend GmailAIService ---
+    async def execute_smart_retrieval(
+        self, strategies: List[str] = None, max_api_calls: int = 100, time_budget_minutes: int = 30
+    ) -> Dict[str, Any]:
+        """Execute smart Gmail retrieval with multiple strategies using smart_retrieval.py script."""
+        self.logger.info(f"Executing smart retrieval. Strategies: {strategies}, Max API calls: {max_api_calls}, Budget: {time_budget_minutes}min")
+        try:
+            cmd = [sys.executable, self.retrieval_script, '--execute-strategies',
+                   '--max-api-calls', str(max_api_calls), '--time-budget', str(time_budget_minutes)]
+            if strategies:
+                cmd.extend(['--strategies'] + strategies)
+
+            result = await self._execute_async_command(cmd, cwd=self.nlp_path)
+
+            if not result.get("success"): # Check success from _execute_async_command's perspective
+                self.logger.error(f"Smart retrieval script execution failed or reported an error. Result: {result}")
+                return {
+                    "success": False,
+                    "strategiesExecuted": result.get('strategies_executed', []),
+                    "totalEmails": result.get('total_emails', 0),
+                    "performance": result.get('performance', {}),
+                    "error": result.get('error', "Smart retrieval script execution failed.")
+                }
+
+            # If _execute_async_command was successful, 'result' contains the script's output.
+            # The script itself should ideally also have a 'success' field in its JSON output.
+            return {
+                "success": result.get('success', True), # Prioritize script's success flag if present, else True
+                "strategiesExecuted": result.get('strategies_executed', []),
+                "totalEmails": result.get('total_emails', 0),
+                "performance": result.get('performance', {}),
+                "error": result.get("error"), # Pass along any error reported by the script
+                "data": result # Include full script result for more details
+            }
+        except Exception as e:
+            self.logger.error(f"Smart retrieval task failed unexpectedly: {e}", exc_info=True)
+            return {"success": False, "strategiesExecuted": [], "totalEmails": 0, "performance": {}, "error": str(e)}
+
+    async def get_retrieval_strategies(self) -> List[Dict[str, Any]]:
+        """Get available retrieval strategies from smart_retrieval.py script."""
+        self.logger.info("Fetching retrieval strategies.")
+        try:
+            cmd = [sys.executable, self.retrieval_script, '--list-strategies']
+            result = await self._execute_async_command(cmd, cwd=self.nlp_path)
+
+            if result.get("success") and 'strategies' in result.get('data', result): # Check success and if 'strategies' is in result or result.data
+                # _execute_async_command might return {'success':True, 'data': [...] } for non-dict JSON
+                return result.get('data', result).get('strategies', []) if isinstance(result.get('data', result), dict) else result.get('data', [])
+
+            error_msg = result.get('error', "Failed to get strategies: No 'strategies' key in script response or script error.")
+            self.logger.error(error_msg)
+            return []
+        except Exception as e:
+            self.logger.error(f"Failed to get retrieval strategies unexpectedly: {e}", exc_info=True)
+            return []
+
+    async def get_performance_metrics(self) -> Optional[Dict[str, Any]]:
+        """Get Gmail API performance metrics from smart_retrieval.py script."""
+        self.logger.info("Fetching performance metrics.")
+        try:
+            cmd = [sys.executable, self.retrieval_script, '--get-performance']
+            result = await self._execute_async_command(cmd, cwd=self.nlp_path)
+
+            if result.get("success"): # Script command execution was successful
+                # Adapt script output (which is in 'result' dict) to the expected structure
+                # If script's JSON output has 'success':false, it will be caught by result.get('success', True)
+                # in the calling function, but here we assume the structure based on a successful script run.
+                return {
+                    "overallStatus": {
+                        "status": result.get('status', "healthy"),
+                        "avgEfficiency": result.get('avg_efficiency', 0.0),
+                        "activeStrategies": result.get('active_strategies', 0)
+                    },
+                    "quotaStatus": {
+                        "dailyUsage": {"percentage": result.get('quota_used_percent', 0)}
+                    },
+                    "alerts": result.get('alerts', []),
+                    "recommendations": result.get('recommendations', []),
+                    "raw_data": result # Include full script output for debugging or richer info
+                }
+            else:
+                error_msg = result.get('error', "Failed to get performance metrics: Script error or no data.")
+                self.logger.error(error_msg)
+                return None
+        except Exception as e:
+            self.logger.error(f"Failed to get performance metrics unexpectedly: {e}", exc_info=True)
+            return None
+
 async def main():
-    """Example usage of Gmail AI Service"""
+    # Setup basic logging for the main example
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Get a logger for the main function
+    main_logger = logging.getLogger(__name__) # This will use the root logger if not further specified
+
     service = GmailAIService()
     
+    main_logger.info("Starting example usage of GmailAIService...")
     # Sync recent emails with AI analysis
-    result = await service.sync_gmail_emails(
+    # Reduced max_emails for quicker testing, set include_ai_analysis to False if NLP models aren't set up
+    sync_result = await service.sync_gmail_emails(
         query_filter="newer_than:1d",
-        max_emails=50,
-        include_ai_analysis=True
+        max_emails=2, # Very few for testing
+        include_ai_analysis=False # Assuming AI models might not be fully available/needed for this test
     )
+    main_logger.info(f"Sync result success: {sync_result.get('success')}, Processed: {sync_result.get('processed_count')}")
+    if not sync_result.get('success'):
+        main_logger.error(f"Sync error: {sync_result.get('error')}")
+
+    # --- Test moved methods ---
+    # These require smart_retrieval.py to be present and executable in the same directory.
+    # For a unit test, you'd mock _execute_async_command.
+    # For an integration test, you need the script.
     
-    print(f"Sync result: {result['success']}")
-    print(f"Processed emails: {result['processed_count']}")
+    # Example: Create a dummy smart_retrieval.py for testing
+    # File: server/python_nlp/smart_retrieval.py
+    # #!/usr/bin/env python
+    # import json
+    # import sys
+    # if __name__ == "__main__":
+    #     if '--list-strategies' in sys.argv:
+    #         print(json.dumps({"success": True, "strategies": [{"name": "test_strat", "description": "A test strategy"}]}))
+    #     elif '--execute-strategies' in sys.argv:
+    #         print(json.dumps({"success": True, "strategies_executed": ["test_exec"], "total_emails": 5, "performance": {"avg_time": 0.1}}))
+    #     elif '--get-performance' in sys.argv:
+    #         print(json.dumps({"success": True, "avg_efficiency": 0.95, "active_strategies": 1, "quota_used_percent": 10}))
+    #     else:
+    #         print(json.dumps({"success": False, "error": "Unknown command"}))
+
+    main_logger.info("Testing get_retrieval_strategies...")
+    strategies = await service.get_retrieval_strategies()
+    main_logger.info(f"Retrieved strategies: {strategies}")
+
+    main_logger.info("Testing execute_smart_retrieval...")
+    retrieval_result = await service.execute_smart_retrieval(strategies=["test_strat"], max_api_calls=10, time_budget_minutes=5)
+    main_logger.info(f"Smart retrieval result: {retrieval_result}")
+
+    main_logger.info("Testing get_performance_metrics...")
+    performance = await service.get_performance_metrics()
+    main_logger.info(f"Performance metrics: {performance}")
     
-    # Train models
-    training_result = await service.train_models_from_gmail_data(
-        training_query="newer_than:7d",
-        max_training_emails=500
-    )
-    
-    print(f"Training result: {training_result['success']}")
-    if training_result['success']:
-        print(f"Models trained: {list(training_result['models_trained'].keys())}")
-    
-    # Get statistics
     stats = service.get_processing_statistics()
-    print(f"Processing statistics: {stats}")
+    main_logger.info(f"Final processing statistics: {stats}")
 
 if __name__ == "__main__":
     asyncio.run(main())
