@@ -3,3 +3,4 @@
 # Example:
 # pytest
 # flake8
+nltk
