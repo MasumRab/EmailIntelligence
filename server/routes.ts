@@ -19,7 +19,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats
   app.get("/api/dashboard/stats", async (_req, res) => {
     try {
+      console.time("storage.getDashboardStats");
       const stats = await storage.getDashboardStats();
+      console.timeEnd("storage.getDashboardStats");
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
@@ -29,7 +31,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories
   app.get("/api/categories", async (_req, res) => {
     try {
+      console.time("storage.getAllCategories");
       const categories = await storage.getAllCategories();
+      console.timeEnd("storage.getAllCategories");
       res.json(categories);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch categories" });
@@ -39,7 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/categories", async (req, res) => {
     try {
       const categoryData = insertCategorySchema.parse(req.body);
+      console.time("storage.createCategory");
       const category = await storage.createCategory(categoryData);
+      console.timeEnd("storage.createCategory");
       res.status(201).json(category);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -54,7 +60,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const updateData = req.body;
+      console.time("storage.updateCategory");
       const category = await storage.updateCategory(id, updateData);
+      console.timeEnd("storage.updateCategory");
       
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
@@ -73,12 +81,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let emails;
       if (search && typeof search === 'string') {
+        console.time("storage.searchEmails");
         emails = await storage.searchEmails(search);
+        console.timeEnd("storage.searchEmails");
       } else if (category && typeof category === 'string') {
         const categoryId = parseInt(category);
+        console.time("storage.getEmailsByCategory");
         emails = await storage.getEmailsByCategory(categoryId);
+        console.timeEnd("storage.getEmailsByCategory");
       } else {
+        console.time("storage.getAllEmails");
         emails = await storage.getAllEmails();
+        console.timeEnd("storage.getAllEmails");
       }
       
       res.json(emails);
@@ -90,7 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/emails/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.time("storage.getEmailById");
       const email = await storage.getEmailById(id);
+      console.timeEnd("storage.getEmailById");
       
       if (!email) {
         return res.status(404).json({ message: "Email not found" });
@@ -105,7 +121,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/emails", async (req, res) => {
     try {
       const emailData = insertEmailSchema.parse(req.body);
+      console.time("storage.createEmail");
       const email = await storage.createEmail(emailData);
+      console.timeEnd("storage.createEmail");
       res.status(201).json(email);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -120,7 +138,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const updateData = req.body;
+      console.time("storage.updateEmail");
       const email = await storage.updateEmail(id, updateData);
+      console.timeEnd("storage.updateEmail");
       
       if (!email) {
         return res.status(404).json({ message: "Email not found" });
@@ -136,9 +156,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/activities", async (req, res) => {
     try {
       const { limit } = req.query;
+      console.time("storage.getRecentActivities");
       const activities = await storage.getRecentActivities(
         limit ? parseInt(limit as string) : undefined
       );
+      console.timeEnd("storage.getRecentActivities");
       res.json(activities);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch activities" });
@@ -148,7 +170,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/activities", async (req, res) => {
     try {
       const activityData = insertActivitySchema.parse(req.body);
+      console.time("storage.createActivity");
       const activity = await storage.createActivity(activityData);
+      console.timeEnd("storage.createActivity");
       res.status(201).json(activity);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -162,7 +186,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Gmail sync simulation
   app.post("/api/gmail/sync", async (_req, res) => {
     try {
+      console.time("storage.simulateGmailSync");
       const result = await storage.simulateGmailSync();
+      console.timeEnd("storage.simulateGmailSync");
       res.json(result);
     } catch (error) {
       res.status(500).json({ message: "Failed to sync with Gmail" });
@@ -178,7 +204,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Subject and content are required" });
       }
 
+      console.time("pythonNLP.analyzeEmail");
       const analysis = await pythonNLP.analyzeEmail(subject, content);
+      console.timeEnd("pythonNLP.analyzeEmail");
       
       res.json(analysis);
     } catch (error) {
@@ -192,7 +220,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { emailId, autoAnalyze } = req.body;
       
+      console.time("storage.getEmailById_categorize"); // Unique label
       const email = await storage.getEmailById(emailId);
+      console.timeEnd("storage.getEmailById_categorize");
       if (!email) {
         return res.status(404).json({ message: "Email not found" });
       }
@@ -200,10 +230,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let analysis: MappedNLPResult | undefined; // Updated type to MappedNLPResult
       if (autoAnalyze) {
         // Use advanced AI analysis
+        console.time("pythonNLP.analyzeEmail_categorize"); // Unique label
         analysis = await pythonNLP.analyzeEmail(email.subject, email.content);
+        console.timeEnd("pythonNLP.analyzeEmail_categorize");
         
         // Find matching category
+        console.time("storage.getAllCategories_categorize"); // Unique label
         const categories = await storage.getAllCategories();
+        console.timeEnd("storage.getAllCategories_categorize");
         // analysis is now MappedNLPResult, which includes 'validation'
         // and has camelCase 'suggestedLabels' and 'riskFlags'
         const matchingCategory = categories.find(cat => 
@@ -215,13 +249,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (matchingCategory) {
           // Update email with AI analysis results
+          console.time("storage.updateEmail_categorize_auto"); // Unique label
           const updatedEmail = await storage.updateEmail(emailId, {
             categoryId: matchingCategory.id,
             confidence: Math.round(analysis!.confidence * 100), // Used non-null assertion
             labels: analysis!.suggestedLabels, // Fixed typo: suggested_labels to suggestedLabels
           });
+          console.timeEnd("storage.updateEmail_categorize_auto");
 
           // Create detailed activity
+          console.time("storage.createActivity_categorize_auto"); // Unique label
           await storage.createActivity({
             type: "label",
             description: "Advanced AI analysis completed",
@@ -230,6 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             icon: "fas fa-brain",
             iconBg: analysis!.validation.reliable ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600",
           });
+          console.timeEnd("storage.createActivity_categorize_auto");
 
           res.json({ 
             success: true, 
@@ -252,11 +290,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // analysis remains undefined here
         const { categoryId, confidence } = req.body;
         
+        console.time("storage.updateEmail_categorize_manual"); // Unique label
         const updatedEmail = await storage.updateEmail(emailId, {
           categoryId: categoryId,
           confidence: confidence || 95,
         });
+        console.timeEnd("storage.updateEmail_categorize_manual");
 
+        console.time("storage.createActivity_categorize_manual"); // Unique label
         await storage.createActivity({
           type: "label",
           description: "Manual email categorization",
@@ -265,6 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           icon: "fas fa-user",
           iconBg: "bg-blue-50 text-blue-600",
         });
+        console.timeEnd("storage.createActivity_categorize_manual");
         
         res.json({ success: true, email: updatedEmail });
       }
@@ -284,14 +326,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const results = [];
+      console.time("storage.getAllCategories_batch_analyze");
       const categories = await storage.getAllCategories();
+      console.timeEnd("storage.getAllCategories_batch_analyze");
       
       for (const emailId of emailIds.slice(0, 10)) { // Limit to 10 emails for performance
         try {
+          console.time(`storage.getEmailById_batch_analyze_${emailId}`);
           const email = await storage.getEmailById(emailId);
+          console.timeEnd(`storage.getEmailById_batch_analyze_${emailId}`);
           if (!email) continue;
 
+          console.time(`pythonNLP.analyzeEmail_batch_analyze_${emailId}`);
           const analysis: MappedNLPResult = await pythonNLP.analyzeEmail(email.subject, email.content); // Updated type to MappedNLPResult
+          console.timeEnd(`pythonNLP.analyzeEmail_batch_analyze_${emailId}`);
           
           // Find best matching category
           const matchingCategory = categories.find(cat => 
@@ -302,11 +350,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
 
           if (matchingCategory && analysis.validation.reliable) {
+            console.time(`storage.updateEmail_batch_analyze_${emailId}`);
             await storage.updateEmail(emailId, {
               categoryId: matchingCategory.id,
               confidence: Math.round(analysis.confidence * 100),
               labels: analysis.suggestedLabels, // Fixed typo: suggested_labels to suggestedLabels
             });
+            console.timeEnd(`storage.updateEmail_batch_analyze_${emailId}`);
 
             results.push({
               emailId,
@@ -335,6 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create batch activity
       const successCount = results.filter(r => r.success).length;
+      console.time("storage.createActivity_batch_analyze");
       await storage.createActivity({
         type: "label",
         description: "Batch AI analysis completed",
@@ -343,6 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         icon: "fas fa-layer-group",
         iconBg: "bg-purple-50 text-purple-600",
       });
+      console.timeEnd("storage.createActivity_batch_analyze");
 
       res.json({
         success: true,
@@ -365,13 +417,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { emailId, userFeedback, correctCategory } = req.body;
       
+      console.time("storage.getEmailById_validate");
       const email = await storage.getEmailById(emailId);
+      console.timeEnd("storage.getEmailById_validate");
       if (!email) {
         return res.status(404).json({ message: "Email not found" });
       }
 
       // Perform fresh analysis
+      console.time("pythonNLP.analyzeEmail_validate");
       const analysis = await pythonNLP.analyzeEmail(email.subject, email.content);
+      console.timeEnd("pythonNLP.analyzeEmail_validate");
       
       // Calculate accuracy based on user feedback
       const isCorrect = userFeedback === 'correct';
@@ -379,18 +435,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update email if user provided correction
       if (correctCategory && !isCorrect) {
+        console.time("storage.getAllCategories_validate");
         const categories = await storage.getAllCategories();
+        console.timeEnd("storage.getAllCategories_validate");
         const category = categories.find(c => c.name === correctCategory);
         
         if (category) {
+          console.time("storage.updateEmail_validate");
           await storage.updateEmail(emailId, {
             categoryId: category.id,
             confidence: 90, // High confidence for human correction
           });
+          console.timeEnd("storage.updateEmail_validate");
         }
       }
 
       // Log validation activity
+      console.time("storage.createActivity_validate");
       await storage.createActivity({
         type: "review",
         description: "AI accuracy validation",
@@ -399,6 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         icon: "fas fa-check-circle",
         iconBg: isCorrect ? "bg-green-50 text-green-600" : "bg-orange-50 text-orange-600",
       });
+      console.timeEnd("storage.createActivity_validate");
 
       res.json({
         success: true,
@@ -418,7 +480,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI engine health check
   app.get("/api/ai/health", async (_req, res) => {
     try {
+      console.time("pythonNLP.testConnection");
       const isHealthy = await pythonNLP.testConnection();
+      console.timeEnd("pythonNLP.testConnection");
       
       res.json({
         status: isHealthy ? 'healthy' : 'degraded',
@@ -444,11 +508,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { strategies = [], maxApiCalls = 100, timeBudgetMinutes = 30 } = req.body;
       
+      console.time("gmailAIService.executeSmartRetrieval");
       const result = await gmailAIService.executeSmartRetrieval(
         strategies,
         maxApiCalls,
         timeBudgetMinutes
       );
+      console.timeEnd("gmailAIService.executeSmartRetrieval");
       
       res.json(result);
     } catch (error) {
@@ -464,7 +530,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get available retrieval strategies
   app.get("/api/gmail/strategies", async (_req, res) => {
     try {
+      console.time("gmailAIService.getRetrievalStrategies");
       const strategies = await gmailAIService.getRetrievalStrategies();
+      console.timeEnd("gmailAIService.getRetrievalStrategies");
       res.json({ strategies });
     } catch (error) {
       console.error("Failed to get strategies:", error);
@@ -486,6 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timeBudgetMinutes = 15
       } = req.body;
 
+      console.time("gmailAIService.syncGmailEmails");
       const result = await gmailAIService.syncGmailEmails({
         maxEmails,
         queryFilter,
@@ -493,6 +562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         strategies,
         timeBudgetMinutes
       });
+      console.timeEnd("gmailAIService.syncGmailEmails");
 
       res.json(result);
     } catch (error) {
@@ -509,7 +579,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/gmail/sync-inbox", async (req, res) => {
     try {
       const { maxEmails = 500 } = req.body;
+      console.time("gmailAIService.syncInboxEmails");
       const result = await gmailAIService.syncInboxEmails(maxEmails);
+      console.timeEnd("gmailAIService.syncInboxEmails");
       res.json(result);
     } catch (error) {
       console.error("Inbox sync failed:", error);
@@ -525,7 +597,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/gmail/sync-important", async (req, res) => {
     try {
       const { maxEmails = 200 } = req.body;
+      console.time("gmailAIService.syncImportantEmails");
       const result = await gmailAIService.syncImportantEmails(maxEmails);
+      console.timeEnd("gmailAIService.syncImportantEmails");
       res.json(result);
     } catch (error) {
       console.error("Important emails sync failed:", error);
@@ -541,7 +615,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/gmail/weekly-batch", async (req, res) => {
     try {
       const { maxEmails = 2000 } = req.body;
+      console.time("gmailAIService.syncWeeklyBatch");
       const result = await gmailAIService.syncWeeklyBatch(maxEmails);
+      console.timeEnd("gmailAIService.syncWeeklyBatch");
       res.json(result);
     } catch (error) {
       console.error("Weekly batch failed:", error);
@@ -558,7 +634,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get comprehensive performance metrics
   app.get("/api/gmail/performance", async (_req, res) => {
     try {
+      console.time("gmailAIService.getPerformanceMetrics");
       const metrics = await gmailAIService.getPerformanceMetrics();
+      console.timeEnd("gmailAIService.getPerformanceMetrics");
       if (metrics) {
         res.json(metrics);
       } else {
@@ -583,7 +661,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get quick performance overview
   app.get("/api/gmail/performance/overview", async (_req, res) => {
     try {
+      console.time("gmailAIService.getQuickPerformanceOverview");
       const overview = await gmailAIService.getQuickPerformanceOverview();
+      console.timeEnd("gmailAIService.getQuickPerformanceOverview");
       res.json(overview || {
         status: 'unknown',
         efficiency: 0,
@@ -610,10 +690,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxTrainingEmails = 5000
       } = req.body;
 
+      console.time("gmailAIService.trainModelsFromGmail");
       const result = await gmailAIService.trainModelsFromGmail(
         trainingQuery,
         maxTrainingEmails
       );
+      console.timeEnd("gmailAIService.trainModelsFromGmail");
 
       res.json(result);
     } catch (error) {
@@ -637,7 +719,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.time("gmailAIService.applyAdaptiveOptimization");
       const result = await gmailAIService.applyAdaptiveOptimization(strategyName);
+      console.timeEnd("gmailAIService.applyAdaptiveOptimization");
       res.json(result);
     } catch (error) {
       console.error("Optimization failed:", error);
@@ -653,7 +737,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get Gmail API rate limit status
   app.get("/api/gmail/quota-status", async (_req, res) => {
     try {
+      console.time("gmailAIService.getPerformanceMetrics_quota");
       const metrics = await gmailAIService.getPerformanceMetrics();
+      console.timeEnd("gmailAIService.getPerformanceMetrics_quota");
       if (metrics?.quotaStatus) {
         res.json(metrics.quotaStatus);
       } else {
@@ -674,7 +760,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get active alerts
   app.get("/api/gmail/alerts", async (_req, res) => {
     try {
+      console.time("gmailAIService.getPerformanceMetrics_alerts");
       const metrics = await gmailAIService.getPerformanceMetrics();
+      console.timeEnd("gmailAIService.getPerformanceMetrics_alerts");
       res.json({
         alerts: metrics?.alerts || [],
         count: metrics?.alerts?.length || 0
@@ -692,7 +780,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get optimization recommendations
   app.get("/api/gmail/recommendations", async (_req, res) => {
     try {
+      console.time("gmailAIService.getPerformanceMetrics_recommendations");
       const metrics = await gmailAIService.getPerformanceMetrics();
+      console.timeEnd("gmailAIService.getPerformanceMetrics_recommendations");
       res.json({
         recommendations: metrics?.recommendations || [],
         count: metrics?.recommendations?.length || 0
