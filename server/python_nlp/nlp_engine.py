@@ -13,10 +13,33 @@ import re
 try:
     import nltk
     from textblob import TextBlob
+    
+    # Download required NLTK data
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        print("Downloading NLTK stopwords...", file=sys.stderr)
+        nltk.download('stopwords', quiet=True)
+    
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        print("Downloading NLTK punkt tokenizer...", file=sys.stderr)
+        nltk.download('punkt', quiet=True)
+    
+    try:
+        nltk.data.find('taggers/averaged_perceptron_tagger')
+    except LookupError:
+        print("Downloading NLTK POS tagger...", file=sys.stderr)
+        nltk.download('averaged_perceptron_tagger', quiet=True)
+    
     HAS_NLTK = True
 except ImportError:
     HAS_NLTK = False
     print("Warning: NLTK not available, using fallback analysis", file=sys.stderr)
+except Exception as e:
+    HAS_NLTK = False
+    print(f"Warning: NLTK data download failed: {e}, using fallback analysis", file=sys.stderr)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +47,20 @@ logger = logging.getLogger(__name__)
 
 class NLPEngine:
     def __init__(self):
-        self.stop_words = set(nltk.corpus.stopwords.words('english')) if HAS_NLTK else set()
+        if HAS_NLTK:
+            try:
+                self.stop_words = set(nltk.corpus.stopwords.words('english'))
+            except LookupError:
+                print("Warning: NLTK stopwords not available, downloading...", file=sys.stderr)
+                try:
+                    nltk.download('stopwords', quiet=True)
+                    self.stop_words = set(nltk.corpus.stopwords.words('english'))
+                except Exception:
+                    self.stop_words = set()
+            except Exception:
+                self.stop_words = set()
+        else:
+            self.stop_words = set()
 
     def _preprocess_text(self, text: str) -> str:
         """Basic text cleaning and normalization"""
