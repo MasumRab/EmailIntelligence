@@ -10,10 +10,63 @@ import sys
 import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
-from .utils.async_utils import _execute_async_command
+# Removed: from .utils.async_utils import _execute_async_command
 from server.python_nlp.nlp_engine import NLPEngine as FallbackNLPEngine # Renamed for clarity
 
 logger = logging.getLogger(__name__)
+
+
+# Copied and adapted from GmailAIService as a temporary solution
+async def _execute_async_command_helper(cmd: List[str], cwd: Optional[str] = None, logger_instance: Optional[logging.Logger] = None) -> Dict[str, Any]:
+    """
+    Execute command asynchronously.
+    Returns a dictionary with 'success': True/False and other command output.
+    """
+    current_logger = logger_instance if logger_instance else logger
+    try:
+        # Logging is now handled by the caller
+        # current_logger.debug(f"Executing async command: {' '.join(cmd)} in {cwd or '.'}")
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=cwd
+        )
+
+        stdout, stderr = await process.communicate()
+        stdout_decoded = stdout.decode().strip() if stdout else ""
+        stderr_decoded = stderr.decode().strip() if stderr else ""
+
+        if process.returncode != 0:
+            error_msg = stderr_decoded or stdout_decoded or "Unknown error during command execution."
+            current_logger.error(f"Async command failed (return code {process.returncode}): {cmd}. Error: {error_msg}")
+            return {"success": False, "error": error_msg, "return_code": process.returncode}
+
+        if stdout_decoded:
+            try:
+                parsed_output = json.loads(stdout_decoded)
+                if isinstance(parsed_output, dict) and 'success' not in parsed_output:
+                    parsed_output['success'] = True
+                elif not isinstance(parsed_output, dict):
+                     return {"success": True, "data": parsed_output}
+                return parsed_output
+            except json.JSONDecodeError as e:
+                current_logger.warning(f"Command {cmd} output was not valid JSON, but command succeeded. Output: {stdout_decoded[:200]}...")
+                return {"success": True, "output": stdout_decoded, "error": f"Non-JSON output: {str(e)}"}
+        else:
+            current_logger.info(f"Command {cmd} executed successfully with no stdout.")
+            return {"success": True, "output": ""}
+
+    except FileNotFoundError as e:
+        current_logger.error(f"Async command failed: Executable not found for {cmd}. Error: {e}")
+        return {"success": False, "error": f"Executable not found: {cmd[0]}. {str(e)}"}
+    except PermissionError as e:
+        current_logger.error(f"Async command failed: Permission denied for {cmd}. Error: {e}")
+        return {"success": False, "error": f"Permission denied for {cmd[0]}. {str(e)}"}
+    except Exception as e:
+        current_logger.error(f"Generic async command execution failed for {cmd}: {e}", exc_info=True)
+        return {"success": False, "error": str(e)}
+
 
 class AIAnalysisResult:
     """AI analysis result wrapper"""
@@ -77,9 +130,25 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
+            # Redaction logic for logging
+            redacted_cmd_for_logging = []
+            skip_next = False
+            for i, arg in enumerate(cmd):
+                if skip_next:
+                    skip_next = False
+                    continue
+                if arg == '--subject' or arg == '--content':
+                    redacted_cmd_for_logging.append(arg)
+                    if (i + 1) < len(cmd):
+                        redacted_cmd_for_logging.append("<REDACTED>")
+                        skip_next = True
+                else:
+                    redacted_cmd_for_logging.append(arg)
+            logger.debug(f"Executing NLPEngine script for email analysis with command: {' '.join(redacted_cmd_for_logging)}")
+
+            result = await _execute_async_command_helper(cmd, cwd=self.python_nlp_path, logger_instance=logger)
             
-            if 'error' in result:
+            if 'error' in result or not result.get("success"): # Check result from helper too
                 # Fallback to basic analysis
                 return self._get_fallback_analysis(subject, content)
             
@@ -105,7 +174,10 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
+            # For train_models, cmd itself is not directly sensitive with subject/content.
+            # The sensitive data is in training_file, which is already temp.
+            logger.debug(f"Executing AI training script with command: {' '.join(cmd)}")
+            result = await _execute_async_command_helper(cmd, cwd=self.python_nlp_path, logger_instance=logger)
             
             # Cleanup temporary file
             try:
@@ -145,7 +217,8 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
+            logger.debug(f"Executing AI health check script with command: {' '.join(cmd)}")
+            result = await _execute_async_command_helper(cmd, cwd=self.python_nlp_path, logger_instance=logger)
             
             return {
                 "status": "healthy" if result.get('status') == 'ok' else "degraded",

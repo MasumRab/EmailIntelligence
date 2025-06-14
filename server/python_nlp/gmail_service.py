@@ -12,20 +12,24 @@ import os # Added
 import subprocess # Added
 import sys # Added
 
+from server.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult # Added
 from .gmail_integration import GmailDataCollector, EmailBatch, RateLimitConfig
 from .gmail_metadata import GmailMetadataExtractor, GmailMessage
-from .data_strategy import DataCollectionStrategy, EmailSample
-from .ai_training import ModelTrainer, PromptEngineer, ModelConfig
+# from .data_strategy import DataCollectionStrategy, EmailSample # Removed as it's no longer used
+# Removed ModelTrainer, PromptEngineer, ModelConfig imports as they are replaced by AdvancedAIEngine
+# from .ai_training import ModelTrainer, PromptEngineer, ModelConfig
+
 
 class GmailAIService:
     """Complete Gmail integration with AI processing and metadata extraction"""
     
-    def __init__(self, rate_config: Optional[RateLimitConfig] = None):
+    def __init__(self, advanced_ai_engine: AdvancedAIEngine, rate_config: Optional[RateLimitConfig] = None): # Modified
         self.collector = GmailDataCollector(rate_config)
         self.metadata_extractor = GmailMetadataExtractor()
-        self.data_strategy = DataCollectionStrategy()
-        self.model_trainer = ModelTrainer()
-        self.prompt_engineer = PromptEngineer()
+        # self.data_strategy = DataCollectionStrategy() # Removed
+        self.advanced_ai_engine = advanced_ai_engine # Ensure it's assigned
+        # self.model_trainer = ModelTrainer() # Removed
+        # self.prompt_engineer = PromptEngineer() # Removed
         # Changed for more specific logger name
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
@@ -156,58 +160,46 @@ class GmailAIService:
             }
     
     async def _perform_ai_analysis(self, email_sample: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform comprehensive AI analysis on email sample"""
+        """Perform comprehensive AI analysis on email sample using AdvancedAIEngine"""
         try:
-            text_content = f"{email_sample.get('subject', '')} {email_sample.get('content', '')}"
-            sample = EmailSample(
-                id=email_sample['id'],
-                subject=email_sample['subject'],
-                content=email_sample['content'],
-                sender=email_sample['sender_email'],
-                timestamp=email_sample['timestamp'],
-                labels={},
-                metadata={}
-            )
+            if not self.advanced_ai_engine:
+                self.logger.error("AdvancedAIEngine not initialized for AI analysis.")
+                return { 'error': 'AdvancedAIEngine not available', 'topic': 'unknown', 'sentiment': 'neutral', 'intent': 'information', 'urgency': 'low', 'confidence': 0.0 }
+
+            subject = email_sample.get('subject', '')
+            content = email_sample.get('content', '')
             
-            processed_sample = self.data_strategy.preprocess_email(sample)
-            annotation = self.data_strategy.annotate_email(processed_sample)
-            features = self.model_trainer.feature_extractor.extract_features(text_content)
+            # Call AdvancedAIEngine
+            ai_result_obj: AIAnalysisResult = await self.advanced_ai_engine.analyze_email(subject=subject, content=content)
+            analysis_result = ai_result_obj.to_dict() # Convert AIAnalysisResult to dictionary
             
-            analysis_result = {
-                'topic': annotation.topic,
-                'sentiment': annotation.sentiment,
-                'intent': annotation.intent,
-                'urgency': annotation.urgency,
-                'confidence': annotation.confidence,
-                'keywords': annotation.keywords,
-                'entities': annotation.entities,
-                'reasoning': annotation.reasoning,
-                'suggested_labels': annotation.suggested_labels,
-                'risk_flags': annotation.risk_flags,
-                'features': features,
-                'processing_timestamp': datetime.now().isoformat()
-            }
+            # Ensure processing_timestamp is part of the successful analysis result
+            analysis_result['processing_timestamp'] = datetime.now().isoformat()
             
             self.stats['ai_analyses_completed'] += 1
             return analysis_result
             
         except Exception as e:
             self.logger.error(f"AI analysis failed for email {email_sample.get('id', 'unknown')}: {e}", exc_info=True)
+            # Return a default error structure that matches AIAnalysisResult.to_dict() or is acceptable downstream
             return {
-                'error': str(e), 'topic': 'unknown',
-                'sentiment': 'neutral',
-                'intent': 'information',
-                'urgency': 'low',
-                'confidence': 0.0
+                'error': str(e),
+                'topic': 'unknown', 'sentiment': 'neutral', 'intent': 'information', 'urgency': 'low',
+                'confidence': 0.0, 'keywords': [], 'entities': [], 'reasoning': '',
+                'suggested_labels': [], 'risk_flags': [], 'category_id': None,
+                'processing_timestamp': datetime.now().isoformat()
             }
     
-    def _convert_to_db_format(self, gmail_metadata: GmailMessage, training_sample: Dict[str, Any]) -> Dict[str, Any]:
+    def _convert_to_db_format(self, gmail_metadata: GmailMessage, training_sample: Dict[str, Any]) -> Dict[str, Any]: # training_sample contains ai_analysis result
         """Convert Gmail metadata and AI analysis to database format"""
         
+        ai_analysis_data = training_sample.get('ai_analysis', {})
+
         # Determine category ID based on AI analysis
-        category_id = self._map_topic_to_category_id(
-            training_sample.get('ai_analysis', {}).get('topic', 'unknown')
-        )
+        # The category_id might now be directly available from ai_analysis_data if AdvancedAIEngine provides it
+        category_id = ai_analysis_data.get('category_id')
+        if category_id is None: # Fallback to mapping if not directly provided
+            category_id = self._map_topic_to_category_id(ai_analysis_data.get('topic', 'unknown'))
         
         # Create comprehensive database record
         db_email = {
@@ -271,10 +263,10 @@ class GmailAIService:
             'isFirstInThread': gmail_metadata.thread_info.get('is_first_message', True),
             
             # AI analysis results
-            'categoryId': category_id,
-            'confidence': int(training_sample.get('ai_analysis', {}).get('confidence', 0) * 100),
-            'analysisMetadata': json.dumps({
-                'ai_analysis': training_sample.get('ai_analysis', {}),
+            'categoryId': category_id, # Updated to use category_id from ai_analysis_data or mapping
+            'confidence': int(ai_analysis_data.get('confidence', 0) * 100), # Use ai_analysis_data
+            'analysisMetadata': json.dumps({ # Ensure all relevant ai_analysis_data is included
+                'ai_analysis': ai_analysis_data,
                 'importance_markers': gmail_metadata.importance_markers,
                 'thread_info': gmail_metadata.thread_info,
                 'custom_headers': gmail_metadata.custom_headers,
@@ -304,128 +296,63 @@ class GmailAIService:
                 max_emails=max_training_emails
             )
             
-            # Extract and preprocess training samples
             training_samples = []
             for gmail_msg in training_batch.messages:
                 try:
                     metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
-                    training_format = self.metadata_extractor.to_training_format(metadata)
-                    
+                    # Convert metadata to a simpler format suitable for training,
+                    # AdvancedAIEngine.train_models will handle the detailed preparation.
                     sample_dict = {
-                        'subject': training_format['subject'], 'content': training_format['content'],
-                        'sender': training_format['sender_email'],
-                        'labels': {
-                            'topic': self._infer_topic_from_metadata(metadata),
-                            'sentiment': self._infer_sentiment_from_metadata(metadata),
-                            'intent': self._infer_intent_from_metadata(metadata),
-                            'urgency': self._infer_urgency_from_metadata(metadata)
-                        }}
+                        'id': metadata.message_id, # Include an ID
+                        'subject': metadata.subject,
+                        'content': metadata.body_plain or metadata.snippet, # Prefer plain text
+                        'sender_email': metadata.from_address,
+                        'timestamp': metadata.date, # Or internal_date
+                        'label_ids': metadata.label_ids, # Pass existing labels, training script might use them
+                        'category': metadata.category # Pass existing category
+                    }
+                    # Add any other relevant raw fields that the training process might find useful
+                    if metadata.to_addresses:
+                        sample_dict['to_addresses'] = metadata.to_addresses
+                    if metadata.cc_addresses:
+                        sample_dict['cc_addresses'] = metadata.cc_addresses
+
                     training_samples.append(sample_dict)
                 except Exception as e:
-                    self.logger.warning(f"Skipping training sample due to processing error: {e}", exc_info=True)
+                    self.logger.warning(f"Skipping training sample for email ID {gmail_msg.get('id', 'unknown')} due to processing error: {e}", exc_info=True)
                     continue
             
             if not training_samples:
                  self.logger.warning("No training samples collected, aborting model training.")
                  return {'success': False, 'error': 'No training samples collected.', 'training_samples_count': 0}
 
-            training_results = {}
-            topic_config = ModelConfig(
-                model_type='topic_modeling',
-                algorithm='naive_bayes',
-                hyperparameters={'smoothing': 1.0},
-                feature_set=['word_count', 'sentiment_score', 'urgency_score', 'business_terms'],
-                training_data_version='gmail_v1.0'
-            )
+            # Call AdvancedAIEngine to train models
+            # Ensure self.advanced_ai_engine is available
+            if not self.advanced_ai_engine:
+                self.logger.error("AdvancedAIEngine not initialized in GmailAIService for training.")
+                return {'success': False, 'error': 'AdvancedAIEngine not initialized.'}
+
+            training_results = await self.advanced_ai_engine.train_models(training_emails=training_samples)
             
-            features, labels = self.model_trainer.prepare_training_data(training_samples, 'topic')
-            if features and labels:
-                topic_result = self.model_trainer.train_naive_bayes(features, labels, topic_config)
-                training_results['topic_model'] = {'model_id': topic_result.model_id, 'accuracy': topic_result.accuracy, 'f1_score': topic_result.f1_score}
-            
-            sentiment_config = ModelConfig(
-                model_type='sentiment_analysis',
-                algorithm='logistic_regression',
-                hyperparameters={'learning_rate': 0.01, 'epochs': 100},
-                feature_set=['sentiment_score', 'positive_word_count', 'negative_word_count'],
-                training_data_version='gmail_v1.0'
-            )
-            
-            features, labels = self.model_trainer.prepare_training_data(training_samples, 'sentiment')
-            if features and labels:
-                sentiment_result = self.model_trainer.train_logistic_regression(features, labels, sentiment_config)
-                training_results['sentiment_model'] = {'model_id': sentiment_result.model_id, 'accuracy': sentiment_result.accuracy, 'f1_score': sentiment_result.f1_score}
-            
-            prompt_templates = self.prompt_engineer.generate_email_classification_prompts()
-            training_results['prompt_templates'] = list(prompt_templates.keys())
-            
-            return {'success': True, 'training_samples_count': len(training_samples), 'models_trained': training_results, 'training_timestamp': datetime.now().isoformat()}
+            # The return structure from AdvancedAIEngine.train_models is:
+            # { "success": True/False, "modelsTrained": [], "trainingAccuracy": {}, ..., "error": str(e) }
+            # Adapt this to the existing return structure of train_models_from_gmail_data or decide on a new one.
+            # For now, largely pass through, ensuring 'success' key is present.
+            return {
+                'success': training_results.get('success', False),
+                'training_samples_count': len(training_samples),
+                'models_trained_details': training_results, # Pass through the detailed results
+                'error': training_results.get('error'),
+                'training_timestamp': datetime.now().isoformat()
+            }
         except Exception as e:
             self.logger.error(f"Model training failed: {e}", exc_info=True)
-            return {'success': False, 'error': str(e),
-                'training_samples_count': 0
-            }
-    
-    def _infer_topic_from_metadata(self, metadata: GmailMessage) -> str:
-        """Infer topic from Gmail metadata and labels"""
-        # Use Gmail categories as topic indicators
-        if metadata.category == 'primary':
-            # Look at labels and content for more specific classification
-            if any(label in ['CATEGORY_PERSONAL'] for label in metadata.label_ids):
-                return 'personal_family'
-            elif metadata.mailing_list or any(word in metadata.subject.lower() for word in ['newsletter', 'promotion', 'offer']):
-                return 'promotions'
-            else:
-                return 'work_business'
-        elif metadata.category == 'social':
-            return 'personal_family'
-        elif metadata.category == 'promotions':
-            return 'promotions'
-        elif metadata.category == 'updates':
-            # Could be financial or business updates
-            if any(word in metadata.subject.lower() for word in ['bank', 'payment', 'invoice', 'statement']):
-                return 'finance_banking'
-            else:
-                return 'work_business'
-        else:
-            return 'work_business'  # Default
-    
-    def _infer_sentiment_from_metadata(self, metadata: GmailMessage) -> str:
-        """Infer sentiment from Gmail metadata"""
-        # Check importance and star status
-        if metadata.is_important and metadata.is_starred:
-            return 'positive'
-        elif metadata.is_spam or metadata.is_trash:
-            return 'negative'
-        else:
-            return 'neutral'
-    
-    def _infer_intent_from_metadata(self, metadata: GmailMessage) -> str:
-        """Infer intent from Gmail metadata"""
-        subject_lower = metadata.subject.lower()
-        
-        if any(word in subject_lower for word in ['?', 'question', 'help', 'how']):
-            return 'question'
-        elif any(word in subject_lower for word in ['confirmation', 'confirm', 'booking', 'receipt']):
-            return 'confirmation'
-        elif any(word in subject_lower for word in ['request', 'please', 'need']):
-            return 'request'
-        elif metadata.mailing_list or 'newsletter' in subject_lower:
-            return 'information'
-        else:
-            return 'information'  # Default
-    
-    def _infer_urgency_from_metadata(self, metadata: GmailMessage) -> str:
-        """Infer urgency from Gmail metadata"""
-        subject_lower = metadata.subject.lower()
-        
-        if metadata.is_important or any(word in subject_lower for word in ['urgent', 'asap', 'emergency', 'critical']):
-            return 'high'
-        elif any(word in subject_lower for word in ['today', 'tomorrow', 'deadline']):
-            return 'medium'
-        else:
-            return 'low'
-    
+            return {'success': False, 'error': str(e), 'training_samples_count': 0}
+
+    # Obsolete helper methods _infer_topic_from_metadata, _infer_sentiment_from_metadata,
+    # _infer_intent_from_metadata, _infer_urgency_from_metadata, and _infer_labels_for_training
+    # have been removed as this logic is now centralized in AdvancedAIEngine or its underlying scripts.
+
     def get_processing_statistics(self) -> Dict[str, Any]:
         """Get comprehensive processing statistics"""
         return {
@@ -531,54 +458,95 @@ async def main():
     # Get a logger for the main function
     main_logger = logging.getLogger(__name__) # This will use the root logger if not further specified
 
-    service = GmailAIService()
+    # --- Updated main function for AdvancedAIEngine ---
+    # Ensure AdvancedAIEngine is imported if it's not already at the top
+    # from server.python_backend.ai_engine import AdvancedAIEngine
+
+    ai_engine = AdvancedAIEngine()
+    # It's important that ai_engine is initialized if it has an async setup method.
+    # Assuming AdvancedAIEngine() instantiation is synchronous and
+    # its methods handle internal initialization if needed, or it has an explicit init method.
+    # If AdvancedAIEngine has an async initialize() method:
+    # await ai_engine.initialize() # This needs to be called within an async context.
+
+    # Pass the AdvancedAIEngine instance to GmailAIService
+    # service = GmailAIService(advanced_ai_engine=ai_engine) # This line will be inside main()
     
     main_logger.info("Starting example usage of GmailAIService...")
     # Sync recent emails with AI analysis
-    # Reduced max_emails for quicker testing, set include_ai_analysis to False if NLP models aren't set up
-    sync_result = await service.sync_gmail_emails(
-        query_filter="newer_than:1d",
-        max_emails=2, # Very few for testing
-        include_ai_analysis=False # Assuming AI models might not be fully available/needed for this test
-    )
-    main_logger.info(f"Sync result success: {sync_result.get('success')}, Processed: {sync_result.get('processed_count')}")
-    if not sync_result.get('success'):
-        main_logger.error(f"Sync error: {sync_result.get('error')}")
+    # include_ai_analysis should now leverage the AdvancedAIEngine
+    # Set include_ai_analysis to True to test the new integration.
+    # Ensure AdvancedAIEngine is configured and its models are available if analysis is to succeed.
+    # sync_result = await service.sync_gmail_emails( # This line will be inside main()
+    #     query_filter="newer_than:1d",
+    #     max_emails=2,
+    #     include_ai_analysis=True
+    # )
+    # main_logger.info(f"Sync result success: {sync_result.get('success')}, Processed: {sync_result.get('processed_count')}")
+    # if not sync_result.get('success'): # This line will be inside main()
+    #     main_logger.error(f"Sync error: {sync_result.get('error')}")
 
     # --- Test moved methods ---
     # These require smart_retrieval.py to be present and executable in the same directory.
-    # For a unit test, you'd mock _execute_async_command.
-    # For an integration test, you need the script.
     
-    # Example: Create a dummy smart_retrieval.py for testing
-    # File: server/python_nlp/smart_retrieval.py
-    # #!/usr/bin/env python
-    # import json
-    # import sys
-    # if __name__ == "__main__":
-    #     if '--list-strategies' in sys.argv:
-    #         print(json.dumps({"success": True, "strategies": [{"name": "test_strat", "description": "A test strategy"}]}))
-    #     elif '--execute-strategies' in sys.argv:
-    #         print(json.dumps({"success": True, "strategies_executed": ["test_exec"], "total_emails": 5, "performance": {"avg_time": 0.1}}))
-    #     elif '--get-performance' in sys.argv:
-    #         print(json.dumps({"success": True, "avg_efficiency": 0.95, "active_strategies": 1, "quota_used_percent": 10}))
-    #     else:
-    #         print(json.dumps({"success": False, "error": "Unknown command"}))
+    # main_logger.info("Testing get_retrieval_strategies...") # This line will be inside main()
+    # strategies = await service.get_retrieval_strategies() # This line will be inside main()
+    # main_logger.info(f"Retrieved strategies: {strategies}") # This line will be inside main()
 
-    main_logger.info("Testing get_retrieval_strategies...")
-    strategies = await service.get_retrieval_strategies()
-    main_logger.info(f"Retrieved strategies: {strategies}")
+    # main_logger.info("Testing execute_smart_retrieval...") # This line will be inside main()
+    # retrieval_result = await service.execute_smart_retrieval(strategies=["test_strat"], max_api_calls=10, time_budget_minutes=5) # This line will be inside main()
+    # main_logger.info(f"Smart retrieval result: {retrieval_result}") # This line will be inside main()
 
-    main_logger.info("Testing execute_smart_retrieval...")
-    retrieval_result = await service.execute_smart_retrieval(strategies=["test_strat"], max_api_calls=10, time_budget_minutes=5)
-    main_logger.info(f"Smart retrieval result: {retrieval_result}")
-
-    main_logger.info("Testing get_performance_metrics...")
-    performance = await service.get_performance_metrics()
-    main_logger.info(f"Performance metrics: {performance}")
+    # main_logger.info("Testing get_performance_metrics...") # This line will be inside main()
+    # performance = await service.get_performance_metrics() # This line will be inside main()
+    # main_logger.info(f"Performance metrics: {performance}") # This line will be inside main()
     
-    stats = service.get_processing_statistics()
-    main_logger.info(f"Final processing statistics: {stats}")
+    # stats = service.get_processing_statistics() # This line will be inside main()
+    # main_logger.info(f"Final processing statistics: {stats}") # This line will be inside main()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Wrap main execution in an async function to use await for ai_engine.initialize()
+    async def run_main():
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        main_logger_local = logging.getLogger(__name__) # Use a local logger for main
+
+        main_logger_local.info("Initializing AdvancedAIEngine...")
+        ai_engine_instance = AdvancedAIEngine()
+        try:
+            await ai_engine_instance.initialize() # Initialize the AI engine
+            main_logger_local.info("AdvancedAIEngine initialized successfully.")
+        except Exception as e:
+            main_logger_local.error(f"Failed to initialize AdvancedAIEngine: {e}", exc_info=True)
+            return # Exit if AI engine fails to initialize
+
+        service_instance = GmailAIService(advanced_ai_engine=ai_engine_instance)
+        main_logger_local.info("GmailAIService instantiated with AdvancedAIEngine.")
+
+        main_logger_local.info("Starting example usage of GmailAIService...")
+
+        sync_result = await service_instance.sync_gmail_emails(
+            query_filter="newer_than:1d",
+            max_emails=2,
+            include_ai_analysis=True # Test with AI analysis enabled
+        )
+        main_logger_local.info(f"Sync result success: {sync_result.get('success')}, Processed: {sync_result.get('processed_count')}")
+        if not sync_result.get('success'):
+            main_logger_local.error(f"Sync error: {sync_result.get('error')}")
+
+        # You can uncomment these other test calls if smart_retrieval.py is set up
+        # main_logger_local.info("Testing get_retrieval_strategies...")
+        # strategies = await service_instance.get_retrieval_strategies()
+        # main_logger_local.info(f"Retrieved strategies: {strategies}")
+
+        # main_logger_local.info("Testing execute_smart_retrieval...")
+        # retrieval_result = await service_instance.execute_smart_retrieval(strategies=["test_strat"], max_api_calls=10, time_budget_minutes=5)
+        # main_logger_local.info(f"Smart retrieval result: {retrieval_result}")
+
+        # main_logger_local.info("Testing get_performance_metrics...")
+        # performance = await service_instance.get_performance_metrics()
+        # main_logger_local.info(f"Performance metrics: {performance}")
+
+        stats = service_instance.get_processing_statistics()
+        main_logger_local.info(f"Final processing statistics: {stats}")
+
+    asyncio.run(run_main())

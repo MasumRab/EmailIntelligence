@@ -13,9 +13,9 @@ from .models import (
     SmartRetrievalRequest, FilterRequest,
     AIAnalysisResponse, DashboardStats
 )
-from .gmail_service import GmailAIService
+# from .gmail_service import GmailAIService # Removed incorrect import
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
-from .smart_filters import SmartFilterManager, EmailFilter
+# from .smart_filters import SmartFilterManager, EmailFilter # Removed, as SmartFilterManager is commented out in main.py
 from .performance_monitor import PerformanceMonitor
 
 __version__ = "2.0.0"
@@ -37,10 +37,10 @@ __all__ = [
     "FilterRequest",
     "AIAnalysisResponse",
     "DashboardStats",
-    "GmailAIService",
+    # "GmailAIService", # Removed from __all__
     "AdvancedAIEngine",
     "AIAnalysisResult",
-    "SmartFilterManager",
-    "EmailFilter",
+    # "SmartFilterManager", # Removed from __all__
+    # "EmailFilter", # Removed from __all__
     "PerformanceMonitor"
 ]

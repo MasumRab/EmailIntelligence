@@ -284,12 +284,12 @@ class DataCollectionStrategy:
         """
         # Auto-generate annotation based on guidelines
         annotation = AnnotationSchema(
-            topic=self._predict_topic(email.content + " " + email.subject),
-            sentiment=self._predict_sentiment(email.content + " " + email.subject),
-            intent=self._predict_intent(email.content + " " + email.subject),
-            urgency=self._predict_urgency(email.content + " " + email.subject),
+            topic=self._predict_topic(f"{email.content} {email.subject}"),
+            sentiment=self._predict_sentiment(f"{email.content} {email.subject}"),
+            intent=self._predict_intent(f"{email.content} {email.subject}"),
+            urgency=self._predict_urgency(f"{email.content} {email.subject}"),
             entities=self._extract_entities(email.content),
-            keywords=self._extract_keywords(email.content + " " + email.subject),
+            keywords=self._extract_keywords(f"{email.content} {email.subject}"),
             confidence=0.85,  # Default confidence for auto-annotation
             annotator_id=annotator_id
         )

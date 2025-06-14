@@ -11,7 +11,7 @@ from collections import defaultdict, deque
 import json
 import psutil
 # import sqlite3 # Removed SQLite
-from dataclasses import asdict # Added
+from dataclasses import asdict, dataclass # Modified to include dataclass
 from datetime import datetime # Ensure datetime is directly available
 
 logger = logging.getLogger(__name__)
@@ -72,8 +72,29 @@ class PerformanceMonitor:
         self.LOG_INTERVAL_SECONDS = LOG_INTERVAL_SECONDS # Make it instance variable for potential override
         self.PERFORMANCE_LOG_FILE = PERFORMANCE_LOG_FILE
 
-        # Start periodic file logging task
-        asyncio.create_task(self._periodic_logger_task())
+        # Periodic file logging task is not started automatically in __init__ anymore
+        # It should be started by calling start_periodic_logger()
+        self._periodic_logger_task_handle = None
+
+    async def start_periodic_logger(self):
+        """Starts the periodic file logging task."""
+        if self._periodic_logger_task_handle is None or self._periodic_logger_task_handle.done():
+            self._periodic_logger_task_handle = asyncio.create_task(self._periodic_logger_task())
+            logger.info("Periodic logger task started.")
+        else:
+            logger.info("Periodic logger task is already running.")
+
+    async def stop_periodic_logger(self):
+        """Stops the periodic file logging task."""
+        if self._periodic_logger_task_handle and not self._periodic_logger_task_handle.done():
+            self._periodic_logger_task_handle.cancel()
+            try:
+                await self._periodic_logger_task_handle
+            except asyncio.CancelledError:
+                logger.info("Periodic logger task successfully cancelled.")
+            self._periodic_logger_task_handle = None
+        else:
+            logger.info("Periodic logger task is not running or already stopped.")
 
     async def _log_metrics_to_file(self):
         """Logs current in-memory metrics, alerts, and system health to a JSONL file and clears buffers."""
