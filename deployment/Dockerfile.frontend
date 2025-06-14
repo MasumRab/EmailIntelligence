@@ -7,6 +7,8 @@ WORKDIR /app
 COPY client/package*.json ./
 
 # Install dependencies
+# npm ci is used for clean, reproducible installs based on package-lock.json.
+# Ensure network connectivity to the npm registry.
 RUN npm ci
 
 # Copy the rest of the client code
@@ -14,6 +16,9 @@ COPY client/ ./
 COPY shared/ ./shared/
 
 # Build the application
+# The npm run build process can be resource-intensive, especially for large projects.
+# Ensure the build environment has sufficient memory and CPU.
+# Using --debug as added to package.json can help if hangs occur.
 RUN npm run build
 
 # Production stage
