@@ -9,11 +9,11 @@ try:
     # This is more for a local setup; in a container, it should be pre-installed.
     try:
         nltk.data.find('taggers/averaged_perceptron_tagger')
-    except nltk.downloader.DownloadError:
+    except nltk.downloader.ErrorMessage:
         nltk.download('averaged_perceptron_tagger', quiet=True)
     try:
         nltk.data.find('tokenizers/punkt')
-    except nltk.downloader.DownloadError:
+    except nltk.downloader.ErrorMessage:
         nltk.download('punkt', quiet=True)
     HAS_NLTK = True
 except ImportError:
