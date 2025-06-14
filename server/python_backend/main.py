@@ -19,7 +19,8 @@ import json
 # Import our Python modules
 from .database import DatabaseManager, get_db
 from .models import EmailCreate, EmailUpdate, CategoryCreate, ActivityCreate
-from .gmail_service import GmailAIService
+# Updated import to use NLP GmailAIService directly
+from server.python_nlp.gmail_service import GmailAIService
 from .smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
 from .performance_monitor import PerformanceMonitor
@@ -387,13 +388,43 @@ async def sync_gmail(
 ):
     """Sync emails from Gmail with AI analysis"""
     try:
-        result = await gmail_service.sync_gmail_emails(
-            max_emails=request_model.maxEmails,
-            query_filter=request_model.queryFilter,
-            include_ai_analysis=request_model.includeAIAnalysis,
-            strategies=request_model.strategies,
-            time_budget_minutes=request_model.timeBudgetMinutes
+        # Call the NLP service's sync_gmail_emails method directly
+        # Note: NLPGS.sync_gmail_emails does not use `strategies` or `time_budget_minutes` from GmailSyncRequest
+        nlp_result = await gmail_service.sync_gmail_emails(
+            max_emails=request_model.maxEmails, # This is from GmailSyncRequest
+            query_filter=request_model.queryFilter, # This is from GmailSyncRequest
+            include_ai_analysis=request_model.includeAIAnalysis # This is from GmailSyncRequest
         )
+
+        # Adapt NLP result to BackendGS expected format (logic moved from old backend adapter)
+        if nlp_result.get('success'):
+            result = {
+                "success": True,
+                "processedCount": nlp_result.get('processed_count', 0),
+                "emailsCreated": nlp_result.get('processed_count', 0), # Approximation
+                "errorsCount": 0,
+                "batchInfo": {
+                    "batchId": nlp_result.get('batch_info', {}).get('batch_id', f'batch_{int(datetime.now().timestamp())}'),
+                    "queryFilter": request_model.queryFilter, # Use the original request's query_filter
+                    "timestamp": nlp_result.get('batch_info', {}).get('timestamp', datetime.now().isoformat())
+                },
+                "statistics": nlp_result.get('statistics', {}),
+                "error": None
+            }
+        else:
+            result = {
+                "success": False,
+                "processedCount": 0,
+                "emailsCreated": 0,
+                "errorsCount": 1,
+                "batchInfo": {
+                    "batchId": f'error_batch_{int(datetime.now().timestamp())}',
+                    "queryFilter": request_model.queryFilter, # Use the original request's query_filter
+                    "timestamp": datetime.now().isoformat()
+                },
+                "statistics": nlp_result.get('statistics', {}),
+                "error": nlp_result.get('error', 'Unknown error from NLP service')
+            }
         
         # Background performance monitoring
         background_tasks.add_task(
