@@ -12,7 +12,7 @@ The primary method for setting up and managing the Python environment for EmailI
 *   **Application Launching**: Serves as the main entry point to run the application, tests, and other utilities.
 
 **Note on `setup_python.sh`:**
-The shell script `scripts/setup_python.sh` is now considered a **legacy script**. While it might offer some initial system-level setup (like ensuring Python and pip are installed), **`launch.py` is the recommended and comprehensive tool for creating and managing the project's Python virtual environment and dependencies.** Users should prioritize using `launch.py` for environment setup.
+The shell script `scripts/setup_python.sh` is **DEPRECATED** and should no longer be used for environment setup. It is considered a **legacy script** and may be removed in future versions. **`launch.py` is the sole recommended and comprehensive tool for creating and managing the project's Python virtual environment and dependencies.** All users **must** prioritize using `launch.py` for a consistent and correct environment setup.
 
 ## Key Components Managed by `launch.py`
 
@@ -41,7 +41,7 @@ The shell script `scripts/setup_python.sh` is now considered a **legacy script**
         - For `test` stage (`--stage test`): After base dependencies, packages from `requirements-test.txt` are installed (if the file exists).
     - The `--update-deps` flag forces an update (upgrade) of existing packages during installation.
 - **Python Version Checking**: Ensures the Python version being used is within the supported range.
-- **NLTK Data Download**: Automatically attempts to download required NLTK datasets.
+- **NLTK Data Download**: Actively manages and automatically attempts to download required NLTK datasets (such as 'punkt', 'stopwords', 'wordnet') upon initial setup. If a download fails, an error will be logged. This can be skipped using the `--no-download-nltk` flag.
 - **System Information**: The `--system-info` flag provides detailed diagnostics about the Python environment, OS, hardware, and project configuration.
 - **Log Level Control**: The `--loglevel` flag allows users to set the verbosity of the launcher script (e.g., DEBUG, INFO, WARNING, ERROR).
 
@@ -89,6 +89,22 @@ The testing framework provides comprehensive testing capabilities:
 - **Security Testing**: Tests application security
 
 ## Implementation Details
+
+### Handling Complex Dependencies
+
+While `launch.py` automates the installation of Python packages listed in the requirements files, some packages have more complex needs:
+
+*   **Packages Requiring Compilation:**
+    Some Python packages, like `scikit-learn`, include C extensions for performance. For most common operating systems and architectures, pre-compiled versions (binary wheels) are available and `pip` will install them automatically. However, if a compatible wheel is not available for your specific system (e.g., a less common Linux distribution, a new CPU architecture, or a very specific Python version), `pip` will attempt to compile the package from source. This compilation process requires system-level build tools.
+    If you encounter errors during the installation of such packages, you may need to install these build tools. Common examples include:
+    *   **Debian/Ubuntu Linux:** `sudo apt-get install build-essential python3-dev`
+    *   **Fedora/RHEL Linux:** `sudo dnf groupinstall "Development Tools"` and `sudo dnf install python3-devel`
+    *   **macOS:** Install Xcode Command Line Tools: `xcode-select --install`
+    *   **Windows:** Install "Microsoft C++ Build Tools" from the Visual Studio Installer.
+
+*   **Packages with Post-Install Downloads (e.g., `pyngrok`):**
+    Some packages, like `pyngrok`, download additional binaries or data the first time they are run, rather than during the `pip install` process. For instance, `pyngrok` downloads the `ngrok` executable when you first attempt to create a tunnel (e.g., when using the `--share` flag in `launch.py`).
+    `launch.py` facilitates the use of such packages. If `pyngrok` (or a similar package) fails to download its necessary components due to network issues or permissions, it will raise an error when its functionality is invoked, and `launch.py` will log this error. Ensure your system has internet connectivity and appropriate permissions for the package to save its components (usually within the Python environment's site-packages directory or a user-specific cache directory).
 
 ### Launcher Script Features (Relevant to Environment)
 
