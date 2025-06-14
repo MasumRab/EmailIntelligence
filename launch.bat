@@ -1,20 +1,41 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: === Configuration ===
-:: Specify your project's Conda environment name here if applicable
-set "PROJECT_CONDA_ENV_NAME=your_conda_env_name"
-:: Specify your project's venv directory name
-set "VENV_DIR=venv"
+:: === Error Handling Setup ===
+set "ERROR_LEVEL=0"
+set "ERROR_MESSAGE="
 
 :: === PowerShell Detection ===
 :: Check if running in PowerShell (powershell.exe or pwsh.exe)
 set "IS_POWERSHELL="
 echo "%COMSPEC%" | findstr /I /C:"powershell.exe" >nul && set "IS_POWERSHELL=1"
 echo "%COMSPEC%" | findstr /I /C:"pwsh.exe" >nul && set "IS_POWERSHELL=1"
+
+:: If running in PowerShell, execute the PowerShell script instead
 if defined IS_POWERSHELL (
-    echo Running in PowerShell.
+    echo Detected PowerShell environment. Switching to PowerShell script...
+    
+    if not exist "%~dp0launch.ps1" (
+        echo ERROR: PowerShell script "%~dp0launch.ps1" not found.
+        echo This script is required when running from PowerShell.
+        echo Please ensure the file exists in the same directory as this batch file.
+        pause
+        exit /b 1
+    )
+    
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0launch.ps1" %*
+    set "EXIT_CODE=%errorlevel%"
+    if %EXIT_CODE% neq 0 (
+        echo PowerShell script exited with error code: %EXIT_CODE%
+    )
+    exit /b %EXIT_CODE%
 )
+
+:: === Configuration ===
+:: Specify your project's Conda environment name here if applicable
+set "PROJECT_CONDA_ENV_NAME=base"
+:: Specify your project's venv directory name
+set "VENV_DIR=venv"
 
 :: === Conda Environment Handling ===
 set "CONDA_ENV_ACTIVATED_BY_SCRIPT="
@@ -23,9 +44,10 @@ set "PYTHON_EXE=python"
 
 :: Check if Conda is available
 where conda >nul 2>&1
-if %errorlevel% equ 0 (
+set "CONDA_CHECK_RESULT=%errorlevel%"
+if %CONDA_CHECK_RESULT% equ 0 (
     echo Conda is available.
-    if /I "%PROJECT_CONDA_ENV_NAME%" == "your_conda_env_name" (
+    if /I "%PROJECT_CONDA_ENV_NAME%" == "base" (
         echo INFO: Project specific Conda environment name is set to the default placeholder 'your_conda_env_name'.
         echo This script will not attempt to activate or create this specific Conda environment.
         echo If you wish to use a project-specific Conda environment, please edit this script
@@ -40,7 +62,7 @@ if %errorlevel% equ 0 (
         if /I "%CONDA_DEFAULT_ENV%"=="%PROJECT_CONDA_ENV_NAME%" (
             echo Current Conda environment matches project environment. Using it.
         ) else (
-            if "%PROJECT_CONDA_ENV_NAME%" NEQ "your_conda_env_name" (
+            if "%PROJECT_CONDA_ENV_NAME%" NEQ "base" (
                 echo Current Conda environment (%CONDA_DEFAULT_ENV%) does not match project specific one (%PROJECT_CONDA_ENV_NAME%).
                 echo Attempting to activate project Conda environment: %PROJECT_CONDA_ENV_NAME%
                 call conda activate "%PROJECT_CONDA_ENV_NAME%"
@@ -96,10 +118,11 @@ if %errorlevel% equ 0 (
 )
 
 :: === Standard Venv Handling (if no Conda environment is active or activated by script) ===
-if not defined CONDA_DEFAULT_ENV and not defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
+if not defined CONDA_DEFAULT_ENV if not defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
     echo Proceeding with standard venv setup.
     where python >nul 2>&1
-    if %errorlevel% neq 0 (
+    set "PYTHON_CHECK_RESULT=%errorlevel%"
+    if %PYTHON_CHECK_RESULT% neq 0 (
         if not exist "%VENV_DIR%\Scripts\python.exe" (
             echo Python is not installed, not in PATH, and no venv Python found. Please install Python 3.8 or higher.
             pause
@@ -138,7 +161,8 @@ if not defined CONDA_DEFAULT_ENV and not defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
     :: And if venv activation (or attempt) was made
     if defined VENV_ACTIVATED_BY_SCRIPT (
         where uv >nul 2>&1
-        if %errorlevel% equ 0 (
+        set "UV_CHECK_RESULT=%errorlevel%"
+        if %UV_CHECK_RESULT% equ 0 (
             echo uv is installed. Using uv.
             if not exist "%VENV_DIR%\pyvenv.cfg" ( :: More reliable venv check
                 uv venv "%VENV_DIR%" --python "%PYTHON_EXE%"
@@ -182,14 +206,52 @@ if not defined CONDA_DEFAULT_ENV and not defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
 )
 
 
+:: === Verify Python Executable ===
+if not defined PYTHON_EXE (
+    set "ERROR_LEVEL=1"
+    set "ERROR_MESSAGE=No Python executable was found or configured."
+    goto error_handler
+)
+
+if not exist "%PYTHON_EXE%" (
+    set "ERROR_LEVEL=1"
+    set "ERROR_MESSAGE=Python executable not found at: %PYTHON_EXE%"
+    goto error_handler
+)
+
+:: === Check for launch.py ===
+if not exist "launch.py" (
+    set "ERROR_LEVEL=1"
+    set "ERROR_MESSAGE=Required file 'launch.py' not found in the current directory."
+    goto error_handler
+)
+
+:: === Check for requirements.txt ===
+if not exist "requirements.txt" (
+    echo WARNING: requirements.txt file not found. Dependencies may not be installed correctly.
+)
+
 :: === Execute the Application ===
 echo Using Python executable: %PYTHON_EXE%
 echo Launching application: %PYTHON_EXE% launch.py %*
-%PYTHON_EXE% launch.py %*
 
-if %errorlevel% neq 0 (
+:: Try to run the application
+"%PYTHON_EXE%" launch.py %*
+set "EXIT_CODE=%errorlevel%"
+
+if %EXIT_CODE% neq 0 (
     echo.
-    echo The application exited with an error.
+    echo The application exited with error code: %EXIT_CODE%
+    
+    :: Check for common Python errors
+    if %EXIT_CODE% equ 1 (
+        echo This may indicate a general Python error or exception.
+    ) else if %EXIT_CODE% equ 2 (
+        echo This may indicate a command line syntax error.
+    ) else if %EXIT_CODE% equ 9009 (
+        echo This indicates that Python could not be found or executed.
+    )
+    
     pause
 )
 
@@ -200,11 +262,23 @@ if defined CONDA_ENV_ACTIVATED_BY_SCRIPT (
 )
 :: Venv deactivation from batch is tricky for PowerShell context as it runs in sub-shell.
 :: For cmd.exe, deactivate.bat is called if venv was activated by script.
-if defined VENV_ACTIVATED_BY_SCRIPT and not defined IS_POWERSHELL (
+if defined VENV_ACTIVATED_BY_SCRIPT if not defined IS_POWERSHELL (
     if exist "%VENV_DIR%\Scripts\deactivate.bat" (
         echo Deactivating venv...
         call "%VENV_DIR%\Scripts\deactivate.bat"
     )
 )
 
+goto end
+
+:error_handler
+echo.
+echo ERROR: %ERROR_MESSAGE%
+echo Error code: %ERROR_LEVEL%
+echo.
+echo Please fix the issue and try again.
+pause
+exit /b %ERROR_LEVEL%
+
+:end
 endlocal

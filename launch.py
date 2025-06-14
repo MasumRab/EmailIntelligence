@@ -477,17 +477,14 @@ def run_application(args: argparse.Namespace) -> int:
                 ngrok_tunnel = None
 
 
-    # Load .env file if specified
+    # Load custom .env file if specified
     # Note: The env dict from original code is not directly used by Popen here.
     # Environment variables for Popen are set directly in start_backend/start_frontend.
-    # If args.env_file is meant to globally affect os.environ, that should be handled earlier,
-    # possibly in main() before prepare_environment or run_application.
-    # For now, this specific 'env' dict isn't used further in this refactored version.
+    # Custom .env file will override any values from the default .env file
     if args.env_file:
         env_file_path = ROOT_DIR / args.env_file
         if env_file_path.exists():
-            logger.info(f"Loading environment variables from {env_file_path}")
-            from dotenv import load_dotenv # Consider adding to imports if not there
+            logger.info(f"Loading environment variables from custom .env file: {env_file_path}")
             load_dotenv(dotenv_path=env_file_path, override=True)
         else:
             logger.warning(f"Specified env file {args.env_file} not found at {env_file_path}")
@@ -774,6 +771,12 @@ def main() -> int:
     # Other loggers (e.g., from libraries) will also use this level unless configured otherwise.
 
     logger.info(f"Launcher log level set to: {args.loglevel}")
+    
+    # Load default .env file if it exists
+    default_env_file = ROOT_DIR / ".env"
+    if default_env_file.exists():
+        logger.info(f"Loading environment variables from default .env file: {default_env_file}")
+        load_dotenv(dotenv_path=default_env_file, override=True)
 
     # Handle special commands
     
