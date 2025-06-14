@@ -109,9 +109,14 @@ npm install
 
 Set up the Python virtual environment, install dependencies, and prepare for AI models:
 ```bash
-bash setup_python.sh
+# For Linux/macOS
+./launch.sh --stage dev
+
+# For Windows
+launch.bat --stage dev
 ```
-**IMPORTANT**: The `setup_python.sh` script creates placeholder AI model files (`.pkl`) in `server/python_nlp/`. For the application's AI features to function correctly, you **must** replace these with actual trained models. The script runs `server/python_nlp/ai_training.py` which may produce one sample model (e.g., `model_xxxxxxxxxxxx.pkl` in the project root); you will need to train models for all required types (sentiment, topic, intent, urgency) and rename/move them appropriately to:
+This will run `launch.py` which handles Python environment setup.
+**IMPORTANT**: The launch script (when run with `--stage dev` or during initial setup) creates placeholder AI model files (`.pkl`) in `server/python_nlp/`. For the application's AI features to function correctly, you **must** replace these with actual trained models. The system may attempt to run `server/python_nlp/ai_training.py` which could produce one sample model (e.g., `model_xxxxxxxxxxxx.pkl` in the project root); you will need to train models for all required types (sentiment, topic, intent, urgency) and rename/move them appropriately to:
 *   `server/python_nlp/sentiment_model.pkl`
 *   `server/python_nlp/topic_model.pkl`
 *   `server/python_nlp/intent_model.pkl`

@@ -237,7 +237,7 @@ def download_nltk_data() -> bool:
     logger.info("Downloading NLTK data...")
     cmd = [
         python, "-c",
-        "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); print('NLTK data download initiated.')"
+        "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); nltk.download('vader_lexicon', quiet=True); nltk.download('averaged_perceptron_tagger', quiet=True); nltk.download('brown', quiet=True); print('NLTK data download initiated.')"
     ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -275,55 +275,192 @@ def prepare_environment(args: argparse.Namespace) -> bool:
     
     # Check Python version
     if not args.skip_python_version_check and not check_python_version():
+        # This check ensures the current interpreter running launch.py is correct.
+        # The interpreter discovery logic in main() should have already handled this.
+        logger.error("Initial Python version check failed. This should have been handled by interpreter discovery.")
         return False
     
     # Create virtual environment if needed and install/update dependencies
     if not args.no_venv:
-        if not is_venv_available():
-            logger.info("Virtual environment not found. Creating...")
+        venv_recreated_this_run = False
+        venv_needs_initial_setup = False
+
+        if is_venv_available():
+            logger.info(f"Virtual environment found at '{ROOT_DIR / VENV_DIR}'. Checking Python version...")
+
+            venv_python_exe_path = ""
+            if os.name == 'nt':
+                venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
+            else:
+                venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "bin" / "python")
+
+            if not Path(venv_python_exe_path).exists():
+                logger.warning(f"Venv python executable not found at {venv_python_exe_path}. Assuming incompatible or corrupted venv.")
+                # Treat as incompatible, prompt for re-creation
+                try:
+                    response = input(
+                        f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
+                        f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
+                    ).strip().lower()
+                except EOFError:
+                    response = "no"
+                    logger.warning("Non-interactive session, defaulting to not recreating corrupted venv.")
+
+                if response == "yes":
+                    logger.info(f"User approved. Deleting and recreating virtual environment at './{VENV_DIR}'.")
+                    try:
+                        shutil.rmtree(ROOT_DIR / VENV_DIR)
+                        logger.info(f"Successfully deleted existing virtual environment './{VENV_DIR}'.")
+                    except OSError as e:
+                        logger.error(f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart.")
+                        return False
+
+                    if not create_venv():
+                        logger.error("Failed to recreate virtual environment. Exiting.")
+                        return False
+                    venv_recreated_this_run = True
+                    venv_needs_initial_setup = True
+                else:
+                    logger.warning(
+                        f"User declined or non-interactive. Proceeding with the potentially corrupted virtual environment in './{VENV_DIR}'. "
+                        "This may cause errors."
+                    )
+                    # If we proceed with a corrupted venv, dependency installation might fail or use wrong python.
+                    # It's safer to return False if we can't verify its Python.
+                    # However, the original subtask said "acceptable to proceed with caution". For now, we'll log and let it try.
+
+            else: # Venv Python executable found, check its version
+                try:
+                    result = subprocess.run([venv_python_exe_path, "--version"], capture_output=True, text=True, check=False, timeout=5)
+                    version_output = result.stdout.strip() + result.stderr.strip()
+
+                    # Basic parsing: "Python X.Y.Z"
+                    if version_output.startswith("Python "):
+                        parts = version_output.split(" ")[1].split(".")
+                        if len(parts) >= 2:
+                            venv_major = int(parts[0])
+                            venv_minor = int(parts[1])
+
+                            target_major, target_minor = PYTHON_MIN_VERSION
+                            if not (venv_major == target_major and venv_minor == target_minor):
+                                logger.warning(
+                                    f"WARNING: The existing virtual environment at './{VENV_DIR}' was created with Python {venv_major}.{venv_minor}. "
+                                    f"This project requires Python {target_major}.{target_minor}."
+                                )
+                                try:
+                                    response = input(
+                                        "Do you want to delete and recreate the virtual environment with "
+                                        f"Python {target_major}.{target_minor}? (yes/no): "
+                                    ).strip().lower()
+                                except EOFError:
+                                    response = "no"
+                                    logger.warning("Non-interactive session, defaulting to not recreating incompatible venv.")
+
+                                if response == "yes":
+                                    logger.info(f"User approved. Deleting and recreating virtual environment at './{VENV_DIR}'.")
+                                    try:
+                                        shutil.rmtree(ROOT_DIR / VENV_DIR)
+                                        logger.info(f"Successfully deleted existing virtual environment './{VENV_DIR}'.")
+                                    except OSError as e:
+                                        logger.error(f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart.")
+                                        return False
+
+                                    if not create_venv(): # create_venv logs success/failure
+                                        logger.error("Failed to recreate virtual environment. Exiting.")
+                                        return False
+                                    venv_recreated_this_run = True
+                                    venv_needs_initial_setup = True
+                                else:
+                                    logger.warning(
+                                        f"User declined or non-interactive. Proceeding with the existing, "
+                                        f"potentially incompatible virtual environment (Python {venv_major}.{venv_minor}) in './{VENV_DIR}'."
+                                    )
+                                    print(
+                                        f"WARNING: You chose to proceed with an incompatible Python version ({venv_major}.{venv_minor}) "
+                                        f"in the virtual environment './{VENV_DIR}'. This may cause errors or unexpected behavior. "
+                                        f"It is strongly recommended to use a Python {target_major}.{target_minor} environment."
+                                    )
+                            else:
+                                logger.info(f"Existing virtual environment at './{VENV_DIR}' uses compatible Python {venv_major}.{venv_minor}.")
+                        else: # Malformed version string
+                            logger.warning(f"Could not parse Python version from venv output: '{version_output}'. Assuming incompatibility and proceeding with caution.")
+                    else: # Does not start with "Python "
+                        logger.warning(f"Unrecognized version output from venv Python: '{version_output}'. Assuming incompatibility and proceeding with caution.")
+
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"Timeout checking version of venv Python at '{venv_python_exe_path}'. Proceeding with caution.")
+                except Exception as e:
+                    logger.warning(f"Error checking version of venv Python at '{venv_python_exe_path}': {e}. Proceeding with caution.")
+
+        else: # No venv found initially
+            logger.info(f"Virtual environment not found at './{VENV_DIR}'. Creating...")
             if not create_venv():
                 logger.error("Failed to create virtual environment. Exiting.")
                 return False
-            # Install/update dependencies after creating venv
-            # Use the helper function _get_primary_requirements_file (as per previous subtask)
-            primary_req_file_to_install = _get_primary_requirements_file()
-            logger.info(f"Installing base dependencies from {Path(primary_req_file_to_install).name} into new venv...")
-            if not install_dependencies(primary_req_file_to_install, args.update_deps):
-                logger.error(f"Failed to install base dependencies from {Path(primary_req_file_to_install).name} in new venv. Exiting.")
-                return False
-        elif args.update_deps: # If venv exists, only update if requested
-            # Use the helper function _get_primary_requirements_file
-            primary_req_file_to_update = _get_primary_requirements_file()
-            logger.info(f"Updating base dependencies from {Path(primary_req_file_to_update).name} in existing venv...")
-            if not install_dependencies(primary_req_file_to_update, True): # Force update True
-                logger.error(f"Failed to update base dependencies from {Path(primary_req_file_to_update).name}. Exiting.")
-                return False
-        else:
-            # Even if not updating, log which primary file is considered active or would be used.
-            # Use the helper function _get_primary_requirements_file
-            chosen_req_file = _get_primary_requirements_file()
-            logger.info(f"Virtual environment found. Primary requirements file: {Path(chosen_req_file).name}. Skipping dependency installation unless --update-deps is used.")
+            venv_needs_initial_setup = True # Mark for dependency installation
 
-        # Handle stage-specific requirements after base requirements
-        # This replaces the logic from env_manager.setup_environment_for_stage()
-        stage_requirements_file = None
+        # Install/update dependencies if venv was just created/recreated, or if --update-deps is specified
+        if venv_needs_initial_setup:
+            primary_req_file = _get_primary_requirements_file()
+            logger.info(f"Installing base dependencies from {Path(primary_req_file).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv...")
+            # Pass update=False because it's a fresh setup of dependencies.
+            # args.update_deps is handled below for existing, compatible venvs.
+            if not install_dependencies(primary_req_file, update=False):
+                logger.error(f"Failed to install base dependencies from {Path(primary_req_file).name}. Exiting.")
+                return False
+        elif args.update_deps: # Venv existed, was compatible (or user chose to proceed), and user wants to update
+            primary_req_file = _get_primary_requirements_file()
+            logger.info(f"Updating base dependencies from {Path(primary_req_file).name} in existing venv as per --update-deps...")
+            if not install_dependencies(primary_req_file, update=True): # Force update True
+                logger.error(f"Failed to update base dependencies from {Path(primary_req_file).name}. Exiting.")
+                return False
+        else: # Venv existed, was compatible (or user chose to proceed), and no --update-deps
+            chosen_req_file = _get_primary_requirements_file() # Log which primary file is considered active
+            logger.info(f"Compatible virtual environment found (or user chose to proceed with existing). Primary requirements file: {Path(chosen_req_file).name}. Skipping base dependency installation unless --update-deps is used.")
+
+        # Handle stage-specific requirements
+        # This logic should run if venv was newly set up, or if args.update_deps is true for existing venv
+        stage_requirements_file_path_str = None # Use full path string for install_dependencies
         if args.stage == "dev":
-            # Assuming DEV_REQUIREMENTS_FILE would be defined, let's use a string literal for now
-            # Or better, define it as a constant if it's standard
-            dev_req_path = ROOT_DIR / "requirements-dev.txt"
             dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
             if dev_req_path_obj.exists():
-                stage_requirements_file_path = "requirements-dev.txt"
+                stage_requirements_file_path_str = "requirements-dev.txt"
         elif args.stage == "test":
             test_req_path_obj = ROOT_DIR / "requirements-test.txt"
             if test_req_path_obj.exists():
-                stage_requirements_file_path = "requirements-test.txt"
+                stage_requirements_file_path_str = "requirements-test.txt"
 
-        if stage_requirements_file_path:
-            logger.info(f"Installing stage-specific requirements for '{args.stage}' stage from {Path(stage_requirements_file_path).name}...")
-            if not install_dependencies(stage_requirements_file_path, args.update_deps):
-                logger.error(f"Failed to install stage-specific dependencies from {Path(stage_requirements_file_path).name}. Exiting.")
-                return False
+        if stage_requirements_file_path_str:
+            # Install stage-specific if:
+            # 1. Venv was just set up (fresh install of stage deps)
+            # 2. Venv existed and --update-deps was passed (update stage deps)
+            # 3. Venv existed, was re-created, and user chose to proceed (fresh install of stage deps)
+            # The 'args.update_deps' flag for install_dependencies handles the update part.
+            # If venv_needs_initial_setup is true, we want a fresh install (update=False).
+            # Otherwise, respect args.update_deps.
+            # This logic is a bit subtle. If venv_needs_initial_setup, then primary deps were installed with update=False.
+            # Stage deps should also be fresh in that case.
+            # If not venv_needs_initial_setup, then primary deps were updated based on args.update_deps.
+            # Stage deps should follow the same update flag.
+
+            install_stage_deps_update_flag = args.update_deps
+            if venv_needs_initial_setup: # If we did a fresh install of base, do fresh for stage too
+                install_stage_deps_update_flag = False
+                logger.info(f"Installing stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv...")
+            elif args.update_deps: # Only log about updating if not a fresh setup and update_deps is true
+                 logger.info(f"Updating stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} as per --update-deps...")
+            else: # No initial setup, no update_deps, so skip stage-specific unless they were missing
+                 logger.info(f"Skipping stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} unless missing or --update-deps is used.")
+
+
+            # The install_dependencies function itself is idempotent if packages are already there and update=False
+            # So, it's generally safe to call it. The update flag controls upgrade behavior.
+            if venv_needs_initial_setup or args.update_deps: # Only proceed if new/recreated or updating
+                if not install_dependencies(stage_requirements_file_path_str, update=install_stage_deps_update_flag):
+                    logger.error(f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting.")
+                    return False
+            # If not venv_needs_initial_setup AND not args.update_deps, we can log that we are skipping.
+            # This is covered by the logger.info above.
     
     # Check PyTorch CUDA
     if TORCH_CUDA_REQUIRED and not args.skip_torch_cuda_test:
@@ -748,6 +885,106 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     """Main entry point."""
+
+    # Python interpreter discovery and re-execution logic
+    # Goal: Ensure launch.py runs with Python 3.11.x
+    if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
+        current_major, current_minor = sys.version_info[:2]
+        target_major, target_minor = PYTHON_MIN_VERSION # Assuming PYTHON_MIN_VERSION is (3, 11)
+
+        if not (current_major == target_major and current_minor == target_minor):
+            logger.info(
+                f"Current Python is {current_major}.{current_minor}. "
+                f"Launcher requires Python {target_major}.{target_minor}. Attempting to find and re-execute."
+            )
+
+            candidate_interpreters = []
+            if platform.system() == "Windows":
+                candidate_interpreters = [
+                    ["py", "-3.11"], # Python Launcher for Windows
+                    ["python3.11"],
+                    ["python"] # General python, check version
+                ]
+            else: # Linux/macOS
+                candidate_interpreters = [
+                    ["python3.11"],
+                    ["python3"] # General python3, check version
+                ]
+
+            found_interpreter_path = None
+            for candidate_parts in candidate_interpreters:
+                exe_name = candidate_parts[0]
+                version_check_args = candidate_parts[1:] # Args for "py -3.11"
+
+                potential_path = shutil.which(exe_name)
+                if potential_path:
+                    cmd_to_check = [potential_path] + version_check_args + ["--version"]
+                    try:
+                        # Ensure PATH is inherited by subprocess, especially for `py` on Windows
+                        env = os.environ.copy()
+                        result = subprocess.run(cmd_to_check, capture_output=True, text=True, check=False, env=env, timeout=5)
+
+                        # Python version can be in stdout or stderr
+                        version_output = result.stdout.strip() + result.stderr.strip()
+
+                        # Example outputs: "Python 3.11.5" or "Python 3.11.0rc1"
+                        if f"Python {target_major}.{target_minor}" in version_output:
+                            logger.info(f"Found compatible Python {target_major}.{target_minor} interpreter: {potential_path} (version output: {version_output})")
+                            found_interpreter_path = potential_path
+                            break
+                        else:
+                            logger.debug(f"Candidate {potential_path} (from {exe_name}) is not Python {target_major}.{target_minor}. Output: {version_output}")
+                    except subprocess.TimeoutExpired:
+                        logger.warning(f"Timeout checking version of interpreter candidate: {potential_path} (from {exe_name})")
+                    except Exception as e:
+                        logger.warning(f"Error checking version of interpreter candidate: {potential_path} (from {exe_name}): {e}")
+
+            if found_interpreter_path:
+                logger.info(f"Re-executing launcher with interpreter: {found_interpreter_path}")
+                new_env = os.environ.copy()
+                new_env["LAUNCHER_REEXEC_GUARD"] = "1"
+
+                # On Windows, os.execve is not ideal for .exe files if they are not true executables (e.g. py.exe might be tricky).
+                # subprocess.Popen might be more robust for re-launching, then sys.exit.
+                # However, the requirement is to use os.execve.
+                try:
+                    # sys.argv[0] should be launch.py. If it's an absolute path, use it.
+                    # If not, it might be relative, which is fine for execve's second arg.
+                    script_path = sys.argv[0]
+                    if not os.path.isabs(script_path) and shutil.which(script_path):
+                        # If sys.argv[0] is just "launch.py", make it absolute if possible,
+                        # assuming it's in PATH or CWD. For robustness, ensure it's discoverable.
+                        # A safer bet is to use __file__ from the script's context.
+                        script_path = str(Path(__file__).resolve())
+
+                    args_for_exec = [found_interpreter_path, script_path] + sys.argv[1:]
+                    os.execve(found_interpreter_path, args_for_exec, new_env)
+                    # os.execve does not return if successful
+                except Exception as e:
+                    logger.error(f"Failed to re-execute with {found_interpreter_path}: {e}")
+                    # Fall through to the error below if execve fails critically
+
+            # If loop completes or execve fails before replacing the process
+            logger.error(
+                f"Python {target_major}.{target_minor} is required, but a compatible version was not found "
+                f"on your system after searching common paths (candidates: {[c[0] for c in candidate_interpreters]}). "
+                f"Please install Python {target_major}.{target_minor}, ensure it's in your PATH, "
+                f"or run {Path(__file__).name} using a Python {target_major}.{target_minor} interpreter directly."
+            )
+            sys.exit(1)
+        # If current version is already the target, and guard is not set, it implies first direct run with correct version.
+        # No specific log needed here, it will just proceed.
+
+    elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
+        logger.info(
+            f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor} "
+            f"(Guard was set). Skipping further Python version discovery."
+        )
+        # Optionally, unset the guard if it's not needed by child processes spawned by this script itself.
+        # For now, keep it, as it doesn't harm.
+        # del os.environ["LAUNCHER_REEXEC_GUARD"]
+
+
     _setup_signal_handlers() # Setup signal handlers at the beginning
     # Parse arguments
     args = parse_arguments()
