@@ -20,7 +20,7 @@ localPort = 8080
 externalPort = 8080
 
 [workflows]
-runButton = "Research Interface"
+runButton = "Setup and Run Research Interface"
 
 [[workflows.workflow]]
 name = "Project"
@@ -44,6 +44,19 @@ waitForPort = 5000
 name = "Research Interface"
 author = 2336747
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 simple_research_ui.py"
+
+[[workflows.workflow]]
+name = "Setup and Run Research Interface"
+author = 2336747
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 setup_environment.py"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

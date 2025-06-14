@@ -1,37 +1,54 @@
-
 #!/usr/bin/env python3
 """
 Portable Gmail AI Research Interface
-Simple scientist-level UI for email analysis research
-Runs without root access, self-contained
+Simple, self-contained research tool for email analysis
 """
 
 import os
 import sys
 import json
 import asyncio
-import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from typing import Dict, List, Any, Optional
+import logging
 
-# Add current directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+# Check if setup script exists and environment is ready
+def check_environment():
+    """Check if environment is properly set up"""
+    setup_script = Path("setup_environment.py")
+    if setup_script.exists():
+        try:
+            # Try importing critical packages
+            import fastapi, uvicorn
+            return True
+        except ImportError:
+            print("🔧 Environment needs setup. Running setup script...")
+            import subprocess
+            result = subprocess.run([sys.executable, "setup_environment.py"], 
+                                  capture_output=True, text=True)
+            if result.returncode != 0:
+                print(f"❌ Setup failed: {result.stderr}")
+                return False
+            print("✅ Setup completed successfully")
+            return True
+    return True
 
+# Run environment check
+if not check_environment():
+    sys.exit(1)
+
+# Try to import required packages, with fallbacks
 try:
-    from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
-    from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+    from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException
+    from fastapi.responses import HTMLResponse, JSONResponse
     from fastapi.staticfiles import StaticFiles
     from fastapi.templating import Jinja2Templates
     import uvicorn
-except ImportError:
-    print("Installing required packages...")
-    os.system("pip install fastapi uvicorn python-multipart jinja2")
-    from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
-    from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-    from fastapi.staticfiles import StaticFiles
-    from fastapi.templating import Jinja2Templates
-    import uvicorn
+except ImportError as e:
+    print(f"❌ Missing required packages: {e}")
+    print("📦 Please run: python3 setup_environment.py")
+    sys.exit(1)
 
 # Try to import NLP engine, fallback to basic analysis
 try:
@@ -61,21 +78,21 @@ research_data = {
 
 class SimpleAnalyzer:
     """Fallback analyzer when NLP engine is not available"""
-    
+
     def analyze_text(self, text: str) -> Dict[str, Any]:
         """Basic text analysis"""
         words = text.split()
         sentences = text.split('.')
-        
+
         # Simple sentiment scoring
         positive_words = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic']
         negative_words = ['bad', 'terrible', 'awful', 'horrible', 'poor', 'disappointing']
-        
+
         pos_count = sum(1 for word in words if word.lower() in positive_words)
         neg_count = sum(1 for word in words if word.lower() in negative_words)
-        
+
         sentiment_score = (pos_count - neg_count) / max(len(words), 1)
-        
+
         return {
             "word_count": len(words),
             "sentence_count": len(sentences),
@@ -207,7 +224,7 @@ async def read_root(request: Request):
     <div class="container">
         <h1>📧 Gmail AI Research Interface</h1>
         <p style="text-align: center; color: #7f8c8d;">Simple, portable email analysis for research purposes</p>
-        
+
         <div class="grid">
             <div class="section">
                 <h2>🔬 Single Text Analysis</h2>
@@ -215,7 +232,7 @@ async def read_root(request: Request):
                 <button onclick="analyzeSingle()">Analyze Text</button>
                 <div id="singleResults"></div>
             </div>
-            
+
             <div class="section">
                 <h2>📁 Batch Analysis</h2>
                 <input type="file" id="fileUpload" accept=".txt,.csv,.json" multiple>
@@ -223,7 +240,7 @@ async def read_root(request: Request):
                 <div id="batchResults"></div>
             </div>
         </div>
-        
+
         <div class="section">
             <h2>📊 Research Dashboard</h2>
             <button onclick="loadDashboard()">Refresh Data</button>
@@ -231,7 +248,7 @@ async def read_root(request: Request):
             <button onclick="clearData()">Clear All Data</button>
             <div id="dashboard"></div>
         </div>
-        
+
         <div class="section">
             <h2>📈 Recent Analyses</h2>
             <div id="recentAnalyses"></div>
@@ -242,7 +259,7 @@ async def read_root(request: Request):
         async function analyzeSingle() {
             const text = document.getElementById('singleText').value;
             if (!text.trim()) return alert('Please enter some text to analyze');
-            
+
             try {
                 const response = await fetch('/analyze', {
                     method: 'POST',
@@ -250,7 +267,7 @@ async def read_root(request: Request):
                     body: JSON.stringify({ text: text })
                 });
                 const result = await response.json();
-                
+
                 document.getElementById('singleResults').innerHTML = `
                     <div class="results">
                         <h3>Analysis Results</h3>
@@ -262,29 +279,29 @@ async def read_root(request: Request):
                         <div class="metric">Type: ${result.analysis_type}</div>
                     </div>
                 `;
-                
+
                 loadRecentAnalyses();
             } catch (error) {
                 alert('Analysis failed: ' + error.message);
             }
         }
-        
+
         async function uploadFiles() {
             const files = document.getElementById('fileUpload').files;
             if (files.length === 0) return alert('Please select files to upload');
-            
+
             const formData = new FormData();
             for (let file of files) {
                 formData.append('files', file);
             }
-            
+
             try {
                 const response = await fetch('/batch-analyze', {
                     method: 'POST',
                     body: formData
                 });
                 const result = await response.json();
-                
+
                 document.getElementById('batchResults').innerHTML = `
                     <div class="results">
                         <h3>Batch Analysis Complete</h3>
@@ -293,19 +310,19 @@ async def read_root(request: Request):
                         <div class="metric">Avg Sentiment: ${result.average_sentiment.toFixed(3)}</div>
                     </div>
                 `;
-                
+
                 loadDashboard();
                 loadRecentAnalyses();
             } catch (error) {
                 alert('Batch analysis failed: ' + error.message);
             }
         }
-        
+
         async function loadDashboard() {
             try {
                 const response = await fetch('/dashboard');
                 const data = await response.json();
-                
+
                 document.getElementById('dashboard').innerHTML = `
                     <div class="results">
                         <h3>Research Statistics</h3>
@@ -322,12 +339,12 @@ async def read_root(request: Request):
                 console.error('Dashboard load failed:', error);
             }
         }
-        
+
         async function loadRecentAnalyses() {
             try {
                 const response = await fetch('/recent');
                 const analyses = await response.json();
-                
+
                 const html = analyses.map(analysis => `
                     <div class="email-item">
                         <strong>Text:</strong> ${analysis.text.substring(0, 100)}${analysis.text.length > 100 ? '...' : ''}<br>
@@ -336,13 +353,13 @@ async def read_root(request: Request):
                         <strong>Time:</strong> ${new Date(analysis.timestamp).toLocaleString()}
                     </div>
                 `).join('');
-                
+
                 document.getElementById('recentAnalyses').innerHTML = html || '<p>No analyses yet</p>';
             } catch (error) {
                 console.error('Recent analyses load failed:', error);
             }
         }
-        
+
         async function exportResults() {
             try {
                 const response = await fetch('/export');
@@ -356,7 +373,7 @@ async def read_root(request: Request):
                 alert('Export failed: ' + error.message);
             }
         }
-        
+
         async function clearData() {
             if (confirm('Are you sure you want to clear all research data?')) {
                 try {
@@ -369,7 +386,7 @@ async def read_root(request: Request):
                 }
             }
         }
-        
+
         // Load initial data
         window.onload = function() {
             loadDashboard();
@@ -385,16 +402,16 @@ async def analyze_text(request: Request):
     """Analyze a single text"""
     data = await request.json()
     text = data.get("text", "")
-    
+
     if not text.strip():
         raise HTTPException(status_code=400, detail="Text is required")
-    
+
     try:
         if HAS_NLP:
             result = analyzer.analyze_text(text)
         else:
             result = analyzer.analyze_text(text)
-        
+
         # Store analysis
         analysis = {
             "text": text,
@@ -402,7 +419,7 @@ async def analyze_text(request: Request):
             "timestamp": datetime.now().isoformat()
         }
         research_data["analyses"].append(analysis)
-        
+
         return result
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
@@ -413,22 +430,22 @@ async def batch_analyze(files: List[UploadFile] = File(...)):
     """Analyze multiple files"""
     results = []
     total_items = 0
-    
+
     for file in files:
         try:
             content = await file.read()
             text = content.decode('utf-8')
-            
+
             # Split by lines for batch processing
             lines = [line.strip() for line in text.split('\n') if line.strip()]
-            
+
             for line in lines:
                 if len(line) > 10:  # Skip very short lines
                     if HAS_NLP:
                         result = analyzer.analyze_text(line)
                     else:
                         result = analyzer.analyze_text(line)
-                    
+
                     analysis = {
                         "text": line,
                         "result": result,
@@ -438,16 +455,16 @@ async def batch_analyze(files: List[UploadFile] = File(...)):
                     research_data["analyses"].append(analysis)
                     results.append(result)
                     total_items += 1
-        
+
         except Exception as e:
             logger.error(f"Failed to process file {file.filename}: {e}")
-    
+
     # Calculate summary statistics
     if results:
         avg_sentiment = sum(r.get("sentiment_score", 0) for r in results) / len(results)
     else:
         avg_sentiment = 0
-    
+
     return {
         "files_processed": len(files),
         "total_items": total_items,
@@ -459,7 +476,7 @@ async def batch_analyze(files: List[UploadFile] = File(...)):
 async def get_dashboard():
     """Get research dashboard data"""
     analyses = research_data["analyses"]
-    
+
     if not analyses:
         return {
             "total_emails": 0,
@@ -468,24 +485,24 @@ async def get_dashboard():
             "avg_sentiment": 0,
             "sentiment_distribution": {"positive": 0, "negative": 0, "neutral": 0}
         }
-    
+
     sentiments = [a["result"].get("sentiment", "neutral") for a in analyses]
     sentiment_counts = {
         "positive": sentiments.count("positive"),
         "negative": sentiments.count("negative"),
         "neutral": sentiments.count("neutral")
     }
-    
+
     total = len(sentiments)
     sentiment_distribution = {
         k: round((v / total) * 100, 1) if total > 0 else 0 
         for k, v in sentiment_counts.items()
     }
-    
+
     avg_sentiment = sum(
         a["result"].get("sentiment_score", 0) for a in analyses
     ) / len(analyses) if analyses else 0
-    
+
     return {
         "total_emails": len(research_data["emails"]),
         "total_analyses": len(analyses),
@@ -508,15 +525,15 @@ async def export_data():
         "total_analyses": len(research_data["analyses"]),
         "data": research_data
     }
-    
+
     # Create temporary file
     import tempfile
     import json
-    
+
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         json.dump(export_data, f, indent=2)
         temp_path = f.name
-    
+
     return FileResponse(
         temp_path,
         media_type='application/json',
@@ -536,10 +553,10 @@ if __name__ == "__main__":
     print("📍 This is a portable, research-focused interface")
     print("💾 No database required - runs entirely in memory")
     print("🚀 No root access needed")
-    
+
     # Get port from environment or use default
     port = int(os.getenv("PORT", 8080))
-    
+
     print(f"🌐 Access your research interface at: http://0.0.0.0:{port}")
     print("📋 Features:")
     print("   - Single text analysis")
@@ -547,7 +564,7 @@ if __name__ == "__main__":
     print("   - Research dashboard")
     print("   - Data export")
     print("   - No external dependencies")
-    
+
     uvicorn.run(
         app,
         host="0.0.0.0",
