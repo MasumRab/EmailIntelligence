@@ -30,6 +30,7 @@ class AIAnalysisResult:
         self.suggested_labels = data.get('suggested_labels', [])
         self.risk_flags = data.get('risk_flags', [])
         self.category_id = data.get('category_id')
+        self.action_items = data.get('action_items', []) # Added action_items
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -43,7 +44,8 @@ class AIAnalysisResult:
             'reasoning': self.reasoning,
             'suggested_labels': self.suggested_labels,
             'risk_flags': self.risk_flags,
-            'category_id': self.category_id
+            'category_id': self.category_id,
+            'action_items': self.action_items # Added action_items
         }
 
 class AdvancedAIEngine:
@@ -66,7 +68,8 @@ class AdvancedAIEngine:
             logger.error(f"AI Engine initialization failed: {e}")
     
     async def analyze_email(self, subject: str, content: str) -> AIAnalysisResult:
-        """Analyze email content with AI"""
+        """Analyze email content with AI by calling the NLPEngine script."""
+        logger.info(f"Initiating AI analysis for email with subject: '{subject[:50]}...'")
         try:
             cmd = [
                 sys.executable,
@@ -77,17 +80,37 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
+            logger.debug(f"Executing NLPEngine script with command: {' '.join(cmd)}")
+            result_json_str = await _execute_async_command(cmd, cwd=self.python_nlp_path)
             
-            if 'error' in result:
-                # Fallback to basic analysis
-                return self._get_fallback_analysis(subject, content)
+            if not result_json_str:
+                logger.error("NLPEngine script returned empty output.")
+                return self._get_fallback_analysis(subject, content, "empty script output")
+
+            try:
+                result = json.loads(result_json_str)
+            except json.JSONDecodeError as je:
+                logger.error(f"Failed to parse JSON output from NLPEngine: {je}. Output: {result_json_str[:200]}")
+                return self._get_fallback_analysis(subject, content, "invalid JSON output")
+
+            if 'error' in result or result.get('status') == 'error': # Assuming nlp_engine might return a status field
+                error_message = result.get('error', 'Unknown error from NLPEngine script')
+                logger.error(f"NLPEngine script returned an error: {error_message}")
+                # Fallback to basic analysis, passing the error message for context
+                return self._get_fallback_analysis(subject, content, error_message)
             
+            logger.info(f"Successfully received analysis from NLPEngine. Method used: {result.get('validation', {}).get('method', 'unknown')}")
             return AIAnalysisResult(result)
             
+        except FileNotFoundError:
+            logger.critical(f"NLPEngine script not found at {self.nlp_service_script}. Ensure the path is correct.")
+            return self._get_fallback_analysis(subject, content, "NLP script not found")
+        except asyncio.TimeoutError:
+            logger.error("NLPEngine script execution timed out.")
+            return self._get_fallback_analysis(subject, content, "script execution timeout")
         except Exception as e:
-            logger.error(f"AI analysis failed: {e}")
-            return self._get_fallback_analysis(subject, content)
+            logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
+            return self._get_fallback_analysis(subject, content, str(e))
     
     async def train_models(self, training_emails: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Train AI models with email data"""
@@ -176,26 +199,57 @@ class AdvancedAIEngine:
         except Exception as e:
             logger.error(f"AI Engine cleanup failed: {e}")
     
-    def _get_fallback_analysis(self, subject: str, content: str) -> AIAnalysisResult:
-        """Fallback analysis when AI service is unavailable, using NLPEngine's simple fallback."""
+    def _get_fallback_analysis(self, subject: str, content: str, error_context: Optional[str] = None) -> AIAnalysisResult:
+        """
+        Provides a basic fallback analysis if the primary NLPEngine script fails or returns an error.
+        This uses the in-memory FallbackNLPEngine instance.
+        """
+        reason = "Fallback analysis due to AI service error"
+        if error_context:
+            reason += f": {error_context}"
         
-        # Use the _get_simple_fallback_analysis from the NLPEngine instance
-        # This method already provides: topic, sentiment, intent (default), urgency,
-        # confidence (default), categories, keywords (empty), reasoning.
-        fallback_data = self.fallback_nlp_engine._get_simple_fallback_analysis(subject, content)
+        logger.warning(f"{reason}. Subject: {subject[:50]}...")
 
-        # Adapt the result to AIAnalysisResult structure.
-        # Most fields should align or have sensible defaults from _get_simple_fallback_analysis.
-        return AIAnalysisResult({
-            'topic': fallback_data.get('topic', 'general_communication'),
-            'sentiment': fallback_data.get('sentiment', 'neutral'),
-            'intent': fallback_data.get('intent', 'information_sharing'), # NLPEngine fallback gives 'informational'
-            'urgency': fallback_data.get('urgency', 'low'),
-            'confidence': fallback_data.get('confidence', 0.3), # NLPEngine fallback gives 0.6, we can override if needed
-            'categories': fallback_data.get('categories', ['general']),
-            'keywords': fallback_data.get('keywords', []), # NLPEngine fallback gives empty list
-            'reasoning': fallback_data.get('reasoning', 'Fallback analysis - AI service unavailable'),
-            'suggested_labels': fallback_data.get('suggested_labels', ['general']),
-            'risk_flags': fallback_data.get('risk_flags', []),
-            'category_id': None # Not provided by this simple fallback
-        })
+        try:
+            # Use the _get_simple_fallback_analysis from the FallbackNLPEngine instance
+            # This method provides: topic, sentiment, intent (default), urgency,
+            # confidence (default), categories, keywords (empty), reasoning.
+            fallback_data = self.fallback_nlp_engine._get_simple_fallback_analysis(subject, content)
+
+            # Override reasoning if a specific error context was provided
+            if error_context:
+                fallback_data['reasoning'] = reason
+
+            # Adapt the result to AIAnalysisResult structure.
+            # Most fields should align or have sensible defaults from _get_simple_fallback_analysis.
+            return AIAnalysisResult({
+                'topic': fallback_data.get('topic', 'general_communication'),
+                'sentiment': fallback_data.get('sentiment', 'neutral'),
+                'intent': fallback_data.get('intent', 'informational'),
+                'urgency': fallback_data.get('urgency', 'low'),
+                'confidence': fallback_data.get('confidence', 0.3),
+                'categories': fallback_data.get('categories', ['general']),
+                'keywords': fallback_data.get('keywords', []),
+                'reasoning': fallback_data.get('reasoning', 'Fallback analysis - AI service unavailable'),
+                'suggested_labels': fallback_data.get('suggested_labels', ['general']),
+                'risk_flags': fallback_data.get('risk_flags', ['ai_analysis_failed']),
+                'category_id': None,
+                'action_items': [] # Ensure action_items is in the fallback
+            })
+        except Exception as e:
+            logger.error(f"Error generating fallback analysis itself: {e}", exc_info=True)
+            # If even the fallback engine fails, return a very minimal structure
+            return AIAnalysisResult({
+                'topic': 'unknown',
+                'sentiment': 'neutral',
+                'intent': 'unknown',
+                'urgency': 'low',
+                'confidence': 0.1,
+                'categories': ['general'],
+                'keywords': [],
+                'reasoning': f'Critical failure in AI analysis and fallback: {e}',
+                'suggested_labels': ['general'],
+                'risk_flags': ['ai_analysis_critically_failed'],
+                'category_id': None,
+                'action_items': [] # Ensure action_items is in the critical fallback
+            })
