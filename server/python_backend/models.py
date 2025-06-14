@@ -30,7 +30,7 @@ class ActivityType(str, Enum):
 # Base Models
 class EmailBase(BaseModel):
     sender: str = Field(..., min_length=1, max_length=255)
-    senderEmail: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
+    senderEmail: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
     subject: str = Field(..., min_length=1)
     content: str = Field(..., min_length=1)
     time: datetime
@@ -86,7 +86,7 @@ class EmailResponse(EmailBase):
 class CategoryBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
-    color: str = Field(default="#6366f1", regex=r'^#[0-9A-Fa-f]{6}$')
+    color: str = Field(default="#6366f1", pattern=r'^#[0-9A-Fa-f]{6}$')
 
 class CategoryCreate(CategoryBase):
     pass
@@ -125,7 +125,7 @@ class AIAnalysisResponse(BaseModel):
     categoryId: Optional[int] = None
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 # Gmail Sync Models
 class GmailSyncRequest(BaseModel):
@@ -170,7 +170,7 @@ class EmailFilterCriteria(BaseModel):
     timeSensitivity: Optional[str] = Field(alias="time_sensitivity")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class EmailFilterActions(BaseModel):
     addLabel: Optional[str] = Field(alias="add_label")
@@ -181,7 +181,7 @@ class EmailFilterActions(BaseModel):
     autoReply: bool = Field(default=False, alias="auto_reply")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class FilterRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
@@ -205,7 +205,7 @@ class FilterResponse(BaseModel):
     isActive: bool = Field(alias="is_active")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 # Performance Models
 class PerformanceMetric(BaseModel):
@@ -216,7 +216,7 @@ class PerformanceMetric(BaseModel):
     recordedAt: datetime = Field(alias="recorded_at")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class QuotaStatus(BaseModel):
     dailyUsage: Dict[str, Any] = Field(alias="daily_usage")
@@ -224,7 +224,7 @@ class QuotaStatus(BaseModel):
     projectedDailyUsage: int = Field(alias="projected_daily_usage")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class PerformanceAlert(BaseModel):
     type: str
@@ -242,7 +242,7 @@ class PerformanceRecommendation(BaseModel):
     action: str
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class PerformanceOverview(BaseModel):
     timestamp: datetime
@@ -253,7 +253,7 @@ class PerformanceOverview(BaseModel):
     recommendations: List[PerformanceRecommendation]
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 # Dashboard Models
 class WeeklyGrowth(BaseModel):
@@ -268,7 +268,7 @@ class DashboardStats(BaseModel):
     weeklyGrowth: WeeklyGrowth = Field(alias="weekly_growth")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 # Training Models
 class TrainingRequest(BaseModel):
@@ -278,7 +278,7 @@ class TrainingRequest(BaseModel):
     validationSplit: float = Field(default=0.2, ge=0.1, le=0.5, alias="validation_split")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class TrainingResponse(BaseModel):
     success: bool
@@ -290,17 +290,17 @@ class TrainingResponse(BaseModel):
     error: Optional[str] = None
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 # Health Check Models
 class ServiceHealth(BaseModel):
-    status: str = Field(regex=r'^(healthy|degraded|unhealthy)$')
+    status: str = Field(pattern=r'^(healthy|degraded|unhealthy)$')
     error: Optional[str] = None
     timestamp: datetime
     responseTime: Optional[float] = Field(alias="response_time")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class SystemHealth(BaseModel):
     status: str
@@ -322,7 +322,7 @@ class SearchRequest(BaseModel):
     offset: int = Field(default=0, ge=0)
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class SearchResponse(BaseModel):
     emails: List[EmailResponse]
@@ -331,7 +331,7 @@ class SearchResponse(BaseModel):
     searchTime: float = Field(alias="search_time")
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 # Batch Operations
 class BatchEmailUpdate(BaseModel):
@@ -339,7 +339,7 @@ class BatchEmailUpdate(BaseModel):
     updates: EmailUpdate
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 class BatchOperationResponse(BaseModel):
     success: bool
@@ -349,4 +349,4 @@ class BatchOperationResponse(BaseModel):
     errors: List[Dict[str, Any]] = Field(default_factory=list)
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True

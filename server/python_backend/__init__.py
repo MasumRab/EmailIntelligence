@@ -13,9 +13,9 @@ from .models import (
     SmartRetrievalRequest, FilterRequest,
     AIAnalysisResponse, DashboardStats
 )
-from .gmail_service import GmailAIService
+from server.python_nlp.gmail_service import GmailAIService
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
-from .smart_filters import SmartFilterManager, EmailFilter
+from server.python_nlp.smart_filters import SmartFilterManager, EmailFilter
 from .performance_monitor import PerformanceMonitor
 
 __version__ = "2.0.0"
