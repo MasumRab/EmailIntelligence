@@ -165,16 +165,25 @@ class ExtensionsManager:
         return all_loaded
     
     def initialize_extensions(self) -> bool:
-        """Initialize all loaded extensions."""
+        """Initialize all loaded extensions with detailed error feedback."""
+        import traceback
         all_initialized = True
+        failed_extensions = []
         for name, extension in self.extensions.items():
             if extension.enabled:
-                if extension.initialize():
-                    logger.info(f"Initialized extension: {name}")
-                else:
-                    logger.error(f"Failed to initialize extension: {name}")
+                try:
+                    if extension.initialize():
+                        logger.info(f"Initialized extension: {name}")
+                    else:
+                        logger.error(f"Failed to initialize extension: {name} (no exception raised)")
+                        all_initialized = False
+                        failed_extensions.append(name)
+                except Exception as e:
+                    logger.error(f"Exception during initialization of extension '{name}': {e}", exc_info=True)
                     all_initialized = False
-        
+                    failed_extensions.append(name)
+        if failed_extensions:
+            logger.error(f"Extensions failed to initialize: {', '.join(failed_extensions)}")
         return all_initialized
     
     def shutdown_extensions(self) -> bool:
