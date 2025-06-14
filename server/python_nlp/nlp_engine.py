@@ -425,9 +425,19 @@ class NLPEngine:
         """
         Analyze arbitrary text content (compatible with simple_research_ui.py)
         """
+        if not text or not isinstance(text, str):
+            return {
+                'word_count': 0,
+                'sentence_count': 0,
+                'sentiment_score': 0.0,
+                'sentiment': 'neutral',
+                'confidence': 0.0,
+                'analysis_type': 'empty_input'
+            }
+        
         try:
             words = text.split()
-            sentences = text.split('.')
+            sentences = [s.strip() for s in text.split('.') if s.strip()]
             
             # Basic preprocessing
             cleaned_text = self._preprocess_text(text)
@@ -440,7 +450,7 @@ class NLPEngine:
             
             return {
                 'word_count': len(words),
-                'sentence_count': len([s for s in sentences if s.strip()]),
+                'sentence_count': len(sentences),
                 'sentiment_score': sentiment_score,
                 'sentiment': sentiment_analysis.get('sentiment', 'neutral'),
                 'confidence': sentiment_analysis.get('confidence', 0.5),
@@ -448,18 +458,30 @@ class NLPEngine:
             }
             
         except Exception as e:
+            logger.error(f"Text analysis failed: {e}")
             # Fallback analysis
-            words = text.split()
-            sentences = text.split('.')
-            
-            return {
-                'word_count': len(words),
-                'sentence_count': len([s for s in sentences if s.strip()]),
-                'sentiment_score': 0.0,
-                'sentiment': 'neutral',
-                'confidence': 0.3,
-                'analysis_type': 'fallback'
-            }
+            try:
+                words = text.split() if text else []
+                sentences = [s.strip() for s in text.split('.') if s.strip()] if text else []
+                
+                return {
+                    'word_count': len(words),
+                    'sentence_count': len(sentences),
+                    'sentiment_score': 0.0,
+                    'sentiment': 'neutral',
+                    'confidence': 0.3,
+                    'analysis_type': 'fallback'
+                }
+            except Exception as fallback_error:
+                logger.error(f"Fallback analysis also failed: {fallback_error}")
+                return {
+                    'word_count': 0,
+                    'sentence_count': 0,
+                    'sentiment_score': 0.0,
+                    'sentiment': 'neutral',
+                    'confidence': 0.0,
+                    'analysis_type': 'error'
+                }
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         """

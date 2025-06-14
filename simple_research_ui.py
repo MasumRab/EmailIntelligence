@@ -398,19 +398,31 @@ async def read_root(request: Request):
     """)
 
 @app.post("/analyze")
-async def analyze_text(request: Request):
+async def analyze_text_endpoint(request: Request):
     """Analyze a single text"""
-    data = await request.json()
-    text = data.get("text", "")
-
-    if not text.strip():
-        raise HTTPException(status_code=400, detail="Text is required")
-
     try:
+        data = await request.json()
+        text = data.get("text", "")
+
+        if not text or not text.strip():
+            raise HTTPException(status_code=400, detail="Text is required")
+
+        # Perform analysis
         if HAS_NLP:
             result = analyzer.analyze_text(text)
         else:
             result = analyzer.analyze_text(text)
+
+        # Ensure result has required fields
+        if not isinstance(result, dict):
+            result = {
+                'word_count': len(text.split()) if text else 0,
+                'sentence_count': len([s for s in text.split('.') if s.strip()]) if text else 0,
+                'sentiment_score': 0.0,
+                'sentiment': 'neutral',
+                'confidence': 0.3,
+                'analysis_type': 'fallback'
+            }
 
         # Store analysis
         analysis = {
@@ -421,9 +433,21 @@ async def analyze_text(request: Request):
         research_data["analyses"].append(analysis)
 
         return result
+        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return fallback result instead of error
+        fallback_result = {
+            'word_count': len(text.split()) if 'text' in locals() and text else 0,
+            'sentence_count': len([s for s in text.split('.') if s.strip()]) if 'text' in locals() and text else 0,
+            'sentiment_score': 0.0,
+            'sentiment': 'neutral',
+            'confidence': 0.1,
+            'analysis_type': 'error_fallback'
+        }
+        return fallback_result
 
 @app.post("/batch-analyze")
 async def batch_analyze(files: List[UploadFile] = File(...)):
