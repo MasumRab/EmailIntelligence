@@ -1,46 +1,28 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: emailintelligence
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ..
-      dockerfile: deployment/Dockerfile.dev
-    depends_on:
-      postgres:
-        condition: service_healthy
+      dockerfile: deployment/Dockerfile.backend
+      target: development # Explicitly set for clarity, even if it's the default
+    ports:
+      - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/emailintelligence
       - NODE_ENV=development
       - DEBUG=True
-    ports:
-      - "8000:8000"
-    volumes:
-      - ../server:/app/server
-      - ../shared:/app/shared
+      # Any other dev-specific backend environment variables
     command: python -m uvicorn server.python_backend.main:app --host 0.0.0.0 --port 8000 --reload
+    # Volumes are inherited from the base docker-compose.yml
+    # depends_on is inherited from the base docker-compose.yml
 
   frontend:
     image: node:18
     working_dir: /app
     volumes:
       - ../client:/app
-      - ../shared:/app/shared
+      - ../shared:/app/shared # If frontend needs access to shared
     ports:
       - "5173:5173"
     command: bash -c "npm install && npm run dev"
@@ -48,5 +30,5 @@ services:
       - VITE_API_URL=http://localhost:8000
       - NODE_ENV=development
 
-volumes:
-  postgres_data:
+# postgres service and postgres_data volume are inherited from the base docker-compose.yml
+# networks are inherited from the base docker-compose.yml
