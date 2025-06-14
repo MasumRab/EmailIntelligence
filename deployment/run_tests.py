@@ -26,7 +26,7 @@ logger = logging.getLogger("run-tests")
 # Project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
 
-def run_command(command, cwd=None):
+def run_command(command, cwd=None, timeout=None):
     """Run a shell command and log the output."""
     logger.info(f"Running command: {command}")
     try:
@@ -36,14 +36,18 @@ def run_command(command, cwd=None):
             check=True,
             text=True,
             capture_output=False,  # Show output in real-time
-            cwd=cwd or str(PROJECT_ROOT)
+            cwd=cwd or str(PROJECT_ROOT),
+            timeout=timeout
         )
         return True
     except subprocess.CalledProcessError as e:
         logger.error(f"Command failed with exit code {e.returncode}")
         return False
+    except subprocess.TimeoutExpired:
+        logger.error(f"Command timed out: {command}")
+        return False
 
-def run_unit_tests(coverage=False, verbose=False):
+def run_unit_tests(coverage=False, verbose=False, timeout_seconds=900):
     """Run unit tests."""
     logger.info("Running unit tests...")
     
@@ -55,9 +59,9 @@ def run_unit_tests(coverage=False, verbose=False):
     if verbose:
         command += " -v"
     
-    return run_command(command)
+    return run_command(command, timeout=timeout_seconds)
 
-def run_integration_tests(coverage=False, verbose=False):
+def run_integration_tests(coverage=False, verbose=False, timeout_seconds=900):
     """Run integration tests."""
     logger.info("Running integration tests...")
     
@@ -69,9 +73,9 @@ def run_integration_tests(coverage=False, verbose=False):
     if verbose:
         command += " -v"
     
-    return run_command(command)
+    return run_command(command, timeout=timeout_seconds)
 
-def run_e2e_tests(verbose=False):
+def run_e2e_tests(verbose=False, timeout_seconds=1800):
     """Run end-to-end tests."""
     logger.info("Running end-to-end tests...")
     
@@ -80,7 +84,7 @@ def run_e2e_tests(verbose=False):
     if verbose:
         command += " --debug"
     
-    return run_command(command)
+    return run_command(command, timeout=timeout_seconds)
 
 def main():
     """Main entry point for the test runner script."""
