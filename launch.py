@@ -237,7 +237,7 @@ def download_nltk_data() -> bool:
     logger.info("Downloading NLTK data...")
     cmd = [
         python, "-c",
-        "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); print('NLTK data download initiated.')"
+        "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); nltk.download('vader_lexicon', quiet=True); nltk.download('averaged_perceptron_tagger', quiet=True); nltk.download('brown', quiet=True); print('NLTK data download initiated.')"
     ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
