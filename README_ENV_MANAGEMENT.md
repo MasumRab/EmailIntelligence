@@ -40,7 +40,7 @@ The shell script `scripts/setup_python.sh` is **DEPRECATED** and should no longe
         - For `dev` stage (`--stage dev`): After base dependencies, packages from `requirements-dev.txt` are installed (if the file exists).
         - For `test` stage (`--stage test`): After base dependencies, packages from `requirements-test.txt` are installed (if the file exists).
     - The `--update-deps` flag forces an update (upgrade) of existing packages during installation.
-- **Python Version Checking**: Ensures the Python version being used is within the supported range.
+- **Python Version Checking**: Ensures the Python version being used is within the supported range. Notably, `launch.py` now enforces the use of Python 3.11+ for the environment, aligning with the project's dependencies and configurations as specified in `pyproject.toml`.
 - **NLTK Data Download**: Actively manages and automatically attempts to download required NLTK datasets (such as 'punkt', 'stopwords', 'wordnet') upon initial setup. If a download fails, an error will be logged. This can be skipped using the `--no-download-nltk` flag.
 - **System Information**: The `--system-info` flag provides detailed diagnostics about the Python environment, OS, hardware, and project configuration.
 - **Log Level Control**: The `--loglevel` flag allows users to set the verbosity of the launcher script (e.g., DEBUG, INFO, WARNING, ERROR).
