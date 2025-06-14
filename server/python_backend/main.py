@@ -120,6 +120,7 @@ class FilterRequest(BaseModel):
 
 # Dashboard Endpoints
 @app.get("/api/dashboard/stats", response_model=DashboardStatsResponse)
+@performance_monitor.track_function_performance
 async def get_dashboard_stats(request: Request, db: DatabaseManager = Depends(get_db)):
     """Get comprehensive dashboard statistics"""
     try:
@@ -166,6 +167,7 @@ async def get_performance_overview(request: Request):
 
 # Email Management Endpoints
 @app.get("/api/emails", response_model=List[EmailResponse])
+@performance_monitor.track_function_performance
 async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
@@ -205,6 +207,7 @@ async def get_emails(
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
 @app.get("/api/emails/{email_id}")
+@performance_monitor.track_function_performance
 async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
     """Get specific email by ID"""
     try:
@@ -237,6 +240,7 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 @app.post("/api/emails")
+@performance_monitor.track_function_performance
 async def create_email(
     request: Request,
     email: EmailCreate,
@@ -294,6 +298,7 @@ async def create_email(
         raise HTTPException(status_code=500, detail="Failed to create email")
 
 @app.put("/api/emails/{email_id}")
+@performance_monitor.track_function_performance
 async def update_email(
     request: Request,
     email_id: int,
@@ -332,6 +337,7 @@ async def update_email(
 
 # Category Management Endpoints
 @app.get("/api/categories", response_model=List[CategoryResponse])
+@performance_monitor.track_function_performance
 async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
     """Get all categories"""
     try:
@@ -360,6 +366,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 @app.post("/api/categories")
+@performance_monitor.track_function_performance
 async def create_category(
     request: Request,
     category: CategoryCreate,
@@ -393,6 +400,7 @@ async def create_category(
 
 # Gmail Integration Endpoints
 @app.post("/api/gmail/sync")
+@performance_monitor.track_function_performance
 async def sync_gmail(
     req: Request, # Renamed to req to avoid conflict with request model
     request_model: GmailSyncRequest, # Renamed model
@@ -487,6 +495,7 @@ async def sync_gmail(
         raise HTTPException(status_code=500, detail=f"Gmail sync failed due to an unexpected error: {str(e)}")
 
 @app.post("/api/gmail/smart-retrieval")
+@performance_monitor.track_function_performance
 async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest): # Renamed params
     """Execute smart Gmail retrieval with multiple strategies"""
     try:
@@ -538,6 +547,7 @@ async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest): #
         raise HTTPException(status_code=500, detail=f"Smart retrieval failed due to an unexpected error: {str(e)}")
 
 @app.get("/api/gmail/strategies")
+@performance_monitor.track_function_performance
 async def get_retrieval_strategies(request: Request):
     """Get available Gmail retrieval strategies"""
     try:
@@ -555,6 +565,7 @@ async def get_retrieval_strategies(request: Request):
         raise HTTPException(status_code=500, detail="Failed to fetch strategies")
 
 @app.get("/api/gmail/performance")
+@performance_monitor.track_function_performance
 async def get_gmail_performance(request: Request):
     """Get Gmail API performance metrics"""
     try:
@@ -573,6 +584,7 @@ async def get_gmail_performance(request: Request):
 
 # Smart Filter Endpoints
 @app.get("/api/filters")
+@performance_monitor.track_function_performance
 async def get_filters(request: Request):
     """Get all active email filters"""
     try:
@@ -594,6 +606,7 @@ async def get_filters(request: Request):
         raise HTTPException(status_code=500, detail="Failed to fetch filters")
 
 @app.post("/api/filters")
+@performance_monitor.track_function_performance
 async def create_filter(request: Request, filter_request_model: FilterRequest): # Renamed model
     """Create new email filter"""
     try:
@@ -625,6 +638,7 @@ async def create_filter(request: Request, filter_request_model: FilterRequest): 
         raise HTTPException(status_code=500, detail="Failed to create filter")
 
 @app.post("/api/filters/generate-intelligent")
+@performance_monitor.track_function_performance
 async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
     """Generate intelligent filters based on email patterns"""
     try:
@@ -668,6 +682,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
         raise HTTPException(status_code=500, detail="Failed to generate filters")
 
 @app.post("/api/filters/prune")
+@performance_monitor.track_function_performance
 async def prune_filters(request: Request):
     """Prune ineffective filters"""
     try:
@@ -688,6 +703,7 @@ async def prune_filters(request: Request):
 
 # Action Item Extraction Endpoint
 @app.post("/api/actions/extract-from-text", response_model=List[ActionItem])
+@performance_monitor.track_function_performance
 async def extract_actions_from_text(
     fastapi_req: Request, # Renamed to avoid conflict with Pydantic request model
     request_model: ActionExtractionRequest
