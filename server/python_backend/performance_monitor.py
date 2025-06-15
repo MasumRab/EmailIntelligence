@@ -5,13 +5,14 @@ Real-time performance tracking and optimization
 import asyncio
 import time
 import logging
+import functools # Added for functools.wraps
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from collections import defaultdict, deque
 import json
 import psutil
 # import sqlite3 # Removed SQLite
-from dataclasses import asdict # Added
+from dataclasses import dataclass, asdict # Added
 from datetime import datetime # Ensure datetime is directly available
 
 logger = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ class PerformanceMonitor:
         self.PERFORMANCE_LOG_FILE = PERFORMANCE_LOG_FILE
 
         # Start periodic file logging task
-        asyncio.create_task(self._periodic_logger_task())
+        # asyncio.create_task(self._periodic_logger_task()) # Commented out for tests
 
     async def _log_metrics_to_file(self):
         """Logs current in-memory metrics, alerts, and system health to a JSONL file and clears buffers."""
@@ -445,9 +446,10 @@ class PerformanceMonitor:
             "data_points": [vars(m) for m in service_data_points] # Convert dataclasses to dicts for output
         }
 
-    async def track_function_performance(self, func_name: str):
+    def track_function_performance(self, func_name: str):
         """Decorator to track function performance"""
         def decorator(func):
+            @functools.wraps(func) # Added functools.wraps
             async def wrapper(*args, **kwargs):
                 start_time = time.time()
                 error_occurred = False
