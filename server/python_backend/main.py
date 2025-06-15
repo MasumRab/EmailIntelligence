@@ -21,7 +21,7 @@ from .database import DatabaseManager, get_db
 from .models import EmailCreate, EmailUpdate, CategoryCreate, ActivityCreate
 # Updated import to use NLP GmailAIService directly
 from server.python_nlp.gmail_service import GmailAIService
-from .smart_filters import SmartFilterManager
+from server.python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
 from .performance_monitor import PerformanceMonitor
 

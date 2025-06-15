@@ -10,7 +10,7 @@ import sys
 import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
-from .utils.async_utils import _execute_async_command
+# from .utils.async_utils import _execute_async_command # Commented out
 from server.python_nlp.nlp_engine import NLPEngine as FallbackNLPEngine # Renamed for clarity
 
 logger = logging.getLogger(__name__)
@@ -81,9 +81,12 @@ class AdvancedAIEngine:
             ]
             
             logger.debug(f"Executing NLPEngine script with command: {' '.join(cmd)}")
-            result_json_str = await _execute_async_command(cmd, cwd=self.python_nlp_path)
+            # result_json_str = await _execute_async_command(cmd, cwd=self.python_nlp_path) # Commented out
+            logger.warning("_execute_async_command is commented out. Using fallback for analyze_email.")
+            return self._get_fallback_analysis(subject, content, "_execute_async_command not available")
             
-            if not result_json_str:
+            # This part below will be skipped due to the direct return above
+            if not result_json_str: # type: ignore
                 logger.error("NLPEngine script returned empty output.")
                 return self._get_fallback_analysis(subject, content, "empty script output")
 
@@ -128,7 +131,9 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
+            # result = await _execute_async_command(cmd, cwd=self.python_nlp_path) # Commented out
+            logger.warning("_execute_async_command is commented out. Returning error for train_models.")
+            result = {"error": "_execute_async_command not available"} # Mock result
             
             # Cleanup temporary file
             try:
@@ -168,10 +173,12 @@ class AdvancedAIEngine:
                 '--output-format', 'json'
             ]
             
-            result = await _execute_async_command(cmd, cwd=self.python_nlp_path)
+            # result = await _execute_async_command(cmd, cwd=self.python_nlp_path) # Commented out
+            logger.warning("_execute_async_command is commented out. Returning unhealthy for health_check.")
+            result = {"status": "error", "error": "_execute_async_command not available"} # Mock result
             
             return {
-                "status": "healthy" if result.get('status') == 'ok' else "degraded",
+                "status": "unhealthy", # Changed to unhealthy due to missing command
                 "models_available": result.get('models_available', []),
                 "performance": result.get('performance', {}),
                 "timestamp": datetime.now().isoformat()

@@ -170,6 +170,44 @@ class ModelsManager:
                 success = False
         
         return success
+
+    def create_placeholder_nlp_models(self) -> bool:
+        """Create empty placeholder .pkl files for default NLP models if they don't exist."""
+        placeholder_dir = self.root_dir / "server" / "python_nlp"
+        placeholder_model_files = [
+            "sentiment_model.pkl",
+            "topic_model.pkl",
+            "intent_model.pkl",
+            "urgency_model.pkl"
+        ]
+        all_created_or_exist = True
+
+        if not placeholder_dir.exists():
+            logger.info(f"Placeholder directory {placeholder_dir} does not exist. Creating it.")
+            try:
+                placeholder_dir.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                logger.error(f"Failed to create placeholder directory {placeholder_dir}: {e}")
+                return False # Cannot proceed if directory cannot be created
+
+        logger.info(f"Checking for placeholder NLP models in {placeholder_dir}...")
+        for model_file in placeholder_model_files:
+            file_path = placeholder_dir / model_file
+            if not file_path.exists():
+                logger.info(f"Creating placeholder model file: {file_path}")
+                try:
+                    file_path.touch() # Create an empty file
+                except Exception as e:
+                    logger.error(f"Failed to create placeholder file {file_path}: {e}")
+                    all_created_or_exist = False
+            else:
+                logger.info(f"Placeholder model file already exists: {file_path}")
+
+        if all_created_or_exist:
+            logger.info("Placeholder NLP model file check/creation complete.")
+        else:
+            logger.warning("Failed to create one or more placeholder NLP model files.")
+        return all_created_or_exist
     
     def create_model_config(self, model_name: str, config: Dict[str, Any]) -> bool:
         """Create a configuration file for a model."""

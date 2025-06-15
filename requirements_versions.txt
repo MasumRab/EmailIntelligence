@@ -6,3 +6,5 @@ scikit-learn
 joblib
 psycopg2-binary
 pyngrok>=0.7.0
+requests>=2.20.0
+psutil>=5.8.0
