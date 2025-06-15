@@ -67,6 +67,19 @@ def test_sentiment_analysis():
     assert result["confidence"] > 0.8
 ```
 
+## API Test Coverage
+
+Comprehensive API tests have been implemented for the Python FastAPI backend (`server/python_backend/main.py`).
+These tests cover the following endpoint categories:
+- Dashboard and Health Checks (`tests/test_dashboard_api.py`, `tests/test_health_check_api.py`)
+- Email Management (CRUD operations) (`tests/test_email_api.py`)
+- Category Management (`tests/test_category_api.py`)
+- Gmail Integration (sync, smart retrieval, strategies, performance) (`tests/test_gmail_api.py`)
+- Smart Filters (CRUD, generation, pruning) (`tests/test_filter_api.py`)
+- Action Item Extraction (`tests/test_api_actions.py`)
+
+These tests utilize `fastapi.testclient.TestClient` and `unittest.mock` to ensure robust testing of API behavior, including success cases, error handling, and validation.
+
 ## Test Coverage
 
 The project aims for high test coverage, especially for critical components like the NLP engine and smart filters. Use the coverage report to identify areas that need more testing:
