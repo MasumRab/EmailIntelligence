@@ -26,7 +26,7 @@ class DatabaseManager:
         # self.init_database() # Table creation handled by Drizzle ORM based on schema.ts
         # Seeding default data can be done here if needed, or via a separate script.
 
-    async def _execute_query(self, query: str, params: Optional[Tuple] = None, fetch_one: bool = False, fetch_all: bool = False, commit: bool = False):
+    async def _execute_query(self, query: str, params: Optional[tuple] = None, fetch_one: bool = False, fetch_all: bool = False, commit: bool = False):
         """Helper to execute queries using asyncio.to_thread for sync psycopg2."""
         conn = await asyncio.to_thread(psycopg2.connect, self.database_url)
         try:

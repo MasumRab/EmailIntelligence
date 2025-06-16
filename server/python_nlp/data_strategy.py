@@ -6,7 +6,7 @@ Comprehensive pipeline for preparing email data for machine learning models
 import re
 import json
 import hashlib
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, tuple, Optional, Any
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import logging
