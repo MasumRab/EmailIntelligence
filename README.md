@@ -109,9 +109,14 @@ npm install
 
 Set up the Python virtual environment, install dependencies, and prepare for AI models:
 ```bash
-bash setup_python.sh
+# For Linux/macOS
+./launch.sh --stage dev
+
+# For Windows
+launch.bat --stage dev
 ```
-**IMPORTANT**: The `setup_python.sh` script creates placeholder AI model files (`.pkl`) in `server/python_nlp/`. For the application's AI features to function correctly, you **must** replace these with actual trained models. The script runs `server/python_nlp/ai_training.py` which may produce one sample model (e.g., `model_xxxxxxxxxxxx.pkl` in the project root); you will need to train models for all required types (sentiment, topic, intent, urgency) and rename/move them appropriately to:
+This will run `launch.py` which handles Python environment setup.
+**IMPORTANT**: The launch script (when run with `--stage dev` or during initial setup) creates placeholder AI model files (`.pkl`) in `server/python_nlp/`. For the application's AI features to function correctly, you **must** replace these with actual trained models. The system may attempt to run `server/python_nlp/ai_training.py` which could produce one sample model (e.g., `model_xxxxxxxxxxxx.pkl` in the project root); you will need to train models for all required types (sentiment, topic, intent, urgency) and rename/move them appropriately to:
 *   `server/python_nlp/sentiment_model.pkl`
 *   `server/python_nlp/topic_model.pkl`
 *   `server/python_nlp/intent_model.pkl`
@@ -301,3 +306,33 @@ python launch.py --create-extension my_extension
 ```
 
 For more information about the extension system, see the [Environment Management](README_ENV_MANAGEMENT.md#extension-system) documentation.
+
+## Debugging Hangs
+
+### Debugging Pytest Hangs
+
+If `pytest` runs (e.g., via `python deployment/run_tests.py`) appear to hang:
+
+*   **Increase Verbosity**: Run `pytest` with `-vvv` (or `-vv`) for more detailed output.
+*   **Disable Capture**: Use `pytest --capture=no` to see `stdout` and `stderr` from tests in real-time. This can help identify if a test is printing lots of data or getting stuck in a loop.
+*   **Specific Test File/Function**: Try to isolate the hang by running specific test files (`pytest tests/your_test_file.py`) or specific test functions (`pytest tests/your_test_file.py::test_name`).
+*   **Debugger**: Insert `import pdb; pdb.set_trace()` (Python 3.6 and below) or `breakpoint()` (Python 3.7+) into a suspected test or fixture to step through the code.
+*   **Timeouts**: The `run_tests.py` script now includes timeouts for test suites. If a timeout occurs, it will be logged, indicating a hang in that suite.
+
+### Debugging NPM/Build Hangs
+
+If `npm run build` or other `npm` commands hang:
+
+*   **Verbose Output**: The `build` script in `package.json` has been updated to include `--debug` for Vite and `--log-level=verbose` for esbuild. Examine this output closely.
+*   **Node.js Inspector**: For debugging `node` scripts (if you suspect a specific script invoked by npm), you can try to run it with the inspector: `node --inspect-brk your_script.js`. Then connect a debugger like Chrome DevTools.
+*   **Resource Limits**: Frontend builds (especially minification, transpilation, and source map generation) can be memory and CPU intensive. Ensure your build environment (local machine, CI runner, Docker container) has adequate resources. Check for out-of-memory (OOM) errors in system logs if possible.
+*   **Clean NPM Cache/Modules**: Rarely, a corrupted npm cache or `node_modules` can cause issues. Try `npm cache clean --force` (use with caution) and remove `node_modules` and `package-lock.json`, then run `npm install` again. Note that `npm ci` (used in `Dockerfile.frontend`) is generally preferred for CI/build environments as it performs cleaner installs.
+
+### General Debugging on Linux
+
+If hangs occur in a Linux environment (like Docker containers or CI runners):
+
+*   **System Resource Monitoring**: Use tools like `top`, `htop`, or `vmstat` to check CPU, memory, and I/O usage during the suspected hang.
+*   **System Calls**: `strace -p <PID>` can attach to a running process and show system calls, which might indicate what a process is waiting for (e.g., file I/O, network).
+*   **Kernel Messages**: Check `dmesg -T` for any relevant kernel messages, such as OOM killer events.
+*   **Disk Space**: Ensure there's adequate disk space in the build environment.
