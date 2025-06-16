@@ -5,7 +5,7 @@ Combines metadata extraction, rate limiting, and AI training for complete email 
 
 import asyncio
 import json
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import logging
 import os # Added

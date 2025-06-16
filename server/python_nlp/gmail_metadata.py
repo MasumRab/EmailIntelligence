@@ -380,7 +380,7 @@ class GmailMetadataExtractor:
         references = re.findall(r'<([^>]+)>', references_header)
         return references
     
-    def _extract_security_status(self, headers: Dict[str, str]) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    def _extract_security_status(self, headers: Dict[str, str]) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract SPF, DKIM, and DMARC status"""
         spf_status = None
         dkim_status = None
