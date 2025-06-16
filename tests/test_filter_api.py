@@ -1,10 +1,12 @@
 import unittest
+import unittest
 from unittest.mock import patch, AsyncMock, MagicMock
 from fastapi.testclient import TestClient
 from server.python_backend.main import app, get_db
-from server.python_backend.models import FilterRequest
-from server.python_backend.smart_filters import EmailFilter # Ensure this can be imported
+# from server.python_backend.models import FilterRequest # Not directly used in this version of the test for payload
+from server.python_nlp.smart_filters import EmailFilter # Changed import
 from psycopg2 import Error as Psycopg2Error # Import psycopg2.Error
+from datetime import datetime # Added import
 
 # Mock DatabaseManager and SmartFilterManager
 # Note: The get_db dependency is already overridden globally in test_email_api.py.
@@ -33,8 +35,7 @@ class TestFilterAPI(unittest.TestCase):
 
         # Configure async method mocks for filter_manager
         self.mock_filter_manager.get_all_filters = AsyncMock()
-        # add_custom_filter in main.py is called on filter_manager instance, not an async method
-        # The filter_manager instance itself is self.mock_filter_manager
+        # add_custom_filter in SmartFilterManager is synchronous
         self.mock_filter_manager.add_custom_filter = MagicMock()
         self.mock_filter_manager.create_intelligent_filters = AsyncMock()
         self.mock_filter_manager.prune_ineffective_filters = AsyncMock()
@@ -101,41 +102,60 @@ class TestFilterAPI(unittest.TestCase):
         print("Running test_create_filter_success")
         filter_payload = {
             "name": "New Test Filter",
-            "criteria": {"subject_contains": "test"},
-            "actions": {"type": "add_label", "label_name": "TEST_LABEL"}, # main.py uses actions.get("type")
+            "criteria": {"subject_contains": "test", "description": "Test description"},
+            "actions": {"add_label": "TEST_LABEL", "mark_important": True}, # Example actions dict
             "priority": 5
         }
 
-        # The endpoint creates an EmailFilter object and passes it to add_custom_filter
-        # Then it returns the __dict__ of this EmailFilter object.
-        # So, add_custom_filter itself doesn't need to return anything for this test.
-        # We just check if it was called with the correct EmailFilter instance.
+        # Construct the expected EmailFilter object that add_custom_filter would return
+        # The actual filter_id, created_date, last_used will be dynamic in the real method
+        # For the mock, we define them to check the structure.
+        expected_return_filter = EmailFilter(
+            filter_id="custom_New_Test_Filter_mocked_time", # Mocked, actual is dynamic
+            name=filter_payload["name"],
+            description=filter_payload["criteria"]["description"],
+            criteria=filter_payload["criteria"],
+            actions=filter_payload["actions"],
+            priority=filter_payload["priority"],
+            effectiveness_score=0.0,
+            created_date=datetime.now(), # Will be serialized to string in response
+            last_used=datetime.now(),    # Will be serialized to string in response
+            usage_count=0,
+            false_positive_rate=0.0,
+            performance_metrics={}
+        )
+        self.mock_filter_manager.add_custom_filter.return_value = expected_return_filter
 
         response = self.client.post("/api/filters", json=filter_payload)
 
-        self.assertEqual(response.status_code, 200) # As per main.py
+        self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["name"], "New Test Filter")
-        self.assertEqual(data["criteria"], {"subject_contains": "test"})
-        # The main.py create_filter endpoint creates an EmailFilter object.
-        # The EmailFilter placeholder in smart_filters.py has an 'action' attribute.
-        # main.py sets `action=filter_request_model.actions.get("type", "")` for EmailFilter
-        self.assertEqual(data["action"], filter_payload["actions"]["type"])
-        self.assertEqual(data["priority"], 5)
-        self.assertTrue(data["enabled"]) # Default from EmailFilter placeholder
 
-        self.mock_filter_manager.add_custom_filter.assert_called_once()
-        # Check the argument passed to add_custom_filter
-        args, _ = self.mock_filter_manager.add_custom_filter.call_args
-        created_filter_obj = args[0]
-        self.assertIsInstance(created_filter_obj, EmailFilter)
-        self.assertEqual(created_filter_obj.name, filter_payload["name"])
-        self.assertEqual(created_filter_obj.criteria, filter_payload["criteria"])
-        # This check depends on how EmailFilter is structured in smart_filters.py
-        # The placeholder has `self.action = action_type_from_payload_actions_type`
-        self.assertEqual(created_filter_obj.action, filter_payload["actions"]["type"])
-        self.assertEqual(created_filter_obj.priority, filter_payload["priority"])
+        self.assertEqual(data["name"], filter_payload["name"])
+        self.assertEqual(data["criteria"], filter_payload["criteria"])
+        self.assertEqual(data["actions"], filter_payload["actions"]) # Check actions dict
+        self.assertEqual(data["priority"], filter_payload["priority"])
 
+        # Check for presence and type of other fields
+        self.assertIn("filter_id", data)
+        self.assertTrue(data["filter_id"].startswith("custom_New_Test_Filter")) # Or check against expected_return_filter.filter_id
+        self.assertEqual(data["effectiveness_score"], 0.0)
+        self.assertIn("created_date", data)
+        self.assertIsInstance(data["created_date"], str) # Datetime is serialized
+        self.assertIn("last_used", data)
+        self.assertIsInstance(data["last_used"], str) # Datetime is serialized
+        self.assertEqual(data["usage_count"], 0)
+        self.assertEqual(data["false_positive_rate"], 0.0)
+        self.assertEqual(data["performance_metrics"], {})
+
+        # Check that add_custom_filter was called correctly
+        self.mock_filter_manager.add_custom_filter.assert_called_once_with(
+            name=filter_payload["name"],
+            description=filter_payload["criteria"]["description"],
+            criteria=filter_payload["criteria"],
+            actions=filter_payload["actions"],
+            priority=filter_payload["priority"]
+        )
 
     def test_create_filter_validation_error(self):
         print("Running test_create_filter_validation_error")
@@ -152,8 +172,8 @@ class TestFilterAPI(unittest.TestCase):
         print("Running test_create_filter_manager_error")
         filter_payload = {
             "name": "Error Filter",
-            "criteria": {"subject_contains": "error"},
-            "actions": {"type": "move_to_folder", "folder_name": "Errors"}, # main.py uses actions.get("type")
+            "criteria": {"subject_contains": "error", "description": "Error description"},
+            "actions": {"add_label": "ERROR_LABEL"},
             "priority": 1
         }
         self.mock_filter_manager.add_custom_filter.side_effect = Exception("Cannot add filter")
@@ -163,8 +183,15 @@ class TestFilterAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 500)
         data = response.json()
         self.assertIn("Failed to create filter", data["detail"])
-        self.mock_filter_manager.add_custom_filter.assert_called_once()
 
+        # Check that add_custom_filter was called with correct arguments even if it raised an exception
+        self.mock_filter_manager.add_custom_filter.assert_called_once_with(
+            name=filter_payload["name"],
+            description=filter_payload["criteria"]["description"],
+            criteria=filter_payload["criteria"],
+            actions=filter_payload["actions"],
+            priority=filter_payload["priority"]
+        )
 
     def test_generate_intelligent_filters_success(self):
         print("Running test_generate_intelligent_filters_success")
