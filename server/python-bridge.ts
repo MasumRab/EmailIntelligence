@@ -24,9 +24,10 @@ interface PythonScriptOutput {
     reliable: boolean;
     feedback: string;
   };
+  category_id?: number; // Added category_id from Python
 }
 
-export type MappedNLPResult = AIAnalysis & { validation: AccuracyValidation };
+export type MappedNLPResult = AIAnalysis & { validation: AccuracyValidation }; // AIAnalysis now includes categoryId?
 
 export class PythonNLPBridge {
   private pythonScriptPath: string;
@@ -53,6 +54,7 @@ export class PythonNLPBridge {
         reliable: pyOutput.validation.reliable,
         feedback: pyOutput.validation.feedback,
       },
+      categoryId: pyOutput.category_id, // Map category_id
     };
   }
 

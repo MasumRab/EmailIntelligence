@@ -24,26 +24,36 @@ from .data_strategy import DataCollectionStrategy, EmailSample
 # This assumes AdvancedAIEngine is in a module that can be imported.
 # If it's in python_backend, the path needs to be correct.
 # For now, let's assume a placeholder for where AdvancedAIEngine would be imported from.
-# from server.python_backend.ai_engine import AdvancedAIEngine
-# Placeholder: If AdvancedAIEngine is not easily importable due to circular deps or structure,
-# this part of the refactoring (direct usage of AdvancedAIEngine object) might need adjustment.
-# For this step, we'll mock its presence or assume it's passed in.
+from server.python_backend.ai_engine import AdvancedAIEngine # Assuming this import works
+from server.python_backend.database import DatabaseManager # Assuming this import works
+
 
 class GmailAIService:
     """Complete Gmail integration with AI processing and metadata extraction"""
     
-    def __init__(self, rate_config: Optional[RateLimitConfig] = None, advanced_ai_engine: Optional[Any] = None): # Allow passing AdvancedAIEngine
+    def __init__(self,
+                 rate_config: Optional[RateLimitConfig] = None,
+                 advanced_ai_engine: Optional[AdvancedAIEngine] = None, # Typed hint
+                 db_manager: Optional[DatabaseManager] = None): # Added db_manager
         self.collector = GmailDataCollector(rate_config)
         self.metadata_extractor = GmailMetadataExtractor()
         self.data_strategy = DataCollectionStrategy()
-        # self.model_trainer = ModelTrainer() # Potentially remove if not used directly
-        # self.prompt_engineer = PromptEngineer() # Potentially remove
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
-        # This is key for the refactoring: GmailAIService will use AdvancedAIEngine
-        # If not passed, a placeholder or default might be instantiated, or an error raised.
-        # For now, let's assume it's required or a default is handled by the caller.
-        self.advanced_ai_engine = advanced_ai_engine
+        if advanced_ai_engine:
+            self.advanced_ai_engine = advanced_ai_engine
+        else:
+            self.logger.info("No AdvancedAIEngine provided, instantiating a new one for GmailAIService.")
+            self.advanced_ai_engine = AdvancedAIEngine()
+            # Consider if AIEngine needs initialization here, e.g., self.advanced_ai_engine.initialize()
+
+        self.db_manager = db_manager
+        if not self.db_manager:
+            self.logger.info("No DatabaseManager provided to GmailAIService, instantiating a new one.")
+            # This might be problematic if DB URL isn't available easily here or for testing.
+            # Ideally, db_manager should be a required dependency if category matching is always on.
+            self.db_manager = DatabaseManager()
+
 
         # Path definitions for scripts (like smart_retrieval.py) might still be relevant
         self.nlp_path = os.path.dirname(__file__)
@@ -203,13 +213,21 @@ class GmailAIService:
             self.logger.error("AdvancedAIEngine not available for AI analysis.")
             return self._get_basic_fallback_analysis_structure("AdvancedAIEngine not configured")
 
+        if not self.db_manager:
+            self.logger.warning("DatabaseManager not available in GmailAIService, category ID matching will be skipped for AI analysis.")
+            # Fallback to analysis without DB-based category matching
+            db_for_analysis = None
+        else:
+            db_for_analysis = self.db_manager
+
         self.logger.debug(f"Performing AI analysis for email ID: {email_data.get('id', 'unknown')}")
         try:
             # AdvancedAIEngine is expected to have an `analyze_email` method
             # that takes subject and content, and returns an object or dict with analysis.
             analysis_result_obj = await self.advanced_ai_engine.analyze_email(
                 subject=email_data.get('subject', ''),
-                content=email_data.get('content', '')
+                content=email_data.get('content', ''),
+                db=db_for_analysis # Pass the db_manager instance
             )
             
             # Assuming analyze_email returns an object with a to_dict() method or is a dict
@@ -251,27 +269,27 @@ class GmailAIService:
             ai_confidence = ai_analysis_result.get('confidence', 0.0)
             # Ensure all expected keys from ai_analysis_result are included for analysisMetadata
             analysis_metadata_payload['ai_analysis'] = {
-                'topic': ai_topic,
+                'topic': ai_topic, # This is the raw topic string from AI
                 'sentiment': ai_analysis_result.get('sentiment', 'neutral'),
                 'intent': ai_analysis_result.get('intent', 'unknown'),
                 'urgency': ai_analysis_result.get('urgency', 'low'),
                 'confidence': ai_confidence,
-                'categories': ai_analysis_result.get('categories', []),
+                'categories': ai_analysis_result.get('categories', []), # Raw AI category suggestions
                 'keywords': ai_analysis_result.get('keywords', []),
                 'reasoning': ai_analysis_result.get('reasoning', ''),
                 'suggested_labels': ai_analysis_result.get('suggested_labels', []),
                 'risk_flags': ai_analysis_result.get('risk_flags', []),
-                'action_items': ai_analysis_result.get('action_items', []), # Ensure action_items are included
-                # Add any other fields that are part of AIAnalysisResult.to_dict()
+                'action_items': ai_analysis_result.get('action_items', []),
+                'category_id': ai_analysis_result.get('category_id') # This is the matched DB category ID
             }
         else:
             # Handle case where AI analysis was skipped or failed
             analysis_metadata_payload['ai_analysis'] = self._get_basic_fallback_analysis_structure("AI analysis not performed or failed")
-            ai_topic = analysis_metadata_payload['ai_analysis']['topic']
-            ai_confidence = analysis_metadata_payload['ai_analysis']['confidence']
+            ai_topic = analysis_metadata_payload['ai_analysis']['topic'] # Fallback topic
+            ai_confidence = analysis_metadata_payload['ai_analysis']['confidence'] # Fallback confidence
 
-
-        category_id = self._map_topic_to_category_id(ai_topic)
+        # category_id now comes directly from ai_analysis_result if matching was successful
+        category_id = analysis_metadata_payload['ai_analysis'].get('category_id')
         
         # Common metadata to include regardless of AI analysis success/failure
         analysis_metadata_payload.update({
@@ -342,7 +360,7 @@ class GmailAIService:
             'isFirstInThread': gmail_metadata.thread_info.get('is_first_message', True),
             
             # AI analysis results
-            'categoryId': category_id,
+            'category_id': category_id, # Use the resolved category_id from AI analysis
             'confidence': int(ai_confidence * 100), # Use confidence from AI analysis
             'analysisMetadata': json.dumps(analysis_metadata_payload),
             
@@ -351,13 +369,12 @@ class GmailAIService:
         
         return db_email
     
-    def _map_topic_to_category_id(self, topic: str) -> Optional[int]:
-        """Map AI-detected topic to database category ID"""
-        topic_mappings = {
-            'work_business': 1, 'personal_family': 2, 'finance_banking': 3,
-            'promotions': 4, 'travel': 5, 'healthcare': 6
-        }
-        return topic_mappings.get(topic.lower())
+        # No longer using _map_topic_to_category_id, categoryId should come from AIEngine
+        # category_id = self._map_topic_to_category_id(ai_topic)
+        category_id = ai_analysis_result.get('category_id') if ai_analysis_result else None
+
+        # Common metadata to include regardless of AI analysis success/failure
+        analysis_metadata_payload.update({
     
     async def train_models_from_gmail_data(
         self, training_query: str = "newer_than:30d", max_training_emails: int = 5000
@@ -597,11 +614,14 @@ async def main():
     main_logger = logging.getLogger(__name__) # This will use the root logger if not further specified
 
     # For testing, if AdvancedAIEngine is required, you'd mock it or instantiate it:
-    # from server.python_backend.ai_engine import AdvancedAIEngine # Adjust import
+    # from server.python_backend.ai_engine import AdvancedAIEngine
+    # from server.python_backend.database import DatabaseManager
     # advanced_ai_engine_instance = AdvancedAIEngine()
-    # await advanced_ai_engine_instance.initialize() # If it has an async init
-    # service = GmailAIService(advanced_ai_engine=advanced_ai_engine_instance)
-    service = GmailAIService(advanced_ai_engine=None) # Test without full AI engine if it's complex to set up
+    # db_manager_instance = DatabaseManager() # Needs DATABASE_URL
+    # service = GmailAIService(advanced_ai_engine=advanced_ai_engine_instance, db_manager=db_manager_instance)
+
+    # Simplified instantiation for example, may not fully work if DB_URL is not set
+    service = GmailAIService()
     main_logger.info("Starting example usage of GmailAIService...")
     # Sync recent emails with AI analysis
     # Reduced max_emails for quicker testing, set include_ai_analysis to False if NLP models aren't set up
