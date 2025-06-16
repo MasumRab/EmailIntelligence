@@ -427,6 +427,20 @@ class DataCollectionStrategy:
     
     def create_training_dataset(self, samples: List[EmailSample]) -> Dict[str, Any]:
         """Create structured training dataset from email samples"""
+        if not samples:
+            self.logger.warning("No email samples provided for dataset creation")
+            return {
+                "metadata": {
+                    "creation_date": datetime.now().isoformat(),
+                    "sample_count": 0,
+                    "version": "1.0",
+                    "schema": "email_nlp_v1"
+                },
+                "samples": [],
+                "statistics": {}
+            }
+        
+        self.logger.info(f"Creating training dataset from {len(samples)} samples")
         dataset = {
             "metadata": {
                 "creation_date": datetime.now().isoformat(),
@@ -469,18 +483,33 @@ class DataCollectionStrategy:
     
     def export_dataset(self, dataset: Dict[str, Any], filepath: str) -> None:
         """Export dataset to JSON file"""
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(dataset, f, indent=2, ensure_ascii=False)
-        
-        self.logger.info(f"Dataset exported to {filepath}")
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(dataset, f, indent=2, ensure_ascii=False)
+            self.logger.info(f"Dataset exported successfully to {filepath}")
+        except IOError as e:
+            self.logger.error(f"Failed to export dataset to {filepath}: {e}")
+            raise
+        except json.JSONEncodeError as e:
+            self.logger.error(f"Failed to encode dataset to JSON: {e}")
+            raise
     
     def load_dataset(self, filepath: str) -> Dict[str, Any]:
         """Load dataset from JSON file"""
-        with open(filepath, 'r', encoding='utf-8') as f:
-            dataset = json.load(f)
-        
-        self.logger.info(f"Dataset loaded from {filepath}")
-        return dataset
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                dataset = json.load(f)
+            self.logger.info(f"Dataset loaded successfully from {filepath}")
+            return dataset
+        except FileNotFoundError:
+            self.logger.error(f"Dataset file not found: {filepath}")
+            raise
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Failed to decode JSON from {filepath}: {e}")
+            raise
+        except IOError as e:
+            self.logger.error(f"Failed to read dataset from {filepath}: {e}")
+            raise
 
 def main():
     """Example usage of data collection strategy"""
