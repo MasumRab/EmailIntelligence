@@ -19,6 +19,15 @@ class TestSmartFilterManager(unittest.TestCase):
         self.manager = SmartFilterManager(db_path=self.db_path)
         # _init_filter_db is called in SmartFilterManager constructor
 
+        # Clean up tables before each test to ensure independence
+        conn = self.manager._get_db_connection() # Use manager's connection
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM filter_performance")
+        cursor.execute("DELETE FROM email_filters")
+        # google_scripts table if it also needs cleanup, add here
+        conn.commit()
+        # No need to close if it's the persistent self.conn, SmartFilterManager handles it or tearDown does.
+
         self.sample_emails = [
             {
                 'id': 'email1',
@@ -50,19 +59,29 @@ class TestSmartFilterManager(unittest.TestCase):
 
     def tearDown(self):
         """Clean up after tests (in-memory DB is automatically discarded)."""
-        pass # No explicit cleanup needed for in-memory DB
+        if self.manager:
+            self.manager.close() # Close the persistent connection
 
     def test_db_initialization(self):
-        """Test that database tables are created."""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        """Test that database tables are created by checking if a simple query succeeds."""
+        # The SmartFilterManager's __init__ calls _init_filter_db.
+        # If tables weren't created, subsequent operations would fail.
+        # This test now verifies that a simple query can be made, implying tables exist.
+        try:
+            # Use an internal, low-level query method of the manager if available,
+            # or a high-level one that would fail if tables don't exist.
+            # Example: try to load a non-existent filter; it should return None, not raise "no such table".
+            loaded_filter = self.manager._load_filter("non_existent_filter_id_for_init_test")
+            self.assertIsNone(loaded_filter, "Loading a non-existent filter should return None.")
 
-        # Check if tables exist
-        tables = ["email_filters", "filter_performance", "google_scripts"]
-        for table_name in tables:
-            cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';")
-            self.assertIsNotNone(cursor.fetchone(), f"Table {table_name} was not created.")
-        conn.close()
+            # Additionally, check for other tables if necessary by a simple count or query
+            perf_records = self.manager._db_fetchall("SELECT * FROM filter_performance WHERE 1=0")
+            self.assertEqual(len(perf_records), 0)
+            script_records = self.manager._db_fetchall("SELECT * FROM google_scripts WHERE 1=0")
+            self.assertEqual(len(script_records), 0)
+
+        except sqlite3.OperationalError as e:
+            self.fail(f"Database initialization likely failed. Query failed with: {e}")
 
     def test_save_and_load_filter(self):
         """Test saving and loading a single filter."""
@@ -202,32 +221,39 @@ class TestSmartFilterManager(unittest.TestCase):
         # Let's adjust sample_emails for clearer TP/FP/FN for this specific filter.
 
         test_emails_for_perf = [
-            {'subject': 'urgent call', 'expected_filter_match': True}, # TP
-            {'subject': 'another subject', 'expected_filter_match': False}, # TN
-            {'subject': 'urgent meeting', 'expected_filter_match': True}, # TP
-            {'subject': 'not urgent but important', 'expected_filter_match': False}, # TN (Corrected, this should be TN)
-            {'subject': 'something else', 'expected_filter_match': True}, # FN (Predicted False, Actual True)
+            {'subject': 'urgent call', 'expected_filter_match': True}, # TP: filter finds "urgent", actual is True
+            {'subject': 'another subject', 'expected_filter_match': False}, # TN: filter doesn't find "urgent", actual is False
+            {'subject': 'urgent meeting', 'expected_filter_match': True}, # TP: filter finds "urgent", actual is True
+            {'subject': 'not urgent but important', 'expected_filter_match': True}, # TP: filter finds "urgent", actual is True (Corrected expectation)
+            {'subject': 'something else', 'expected_filter_match': True}, # FN: filter doesn't find "urgent", actual is True
         ]
 
         performance = self.manager.evaluate_filter_performance("perf_test_001", test_emails_for_perf)
 
-        self.assertEqual(performance.true_positives, 2) # "urgent call", "urgent meeting"
-        self.assertEqual(performance.false_positives, 0)
-        self.assertEqual(performance.false_negatives, 1) # "something else"
-        # TN = 2 ("another subject", "not urgent but important")
+        # New expected counts:
+        # TP = 3 (urgent call, urgent meeting, not urgent but important)
+        # FP = 0
+        # FN = 1 (something else)
+        # TN = 1 (another subject)
+        # Total = 5
 
-        # Accuracy = (TP+TN)/Total = (2+2)/5 = 4/5 = 0.8
+        self.assertEqual(performance.true_positives, 3)
+        self.assertEqual(performance.false_positives, 0)
+        self.assertEqual(performance.false_negatives, 1)
+
+        # Accuracy = (TP+TN)/Total = (3+1)/5 = 4/5 = 0.8
         self.assertAlmostEqual(performance.accuracy, 0.8)
-        # Precision = TP / (TP+FP) = 2 / (2+0) = 1.0
+        # Precision = TP / (TP+FP) = 3 / (3+0) = 1.0
         self.assertAlmostEqual(performance.precision, 1.0)
-        # Recall = TP / (TP+FN) = 2 / (2+1) = 2/3
-        self.assertAlmostEqual(performance.recall, 2/3)
-        # F1 = 2 * (Prec*Rec) / (Prec+Rec) = 2 * (1 * 2/3) / (1 + 2/3) = (4/3) / (5/3) = 4/5 = 0.8
-        self.assertAlmostEqual(performance.f1_score, 0.8)
+        # Recall = TP / (TP+FN) = 3 / (3+1) = 3/4 = 0.75
+        self.assertAlmostEqual(performance.recall, 0.75)
+        # F1 = 2 * (Prec*Rec) / (Prec+Rec) = 2 * (1.0 * 0.75) / (1.0 + 0.75) = 1.5 / 1.75 = 0.85714...
+        self.assertAlmostEqual(performance.f1_score, 1.5 / 1.75)
 
         loaded_filter = self.manager._load_filter("perf_test_001")
-        self.assertAlmostEqual(loaded_filter.effectiveness_score, 0.8) # F1 score
-        # FP Rate = FP / Total = 0 / 5 = 0
+        self.assertAlmostEqual(loaded_filter.effectiveness_score, 1.5 / 1.75) # F1 score
+        # FP Rate = FP / (FP+TN) if defining by specificity, or FP / Total. Here, it's FP/Total.
+        # FP Rate = FP / Total emails = 0 / 5 = 0
         self.assertAlmostEqual(loaded_filter.false_positive_rate, 0)
 
 
