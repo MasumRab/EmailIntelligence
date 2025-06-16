@@ -6,7 +6,7 @@ Implements smart batching, caching, and rate limit management for email collecti
 import time
 import json
 import sqlite3
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, tuple, Any
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import logging
