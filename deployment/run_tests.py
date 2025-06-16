@@ -65,7 +65,7 @@ def run_integration_tests(coverage=False, verbose=False, timeout_seconds=900):
     """Run integration tests."""
     logger.info("Running integration tests...")
     
-    command = f"{sys.executable} -m pytest tests/integration/"
+    command = f"{sys.executable} -m pytest tests/"
     
     if coverage:
         command += " --cov=server"

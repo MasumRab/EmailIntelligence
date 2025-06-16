@@ -10,12 +10,13 @@ from psycopg2 import Error as Psycopg2Error # Import real psycopg2.Error
 # This will use the same global mock_db_manager_filter instance if tests are run together,
 # or a new one if run in isolation. For cleaner tests, a proper fixture setup is better.
 # For now, we re-assert the override for clarity in this specific file's context.
-mock_db_manager_dashboard = MagicMock()
+# Standardizing to use the same mock_db_manager name as other API test files
+mock_db_manager = AsyncMock()
 
-async def override_get_db_dashboard():
-    return mock_db_manager_dashboard
+async def override_get_db(): # Standardized name
+    return mock_db_manager
 
-app.dependency_overrides[get_db] = override_get_db_dashboard
+app.dependency_overrides[get_db] = override_get_db # Standardized override
 
 class TestDashboardAPI(unittest.TestCase):
     def setUp(self):
@@ -28,9 +29,10 @@ class TestDashboardAPI(unittest.TestCase):
         # Configure async method mocks
         self.mock_performance_monitor.get_real_time_dashboard = AsyncMock()
 
-        # Reset and configure mock_db_manager_dashboard for this suite
-        mock_db_manager_dashboard.reset_mock()
-        mock_db_manager_dashboard.get_dashboard_stats = AsyncMock()
+        # Reset and configure mock_db_manager for this suite
+        mock_db_manager.reset_mock() # Changed to mock_db_manager
+        # Method of an AsyncMock is an AsyncMock by default.
+        mock_db_manager.get_dashboard_stats = AsyncMock() # Changed to mock_db_manager
 
         # Mock performance_monitor.track decorator to just return the function
         self.track_patch = patch('server.python_backend.main.performance_monitor.track', MagicMock(side_effect=lambda func: func))
@@ -53,7 +55,7 @@ class TestDashboardAPI(unittest.TestCase):
             "timeSaved": "10h 30m",
             "weeklyGrowth": {"week1": 50, "week2": 75} # Assuming this matches DashboardStatsResponse
         }
-        mock_db_manager_dashboard.get_dashboard_stats.return_value = mock_stats_data
+        mock_db_manager.get_dashboard_stats.return_value = mock_stats_data # Changed to mock_db_manager
 
         response = self.client.get("/api/dashboard/stats")
 
@@ -63,33 +65,42 @@ class TestDashboardAPI(unittest.TestCase):
         self.assertEqual(data["timeSaved"], "10h 30m")
         # Ensure the response matches the DashboardStatsResponse model structure if it's strictly enforced
         # For this test, we're checking key fields.
-        mock_db_manager_dashboard.get_dashboard_stats.assert_called_once()
+        mock_db_manager.get_dashboard_stats.assert_called_once() # Changed to mock_db_manager
+
+    async def async_raise_db_error(self, *args, **kwargs):
+        raise Exception("DB error")
 
     def test_get_dashboard_stats_db_error(self):
         print("Running test_get_dashboard_stats_db_error")
-        mock_db_manager_dashboard.get_dashboard_stats.side_effect = Exception("DB error")
+        mock_db_manager.get_dashboard_stats = AsyncMock() # Ensure it's a fresh AsyncMock # Changed to mock_db_manager
+        mock_db_manager.get_dashboard_stats.side_effect = self.async_raise_db_error # Changed to mock_db_manager
 
         response = self.client.get("/api/dashboard/stats")
 
         self.assertEqual(response.status_code, 500)
         data = response.json()
         self.assertIn("Failed to fetch dashboard stats", data["detail"])
-        mock_db_manager_dashboard.get_dashboard_stats.assert_called_once()
+        mock_db_manager.get_dashboard_stats.assert_called_once() # Changed to mock_db_manager
 
     # Removed @patch('psycopg2.Error', create=True)
+    async def async_raise_psycopg2_error(self, *args, **kwargs):
+        # It's important that the side_effect function itself doesn't try to re-instantiate
+        # complex error objects if they are not needed for the test's core logic,
+        # or ensure they are properly picklable/transmissible if used across boundaries.
+        # Here, we just raise a pre-constructed or simple one.
+        raise Psycopg2Error("Simulated DB error from async side_effect")
+
     def test_get_dashboard_stats_psycopg2_error(self): # Removed mock_psycopg2_error_type from params
         print("Running test_get_dashboard_stats_psycopg2_error")
-        # Create an instance of the real psycopg2.Error
-        db_error_instance = Psycopg2Error("Simulated DB error")
-        # db_error_instance.pgcode = "12345" # pgcode is read-only, main.py handles if not present
-        mock_db_manager_dashboard.get_dashboard_stats.side_effect = db_error_instance
+        mock_db_manager.get_dashboard_stats = AsyncMock() # Ensure it's fresh # Changed to mock_db_manager
+        mock_db_manager.get_dashboard_stats.side_effect = self.async_raise_psycopg2_error # Changed to mock_db_manager
 
         response = self.client.get("/api/dashboard/stats")
 
         self.assertEqual(response.status_code, 503)
         data = response.json()
         self.assertEqual(data["detail"], "Database service unavailable.")
-        mock_db_manager_dashboard.get_dashboard_stats.assert_called_once()
+        mock_db_manager.get_dashboard_stats.assert_called_once() # Changed to mock_db_manager
 
 
     def test_get_performance_overview_success(self):
@@ -116,9 +127,13 @@ class TestDashboardAPI(unittest.TestCase):
         self.assertEqual(response.json(), mock_performance_data)
         self.mock_performance_monitor.get_real_time_dashboard.assert_called_once()
 
+    async def async_raise_performance_monitor_error(self, *args, **kwargs):
+        raise Exception("Performance monitor error")
+
     def test_get_performance_overview_error(self):
         print("Running test_get_performance_overview_error")
-        self.mock_performance_monitor.get_real_time_dashboard.side_effect = Exception("Performance monitor error")
+        # self.mock_performance_monitor.get_real_time_dashboard is already an AsyncMock from setUp
+        self.mock_performance_monitor.get_real_time_dashboard.side_effect = self.async_raise_performance_monitor_error
 
         response = self.client.get("/api/performance/overview")
 

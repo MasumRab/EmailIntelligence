@@ -6,7 +6,7 @@ from server.python_backend.models import EmailResponse # Import specific model
 from typing import List, Optional # Ensure List and Optional are imported
 
 # Mock DatabaseManager for dependency injection
-mock_db_manager = MagicMock()
+mock_db_manager = AsyncMock()
 
 async def override_get_db():
     return mock_db_manager
@@ -17,6 +17,7 @@ class TestEmailAPI_GET(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
         mock_db_manager.reset_mock()
+        # Methods of an AsyncMock are AsyncMocks by default.
         mock_db_manager.get_all_emails = AsyncMock()
         mock_db_manager.get_emails_by_category = AsyncMock()
         mock_db_manager.search_emails = AsyncMock()
@@ -121,9 +122,15 @@ class TestEmailAPI_GET(unittest.TestCase):
         self.assertEqual(response.json(), {"detail": "Email not found"})
         mock_db_manager.get_email_by_id.assert_called_once_with(999)
 
+    async def async_raise_exception(self, *args, **kwargs):
+        # Helper for setting side_effect to an async function that raises
+        # Can be specific if different tests need different exception types/messages
+        raise Exception("Simulated database error")
+
     def test_get_email_by_id_db_error(self):
         print("Running test_get_email_by_id_db_error")
-        mock_db_manager.get_email_by_id.side_effect = Exception("Database connection error")
+        mock_db_manager.get_email_by_id = AsyncMock() # Ensure fresh AsyncMock for this test
+        mock_db_manager.get_email_by_id.side_effect = self.async_raise_exception
         response = self.client.get("/api/emails/1")
         self.assertEqual(response.status_code, 500)
         self.assertIn("Failed to fetch email", response.json()["detail"])
@@ -131,7 +138,8 @@ class TestEmailAPI_GET(unittest.TestCase):
 
     def test_get_emails_db_error(self):
         print("Running test_get_emails_db_error")
-        mock_db_manager.get_all_emails.side_effect = Exception("Database connection error")
+        mock_db_manager.get_all_emails = AsyncMock() # Ensure fresh AsyncMock
+        mock_db_manager.get_all_emails.side_effect = self.async_raise_exception
         response = self.client.get("/api/emails")
         self.assertEqual(response.status_code, 500)
         self.assertIn("Failed to fetch emails", response.json()["detail"])
@@ -150,14 +158,14 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         self.client = TestClient(app)
         # Reset mocks before each test
         # Ensure mock_db_manager is the same instance as used by override_get_db
-        global mock_db_manager
+        # global mock_db_manager # No need to re-declare global here
         mock_db_manager.reset_mock()
         mock_db_manager.create_email = AsyncMock()
         mock_db_manager.update_email = AsyncMock()
         mock_db_manager.get_email_by_id = AsyncMock() # Potentially used by update logic before actual update
 
     @patch('server.python_backend.main.ai_engine.analyze_email', new_callable=AsyncMock)
-    @patch('server.python_backend.main.filter_manager.apply_filters_to_email', new_callable=AsyncMock)
+    @patch('server.python_backend.main.filter_manager.apply_filters_to_email_data', new_callable=AsyncMock) # Corrected method name
     @patch('server.python_backend.main.performance_monitor.record_email_processing') # Mock background task
     def test_create_email_success(self, mock_record_processing, mock_apply_filters, mock_analyze_email):
         print("Running test_create_email_success")
@@ -306,7 +314,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
 
 
     @patch('server.python_backend.main.ai_engine.analyze_email', new_callable=AsyncMock)
-    @patch('server.python_backend.main.filter_manager.apply_filters_to_email', new_callable=AsyncMock)
+    @patch('server.python_backend.main.filter_manager.apply_filters_to_email_data', new_callable=AsyncMock) # Corrected method name
     def test_create_email_db_error(self, mock_apply_filters, mock_analyze_email):
         print("Running test_create_email_db_error")
         email_data = {
@@ -329,11 +337,16 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         mock_analyze_email.return_value = mock_ai_result
         mock_apply_filters.return_value = {"matched_filters": [], "applied_actions": []}
 
-        mock_db_manager.create_email.side_effect = Exception("DB write error")
+        mock_db_manager.create_email = AsyncMock() # Ensure fresh AsyncMock
+        mock_db_manager.create_email.side_effect = self.async_raise_exception # Use helper
 
         response = self.client.post("/api/emails", json=email_data)
         self.assertEqual(response.status_code, 500)
         self.assertIn("Failed to create email", response.json()["detail"])
+
+    # Adding async helper for POST_PUT tests, can be the same if error message is generic
+    async def async_raise_exception(self, *args, **kwargs):
+        raise Exception("Simulated database error")
 
     def test_update_email_success(self):
         print("Running test_update_email_success")
@@ -395,7 +408,8 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         print("Running test_update_email_db_error")
         email_id = 1
         email_update_payload = {"subject": "Updated Subject"}
-        mock_db_manager.update_email.side_effect = Exception("DB update error")
+        mock_db_manager.update_email = AsyncMock() # Ensure fresh AsyncMock
+        mock_db_manager.update_email.side_effect = self.async_raise_exception # Use helper
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
         self.assertEqual(response.status_code, 500)
         self.assertIn("Failed to update email", response.json()["detail"])

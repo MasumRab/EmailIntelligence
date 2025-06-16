@@ -235,7 +235,8 @@ class GmailAIService:
             'error': error_message, 'topic': 'unknown', 'sentiment': 'neutral',
             'intent': 'unknown', 'urgency': 'low', 'confidence': 0.0,
             'keywords': [], 'categories': ['unknown'], 'reasoning': f'Fallback due to error: {error_message}',
-            'suggested_labels': ['unknown'], 'risk_flags': ['analysis_failed']
+            'suggested_labels': ['unknown'], 'risk_flags': ['analysis_failed'],
+            'action_items': [] # Added missing action_items
         }
 
     def _convert_to_db_format(self, gmail_metadata: GmailMessage, ai_analysis_result: Optional[Dict[str, Any]]) -> Dict[str, Any]:
