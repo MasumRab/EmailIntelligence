@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-class IntentAnalyzer:
+class IntentModel:
     def __init__(self, intent_model: Optional[Any]):
         self.model = intent_model
         self.logger = logging.getLogger(__name__)
