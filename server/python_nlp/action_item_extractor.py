@@ -49,7 +49,7 @@ class ActionItemExtractor:
         else:
             logger.warning("NLTK not found. Action item extraction will rely solely on regex and keyword spotting.")
 
-    def _extract_verb_object_with_nltk(self, text: str) -> Tuple[Optional[str], Optional[str]]:
+    def _extract_verb_object_with_nltk(self, text: str) -> tuple[Optional[str], Optional[str]]:
         """
         Extracts verb and object from a phrase using NLTK POS tagging.
         This is a simplified approach.
