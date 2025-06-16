@@ -70,8 +70,10 @@ DEV_COMPOSE_FILE = "docker-compose.dev.yml"
 STAG_COMPOSE_FILE = "docker-compose.stag.yml"
 PROD_COMPOSE_FILE = "docker-compose.prod.yml"
 
-def docker_environment(command, base_compose_file, env_compose_file):
+def docker_environment(command, base_compose_file, env_compose_file, remaining_args=None):
     """Manage a Docker-based environment."""
+    if remaining_args is None:
+        remaining_args = []
     compose_files_str = f"-f {base_compose_file} -f {env_compose_file}"
 
     if command == "up":
@@ -85,8 +87,11 @@ def docker_environment(command, base_compose_file, env_compose_file):
     elif command == "status":
         return run_command(f"docker-compose {compose_files_str} ps")
     elif command == "test":
-        # Assuming 'backend' is the service name for running tests
-        return run_command(f"docker-compose {compose_files_str} exec backend python -m pytest tests/")
+        # Execute tests using the run_tests.py script within the backend service
+        # The run_tests.py script is expected to be in the /app/deployment directory in the container
+        test_script_path = "deployment/run_tests.py"
+        additional_test_args = " ".join(remaining_args)
+        return run_command(f"docker-compose {compose_files_str} exec backend python {test_script_path} {additional_test_args}".strip())
     elif command == "migrate":
         logger.info("Database migrations are handled by the application on startup or via dedicated migration scripts if available.")
         # Example: return run_command(f"docker-compose {compose_files_str} exec backend python manage.py migrate")
@@ -109,8 +114,16 @@ def main():
     """Main entry point for the deployment script."""
     parser = argparse.ArgumentParser(description="Deployment Script for EmailIntelligence")
     parser.add_argument("environment", choices=["dev", "staging", "prod"], help="Deployment environment")
-    parser.add_argument("command", choices=["up", "down", "build", "logs", "status", "test", "migrate", "backup", "restore"], help="Command to execute")
-    args = parser.parse_args()
+    parser.add_argument("command", help="Command to execute: up, down, build, logs, status, test, migrate, backup, restore. For 'test', pass script arguments after the command, e.g., 'test -- --unit'.")
+    # For the 'test' command, we might have additional arguments for run_tests.py
+    # We parse known args first to separate deploy.py args from script args
+    args, remaining_args = parser.parse_known_args()
+
+    # Validate command choices manually now
+    valid_commands = ["up", "down", "build", "logs", "status", "test", "migrate", "backup", "restore"]
+    if args.command not in valid_commands:
+        logger.error(f"Invalid command: {args.command}. Choose from {valid_commands}")
+        sys.exit(1)
 
     # Set up environment variables
     os.environ["PROJECT_ROOT"] = str(PROJECT_ROOT)
@@ -133,7 +146,13 @@ def main():
         logger.error(f"Environment-specific Docker Compose file not found: {env_specific_file}")
         sys.exit(1)
 
-    success = docker_environment(args.command, str(base_file), str(env_specific_file))
+    # Pass remaining_args to docker_environment only if command is 'test'
+    success = docker_environment(
+        args.command,
+        str(base_file),
+        str(env_specific_file),
+        remaining_args=(remaining_args if args.command == "test" else [])
+    )
     else:
         logger.error(f"Unknown environment: {args.environment}")
         success = False
