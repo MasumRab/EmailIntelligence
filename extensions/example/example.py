@@ -8,7 +8,7 @@ sentiment analysis enhancement to the EmailIntelligence application.
 
 import logging
 import re
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -22,11 +22,13 @@ SENTIMENT_EMOJIS = {
 
 def initialize():
     """Initialize the extension."""
-    logger.info("Initializing example extension")
+    logger.info("--- Example extension: TOP of initialize() ---")
     
     # Register hooks
     try:
+        logger.info("--- Example extension: About to import NLPEngine ---")
         from server.python_nlp.nlp_engine import NLPEngine
+        logger.info("--- Example extension: SUCCESSFULLY imported NLPEngine ---")
         
         # Store the original method
         original_analyze_sentiment = NLPEngine._analyze_sentiment

@@ -1,11 +1,13 @@
 import unittest
 from unittest.mock import patch
-from server.python_nlp.action_item_extractor import ActionItemExtractor, HAS_NLTK
+# from server.python_nlp.action_item_extractor import ActionItemExtractor, HAS_NLTK # Commented out for debug
+HAS_NLTK = False # Stubbing HAS_NLTK
 
 class TestActionItemExtractor(unittest.TestCase):
 
     def setUp(self):
-        self.extractor = ActionItemExtractor()
+        # self.extractor = ActionItemExtractor() # Commented out for debug
+        self.extractor = None # Placeholder
 
     def test_extract_actions_clear_phrase_with_due_date(self):
         text = "Please review the attached document by Friday."

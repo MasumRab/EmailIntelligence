@@ -5,18 +5,11 @@ from typing import List, Dict, Any, Optional, Tuple
 # Attempt to import NLTK for POS tagging
 try:
     import nltk
-    # Ensure necessary NLTK data is available, if not, download it.
-    # This is more for a local setup; in a container, it should be pre-installed.
-    try:
-        nltk.data.find('taggers/averaged_perceptron_tagger')
-    except nltk.downloader.ErrorMessage:
-        nltk.download('averaged_perceptron_tagger', quiet=True)
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except nltk.downloader.ErrorMessage:
-        nltk.download('punkt', quiet=True)
+    # Check if necessary NLTK data is available (downloads should be handled by launch.py)
+    nltk.data.find('taggers/averaged_perceptron_tagger')
+    nltk.data.find('tokenizers/punkt')
     HAS_NLTK = True
-except ImportError:
+except (ImportError, nltk.downloader.ErrorMessage): # Catch both import error and find error
     HAS_NLTK = False
 
 logger = logging.getLogger(__name__)
