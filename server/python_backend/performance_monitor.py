@@ -12,7 +12,7 @@ from collections import defaultdict, deque
 import json
 import psutil
 # import sqlite3 # Removed SQLite
-from dataclasses import dataclass, asdict # Added
+from dataclasses import dataclass, field, asdict # Added dataclass and field
 from datetime import datetime # Ensure datetime is directly available
 
 logger = logging.getLogger(__name__)
