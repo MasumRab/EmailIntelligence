@@ -9,11 +9,11 @@ try:
     # This is more for a local setup; in a container, it should be pre-installed.
     try:
         nltk.data.find('taggers/averaged_perceptron_tagger')
-    except nltk.downloader.DownloadError:
+    except nltk.downloader.ErrorMessage:
         nltk.download('averaged_perceptron_tagger', quiet=True)
     try:
         nltk.data.find('tokenizers/punkt')
-    except nltk.downloader.DownloadError:
+    except nltk.downloader.ErrorMessage:
         nltk.download('punkt', quiet=True)
     HAS_NLTK = True
 except ImportError:
@@ -49,7 +49,7 @@ class ActionItemExtractor:
         else:
             logger.warning("NLTK not found. Action item extraction will rely solely on regex and keyword spotting.")
 
-    def _extract_verb_object_with_nltk(self, text: str) -> Tuple[Optional[str], Optional[str]]:
+    def _extract_verb_object_with_nltk(self, text: str) -> tuple[Optional[str], Optional[str]]:
         """
         Extracts verb and object from a phrase using NLTK POS tagging.
         This is a simplified approach.
