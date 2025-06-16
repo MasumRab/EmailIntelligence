@@ -71,12 +71,16 @@ class ActionItemExtractor:
 
             # Find first noun or pronoun after the verb as a simple object
             if verb:
-                verb_index = tokens.index(verb)
-                for i in range(verb_index + 1, len(tagged_tokens)):
-                    token, tag = tagged_tokens[i]
-                    if tag.startswith('NN') or tag.startswith('PRP'): # Noun or Pronoun
-                        obj = token
-                        break
+                try:
+                    verb_index = tokens.index(verb)
+                    for i in range(verb_index + 1, len(tagged_tokens)):
+                        token, tag = tagged_tokens[i]
+                        if tag.startswith('NN') or tag.startswith('PRP'): # Noun or Pronoun
+                            obj = token
+                            break
+                except ValueError:
+                    # Verb not found in tokens (shouldn't happen but being safe)
+                    logger.debug(f"Verb '{verb}' not found in tokens during object extraction")
             return verb, obj
         except Exception as e:
             logger.error(f"Error during NLTK POS tagging or verb/object extraction: {e}")
