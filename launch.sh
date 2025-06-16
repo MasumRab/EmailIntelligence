@@ -1,71 +1,39 @@
 #!/bin/bash
 
 # EmailIntelligence Launcher for Unix-based systems
-# This shell script launches the EmailIntelligence application with the specified arguments
+# This script identifies a Python interpreter and executes launch.py.
+# All environment setup (venv, dependencies) is handled by launch.py.
 
-# Make the script executable if it's not already
-if [ ! -x "$0" ]; then
-    chmod +x "$0"
-fi
-
-# Check if Python is installed
-if ! command -v python3 &> /dev/null; then
-    echo "Python 3 is not installed or not in PATH. Please install Python 3.8 or higher."
+# Ensure launch.py exists
+if [ ! -f "launch.py" ]; then
+    echo "Error: launch.py not found in the current directory." >&2
     exit 1
 fi
 
-# Define the virtual environment directory name
-VENV_DIR="venv"
+PYTHON_INTERP=""
 
-# Check if uv is installed
-if command -v uv &> /dev/null; then
-    echo "uv is installed. Using uv to create and manage the virtual environment."
-    # Create the virtual environment using uv if it doesn't exist
-    if [ ! -d "$VENV_DIR" ]; then
-        uv venv "$VENV_DIR"
-        if [ $? -ne 0 ]; then
-            echo "Failed to create virtual environment with uv. Please check for errors."
-            exit 1
-        fi
-    fi
-    # Activate the virtual environment
-    source "$VENV_DIR/bin/activate"
-    # Install dependencies using uv pip
-    uv pip install -r requirements.txt
-    if [ $? -ne 0 ]; then
-        echo "Failed to install dependencies with uv pip. Please check for errors."
-        exit 1
-    fi
+# 1. Try python3.11
+if command -v python3.11 >/dev/null 2>&1; then
+    PYTHON_INTERP="python3.11"
+# 2. Fallback to python3
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_INTERP="python3"
 else
-    echo "uv is not installed. Falling back to python3 -m venv."
-    # Check if the virtual environment directory exists
-    if [ ! -d "$VENV_DIR" ]; then
-        echo "Creating virtual environment using python3 -m venv."
-        python3 -m venv "$VENV_DIR"
-        if [ $? -ne 0 ]; then
-            echo "Failed to create virtual environment with python3 -m venv. Please check for errors."
-            exit 1
-        fi
-    fi
-    # Activate the virtual environment
-    source "$VENV_DIR/bin/activate"
-    # Install dependencies using pip
-    pip install -r requirements.txt
-    if [ $? -ne 0 ]; then
-        echo "Failed to install dependencies with pip. Please check for errors."
-        exit 1
-    fi
+    echo "Error: Python 3 (3.11 recommended) not found in PATH." >&2
+    echo "Please install Python 3.11 or ensure it's accessible via 'python3.11' or 'python3'." >&2
+    exit 1
 fi
 
-# Execute the Python script
-python3 launch.py "$@"
+echo "Using Python interpreter: $PYTHON_INTERP"
+"$PYTHON_INTERP" launch.py "$@"
 
-# Check if the script exited with an error
-if [ $? -ne 0 ]; then
+EXIT_CODE=$?
+if [ $EXIT_CODE -ne 0 ]; then
     echo
-    echo "The application exited with an error. Please check the logs above."
-    read -p "Press Enter to continue..."
+    echo "The application exited with error code: $EXIT_CODE."
+    # The read command is removed for non-interactive CI/CD,
+    # but can be added back for local debugging if desired.
+    # read -p "Press Enter to continue..."
 fi
 
-# Deactivate the virtual environment upon exiting
-deactivate
+exit $EXIT_CODE
