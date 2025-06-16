@@ -340,7 +340,6 @@ class BatchEmailUpdate(BaseModel):
     
     class Config:
         validate_by_name = True
-        validate_by_name = True
 
 class BatchOperationResponse(BaseModel):
     success: bool
@@ -350,4 +349,4 @@ class BatchOperationResponse(BaseModel):
     errors: List[Dict[str, Any]] = Field(default_factory=list)
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
