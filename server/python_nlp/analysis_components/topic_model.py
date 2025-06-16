@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-class TopicAnalyzer:
+class TopicModel:
     def __init__(self, topic_model: Optional[Any]):
         self.model = topic_model
         self.logger = logging.getLogger(__name__)

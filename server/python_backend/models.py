@@ -127,6 +127,18 @@ class AIAnalysisResponse(BaseModel):
     class Config:
         validate_by_name = True
 
+# Models moved from main.py for Action Item Extraction
+class ActionExtractionRequest(BaseModel):
+    subject: Optional[str] = None
+    content: str
+
+class ActionItem(BaseModel):
+    action_phrase: str
+    verb: Optional[str] = None
+    object: Optional[str] = None
+    raw_due_date_text: Optional[str] = None
+    context: str
+
 # Gmail Sync Models
 class GmailSyncRequest(BaseModel):
     maxEmails: int = Field(default=500, ge=1, le=5000)
