@@ -1,13 +1,11 @@
 import unittest
 from unittest.mock import patch
-# from server.python_nlp.action_item_extractor import ActionItemExtractor, HAS_NLTK # Commented out for debug
-HAS_NLTK = False # Stubbing HAS_NLTK
+from server.python_nlp.action_item_extractor import ActionItemExtractor, HAS_NLTK
 
 class TestActionItemExtractor(unittest.TestCase):
 
     def setUp(self):
-        # self.extractor = ActionItemExtractor() # Commented out for debug
-        self.extractor = None # Placeholder
+        self.extractor = ActionItemExtractor()
 
     def test_extract_actions_clear_phrase_with_due_date(self):
         text = "Please review the attached document by Friday."
@@ -76,15 +74,16 @@ class TestActionItemExtractor(unittest.TestCase):
 
 
     def test_extract_actions_simple_due_date_tomorrow(self):
-        text = "Submit the expenses by tomorrow."
-        actions = self.extractor.extract_actions(text)
-        self.assertEqual(len(actions), 1) # Assuming "Submit" isn't a keyword, but "by tomorrow" is part of sentence
-                                          # The current extractor triggers on keywords like "please", "need to" etc.
-                                          # Let's adjust the text to include a keyword.
+        text_no_keyword = "Submit the expenses by tomorrow."
+        actions_no_keyword = self.extractor.extract_actions(text_no_keyword)
+        self.assertEqual(len(actions_no_keyword), 0) # Text without keyword should not produce action
+
+        # Now test with a keyword
         text_with_keyword = "You should Submit the expenses by tomorrow."
-        actions = self.extractor.extract_actions(text_with_keyword)
-        self.assertEqual(len(actions), 1)
-        self.assertEqual(actions[0]['raw_due_date_text'], "by tomorrow")
+        actions_with_keyword = self.extractor.extract_actions(text_with_keyword)
+        self.assertEqual(len(actions_with_keyword), 1)
+        self.assertEqual(actions_with_keyword[0]['raw_due_date_text'], "by tomorrow")
+        self.assertTrue(actions_with_keyword[0]['action_phrase'].startswith("should Submit the expenses"))
 
     def test_extract_actions_due_date_on_monday(self):
         text = "We need to finish this on Monday."

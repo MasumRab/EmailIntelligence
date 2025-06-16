@@ -5,11 +5,11 @@ from typing import List, Dict, Any, Optional, Tuple
 # Attempt to import NLTK for POS tagging
 try:
     import nltk
-    # Check if necessary NLTK data is available (downloads should be handled by launch.py)
+    # Initial check for base resources. More specific checks can be done in class __init__.
     nltk.data.find('taggers/averaged_perceptron_tagger')
     nltk.data.find('tokenizers/punkt')
     HAS_NLTK = True
-except (ImportError, nltk.downloader.ErrorMessage): # Catch both import error and find error
+except (ImportError, LookupError): # Catch both import error and lookup error for missing NLTK data
     HAS_NLTK = False
 
 logger = logging.getLogger(__name__)
@@ -21,15 +21,35 @@ class ActionItemExtractor:
     """
 
     def __init__(self):
+        if HAS_NLTK:
+            resources_to_check = {
+                "punkt_tab": "tokenizers/punkt_tab",
+                "averaged_perceptron_tagger": "taggers/averaged_perceptron_tagger",
+                "averaged_perceptron_tagger_eng": "taggers/averaged_perceptron_tagger_eng", # Added for explicit check
+                "punkt": "tokenizers/punkt" # Redundant with top-level check but good for robustness
+            }
+            for resource_name, resource_path in resources_to_check.items():
+                try:
+                    nltk.data.find(resource_path)
+                except LookupError:
+                    logger.info(f"NLTK '{resource_name}' resource ({resource_path}) not found. Downloading...")
+                    try:
+                        nltk.download(resource_name, quiet=True)
+                    except Exception as e_download:
+                        logger.error(f"An error occurred while downloading '{resource_name}': {e_download}")
+                except Exception as e:
+                    logger.error(f"An unexpected error occurred while checking for '{resource_name}': {e}")
+
         # Regex for keywords indicating action items
         self.action_keywords_regex = re.compile(
-            r'\b(please|task:|action:|need to|required to|must|should|can you|could you|will you)\b',
+            r'\b(task:|action required:|action:)\s|\b(please|need to|required to|must|should|can you|could you|will you)\b',
             re.IGNORECASE
         )
         # Regex for simple due date patterns
         # This is a basic version and can be expanded significantly
         self.due_date_regex = re.compile(
             r'\b(by (next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|end of day|eod)|'
+            r'on (monday|tuesday|wednesday|thursday|friday|saturday|sunday)|' # Added for "on DayName"
             r'on \d{1,2}(st|nd|rd|th)? (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(\w*)?(\s\d{4})?|'
             r'in \d+ (days?|weeks?|months?)|'
             r'next (week|month|year))\b',
