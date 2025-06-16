@@ -5,7 +5,7 @@ Implements intelligent filter creation, pruning, and Google Apps Script integrat
 
 import json
 import re
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta
 import logging
@@ -539,7 +539,7 @@ class SmartFilterManager:
             performance_metrics={"keyword_score": score}
         )
     
-    def _find_keyword_combinations(self, keyword_counter: Counter) -> List[Tuple[List[str], float]]:
+    def _find_keyword_combinations(self, keyword_counter: Counter) -> List[tuple[List[str], float]]:
         """Find meaningful keyword combinations"""
         combinations = []
         frequent_keywords = [word for word, count in keyword_counter.most_common(50) if count >= 3]
@@ -764,7 +764,7 @@ class SmartFilterManager:
         
         return criteria
     
-    def _find_redundant_filters(self, filters: List[EmailFilter]) -> List[Tuple[str, str]]:
+    def _find_redundant_filters(self, filters: List[EmailFilter]) -> List[tuple[str, str]]:
         """Find pairs of redundant filters"""
         redundant_pairs = []
         
@@ -858,7 +858,7 @@ class SmartFilterManager:
         
         return performance
 
-    def _get_filter_application_results(self, filter_obj: EmailFilter, test_emails: List[Dict[str, Any]], start_time: datetime) -> Tuple[List[Tuple[bool, bool]], float]:
+    def _get_filter_application_results(self, filter_obj: EmailFilter, test_emails: List[Dict[str, Any]], start_time: datetime) -> tuple[List[tuple[bool, bool]], float]:
         """Applies a filter to test emails and returns predicted vs actual results, and processing time."""
         results = []
         for email in test_emails:
@@ -869,7 +869,7 @@ class SmartFilterManager:
         processing_time_ms = (datetime.now() - start_time).total_seconds() * 1000
         return results, processing_time_ms
 
-    def _calculate_performance_metrics_from_results(self, results: List[Tuple[bool, bool]], total_emails: int) -> Dict[str, float]:
+    def _calculate_performance_metrics_from_results(self, results: List[tuple[bool, bool]], total_emails: int) -> Dict[str, float]:
         """Calculates various performance metrics from (predicted, actual) results."""
         true_positives = sum(1 for pred, actual in results if pred and actual)
         false_positives = sum(1 for pred, actual in results if pred and not actual)
