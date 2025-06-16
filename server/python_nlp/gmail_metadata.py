@@ -6,7 +6,7 @@ Extracts all available Gmail email metadata including headers, labels, importanc
 import re
 import base64
 import email
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
 import json
@@ -253,7 +253,7 @@ class GmailMetadataExtractor:
             headers[name] = value
         return headers
     
-    def _extract_body_content(self, payload: Dict[str, Any]) -> Tuple[str, str]:
+    def _extract_body_content(self, payload: Dict[str, Any]) -> tuple[str, str]:
         """Extract plain text and HTML body content"""
         body_plain = ""
         body_html = ""
@@ -380,7 +380,7 @@ class GmailMetadataExtractor:
         references = re.findall(r'<([^>]+)>', references_header)
         return references
     
-    def _extract_security_status(self, headers: Dict[str, str]) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    def _extract_security_status(self, headers: Dict[str, str]) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract SPF, DKIM, and DMARC status"""
         spf_status = None
         dkim_status = None
