@@ -553,6 +553,29 @@ class SmartFilterManager:
                     combinations.append(([word1, word2], score))
         
         return sorted(combinations, key=lambda x: x[1], reverse=True)[:10]
+
+    def add_custom_filter(self, name: str, description: str, criteria: Dict[str, Any], actions: Dict[str, Any], priority: int) -> EmailFilter:
+        """Adds a new custom filter to the system."""
+        filter_id = f"custom_{name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        new_filter = EmailFilter(
+            filter_id=filter_id,
+            name=name,
+            description=description,
+            criteria=criteria,
+            actions=actions,
+            priority=priority,
+            effectiveness_score=0.0,  # Default effectiveness
+            created_date=datetime.now(),
+            last_used=datetime.now(),
+            usage_count=0,
+            false_positive_rate=0.0,
+            performance_metrics={}
+        )
+
+        self._save_filter(new_filter)
+        self.logger.info(f"Custom filter '{name}' added with ID: {filter_id}")
+        return new_filter
     
     def prune_ineffective_filters(self) -> Dict[str, Any]:
         """Remove or disable ineffective filters"""

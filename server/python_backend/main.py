@@ -21,6 +21,7 @@ from .database import DatabaseManager, get_db
 from .models import EmailCreate, EmailUpdate, CategoryCreate, ActivityCreate
 # Updated import to use NLP GmailAIService directly
 from server.python_nlp.gmail_service import GmailAIService
+# Removed: from .smart_filters import EmailFilter (as per instruction)
 from server.python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
 from .performance_monitor import PerformanceMonitor
@@ -250,7 +251,7 @@ async def create_email(
     """Create new email with AI analysis"""
     try:
         # Perform AI analysis
-        ai_analysis = await ai_engine.analyze_email(email.subject, email.content)
+        ai_analysis = ai_engine.analyze_email(email.subject, email.content) # Changed to synchronous
         
         # Apply smart filters
         filter_results = await filter_manager.apply_filters_to_email(email.dict())
@@ -610,22 +611,17 @@ async def get_filters(request: Request):
 async def create_filter(request: Request, filter_request_model: FilterRequest): # Renamed model
     """Create new email filter"""
     try:
-        # Assuming filter_manager.create_filter (or add_custom_filter) takes a dict or an EmailFilter object
-        # The smart_filters.py in context had add_custom_filter(EmailFilter(...))
-        # and no create_filter. This might need adjustment in SmartFilterManager or here.
-        # For now, assuming a compatible create_filter or add_custom_filter exists.
-        # Let's assume add_custom_filter is the intended method from previous context for adding new filters.
-        from .smart_filters import EmailFilter # Ensure EmailFilter is available for instantiation
-        new_filter_config = EmailFilter(
+        description = filter_request_model.criteria.get("description", "")
+
+        new_filter_object = filter_manager.add_custom_filter(
             name=filter_request_model.name,
-            description=filter_request_model.criteria.get("description", ""), # Assuming description might be in criteria
+            description=description,
             criteria=filter_request_model.criteria,
-            action=filter_request_model.actions.get("type", ""), # Assuming actions dict has a 'type' for the action name
-            priority=filter_request_model.priority,
-            enabled=True
+            actions=filter_request_model.actions,
+            priority=filter_request_model.priority
         )
-        filter_manager.add_custom_filter(new_filter_config) # Using add_custom_filter
-        return new_filter_config.__dict__ # Return the created filter as dict
+        # FastAPI will handle dataclass serialization to JSON
+        return new_filter_object
     except Exception as e:
         logger.error(
             json.dumps({
@@ -717,10 +713,10 @@ async def extract_actions_from_text(
 
         logger.info(f"Received action extraction request for subject: '{request_model.subject[:50] if request_model.subject else 'N/A'}'")
 
-        ai_analysis_result = await ai_engine.analyze_email(
+        ai_analysis_result = ai_engine.analyze_email(
             subject=request_model.subject or "", # Pass empty string if subject is None
             content=request_model.content
-        )
+        ) # Changed to synchronous
 
         # The AIAnalysisResult object should have an 'action_items' attribute
         action_items_data = ai_analysis_result.action_items
