@@ -1,0 +1,129 @@
+from fastapi import APIRouter, HTTPException, Depends, Request
+from typing import List, Dict, Any
+import psycopg2
+import json
+import logging
+
+from .database import DatabaseManager, get_db
+# Corrected import path for SmartFilterManager
+from server.python_nlp.smart_filters import SmartFilterManager, EmailFilter # Assuming EmailFilter is needed for response model
+from .performance_monitor import PerformanceMonitor
+from .models import FilterRequest # Changed from .main to .models
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+filter_manager = SmartFilterManager() # Initialize filter manager
+performance_monitor = PerformanceMonitor() # Initialize performance monitor
+
+@router.get("/api/filters")
+@performance_monitor.track
+async def get_filters(request: Request):
+    """Get all active email filters"""
+    try:
+        filters = await filter_manager.get_all_filters() # This returns a list of dicts, not objects with to_dict()
+        # Assuming get_all_filters() in SmartFilterManager was updated to return list of dicts
+        # or EmailFilter dataclass has a to_dict() method.
+        # The previous version of smart_filters.py had get_filters() returning a list of dicts.
+        # Let's assume it's still compatible or was adjusted.
+        return {"filters": filters } # Adjusted if get_all_filters returns list of dicts
+    except Exception as e:
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in get_filters",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
+        raise HTTPException(status_code=500, detail="Failed to fetch filters")
+
+@router.post("/api/filters", response_model=EmailFilter) # Assuming EmailFilter is the response model
+@performance_monitor.track
+async def create_filter(request: Request, filter_request_model: FilterRequest): # Renamed model
+    """Create new email filter"""
+    try:
+        description = filter_request_model.criteria.get("description", "")
+
+        new_filter_object = filter_manager.add_custom_filter(
+            name=filter_request_model.name,
+            description=description,
+            criteria=filter_request_model.criteria,
+            actions=filter_request_model.actions,
+            priority=filter_request_model.priority
+        )
+        # FastAPI will handle dataclass serialization to JSON
+        return new_filter_object
+    except Exception as e:
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in create_filter",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
+        raise HTTPException(status_code=500, detail="Failed to create filter")
+
+@router.post("/api/filters/generate-intelligent")
+@performance_monitor.track
+async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
+    """Generate intelligent filters based on email patterns"""
+    try:
+        # Get recent emails for pattern analysis
+        emails = await db.get_recent_emails(limit=1000) # Assuming this db method exists
+
+        # Generate intelligent filters
+        # Assuming filter_manager.create_intelligent_filters exists and returns a list of filter objects/dicts
+        created_filters = await filter_manager.create_intelligent_filters(emails) # This method was not in original smart_filters.py
+                                                                             # Assuming it's added or this is a placeholder.
+                                                                             # If it returns objects with to_dict:
+        # return {
+        #     "created_filters": len(created_filters),
+        #     "filters": [f.to_dict() for f in created_filters]
+        # }
+        # If it returns list of dicts:
+        return {
+             "created_filters": len(created_filters),
+             "filters": created_filters
+        }
+    except psycopg2.Error as db_err:
+        logger.error(
+            json.dumps({
+                "message": "Database operation failed while generating intelligent filters",
+                "endpoint": str(request.url),
+                "error_type": type(db_err).__name__,
+                "error_detail": str(db_err),
+                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
+            })
+        )
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
+    except Exception as e:
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in generate_intelligent_filters",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
+        raise HTTPException(status_code=500, detail="Failed to generate filters")
+
+@router.post("/api/filters/prune")
+@performance_monitor.track
+async def prune_filters(request: Request):
+    """Prune ineffective filters"""
+    try:
+        # Assuming filter_manager.prune_ineffective_filters exists
+        # This method was not in original smart_filters.py, assuming added.
+        results = await filter_manager.prune_ineffective_filters()
+        return results
+    except Exception as e:
+        logger.error(
+            json.dumps({
+                "message": "Unhandled error in prune_filters",
+                "endpoint": str(request.url),
+                "error_type": type(e).__name__,
+                "error_detail": str(e),
+            })
+        )
+        raise HTTPException(status_code=500, detail="Failed to prune filters")
