@@ -6,7 +6,7 @@ Extracts all available Gmail email metadata including headers, labels, importanc
 import re
 import base64
 import email
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
 import json
@@ -253,7 +253,7 @@ class GmailMetadataExtractor:
             headers[name] = value
         return headers
     
-    def _extract_body_content(self, payload: Dict[str, Any]) -> Tuple[str, str]:
+    def _extract_body_content(self, payload: Dict[str, Any]) -> tuple[str, str]:
         """Extract plain text and HTML body content"""
         body_plain = ""
         body_html = ""

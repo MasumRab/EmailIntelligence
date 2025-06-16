@@ -6,7 +6,7 @@ Implements comprehensive model training, prompt optimization, and model versioni
 import json
 import pickle
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import logging
@@ -222,7 +222,7 @@ class ModelTrainer:
         self, 
         samples: List[Dict[str, Any]], 
         target_field: str
-    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+    ) -> tuple[List[Dict[str, Any]], List[str]]:
         """Prepare training data with feature extraction"""
         features = []
         labels = []
