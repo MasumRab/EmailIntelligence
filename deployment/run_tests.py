@@ -59,6 +59,45 @@ def run_command(command_list: List[str], cwd: Optional[str] = None, timeout: Opt
         logger.error(f"Command not found: {command_list[0]}. Please ensure it is installed and in PATH.")
         return False
 
+def run_unit_tests(coverage=False, verbose=False, timeout_seconds=900):
+    """Run unit tests."""
+    logger.info("Running unit tests...")
+    
+    command = f"{sys.executable} -m pytest tests/"
+    
+    if coverage:
+        command += " --cov=server"
+    
+    if verbose:
+        command += " -v"
+    
+    return run_command(command, timeout=timeout_seconds)
+
+def run_integration_tests(coverage=False, verbose=False, timeout_seconds=900):
+    """Run integration tests."""
+    logger.info("Running integration tests...")
+    
+    command = f"{sys.executable} -m pytest tests/"
+    
+    if coverage:
+        command += " --cov=server"
+    
+    if verbose:
+        command += " -v"
+    
+    return run_command(command, timeout=timeout_seconds)
+
+def run_e2e_tests(verbose=False, timeout_seconds=1800):
+    """Run end-to-end tests."""
+    logger.info("Running end-to-end tests...")
+    
+    command = "npx playwright test"
+    
+    if verbose:
+        command += " --debug"
+    
+    return run_command(command, timeout=timeout_seconds)
+
 def main():
     """Main entry point for the test runner script."""
     

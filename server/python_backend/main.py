@@ -254,7 +254,7 @@ async def create_email(
         ai_analysis = ai_engine.analyze_email(email.subject, email.content) # Changed to synchronous
         
         # Apply smart filters
-        filter_results = await filter_manager.apply_filters_to_email(email.dict())
+        filter_results = await filter_manager.apply_filters_to_email_data(email.dict()) # Corrected method name
         
         # Create email with enhanced data
         email_data = email.dict()
