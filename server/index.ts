@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+// Load environment variables from .env file
+dotenv.config();
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -63,7 +67,7 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
+  const port = parseInt(process.env.NODE_PORT || "5000", 10);
   server.listen(port, "127.0.0.1", () => {
     log(`serving on port ${port}`);
   });
