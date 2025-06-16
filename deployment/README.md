@@ -86,10 +86,20 @@ The deployment script supports the following commands:
 - `build`: Build the environment
 - `logs`: View logs
 - `status`: Check status
-- `test`: Run tests
+- `test`: Run tests using the `run_tests.py` script. This command executes tests within the context of the specified environment's backend service. You can pass arguments directly to `run_tests.py`. For example, to run only unit tests:
+  ```bash
+  python deployment/deploy.py <environment> test -- --unit
+  ```
+  (Note the `--` before `--unit`, which is a common convention to separate arguments for the main script from arguments for the sub-script, though it might not be strictly necessary depending on your shell and argument parsing.)
+  Refer to `python deployment/run_tests.py --help` for all available test options.
+For a comprehensive overview of testing procedures and detailed test cases, please see the [Testing Guide](./TESTING_GUIDE.md).
 - `migrate`: Run database migrations
 - `backup`: Backup the database
 - `restore`: Restore the database
+
+## Testing
+
+A comprehensive suite of tests is available to ensure the quality and stability of the EmailIntelligence application. Tests can be executed via the `deploy.py` script. For detailed information on the testing strategy, different types of tests, and specific test cases, please refer to our [Testing Guide](./TESTING_GUIDE.md).
 
 ## Directory Structure
 
