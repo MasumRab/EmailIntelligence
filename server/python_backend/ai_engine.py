@@ -55,6 +55,8 @@ class AdvancedAIEngine:
         # Removed: self.python_nlp_path, self.ai_training_script, self.nlp_service_script
         # Instantiate the NLP engine for fallback analysis
         self.nlp_engine = NLPEngine() # Renamed from self.fallback_nlp_engine
+        # DatabaseManager instance will be passed if needed for category matching
+        # Or use FastAPI's Depends if AIEngine methods become FastAPI path operations directly
         
     def initialize(self): # Changed to synchronous
         """Initialize AI engine"""
@@ -64,25 +66,57 @@ class AdvancedAIEngine:
             logger.info("AI Engine initialized successfully")
         except Exception as e:
             logger.error(f"AI Engine initialization failed: {e}")
-    
-    def analyze_email(self, subject: str, content: str) -> AIAnalysisResult: # Changed to synchronous
-        """Analyze email content with AI by calling the NLPEngine directly."""
-        logger.info(f"Initiating AI analysis for email with subject: '{subject[:50]}...' using direct NLPEngine call.")
+
+    async def _match_category_id(self, ai_categories: List[str], db: 'DatabaseManager') -> Optional[int]:
+        """Matches AI suggested category strings to database categories."""
+        if not ai_categories:
+            return None
+
+        # This import is problematic for circular deps if DatabaseManager imports AIEngine.
+        # Consider moving DatabaseManager to a more common place or restructuring.
+        # For now, assuming DatabaseManager can be imported or passed.
+        # from .database import DatabaseManager # This would be circular if DB imports AIEngine
+
         try:
-            # Directly call the nlp_engine's analyze_email method
-            analysis_data = self.nlp_engine.analyze_email(subject, content) # This is a synchronous call
+            all_db_categories = await db.get_all_categories() # db.get_all_categories() was adapted from get_categories
+            if not all_db_categories:
+                return None
+
+            for ai_cat_str in ai_categories:
+                for db_cat in all_db_categories:
+                    # Simple case-insensitive matching (can be improved)
+                    if db_cat['name'].lower() in ai_cat_str.lower() or \
+                       ai_cat_str.lower() in db_cat['name'].lower():
+                        logger.info(f"Matched AI category '{ai_cat_str}' to DB category '{db_cat['name']}' (ID: {db_cat['id']})")
+                        return db_cat['id']
+            logger.info(f"No direct match found for AI categories: {ai_categories} against DB categories.")
+        except Exception as e:
+            logger.error(f"Error during category matching: {e}", exc_info=True)
+        return None
+
+    async def analyze_email(self, subject: str, content: str, db: Optional['DatabaseManager'] = None) -> AIAnalysisResult: # Added db param
+        """Analyze email content with AI, including matching to DB categories if db is provided."""
+        logger.info(f"Initiating AI analysis for email with subject: '{subject[:50]}...'")
+        try:
+            analysis_data = self.nlp_engine.analyze_email(subject, content)
             
-            # Ensure 'action_items' is part of the analysis_data or add it if missing,
-            # as AIAnalysisResult expects it. NLPEngine.analyze_email already returns it.
-            if 'action_items' not in analysis_data:
+            if 'action_items' not in analysis_data: # Should be present from NLPEngine
                 analysis_data['action_items'] = []
 
-            logger.info(f"Successfully received analysis from NLPEngine. Method used: {analysis_data.get('validation', {}).get('method', 'unknown')}")
+            # If a DatabaseManager instance is provided, attempt to match category_id
+            if db and analysis_data.get('categories'):
+                matched_category_id = await self._match_category_id(analysis_data['categories'], db)
+                if matched_category_id:
+                    analysis_data['category_id'] = matched_category_id
+                else:
+                    # Ensure category_id is None if no match, or keep NLPEngine's default if any
+                    analysis_data['category_id'] = analysis_data.get('category_id') # Keep if NLPEngine set it, else None
+
+            logger.info(f"Successfully received analysis from NLPEngine. Category ID: {analysis_data.get('category_id')}")
             return AIAnalysisResult(analysis_data)
         except Exception as e:
-            logger.error(f"An unexpected error occurred during direct AI analysis: {e}", exc_info=True)
-            # Use the existing _get_fallback_analysis, but pass the error from the direct call
-            return self._get_fallback_analysis(subject, content, f"direct NLPEngine error: {str(e)}")
+            logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
+            return self._get_fallback_analysis(subject, content, f"AI analysis error: {str(e)}")
     
     def train_models(self, training_emails: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]: # Changed to synchronous
         """Train AI models with email data - Currently not functional with direct NLPEngine integration."""
