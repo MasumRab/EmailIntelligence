@@ -45,32 +45,60 @@ The project is organized into the following main components:
 
 ## Quick Start
 
-The easiest way to get started with EmailIntelligence is to use the unified launcher system:
+The fastest way to get EmailIntelligence running locally:
 
-### Windows
+### Option 1: Automated Setup (Recommended)
 
 ```bash
 # Clone the repository
 git clone <repository_url>
 cd EmailIntelligence
 
-# Run the application in development mode
-launch.bat --stage dev
+# Run the automated setup
+npm run setup
+
+# Start the database (requires Docker)
+npm run db:setup
+
+# Start the application
+npm run dev
 ```
 
-### Linux/macOS
+### Option 2: Manual Setup
 
 ```bash
 # Clone the repository
 git clone <repository_url>
 cd EmailIntelligence
 
-# Make the launcher script executable
-chmod +x launch.sh
+# Install dependencies
+npm install
 
-# Run the application in development mode
+# Copy environment template
+cp .env.example .env
+
+# Start PostgreSQL database (requires Docker)
+docker-compose up -d
+
+# Push database schema
+npm run db:push
+
+# Start the application
+npm run dev
+```
+
+### Option 3: Using the Unified Launcher
+
+```bash
+# Windows
+launch.bat --stage dev
+
+# Linux/macOS
+chmod +x launch.sh
 ./launch.sh --stage dev
 ```
+
+The application will be available at http://localhost:5000
 
 For more detailed setup instructions, see the [Prerequisites](#prerequisites) and [Setup](#setup) sections below.
 
