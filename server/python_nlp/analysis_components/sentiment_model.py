@@ -13,7 +13,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-class SentimentAnalyzer:
+class SentimentModel:
     def __init__(self, sentiment_model: Optional[Any], has_nltk_installed: bool):
         self.model = sentiment_model
         self.has_nltk = has_nltk_installed

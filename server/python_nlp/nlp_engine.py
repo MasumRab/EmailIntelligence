@@ -17,10 +17,10 @@ from typing import Any, Dict, List, Optional
 
 from server.python_nlp.text_utils import clean_text
 from server.python_nlp.action_item_extractor import ActionItemExtractor # Import ActionItemExtractor
-from .analysis_components.sentiment_analyzer import SentimentAnalyzer # Added import
-from .analysis_components.topic_analyzer import TopicAnalyzer # Added import
-from .analysis_components.intent_analyzer import IntentAnalyzer # Added import
-from .analysis_components.urgency_analyzer import UrgencyAnalyzer # Added import
+from .analysis_components.sentiment_model import SentimentModel
+from .analysis_components.topic_model import TopicModel
+from .analysis_components.intent_model import IntentModel
+from .analysis_components.urgency_model import UrgencyModel
 
 # Configure logging
 logging.basicConfig(
@@ -92,32 +92,39 @@ class NLPEngine:
         self.action_item_extractor = ActionItemExtractor()
 
         # Load models if dependencies are available
+        # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
+        _sentiment_model_obj = None
+        _topic_model_obj = None
+        _intent_model_obj = None
+        _urgency_model_obj = None
+
         if HAS_SKLEARN_AND_JOBLIB:
             logger.info("Attempting to load NLP models...")
-            self.sentiment_model = self._load_model(self.sentiment_model_path)
-            self.topic_model = self._load_model(self.topic_model_path)
-            self.intent_model = self._load_model(self.intent_model_path)
-            self.urgency_model = self._load_model(self.urgency_model_path)
+            _sentiment_model_obj = self._load_model(self.sentiment_model_path)
+            _topic_model_obj = self._load_model(self.topic_model_path)
+            _intent_model_obj = self._load_model(self.intent_model_path)
+            _urgency_model_obj = self._load_model(self.urgency_model_path)
         else:
             logger.warning(
                 "Scikit-learn or joblib not available. "
                 "NLP models will not be loaded. Using fallback logic."
             )
 
-        # Initialize SentimentAnalyzer
-        self.sentiment_analyzer = SentimentAnalyzer(
-            sentiment_model=self.sentiment_model,
+        # Initialize SentimentModel (previously SentimentAnalyzer)
+        # These attributes self.sentiment_analyzer, self.topic_analyzer etc. are instances of our analyzer/model classes
+        self.sentiment_analyzer = SentimentModel(
+            sentiment_model=_sentiment_model_obj,
             has_nltk_installed=HAS_NLTK
         )
 
-        # Initialize TopicAnalyzer
-        self.topic_analyzer = TopicAnalyzer(topic_model=self.topic_model)
+        # Initialize TopicModel (previously TopicAnalyzer)
+        self.topic_analyzer = TopicModel(topic_model=_topic_model_obj)
 
-        # Initialize IntentAnalyzer
-        self.intent_analyzer = IntentAnalyzer(intent_model=self.intent_model)
+        # Initialize IntentModel (previously IntentAnalyzer)
+        self.intent_analyzer = IntentModel(intent_model=_intent_model_obj)
 
-        # Initialize UrgencyAnalyzer
-        self.urgency_analyzer = UrgencyAnalyzer(urgency_model=self.urgency_model)
+        # Initialize UrgencyModel (previously UrgencyAnalyzer)
+        self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
 
     def _load_model(self, model_path: str) -> Optional[Any]:
         """

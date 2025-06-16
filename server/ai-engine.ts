@@ -12,6 +12,7 @@ export const aiAnalysisSchema = z.object({
   reasoning: z.string(),
   suggestedLabels: z.array(z.string()),
   riskFlags: z.array(z.string()).optional(),
+  categoryId: z.number().optional(), // Added categoryId
 });
 
 export type AIAnalysis = z.infer<typeof aiAnalysisSchema>;
