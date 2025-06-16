@@ -5,21 +5,30 @@ from server.python_backend.main import app, get_db # Assuming get_db is the depe
 from server.python_backend.models import CategoryCreate # Pydantic model
 
 # Mock DatabaseManager for dependency injection
-mock_db_manager = MagicMock()
+# REMOVED global mock_db_manager and override
+# app.dependency_overrides[get_db] = override_get_db # REMOVED
 
-async def override_get_db():
-    return mock_db_manager
-
-app.dependency_overrides[get_db] = override_get_db
-
+# @patch('server.python_backend.main.get_db') # REMOVE class decorator
 class TestCategoryAPI(unittest.TestCase):
-    def setUp(self):
-        self.client = TestClient(app)
-        # Reset mocks before each test
-        mock_db_manager.reset_mock()
-        # Ensure async methods are AsyncMock
-        mock_db_manager.get_all_categories = AsyncMock()
-        mock_db_manager.create_category = AsyncMock()
+
+    def setUp(self): # REMOVE mock_get_db_globally from signature
+        # Start patcher for get_db
+        self.get_db_patcher = patch('server.python_backend.main.get_db')
+        mock_get_db_main = self.get_db_patcher.start() # Start the patch
+
+        # Configure the mock that replaces the actual get_db function
+        self.mock_db_instance = AsyncMock() # This is the instance our app will receive
+        mock_get_db_main.return_value = self.mock_db_instance # Make get_db return our mock_db_instance
+
+        self.client = TestClient(app) # Initialize client after mock setup
+
+        # Reset and configure methods on our instance for each test
+        self.mock_db_instance.reset_mock()
+        self.mock_db_instance.get_all_categories = AsyncMock() # ensure methods are AsyncMocks
+        self.mock_db_instance.create_category = AsyncMock()
+
+    def tearDown(self):
+        self.get_db_patcher.stop() # Stop the patch
 
     def test_get_categories_success(self):
         print("Running test_get_categories_success")
@@ -27,7 +36,7 @@ class TestCategoryAPI(unittest.TestCase):
             {"id": 1, "name": "Work", "description": "Work related emails", "color": "#FF0000", "count": 10},
             {"id": 2, "name": "Personal", "description": "Personal emails", "color": "#00FF00", "count": 25}
         ]
-        mock_db_manager.get_all_categories.return_value = mock_categories_data
+        self.mock_db_instance.get_all_categories.return_value = mock_categories_data
 
         response = self.client.get("/api/categories")
 
@@ -36,29 +45,34 @@ class TestCategoryAPI(unittest.TestCase):
         self.assertEqual(len(data), 2)
         self.assertEqual(data[0]["name"], "Work")
         self.assertEqual(data[1]["name"], "Personal")
-        mock_db_manager.get_all_categories.assert_called_once()
+        self.mock_db_instance.get_all_categories.assert_called_once()
 
     def test_get_categories_empty(self):
         print("Running test_get_categories_empty")
-        mock_db_manager.get_all_categories.return_value = []
+        self.mock_db_instance.get_all_categories.return_value = []
 
         response = self.client.get("/api/categories")
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(len(data), 0)
-        mock_db_manager.get_all_categories.assert_called_once()
+        self.mock_db_instance.get_all_categories.assert_called_once()
+
+    async def async_raise_db_connection_error(self, *args, **kwargs):
+        raise Exception("Database connection error")
 
     def test_get_categories_db_error(self):
         print("Running test_get_categories_db_error")
-        mock_db_manager.get_all_categories.side_effect = Exception("Database connection error")
+        # Ensure the method is an AsyncMock before setting side_effect
+        self.mock_db_instance.get_all_categories = AsyncMock()
+        self.mock_db_instance.get_all_categories.side_effect = self.async_raise_db_connection_error
 
         response = self.client.get("/api/categories")
 
         self.assertEqual(response.status_code, 500)
         data = response.json()
         self.assertIn("Failed to fetch categories", data["detail"])
-        mock_db_manager.get_all_categories.assert_called_once()
+        self.mock_db_instance.get_all_categories.assert_called_once()
 
     def test_create_category_success(self):
         print("Running test_create_category_success")
@@ -68,7 +82,7 @@ class TestCategoryAPI(unittest.TestCase):
         # which is expected to be a dict by the test setup (and how Pydantic models are often used)
         # Let's assume db.create_category returns a dict including an 'id'
         mock_created_category = {"id": 3, **category_data, "count": 0} # count is part of CategoryResponse
-        mock_db_manager.create_category.return_value = mock_created_category
+        self.mock_db_instance.create_category.return_value = mock_created_category
 
         response = self.client.post("/api/categories", json=category_data)
 
@@ -83,7 +97,7 @@ class TestCategoryAPI(unittest.TestCase):
         # where category is CategoryCreate.
         # The test's category_data is compatible with CategoryCreate.
         validated_category_data = CategoryCreate(**category_data).model_dump()
-        mock_db_manager.create_category.assert_called_once_with(validated_category_data)
+        self.mock_db_instance.create_category.assert_called_once_with(validated_category_data)
 
 
     def test_create_category_validation_error_missing_name(self):
@@ -124,6 +138,24 @@ class TestCategoryAPI(unittest.TestCase):
         self.assertIn("Failed to create category", data["detail"])
         validated_category_data = CategoryCreate(**category_data).model_dump()
         mock_db_manager.create_category.assert_called_once_with(validated_category_data)
+
+    async def async_raise_db_write_error(self, *args, **kwargs):
+        raise Exception("Database write error")
+
+    def test_create_category_db_error(self):
+        print("Running test_create_category_db_error")
+        category_data = {"name": "Error Category", "description": "Test DB error", "color": "#ABCDEF"}
+        # Ensure the method is an AsyncMock
+        self.mock_db_instance.create_category = AsyncMock()
+        self.mock_db_instance.create_category.side_effect = self.async_raise_db_write_error
+
+        response = self.client.post("/api/categories", json=category_data)
+
+        self.assertEqual(response.status_code, 500)
+        data = response.json()
+        self.assertIn("Failed to create category", data["detail"])
+        validated_category_data = CategoryCreate(**category_data).model_dump()
+        self.mock_db_instance.create_category.assert_called_once_with(validated_category_data)
 
 if __name__ == '__main__':
     unittest.main()

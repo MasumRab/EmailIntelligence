@@ -48,6 +48,12 @@ class SmartFilterManager:
     def __init__(self, db_path: str = "smart_filters.db"):
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
+        self.conn = None  # For persistent in-memory connection
+
+        if self.db_path == ":memory:":
+            self.conn = sqlite3.connect(":memory:")
+            self.conn.row_factory = sqlite3.Row
+
         self._init_filter_db()
         
         # Filter categories and templates
@@ -55,10 +61,18 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
         
     def _get_db_connection(self) -> sqlite3.Connection:
-        """Get a new database connection."""
+        """Get a database connection."""
+        if self.conn: # Use persistent in-memory connection if it exists
+            return self.conn
+        # For file-based DBs, create a new connection each time (or manage a pool)
         conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row # Access columns by name
+        conn.row_factory = sqlite3.Row
         return conn
+
+    def _close_db_connection(self, conn: sqlite3.Connection):
+        """Close connection if it's not the persistent in-memory one."""
+        if conn is not self.conn:
+            conn.close()
 
     def _db_execute(self, query: str, params: tuple = ()):
         """Execute a query (INSERT, UPDATE, DELETE)."""
@@ -70,7 +84,7 @@ class SmartFilterManager:
             self.logger.error(f"Database error: {e} with query: {query[:100]}")
             # Optionally re-raise or handle
         finally:
-            conn.close()
+            self._close_db_connection(conn)
 
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Execute a query and fetch one row."""
@@ -82,7 +96,7 @@ class SmartFilterManager:
             self.logger.error(f"Database error: {e} with query: {query[:100]}")
             return None
         finally:
-            conn.close()
+            self._close_db_connection(conn)
 
     def _db_fetchall(self, query: str, params: tuple = ()) -> List[sqlite3.Row]:
         """Execute a query and fetch all rows."""
@@ -94,7 +108,7 @@ class SmartFilterManager:
             self.logger.error(f"Database error: {e} with query: {query[:100]}")
             return []
         finally:
-            conn.close()
+            self._close_db_connection(conn)
 
     def _init_filter_db(self):
         """Initialize filter database"""
@@ -151,12 +165,20 @@ class SmartFilterManager:
         conn = self._get_db_connection()
         try:
             for query in queries:
-                conn.execute(query)
-            conn.commit()
+                conn.execute(query) # Uses the connection from _get_db_connection
+            conn.commit() # Commit on the same connection
         except sqlite3.Error as e:
             self.logger.error(f"Database initialization error: {e}")
         finally:
-            conn.close()
+            # Do not close if it's the persistent self.conn
+            self._close_db_connection(conn)
+
+
+    def close(self):
+        """Close the persistent database connection if it exists."""
+        if self.conn:
+            self.conn.close()
+            self.conn = None
 
     def _load_filter_templates(self) -> Dict[str, Dict[str, Any]]:
         """Load intelligent filter templates"""
@@ -1059,7 +1081,8 @@ class SmartFilterManager:
              f1_score, processing_time_ms, emails_processed, true_positives, false_positives, false_negatives)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-        performance_id = f"{performance.filter_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Added microseconds for more unique ID
+        performance_id = f"{performance.filter_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
         params = (
             performance_id,
             performance.filter_id,

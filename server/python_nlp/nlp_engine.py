@@ -42,11 +42,11 @@ except ImportError:
     )
 
 # Define paths for pre-trained models
-MODEL_DIR = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__))
-SENTIMENT_MODEL_PATH = os.path.join(MODEL_DIR, "sentiment_model.pkl")
-TOPIC_MODEL_PATH = os.path.join(MODEL_DIR, "topic_model.pkl")
-INTENT_MODEL_PATH = os.path.join(MODEL_DIR, "intent_model.pkl")
-URGENCY_MODEL_PATH = os.path.join(MODEL_DIR, "urgency_model.pkl")
+# MODEL_DIR = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__)) # Moved to __init__
+# SENTIMENT_MODEL_PATH = os.path.join(MODEL_DIR, "sentiment_model.pkl")
+# TOPIC_MODEL_PATH = os.path.join(MODEL_DIR, "topic_model.pkl")
+# INTENT_MODEL_PATH = os.path.join(MODEL_DIR, "intent_model.pkl")
+# URGENCY_MODEL_PATH = os.path.join(MODEL_DIR, "urgency_model.pkl")
 
 
 class NLPEngine:
@@ -59,8 +59,24 @@ class NLPEngine:
     
     def __init__(self):
         """Initialize the NLP engine and load required models."""
+
+        # Define model paths dynamically using env var at instantiation time
+        model_dir = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__))
+        self.sentiment_model_path = os.path.join(model_dir, "sentiment_model.pkl")
+        self.topic_model_path = os.path.join(model_dir, "topic_model.pkl")
+        self.intent_model_path = os.path.join(model_dir, "intent_model.pkl")
+        self.urgency_model_path = os.path.join(model_dir, "urgency_model.pkl")
+
         # Initialize stop words if NLTK is available
-        self.stop_words = set(nltk.corpus.stopwords.words('english')) if HAS_NLTK else set()
+        if HAS_NLTK:
+            try:
+                nltk.data.find('corpora/stopwords')
+            except LookupError:
+                logger.info("NLTK 'stopwords' resource not found. Downloading...")
+                nltk.download('stopwords', quiet=True)
+            self.stop_words = set(nltk.corpus.stopwords.words('english'))
+        else:
+            self.stop_words = set()
 
         # Initialize model attributes
         self.sentiment_model = None
@@ -74,10 +90,10 @@ class NLPEngine:
         # Load models if dependencies are available
         if HAS_SKLEARN_AND_JOBLIB:
             logger.info("Attempting to load NLP models...")
-            self.sentiment_model = self._load_model(SENTIMENT_MODEL_PATH)
-            self.topic_model = self._load_model(TOPIC_MODEL_PATH)
-            self.intent_model = self._load_model(INTENT_MODEL_PATH)
-            self.urgency_model = self._load_model(URGENCY_MODEL_PATH)
+            self.sentiment_model = self._load_model(self.sentiment_model_path)
+            self.topic_model = self._load_model(self.topic_model_path)
+            self.intent_model = self._load_model(self.intent_model_path)
+            self.urgency_model = self._load_model(self.urgency_model_path)
         else:
             logger.warning(
                 "Scikit-learn or joblib not available. "
@@ -347,15 +363,16 @@ class NLPEngine:
             # Calculate confidence score
             # Using a simple heuristic: matched_keywords / 5.0 (capped at 0.9)
             confidence = min(topic_scores[best_topic] / 5.0, 0.9)
+            normalized_topic = best_topic.lower().replace(" & ", "_").replace(" ", "_")
             
             return {
-                'topic': best_topic, 
+                'topic': normalized_topic, # Normalized topic
                 'confidence': max(0.1, confidence), 
                 'method_used': 'fallback_keyword_topic'
             }
         else:
             return {
-                'topic': 'General', 
+                'topic': 'general_communication', # Consistent fallback topic name
                 'confidence': 0.5, 
                 'method_used': 'fallback_keyword_topic'
             }
