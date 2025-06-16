@@ -582,40 +582,22 @@ class SmartGmailRetriever:
                     page_token=current_page_token
                 )
                 
-                # _fetch_email_batch makes 1 call for list, and N calls for get.
-                # For simplicity here, we count this as 1 "major" API call for the loop condition,
-                # but the actual count of underlying API calls (list + N*get) needs to be reflected from batch_result.
-                # For now, let's assume _fetch_email_batch returns an 'api_calls_in_batch' field.
-                # If not, we'll need to adjust. The current _fetch_email_batch doesn't return this.
-                # Let's simplify: 1 list + N get. If N messages, N+1 calls.
-                # This part needs more accurate API call counting from _fetch_email_batch.
-                # For now, assume 1 "conceptual" API call per _fetch_email_batch call for loop control.
-                # The actual API calls will be summed up later.
-                # This means api_calls_for_strategy here is more like "batches_processed_for_strategy".
-                # TODO: Refine API call counting here based on _fetch_email_batch's true cost.
-                # For now, let's count it as 1 + number of messages fetched (1 for list, 1 for each get).
-                # This is a placeholder, actual counting is complex and depends on _fetch_email_batch internals.
-                
-                # Let's use a provisional api_calls_in_batch. For list + N gets, it's 1 + len(batch_result.get('messages',[]))
-                # This is still not perfect as _fetch_email_batch itself has list and get calls.
-                # The existing _fetch_email_batch returns a structure, not API calls.
-                # Let's assume the 'api_calls' field in the strategy_result is what we care about from higher level.
-                # For this loop, `api_calls_for_strategy` will track batches.
-                api_calls_for_strategy += 1 # Counts batches/list() calls primarily for loop control
+                # Count actual API calls: 1 for list + N for individual message gets
+                messages_in_batch = batch_result.get('messages', [])
+                batch_api_calls = 1 + len(messages_in_batch)  # 1 list call + N get calls
+                api_calls_for_strategy += batch_api_calls
 
                 if batch_result.get('error'):
                     self.logger.error(f"Error in _fetch_email_batch for strategy '{strategy.name}': {batch_result['error']}")
-                    # Decide if this error is fatal for the strategy or if we can continue
                     return {
                         'success': False,
                         'emails_count': len(emails_retrieved_for_strategy),
-                        'api_calls': api_calls_for_strategy, # This needs to be more accurate
+                        'api_calls': api_calls_for_strategy,
                         'error': batch_result['error'],
                         'last_history_id': checkpoint.last_history_id if checkpoint else None,
                         'next_page_token': current_page_token
                     }
 
-                messages_in_batch = batch_result.get('messages', [])
                 if not messages_in_batch:
                     self.logger.info(f"No more messages found for strategy '{strategy.name}' in this batch.")
                     break
@@ -623,42 +605,20 @@ class SmartGmailRetriever:
                 emails_retrieved_for_strategy.extend(messages_in_batch)
                 current_page_token = batch_result.get('nextPageToken')
                 
-                self.logger.info(f"Retrieved {len(messages_in_batch)} messages in this batch for '{strategy.name}'. Total for strategy: {len(emails_retrieved_for_strategy)}.")
+                self.logger.info(f"Retrieved {len(messages_in_batch)} messages in this batch for '{strategy.name}'. Total for strategy: {len(emails_retrieved_for_strategy)}. API calls for batch: {batch_api_calls}")
 
                 if not current_page_token:
                     self.logger.info(f"No next page token for strategy '{strategy.name}'. End of results for this query.")
                     break
                 
                 # Rate limiting between batches
-                await asyncio.sleep(0.5) # Keep this for politeness
+                await asyncio.sleep(0.5)
 
-            # This is where a more accurate counting of API calls made by _fetch_email_batch would be summed up.
-            # For now, this is a placeholder.
-            # The current structure assumes 'api_calls' in the return is the sum from _fetch_email_batch,
-            # which is not how it's currently implemented.
-            # Let's assume `api_calls_for_strategy` represents the "list" calls.
-            # The `execute_smart_retrieval` sums up `strategy_result['api_calls']`.
-            # This implies `_execute_strategy_retrieval` should return an accurate `api_calls` count.
-            # If `_fetch_email_batch` executes 1 list + N gets (where N is batch_size),
-            # then total calls for strategy = sum(1 + len(messages_in_batch)) for each batch.
-
-            # For now, we will return api_calls_for_strategy as the number of list() calls made.
-            # The overall API call counting logic needs to be harmonized.
-            # Let's assume each call to _fetch_email_batch costs 1 (for list) + N (for gets)
-            # For now, let's stick to `api_calls_for_strategy` counting batches.
-            # The `api_calls` in the return dict should be the actual API calls.
-            # This is a known gap that needs addressing for accurate quota management.
-            # For this refactoring, we focus on logging and structure.
-            
-            # Let's make a simplifying assumption for now:
-            # Each _fetch_email_batch is 1 "major" operation for API call counting at this level.
-            # The true cost is complex.
-
-            self.logger.info(f"Strategy '{strategy.name}' finished. Retrieved {len(emails_retrieved_for_strategy)} emails in {api_calls_for_strategy} batch fetches.")
+            self.logger.info(f"Strategy '{strategy.name}' finished. Retrieved {len(emails_retrieved_for_strategy)} emails using {api_calls_for_strategy} API calls.")
             return {
                 'success': True,
                 'emails_count': len(emails_retrieved_for_strategy),
-                'api_calls': api_calls_for_strategy, # Placeholder: This should be actual API calls
+                'api_calls': api_calls_for_strategy,
                 'emails': emails_retrieved_for_strategy,
                 'next_page_token': current_page_token,
                 'last_history_id': batch_result.get('historyId', checkpoint.last_history_id if checkpoint else None)
@@ -666,11 +626,10 @@ class SmartGmailRetriever:
             
         except Exception as e:
             self.logger.exception(f"Exception in _execute_strategy_retrieval for '{strategy.name}': {e}")
-
             return {
                 'success': False,
-                'emails_count': 0, # emails_retrieved_for_strategy potentially, but it's an error state
-                'api_calls': api_calls_for_strategy, # Placeholder
+                'emails_count': len(emails_retrieved_for_strategy) if 'emails_retrieved_for_strategy' in locals() else 0,
+                'api_calls': api_calls_for_strategy if 'api_calls_for_strategy' in locals() else 0,
                 'error': str(e)
             }
     

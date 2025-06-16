@@ -243,6 +243,10 @@ Follow these steps to set up the necessary credentials:
         export GMAIL_CREDENTIALS_JSON='{"installed":{"client_id":"YOUR_CLIENT_ID.apps.googleusercontent.com", ...rest of the JSON content...}}'
         ```
         Ensure this variable is available in the environment where the Python backend (`server/python_backend/run_server.py`) is executed.
+        
+        **Additional Configuration Options:**
+        - `GMAIL_TOKEN_PATH`: Custom path for storing OAuth tokens (default: `token.json`)
+        - `GMAIL_INTERACTIVE_AUTH`: Set to `false` for non-interactive environments to use console OAuth flow (default: `true`)
 
     *   **Option 2: Credentials File**
         Rename the downloaded JSON file to `credentials.json` and place it in the project's root directory. The application, when run, will look for this file if the `GMAIL_CREDENTIALS_JSON` environment variable is not set.
