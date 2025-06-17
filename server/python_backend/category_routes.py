@@ -23,23 +23,18 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
         categories = await db.get_all_categories()
         return [CategoryResponse(**cat) for cat in categories]
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Database operation failed while fetching categories",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": "Database operation failed while fetching categories",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in get_categories",
+        log_data = {
+            "message": "Unhandled error in get_categories",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
@@ -65,23 +60,18 @@ async def create_category(
             **created_category_dict
         )  # Ensure it returns CategoryResponse
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Database operation failed while creating category",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": "Database operation failed while creating category",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in create_category",
+        log_data = {
+            "message": "Unhandled error in create_category",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),

@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 
 # Try to import optional dependencies
 try:
-    import nltk  # Used by TextBlob and for stopwords
     from textblob import TextBlob
 
     # nltk.download('punkt') # Required for TextBlob

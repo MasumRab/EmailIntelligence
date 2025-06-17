@@ -169,5 +169,3 @@ def test_update_email_not_found(client):
     response = client.put("/api/emails/99", json={"subject": "test"})
     assert response.status_code == 404
     assert response.json() == {"detail": "Email not found"}
-
-[end of server/python_backend/tests/test_email_routes.py]

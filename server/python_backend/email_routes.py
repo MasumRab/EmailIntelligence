@@ -42,23 +42,18 @@ async def get_emails(
 
         return [EmailResponse(**email) for email in emails]
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Database operation failed while fetching emails",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": "Database operation failed while fetching emails",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in get_emails",
+        log_data = {
+            "message": "Unhandled error in get_emails",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
@@ -84,23 +79,18 @@ async def get_email(
     except HTTPException:
         raise
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": f"Database operation failed while fetching email id {email_id}",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": f"Database operation failed while fetching email id {email_id}",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": f"Unhandled error fetching email id {email_id}",
+        log_data = {
+            "message": f"Unhandled error fetching email id {email_id}",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
@@ -153,23 +143,18 @@ async def create_email(
 
         return EmailResponse(**created_email_dict)  # Ensure it returns EmailResponse
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Database operation failed while creating email",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": "Database operation failed while creating email",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in create_email",
+        log_data = {
+            "message": "Unhandled error in create_email",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
@@ -200,23 +185,18 @@ async def update_email(
     except HTTPException:
         raise
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": f"Database operation failed while updating email id {email_id}",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": f"Database operation failed while updating email id {email_id}",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": f"Unhandled error updating email id {email_id}",
+        log_data = {
+            "message": f"Unhandled error updating email id {email_id}",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
