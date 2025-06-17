@@ -1,8 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock, MagicMock
 
-from server.python_backend.main import app # Main FastAPI app
+from server.python_backend.main import app  # Main FastAPI app
 
 # Mock DatabaseManager methods used by category_routes
 mock_db_manager_cat = MagicMock() # Use a different name to avoid conflict if tests run in same session
@@ -75,4 +76,3 @@ def test_create_category_db_error(client_cat):
 
 # Note: category_routes.py does not currently have PUT /api/categories/{id}
 # If it were added, tests would be similar to update_email in test_email_routes.py
-[end of server/python_backend/tests/test_category_routes.py]

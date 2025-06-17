@@ -1,8 +1,8 @@
 import logging
-import re
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
+
 
 class TopicModel:
     def __init__(self, topic_model: Optional[Any]):
@@ -22,9 +22,9 @@ class TopicModel:
             confidence = float(max(probabilities))
 
             return {
-                'topic': str(prediction),
-                'confidence': confidence,
-                'method_used': 'model_topic'
+                "topic": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_topic",
             }
         except Exception as e:
             self.logger.error(f"Error using topic model: {e}. Trying fallback.")
@@ -35,26 +35,64 @@ class TopicModel:
         Analyze topic using keyword matching as a fallback method.
         """
         topics = {
-            'Work & Business': [
-                'meeting', 'conference', 'project', 'deadline', 'client',
-                'presentation', 'report', 'proposal'
+            "Work & Business": [
+                "meeting",
+                "conference",
+                "project",
+                "deadline",
+                "client",
+                "presentation",
+                "report",
+                "proposal",
             ],
-            'Finance & Banking': [
-                'payment', 'invoice', 'bill', 'statement', 'account',
-                'credit', 'debit', 'transfer', 'money', 'financial'
+            "Finance & Banking": [
+                "payment",
+                "invoice",
+                "bill",
+                "statement",
+                "account",
+                "credit",
+                "debit",
+                "transfer",
+                "money",
+                "financial",
             ],
-            'Personal & Family': [
-                'family', 'personal', 'friend', 'birthday', 'anniversary',
-                'vacation', 'holiday', 'weekend', 'dinner', 'lunch'
+            "Personal & Family": [
+                "family",
+                "personal",
+                "friend",
+                "birthday",
+                "anniversary",
+                "vacation",
+                "holiday",
+                "weekend",
+                "dinner",
+                "lunch",
             ],
-            'Health & Wellness': [
-                'doctor', 'medical', 'health', 'hospital', 'clinic',
-                'appointment', 'prescription', 'medicine', 'treatment', 'therapy'
+            "Health & Wellness": [
+                "doctor",
+                "medical",
+                "health",
+                "hospital",
+                "clinic",
+                "appointment",
+                "prescription",
+                "medicine",
+                "treatment",
+                "therapy",
             ],
-            'Travel & Leisure': [
-                'travel', 'flight', 'hotel', 'booking', 'reservation',
-                'trip', 'vacation', 'destination', 'airport', 'airline'
-            ]
+            "Travel & Leisure": [
+                "travel",
+                "flight",
+                "hotel",
+                "booking",
+                "reservation",
+                "trip",
+                "vacation",
+                "destination",
+                "airport",
+                "airline",
+            ],
         }
 
         topic_scores = {}
@@ -65,18 +103,18 @@ class TopicModel:
 
         if any(score > 0 for score in topic_scores.values()):
             best_topic = max(topic_scores, key=topic_scores.get)
-            confidence = min(topic_scores[best_topic] / 5.0, 0.9) # Heuristic
+            confidence = min(topic_scores[best_topic] / 5.0, 0.9)  # Heuristic
 
             return {
-                'topic': best_topic,
-                'confidence': max(0.1, confidence),
-                'method_used': 'fallback_keyword_topic'
+                "topic": best_topic,
+                "confidence": max(0.1, confidence),
+                "method_used": "fallback_keyword_topic",
             }
         else:
             return {
-                'topic': 'General',
-                'confidence': 0.5,
-                'method_used': 'fallback_keyword_topic'
+                "topic": "General",
+                "confidence": 0.5,
+                "method_used": "fallback_keyword_topic",
             }
 
     def analyze(self, text: str) -> Dict[str, Any]:
