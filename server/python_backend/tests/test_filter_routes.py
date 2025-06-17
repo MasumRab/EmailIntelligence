@@ -1,10 +1,12 @@
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock, MagicMock
-from datetime import datetime
 
 from server.python_backend.main import app
-from server.python_nlp.smart_filters import EmailFilter # For response model type hinting
+from server.python_nlp.smart_filters import \
+    EmailFilter  # For response model type hinting
 
 # Mock SmartFilterManager methods
 mock_filter_manager_instance = MagicMock()
@@ -114,5 +116,3 @@ def test_prune_filters(client_filter):
     assert response.status_code == 200
     assert response.json() == mock_prune_results
     mock_filter_manager_instance.prune_ineffective_filters.assert_called_once()
-
-[end of server/python_backend/tests/test_filter_routes.py]

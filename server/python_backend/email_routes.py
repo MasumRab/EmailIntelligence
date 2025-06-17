@@ -1,21 +1,27 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
-from typing import List, Optional
-import psycopg2
 import json
 import logging
+from typing import List, Optional
 
-from .database import DatabaseManager, get_db
-from .models import EmailCreate, EmailUpdate
+import psycopg2
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+
+from server.python_nlp.smart_filters import \
+    SmartFilterManager  # Corrected import
+
 from .ai_engine import AdvancedAIEngine
-from server.python_nlp.smart_filters import SmartFilterManager # Corrected import
+from .database import DatabaseManager, get_db
+from .models import EmailResponse  # Changed from .main to .models
+from .models import EmailCreate, EmailUpdate
 from .performance_monitor import PerformanceMonitor
-from .models import EmailResponse # Changed from .main to .models
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-ai_engine = AdvancedAIEngine() # Initialize AI engine
-filter_manager = SmartFilterManager() # Initialize filter manager
-performance_monitor = PerformanceMonitor() # Initialize performance monitor, if needed per-route or globally
+ai_engine = AdvancedAIEngine()  # Initialize AI engine
+filter_manager = SmartFilterManager()  # Initialize filter manager
+performance_monitor = (
+    PerformanceMonitor()
+)  # Initialize performance monitor, if needed per-route or globally
+
 
 @router.get("/api/emails", response_model=List[EmailResponse])
 @performance_monitor.track
@@ -23,7 +29,7 @@ async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
     search: Optional[str] = None,
-    db: DatabaseManager = Depends(get_db)
+    db: DatabaseManager = Depends(get_db),
 ):
     """Get emails with optional filtering"""
     try:
@@ -36,67 +42,71 @@ async def get_emails(
 
         return [EmailResponse(**email) for email in emails]
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps({
-                "message": "Database operation failed while fetching emails",
-                "endpoint": str(request.url),
-                "error_type": type(db_err).__name__,
-                "error_detail": str(db_err),
-                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
-            })
-        )
+        log_data = {
+            "message": "Database operation failed while fetching emails",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps({
-                "message": "Unhandled error in get_emails",
-                "endpoint": str(request.url),
-                "error_type": type(e).__name__,
-                "error_detail": str(e),
-            })
+        log_data = {
+            "message": "Unhandled error in get_emails",
+                    "endpoint": str(request.url),
+                    "error_type": type(e).__name__,
+                    "error_detail": str(e),
+                }
+            )
         )
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
-@router.get("/api/emails/{email_id}", response_model=EmailResponse) # Changed to EmailResponse
+
+@router.get(
+    "/api/emails/{email_id}", response_model=EmailResponse
+)  # Changed to EmailResponse
 @performance_monitor.track
-async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
+async def get_email(
+    request: Request, email_id: int, db: DatabaseManager = Depends(get_db)
+):
     """Get specific email by ID"""
     try:
         email = await db.get_email_by_id(email_id)
         if not email:
             raise HTTPException(status_code=404, detail="Email not found")
-        return EmailResponse(**email) # Ensure it returns EmailResponse
+        return EmailResponse(**email)  # Ensure it returns EmailResponse
     except HTTPException:
         raise
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps({
-                "message": f"Database operation failed while fetching email id {email_id}",
-                "endpoint": str(request.url),
-                "error_type": type(db_err).__name__,
-                "error_detail": str(db_err),
-                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
-            })
-        )
+        log_data = {
+            "message": f"Database operation failed while fetching email id {email_id}",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps({
-                "message": f"Unhandled error fetching email id {email_id}",
-                "endpoint": str(request.url),
-                "error_type": type(e).__name__,
-                "error_detail": str(e),
-            })
+        log_data = {
+            "message": f"Unhandled error fetching email id {email_id}",
+                    "endpoint": str(request.url),
+                    "error_type": type(e).__name__,
+                    "error_detail": str(e),
+                }
+            )
         )
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
-@router.post("/api/emails", response_model=EmailResponse) # Changed to EmailResponse
+
+@router.post("/api/emails", response_model=EmailResponse)  # Changed to EmailResponse
 @performance_monitor.track
 async def create_email(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
-    db: DatabaseManager = Depends(get_db)
+    db: DatabaseManager = Depends(get_db),
 ):
     """Create new email with AI analysis"""
     try:
@@ -104,84 +114,93 @@ async def create_email(
         ai_analysis = await ai_engine.analyze_email(email.subject, email.content, db=db)
 
         # Apply smart filters
-        filter_results = await filter_manager.apply_filters_to_email_data(email.dict()) # Corrected method name
+        filter_results = await filter_manager.apply_filters_to_email_data(
+            email.dict()
+        )  # Corrected method name
 
         # Create email with enhanced data
         email_data = email.dict()
-        email_data.update({
-            'confidence': int(ai_analysis.confidence * 100),
-            'categoryId': ai_analysis.category_id,
-            'labels': ai_analysis.suggested_labels,
-            'analysisMetadata': ai_analysis.to_dict()
-        })
+        email_data.update(
+            {
+                "confidence": int(ai_analysis.confidence * 100),
+                "categoryId": ai_analysis.category_id,
+                "labels": ai_analysis.suggested_labels,
+                "analysisMetadata": ai_analysis.to_dict(),
+            }
+        )
 
-        created_email_dict = await db.create_email(email_data) # db.create_email returns a dict
+        created_email_dict = await db.create_email(
+            email_data
+        )  # db.create_email returns a dict
 
         # Background tasks for performance tracking
         background_tasks.add_task(
             performance_monitor.record_email_processing,
-            created_email_dict['id'], # Use dict access
+            created_email_dict["id"],  # Use dict access
             ai_analysis,
-            filter_results
+            filter_results,
         )
 
-        return EmailResponse(**created_email_dict) # Ensure it returns EmailResponse
+        return EmailResponse(**created_email_dict)  # Ensure it returns EmailResponse
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps({
-                "message": "Database operation failed while creating email",
-                "endpoint": str(request.url),
-                "error_type": type(db_err).__name__,
-                "error_detail": str(db_err),
-                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
-            })
-        )
+        log_data = {
+            "message": "Database operation failed while creating email",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps({
-                "message": "Unhandled error in create_email",
-                "endpoint": str(request.url),
-                "error_type": type(e).__name__,
-                "error_detail": str(e),
-            })
+        log_data = {
+            "message": "Unhandled error in create_email",
+                    "endpoint": str(request.url),
+                    "error_type": type(e).__name__,
+                    "error_detail": str(e),
+                }
+            )
         )
         raise HTTPException(status_code=500, detail="Failed to create email")
 
-@router.put("/api/emails/{email_id}", response_model=EmailResponse) # Changed to EmailResponse
+
+@router.put(
+    "/api/emails/{email_id}", response_model=EmailResponse
+)  # Changed to EmailResponse
 @performance_monitor.track
 async def update_email(
     request: Request,
     email_id: int,
     email_update: EmailUpdate,
-    db: DatabaseManager = Depends(get_db)
+    db: DatabaseManager = Depends(get_db),
 ):
     """Update email"""
     try:
-        updated_email_dict = await db.update_email(email_id, email_update.dict(exclude_unset=True)) # db.update_email returns a dict
+        updated_email_dict = await db.update_email(
+            email_id, email_update.dict(exclude_unset=True)
+        )  # db.update_email returns a dict
         if not updated_email_dict:
             raise HTTPException(status_code=404, detail="Email not found")
-        return EmailResponse(**updated_email_dict) # Ensure it returns EmailResponse
+        return EmailResponse(**updated_email_dict)  # Ensure it returns EmailResponse
     except HTTPException:
         raise
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps({
-                "message": f"Database operation failed while updating email id {email_id}",
-                "endpoint": str(request.url),
-                "error_type": type(db_err).__name__,
-                "error_detail": str(db_err),
-                "pgcode": db_err.pgcode if hasattr(db_err, 'pgcode') else None,
-            })
-        )
+        log_data = {
+            "message": f"Database operation failed while updating email id {email_id}",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps({
-                "message": f"Unhandled error updating email id {email_id}",
-                "endpoint": str(request.url),
-                "error_type": type(e).__name__,
-                "error_detail": str(e),
-            })
+        log_data = {
+            "message": f"Unhandled error updating email id {email_id}",
+                    "endpoint": str(request.url),
+                    "error_type": type(e).__name__,
+                    "error_detail": str(e),
+                }
+            )
         )
         raise HTTPException(status_code=500, detail="Failed to update email")

@@ -1,17 +1,22 @@
 import unittest
-from unittest.mock import patch, AsyncMock, MagicMock
+from typing import List, Optional  # Ensure List and Optional are imported
+from unittest.mock import AsyncMock, MagicMock, patch
+
 from fastapi.testclient import TestClient
+
 from server.python_backend.main import app, get_db
-from server.python_backend.models import EmailResponse # Import specific model
-from typing import List, Optional # Ensure List and Optional are imported
+from server.python_backend.models import EmailResponse  # Import specific model
 
 # Mock DatabaseManager for dependency injection
 mock_db_manager = AsyncMock()
 
+
 async def override_get_db():
     return mock_db_manager
 
+
 app.dependency_overrides[get_db] = override_get_db
+
 
 class TestEmailAPI_GET(unittest.TestCase):
     def setUp(self):
@@ -28,21 +33,39 @@ class TestEmailAPI_GET(unittest.TestCase):
         # Ensure all fields required by EmailResponse are present
         mock_data = [
             {
-                "id": 1, "messageId": "msg1", "threadId": "thread1",
-                "sender": "sender1@example.com", "senderEmail": "sender1@example.com",
-                "subject": "Subject 1", "content": "Content 1", "preview": "Preview 1",
-                "time": "2023-01-01T10:00:00Z", "category": "CategoryA",
-                "labels": ["label1"], "isImportant": False, "isStarred": False,
-                "isUnread": True, "confidence": 80
+                "id": 1,
+                "messageId": "msg1",
+                "threadId": "thread1",
+                "sender": "sender1@example.com",
+                "senderEmail": "sender1@example.com",
+                "subject": "Subject 1",
+                "content": "Content 1",
+                "preview": "Preview 1",
+                "time": "2023-01-01T10:00:00Z",
+                "category": "CategoryA",
+                "labels": ["label1"],
+                "isImportant": False,
+                "isStarred": False,
+                "isUnread": True,
+                "confidence": 80,
             },
             {
-                "id": 2, "messageId": "msg2", "threadId": "thread2",
-                "sender": "sender2@example.com", "senderEmail": "sender2@example.com",
-                "subject": "Subject 2", "content": "Content 2", "preview": "Preview 2",
-                "time": "2023-01-02T10:00:00Z", "category": "CategoryB",
-                "labels": ["label2"], "isImportant": True, "isStarred": True,
-                "isUnread": False, "confidence": 90
-            }
+                "id": 2,
+                "messageId": "msg2",
+                "threadId": "thread2",
+                "sender": "sender2@example.com",
+                "senderEmail": "sender2@example.com",
+                "subject": "Subject 2",
+                "content": "Content 2",
+                "preview": "Preview 2",
+                "time": "2023-01-02T10:00:00Z",
+                "category": "CategoryB",
+                "labels": ["label2"],
+                "isImportant": True,
+                "isStarred": True,
+                "isUnread": False,
+                "confidence": 90,
+            },
         ]
         mock_db_manager.get_all_emails.return_value = mock_data
 
@@ -64,7 +87,23 @@ class TestEmailAPI_GET(unittest.TestCase):
     def test_get_emails_by_category(self):
         print("Running test_get_emails_by_category")
         mock_data = [
-            {"id": 1, "messageId": "msg1", "threadId": "thread1", "sender": "sender1@example.com", "senderEmail": "sender1@example.com", "subject": "Subject 1", "content": "Content 1", "preview": "Preview 1", "time": "2023-01-01T10:00:00Z", "category": "CategoryA", "labels": ["label1"], "isImportant": False, "isStarred": False, "isUnread": True, "confidence": 80}
+            {
+                "id": 1,
+                "messageId": "msg1",
+                "threadId": "thread1",
+                "sender": "sender1@example.com",
+                "senderEmail": "sender1@example.com",
+                "subject": "Subject 1",
+                "content": "Content 1",
+                "preview": "Preview 1",
+                "time": "2023-01-01T10:00:00Z",
+                "category": "CategoryA",
+                "labels": ["label1"],
+                "isImportant": False,
+                "isStarred": False,
+                "isUnread": True,
+                "confidence": 80,
+            }
         ]
         mock_db_manager.get_emails_by_category.return_value = mock_data
         response = self.client.get("/api/emails?category_id=1")
@@ -83,7 +122,23 @@ class TestEmailAPI_GET(unittest.TestCase):
     def test_get_emails_by_search(self):
         print("Running test_get_emails_by_search")
         mock_data = [
-            {"id": 2, "messageId": "msg2", "threadId": "thread2", "sender": "sender2@example.com", "senderEmail": "sender2@example.com", "subject": "Subject 2", "content": "Content 2", "preview": "Preview 2", "time": "2023-01-02T10:00:00Z", "category": "CategoryB", "labels": ["label2"], "isImportant": True, "isStarred": True, "isUnread": False, "confidence": 90}
+            {
+                "id": 2,
+                "messageId": "msg2",
+                "threadId": "thread2",
+                "sender": "sender2@example.com",
+                "senderEmail": "sender2@example.com",
+                "subject": "Subject 2",
+                "content": "Content 2",
+                "preview": "Preview 2",
+                "time": "2023-01-02T10:00:00Z",
+                "category": "CategoryB",
+                "labels": ["label2"],
+                "isImportant": True,
+                "isStarred": True,
+                "isUnread": False,
+                "confidence": 90,
+            }
         ]
         mock_db_manager.search_emails.return_value = mock_data
         response = self.client.get("/api/emails?search=Subject%202")
@@ -101,7 +156,23 @@ class TestEmailAPI_GET(unittest.TestCase):
 
     def test_get_email_by_id_found(self):
         print("Running test_get_email_by_id_found")
-        mock_data = {"id": 1, "messageId": "msg1", "threadId": "thread1", "sender": "sender1@example.com", "senderEmail": "sender1@example.com", "subject": "Subject 1", "content": "Content 1", "preview": "Preview 1", "time": "2023-01-01T10:00:00Z", "category": "CategoryA", "labels": ["label1"], "isImportant": False, "isStarred": False, "isUnread": True, "confidence": 80}
+        mock_data = {
+            "id": 1,
+            "messageId": "msg1",
+            "threadId": "thread1",
+            "sender": "sender1@example.com",
+            "senderEmail": "sender1@example.com",
+            "subject": "Subject 1",
+            "content": "Content 1",
+            "preview": "Preview 1",
+            "time": "2023-01-01T10:00:00Z",
+            "category": "CategoryA",
+            "labels": ["label1"],
+            "isImportant": False,
+            "isStarred": False,
+            "isUnread": True,
+            "confidence": 80,
+        }
         mock_db_manager.get_email_by_id.return_value = mock_data
         response = self.client.get("/api/emails/1")
         print(f"Response Status Code (id_found): {response.status_code}")
@@ -129,7 +200,9 @@ class TestEmailAPI_GET(unittest.TestCase):
 
     def test_get_email_by_id_db_error(self):
         print("Running test_get_email_by_id_db_error")
-        mock_db_manager.get_email_by_id = AsyncMock() # Ensure fresh AsyncMock for this test
+        mock_db_manager.get_email_by_id = (
+            AsyncMock()
+        )  # Ensure fresh AsyncMock for this test
         mock_db_manager.get_email_by_id.side_effect = self.async_raise_exception
         response = self.client.get("/api/emails/1")
         self.assertEqual(response.status_code, 500)
@@ -138,20 +211,23 @@ class TestEmailAPI_GET(unittest.TestCase):
 
     def test_get_emails_db_error(self):
         print("Running test_get_emails_db_error")
-        mock_db_manager.get_all_emails = AsyncMock() # Ensure fresh AsyncMock
+        mock_db_manager.get_all_emails = AsyncMock()  # Ensure fresh AsyncMock
         mock_db_manager.get_all_emails.side_effect = self.async_raise_exception
         response = self.client.get("/api/emails")
         self.assertEqual(response.status_code, 500)
         self.assertIn("Failed to fetch emails", response.json()["detail"])
         mock_db_manager.get_all_emails.assert_called_once()
 
+
+from server.python_backend.ai_engine import \
+    AIAnalysisResult  # Ensure this is imported
 # Import Pydantic models if not already at the top
 from server.python_backend.models import EmailCreate, EmailUpdate
-from server.python_backend.ai_engine import AIAnalysisResult # Ensure this is imported
 
 # Mock ai_engine and filter_manager for the new tests
 # These might be better placed at the module level if used by multiple classes
 # For now, let's assume they are patched within the test methods or a new test class.
+
 
 class TestEmailAPI_POST_PUT(unittest.TestCase):
     def setUp(self):
@@ -162,12 +238,21 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         mock_db_manager.reset_mock()
         mock_db_manager.create_email = AsyncMock()
         mock_db_manager.update_email = AsyncMock()
-        mock_db_manager.get_email_by_id = AsyncMock() # Potentially used by update logic before actual update
+        mock_db_manager.get_email_by_id = (
+            AsyncMock()
+        )  # Potentially used by update logic before actual update
 
-    @patch('server.python_backend.main.ai_engine.analyze_email', new_callable=AsyncMock)
-    @patch('server.python_backend.main.filter_manager.apply_filters_to_email_data', new_callable=AsyncMock) # Corrected method name
-    @patch('server.python_backend.main.performance_monitor.record_email_processing') # Mock background task
-    def test_create_email_success(self, mock_record_processing, mock_apply_filters, mock_analyze_email):
+    @patch("server.python_backend.main.ai_engine.analyze_email", new_callable=AsyncMock)
+    @patch(
+        "server.python_backend.main.filter_manager.apply_filters_to_email_data",
+        new_callable=AsyncMock,
+    )  # Corrected method name
+    @patch(
+        "server.python_backend.main.performance_monitor.record_email_processing"
+    )  # Mock background task
+    def test_create_email_success(
+        self, mock_record_processing, mock_apply_filters, mock_analyze_email
+    ):
         print("Running test_create_email_success")
         email_data = {
             "sender": "test@example.com",
@@ -178,15 +263,25 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
             "time": "2023-10-26T10:00:00Z",
             "isImportant": False,
             "isStarred": False,
-            "isUnread": True
+            "isUnread": True,
         }
 
-        mock_ai_result = AIAnalysisResult(data={
-            "topic": "general", "sentiment": "neutral", "intent": "informational", "urgency": "low",
-            "confidence": 0.95, "categories": [], "keywords": ["new", "email"], "reasoning": "N/A",
-            "suggested_labels": ["inbox"], "risk_flags": [], "category_id": 1,
-            "action_items": []
-        })
+        mock_ai_result = AIAnalysisResult(
+            data={
+                "topic": "general",
+                "sentiment": "neutral",
+                "intent": "informational",
+                "urgency": "low",
+                "confidence": 0.95,
+                "categories": [],
+                "keywords": ["new", "email"],
+                "reasoning": "N/A",
+                "suggested_labels": ["inbox"],
+                "risk_flags": [],
+                "category_id": 1,
+                "action_items": [],
+            }
+        )
         mock_analyze_email.return_value = mock_ai_result
         mock_apply_filters.return_value = {"matched_filters": [], "applied_actions": []}
 
@@ -229,7 +324,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # For the purpose of this test, we are mocking `db.create_email`'s return value.
         # So, it should be a dict that FastAPI can convert using `EmailResponse` as the response_model.
 
-        mock_db_manager.create_email.return_value = created_email_response # This mock is what the endpoint returns after db call
+        mock_db_manager.create_email.return_value = created_email_response  # This mock is what the endpoint returns after db call
 
         response = self.client.post("/api/emails", json=email_data)
 
@@ -242,19 +337,25 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["subject"], "New Email")
-        self.assertEqual(data["confidence"], 95) # This matches our created_email_response
+        self.assertEqual(
+            data["confidence"], 95
+        )  # This matches our created_email_response
         self.assertEqual(data["id"], 100)
 
-        mock_analyze_email.assert_called_once_with(email_data["subject"], email_data["content"])
+        mock_analyze_email.assert_called_once_with(
+            email_data["subject"], email_data["content"]
+        )
         mock_apply_filters.assert_called_once()
 
         # What `db.create_email` is called with in main.py:
         expected_db_payload_to_main_create_email_func = {
-            **EmailCreate(**email_data).model_dump(), # Ensures it's validated by EmailCreate first
-            'confidence': 95,
-            'categoryId': 1,
-            'labels': ['inbox'],
-            'analysisMetadata': mock_ai_result.to_dict()
+            **EmailCreate(
+                **email_data
+            ).model_dump(),  # Ensures it's validated by EmailCreate first
+            "confidence": 95,
+            "categoryId": 1,
+            "labels": ["inbox"],
+            "analysisMetadata": mock_ai_result.to_dict(),
         }
         # Ensure all fields from EmailCreate are present in the base of expected_db_payload
         # EmailCreate fields: sender, senderEmail, subject, content, time, messageId, threadId, contentHtml, preview, labels, isImportant, isStarred, isUnread, hasAttachments, attachmentCount, sizeEstimate
@@ -268,24 +369,27 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # would pass to `db.create_email`.
 
         # The `email_data` in `main.py` is `email.dict()` (from `EmailCreate`) then updated.
-        temp_email_create_obj = EmailCreate(**email_data) # Pydantic validation of input
+        temp_email_create_obj = EmailCreate(
+            **email_data
+        )  # Pydantic validation of input
         db_call_arg = temp_email_create_obj.model_dump()
-        db_call_arg.update({
-            'confidence': 95,
-            'categoryId': 1,
-            'labels': ['inbox'],
-            'analysisMetadata': mock_ai_result.to_dict()
-        })
+        db_call_arg.update(
+            {
+                "confidence": 95,
+                "categoryId": 1,
+                "labels": ["inbox"],
+                "analysisMetadata": mock_ai_result.to_dict(),
+            }
+        )
 
         mock_db_manager.create_email.assert_called_once_with(db_call_arg)
         mock_record_processing.assert_called_once()
 
-
     def test_create_email_validation_error(self):
         print("Running test_create_email_validation_error")
-        email_data = { # Missing sender, senderEmail, time, preview
+        email_data = {  # Missing sender, senderEmail, time, preview
             "subject": "New Email",
-            "content": "This is the content of the new email."
+            "content": "This is the content of the new email.",
         }
         response = self.client.post("/api/emails", json=email_data)
         self.assertEqual(response.status_code, 422)
@@ -294,9 +398,11 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         self.assertIn("detail", response_data)
 
         missing_fields = set()
-        for error in response_data['detail']:
-            if error['type'] == 'missing':
-                missing_fields.add(error['loc'][-1]) # Get the last element of loc list for field name
+        for error in response_data["detail"]:
+            if error["type"] == "missing":
+                missing_fields.add(
+                    error["loc"][-1]
+                )  # Get the last element of loc list for field name
 
         # Fields from EmailCreate that are required (not Optional, no default in Pydantic model)
         # sender, senderEmail, subject, content, time are from EmailBase
@@ -312,9 +418,11 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # self.assertIn("preview", missing_fields) # Preview is Optional
         self.assertIn("time", missing_fields)
 
-
-    @patch('server.python_backend.main.ai_engine.analyze_email', new_callable=AsyncMock)
-    @patch('server.python_backend.main.filter_manager.apply_filters_to_email_data', new_callable=AsyncMock) # Corrected method name
+    @patch("server.python_backend.main.ai_engine.analyze_email", new_callable=AsyncMock)
+    @patch(
+        "server.python_backend.main.filter_manager.apply_filters_to_email_data",
+        new_callable=AsyncMock,
+    )  # Corrected method name
     def test_create_email_db_error(self, mock_apply_filters, mock_analyze_email):
         print("Running test_create_email_db_error")
         email_data = {
@@ -322,23 +430,35 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
             "senderEmail": "test@example.com",
             "subject": "New Email",
             "content": "This is the content of the new email.",
-            "preview": "New email preview", # Added to pass EmailCreate validation
+            "preview": "New email preview",  # Added to pass EmailCreate validation
             "time": "2023-10-26T10:00:00Z",
             # Fields from EmailCreate that are not Optional and have no defaults:
             # (sender, senderEmail, subject, content, time are from EmailBase)
             # isImportant, isStarred, isUnread, hasAttachments, attachmentCount, sizeEstimate all have defaults in EmailCreate
         }
-        mock_ai_result = AIAnalysisResult(data={
-            "topic": "general", "sentiment": "neutral", "intent": "informational", "urgency": "low",
-            "confidence": 0.95, "categories": [], "keywords": ["new", "email"], "reasoning": "N/A",
-            "suggested_labels": ["inbox"], "risk_flags": [], "category_id": 1,
-            "action_items": []
-        })
+        mock_ai_result = AIAnalysisResult(
+            data={
+                "topic": "general",
+                "sentiment": "neutral",
+                "intent": "informational",
+                "urgency": "low",
+                "confidence": 0.95,
+                "categories": [],
+                "keywords": ["new", "email"],
+                "reasoning": "N/A",
+                "suggested_labels": ["inbox"],
+                "risk_flags": [],
+                "category_id": 1,
+                "action_items": [],
+            }
+        )
         mock_analyze_email.return_value = mock_ai_result
         mock_apply_filters.return_value = {"matched_filters": [], "applied_actions": []}
 
-        mock_db_manager.create_email = AsyncMock() # Ensure fresh AsyncMock
-        mock_db_manager.create_email.side_effect = self.async_raise_exception # Use helper
+        mock_db_manager.create_email = AsyncMock()  # Ensure fresh AsyncMock
+        mock_db_manager.create_email.side_effect = (
+            self.async_raise_exception
+        )  # Use helper
 
         response = self.client.post("/api/emails", json=email_data)
         self.assertEqual(response.status_code, 500)
@@ -351,19 +471,34 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
     def test_update_email_success(self):
         print("Running test_update_email_success")
         email_id = 1
-        email_update_payload = {"subject": "Updated Subject", "isUnread": False} # isUnread is in EmailUpdate
+        email_update_payload = {
+            "subject": "Updated Subject",
+            "isUnread": False,
+        }  # isUnread is in EmailUpdate
 
         # This mock should return data that is compatible with main.py's EmailResponse model
         mock_db_manager.update_email.return_value = {
-            "id": email_id, "messageId": "msg1", "threadId": "thread1",
-            "sender": "sender1@example.com", "senderEmail": "sender1@example.com",
-            "subject": "Updated Subject", "content": "Content 1", "preview": "Preview 1",
-            "time": "2023-01-01T10:00:00Z", "category": "CategoryA", "labels": ["label1"],
-            "isImportant": False, "isStarred": False, "isUnread": False, "confidence": 80
+            "id": email_id,
+            "messageId": "msg1",
+            "threadId": "thread1",
+            "sender": "sender1@example.com",
+            "senderEmail": "sender1@example.com",
+            "subject": "Updated Subject",
+            "content": "Content 1",
+            "preview": "Preview 1",
+            "time": "2023-01-01T10:00:00Z",
+            "category": "CategoryA",
+            "labels": ["label1"],
+            "isImportant": False,
+            "isStarred": False,
+            "isUnread": False,
+            "confidence": 80,
         }
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
 
-        print(f"PUT /api/emails/{email_id} Response Status Code: {response.status_code}")
+        print(
+            f"PUT /api/emails/{email_id} Response Status Code: {response.status_code}"
+        )
         try:
             print(f"PUT /api/emails/{email_id} Response JSON: {response.json()}")
         except Exception as e:
@@ -377,43 +512,50 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # await db.update_email(email_id, email_update.dict(exclude_unset=True))
         # So, the mock should expect the payload with exclude_unset=True applied.
         # For `email_update_payload` this is the same.
-        mock_db_manager.update_email.assert_called_once_with(email_id, email_update_payload)
-
+        mock_db_manager.update_email.assert_called_once_with(
+            email_id, email_update_payload
+        )
 
     def test_update_email_not_found(self):
         print("Running test_update_email_not_found")
         email_id = 999
         email_update_payload = {"subject": "Updated Subject"}
-        mock_db_manager.update_email.return_value = None # This signifies not found
+        mock_db_manager.update_email.return_value = None  # This signifies not found
 
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {"detail": "Email not found"})
-        mock_db_manager.update_email.assert_called_once_with(email_id, email_update_payload)
+        mock_db_manager.update_email.assert_called_once_with(
+            email_id, email_update_payload
+        )
 
     def test_update_email_validation_error(self):
         print("Running test_update_email_validation_error")
-        email_update_payload = {"isImportant": "not-a-boolean"} # Invalid data type
+        email_update_payload = {"isImportant": "not-a-boolean"}  # Invalid data type
         response = self.client.put("/api/emails/1", json=email_update_payload)
         self.assertEqual(response.status_code, 422)
         response_data = response.json()
         print(f"PUT /api/emails/1 Validation Error JSON: {response_data}")
         self.assertIn("detail", response_data)
-        self.assertEqual(response_data['detail'][0]['type'], 'bool_parsing')
+        self.assertEqual(response_data["detail"][0]["type"], "bool_parsing")
         # Location for Pydantic V2 for request body is typically ['body', <field_name>]
-        self.assertEqual(response_data['detail'][0]['loc'], ['body', 'isImportant'])
-
+        self.assertEqual(response_data["detail"][0]["loc"], ["body", "isImportant"])
 
     def test_update_email_db_error(self):
         print("Running test_update_email_db_error")
         email_id = 1
         email_update_payload = {"subject": "Updated Subject"}
-        mock_db_manager.update_email = AsyncMock() # Ensure fresh AsyncMock
-        mock_db_manager.update_email.side_effect = self.async_raise_exception # Use helper
+        mock_db_manager.update_email = AsyncMock()  # Ensure fresh AsyncMock
+        mock_db_manager.update_email.side_effect = (
+            self.async_raise_exception
+        )  # Use helper
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
         self.assertEqual(response.status_code, 500)
         self.assertIn("Failed to update email", response.json()["detail"])
-        mock_db_manager.update_email.assert_called_once_with(email_id, email_update_payload)
+        mock_db_manager.update_email.assert_called_once_with(
+            email_id, email_update_payload
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

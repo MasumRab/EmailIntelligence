@@ -1,6 +1,6 @@
+import logging
 import unittest
 from unittest.mock import MagicMock
-import logging
 
 from server.python_nlp.analysis_components.topic_model import TopicModel
 
@@ -54,4 +54,3 @@ class TestTopicModel(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-[end of server/python_nlp/tests/analysis_components/test_topic_model.py]

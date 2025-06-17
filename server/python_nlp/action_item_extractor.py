@@ -1,18 +1,23 @@
-import re
 import logging
-from typing import List, Dict, Any, Optional, Tuple
+import re
+from typing import Any, Dict, List, Optional
 
 # Attempt to import NLTK for POS tagging
 try:
     import nltk
+
     # Initial check for base resources. More specific checks can be done in class __init__.
-    nltk.data.find('taggers/averaged_perceptron_tagger')
-    nltk.data.find('tokenizers/punkt')
+    nltk.data.find("taggers/averaged_perceptron_tagger")
+    nltk.data.find("tokenizers/punkt")
     HAS_NLTK = True
-except (ImportError, LookupError): # Catch both import error and lookup error for missing NLTK data
+except (
+    ImportError,
+    LookupError,
+):  # Catch both import error and lookup error for missing NLTK data
     HAS_NLTK = False
 
 logger = logging.getLogger(__name__)
+
 
 class ActionItemExtractor:
     """
@@ -25,44 +30,58 @@ class ActionItemExtractor:
             resources_to_check = {
                 "punkt_tab": "tokenizers/punkt_tab",
                 "averaged_perceptron_tagger": "taggers/averaged_perceptron_tagger",
-                "averaged_perceptron_tagger_eng": "taggers/averaged_perceptron_tagger_eng", # Added for explicit check
-                "punkt": "tokenizers/punkt" # Redundant with top-level check but good for robustness
+                "averaged_perceptron_tagger_eng": "taggers/averaged_perceptron_tagger_eng",  # Added for explicit check
+                "punkt": "tokenizers/punkt",  # Redundant with top-level check but good for robustness
             }
             for resource_name, resource_path in resources_to_check.items():
                 try:
                     nltk.data.find(resource_path)
                 except LookupError:
-                    logger.info(f"NLTK '{resource_name}' resource ({resource_path}) not found. Downloading...")
+                    logger.info(
+                        f"NLTK '{resource_name}' resource ({resource_path}) not found. Downloading..."
+                    )
                     try:
                         nltk.download(resource_name, quiet=True)
                     except Exception as e_download:
-                        logger.error(f"An error occurred while downloading '{resource_name}': {e_download}")
+                        logger.error(
+                            f"An error occurred while downloading '{resource_name}': {e_download}"
+                        )
                 except Exception as e:
-                    logger.error(f"An unexpected error occurred while checking for '{resource_name}': {e}")
+                    logger.error(
+                        f"An unexpected error occurred while checking for '{resource_name}': {e}"
+                    )
 
         # Regex for keywords indicating action items
         self.action_keywords_regex = re.compile(
-            r'\b(task:|action required:|action:)\s|\b(please|need to|required to|must|should|can you|could you|will you)\b',
-            re.IGNORECASE
+            r"\b(task:|action required:|action:)\s|\b(please|need to|required to|must|should|can you|could you|will you)\b",
+            re.IGNORECASE,
         )
         # Regex for simple due date patterns
         # This is a basic version and can be expanded significantly
         self.due_date_regex = re.compile(
-            r'\b(by (next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|end of day|eod)|'
-            r'on (monday|tuesday|wednesday|thursday|friday|saturday|sunday)|' # Added for "on DayName"
-            r'on \d{1,2}(st|nd|rd|th)? (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(\w*)?(\s\d{4})?|'
-            r'in \d+ (days?|weeks?|months?)|'
-            r'next (week|month|year))\b',
-            re.IGNORECASE
+            r"\b(by (next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|end of day|eod)|"
+            r"on (monday|tuesday|wednesday|thursday|friday|saturday|sunday)|"  # Added for "on DayName"
+            r"on \d{1,2}(st|nd|rd|th)? (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(\w*)?(\s\d{4})?|"
+            r"in \d+ (days?|weeks?|months?)|"
+            r"next (week|month|year))\b",
+            re.IGNORECASE,
         )
-        self.sentence_splitter_regex = re.compile(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s')
+        self.sentence_splitter_regex = re.compile(
+            r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s"
+        )
 
         if HAS_NLTK:
-            logger.info("NLTK found. POS tagging will be available for action item extraction.")
+            logger.info(
+                "NLTK found. POS tagging will be available for action item extraction."
+            )
         else:
-            logger.warning("NLTK not found. Action item extraction will rely solely on regex and keyword spotting.")
+            logger.warning(
+                "NLTK not found. Action item extraction will rely solely on regex and keyword spotting."
+            )
 
-    def _extract_verb_object_with_nltk(self, text: str) -> tuple[Optional[str], Optional[str]]:
+    def _extract_verb_object_with_nltk(
+        self, text: str
+    ) -> tuple[Optional[str], Optional[str]]:
         """
         Extracts verb and object from a phrase using NLTK POS tagging.
         This is a simplified approach.
@@ -78,7 +97,7 @@ class ActionItemExtractor:
 
             # Find first verb
             for token, tag in tagged_tokens:
-                if tag.startswith('VB'): # VB, VBP, VBZ, VBG, VBD, VBN
+                if tag.startswith("VB"):  # VB, VBP, VBZ, VBG, VBD, VBN
                     verb = token
                     break
 
@@ -88,15 +107,21 @@ class ActionItemExtractor:
                     verb_index = tokens.index(verb)
                     for i in range(verb_index + 1, len(tagged_tokens)):
                         token, tag = tagged_tokens[i]
-                        if tag.startswith('NN') or tag.startswith('PRP'): # Noun or Pronoun
+                        if tag.startswith("NN") or tag.startswith(
+                            "PRP"
+                        ):  # Noun or Pronoun
                             obj = token
                             break
                 except ValueError:
                     # Verb not found in tokens (shouldn't happen but being safe)
-                    logger.debug(f"Verb '{verb}' not found in tokens during object extraction")
+                    logger.debug(
+                        f"Verb '{verb}' not found in tokens during object extraction"
+                    )
             return verb, obj
         except Exception as e:
-            logger.error(f"Error during NLTK POS tagging or verb/object extraction: {e}")
+            logger.error(
+                f"Error during NLTK POS tagging or verb/object extraction: {e}"
+            )
             return None, None
 
     def extract_actions(self, text: str) -> List[Dict[str, Any]]:
@@ -118,7 +143,9 @@ class ActionItemExtractor:
 
             match = self.action_keywords_regex.search(sentence)
             if match:
-                action_phrase = sentence[match.start():] # Capture from keyword onwards as a starting point
+                action_phrase = sentence[
+                    match.start() :
+                ]  # Capture from keyword onwards as a starting point
 
                 # Refine action_phrase to be more specific if possible
                 # For example, stop at the end of the clause or sentence.
@@ -128,8 +155,10 @@ class ActionItemExtractor:
                 if HAS_NLTK:
                     # Try to get a more specific part of the sentence for verb/object extraction
                     # This could be the text following the keyword.
-                    potential_action_segment = sentence[match.end():].strip()
-                    verb, obj = self._extract_verb_object_with_nltk(potential_action_segment)
+                    potential_action_segment = sentence[match.end() :].strip()
+                    verb, obj = self._extract_verb_object_with_nltk(
+                        potential_action_segment
+                    )
 
                 due_date_match = self.due_date_regex.search(action_phrase)
                 raw_due_date_text = None
@@ -138,13 +167,12 @@ class ActionItemExtractor:
                     # Optionally, remove due date from action phrase to avoid redundancy
                     # action_phrase = action_phrase.replace(raw_due_date_text, "").strip()
 
-
                 action_item: Dict[str, Any] = {
-                    'action_phrase': action_phrase.strip(),
-                    'verb': verb,
-                    'object': obj,
-                    'raw_due_date_text': raw_due_date_text,
-                    'context': sentence.strip() # The full sentence as context
+                    "action_phrase": action_phrase.strip(),
+                    "verb": verb,
+                    "object": obj,
+                    "raw_due_date_text": raw_due_date_text,
+                    "context": sentence.strip(),  # The full sentence as context
                 }
                 action_items.append(action_item)
                 logger.debug(f"Extracted action item: {action_item}")
@@ -152,7 +180,8 @@ class ActionItemExtractor:
         logger.info(f"Extracted {len(action_items)} potential action items.")
         return action_items
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Example Usage
     logging.basicConfig(level=logging.DEBUG)
     extractor = ActionItemExtractor()
