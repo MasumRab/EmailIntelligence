@@ -117,7 +117,7 @@ While `launch.py` automates the installation of Python packages listed in the re
 - **`--system-info`**: Prints detailed system and environment information and exits.
 - **`--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}`**: Sets the logging verbosity for the launcher.
 
-*(For a full list of launcher arguments, see `LAUNCHER.md` or run `python launch.py --help`)*
+*(For a full list of launcher arguments, see \`launcher_guide.md\` or run \`python launch.py --help\`)*
 
 <!-- The section below is intentionally commented out as env_manager.py no longer exists and its functionalities are integrated into launch.py -->
 <!--
