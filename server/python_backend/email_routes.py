@@ -39,8 +39,13 @@ async def get_emails(
             emails = await db.get_emails_by_category(category_id)
         else:
             emails = await db.get_all_emails()
-
-        return [EmailResponse(**email) for email in emails]
+        try:
+            return [EmailResponse(**email) for email in emails]
+        except Exception as e_outer:
+            logger.error(f"Outer exception during get_emails Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
+            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+                logger.error(f"Pydantic errors: {e_outer.errors()}")
+            raise # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed while fetching emails",
@@ -58,8 +63,7 @@ async def get_emails(
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
 
@@ -75,7 +79,13 @@ async def get_email(
         email = await db.get_email_by_id(email_id)
         if not email:
             raise HTTPException(status_code=404, detail="Email not found")
-        return EmailResponse(**email)  # Ensure it returns EmailResponse
+        try:
+            return EmailResponse(**email)  # Ensure it returns EmailResponse
+        except Exception as e_outer:
+            logger.error(f"Outer exception during get_email Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
+            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+                logger.error(f"Pydantic errors: {e_outer.errors()}")
+            raise # Re-raise for FastAPI to handle
     except HTTPException:
         raise
     except psycopg2.Error as db_err:
@@ -95,8 +105,7 @@ async def get_email(
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 
@@ -115,17 +124,17 @@ async def create_email(
 
         # Apply smart filters
         filter_results = await filter_manager.apply_filters_to_email_data(
-            email.dict()
+            email.model_dump()
         )  # Corrected method name
 
         # Create email with enhanced data
-        email_data = email.dict()
+        email_data = email.model_dump()
         email_data.update(
             {
                 "confidence": int(ai_analysis.confidence * 100),
                 "categoryId": ai_analysis.category_id,
                 "labels": ai_analysis.suggested_labels,
-                "analysisMetadata": ai_analysis.to_dict(),
+                "analysisMetadata": ai_analysis.to_dict(), # Assuming AIAnalysisResult has to_dict, or use model_dump if Pydantic
             }
         )
 
@@ -140,8 +149,13 @@ async def create_email(
             ai_analysis,
             filter_results,
         )
-
-        return EmailResponse(**created_email_dict)  # Ensure it returns EmailResponse
+        try:
+            return EmailResponse(**created_email_dict)  # Ensure it returns EmailResponse
+        except Exception as e_outer:
+            logger.error(f"Outer exception during create_email Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
+            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+                logger.error(f"Pydantic errors: {e_outer.errors()}")
+            raise # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed while creating email",
@@ -159,8 +173,7 @@ async def create_email(
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to create email")
 
 
@@ -177,11 +190,17 @@ async def update_email(
     """Update email"""
     try:
         updated_email_dict = await db.update_email(
-            email_id, email_update.dict(exclude_unset=True)
+            email_id, email_update.model_dump(exclude_unset=True)
         )  # db.update_email returns a dict
         if not updated_email_dict:
             raise HTTPException(status_code=404, detail="Email not found")
-        return EmailResponse(**updated_email_dict)  # Ensure it returns EmailResponse
+        try:
+            return EmailResponse(**updated_email_dict)  # Ensure it returns EmailResponse
+        except Exception as e_outer:
+            logger.error(f"Outer exception during update_email Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
+            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+                logger.error(f"Pydantic errors: {e_outer.errors()}")
+            raise # Re-raise for FastAPI to handle
     except HTTPException:
         raise
     except psycopg2.Error as db_err:
@@ -201,6 +220,5 @@ async def update_email(
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to update email")

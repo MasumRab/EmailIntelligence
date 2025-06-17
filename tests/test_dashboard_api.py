@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from psycopg2 import Error as Psycopg2Error  # Import real psycopg2.Error
 
-from server.python_backend.main import app, get_db
+from server.python_backend.database import get_db  # Corrected import
+from server.python_backend.main import app  # App import remains the same
 from server.python_backend.models import \
     DashboardStats  # Import specific model - corrected name
 
@@ -44,33 +45,43 @@ class TestDashboardAPI(unittest.TestCase):
 
         # Mock performance_monitor.track decorator to just return the function
         self.track_patch = patch(
-            "server.python_backend.main.performance_monitor.track",
+            "server.python_backend.main.performance_monitor.track", # This still points to main.performance_monitor
             MagicMock(side_effect=lambda func: func),
         )
         self.track_patch.start()
 
+        # Patch the get_db dependency (even if overridden, good for consistency or if override is removed)
+        # self.get_db_patcher = patch("server.python_backend.database.get_db") # Corrected patch target
+        # self.mock_get_db = self.get_db_patcher.start()
+        # self.mock_get_db.return_value = mock_db_manager
+
+
     def tearDown(self):
         self.mock_performance_monitor_patch.stop()
         self.track_patch.stop()
+        # if hasattr(self, 'get_db_patcher'): # Stop patcher if it was started
+        #    self.get_db_patcher.stop()
         # Clean up dependency override if it was specific to this test class
         # For now, we assume the override is managed if tests are run together
         # or this is the last test file being set up for these dependencies.
 
     def test_get_dashboard_stats_success(self):
         print("Running test_get_dashboard_stats_success")
-        mock_stats_data = {
-            "totalEmails": 1000,
-            "autoLabeled": 200,
-            "categories": 5,
-            "timeSaved": "10h 30m",
-            "weeklyGrowth": {
-                "week1": 50,
-                "week2": 75,
-            },  # Assuming this matches DashboardStatsResponse
-        }
-        mock_db_manager.get_dashboard_stats.return_value = (
-            mock_stats_data  # Changed to mock_db_manager
-        )
+        # mock_db_manager.get_dashboard_stats.return_value = mock_stats_data # Original
+        async def mock_get_stats_async(*args, **kwargs):
+            # Ensure data matches DashboardStats fields, including aliases if used for keys
+            return {
+                "total_emails": 1000, # Using alias
+                "auto_labeled": 200,  # Using alias
+                "categories": 5,
+                "time_saved": "10h 30m", # Using alias
+                "weekly_growth": {    # Using alias
+                    "emails": 75,     # Corrected to match WeeklyGrowth model
+                    "percentage": 0.15  # Corrected to match WeeklyGrowth model (e.g., 15%)
+                },
+            }
+        mock_db_manager.get_dashboard_stats.side_effect = mock_get_stats_async
+
 
         response = self.client.get("/api/dashboard/stats")
 

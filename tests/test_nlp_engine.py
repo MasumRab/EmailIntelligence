@@ -144,16 +144,14 @@ class TestNLPEngine(unittest.TestCase):
         self.mock_intent_model.predict.assert_called_once()
         self.mock_urgency_model.predict.assert_called_once()
 
-    @patch(
-        "server.python_nlp.nlp_engine.NLPEngine._analyze_sentiment_model",
-        return_value=None,
-    )
-    @patch("server.python_nlp.nlp_engine.NLPEngine._analyze_sentiment_textblob")
+    @patch("server.python_nlp.analysis_components.sentiment_model.SentimentModel._analyze_model")
+    @patch("server.python_nlp.analysis_components.sentiment_model.SentimentModel._analyze_textblob")
     def test_sentiment_fallback_to_textblob(
-        self, mock_textblob_method, mock_model_method
+        self, mock_analyze_textblob, mock_analyze_model
     ):
         """Test sentiment analysis falls back to TextBlob when model fails."""
-        mock_textblob_method.return_value = {
+        mock_analyze_model.return_value = None  # Model analysis fails
+        mock_analyze_textblob.return_value = {
             "sentiment": "positive_textblob",
             "polarity": 0.7,
             "subjectivity": 0.3,
@@ -161,34 +159,27 @@ class TestNLPEngine(unittest.TestCase):
             "method_used": "fallback_textblob_sentiment",
         }
         text = "This is a test sentence."
-        # Re-initialize engine to ensure mocks are correctly picked up if setUp is complex
-        current_engine_state = self.engine.sentiment_model
-        self.engine.sentiment_model = None  # Simulate model not loaded or failed
 
-        # Or directly test the _analyze_sentiment method
+        # NLPEngine's _analyze_sentiment now calls sentiment_analyzer.analyze()
+        # sentiment_analyzer is an instance of SentimentModel
+        # So, the mocked methods (_analyze_model, _analyze_textblob) will be called on this instance.
         result = self.engine._analyze_sentiment(text)
 
-        self.engine.sentiment_model = current_engine_state  # Restore
-
-        mock_model_method.assert_called_once_with(text)
-        mock_textblob_method.assert_called_once_with(text)
+        mock_analyze_model.assert_called_once_with(text)
+        mock_analyze_textblob.assert_called_once_with(text)
         self.assertEqual(result["sentiment"], "positive_textblob")
         self.assertEqual(result["method_used"], "fallback_textblob_sentiment")
 
-    @patch(
-        "server.python_nlp.nlp_engine.NLPEngine._analyze_sentiment_model",
-        return_value=None,
-    )
-    @patch(
-        "server.python_nlp.nlp_engine.NLPEngine._analyze_sentiment_textblob",
-        return_value=None,
-    )
-    @patch("server.python_nlp.nlp_engine.NLPEngine._analyze_sentiment_keyword")
+    @patch("server.python_nlp.analysis_components.sentiment_model.SentimentModel._analyze_model")
+    @patch("server.python_nlp.analysis_components.sentiment_model.SentimentModel._analyze_textblob")
+    @patch("server.python_nlp.analysis_components.sentiment_model.SentimentModel._analyze_keyword")
     def test_sentiment_fallback_to_keyword(
-        self, mock_keyword_method, mock_textblob_method, mock_model_method
+        self, mock_analyze_keyword, mock_analyze_textblob, mock_analyze_model
     ):
         """Test sentiment analysis falls back to keyword when model and TextBlob fail."""
-        mock_keyword_method.return_value = {
+        mock_analyze_model.return_value = None  # Model analysis fails
+        mock_analyze_textblob.return_value = None  # TextBlob analysis fails
+        mock_analyze_keyword.return_value = {
             "sentiment": "negative_keyword",
             "polarity": -0.5,
             "subjectivity": 0.5,
@@ -198,9 +189,9 @@ class TestNLPEngine(unittest.TestCase):
         text = "This is a bad test sentence."
         result = self.engine._analyze_sentiment(text)
 
-        mock_model_method.assert_called_once_with(text)
-        mock_textblob_method.assert_called_once_with(text)
-        mock_keyword_method.assert_called_once_with(text)
+        mock_analyze_model.assert_called_once_with(text)
+        mock_analyze_textblob.assert_called_once_with(text)
+        mock_analyze_keyword.assert_called_once_with(text)
         self.assertEqual(result["sentiment"], "negative_keyword")
         self.assertEqual(result["method_used"], "fallback_keyword_sentiment")
 

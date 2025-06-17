@@ -24,11 +24,17 @@ async def get_dashboard_stats(request: Request, db: DatabaseManager = Depends(ge
         stats_dict = (
             await db.get_dashboard_stats()
         )  # db.get_dashboard_stats returns a dict
-        # Ensure that the keys in stats_dict match the fields (or aliases) in models.DashboardStats
-        # Ensure that the keys in stats_dict match the fields (or aliases)
-        # in models.DashboardStats. Pydantic's `validate_by_name = True` (formerly
-        # `allow_population_by_field_name=True`) in model config handles this.
-        return DashboardStats(**stats_dict)
+        try:
+            # Ensure that the keys in stats_dict match the fields (or aliases) in models.DashboardStats
+            # Ensure that the keys in stats_dict match the fields (or aliases)
+            # in models.DashboardStats. Pydantic's `validate_by_name = True` (formerly
+            # `allow_population_by_field_name=True`) in model config handles this.
+            return DashboardStats(**stats_dict)
+        except Exception as e_outer:
+            logger.error(f"Outer exception during get_dashboard_stats Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
+            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+                logger.error(f"Pydantic errors: {e_outer.errors()}")
+            raise # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed",
@@ -46,8 +52,7 @@ async def get_dashboard_stats(request: Request, db: DatabaseManager = Depends(ge
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to fetch dashboard stats")
 
 
@@ -64,6 +69,5 @@ async def get_performance_overview(request: Request):
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to fetch performance data")
