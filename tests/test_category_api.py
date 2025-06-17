@@ -172,23 +172,6 @@ class TestCategoryAPI(unittest.TestCase):
             )
         )
 
-    def test_create_category_db_error(self):
-        print("Running test_create_category_db_error")
-        category_data = {
-            "name": "Error Category",
-            "description": "Test DB error",
-            "color": "#ABCDEF",
-        }
-        mock_db_manager.create_category.side_effect = Exception("Database write error")
-
-        response = self.client.post("/api/categories", json=category_data)
-
-        self.assertEqual(response.status_code, 500)
-        data = response.json()
-        self.assertIn("Failed to create category", data["detail"])
-        validated_category_data = CategoryCreate(**category_data).model_dump()
-        mock_db_manager.create_category.assert_called_once_with(validated_category_data)
-
     async def async_raise_db_write_error(self, *args, **kwargs):
         raise Exception("Database write error")
 

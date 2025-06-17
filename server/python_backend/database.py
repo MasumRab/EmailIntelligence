@@ -575,8 +575,7 @@ class DatabaseManager:
                 if temp_col_name != key:
                     logger.info(
                         f"update_email: Converted key '{key}' to "
-                        f"'{temp_col_name}' for SQL query."
-                    )
+                        f"'{temp_col_name}' for SQL query.")
                     column_name = temp_col_name
                 else:
                     logger.warning(
