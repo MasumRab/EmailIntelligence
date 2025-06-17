@@ -49,18 +49,27 @@ The fastest way to get EmailIntelligence running locally:
 
 ### Option 1: Automated Setup (Recommended)
 
+This process uses npm scripts to automate setup tasks. It will create a `.env` file from `.env.example` (if one exists).
+
 ```bash
 # Clone the repository
 git clone <repository_url>
 cd EmailIntelligence
 
-# Run the automated setup
+# Initial setup (creates .env from .env.example, installs root Node.js dependencies)
 npm run setup
 
-# Start the database (requires Docker)
+# Start the database (requires Docker and Docker Compose V2)
+# This script runs 'sudo docker compose up -d && npm run db:push'.
+# Ensure Docker Compose V2 is installed. The 'sudo' is used for 'docker compose'.
+# Alternatively, add your user to the 'docker' group to run Docker commands without sudo.
 npm run db:setup
 
-# Start the application
+# Start the Node.js backend and frontend development server
+# This typically runs on http://localhost:5000.
+# Note: This command does not start the Python FastAPI server.
+# Use Option 3 (Unified Launcher) for a complete local startup,
+# or start the Python server separately (see "Running the Application").
 npm run dev
 ```
 
@@ -71,34 +80,44 @@ npm run dev
 git clone <repository_url>
 cd EmailIntelligence
 
-# Install dependencies
+# Install root Node.js dependencies
 npm install
 
-# Copy environment template
+# Copy environment template (ensure .env.example exists and is correct)
 cp .env.example .env
 
-# Start PostgreSQL database (requires Docker)
-docker-compose up -d
+# Start PostgreSQL database (requires Docker and Docker Compose V2)
+# Add your user to the 'docker' group or run with 'sudo docker compose up -d'.
+docker compose up -d
 
 # Push database schema
 npm run db:push
 
-# Start the application
+# Start the Node.js backend and frontend development server
+# This typically runs on http://localhost:5000.
+# Note: This command does not start the Python FastAPI server.
+# Use Option 3 (Unified Launcher) for a complete local startup,
+# or start the Python server separately (see "Running the Application").
 npm run dev
 ```
 
-### Option 3: Using the Unified Launcher
+### Option 3: Using the Unified Launcher (Recommended for Full Local Setup)
+
+This method uses the `launch.py` script (via `launch.sh` or `launch.bat`) to manage setup and execution. It requires Python 3.11 or later.
+The launcher handles Python virtual environment creation, all dependency installations (Python packages and client-side `npm install`), and starts all necessary services (Node.js frontend/backend and Python FastAPI backend).
 
 ```bash
-# Windows
+# For Windows (ensure Python 3.11+ is your default python or use `py -3.11 launch.py --stage dev`)
 launch.bat --stage dev
 
-# Linux/macOS
+# For Linux/macOS
 chmod +x launch.sh
 ./launch.sh --stage dev
 ```
 
-The application will be available at http://localhost:5000
+Once started:
+- The Python FastAPI backend will typically be available at http://localhost:8000.
+- The React frontend will typically be available at http://localhost:5173.
 
 For more detailed setup instructions, see the [Prerequisites](#prerequisites) and [Setup](#setup) sections below.
 
@@ -116,7 +135,9 @@ This project includes several specialized documentation files:
 
 *   Node.js (v18 or later recommended)
 *   npm
-*   Python (v3.8 or later recommended)
+*   Python (v3.11 or later recommended)
+*   Docker
+*   Docker Compose V2 (plugin for Docker, invoked as `docker compose`)
 
 ## Setup
 
@@ -135,15 +156,16 @@ npm install
 
 ### 2. Python Environment and AI Models
 
-Set up the Python virtual environment, install dependencies, and prepare for AI models:
+Set up the Python virtual environment, install dependencies, and prepare for AI models using the Unified Launcher. This requires Python 3.11 or later.
 ```bash
 # For Linux/macOS
 ./launch.sh --stage dev
 
 # For Windows
+# (Ensure Python 3.11+ is your default python or use `py -3.11 launch.py --stage dev`)
 launch.bat --stage dev
 ```
-This will run `launch.py` which handles Python environment setup.
+This will run `launch.py` which handles Python environment setup (virtual environment, Python packages, client-side `npm install`, NLTK data downloads) and can also start all services.
 **IMPORTANT**: The launch script (when run with `--stage dev` or during initial setup) creates placeholder AI model files (`.pkl`) in `server/python_nlp/`. For the application's AI features to function correctly, you **must** replace these with actual trained models. The system may attempt to run `server/python_nlp/ai_training.py` which could produce one sample model (e.g., `model_xxxxxxxxxxxx.pkl` in the project root); you will need to train models for all required types (sentiment, topic, intent, urgency) and rename/move them appropriately to:
 *   `server/python_nlp/sentiment_model.pkl`
 *   `server/python_nlp/topic_model.pkl`
@@ -268,24 +290,29 @@ With these steps completed, the application should be able to connect to your Gm
 
 ## Running the Application
 
-1.  **Activate Python Environment (if not already active in your terminal):**
+These steps describe how to run the application components manually. For a more automated approach that handles all services, consider using the [Unified Launcher](#option-3-using-the-unified-launcher-recommended-for-full-local-setup).
+
+1.  **Activate Python Environment (if not already active or if not using the Unified Launcher):**
+    The Unified Launcher (`./launch.sh --stage dev`) creates and manages its own virtual environment in `./venv/`. If you set it up this way, activate it:
     ```bash
-    source .venv/bin/activate
+    source venv/bin/activate  # Linux/macOS
+    # venv\Scripts\activate    # Windows
     ```
 
 2.  **Start the Python FastAPI AI Server:**
-    Open a terminal and run:
+    Open a terminal (with the Python venv activated if applicable) and run:
     ```bash
     python server/python_backend/run_server.py
     ```
-    This server typically runs on port 8000.
+    This server typically runs on port 8000 (configurable via `.env` `PORT` variable).
 
 3.  **Start the Node.js Backend and Frontend Development Server:**
     Open another terminal and run:
     ```bash
     npm run dev
     ```
-    This server typically runs on port 5000 and serves the client application.
+    This command starts the Node.js services. The frontend development server (Vite) is typically served on a port like 5173 (if using `client/package.json`'s `vite` script directly) or potentially 5000 if the root `server/index.ts` handles it. Check console output for the exact port.
+    Note: If you used the Unified Launcher, it manages the frontend on a specific port (e.g., 5173).
 
 ## AI System Overview
 
@@ -306,11 +333,14 @@ For more advanced deployment options, refer to the [Deployment Frameworks](DEPLO
 
 ## Database
 
-The application uses a database. Schema push/migrations can be handled by:
-```bash
-npm run db:push
-```
-Ensure your `DATABASE_URL` environment variable is correctly configured.
+The application uses a PostgreSQL database, typically run via Docker.
+
+-   **Setup and Schema Push:** The `npm run db:setup` script (recommended as part of [Automated Setup](#option-1-automated-setup-recommended)) handles starting the Docker container (using `sudo docker compose up -d`) and then pushing the schema (using `npm run db:push`).
+-   **Manual Schema Push:** If the database is already running, you can push schema changes with:
+    ```bash
+    npm run db:push
+    ```
+Ensure your `DATABASE_URL` environment variable in the `.env` file is correctly configured to point to your database instance. The `docker-compose.yml` and default `.env.example` are set up to use `postgresql://postgres:password@localhost:5432/emailintelligence`.
 
 ## Extension System
 
