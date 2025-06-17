@@ -18,6 +18,7 @@ EmailIntelligence is a full-stack application that provides intelligent email an
 - [Building for Production](#building-for-production)
 - [Database](#database)
 - [Extension System](#extension-system)
+- [Debugging Hangs](#debugging-hangs)
 
 ## Project Overview
 
@@ -34,60 +35,19 @@ The project uses a modular architecture with a unified launcher system, comprehe
 
 The project is organized into the following main components:
 
-- **client/** - React frontend application
-- **server/** - Backend services
+- **client/** - React frontend application. See [Client Development Guide](docs/client_development.md) for more details.
+- **server/** - Backend services, including Node.js/TypeScript and Python FastAPI components. See [Server Development Guide](docs/server_development.md) for more details.
   - **server/python_nlp/** - Python NLP and AI components
   - **server/python_backend/** - Python FastAPI backend
-- **deployment/** - Deployment configurations and scripts
-- **extensions/** - Extension system for adding custom functionality
-- **tests/** - Test suite for the application
-- **launch.py**, **launch.bat**, **launch.sh** - Unified launcher scripts
+- **deployment/** - Deployment configurations and scripts. See [Deployment Guide](docs/deployment_guide.md) for details.
+- **extensions/** - Extension system for adding custom functionality. See [Extensions Guide](docs/extensions_guide.md) for details.
+- **docs/** - Detailed documentation.
+- **tests/** - Test suite for the application.
+- **launch.py**, **launch.bat**, **launch.sh** - Unified launcher scripts. See [Launcher Guide](docs/launcher_guide.md).
 
 ## Quick Start
 
-The fastest way to get EmailIntelligence running locally:
-
-### Option 1: Automated Setup (Recommended)
-
-```bash
-# Clone the repository
-git clone <repository_url>
-cd EmailIntelligence
-
-# Run the automated setup
-npm run setup
-
-# Start the database (requires Docker)
-npm run db:setup
-
-# Start the application
-npm run dev
-```
-
-### Option 2: Manual Setup
-
-```bash
-# Clone the repository
-git clone <repository_url>
-cd EmailIntelligence
-
-# Install dependencies
-npm install
-
-# Copy environment template
-cp .env.example .env
-
-# Start PostgreSQL database (requires Docker)
-docker-compose up -d
-
-# Push database schema
-npm run db:push
-
-# Start the application
-npm run dev
-```
-
-### Option 3: Using the Unified Launcher
+The fastest way to get EmailIntelligence running locally is using the unified launcher:
 
 ```bash
 # Windows
@@ -97,274 +57,160 @@ launch.bat --stage dev
 chmod +x launch.sh
 ./launch.sh --stage dev
 ```
+This will set up the Python environment, install dependencies, and start the necessary services. The application will typically be available at http://localhost:5000.
 
-The application will be available at http://localhost:5000
-
-For more detailed setup instructions, see the [Prerequisites](#prerequisites) and [Setup](#setup) sections below.
+For alternative setup methods and more details, see the [Setup](#setup) section below and the [Launcher Guide](docs/launcher_guide.md).
 
 ## Documentation
 
-This project includes several specialized documentation files:
+This project includes comprehensive documentation in the `docs/` directory:
 
-- [Environment Management](README_ENV_MANAGEMENT.md) - Details about the Python environment management system
-- [Launcher System](LAUNCHER.md) - Information about the unified launcher system
-- [Deployment Frameworks](DEPLOYMENT.md) - Overview of deployment options and configurations
-- [Python Style Guide](PYTHON_STYLE_GUIDE.md) - Coding standards for Python code in the project
-- [Deployment README](deployment/README.md) - Specific deployment instructions and configurations
+- **[Client Development Guide](docs/client_development.md)**: Information about the frontend application, structure, and development.
+- **[Server Development Guide](docs/server_development.md)**: Details about the backend components, structure, and development.
+- **[Deployment Strategies Overview](docs/deployment_strategies.md)**: Overview of different deployment approaches (local, Docker, staging, production).
+- **[Deployment Guide](docs/deployment_guide.md)**: Specific instructions and configurations for deploying the application, primarily focusing on Docker-based setups.
+- **[Environment Management Guide](docs/env_management.md)**: Details about the Python environment management system, `launch.py`, and related features.
+- **[Launcher Guide](docs/launcher_guide.md)**: Comprehensive information about the unified launcher system (`launch.py`) and its command-line options.
+- **[Extensions Guide](docs/extensions_guide.md)**: Information on how to use and develop extensions.
+- **[Python Style Guide](docs/python_style_guide.md)**: Coding standards for Python code in the project.
 
 ## Prerequisites
 
 *   Node.js (v18 or later recommended)
 *   npm
-*   Python (v3.8 or later recommended)
+*   Python (v3.11 or later recommended, as enforced by `launch.py`)
+
+For detailed Python environment setup, refer to the [Environment Management Guide](docs/env_management.md).
 
 ## Setup
 
-### 1. Frontend and Node.js Backend
+The primary method for setting up EmailIntelligence is using the unified launcher script (`launch.py` via `launch.bat` or `launch.sh`), as shown in the [Quick Start](#quick-start). This script handles:
+- Python virtual environment creation.
+- Python dependency installation.
+- NLTK data download.
+- Starting the development servers.
 
-Clone the repository:
-```bash
-git clone <repository_url>
-cd <repository_directory>
-```
+Refer to the [Launcher Guide](docs/launcher_guide.md) for more advanced setup options and troubleshooting.
 
-Install Node.js dependencies:
-```bash
-npm install
-```
+### Manual Steps (Complementary to Launcher)
 
-### 2. Python Environment and AI Models
+1.  **Clone the Repository:**
+    ```bash
+    git clone <repository_url>
+    cd EmailIntelligence
+    ```
+2.  **Install Node.js Dependencies:**
+    (The launcher doesn't handle this directly; `npm run dev` called by the launcher might, or you might run it as part of your workflow)
+    ```bash
+    npm install
+    ```
+3.  **AI Models:**
+    The launch script (when run with `--stage dev` or during initial setup) creates placeholder AI model files (`.pkl`) in `server/python_nlp/`. For the application's AI features to function correctly, you **must** replace these with actual trained models. Refer to `server/python_nlp/ai_training.py` for details on model training.
 
-Set up the Python virtual environment, install dependencies, and prepare for AI models:
-```bash
-# For Linux/macOS
-./launch.sh --stage dev
-
-# For Windows
-launch.bat --stage dev
-```
-This will run `launch.py` which handles Python environment setup.
-**IMPORTANT**: The launch script (when run with `--stage dev` or during initial setup) creates placeholder AI model files (`.pkl`) in `server/python_nlp/`. For the application's AI features to function correctly, you **must** replace these with actual trained models. The system may attempt to run `server/python_nlp/ai_training.py` which could produce one sample model (e.g., `model_xxxxxxxxxxxx.pkl` in the project root); you will need to train models for all required types (sentiment, topic, intent, urgency) and rename/move them appropriately to:
-*   `server/python_nlp/sentiment_model.pkl`
-*   `server/python_nlp/topic_model.pkl`
-*   `server/python_nlp/intent_model.pkl`
-*   `server/python_nlp/urgency_model.pkl`
-
-Refer to `server/python_nlp/ai_training.py` for details on model training. You may need to adapt this script or provide your own training data.
+For more detailed information on Python environment setup, see the [Environment Management Guide](docs/env_management.md).
 
 ## Configuration
 
-This section details important environment variables and configuration files used by the application.
+This section details important environment variables used by the application.
 
-*   **Name:** `DATABASE_URL`
-    *   **Purpose:** Connection string for the PostgreSQL database.
-    *   **Used By:** Node.js backend (via Prisma), Python FastAPI backend (via `DatabaseManager`).
-    *   **Mandatory/Optional:** Mandatory for database operations.
-    *   **Default Value:** None. Must be set.
-    *   **Example/Format:** `postgresql://user:password@host:port/database_name`
+*   **`DATABASE_URL`**: Connection string for the PostgreSQL database.
+    *   Example: `postgresql://user:password@host:port/database_name`
+*   **`GMAIL_CREDENTIALS_JSON`**: JSON content of OAuth 2.0 Client ID credentials for Gmail API.
+*   **`credentials.json` (File Alternative)**: Alternative to `GMAIL_CREDENTIALS_JSON`, placed in project root.
+*   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `token.json`).
+*   **`NLP_MODEL_DIR`**: Directory for trained NLP models (default: `server/python_nlp/`).
+*   **`PORT`**: Port for the Python FastAPI server (default: `8000`).
 
-*   **Name:** `GMAIL_CREDENTIALS_JSON`
-    *   **Purpose:** Contains the entire JSON content of the OAuth 2.0 Client ID credentials downloaded from Google Cloud Console for accessing the Gmail API.
-    *   **Used By:** Python FastAPI backend (`GmailAIService` via `GmailDataCollector` in `server/python_nlp/gmail_integration.py`).
-    *   **Mandatory/Optional:** Mandatory for Gmail API integration if not using the `credentials.json` file alternative.
-    *   **Default Value:** None.
-    *   **Example/Format:** `'{"installed":{"client_id":"YOUR_CLIENT_ID.apps.googleusercontent.com", ...}}'` (The entire JSON string).
-
-*   **Name:** `credentials.json` (File Alternative)
-    *   **Purpose:** Alternative to `GMAIL_CREDENTIALS_JSON`. This is the downloaded OAuth 2.0 Client ID credentials file, renamed.
-    *   **Used By:** Python FastAPI backend (`GmailAIService` via `GmailDataCollector`). It's typically loaded if `GMAIL_CREDENTIALS_JSON` is not set.
-    *   **Placement:** Project root directory.
-    *   **Mandatory/Optional:** Mandatory for Gmail API integration if `GMAIL_CREDENTIALS_JSON` is not set.
-
-*   **Name:** `GMAIL_TOKEN_PATH`
-    *   **Purpose:** Specifies the file path where the Gmail API OAuth 2.0 token (`token.json`) is stored after successful user authorization.
-    *   **Used By:** Python FastAPI backend (`GmailAIService` via `GmailDataCollector`).
-    *   **Mandatory/Optional:** Optional.
-    *   **Default Value:** `token.json` (created in the current working directory, typically the project root when running the FastAPI app).
-    *   **Example/Format:** `./config/gmail_token.json`
-
-*   **Name:** `NLP_MODEL_DIR`
-    *   **Purpose:** Specifies the directory where trained NLP models (e.g., sentiment, topic models) are stored.
-    *   **Used By:** Python FastAPI backend (`AIEngine` and related NLP components in `server/python_nlp/`).
-    *   **Mandatory/Optional:** Optional (though AI features will fail if models are not found at the expected paths).
-    *   **Default Value:** Models are typically expected in `server/python_nlp/` (e.g., `server/python_nlp/sentiment_model.pkl`). The `setup_python.sh` script places placeholders there.
-    *   **Example/Format:** `server/python_nlp/`
-
-*   **Name:** `PORT`
-    *   **Purpose:** Specifies the port on which the Python FastAPI server will run.
-    *   **Used By:** Python FastAPI backend (`run_server.py`).
-    *   **Mandatory/Optional:** Optional.
-    *   **Default Value:** `8000`.
-    *   **Example/Format:** `8001`
+Consult the respective guides in `docs/` for component-specific configurations.
 
 ## Security Considerations
 
-When deploying or running this application, especially in a production-like environment, please consider the following:
-
-*   **API Authentication:** The Python FastAPI endpoints currently lack robust authentication and authorization mechanisms. For any sensitive operations or production use, you should implement proper API security (e.g., OAuth2, API keys) to protect your endpoints.
-
-*   **Secret Management:**
-    *   The `GMAIL_CREDENTIALS_JSON` environment variable (or the `credentials.json` file) contains sensitive information. Ensure it is managed securely. For production, avoid hardcoding secrets or committing them to version control.
-    *   Use environment variables as a minimum. For more robust secret management in production, consider using a dedicated secret manager service (e.g., HashiCorp Vault, AWS Secrets Manager, Google Secret Manager).
-    *   The `token.json` file, once generated, also contains sensitive access tokens and should be protected.
-
-*   **Log Verbosity and Sensitive Information:** Review the logging configuration and log output (especially from the Python backend's structured logging) to ensure that sensitive information (e.g., detailed error messages, email content snippets in logs) is not excessively logged in a production environment, or that logs are stored securely.
-
-*   **CORS Policy:** The current Cross-Origin Resource Sharing (CORS) policy in the Python FastAPI backend (`main.py`) is relatively permissive (`allow_origins=["http://localhost:5000", "https://*.replit.dev"]`, `allow_methods=["*"]`, `allow_headers=["*"]`). For production, you should restrict this to only allow requests from your specific frontend domain(s) and necessary methods/headers.
-
-*   **Input Validation:** While Pydantic models provide some input validation, ensure all user-supplied data and data from external services (like Gmail) are thoroughly validated and sanitized, especially before being used in database queries or system commands.
+When deploying or running this application, please consider the following:
+*   **API Authentication:** Implement proper API security for sensitive operations.
+*   **Secret Management:** Securely manage `GMAIL_CREDENTIALS_JSON` (or `credentials.json`) and `token.json`. Use environment variables or a secret manager.
+*   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
+*   **CORS Policy:** Restrict CORS policy in `server/python_backend/main.py` for production.
+*   **Input Validation:** Validate and sanitize all user-supplied and external data.
 
 ## Gmail API Integration Setup
 
-To enable the application to fetch and process emails directly from your Gmail account, you need to configure its access to the Gmail API. The core logic for this integration resides in `server/python_nlp/gmail_integration.py` (used by `GmailAIService` in the Python backend).
+To connect to your Gmail account, configure Gmail API access:
 
-Follow these steps to set up the necessary credentials:
-
-1.  **Google Cloud Console Configuration:**
-    *   Navigate to the [Google Cloud Console](https://console.cloud.google.com/).
-    *   Create a new project or select an existing one.
-    *   In the navigation menu, go to "APIs & Services" > "Enabled APIs & services".
-    *   Click "+ ENABLE APIS AND SERVICES", search for "Gmail API", and enable it for your project.
-    *   Go to "APIs & Services" > "Credentials".
-    *   Click "+ CREATE CREDENTIALS" and choose "OAuth 2.0 Client ID".
-    *   If prompted, configure the OAuth consent screen. For "User Type", "External" is fine for testing. Provide an app name, user support email, and developer contact information. For scopes, you can leave it blank for now or add `../auth/gmail.readonly`.
-    *   For "Application type", select "Desktop app". You can name the client (e.g., "GmailAISyncClient").
-    *   Click "CREATE". You will see your client ID and client secret.
-    *   Download the credentials JSON file by clicking the download icon next to your newly created OAuth 2.0 Client ID. The file will typically be named something like `client_secret_XXXX.json`.
-
-2.  **Provide Credentials to the Application:**
-
-    You have two options to make these credentials accessible to the application:
-
-    *   **Option 1 (Recommended): Environment Variable**
-        Set the `GMAIL_CREDENTIALS_JSON` environment variable to the *entire JSON content* of the file you downloaded.
-        For example, in your shell:
-        ```bash
-        export GMAIL_CREDENTIALS_JSON='{"installed":{"client_id":"YOUR_CLIENT_ID.apps.googleusercontent.com", ...rest of the JSON content...}}'
-        ```
-        Ensure this variable is available in the environment where the Python backend (`server/python_backend/run_server.py`) is executed.
-        
-        **Additional Configuration Options:**
-        - `GMAIL_TOKEN_PATH`: Custom path for storing OAuth tokens (default: `token.json`)
-        - `GMAIL_INTERACTIVE_AUTH`: Set to `false` for non-interactive environments to use console OAuth flow (default: `true`)
-
-    *   **Option 2: Credentials File**
-        Rename the downloaded JSON file to `credentials.json` and place it in the project's root directory. The application, when run, will look for this file if the `GMAIL_CREDENTIALS_JSON` environment variable is not set.
-
-3.  **One-Time Authorization Process:**
-
-    *   The first time the application attempts to access Gmail data (e.g., when you trigger a Gmail sync feature, or if you run `python server/python_nlp/gmail_integration.py` directly for testing), it will use these credentials to initiate an OAuth 2.0 authorization flow.
-    *   The application will likely attempt to open a new tab or window in your web browser, prompting you to choose a Google account and grant permission for the application to access your Gmail data.
-    *   Review the permissions and, if you agree, click "Allow".
-    *   Upon successful authorization, a `token.json` file will be created. This file stores the OAuth 2.0 refresh and access tokens. By default, this `token.json` file is created in the directory from which the script requiring authorization is executed (e.g., the project root if running the FastAPI application, or alongside `gmail_integration.py` if run directly).
-    *   This `token.json` file will be reused for subsequent API calls, so you typically only need to go through the browser authorization process once, unless the token is revoked or expires.
-
-4.  **Scopes Used:**
-
-    The application currently requests the following scope:
-    *   `https://www.googleapis.com/auth/gmail.readonly`: This allows the application to read email content, labels, and metadata but not to make any changes to your mailbox.
-
-With these steps completed, the application should be able to connect to your Gmail account.
+1.  **Google Cloud Console:** Enable Gmail API, create OAuth 2.0 Client ID (Desktop app), and download credentials JSON.
+2.  **Provide Credentials:**
+    *   Set `GMAIL_CREDENTIALS_JSON` environment variable (recommended).
+    *   Or, place downloaded JSON as `credentials.json` in project root.
+3.  **One-Time Authorization:** The application will guide you through browser authorization, creating `token.json`.
+4.  **Scopes Used:** `https://www.googleapis.com/auth/gmail.readonly`.
 
 ## Running the Application
 
-1.  **Activate Python Environment (if not already active in your terminal):**
-    ```bash
-    source .venv/bin/activate
-    ```
+The recommended way to run the application for development is using the unified launcher:
+```bash
+# Windows
+launch.bat --stage dev
 
-2.  **Start the Python FastAPI AI Server:**
-    Open a terminal and run:
-    ```bash
-    python server/python_backend/run_server.py
-    ```
-    This server typically runs on port 8000.
+# Linux/macOS
+./launch.sh --stage dev
+```
+This typically starts:
+- Python FastAPI AI Server (default: port 8000)
+- Node.js Backend and Frontend Development Server (default: port 5000)
 
-3.  **Start the Node.js Backend and Frontend Development Server:**
-    Open another terminal and run:
-    ```bash
-    npm run dev
-    ```
-    This server typically runs on port 5000 and serves the client application.
+For other modes (e.g., API-only, frontend-only) and advanced options, see the [Launcher Guide](docs/launcher_guide.md).
+For information on running in Docker, staging, or production environments, see the [Deployment Guide](docs/deployment_guide.md).
 
 ## AI System Overview
 
-The AI and NLP capabilities in this project are primarily based on:
-*   Locally trained classification models (e.g., Naive Bayes, Logistic Regression) managed by scripts in `server/python_nlp/`.
-*   Rule-based systems (regex, keyword matching) and heuristics.
-
-It does not use external Large Language Models (LLMs) by default. The "prompts" referred to in the Python code (e.g., `PromptEngineer`) are typically structured templates for these local models or rules, not for services like OpenAI GPT or Anthropic Claude.
+The AI and NLP capabilities are primarily based on:
+*   Locally trained classification models (e.g., Naive Bayes, Logistic Regression) in `server/python_nlp/`.
+*   Rule-based systems and heuristics.
+The system does not use external Large Language Models (LLMs) by default.
 
 ## Building for Production
 
+To build the frontend and Node.js backend for production:
 ```bash
 npm run build
 ```
-This will build the frontend and the Node.js backend. The Python server needs to be run separately in a production environment.
+The Python server needs to be run separately in a production environment, typically using a WSGI server like Gunicorn.
 
-For more advanced deployment options, refer to the [Deployment Frameworks](DEPLOYMENT.md) documentation.
+For comprehensive deployment strategies, including Docker builds, refer to the [Deployment Strategies Overview](docs/deployment_strategies.md) and the [Deployment Guide](docs/deployment_guide.md).
 
 ## Database
 
-The application uses a database. Schema push/migrations can be handled by:
-```bash
-npm run db:push
-```
-Ensure your `DATABASE_URL` environment variable is correctly configured.
+The application uses a PostgreSQL database.
+- Configure `DATABASE_URL` environment variable.
+- Schema push/migrations can be handled by:
+  ```bash
+  npm run db:push
+  ```
+  (Or via `python deployment/deploy.py <env> migrate` for Dockerized environments).
 
 ## Extension System
 
-EmailIntelligence includes a powerful extension system that allows you to add custom functionality to the application. Extensions can enhance the AI capabilities, add new features, or modify existing functionality.
-
-### Available Extensions
-
-The project comes with an example extension that demonstrates how to use the extension system:
-
-- **Example Extension**: Enhances sentiment analysis with emojis and detailed metrics
-
-### Managing Extensions
-
-You can manage extensions using the launcher script:
-
-```bash
-# List all installed extensions
-python launch.py --list-extensions
-
-# Install an extension from a Git repository
-python launch.py --install-extension https://github.com/username/extension.git
-
-# Create a new extension template
-python launch.py --create-extension my_extension
-```
-
-For more information about the extension system, see the [Environment Management](README_ENV_MANAGEMENT.md#extension-system) documentation.
+EmailIntelligence features an extension system for adding custom functionality.
+- Manage extensions using `launch.py` (e.g., `--list-extensions`, `--install-extension`).
+- For developing extensions and more details, see the [Extensions Guide](docs/extensions_guide.md) and the [Environment Management Guide](docs/env_management.md#extension-system).
 
 ## Debugging Hangs
 
 ### Debugging Pytest Hangs
-
-If `pytest` runs (e.g., via `python deployment/run_tests.py`) appear to hang:
-
-*   **Increase Verbosity**: Run `pytest` with `-vvv` (or `-vv`) for more detailed output.
-*   **Disable Capture**: Use `pytest --capture=no` to see `stdout` and `stderr` from tests in real-time. This can help identify if a test is printing lots of data or getting stuck in a loop.
-*   **Specific Test File/Function**: Try to isolate the hang by running specific test files (`pytest tests/your_test_file.py`) or specific test functions (`pytest tests/your_test_file.py::test_name`).
-*   **Debugger**: Insert `import pdb; pdb.set_trace()` (Python 3.6 and below) or `breakpoint()` (Python 3.7+) into a suspected test or fixture to step through the code.
-*   **Timeouts**: The `run_tests.py` script now includes timeouts for test suites. If a timeout occurs, it will be logged, indicating a hang in that suite.
+*   Use `pytest -vvv` or `pytest --capture=no`.
+*   Isolate tests: `pytest path/to/test_file.py::test_name`.
+*   Use `breakpoint()` or `import pdb; pdb.set_trace()`.
+*   Check for timeouts logged by `deployment/run_tests.py`.
 
 ### Debugging NPM/Build Hangs
-
-If `npm run build` or other `npm` commands hang:
-
-*   **Verbose Output**: The `build` script in `package.json` has been updated to include `--debug` for Vite and `--log-level=verbose` for esbuild. Examine this output closely.
-*   **Node.js Inspector**: For debugging `node` scripts (if you suspect a specific script invoked by npm), you can try to run it with the inspector: `node --inspect-brk your_script.js`. Then connect a debugger like Chrome DevTools.
-*   **Resource Limits**: Frontend builds (especially minification, transpilation, and source map generation) can be memory and CPU intensive. Ensure your build environment (local machine, CI runner, Docker container) has adequate resources. Check for out-of-memory (OOM) errors in system logs if possible.
-*   **Clean NPM Cache/Modules**: Rarely, a corrupted npm cache or `node_modules` can cause issues. Try `npm cache clean --force` (use with caution) and remove `node_modules` and `package-lock.json`, then run `npm install` again. Note that `npm ci` (used in `Dockerfile.frontend`) is generally preferred for CI/build environments as it performs cleaner installs.
+*   Examine verbose output (e.g., Vite's `--debug`, esbuild's `--log-level=verbose`).
+*   Use `node --inspect-brk your_script.js`.
+*   Check resource limits (memory, CPU).
+*   Try cleaning cache/modules: `npm cache clean --force`, remove `node_modules` & `package-lock.json`, then `npm install`.
 
 ### General Debugging on Linux
+*   Monitor resources: `top`, `htop`, `vmstat`.
+*   Trace system calls: `strace -p <PID>`.
+*   Check kernel messages: `dmesg -T`.
+*   Ensure adequate disk space.
 
-If hangs occur in a Linux environment (like Docker containers or CI runners):
-
-*   **System Resource Monitoring**: Use tools like `top`, `htop`, or `vmstat` to check CPU, memory, and I/O usage during the suspected hang.
-*   **System Calls**: `strace -p <PID>` can attach to a running process and show system calls, which might indicate what a process is waiting for (e.g., file I/O, network).
-*   **Kernel Messages**: Check `dmesg -T` for any relevant kernel messages, such as OOM killer events.
-*   **Disk Space**: Ensure there's adequate disk space in the build environment.
+For more detailed guides and specific component documentation, please refer to the [Documentation](#documentation) section.
