@@ -4,7 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from server.python_backend.main import app, get_db
+from server.python_backend.database import get_db  # Corrected import
+from server.python_backend.main import app # App import remains the same
 from server.python_backend.models import EmailResponse  # Import specific model
 
 # Mock DatabaseManager for dependency injection
@@ -48,6 +49,8 @@ class TestEmailAPI_GET(unittest.TestCase):
                 "isStarred": False,
                 "isUnread": True,
                 "confidence": 80,
+                "hasAttachments": False, "attachmentCount": 0, "sizeEstimate": 0, # Added missing
+                "aiAnalysis": {}, "filterResults": {} # Added missing with defaults
             },
             {
                 "id": 2,
@@ -60,14 +63,20 @@ class TestEmailAPI_GET(unittest.TestCase):
                 "preview": "Preview 2",
                 "time": "2023-01-02T10:00:00Z",
                 "category": "CategoryB",
+                "categoryId": 2, # Added for completeness
                 "labels": ["label2"],
                 "isImportant": True,
                 "isStarred": True,
                 "isUnread": False,
                 "confidence": 90,
+                "hasAttachments": True, "attachmentCount": 1, "sizeEstimate": 1234, # Added missing
+                "aiAnalysis": {"topic": "test"}, "filterResults": {"spam": "false"} # Added missing with defaults
             },
         ]
-        mock_db_manager.get_all_emails.return_value = mock_data
+        # mock_db_manager.get_all_emails.return_value = mock_data
+        async def mock_get_all_emails_async(*args, **kwargs):
+            return mock_data
+        mock_db_manager.get_all_emails.side_effect = mock_get_all_emails_async
 
         response = self.client.get("/api/emails")
 
@@ -103,9 +112,15 @@ class TestEmailAPI_GET(unittest.TestCase):
                 "isStarred": False,
                 "isUnread": True,
                 "confidence": 80,
+                "hasAttachments": False, "attachmentCount": 0, "sizeEstimate": 0, # Added missing
+                "aiAnalysis": {}, "filterResults": {} # Added missing with defaults
             }
         ]
-        mock_db_manager.get_emails_by_category.return_value = mock_data
+        # mock_db_manager.get_emails_by_category.return_value = mock_data
+        async def mock_get_emails_by_category_async(*args, **kwargs):
+            return mock_data
+        mock_db_manager.get_emails_by_category.side_effect = mock_get_emails_by_category_async
+
         response = self.client.get("/api/emails?category_id=1")
         print(f"Response Status Code (category): {response.status_code}")
         try:
@@ -138,9 +153,15 @@ class TestEmailAPI_GET(unittest.TestCase):
                 "isStarred": True,
                 "isUnread": False,
                 "confidence": 90,
+                "hasAttachments": False, "attachmentCount": 0, "sizeEstimate": 0, # Added missing
+                "aiAnalysis": {}, "filterResults": {} # Added missing with defaults
             }
         ]
-        mock_db_manager.search_emails.return_value = mock_data
+        # mock_db_manager.search_emails.return_value = mock_data
+        async def mock_search_emails_async(*args, **kwargs):
+            return mock_data
+        mock_db_manager.search_emails.side_effect = mock_search_emails_async
+
         response = self.client.get("/api/emails?search=Subject%202")
         print(f"Response Status Code (search): {response.status_code}")
         try:
@@ -172,8 +193,14 @@ class TestEmailAPI_GET(unittest.TestCase):
             "isStarred": False,
             "isUnread": True,
             "confidence": 80,
+            "hasAttachments": False, "attachmentCount": 0, "sizeEstimate": 0, # Added missing
+            "aiAnalysis": {}, "filterResults": {} # Added missing with defaults
         }
-        mock_db_manager.get_email_by_id.return_value = mock_data
+        # mock_db_manager.get_email_by_id.return_value = mock_data
+        async def mock_get_email_by_id_async(*args, **kwargs):
+            return mock_data
+        mock_db_manager.get_email_by_id.side_effect = mock_get_email_by_id_async
+
         response = self.client.get("/api/emails/1")
         print(f"Response Status Code (id_found): {response.status_code}")
         try:
@@ -240,16 +267,16 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
             AsyncMock()
         )  # Potentially used by update logic before actual update
 
-    @patch("server.python_backend.main.ai_engine.analyze_email", new_callable=AsyncMock)
+    @patch("server.python_backend.email_routes.ai_engine.analyze_email", new_callable=AsyncMock)
     @patch(
-        "server.python_backend.main.filter_manager.apply_filters_to_email_data",
+        "server.python_backend.email_routes.filter_manager.apply_filters_to_email_data",
         new_callable=AsyncMock,
-    )  # Corrected method name
+    )
     @patch(
-        "server.python_backend.main.performance_monitor.record_email_processing"
+        "server.python_backend.email_routes.performance_monitor.record_email_processing"
     )  # Mock background task
     def test_create_email_success(
-        self, mock_record_processing, mock_apply_filters, mock_analyze_email
+        self, mock_record_processing_email_routes, mock_apply_filters_email_routes, mock_analyze_email_email_routes
     ):
         print("Running test_create_email_success")
         email_data = {
@@ -280,8 +307,8 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
                 "action_items": [],
             }
         )
-        mock_analyze_email.return_value = mock_ai_result
-        mock_apply_filters.return_value = {"matched_filters": [], "applied_actions": []}
+        mock_analyze_email_email_routes.return_value = mock_ai_result
+        mock_apply_filters_email_routes.return_value = {"matched_filters": [], "applied_actions": []}
 
         created_email_response = {
             "id": 100,
@@ -322,9 +349,36 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # For the purpose of this test, we are mocking `db.create_email`'s return value.
         # So, it should be a dict that FastAPI can convert using `EmailResponse` as the response_model.
 
-        mock_db_manager.create_email.return_value = (
-            created_email_response  # This mock is what the endpoint returns after db call
-        )
+        # mock_db_manager.create_email.return_value = created_email_response
+        async def mock_create_email_async(*args, **kwargs):
+            # args[0] is the email_data passed to db.create_email in the route
+            # We need to ensure the response aligns with EmailResponse, including all required fields
+            input_payload = args[0] # This is db_call_arg from the test, which includes analysisMetadata
+            return {
+                "id": 100, # from created_email_response
+                "messageId": input_payload.get("messageId"),
+                "threadId": input_payload.get("threadId"),
+                "sender": input_payload["sender"],
+                "senderEmail": input_payload["senderEmail"],
+                "subject": input_payload["subject"],
+                "content": input_payload["content"],
+                "preview": input_payload.get("preview", input_payload["content"][:200]), # Ensure preview logic
+                "time": input_payload["time"],
+                "category": "General", # from created_email_response, or resolve from categoryId
+                "categoryId": input_payload.get("categoryId"),
+                "labels": input_payload.get("labels", []),
+                "isImportant": input_payload.get("isImportant", False),
+                "isStarred": input_payload.get("isStarred", False),
+                "isUnread": input_payload.get("isUnread", True),
+                "confidence": input_payload["confidence"],
+                "hasAttachments": input_payload.get("hasAttachments", False),
+                "attachmentCount": input_payload.get("attachmentCount", 0),
+                "sizeEstimate": input_payload.get("sizeEstimate", 0),
+                "aiAnalysis": input_payload.get("analysisMetadata", {}), # map from input
+                "filterResults": {} # Default
+            }
+        mock_db_manager.create_email.side_effect = mock_create_email_async
+
 
         response = self.client.post("/api/emails", json=email_data)
 
@@ -340,8 +394,10 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         self.assertEqual(data["confidence"], 95)  # This matches our created_email_response
         self.assertEqual(data["id"], 100)
 
-        mock_analyze_email.assert_called_once_with(email_data["subject"], email_data["content"])
-        mock_apply_filters.assert_called_once()
+        mock_analyze_email_email_routes.assert_called_once_with(
+            email_data["subject"], email_data["content"]
+        )
+        mock_apply_filters_email_routes.assert_called_once()
 
         # What `db.create_email` is called with in main.py:
         expected_db_payload_to_main_create_email_func = {
@@ -375,7 +431,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         )
 
         mock_db_manager.create_email.assert_called_once_with(db_call_arg)
-        mock_record_processing.assert_called_once()
+        mock_record_processing_email_routes.assert_called_once()
 
     def test_create_email_validation_error(self):
         print("Running test_create_email_validation_error")
@@ -410,12 +466,12 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # self.assertIn("preview", missing_fields) # Preview is Optional
         self.assertIn("time", missing_fields)
 
-    @patch("server.python_backend.main.ai_engine.analyze_email", new_callable=AsyncMock)
+    @patch("server.python_backend.email_routes.ai_engine.analyze_email", new_callable=AsyncMock)
     @patch(
-        "server.python_backend.main.filter_manager.apply_filters_to_email_data",
+        "server.python_backend.email_routes.filter_manager.apply_filters_to_email_data",
         new_callable=AsyncMock,
-    )  # Corrected method name
-    def test_create_email_db_error(self, mock_apply_filters, mock_analyze_email):
+    )
+    def test_create_email_db_error(self, mock_apply_filters_email_routes, mock_analyze_email_email_routes):
         print("Running test_create_email_db_error")
         email_data = {
             "sender": "test@example.com",
@@ -444,8 +500,8 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
                 "action_items": [],
             }
         )
-        mock_analyze_email.return_value = mock_ai_result
-        mock_apply_filters.return_value = {"matched_filters": [], "applied_actions": []}
+        mock_analyze_email_email_routes.return_value = mock_ai_result
+        mock_apply_filters_email_routes.return_value = {"matched_filters": [], "applied_actions": []}
 
         mock_db_manager.create_email = AsyncMock()  # Ensure fresh AsyncMock
         mock_db_manager.create_email.side_effect = self.async_raise_exception  # Use helper
@@ -483,7 +539,16 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
             "isStarred": False,
             "isUnread": False,
             "confidence": 80,
+            # Add missing required fields for EmailResponse
+            "messageId": "msg1", "threadId": "thread1",
+            "hasAttachments": False, "attachmentCount": 0, "sizeEstimate": 0,
+            "aiAnalysis": {}, "filterResults": {}
         }
+        # mock_db_manager.update_email.return_value = mock_updated_email_dict
+        async def mock_update_email_async(*args, **kwargs):
+            return mock_updated_email_dict
+        mock_db_manager.update_email.side_effect = mock_update_email_async
+
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
 
         print(f"PUT /api/emails/{email_id} Response Status Code: {response.status_code}")
