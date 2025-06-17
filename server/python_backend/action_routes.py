@@ -18,7 +18,8 @@ performance_monitor = PerformanceMonitor()  # Initialize performance monitor
 @router.post("/api/actions/extract-from-text", response_model=List[ActionItem])
 @performance_monitor.track
 async def extract_actions_from_text(
-    fastapi_req: Request,  # Renamed to avoid conflict with Pydantic request model
+    # Renamed to avoid conflict with Pydantic request model
+    fastapi_req: Request,
     request_model: ActionExtractionRequest,
 ):
     """Extract action items from provided text (subject and content)"""
@@ -28,15 +29,14 @@ async def extract_actions_from_text(
         # For now, let's assume ai_engine is ready or handles its state.
         # await ai_engine.initialize() # If needed and not already handled
 
-        logger.info(
-            f"Received action extraction request for subject: '{request_model.subject[:50] if request_model.subject else 'N/A'}'"
-        )
+        subject_log = request_model.subject[:50] if request_model.subject else "N/A"
+        logger.info(f"Action extraction req for subject: '{subject_log}'")
 
         # Pass db=None as category matching is not essential for pure action extraction
         ai_analysis_result = await ai_engine.analyze_email(
-            subject=request_model.subject or "",  # Pass empty string if subject is None
+            subject=request_model.subject or "",
             content=request_model.content,
-            db=None,
+            db=None,  # Category matching not essential for pure action extraction
         )
 
         # The AIAnalysisResult object should have an 'action_items' attribute
@@ -44,10 +44,10 @@ async def extract_actions_from_text(
 
         # Convert the list of dicts to a list of ActionItem Pydantic models
         # This ensures the response conforms to the defined schema.
-        response_action_items = [ActionItem(**item) for item in action_items_data]
+        act_items = [ActionItem(**item) for item in action_items_data]
 
-        logger.info(f"Extracted {len(response_action_items)} action items.")
-        return response_action_items
+        logger.info(f"Extracted {len(act_items)} actions.")
+        return act_items
 
     except Exception as e:
         logger.error(
@@ -61,6 +61,5 @@ async def extract_actions_from_text(
             )
         )
         # Consider specific error codes for different failure types if necessary
-        raise HTTPException(
-            status_code=500, detail=f"Failed to extract action items: {str(e)}"
-        )
+        detail_message = f"Failed to extract action items: {str(e)}"
+        raise HTTPException(status_code=500, detail=detail_message)

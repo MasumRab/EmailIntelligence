@@ -4,8 +4,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from server.python_backend.main import app
-from server.python_backend.models import \
-    ActionItem  # For response type hint if needed
 
 # Mock AdvancedAIEngine methods
 # ai_engine is instantiated at module level in action_routes.py
@@ -83,5 +81,3 @@ def test_extract_actions_from_text_ai_error(client_action):
 
     assert response.status_code == 500
     assert "Failed to extract action items: AI processing error" in response.json()["detail"]
-
-[end of server/python_backend/tests/test_action_routes.py]

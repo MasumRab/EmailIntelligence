@@ -5,16 +5,14 @@ Implements intelligent filtering, date-based incremental sync, and optimized bat
 
 import argparse
 import asyncio
-import hashlib
 import json
 import logging
 import os
 import sqlite3
 import sys
-from collections import defaultdict
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 from google.auth.transport.requests import Request

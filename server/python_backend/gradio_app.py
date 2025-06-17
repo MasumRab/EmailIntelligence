@@ -16,13 +16,13 @@ ai_engine = AdvancedAIEngine()
 #     return ai_result.model_dump()  # Convert Pydantic model to dict for Gradio
 
 # Create the Gradio interface with Tabs
-with gr.Blocks(
-    title="No-Code Email Platform (Gradio UI)", theme=gr.themes.Soft()
-) as iface:
+with gr.Blocks(title="No-Code Email Platform (Gradio UI)",
+                theme=gr.themes.Soft()) as iface:
     with gr.Tab("Email Builder"):
+        # Main title for the tab
         gr.Markdown(
             "## Email Builder Interface (No-Code Style)"
-        )  # Main title for the tab
+        )
         with gr.Row():
             with gr.Column(scale=1, min_width=200):  # Component Library
                 gr.Markdown("### Component Library")
@@ -94,8 +94,12 @@ with gr.Blocks(
                 choices=["Provider A", "Provider B", "Provider C"],
             )
         with gr.Accordion("Notification Settings"):
-            gr.Checkbox(label="Enable email notifications for new subscribers")
-            gr.Checkbox(label="Enable email notifications for campaign completions")
+            gr.Checkbox(
+                label="Enable email notifications for new subscribers"
+            )
+            gr.Checkbox(
+                label="Enable email notifications for campaign completions"
+            )
         gr.Button("Save Settings")
 
 # Launch the Gradio app

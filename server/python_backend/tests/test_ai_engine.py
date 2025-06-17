@@ -131,5 +131,3 @@ async def test_analyze_email_no_ai_categories_to_match(ai_engine_instance: Advan
     assert result.categories == []
     # Ensure get_all_categories is not called if there are no AI categories to match
     mock_db_manager_for_ai_engine.get_all_categories.assert_not_called()
-
-[end of server/python_backend/tests/test_ai_engine.py]

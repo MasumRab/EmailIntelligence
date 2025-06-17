@@ -116,5 +116,3 @@ def test_prune_filters(client_filter):
     assert response.status_code == 200
     assert response.json() == mock_prune_results
     mock_filter_manager_instance.prune_ineffective_filters.assert_called_once()
-
-[end of server/python_backend/tests/test_filter_routes.py]
