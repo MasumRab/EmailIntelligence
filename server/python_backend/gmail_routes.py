@@ -117,11 +117,10 @@ async def sync_gmail(
         log_data = {
             "message": "Unhandled error in sync_gmail",
             "endpoint": str(req.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(
             status_code=500,
             detail=f"Gmail sync failed due to an unexpected error: {str(e)}",
@@ -177,11 +176,10 @@ async def smart_retrieval(
         log_data = {
             "message": "Unhandled error in smart_retrieval",
             "endpoint": str(req.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(
             status_code=500,
             detail=f"Smart retrieval failed due to an unexpected error: {str(e)}",
@@ -198,12 +196,11 @@ async def get_retrieval_strategies(request: Request):
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_retrieval_strategies",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch strategies")
 
 
@@ -217,12 +214,11 @@ async def get_gmail_performance(request: Request):
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_gmail_performance",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(
             status_code=500, detail="Failed to fetch performance metrics"
         )
