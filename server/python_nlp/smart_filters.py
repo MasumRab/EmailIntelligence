@@ -321,9 +321,7 @@ class SmartFilterManager:
             },
             "personal_communications": {
                 "criteria": {
-                    "from_patterns": [
-                        r".*@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com)"
-                    ],
+                    "from_patterns": [r".*@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com)"],
                     "exclude_patterns": [
                         r".*noreply.*",
                         r".*automated.*",
@@ -397,9 +395,7 @@ class SmartFilterManager:
             "redundancy_threshold": 0.8,  # Similarity threshold for redundant filters
         }
 
-    def create_intelligent_filters(
-        self, email_samples: List[Dict[str, Any]]
-    ) -> List[EmailFilter]:
+    def create_intelligent_filters(self, email_samples: List[Dict[str, Any]]) -> List[EmailFilter]:
         """Create intelligent filters based on email patterns"""
         created_filters = []
 
@@ -419,23 +415,17 @@ class SmartFilterManager:
         self.logger.info(f"Created {len(created_filters)} intelligent filters")
         return created_filters
 
-    def _create_filters_from_templates(
-        self, patterns: Dict[str, Any]
-    ) -> List[EmailFilter]:
+    def _create_filters_from_templates(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
         """Creates filters based on predefined templates and analyzed patterns."""
         template_filters = []
         for template_name, template_data in self.filter_templates.items():
             if self._should_create_filter(template_data, patterns):
-                filter_obj = self._create_filter_from_template(
-                    template_name, template_data
-                )
+                filter_obj = self._create_filter_from_template(template_name, template_data)
                 self._save_filter(filter_obj)  # Save the filter
                 template_filters.append(filter_obj)
         return template_filters
 
-    def _extract_patterns_from_single_email(
-        self, email: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_patterns_from_single_email(self, email: Dict[str, Any]) -> Dict[str, Any]:
         """Extracts various pattern elements from a single email."""
         email_patterns = {}
 
@@ -451,17 +441,13 @@ class SmartFilterManager:
         if content_words:
             email_patterns["content_keywords"] = content_words  # Store list of words
 
-        category = email.get("category") or email.get("ai_analysis", {}).get(
-            "topic", "unknown"
-        )
+        category = email.get("category") or email.get("ai_analysis", {}).get("topic", "unknown")
         email_patterns["category"] = category  # Store single category
 
         if email.get("isImportant") or email.get("isStarred"):
             # Combine subject and content words for importance, ensure no duplicates if that's desired
             # For now, simple concatenation is fine as Counter will handle frequency.
-            email_patterns["importance_keywords"] = list(
-                set(subject_words + content_words)
-            )
+            email_patterns["importance_keywords"] = list(set(subject_words + content_words))
 
         # For automation indicators, we want to associate them with the email's characteristics
         if self._is_automated_email(email):
@@ -473,9 +459,7 @@ class SmartFilterManager:
 
         return email_patterns
 
-    def _analyze_email_patterns(
-        self, email_samples: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _analyze_email_patterns(self, email_samples: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze email samples to discover patterns by aggregating findings from each email."""
         # Initialize aggregated patterns structure
         aggregated_patterns = {
@@ -599,13 +583,10 @@ class SmartFilterManager:
         subject = email.get("subject", "").lower()
 
         return any(
-            indicator in sender or indicator in subject
-            for indicator in automated_indicators
+            indicator in sender or indicator in subject for indicator in automated_indicators
         )
 
-    def _should_create_filter(
-        self, template: Dict[str, Any], patterns: Dict[str, Any]
-    ) -> bool:
+    def _should_create_filter(self, template: Dict[str, Any], patterns: Dict[str, Any]) -> bool:
         """Determine if a filter should be created based on patterns"""
         criteria = template["criteria"]
 
@@ -616,9 +597,7 @@ class SmartFilterManager:
         if "from_patterns" in criteria:
             for pattern in criteria["from_patterns"]:
                 matching_domains = [
-                    domain
-                    for domain in patterns["sender_domains"]
-                    if re.match(pattern, domain)
+                    domain for domain in patterns["sender_domains"] if re.match(pattern, domain)
                 ]
                 if matching_domains:
                     relevance_score += 1
@@ -639,9 +618,7 @@ class SmartFilterManager:
         self, template_name: str, template: Dict[str, Any]
     ) -> EmailFilter:
         """Create filter object from template"""
-        filter_id = (
-            f"template_{template_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        )
+        filter_id = f"template_{template_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         return EmailFilter(
             filter_id=filter_id,
@@ -670,9 +647,7 @@ class SmartFilterManager:
                 self._save_filter(filter_obj)
 
         # Create filters for frequent keyword combinations
-        keyword_combinations = self._find_keyword_combinations(
-            patterns["subject_keywords"]
-        )
+        keyword_combinations = self._find_keyword_combinations(patterns["subject_keywords"])
         for combo, score in keyword_combinations:
             if score >= 3:
                 filter_obj = self._create_keyword_filter(combo, score)
@@ -727,14 +702,10 @@ class SmartFilterManager:
             performance_metrics={"keyword_score": score},
         )
 
-    def _find_keyword_combinations(
-        self, keyword_counter: Counter
-    ) -> List[tuple[List[str], float]]:
+    def _find_keyword_combinations(self, keyword_counter: Counter) -> List[tuple[List[str], float]]:
         """Find meaningful keyword combinations"""
         combinations = []
-        frequent_keywords = [
-            word for word, count in keyword_counter.most_common(50) if count >= 3
-        ]
+        frequent_keywords = [word for word, count in keyword_counter.most_common(50) if count >= 3]
 
         # Generate 2-word combinations
         for i, word1 in enumerate(frequent_keywords):
@@ -793,9 +764,7 @@ class SmartFilterManager:
         pruning_results["total_analyzed"] = len(all_filters)
 
         active_filters_map = {
-            f.filter_id: f
-            for f in all_filters
-            if self._is_filter_active_in_db(f.filter_id)
+            f.filter_id: f for f in all_filters if self._is_filter_active_in_db(f.filter_id)
         }  # Check DB for active status
 
         actions_to_take = defaultdict(list)
@@ -818,9 +787,7 @@ class SmartFilterManager:
                 if filter_obj.filter_id in active_filters_map:
                     actions_to_take["disable"].append(filter_obj)
                 else:  # If already inactive, it might be kept or pruned based on other rules (e.g. age)
-                    filters_to_keep_for_redundancy_check.append(
-                        filter_obj
-                    )  # Or it's just ignored
+                    filters_to_keep_for_redundancy_check.append(filter_obj)  # Or it's just ignored
             elif evaluation_action == "optimize":
                 # Only optimize if it was active
                 if filter_obj.filter_id in active_filters_map:
@@ -884,15 +851,11 @@ class SmartFilterManager:
         final_filters_for_redundancy_check = []
         for f_obj in filters_to_keep_for_redundancy_check:
             if f_obj.filter_id in active_filters_map:  # If it was kept and active
-                final_filters_for_redundancy_check.append(
-                    active_filters_map[f_obj.filter_id]
-                )
+                final_filters_for_redundancy_check.append(active_filters_map[f_obj.filter_id])
 
         # Remove redundant filters from the set of currently active and kept filters
         # This should operate on filters that are currently considered active after the above pruning/disabling.
-        self._prune_redundant_filters(
-            final_filters_for_redundancy_check, pruning_results
-        )
+        self._prune_redundant_filters(final_filters_for_redundancy_check, pruning_results)
 
         self.logger.info(
             f"Pruning completed: {len(pruning_results['pruned_filters'])} pruned, "
@@ -990,8 +953,7 @@ class SmartFilterManager:
         ):
             # Check if effectiveness is not too low for optimization
             if (
-                filter_obj.effectiveness_score
-                > criteria["effectiveness_threshold"] * 0.7
+                filter_obj.effectiveness_score > criteria["effectiveness_threshold"] * 0.7
             ):  # Avoid optimizing hopeless filters
                 return "optimize"
             else:  # Low effectiveness and poor perf might mean prune or disable
@@ -1016,37 +978,27 @@ class SmartFilterManager:
 
         # If high false positive rate, make criteria more restrictive
         if filter_obj.false_positive_rate > 0.1:
-            optimized_criteria = self._make_criteria_more_restrictive(
-                optimized_criteria
-            )
+            optimized_criteria = self._make_criteria_more_restrictive(optimized_criteria)
 
         # If low recall, make criteria more inclusive
-        avg_recall = sum(p.recall for p in performance_history) / len(
-            performance_history
-        )
+        avg_recall = sum(p.recall for p in performance_history) / len(performance_history)
         if avg_recall < 0.6:
             optimized_criteria = self._make_criteria_more_inclusive(optimized_criteria)
 
         filter_obj.criteria = optimized_criteria
         return filter_obj
 
-    def _make_criteria_more_restrictive(
-        self, criteria: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _make_criteria_more_restrictive(self, criteria: Dict[str, Any]) -> Dict[str, Any]:
         """Make filter criteria more restrictive to reduce false positives"""
         # Add more specific keywords or patterns
         if "subject_keywords" in criteria:
             # Require multiple keyword matches
             criteria["keyword_operator"] = "AND"
-            criteria["min_keyword_matches"] = max(
-                2, len(criteria["subject_keywords"]) // 2
-            )
+            criteria["min_keyword_matches"] = max(2, len(criteria["subject_keywords"]) // 2)
 
         if "from_patterns" in criteria:
             # Make email patterns more specific
-            criteria["from_patterns"] = [
-                pattern + "$" for pattern in criteria["from_patterns"]
-            ]
+            criteria["from_patterns"] = [pattern + "$" for pattern in criteria["from_patterns"]]
 
         return criteria
 
@@ -1059,9 +1011,7 @@ class SmartFilterManager:
 
         return criteria
 
-    def _find_redundant_filters(
-        self, filters: List[EmailFilter]
-    ) -> List[tuple[str, str]]:
+    def _find_redundant_filters(self, filters: List[EmailFilter]) -> List[tuple[str, str]]:
         """Find pairs of redundant filters"""
         redundant_pairs = []
 
@@ -1073,9 +1023,7 @@ class SmartFilterManager:
 
         return redundant_pairs
 
-    def _calculate_filter_similarity(
-        self, filter1: EmailFilter, filter2: EmailFilter
-    ) -> float:
+    def _calculate_filter_similarity(self, filter1: EmailFilter, filter2: EmailFilter) -> float:
         """Calculate similarity between two filters"""
         # Compare criteria
         criteria_similarity = self._compare_criteria(filter1.criteria, filter2.criteria)
@@ -1086,9 +1034,7 @@ class SmartFilterManager:
         # Overall similarity
         return (criteria_similarity + action_similarity) / 2
 
-    def _compare_criteria(
-        self, criteria1: Dict[str, Any], criteria2: Dict[str, Any]
-    ) -> float:
+    def _compare_criteria(self, criteria1: Dict[str, Any], criteria2: Dict[str, Any]) -> float:
         """Compare filter criteria similarity"""
         common_keys = set(criteria1.keys()) & set(criteria2.keys())
         if not common_keys:
@@ -1111,15 +1057,9 @@ class SmartFilterManager:
 
             similarity_scores.append(similarity)
 
-        return (
-            sum(similarity_scores) / len(similarity_scores)
-            if similarity_scores
-            else 0.0
-        )
+        return sum(similarity_scores) / len(similarity_scores) if similarity_scores else 0.0
 
-    def _compare_actions(
-        self, actions1: Dict[str, Any], actions2: Dict[str, Any]
-    ) -> float:
+    def _compare_actions(self, actions1: Dict[str, Any], actions2: Dict[str, Any]) -> float:
         """Compare filter actions similarity"""
         common_keys = set(actions1.keys()) & set(actions2.keys())
         if not common_keys:
@@ -1210,19 +1150,11 @@ class SmartFilterManager:
             if (true_positives + false_negatives) > 0
             else 0.0
         )
-        accuracy = (
-            (true_positives + true_negatives) / total_emails
-            if total_emails > 0
-            else 0.0
-        )
+        accuracy = (true_positives + true_negatives) / total_emails if total_emails > 0 else 0.0
         f1_score = (
-            2 * (precision * recall) / (precision + recall)
-            if (precision + recall) > 0
-            else 0.0
+            2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
         )
-        false_positive_rate = (
-            false_positives / total_emails if total_emails > 0 else 0.0
-        )
+        false_positive_rate = false_positives / total_emails if total_emails > 0 else 0.0
 
         return {
             "true_positives": true_positives,
@@ -1236,15 +1168,11 @@ class SmartFilterManager:
             "false_positive_rate": false_positive_rate,
         }
 
-    def _check_sender_patterns(
-        self, criteria_block: Dict[str, Any], email: Dict[str, Any]
-    ) -> bool:
+    def _check_sender_patterns(self, criteria_block: Dict[str, Any], email: Dict[str, Any]) -> bool:
         """Check sender patterns against email."""
         sender = email.get("senderEmail", "")
         # Uses re.search for regex matching, re.IGNORECASE for case-insensitivity.
-        return any(
-            re.search(pattern, sender, re.IGNORECASE) for pattern in criteria_block
-        )
+        return any(re.search(pattern, sender, re.IGNORECASE) for pattern in criteria_block)
 
     def _check_subject_keywords(
         self,
@@ -1255,9 +1183,7 @@ class SmartFilterManager:
     ) -> bool:
         """Check subject keywords against email subject."""
         subject = email.get("subject", "").lower()
-        keyword_matches = sum(
-            1 for keyword in criteria_block if keyword.lower() in subject
-        )
+        keyword_matches = sum(1 for keyword in criteria_block if keyword.lower() in subject)
 
         if operator == "AND":
             return keyword_matches == len(criteria_block)  # All keywords must match
@@ -1265,31 +1191,22 @@ class SmartFilterManager:
             return keyword_matches >= min_matches
         return False  # Should not happen if operator is valid
 
-    def _check_content_keywords(
-        self, criteria_block: List[str], email: Dict[str, Any]
-    ) -> bool:
+    def _check_content_keywords(self, criteria_block: List[str], email: Dict[str, Any]) -> bool:
         """Check content keywords against email content."""
         content = email.get("content", "").lower()
         # Assumes OR logic for content keywords: any keyword match is sufficient.
         return any(keyword.lower() in content for keyword in criteria_block)
 
-    def _check_exclusion_patterns(
-        self, criteria_block: List[str], email: Dict[str, Any]
-    ) -> bool:
+    def _check_exclusion_patterns(self, criteria_block: List[str], email: Dict[str, Any]) -> bool:
         """Check exclusion patterns (regex) against email subject and content. Returns True if no exclusions match."""
         text_to_check = f"{email.get('subject', '')} {email.get('content', '')}"  # No .lower() here, regex handles case if needed via IGNORECASE
         # If any exclusion pattern matches, the check fails (returns False).
         # Assuming criteria_block contains regex patterns.
-        if any(
-            re.search(pattern, text_to_check, re.IGNORECASE)
-            for pattern in criteria_block
-        ):
+        if any(re.search(pattern, text_to_check, re.IGNORECASE) for pattern in criteria_block):
             return False  # Exclusion found (pattern matched)
         return True  # No exclusions matched
 
-    def _apply_filter_to_email(
-        self, filter_obj: EmailFilter, email: Dict[str, Any]
-    ) -> bool:
+    def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
         """Apply filter to email and return match result by evaluating various criteria checks."""
         criteria = filter_obj.criteria
 
@@ -1411,9 +1328,7 @@ class SmartFilterManager:
     def _delete_filter(self, filter_id: str):
         """Permanently delete filter and its performance metrics from database."""
         self._db_execute("DELETE FROM email_filters WHERE filter_id = ?", (filter_id,))
-        self._db_execute(
-            "DELETE FROM filter_performance WHERE filter_id = ?", (filter_id,)
-        )
+        self._db_execute("DELETE FROM filter_performance WHERE filter_id = ?", (filter_id,))
 
     def _disable_filter(self, filter_id: str):
         """Disable filter without deleting"""
@@ -1429,9 +1344,7 @@ class SmartFilterManager:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         # Added microseconds for more unique ID
-        performance_id = (
-            f"{performance.filter_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
-        )
+        performance_id = f"{performance.filter_id}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
         params = (
             performance_id,
             performance.filter_id,
@@ -1490,9 +1403,7 @@ class SmartFilterManager:
             FilterPerformance(
                 filter_id=row["filter_id"],
                 accuracy=row["accuracy"],
-                precision=row[
-                    "precision_score"
-                ],  # Note: column name precision_score in DB
+                precision=row["precision_score"],  # Note: column name precision_score in DB
                 recall=row["recall_score"],  # Note: column name recall_score in DB
                 f1_score=row["f1_score"],
                 processing_time_ms=row["processing_time_ms"],
@@ -1573,16 +1484,12 @@ class SmartFilterManager:
         # For category overrides, BSFM used specific action names
         # We can map them or use a generic "set_category" in NSFM's action definition
         # Example: action "set_category_finance" from BSFM
-        if (
-            actions.get("action_name") == "set_category_finance"
-        ):  # Hypothetical action name in NSFM
+        if actions.get("action_name") == "set_category_finance":  # Hypothetical action name in NSFM
             email_data["category_name_override"] = "Finance & Banking"
             actions_taken_summary.append("Categorized as Finance & Banking")
         elif actions.get("category_override"):  # More generic way
             email_data["category_name_override"] = actions["category_override"]
-            actions_taken_summary.append(
-                f"Categorized as {actions['category_override']}"
-            )
+            actions_taken_summary.append(f"Categorized as {actions['category_override']}")
 
         # This part needs to be adapted based on how NSFM actions are structured.
         # The above are examples based on BSFM's direct manipulations.
@@ -1614,9 +1521,7 @@ class SmartFilterManager:
                 self._update_filter(filter_obj)  # Save updated stats to DB
 
                 # Execute actions defined in the filter
-                action_descriptions = self._execute_filter_actions(
-                    email_data, filter_obj.actions
-                )
+                action_descriptions = self._execute_filter_actions(email_data, filter_obj.actions)
 
                 email_actions_summary["filters_matched"].append(filter_obj.name)
                 email_actions_summary["actions_taken"].extend(action_descriptions)
@@ -1665,9 +1570,7 @@ def main():
 
     # Evaluate filter performance
     for filter_obj in filters[:1]:  # Test first filter
-        performance = manager.evaluate_filter_performance(
-            filter_obj.filter_id, sample_emails
-        )
+        performance = manager.evaluate_filter_performance(filter_obj.filter_id, sample_emails)
         print(
             f"Filter {filter_obj.name}: Accuracy={performance.accuracy:.2f}, F1={performance.f1_score:.2f}"
         )

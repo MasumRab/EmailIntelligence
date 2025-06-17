@@ -28,9 +28,7 @@ class TestCategoryAPI(unittest.TestCase):
 
         # Reset and configure methods on our instance for each test
         self.mock_db_instance.reset_mock()
-        self.mock_db_instance.get_all_categories = (
-            AsyncMock()
-        )  # ensure methods are AsyncMocks
+        self.mock_db_instance.get_all_categories = AsyncMock()  # ensure methods are AsyncMocks
         self.mock_db_instance.create_category = AsyncMock()
 
     def tearDown(self):
@@ -54,8 +52,7 @@ class TestCategoryAPI(unittest.TestCase):
                 "count": 25,
             },
         ]
-        self.mock_db_instance.get_all_categories.return_value = \
-            mock_categories_data
+        self.mock_db_instance.get_all_categories.return_value = mock_categories_data
 
         response = self.client.get("/api/categories")
 
@@ -84,9 +81,7 @@ class TestCategoryAPI(unittest.TestCase):
         print("Running test_get_categories_db_error")
         # Ensure the method is an AsyncMock before setting side_effect
         self.mock_db_instance.get_all_categories = AsyncMock()
-        self.mock_db_instance.get_all_categories.side_effect = (
-            self.async_raise_db_connection_error
-        )
+        self.mock_db_instance.get_all_categories.side_effect = self.async_raise_db_connection_error
 
         response = self.client.get("/api/categories")
 
@@ -114,9 +109,7 @@ class TestCategoryAPI(unittest.TestCase):
         }  # count is part of CategoryResponse
         # Assigning to a temporary variable to avoid E501
         created_category_for_mock = mock_created_category
-        self.mock_db_instance.create_category.return_value = (
-            created_category_for_mock
-        )
+        self.mock_db_instance.create_category.return_value = created_category_for_mock
 
         response = self.client.post("/api/categories", json=category_data)
 
@@ -132,16 +125,12 @@ class TestCategoryAPI(unittest.TestCase):
         # where category is CategoryCreate.
         # The test's category_data is compatible with CategoryCreate.
         validated_category_data = CategoryCreate(**category_data).model_dump()
-        self.mock_db_instance.create_category.assert_called_once_with(
-            validated_category_data
-        )
+        self.mock_db_instance.create_category.assert_called_once_with(validated_category_data)
 
     def test_create_category_validation_error_missing_name(self):
         print("Running test_create_category_validation_error_missing_name")
         # Missing required 'name' field
-        category_data = {
-            "description": "A category without a name", "color": "#123456"
-        }
+        category_data = {"description": "A category without a name", "color": "#123456"}
         response = self.client.post("/api/categories", json=category_data)
         self.assertEqual(response.status_code, 422)  # Unprocessable Entity
         response_data = response.json()
@@ -149,13 +138,10 @@ class TestCategoryAPI(unittest.TestCase):
         # Check for specific error details for missing 'name'
         found_error = False
         for error in response_data["detail"]:
-            if "name" in error.get("loc", []) and \
-               error.get("type") == "missing":
+            if "name" in error.get("loc", []) and error.get("type") == "missing":
                 found_error = True
                 break
-        self.assertTrue(
-            found_error, "Validation error for missing name not found."
-        )
+        self.assertTrue(found_error, "Validation error for missing name not found.")
 
     def test_create_category_validation_error_invalid_color(self):
         print("Running test_create_category_validation_error_invalid_color")
@@ -180,13 +166,10 @@ class TestCategoryAPI(unittest.TestCase):
         # Pydantic v2 type error for string is 'string_type'
         found_error = False
         for error in response_data["detail"]:
-            if "color" in error.get("loc", []) and \
-               "string_type" in error.get("type", ""):
+            if "color" in error.get("loc", []) and "string_type" in error.get("type", ""):
                 found_error = True
                 break
-        self.assertTrue(
-            found_error, "Validation error for invalid color type not found."
-        )
+        self.assertTrue(found_error, "Validation error for invalid color type not found.")
 
     async def async_raise_db_write_error(self, *args, **kwargs):
         raise Exception("Database write error")
@@ -200,9 +183,7 @@ class TestCategoryAPI(unittest.TestCase):
         }
         # Ensure the method is an AsyncMock
         self.mock_db_instance.create_category = AsyncMock()
-        self.mock_db_instance.create_category.side_effect = (
-            self.async_raise_db_write_error
-        )
+        self.mock_db_instance.create_category.side_effect = self.async_raise_db_write_error
 
         response = self.client.post("/api/categories", json=category_data)
 
@@ -210,9 +191,7 @@ class TestCategoryAPI(unittest.TestCase):
         data = response.json()
         self.assertIn("Failed to create category", data["detail"])
         validated_category_data = CategoryCreate(**category_data).model_dump()
-        self.mock_db_instance.create_category.assert_called_once_with(
-            validated_category_data
-        )
+        self.mock_db_instance.create_category.assert_called_once_with(validated_category_data)
 
 
 if __name__ == "__main__":

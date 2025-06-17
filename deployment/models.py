@@ -188,15 +188,11 @@ class ModelsManager:
         all_created_or_exist = True
 
         if not placeholder_dir.exists():
-            logger.info(
-                f"Placeholder directory {placeholder_dir} does not exist. Creating it."
-            )
+            logger.info(f"Placeholder directory {placeholder_dir} does not exist. Creating it.")
             try:
                 placeholder_dir.mkdir(parents=True, exist_ok=True)
             except Exception as e:
-                logger.error(
-                    f"Failed to create placeholder directory {placeholder_dir}: {e}"
-                )
+                logger.error(f"Failed to create placeholder directory {placeholder_dir}: {e}")
                 return False  # Cannot proceed if directory cannot be created
 
         logger.info(f"Checking for placeholder NLP models in {placeholder_dir}...")
