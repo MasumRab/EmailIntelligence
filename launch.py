@@ -498,8 +498,9 @@ def prepare_environment(args: argparse.Namespace) -> bool:
         logger.info(f"DEBUG: models_manager.list_models() returned: {current_models}")
         # models_manager does not require python_executable to be set explicitly for now
         if not current_models: # If "models" dir was truly empty initially
-            logger.info("No models found (list_models was empty). Downloading default models...")
-            if not models_manager.download_default_models():
+            if args.stage == "dev":
+                logger.info("Development stage: Skipping download of default models. Placeholders will be used/created.")
+            elif not models_manager.download_default_models(): # Original logic for non-dev stages
                 logger.error("Failed to download default models.")
                 # Logged error, but will proceed to create_placeholder_nlp_models anyway
 
@@ -561,6 +562,33 @@ def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.error("Node.js is not installed or not found in PATH. Cannot start frontend.")
         return None
+
+    client_dir = ROOT_DIR / "client"
+    client_pkg_json = client_dir / "package.json"
+
+    if client_pkg_json.exists():
+        logger.info(f"Found package.json in {client_dir}. Running npm install...")
+        try:
+            # Use subprocess.run to wait for completion and check for errors
+            install_result = subprocess.run(
+                ["npm", "install"],
+                cwd=client_dir,
+                capture_output=True, text=True, check=False # check=False to handle errors manually
+            )
+            if install_result.returncode != 0:
+                logger.error(f"Failed to install frontend dependencies in {client_dir}.")
+                logger.error(f"npm stdout:\n{install_result.stdout}")
+                logger.error(f"npm stderr:\n{install_result.stderr}")
+                # Optionally, decide if this is a fatal error for frontend launch
+                # For now, log and attempt to continue, Vite might still run if some deps are missing but core is there.
+            else:
+                logger.info(f"Frontend dependencies installed successfully in {client_dir}.")
+        except Exception as e:
+            logger.error(f"Error running npm install in {client_dir}: {e}")
+            # Decide how to handle this, for now, attempt to continue
+    else:
+        logger.warning(f"No package.json found in {client_dir}. Skipping npm install for frontend.")
+        # This would likely lead to `npm run dev` failing, but the check is here.
 
     cmd = [
         "npm", "run", "dev", "--",
