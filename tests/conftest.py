@@ -3,8 +3,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from server.python_backend.database import get_db  # The actual dependency
-from server.python_backend.main import \
-    app  # Assuming 'app' is your FastAPI instance
+from server.python_backend.main import app  # Assuming 'app' is your FastAPI instance
 
 
 @pytest.fixture(scope="session", autouse=True)

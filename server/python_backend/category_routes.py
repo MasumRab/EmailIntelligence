@@ -6,8 +6,7 @@ import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
-from .models import (  # Added CategoryResponse, changed from .main
-    CategoryCreate, CategoryResponse)
+from .models import CategoryCreate, CategoryResponse  # Added CategoryResponse, changed from .main
 from .performance_monitor import PerformanceMonitor
 
 logger = logging.getLogger(__name__)
@@ -43,9 +42,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 
-@router.post(
-    "/api/categories", response_model=CategoryResponse
-)  # Changed to CategoryResponse
+@router.post("/api/categories", response_model=CategoryResponse)  # Changed to CategoryResponse
 @performance_monitor.track
 async def create_category(
     request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
@@ -55,9 +52,7 @@ async def create_category(
         created_category_dict = await db.create_category(
             category.dict()
         )  # db.create_category returns a dict
-        return CategoryResponse(
-            **created_category_dict
-        )  # Ensure it returns CategoryResponse
+        return CategoryResponse(**created_category_dict)  # Ensure it returns CategoryResponse
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed while creating category",
