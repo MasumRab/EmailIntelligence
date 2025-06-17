@@ -286,3 +286,11 @@ EmailIntelligence features an extension system for adding custom functionality.
 *   Ensure adequate disk space.
 
 For more detailed guides and specific component documentation, please refer to the [Documentation](#documentation) section.
+
+## Known Vulnerabilities
+
+- Four moderate severity vulnerabilities related to `esbuild` persist as of the last audit.
+- These vulnerabilities are due to `drizzle-kit` (and its transitive dependencies like `@esbuild-kit/core-utils`) requiring older, vulnerable versions of `esbuild`. Specifically, `drizzle-kit`'s dependency tree pulls in `esbuild@0.18.20` and `esbuild@0.19.12`, both of which are vulnerable (<=0.24.2).
+- Attempts to override these nested `esbuild` versions to a non-vulnerable version (e.g., `^0.25.5`, which is used by other parts of this project like Vite) using npm's `overrides` feature in `package.json` were made. However, these overrides were not fully effective, with `npm list` indicating version incompatibilities for the overridden packages. `npm audit` continued to report the vulnerabilities.
+- These `esbuild` vulnerabilities cannot be fully remediated without an update to `drizzle-kit` itself that addresses its `esbuild` dependency requirements, particularly for the deprecated `@esbuild-kit/*` packages.
+- On a related note, `vite` and `@vitejs/plugin-react` were successfully updated to their latest compatible versions (`vite@6.3.5` and `@vitejs/plugin-react@4.5.2` respectively) during the audit process to address other potential issues and ensure compatibility.
