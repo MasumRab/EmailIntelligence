@@ -3,10 +3,8 @@ from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
-from server.python_backend.ai_engine import \
-    AIAnalysisResult  # To help mock the return
-from server.python_backend.main import \
-    app  # Assuming your FastAPI app instance is named 'app'
+from server.python_backend.ai_engine import AIAnalysisResult  # To help mock the return
+from server.python_backend.main import app  # Assuming your FastAPI app instance is named 'app'
 
 # If your Pydantic models are in main.py, they would be imported via `app` or directly if structured so.
 # For this test, we might not need to import them if we're just checking response structure.
@@ -60,9 +58,7 @@ class TestActionExtractionAPI(unittest.TestCase):
             "content": "A test sentence. Please review the document by tomorrow. Thank you. Also, submit the report. And another thing.",
         }
 
-        response = self.client.post(
-            "/api/actions/extract-from-text", json=request_payload
-        )
+        response = self.client.post("/api/actions/extract-from-text", json=request_payload)
 
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
@@ -109,9 +105,7 @@ class TestActionExtractionAPI(unittest.TestCase):
             "content": "This is just a general update, no specific actions required.",
         }
 
-        response = self.client.post(
-            "/api/actions/extract-from-text", json=request_payload
-        )
+        response = self.client.post("/api/actions/extract-from-text", json=request_payload)
 
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
@@ -125,9 +119,7 @@ class TestActionExtractionAPI(unittest.TestCase):
             # "content" field is missing
         }
 
-        response = self.client.post(
-            "/api/actions/extract-from-text", json=request_payload
-        )
+        response = self.client.post("/api/actions/extract-from-text", json=request_payload)
 
         # FastAPI should return a 422 Unprocessable Entity for Pydantic validation errors
         self.assertEqual(response.status_code, 422)
@@ -135,11 +127,7 @@ class TestActionExtractionAPI(unittest.TestCase):
         self.assertIn("detail", response_data)
         # Check that the error detail mentions the 'content' field
         self.assertTrue(
-            any(
-                "content" in error["loc"]
-                for error in response_data["detail"]
-                if "loc" in error
-            )
+            any("content" in error["loc"] for error in response_data["detail"] if "loc" in error)
         )
 
     @patch("server.python_backend.main.ai_engine.analyze_email", new_callable=AsyncMock)
@@ -152,16 +140,13 @@ class TestActionExtractionAPI(unittest.TestCase):
             "content": "This content will cause an error in the mocked AI engine.",
         }
 
-        response = self.client.post(
-            "/api/actions/extract-from-text", json=request_payload
-        )
+        response = self.client.post("/api/actions/extract-from-text", json=request_payload)
 
         self.assertEqual(response.status_code, 500)
         response_data = response.json()
         self.assertIn("detail", response_data)
         self.assertTrue(
-            "Failed to extract action items: AI Engine processing error"
-            in response_data["detail"]
+            "Failed to extract action items: AI Engine processing error" in response_data["detail"]
         )
 
 

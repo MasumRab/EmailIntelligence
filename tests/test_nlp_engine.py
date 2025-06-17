@@ -48,9 +48,7 @@ class TestNLPEngine(unittest.TestCase):
 
         self.mock_intent_model = MagicMock()
         self.mock_intent_model.predict = MagicMock(return_value=["request"])
-        self.mock_intent_model.predict_proba = MagicMock(
-            return_value=[[0.9, 0.05, 0.05]]
-        )
+        self.mock_intent_model.predict_proba = MagicMock(return_value=[[0.9, 0.05, 0.05]])
         self.mock_intent_model.classes_ = ["request", "inquiry", "informational"]
 
         self.mock_urgency_model = MagicMock()
@@ -80,9 +78,7 @@ class TestNLPEngine(unittest.TestCase):
         # Patch os.path.exists for model loading
         self.patcher_os_path_exists = patch("os.path.exists")
         self.mock_os_path_exists = self.patcher_os_path_exists.start()
-        self.mock_os_path_exists.return_value = (
-            True  # Assume all model files exist by default
-        )
+        self.mock_os_path_exists.return_value = True  # Assume all model files exist by default
 
         # Mock NLTK and TextBlob if necessary
         if MOCK_NLTK:
@@ -125,9 +121,7 @@ class TestNLPEngine(unittest.TestCase):
     def test_analyze_email_with_all_models_available(self):
         """Test analyze_email when all models are loaded."""
         subject = "Important meeting update"
-        content = (
-            "Please be advised the meeting time has changed. This is an urgent request."
-        )
+        content = "Please be advised the meeting time has changed. This is an urgent request."
 
         result = self.engine.analyze_email(subject, content)
 
@@ -149,9 +143,7 @@ class TestNLPEngine(unittest.TestCase):
         return_value=None,
     )
     @patch("server.python_nlp.nlp_engine.NLPEngine._analyze_sentiment_textblob")
-    def test_sentiment_fallback_to_textblob(
-        self, mock_textblob_method, mock_model_method
-    ):
+    def test_sentiment_fallback_to_textblob(self, mock_textblob_method, mock_model_method):
         """Test sentiment analysis falls back to TextBlob when model fails."""
         mock_textblob_method.return_value = {
             "sentiment": "positive_textblob",
@@ -214,16 +206,10 @@ class TestNLPEngine(unittest.TestCase):
         reasoning = self.engine._generate_reasoning(
             sentiment_info, topic_info, intent_info, urgency_info
         )
-        self.assertIn(
-            "Sentiment analysis detected positive sentiment (using AI model)", reasoning
-        )
-        self.assertIn(
-            "Identified topic: work_business (using fallback: keyword_topic)", reasoning
-        )
+        self.assertIn("Sentiment analysis detected positive sentiment (using AI model)", reasoning)
+        self.assertIn("Identified topic: work_business (using fallback: keyword_topic)", reasoning)
         self.assertIn("Detected intent: request (using AI model)", reasoning)
-        self.assertIn(
-            "Assessed urgency level: high (using fallback: regex_urgency)", reasoning
-        )
+        self.assertIn("Assessed urgency level: high (using fallback: regex_urgency)", reasoning)
 
         # Test neutral/general cases
         sentiment_info_neutral = {"sentiment": "neutral"}
@@ -244,9 +230,7 @@ class TestNLPEngine(unittest.TestCase):
     def test_preprocess_text(self):
         text = "  Test Text with Punctuation!!  "
         processed = self.engine._preprocess_text(text)
-        self.assertEqual(
-            processed, "test text with punctuation!!"
-        )  # Adjusted expectation
+        self.assertEqual(processed, "test text with punctuation!!")  # Adjusted expectation
 
     def test_extract_keywords_nltk_available(self):
         """Test keyword extraction when NLTK (and TextBlob) is available."""
@@ -297,9 +281,7 @@ class TestNLPEngine(unittest.TestCase):
                 self.assertIn("test", keywords)  # From individual words
                 self.assertNotIn("this", keywords)  # Stopword
 
-    @patch(
-        "server.python_nlp.nlp_engine.HAS_NLTK", False
-    )  # Simulate NLTK not available
+    @patch("server.python_nlp.nlp_engine.HAS_NLTK", False)  # Simulate NLTK not available
     def test_extract_keywords_nltk_unavailable(
         self,
     ):  # Removed mock_has_nltk_false argument
@@ -340,7 +322,9 @@ class TestNLPEngine(unittest.TestCase):
         risks_spam = self.engine._detect_risk_factors(text_spam)
         self.assertIn("potential_spam", risks_spam)
 
-        text_sensitive = "Please provide your password and social security number ssn for verification."
+        text_sensitive = (
+            "Please provide your password and social security number ssn for verification."
+        )
         risks_sensitive = self.engine._detect_risk_factors(text_sensitive)
         self.assertIn("sensitive_data", risks_sensitive)
 
@@ -371,9 +355,7 @@ class TestNLPEngine(unittest.TestCase):
 
     @patch("sys.stdout", new_callable=io.StringIO)  # Changed to io.StringIO
     @patch("argparse.ArgumentParser.parse_args")
-    @patch(
-        "server.python_nlp.nlp_engine.NLPEngine.analyze_email"
-    )  # Mock the main analysis method
+    @patch("server.python_nlp.nlp_engine.NLPEngine.analyze_email")  # Mock the main analysis method
     def test_main_analyze_email(self, mock_analyze_email, mock_parse_args, mock_stdout):
         mock_parse_args.return_value = MagicMock(
             health_check=False,
