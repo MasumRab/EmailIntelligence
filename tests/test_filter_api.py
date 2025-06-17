@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from psycopg2 import Error as Psycopg2Error  # Import psycopg2.Error
 
-from server.python_backend.main import app, get_db
-
+from server.python_backend.database import get_db  # Corrected import
+from server.python_backend.main import app # App import remains the same
 # from server.python_backend.models import FilterRequest # Not directly used in this version of the test for payload
 from server.python_nlp.smart_filters import EmailFilter  # Changed import
 
@@ -40,7 +40,7 @@ class TestFilterAPI(unittest.TestCase):
         self.mock_filter_manager = self.mock_filter_manager_patch.start()
 
         # Configure async method mocks for filter_manager
-        self.mock_filter_manager.get_all_filters = AsyncMock()
+        self.mock_filter_manager.get_active_filters_sorted = AsyncMock()
         # add_custom_filter in SmartFilterManager is synchronous
         self.mock_filter_manager.add_custom_filter = MagicMock()
         self.mock_filter_manager.create_intelligent_filters = AsyncMock()
@@ -88,7 +88,7 @@ class TestFilterAPI(unittest.TestCase):
                 "description": "Archives newsletters",
             },
         ]
-        self.mock_filter_manager.get_all_filters.return_value = mock_filters_data
+        self.mock_filter_manager.get_active_filters_sorted.return_value = mock_filters_data
 
         response = self.client.get("/api/filters")
 
@@ -97,11 +97,11 @@ class TestFilterAPI(unittest.TestCase):
         self.assertIn("filters", data)
         self.assertEqual(len(data["filters"]), 2)
         self.assertEqual(data["filters"][0]["name"], "Filter 1")
-        self.mock_filter_manager.get_all_filters.assert_called_once()
+        self.mock_filter_manager.get_active_filters_sorted.assert_called_once()
 
     def test_get_filters_empty(self):
         print("Running test_get_filters_empty")
-        self.mock_filter_manager.get_all_filters.return_value = []
+        self.mock_filter_manager.get_active_filters_sorted.return_value = []
 
         response = self.client.get("/api/filters")
 
@@ -109,18 +109,20 @@ class TestFilterAPI(unittest.TestCase):
         data = response.json()
         self.assertIn("filters", data)
         self.assertEqual(len(data["filters"]), 0)
-        self.mock_filter_manager.get_all_filters.assert_called_once()
+        self.mock_filter_manager.get_active_filters_sorted.assert_called_once()
 
     def test_get_filters_manager_error(self):
         print("Running test_get_filters_manager_error")
-        self.mock_filter_manager.get_all_filters.side_effect = Exception("Filter manager error")
+        self.mock_filter_manager.get_active_filters_sorted.side_effect = Exception(
+            "Filter manager error"
+        )
 
         response = self.client.get("/api/filters")
 
         self.assertEqual(response.status_code, 500)
         data = response.json()
         self.assertIn("Failed to fetch filters", data["detail"])
-        self.mock_filter_manager.get_all_filters.assert_called_once()
+        self.mock_filter_manager.get_active_filters_sorted.assert_called_once()
 
     def test_create_filter_success(self):
         print("Running test_create_filter_success")

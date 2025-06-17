@@ -172,18 +172,7 @@ class NLPEngine:
         Returns:
             Dictionary containing sentiment analysis results
         """
-        # Try model-based analysis first
-        analysis_result = self._analyze_sentiment_model(text)
-        if analysis_result:
-            return analysis_result
-
-        # Try TextBlob analysis if model fails
-        analysis_result = self._analyze_sentiment_textblob(text)
-        if analysis_result:
-            return analysis_result
-
-        # Use keyword matching as final fallback
-        return self._analyze_sentiment_keyword(text)
+        return self.sentiment_analyzer.analyze(text)
 
     def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
