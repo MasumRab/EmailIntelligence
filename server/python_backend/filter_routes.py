@@ -98,12 +98,11 @@ async def generate_intelligent_filters(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in generate_intelligent_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to generate filters")
 
 
@@ -119,10 +118,9 @@ async def prune_filters(request: Request):
     except Exception as e:
         log_data = {
             "message": "Unhandled error in prune_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to prune filters")
