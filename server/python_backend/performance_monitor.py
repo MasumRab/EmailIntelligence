@@ -10,10 +10,10 @@ import logging
 import time
 from collections import defaultdict, deque
 # import sqlite3 # Removed SQLite
-from dataclasses import asdict, dataclass, field  # Added dataclass and field
+from dataclasses import asdict, dataclass  # Added dataclass and field
 from datetime import datetime  # Ensure datetime is directly available
 from datetime import timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import psutil
 

@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, List
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from googleapiclient.errors import HttpError as GoogleApiHttpError
@@ -18,15 +17,15 @@ from .performance_monitor import PerformanceMonitor
 logger = logging.getLogger(__name__)
 router = APIRouter()
 # Instantiate services with necessary dependencies
-# This assumes DatabaseManager() and AdvancedAIEngine() can be instantiated simply here.
-# If they have complex setup, it should be handled via FastAPI Depends or a shared factory.
+# This assumes DatabaseManager() and AdvancedAIEngine() can be
+# instantiated simply here. If complex setup, use FastAPI Depends or factory.
 db_manager_for_gmail_service = DatabaseManager()
 ai_engine_for_gmail_service = AdvancedAIEngine()
 gmail_service = GmailAIService(
     db_manager=db_manager_for_gmail_service,
     advanced_ai_engine=ai_engine_for_gmail_service,
 )
-performance_monitor = PerformanceMonitor()  # Initialize performance monitor
+performance_monitor = PerformanceMonitor()
 
 
 @router.post("/api/gmail/sync")
@@ -39,14 +38,15 @@ async def sync_gmail(
     """Sync emails from Gmail with AI analysis"""
     try:
         # Call the NLP service's sync_gmail_emails method directly
-        # Note: NLPGS.sync_gmail_emails does not use `strategies` or `time_budget_minutes` from GmailSyncRequest
+        # Note: sync_gmail_emails does not use `strategies` or
+        # `time_budget_minutes` from GmailSyncRequest.
         nlp_result = await gmail_service.sync_gmail_emails(
-            max_emails=request_model.maxEmails,  # This is from GmailSyncRequest
-            query_filter=request_model.queryFilter,  # This is from GmailSyncRequest
-            include_ai_analysis=request_model.includeAIAnalysis,  # This is from GmailSyncRequest
+            max_emails=request_model.maxEmails,
+            query_filter=request_model.queryFilter,
+            include_ai_analysis=request_model.includeAIAnalysis,
         )
 
-        # Adapt NLP result to BackendGS expected format (logic moved from old backend adapter)
+        # Adapt NLP result to BackendGS expected format
         if nlp_result.get("success"):
             result = {
                 "success": True,
@@ -59,25 +59,22 @@ async def sync_gmail(
                     ),
                     "queryFilter": request_model.queryFilter,  # Use the original request's query_filter
                     "timestamp": nlp_result.get("batch_info", {}).get(
-                        "timestamp", datetime.now().isoformat()
-                    ),
+                        "timestamp", datetime.now().isoformat()),
                 },
                 "statistics": nlp_result.get("statistics", {}),
                 "error": None,
             }
         else:
             result = {
-                "success": False,
-                "processedCount": 0,
-                "emailsCreated": 0,
+                "success": False, "processedCount": 0, "emailsCreated": 0,
                 "errorsCount": 1,
                 "batchInfo": {
                     "batchId": f"error_batch_{int(datetime.now().timestamp())}",
-                    "queryFilter": request_model.queryFilter,  # Use the original request's query_filter
+                    "queryFilter": request_model.queryFilter,
                     "timestamp": datetime.now().isoformat(),
                 },
                 "statistics": nlp_result.get("statistics", {}),
-                "error": nlp_result.get("error", "Unknown error from NLP service"),
+                "error": nlp_result.get("error", "Unknown NLP error"),
             }
 
         # Background performance monitoring
@@ -88,44 +85,38 @@ async def sync_gmail(
         error_details_dict = {}
         try:
             error_details_dict = json.loads(gmail_err.content.decode())
-        except:  # Broad except for decoding issues
+        except Exception:  # Broad except for decoding issues
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Gmail API operation failed during sync",
-                    "endpoint": str(req.url),  # Use req here
-                    "error_type": type(gmail_err).__name__,
-                    "error_detail": error_details_dict.get("error", {}).get(
-                        "message", str(gmail_err)
-                    ),
-                    "gmail_status_code": (
-                        gmail_err.resp.status if hasattr(gmail_err, "resp") else None
-                    ),
-                    "full_gmail_error": error_details_dict,
-                }
-            )
-        )
-        status_code = gmail_err.resp.status if hasattr(gmail_err, "resp") else 502
+        log_data = {
+            "message": "Gmail API operation failed during sync",
+            "endpoint": str(req.url),
+            "error_type": type(gmail_err).__name__,
+            "error_detail": error_details_dict.get("error", {}).get(
+                "message", str(gmail_err)
+            ),
+            "gmail_status_code": getattr(gmail_err.resp, 'status', None),
+            "full_gmail_error": error_details_dict,
+        }
+        logger.error(json.dumps(log_data))
+
+        status_code = getattr(gmail_err.resp, 'status', 502)
         detail = "Gmail API error during sync."
-        if status_code == 401:  # Unauthorized
-            detail = "Gmail API authentication failed. Check credentials or token."
-        elif status_code == 403:  # Forbidden
-            detail = "Gmail API permission denied. Ensure API is enabled and scopes are correct."
-        elif status_code == 429:  # Too Many Requests
-            detail = "Gmail API rate limit exceeded. Please try again later."
-        else:  # Other errors (500, 502, 503, etc.)
-            status_code = 502  # Treat as Bad Gateway from Gmail
-            detail = "Gmail API returned an unexpected error. Please try again later."
+        if status_code == 401:
+            detail = "Gmail API authentication failed. Check credentials."
+        elif status_code == 403:
+            detail = "Gmail API permission denied. Check API scopes."
+        elif status_code == 429:
+            detail = "Gmail API rate limit exceeded. Try again later."
+        else:
+            status_code = 502
+            detail = "Gmail API returned an unexpected error. Try again."
 
         raise HTTPException(status_code=status_code, detail=detail)
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in sync_gmail",
-                    "endpoint": str(req.url),  # Use req here
+        log_data = {
+            "message": "Unhandled error in sync_gmail",
+            "endpoint": str(req.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
@@ -154,44 +145,38 @@ async def smart_retrieval(
         error_details_dict = {}
         try:
             error_details_dict = json.loads(gmail_err.content.decode())
-        except:  # Broad except for decoding issues
+        except Exception:  # Broad except for decoding issues
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Gmail API operation failed during smart retrieval",
-                    "endpoint": str(req.url),  # Use req here
-                    "error_type": type(gmail_err).__name__,
-                    "error_detail": error_details_dict.get("error", {}).get(
-                        "message", str(gmail_err)
-                    ),
-                    "gmail_status_code": (
-                        gmail_err.resp.status if hasattr(gmail_err, "resp") else None
-                    ),
-                    "full_gmail_error": error_details_dict,
-                }
-            )
-        )
-        status_code = gmail_err.resp.status if hasattr(gmail_err, "resp") else 502
+        log_data = {
+            "message": "Gmail API operation failed during smart retrieval",
+            "endpoint": str(req.url),
+            "error_type": type(gmail_err).__name__,
+            "error_detail": error_details_dict.get("error", {}).get(
+                "message", str(gmail_err)
+            ),
+            "gmail_status_code": getattr(gmail_err.resp, 'status', None),
+            "full_gmail_error": error_details_dict,
+        }
+        logger.error(json.dumps(log_data))
+
+        status_code = getattr(gmail_err.resp, 'status', 502)
         detail = "Gmail API error during smart retrieval."
-        if status_code == 401:  # Unauthorized
-            detail = "Gmail API authentication failed. Check credentials or token."
-        elif status_code == 403:  # Forbidden
-            detail = "Gmail API permission denied. Ensure API is enabled and scopes are correct."
-        elif status_code == 429:  # Too Many Requests
-            detail = "Gmail API rate limit exceeded. Please try again later."
-        else:  # Other errors
-            status_code = 502  # Treat as Bad Gateway
-            detail = "Gmail API returned an unexpected error during smart retrieval."
+        if status_code == 401:
+            detail = "Gmail API authentication failed. Check credentials."
+        elif status_code == 403:
+            detail = "Gmail API permission denied. Check API scopes."
+        elif status_code == 429:
+            detail = "Gmail API rate limit exceeded. Try again later."
+        else:
+            status_code = 502
+            detail = "Gmail API returned an unexpected error for smart retrieval."
 
         raise HTTPException(status_code=status_code, detail=detail)
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in smart_retrieval",
-                    "endpoint": str(req.url),  # Use req here
+        log_data = {
+            "message": "Unhandled error in smart_retrieval",
+            "endpoint": str(req.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
@@ -211,10 +196,8 @@ async def get_retrieval_strategies(request: Request):
         strategies = await gmail_service.get_retrieval_strategies()
         return {"strategies": strategies}
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in get_retrieval_strategies",
+        log_data = {
+            "message": "Unhandled error in get_retrieval_strategies",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
@@ -232,10 +215,8 @@ async def get_gmail_performance(request: Request):
         metrics = await gmail_service.get_performance_metrics()
         return metrics or {"status": "no_data"}
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in get_gmail_performance",
+        log_data = {
+            "message": "Unhandled error in get_gmail_performance",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),

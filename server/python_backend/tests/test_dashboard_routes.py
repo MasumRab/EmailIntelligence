@@ -112,5 +112,3 @@ def test_get_performance_overview_error(client_dashboard):
     response = client_dashboard.get("/api/performance/overview")
     assert response.status_code == 500
     assert response.json()["detail"] == "Failed to fetch performance data"
-
-[end of server/python_backend/tests/test_dashboard_routes.py]
