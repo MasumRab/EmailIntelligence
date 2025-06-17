@@ -16,9 +16,6 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-# Import environment manager
-from deployment.env_manager import env_manager
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -28,6 +25,13 @@ logger = logging.getLogger("test-stages")
 # Project root directory
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
+# Add project root to sys.path to allow sibling imports when run directly
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+# Import environment manager
+from deployment.setup_env import setup_python_environment
+
 
 class TestStages:
     """Manages testing for different stages of the application."""
@@ -35,18 +39,17 @@ class TestStages:
     def __init__(self, root_dir: Path = ROOT_DIR):
         """Initialize the test stages manager."""
         self.root_dir = root_dir
-        self.env_manager = env_manager
 
     def run_unit_tests(self, coverage: bool = False, verbose: bool = False) -> bool:
         """Run unit tests."""
         logger.info("Running unit tests...")
 
         # Ensure test dependencies are installed
-        if not self.env_manager.setup_environment_for_stage("test"):
+        if not setup_python_environment(dev_mode=True):
             return False
 
         # Build command
-        python = self.env_manager.get_python_executable()
+        python = sys.executable
         cmd = [python, "-m", "pytest", "tests/"]
 
         if coverage:
@@ -69,11 +72,11 @@ class TestStages:
         logger.info("Running integration tests...")
 
         # Ensure test dependencies are installed
-        if not self.env_manager.setup_environment_for_stage("test"):
+        if not setup_python_environment(dev_mode=True):
             return False
 
         # Build command
-        python = self.env_manager.get_python_executable()
+        python = sys.executable
         cmd = [python, "-m", "pytest", "tests/integration/"]
 
         if coverage:
@@ -96,11 +99,11 @@ class TestStages:
         logger.info("Running end-to-end tests...")
 
         # Ensure test dependencies are installed
-        if not self.env_manager.setup_environment_for_stage("test"):
+        if not setup_python_environment(dev_mode=True):
             return False
 
         # Check if Playwright is installed
-        python = self.env_manager.get_python_executable()
+        python = sys.executable
         try:
             subprocess.check_call([python, "-c", "import playwright"])
         except subprocess.CalledProcessError:
@@ -135,11 +138,11 @@ class TestStages:
         logger.info("Running API tests...")
 
         # Ensure test dependencies are installed
-        if not self.env_manager.setup_environment_for_stage("test"):
+        if not setup_python_environment(dev_mode=True):
             return False
 
         # Build command
-        python = self.env_manager.get_python_executable()
+        python = sys.executable
         cmd = [python, "-m", "pytest", "tests/api/"]
 
         if verbose:
@@ -161,11 +164,11 @@ class TestStages:
         logger.info(f"Running performance tests with {users} users for {duration} seconds...")
 
         # Ensure test dependencies are installed
-        if not self.env_manager.setup_environment_for_stage("test"):
+        if not setup_python_environment(dev_mode=True):
             return False
 
         # Check if Locust is installed
-        python = self.env_manager.get_python_executable()
+        python = sys.executable
         try:
             subprocess.check_call([python, "-c", "import locust"])
         except subprocess.CalledProcessError:
@@ -213,11 +216,11 @@ class TestStages:
         logger.info(f"Running security tests against {target}...")
 
         # Ensure test dependencies are installed
-        if not self.env_manager.setup_environment_for_stage("test"):
+        if not setup_python_environment(dev_mode=True):
             return False
 
         # Check if OWASP ZAP is installed
-        python = self.env_manager.get_python_executable()
+        python = sys.executable
         try:
             subprocess.check_call([python, "-c", "import zapv2"])
         except subprocess.CalledProcessError:
