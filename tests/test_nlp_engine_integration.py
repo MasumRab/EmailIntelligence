@@ -1,7 +1,6 @@
 import json
 import unittest
-from unittest.mock import (  # Import MagicMock for AdvancedAIEngine test
-    MagicMock, patch)
+from unittest.mock import MagicMock, patch  # Import MagicMock for AdvancedAIEngine test
 
 from server.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
 from server.python_nlp.nlp_engine import NLPEngine
@@ -38,14 +37,9 @@ class TestNLPEngineIntegration(unittest.TestCase):
             # Check if one of the expected actions is present
             phrases = [item["action_phrase"] for item in analysis["action_items"]]
             self.assertTrue(
-                any(
-                    "Please complete the task by Monday." in phrase
-                    for phrase in phrases
-                )
+                any("Please complete the task by Monday." in phrase for phrase in phrases)
             )
-            self.assertTrue(
-                any("need to also review the report." in phrase for phrase in phrases)
-            )
+            self.assertTrue(any("need to also review the report." in phrase for phrase in phrases))
 
     def test_nlp_engine_fallback_analysis_includes_empty_action_items(self):
         # Test _get_fallback_analysis
@@ -54,16 +48,12 @@ class TestNLPEngineIntegration(unittest.TestCase):
         self.assertEqual(fallback_result["action_items"], [])
 
         # Test _get_simple_fallback_analysis
-        simple_fallback_result = self.nlp_engine._get_simple_fallback_analysis(
-            "Subject", "Content"
-        )
+        simple_fallback_result = self.nlp_engine._get_simple_fallback_analysis("Subject", "Content")
         self.assertIn("action_items", simple_fallback_result)
         self.assertEqual(simple_fallback_result["action_items"], [])
 
     @patch("server.python_backend.ai_engine._execute_async_command")
-    async def test_advanced_ai_engine_analyze_email_parses_action_items(
-        self, mock_execute_async
-    ):
+    async def test_advanced_ai_engine_analyze_email_parses_action_items(self, mock_execute_async):
         # Mock the output of the nlp_engine.py script
         mock_script_output = {
             "topic": "work_business",
@@ -108,9 +98,7 @@ class TestNLPEngineIntegration(unittest.TestCase):
         self.assertEqual(len(ai_result.action_items), 1)
 
         action_item = ai_result.action_items[0]
-        self.assertEqual(
-            action_item["action_phrase"], "Please complete the task by Monday."
-        )
+        self.assertEqual(action_item["action_phrase"], "Please complete the task by Monday.")
         self.assertEqual(action_item["verb"], "complete")
         self.assertEqual(action_item["raw_due_date_text"], "by Monday")
 

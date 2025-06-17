@@ -9,8 +9,7 @@ from unittest.mock import MagicMock, mock_open, patch
 # Adjust path to import module from parent directory
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from server.python_nlp.smart_filters import (EmailFilter, FilterPerformance,
-                                             SmartFilterManager)
+from server.python_nlp.smart_filters import EmailFilter, FilterPerformance, SmartFilterManager
 
 
 class TestSmartFilterManager(unittest.TestCase):
@@ -73,21 +72,13 @@ class TestSmartFilterManager(unittest.TestCase):
             # Use an internal, low-level query method of the manager if available,
             # or a high-level one that would fail if tables don't exist.
             # Example: try to load a non-existent filter; it should return None, not raise "no such table".
-            loaded_filter = self.manager._load_filter(
-                "non_existent_filter_id_for_init_test"
-            )
-            self.assertIsNone(
-                loaded_filter, "Loading a non-existent filter should return None."
-            )
+            loaded_filter = self.manager._load_filter("non_existent_filter_id_for_init_test")
+            self.assertIsNone(loaded_filter, "Loading a non-existent filter should return None.")
 
             # Additionally, check for other tables if necessary by a simple count or query
-            perf_records = self.manager._db_fetchall(
-                "SELECT * FROM filter_performance WHERE 1=0"
-            )
+            perf_records = self.manager._db_fetchall("SELECT * FROM filter_performance WHERE 1=0")
             self.assertEqual(len(perf_records), 0)
-            script_records = self.manager._db_fetchall(
-                "SELECT * FROM google_scripts WHERE 1=0"
-            )
+            script_records = self.manager._db_fetchall("SELECT * FROM google_scripts WHERE 1=0")
             self.assertEqual(len(script_records), 0)
 
         except sqlite3.OperationalError as e:
@@ -114,9 +105,7 @@ class TestSmartFilterManager(unittest.TestCase):
         loaded_filter = self.manager._load_filter("test_filter_001")
         self.assertIsNotNone(loaded_filter)
         self.assertEqual(loaded_filter.name, "Test Filter")
-        self.assertEqual(
-            loaded_filter.criteria["subject_keywords"], ["test", "example"]
-        )
+        self.assertEqual(loaded_filter.criteria["subject_keywords"], ["test", "example"])
 
     def test_load_all_filters(self):
         """Test loading all filters (initially empty, then after adding some)."""
@@ -148,9 +137,7 @@ class TestSmartFilterManager(unittest.TestCase):
         # and create a new _load_active_filters for clarity.
         # For now, assuming _load_all_filters fetches everything and test logic should reflect this.
 
-        all_db_filters = (
-            self.manager._load_all_filters()
-        )  # This loads all, active or not
+        all_db_filters = self.manager._load_all_filters()  # This loads all, active or not
         self.assertEqual(len(all_db_filters), 2)  # Still 2 in DB
 
         is_f1_active = self.manager._is_filter_active_in_db("f1")
@@ -181,9 +168,7 @@ class TestSmartFilterManager(unittest.TestCase):
         self.assertTrue(self.manager._apply_filter_to_email(filter_obj, email_match))
 
         email_no_match1 = {"subject": "Project report needed"}  # Missing urgent
-        self.assertFalse(
-            self.manager._apply_filter_to_email(filter_obj, email_no_match1)
-        )
+        self.assertFalse(self.manager._apply_filter_to_email(filter_obj, email_no_match1))
 
         filter_criteria_or = {
             "subject_keywords": ["urgent", "report"],
@@ -204,9 +189,7 @@ class TestSmartFilterManager(unittest.TestCase):
             0,
             {},
         )
-        self.assertTrue(
-            self.manager._apply_filter_to_email(filter_obj_or, email_no_match1)
-        )
+        self.assertTrue(self.manager._apply_filter_to_email(filter_obj_or, email_no_match1))
 
     def test_apply_filter_to_email_from_pattern(self):
         """Test _apply_filter_to_email for sender pattern matching."""
@@ -230,9 +213,7 @@ class TestSmartFilterManager(unittest.TestCase):
         self.assertTrue(self.manager._apply_filter_to_email(filter_obj, email_match))
 
         email_no_match = {"senderEmail": "user@external.com"}
-        self.assertFalse(
-            self.manager._apply_filter_to_email(filter_obj, email_no_match)
-        )
+        self.assertFalse(self.manager._apply_filter_to_email(filter_obj, email_no_match))
 
     def test_apply_filter_to_email_exclusion(self):
         """Test _apply_filter_to_email for exclusion patterns."""
@@ -262,17 +243,13 @@ class TestSmartFilterManager(unittest.TestCase):
         self.assertTrue(self.manager._apply_filter_to_email(filter_obj, email_match))
 
         email_no_match_subject = {"subject": "Newsletter update"}  # Excluded by subject
-        self.assertFalse(
-            self.manager._apply_filter_to_email(filter_obj, email_no_match_subject)
-        )
+        self.assertFalse(self.manager._apply_filter_to_email(filter_obj, email_no_match_subject))
 
         email_no_match_content = {
             "subject": "System update",
             "content": "This is an automated message.",
         }  # Excluded by content
-        self.assertFalse(
-            self.manager._apply_filter_to_email(filter_obj, email_no_match_content)
-        )
+        self.assertFalse(self.manager._apply_filter_to_email(filter_obj, email_no_match_content))
 
     def test_create_intelligent_filters(self):
         """Test creation of intelligent filters from email samples."""
@@ -281,9 +258,7 @@ class TestSmartFilterManager(unittest.TestCase):
 
         # Mock _should_create_filter to True for specific templates to ensure they are created
         with patch.object(self.manager, "_should_create_filter", return_value=True):
-            created_filters = self.manager.create_intelligent_filters(
-                self.sample_emails
-            )
+            created_filters = self.manager.create_intelligent_filters(self.sample_emails)
 
         self.assertGreater(len(created_filters), 0)
         # Check if filters were saved by trying to load one
@@ -317,9 +292,7 @@ class TestSmartFilterManager(unittest.TestCase):
         # Email1: subject "Urgent: Project Alpha Deadline", expected_filter_match = True
         # Email2: subject "Weekly Newsletter...", expected_filter_match = False
 
-        performance = self.manager.evaluate_filter_performance(
-            "perf_test_001", self.sample_emails
-        )
+        performance = self.manager.evaluate_filter_performance("perf_test_001", self.sample_emails)
 
         self.assertEqual(performance.filter_id, "perf_test_001")
         self.assertEqual(performance.emails_processed, len(self.sample_emails))
@@ -377,9 +350,7 @@ class TestSmartFilterManager(unittest.TestCase):
         self.assertAlmostEqual(performance.f1_score, 1.5 / 1.75)
 
         loaded_filter = self.manager._load_filter("perf_test_001")
-        self.assertAlmostEqual(
-            loaded_filter.effectiveness_score, 1.5 / 1.75
-        )  # F1 score
+        self.assertAlmostEqual(loaded_filter.effectiveness_score, 1.5 / 1.75)  # F1 score
         # FP Rate = FP / (FP+TN) if defining by specificity, or FP / Total. Here, it's FP/Total.
         # FP Rate = FP / Total emails = 0 / 5 = 0
         self.assertAlmostEqual(loaded_filter.false_positive_rate, 0)
@@ -459,9 +430,7 @@ class TestSmartFilterManager(unittest.TestCase):
         results = self.manager.prune_ineffective_filters()
         self.assertEqual(len(results["disabled_filters"]), 1)
         self.assertEqual(results["disabled_filters"][0]["filter_id"], fid)
-        self.assertFalse(
-            self.manager._is_filter_active_in_db(fid)
-        )  # Check it's marked inactive
+        self.assertFalse(self.manager._is_filter_active_in_db(fid))  # Check it's marked inactive
         self.assertIsNotNone(self.manager._load_filter(fid))  # Still exists
 
     @patch("server.python_nlp.smart_filters.SmartFilterManager._get_filter_performance")
