@@ -14,14 +14,22 @@ from fastapi.responses import JSONResponse
 
 # Updated import to use NLP GmailAIService directly
 from server.python_nlp.gmail_service import GmailAIService
+
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from server.python_nlp.smart_filters import SmartFilterManager
 
+from . import (
+    action_routes,
+    category_routes,
+    dashboard_routes,
+    email_routes,
+    filter_routes,
+    gmail_routes,
+)
 from .ai_engine import AdvancedAIEngine
+
 # Import our Python modules
 from .performance_monitor import PerformanceMonitor
-from . import (action_routes, category_routes, dashboard_routes, email_routes,
-               filter_routes, gmail_routes)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -64,9 +72,7 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
-performance_monitor = (
-    PerformanceMonitor()
-)  # Used by all routes via @performance_monitor.track
+performance_monitor = PerformanceMonitor()  # Used by all routes via @performance_monitor.track
 
 # Include routers in the app
 app.include_router(email_routes.router)
@@ -92,9 +98,7 @@ async def health_check(request: Request):
             "timestamp": datetime.now().isoformat(),
             "version": "2.0.0",
         }
-    except (
-        Exception
-    ) as e:  # This generic exception is fine for health check's own error
+    except Exception as e:  # This generic exception is fine for health check's own error
         logger.error(  # Simple log for health check itself
             json.dumps(
                 {

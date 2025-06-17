@@ -6,7 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 # Corrected import path for SmartFilterManager
 from server.python_nlp.smart_filters import (  # Assuming EmailFilter is needed for response model
-    EmailFilter, SmartFilterManager)
+    EmailFilter,
+    SmartFilterManager,
+)
 
 from .database import DatabaseManager, get_db
 from .models import FilterRequest  # Models are imported from .models
@@ -44,9 +46,7 @@ async def get_filters(request: Request):
 
 @router.post("/api/filters", response_model=EmailFilter)
 @performance_monitor.track
-async def create_filter(
-    request: Request, filter_request_model: FilterRequest
-):
+async def create_filter(request: Request, filter_request_model: FilterRequest):
     """Create new email filter"""
     try:
         description = filter_request_model.criteria.get("description", "")
@@ -73,9 +73,7 @@ async def create_filter(
 
 @router.post("/api/filters/generate-intelligent")
 @performance_monitor.track
-async def generate_intelligent_filters(
-    request: Request, db: DatabaseManager = Depends(get_db)
-):
+async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
     """Generate intelligent filters based on email patterns."""
     try:
         emails = await db.get_recent_emails(limit=1000)
