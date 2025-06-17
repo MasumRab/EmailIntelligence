@@ -145,6 +145,10 @@ def main():
     if not env_specific_file or not env_specific_file.exists():
         logger.error(f"Environment-specific Docker Compose file not found: {env_specific_file}")
         sys.exit(1)
+    else:
+        logger.error(f"Unknown environment: {args.environment}")
+        success = False
+
 
     # Pass remaining_args to docker_environment only if command is 'test'
     success = docker_environment(
@@ -153,10 +157,6 @@ def main():
         str(env_specific_file),
         remaining_args=(remaining_args if args.command == "test" else [])
     )
-    else:
-        logger.error(f"Unknown environment: {args.environment}")
-        success = False
-
     # Exit with appropriate status code
     sys.exit(0 if success else 1)
 
