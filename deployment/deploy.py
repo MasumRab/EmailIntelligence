@@ -113,7 +113,7 @@ def docker_environment(command, base_compose_file, env_compose_file, remaining_a
 def main():
     """Main entry point for the deployment script."""
     parser = argparse.ArgumentParser(description="Deployment Script for EmailIntelligence")
-    parser.add_argument("environment", choices=["dev", "staging", "prod"], help="Deployment environment")
+    parser.add_argument("environment", choices=["local", "dev", "staging", "prod"], help="Deployment environment")
     parser.add_argument("command", help="Command to execute: up, down, build, logs, status, test, migrate, backup, restore. For 'test', pass script arguments after the command, e.g., 'test -- --unit'.")
     # For the 'test' command, we might have additional arguments for run_tests.py
     # We parse known args first to separate deploy.py args from script args
@@ -127,37 +127,49 @@ def main():
 
     # Set up environment variables
     os.environ["PROJECT_ROOT"] = str(PROJECT_ROOT)
+    success = False # Initialize success
 
-    deployment_dir = PROJECT_ROOT / "deployment"
-    base_file = deployment_dir / BASE_COMPOSE_FILE
+    if args.environment == "local":
+        if args.command == "migrate":
+            # Assuming migrate.py is in the same directory as deploy.py, or adjust path if needed.
+            # The migrate.py script itself seems to use PROJECT_ROOT correctly.
+            migrate_script_path = PROJECT_ROOT / "deployment" / "migrate.py"
+            success = run_command(f"python {migrate_script_path} apply")
+        else:
+            logger.info(f"Command '{args.command}' is not applicable for the local environment or is not yet implemented. Only 'migrate' is supported.")
+            # Set success to True because the script ran as expected for local, even if the command isn't implemented.
+            # Or False if we want to indicate that the specific command didn't achieve anything. Let's use True and rely on the log.
+            success = True
+    elif args.environment in ["dev", "staging", "prod"]:
+        deployment_dir = PROJECT_ROOT / "deployment"
+        base_file = deployment_dir / BASE_COMPOSE_FILE
+        env_specific_file = None
 
-    env_specific_file = None
-    if args.environment == "dev":
-        env_specific_file = deployment_dir / DEV_COMPOSE_FILE
-    elif args.environment == "staging":
-        env_specific_file = deployment_dir / STAG_COMPOSE_FILE
-    elif args.environment == "prod":
-        env_specific_file = deployment_dir / PROD_COMPOSE_FILE
+        if args.environment == "dev":
+            env_specific_file = deployment_dir / DEV_COMPOSE_FILE
+        elif args.environment == "staging":
+            env_specific_file = deployment_dir / STAG_COMPOSE_FILE
+        elif args.environment == "prod":
+            env_specific_file = deployment_dir / PROD_COMPOSE_FILE
 
-    if not base_file.exists():
-        logger.error(f"Base Docker Compose file not found: {base_file}")
-        sys.exit(1)
-    if not env_specific_file or not env_specific_file.exists():
-        logger.error(f"Environment-specific Docker Compose file not found: {env_specific_file}")
-        sys.exit(1)
+        if not base_file.exists():
+            logger.error(f"Base Docker Compose file not found: {base_file}")
+            sys.exit(1) # Critical error, exit
+        if not env_specific_file or not env_specific_file.exists():
+            logger.error(f"Environment-specific Docker Compose file not found for {args.environment}: {env_specific_file}")
+            sys.exit(1) # Critical error, exit
 
-    # Pass remaining_args to docker_environment only if command is 'test'
-    success = docker_environment(
-        args.command,
-        str(base_file),
-        str(env_specific_file),
-        remaining_args=(remaining_args if args.command == "test" else [])
-    )
+        success = docker_environment(
+            args.command,
+            str(base_file),
+            str(env_specific_file),
+            remaining_args=(remaining_args if args.command == "test" else [])
+        )
     else:
+        # This case should ideally not be reached if choices are correctly defined in argparser
         logger.error(f"Unknown environment: {args.environment}")
         success = False
 
-    # Exit with appropriate status code
     sys.exit(0 if success else 1)
 
 if __name__ == "__main__":
