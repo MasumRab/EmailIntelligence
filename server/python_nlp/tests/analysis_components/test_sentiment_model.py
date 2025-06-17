@@ -1,11 +1,12 @@
+import logging
 import unittest
 from unittest.mock import MagicMock, patch
-import logging
 
 # Ensure imports work from the test directory context.
 # This might mean setting PYTHONPATH or using relative imports carefully.
 # Assuming tests are run from a level where 'server' is a package.
-from server.python_nlp.analysis_components.sentiment_model import SentimentModel
+from server.python_nlp.analysis_components.sentiment_model import \
+    SentimentModel
 
 # Suppress logging for tests if not needed
 logging.disable(logging.CRITICAL)
