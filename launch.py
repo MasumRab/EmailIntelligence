@@ -72,9 +72,7 @@ def _handle_sigint(signum, frame):
             try:
                 p.wait(timeout=5)
             except subprocess.TimeoutExpired:
-                logger.warning(
-                    f"Process {p.pid} did not terminate gracefully, killing."
-                )
+                logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                 p.kill()
 
     global ngrok_tunnel
@@ -88,9 +86,7 @@ def _handle_sigint(signum, frame):
             logger.info("Ngrok tunnel closed.")
             ngrok_tunnel = None
         except ImportError:
-            logger.warning(
-                "pyngrok is not installed, cannot manage ngrok tunnel shutdown."
-            )
+            logger.warning("pyngrok is not installed, cannot manage ngrok tunnel shutdown.")
         except Exception as e:
             logger.error(f"Error shutting down ngrok: {e}")
 
@@ -125,9 +121,7 @@ def check_python_version() -> bool:
     """Check if the Python version is supported."""
     current_version = sys.version_info[:2]
     if current_version < PYTHON_MIN_VERSION:
-        logger.error(
-            f"Python {'.'.join(map(str, PYTHON_MIN_VERSION))} or higher is required"
-        )
+        logger.error(f"Python {'.'.join(map(str, PYTHON_MIN_VERSION))} or higher is required")
         return False
     if current_version > PYTHON_MAX_VERSION:
         logger.warning(
@@ -172,9 +166,7 @@ def get_python_executable() -> str:
     return sys.executable
 
 
-def install_requirements_from_file(
-    requirements_file_path_str: str, update: bool = False
-) -> bool:
+def install_requirements_from_file(requirements_file_path_str: str, update: bool = False) -> bool:
     """Install or update requirements from a file.
     requirements_file_path_str is relative to ROOT_DIR.
     """
@@ -225,9 +217,7 @@ def check_torch_cuda() -> bool:
             check=True,
         )
         is_available = result.stdout.strip() == "True"
-        logger.info(
-            f"PyTorch CUDA is {'available' if is_available else 'not available'}"
-        )
+        logger.info(f"PyTorch CUDA is {'available' if is_available else 'not available'}")
         return is_available
     except subprocess.CalledProcessError:
         logger.warning("Failed to check PyTorch CUDA availability")
@@ -240,9 +230,7 @@ def reinstall_torch() -> bool:
 
     # Uninstall existing PyTorch
     logger.info("Uninstalling existing PyTorch...")
-    subprocess.run(
-        [python, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"]
-    )
+    subprocess.run([python, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"])
 
     # Install PyTorch with CUDA support
     logger.info("Installing PyTorch with CUDA support...")
@@ -274,9 +262,7 @@ def download_nltk_data() -> bool:
         logger.info("NLTK data download process completed.")
         if result.stdout:
             logger.debug(f"NLTK download stdout:\n{result.stdout}")
-        if (
-            result.stderr
-        ):  # NLTK often prints to stderr even on success for some messages
+        if result.stderr:  # NLTK often prints to stderr even on success for some messages
             logger.debug(
                 f"NLTK download stderr:\n{result.stderr}"
             )  # Use debug for potentially noisy stderr
@@ -332,9 +318,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
 
             venv_python_exe_path = ""
             if os.name == "nt":
-                venv_python_exe_path = str(
-                    ROOT_DIR / VENV_DIR / "Scripts" / "python.exe"
-                )
+                venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
             else:
                 venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "bin" / "python")
 
@@ -406,10 +390,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                             venv_minor = int(parts[1])
 
                             target_major, target_minor = PYTHON_MIN_VERSION
-                            if not (
-                                venv_major == target_major
-                                and venv_minor == target_minor
-                            ):
+                            if not (venv_major == target_major and venv_minor == target_minor):
                                 logger.warning(
                                     f"WARNING: The existing virtual environment at './{VENV_DIR}' was created with Python {venv_major}.{venv_minor}. "
                                     f"This project requires Python {target_major}.{target_minor}."
@@ -444,9 +425,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                         )
                                         return False
 
-                                    if (
-                                        not create_venv()
-                                    ):  # create_venv logs success/failure
+                                    if not create_venv():  # create_venv logs success/failure
                                         logger.error(
                                             "Failed to recreate virtual environment. Exiting."
                                         )
@@ -512,9 +491,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
             logger.info(
                 f"Updating base dependencies from {Path(primary_req_file).name} in existing venv as per --update-deps..."
             )
-            if not install_dependencies(
-                primary_req_file, update=True
-            ):  # Force update True
+            if not install_dependencies(primary_req_file, update=True):  # Force update True
                 logger.error(
                     f"Failed to update base dependencies from {Path(primary_req_file).name}. Exiting."
                 )
@@ -529,9 +506,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
 
         # Handle stage-specific requirements
         # This logic should run if venv was newly set up, or if args.update_deps is true for existing venv
-        stage_requirements_file_path_str = (
-            None  # Use full path string for install_dependencies
-        )
+        stage_requirements_file_path_str = None  # Use full path string for install_dependencies
         if args.stage == "dev":
             dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
             if dev_req_path_obj.exists():
@@ -597,9 +572,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                     "PyTorch CUDA not found. Reinstalling PyTorch with CUDA support as requested."
                 )
                 if not reinstall_torch():
-                    logger.error(
-                        "Failed to reinstall PyTorch with CUDA. Please check manually."
-                    )
+                    logger.error("Failed to reinstall PyTorch with CUDA. Please check manually.")
             else:
                 logger.warning(
                     "PyTorch CUDA is not available. Use --reinstall-torch to attempt reinstallation, or --skip-torch-cuda-test to ignore."
@@ -616,9 +589,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
     if not args.skip_extensions:
         from deployment.extensions import extensions_manager
 
-        extensions_manager.set_python_executable(
-            python_executable
-        )  # Set python executable
+        extensions_manager.set_python_executable(python_executable)  # Set python executable
         if not extensions_manager.load_extensions():
             logger.error("Failed to load one or more extensions.")
             return False
@@ -639,9 +610,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 logger.info(
                     "Development stage: Skipping download of default models. Placeholders will be used/created."
                 )
-            elif (
-                not models_manager.download_default_models()
-            ):  # Original logic for non-dev stages
+            elif not models_manager.download_default_models():  # Original logic for non-dev stages
                 logger.error("Failed to download default models.")
                 # Logged error, but will proceed to create_placeholder_nlp_models anyway
 
@@ -655,9 +624,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
     return True
 
 
-def start_backend(
-    args: argparse.Namespace, python_executable: str
-) -> Optional[subprocess.Popen]:
+def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[subprocess.Popen]:
     """Starts the backend server."""
     actual_host = "0.0.0.0" if args.listen else args.host
     logger.info(f"Starting backend server on {actual_host}:{args.port}...")
@@ -687,15 +654,11 @@ def start_backend(
         # Log the command with the actual host
         log_cmd = cmd[:]
         if args.listen:  # For logging, show the original intention if --listen was used
-            log_cmd[log_cmd.index(actual_host)] = (
-                f"{args.host} (via --listen on 0.0.0.0)"
-            )
+            log_cmd[log_cmd.index(actual_host)] = f"{args.host} (via --listen on 0.0.0.0)"
         logger.info(f"Running backend command: {' '.join(log_cmd)}")
         process = subprocess.Popen(cmd, env=env)
         processes.append(process)  # Add to global list
-        logger.info(
-            f"Backend server started with PID {process.pid} on {actual_host}:{args.port}."
-        )
+        logger.info(f"Backend server started with PID {process.pid} on {actual_host}:{args.port}.")
         return process
     except FileNotFoundError:
         logger.error(
@@ -720,9 +683,7 @@ def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
             ["node", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
-        logger.error(
-            "Node.js is not installed or not found in PATH. Cannot start frontend."
-        )
+        logger.error("Node.js is not installed or not found in PATH. Cannot start frontend.")
         return None
 
     client_dir = ROOT_DIR / "client"
@@ -755,24 +716,18 @@ def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
                 check=False,  # check=False to handle errors manually
             )
             if install_result.returncode != 0:
-                logger.error(
-                    f"Failed to install frontend dependencies in {client_dir}."
-                )
+                logger.error(f"Failed to install frontend dependencies in {client_dir}.")
                 logger.error(f"npm stdout:\n{install_result.stdout}")
                 logger.error(f"npm stderr:\n{install_result.stderr}")
                 # Optionally, decide if this is a fatal error for frontend launch
                 # For now, log and attempt to continue, Vite might still run if some deps are missing but core is there.
             else:
-                logger.info(
-                    f"Frontend dependencies installed successfully in {client_dir}."
-                )
+                logger.info(f"Frontend dependencies installed successfully in {client_dir}.")
         except Exception as e:
             logger.error(f"Error running npm install in {client_dir}: {e}")
             # Decide how to handle this, for now, attempt to continue
     else:
-        logger.warning(
-            f"No package.json found in {client_dir}. Skipping npm install for frontend."
-        )
+        logger.warning(f"No package.json found in {client_dir}. Skipping npm install for frontend.")
         # This would likely lead to `npm run dev` failing, but the check is here.
 
     cmd = [
@@ -791,9 +746,7 @@ def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
     env["NODE_ENV"] = "development"  # Or args.stage if relevant for frontend build
 
     try:
-        logger.info(
-            f"Running frontend command: {' '.join(cmd)} in {str(ROOT_DIR / 'client')}"
-        )
+        logger.info(f"Running frontend command: {' '.join(cmd)} in {str(ROOT_DIR / 'client')}")
         process = subprocess.Popen(cmd, cwd=str(ROOT_DIR / "client"), env=env)
         processes.append(process)  # Add to global list
         logger.info(f"Frontend server started with PID {process.pid}.")
@@ -830,9 +783,7 @@ def run_application(args: argparse.Namespace) -> int:
 
             # Assuming backend port (args.port) is the one to share
             ngrok_tunnel = ngrok.connect(args.port)
-            logger.info(
-                f"Ngrok tunnel established. Public URL: {ngrok_tunnel.public_url}"
-            )
+            logger.info(f"Ngrok tunnel established. Public URL: {ngrok_tunnel.public_url}")
             logger.info(
                 "Note: If you have a free ngrok account, you might be limited to one tunnel at a time."
             )
@@ -863,14 +814,10 @@ def run_application(args: argparse.Namespace) -> int:
     if args.env_file:
         env_file_path = ROOT_DIR / args.env_file
         if env_file_path.exists():
-            logger.info(
-                f"Loading environment variables from custom .env file: {env_file_path}"
-            )
+            logger.info(f"Loading environment variables from custom .env file: {env_file_path}")
             load_dotenv(dotenv_path=env_file_path, override=True)
         else:
-            logger.warning(
-                f"Specified env file {args.env_file} not found at {env_file_path}"
-            )
+            logger.warning(f"Specified env file {args.env_file} not found at {env_file_path}")
 
     if args.api_only:
         logger.info("Running in API only mode.")
@@ -908,9 +855,7 @@ def run_application(args: argparse.Namespace) -> int:
             return 1  # Critical failure
 
         if frontend_process:
-            logger.info(
-                f"Frontend accessible at http://{args.host}:{args.frontend_port}"
-            )
+            logger.info(f"Frontend accessible at http://{args.host}:{args.frontend_port}")
         else:
             logger.error("Frontend server failed to start.")
             if backend_process and backend_process.poll() is None:
@@ -924,14 +869,10 @@ def run_application(args: argparse.Namespace) -> int:
                 while True:
                     # Check if either process has exited unexpectedly
                     if backend_process.poll() is not None:
-                        logger.error(
-                            f"Backend process {backend_process.pid} exited unexpectedly."
-                        )
+                        logger.error(f"Backend process {backend_process.pid} exited unexpectedly.")
                         unexpected_exit = True
                         if frontend_process.poll() is None:
-                            logger.info(
-                                f"Terminating frontend process {frontend_process.pid}..."
-                            )
+                            logger.info(f"Terminating frontend process {frontend_process.pid}...")
                             frontend_process.terminate()
                         break
                     if frontend_process.poll() is not None:
@@ -940,23 +881,17 @@ def run_application(args: argparse.Namespace) -> int:
                         )
                         unexpected_exit = True
                         if backend_process.poll() is None:
-                            logger.info(
-                                f"Terminating backend process {backend_process.pid}..."
-                            )
+                            logger.info(f"Terminating backend process {backend_process.pid}...")
                             backend_process.terminate()
                         break
                     time.sleep(1)
-            except (
-                KeyboardInterrupt
-            ):  # This should ideally be caught by the SIGINT handler
+            except KeyboardInterrupt:  # This should ideally be caught by the SIGINT handler
                 logger.info(
                     "KeyboardInterrupt in run_application. Signal handler should take over."
                 )
                 pass  # Signal handler will manage shutdown
             except Exception as e:
-                logger.error(
-                    f"An unexpected error occurred in run_application main loop: {e}"
-                )
+                logger.error(f"An unexpected error occurred in run_application main loop: {e}")
             finally:
                 # Ensure processes are terminated if loop exits for other reasons
                 # _handle_sigint should manage this, but as a fallback:
@@ -976,9 +911,7 @@ def run_application(args: argparse.Namespace) -> int:
             backend_process.wait()
             # If backend exits with an error code, it might be an unexpected exit
             if backend_process.returncode != 0:
-                logger.error(
-                    f"Backend process exited with code: {backend_process.returncode}"
-                )
+                logger.error(f"Backend process exited with code: {backend_process.returncode}")
                 return 1
         # (No case for only frontend, as backend failure would terminate it)
 
@@ -987,8 +920,7 @@ def run_application(args: argparse.Namespace) -> int:
         logger.info(
             f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided."
         )
-        from deployment.test_stages import \
-            test_stages  # Moved import here for locality
+        from deployment.test_stages import test_stages  # Moved import here for locality
 
         test_run_success = True  # Assume success initially
 
@@ -999,9 +931,7 @@ def run_application(args: argparse.Namespace) -> int:
                 test_run_success = False
                 logger.error("Unit tests failed.")
         else:
-            logger.warning(
-                "test_stages.run_unit_tests not found, cannot run unit tests."
-            )
+            logger.warning("test_stages.run_unit_tests not found, cannot run unit tests.")
             # Consider if this should be a failure for the 'test' stage
             # test_run_success = False
 
@@ -1018,9 +948,7 @@ def run_application(args: argparse.Namespace) -> int:
             # Consider if this should be a failure for the 'test' stage
             # test_run_success = False
 
-        logger.info(
-            f"Default test suite execution finished. Success: {test_run_success}"
-        )
+        logger.info(f"Default test suite execution finished. Success: {test_run_success}")
         return 0 if test_run_success else 1
 
     return 0  # Assuming success if processes managed by signal handler or exited cleanly for other stages
@@ -1029,9 +957,7 @@ def run_application(args: argparse.Namespace) -> int:
 def _print_system_info():
     """Prints detailed system information."""
     print("\n--- System Information ---")
-    print(
-        f"Operating System: {platform.system()} {platform.release()} ({platform.version()})"
-    )
+    print(f"Operating System: {platform.system()} {platform.release()} ({platform.version()})")
     print(f"Processor: {platform.processor()}")
     try:
         print(f"CPU Cores: {os.cpu_count()}")
@@ -1076,9 +1002,7 @@ def _print_system_info():
             print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
             check_torch_cuda()  # This will print CUDA availability
         else:
-            print(
-                "PyTorch Version: Not installed or importable with current Python executable."
-            )
+            print("PyTorch Version: Not installed or importable with current Python executable.")
             logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
     except Exception as e:
         print(f"PyTorch Information: Error checking PyTorch - {e}")
@@ -1091,9 +1015,7 @@ def _print_system_info():
         swap_mem = psutil.swap_memory()
         print(f"Total RAM: {virtual_mem.total / (1024**3):.2f} GB")
         print(f"Available RAM: {virtual_mem.available / (1024**3):.2f} GB")
-        print(
-            f"Used RAM: {virtual_mem.used / (1024**3):.2f} GB ({virtual_mem.percent}%)"
-        )
+        print(f"Used RAM: {virtual_mem.used / (1024**3):.2f} GB ({virtual_mem.percent}%)")
         print(f"Total Swap: {swap_mem.total / (1024**3):.2f} GB")
         print(f"Used Swap: {swap_mem.used / (1024**3):.2f} GB ({swap_mem.percent}%)")
     except ImportError:
@@ -1139,9 +1061,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data"
     )
-    parser.add_argument(
-        "--skip-prepare", action="store_true", help="Skip preparation steps"
-    )
+    parser.add_argument("--skip-prepare", action="store_true", help="Skip preparation steps")
 
     # Application stage
     parser.add_argument(
@@ -1170,9 +1090,7 @@ def parse_arguments() -> argparse.Namespace:
         default=5173,
         help="Specify the frontend port to run on (default: 5173)",
     )
-    parser.add_argument(
-        "--api-url", type=str, help="Specify the API URL for the frontend"
-    )
+    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend")
     parser.add_argument(
         "--api-only",
         action="store_true",
@@ -1192,68 +1110,42 @@ def parse_arguments() -> argparse.Namespace:
         help="Generate coverage report when running tests",
     )
     parser.add_argument("--unit", action="store_true", help="Run unit tests")
-    parser.add_argument(
-        "--integration", action="store_true", help="Run integration tests"
-    )
+    parser.add_argument("--integration", action="store_true", help="Run integration tests")
     parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    parser.add_argument(
-        "--performance", action="store_true", help="Run performance tests"
-    )
+    parser.add_argument("--performance", action="store_true", help="Run performance tests")
     parser.add_argument("--security", action="store_true", help="Run security tests")
 
     # Extensions and models
-    parser.add_argument(
-        "--skip-extensions", action="store_true", help="Skip loading extensions"
-    )
-    parser.add_argument(
-        "--skip-models", action="store_true", help="Skip downloading models"
-    )
+    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions")
+    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models")
     parser.add_argument(
         "--install-extension",
         type=str,
         help="Install an extension from a Git repository",
     )
-    parser.add_argument(
-        "--uninstall-extension", type=str, help="Uninstall an extension"
-    )
+    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension")
     parser.add_argument("--update-extension", type=str, help="Update an extension")
-    parser.add_argument(
-        "--list-extensions", action="store_true", help="List all extensions"
-    )
-    parser.add_argument(
-        "--create-extension", type=str, help="Create a new extension template"
-    )
+    parser.add_argument("--list-extensions", action="store_true", help="List all extensions")
+    parser.add_argument("--create-extension", type=str, help="Create a new extension template")
 
     # Model options
-    parser.add_argument(
-        "--download-model", type=str, help="Download a model from a URL"
-    )
-    parser.add_argument(
-        "--model-name", type=str, help="Specify the model name for download"
-    )
+    parser.add_argument("--download-model", type=str, help="Download a model from a URL")
+    parser.add_argument("--model-name", type=str, help="Specify the model name for download")
     parser.add_argument("--list-models", action="store_true", help="List all models")
     parser.add_argument("--delete-model", type=str, help="Delete a model")
 
     # Advanced options
-    parser.add_argument(
-        "--no-half", action="store_true", help="Disable half-precision for models"
-    )
+    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
     parser.add_argument(
         "--force-cpu",
         action="store_true",
         help="Force CPU mode even if GPU is available",
     )
-    parser.add_argument(
-        "--low-memory", action="store_true", help="Enable low memory mode"
-    )
-    parser.add_argument(
-        "--system-info", action="store_true", help="Print system information"
-    )
+    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode")
+    parser.add_argument("--system-info", action="store_true", help="Print system information")
 
     # Networking options
-    parser.add_argument(
-        "--share", action="store_true", help="Create a public URL using ngrok"
-    )
+    parser.add_argument("--share", action="store_true", help="Create a public URL using ngrok")
     parser.add_argument(
         "--listen",
         action="store_true",
@@ -1298,9 +1190,7 @@ def main() -> int:
     # Goal: Ensure launch.py runs with Python 3.11.x
     if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
         current_major, current_minor = sys.version_info[:2]
-        target_major, target_minor = (
-            PYTHON_MIN_VERSION  # Assuming PYTHON_MIN_VERSION is (3, 11)
-        )
+        target_major, target_minor = PYTHON_MIN_VERSION  # Assuming PYTHON_MIN_VERSION is (3, 11)
 
         if not (current_major == target_major and current_minor == target_minor):
             logger.info(
@@ -1365,9 +1255,7 @@ def main() -> int:
                         )
 
             if found_interpreter_path:
-                logger.info(
-                    f"Re-executing launcher with interpreter: {found_interpreter_path}"
-                )
+                logger.info(f"Re-executing launcher with interpreter: {found_interpreter_path}")
                 new_env = os.environ.copy()
                 new_env["LAUNCHER_REEXEC_GUARD"] = "1"
 
@@ -1388,9 +1276,7 @@ def main() -> int:
                     os.execve(found_interpreter_path, args_for_exec, new_env)
                     # os.execve does not return if successful
                 except Exception as e:
-                    logger.error(
-                        f"Failed to re-execute with {found_interpreter_path}: {e}"
-                    )
+                    logger.error(f"Failed to re-execute with {found_interpreter_path}: {e}")
                     # Fall through to the error below if execve fails critically
 
             # If loop completes or execve fails before replacing the process
@@ -1440,9 +1326,7 @@ def main() -> int:
     # Load default .env file if it exists
     default_env_file = ROOT_DIR / ".env"
     if default_env_file.exists():
-        logger.info(
-            f"Loading environment variables from default .env file: {default_env_file}"
-        )
+        logger.info(f"Loading environment variables from default .env file: {default_env_file}")
         load_dotenv(dotenv_path=default_env_file, override=True)
 
     # Handle special commands
@@ -1490,14 +1374,10 @@ def main() -> int:
 
         print(f"Found {len(extensions)} extensions:")
         for extension in extensions:
-            print(
-                f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}"
-            )
+            print(f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}")
             print(f"    Path: {extension['path']}")
             print(f"    Loaded: {extension['loaded']}")
-            print(
-                f"    Description: {extension['metadata'].get('description', 'No description')}"
-            )
+            print(f"    Description: {extension['metadata'].get('description', 'No description')}")
             print()
 
         return 0
@@ -1578,44 +1458,36 @@ def main() -> int:
     # If --stage test is specified WITHOUT these specific flags, it will be handled in run_application.
     if args.unit or args.integration or args.e2e or args.performance or args.security:
         logger.info("Specific test flags detected. Running requested tests...")
-        from deployment.test_stages import \
-            test_stages  # Import here as it's specific to this block
+        from deployment.test_stages import test_stages  # Import here as it's specific to this block
 
         test_run_success = True
 
         if args.unit:
             logger.info("Running unit tests...")
             test_run_success = (
-                test_stages.run_unit_tests(args.coverage, args.debug)
-                and test_run_success
+                test_stages.run_unit_tests(args.coverage, args.debug) and test_run_success
             )
 
         if args.integration:
             logger.info("Running integration tests...")
             test_run_success = (
-                test_stages.run_integration_tests(args.coverage, args.debug)
-                and test_run_success
+                test_stages.run_integration_tests(args.coverage, args.debug) and test_run_success
             )
 
         if args.e2e:
             logger.info("Running e2e tests...")
-            test_run_success = (
-                test_stages.run_e2e_tests(True, args.debug) and test_run_success
-            )
+            test_run_success = test_stages.run_e2e_tests(True, args.debug) and test_run_success
 
         if args.performance:
             logger.info("Running performance tests...")
             test_run_success = (
-                test_stages.run_performance_tests(60, 10, args.debug)
-                and test_run_success
+                test_stages.run_performance_tests(60, 10, args.debug) and test_run_success
             )
 
         if args.security:
             logger.info("Running security tests...")
             test_run_success = (
-                test_stages.run_security_tests(
-                    f"http://{args.host}:{args.port}", args.debug
-                )
+                test_stages.run_security_tests(f"http://{args.host}:{args.port}", args.debug)
                 and test_run_success
             )
 

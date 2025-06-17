@@ -103,14 +103,10 @@ class DatabaseManager:
 
     async def initialize(self):
         """Initialize database asynchronously (e.g., seed data)"""
-        logger.info(
-            "DatabaseManager initialized. Default categories seeding attempted."
-        )
+        logger.info("DatabaseManager initialized. Default categories seeding attempted.")
         pass
 
-    def _parse_json_fields(
-        self, row: Dict[str, Any], fields: List[str]
-    ) -> Dict[str, Any]:
+    def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
         """Helper to parse stringified JSON fields in a row."""
         if not row:
             return row
@@ -120,8 +116,7 @@ class DatabaseManager:
                     row[field] = json.loads(row[field])
                 except json.JSONDecodeError:
                     logger.warning(
-                        f"Failed to parse JSON for field {field} "
-                        f"in row {row.get('id')}"
+                        f"Failed to parse JSON for field {field} " f"in row {row.get('id')}"
                     )
                     if field in ("analysisMetadata", "metadata"):
                         row[field] = {}
@@ -129,9 +124,7 @@ class DatabaseManager:
                         row[field] = []
         return row
 
-    async def create_email(
-        self, email_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record."""
         is_unread = not email_data.get("is_read", False)
 
@@ -165,8 +158,7 @@ class DatabaseManager:
             is_unread,
             email_data.get("category_id", email_data.get("categoryId")),
             email_data.get("confidence", 0),
-            json.dumps(email_data.get("analysis_metadata",
-                                      email_data.get("analysisMetadata", {}))),
+            json.dumps(email_data.get("analysis_metadata", email_data.get("analysisMetadata", {}))),
             email_data.get("history_id", email_data.get("historyId")),
             email_data.get("content_html", email_data.get("contentHtml")),
             email_data.get("preview", email_data.get("snippet")),
@@ -184,10 +176,8 @@ class DatabaseManager:
             email_data.get("is_spam", email_data.get("isSpam", False)),
             email_data.get("is_trash", email_data.get("isTrash", False)),
             email_data.get("is_chat", email_data.get("isChat", False)),
-            email_data.get("has_attachments",
-                           email_data.get("hasAttachments", False)),
-            email_data.get("attachment_count",
-                           email_data.get("attachmentCount", 0)),
+            email_data.get("has_attachments", email_data.get("hasAttachments", False)),
+            email_data.get("attachment_count", email_data.get("attachmentCount", 0)),
             email_data.get("size_estimate", email_data.get("sizeEstimate")),
             email_data.get("spf_status", email_data.get("spfStatus")),
             email_data.get("dkim_status", email_data.get("dkimStatus")),
@@ -199,30 +189,22 @@ class DatabaseManager:
             email_data.get("mailing_list", email_data.get("mailingList")),
             email_data.get("in_reply_to", email_data.get("inReplyTo")),
             email_data.get("references", []),
-            email_data.get("is_first_in_thread",
-                           email_data.get("isFirstInThread", True)),
+            email_data.get("is_first_in_thread", email_data.get("isFirstInThread", True)),
         )
         try:
-            result = await self._execute_query(
-                query, params, fetch_one=True, commit=True
-            )
+            result = await self._execute_query(query, params, fetch_one=True, commit=True)
             if result and result.get("id"):
                 email_id = result["id"]
-                category_id = email_data.get(
-                    "categoryId", email_data.get("category_id")
-                )
+                category_id = email_data.get("categoryId", email_data.get("category_id"))
                 if category_id:
                     await self._update_category_count(category_id)
                 return await self.get_email_by_id(email_id)
             return None
         except psycopg2.IntegrityError as e:
             logger.warning(
-                f"Email with messageId {email_data.get('messageId')} "
-                f"likely already exists: {e}"
+                f"Email with messageId {email_data.get('messageId')} " f"likely already exists: {e}"
             )
-            return await self.update_email_by_message_id(
-                email_data["messageId"], email_data
-            )
+            return await self.update_email_by_message_id(email_data["messageId"], email_data)
 
     async def get_email_by_id(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email by ID"""
@@ -235,7 +217,7 @@ class DatabaseManager:
         row = await self._execute_query(query, (email_id,), fetch_one=True)
         return self._parse_json_fields(row, ["analysisMetadata"]) if row else None
 
-    async def get_all_categories(self) -> List[Dict[str, Any]]: # Renamed for clarity
+    async def get_all_categories(self) -> List[Dict[str, Any]]:  # Renamed for clarity
         """Get all categories with their counts."""
         query = """
             SELECT id, name, description, color, count
@@ -245,9 +227,7 @@ class DatabaseManager:
         categories = await self._execute_query(query, fetch_all=True)
         return categories if categories else []
 
-    async def create_category(
-        self, category_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category."""
         query = """
             INSERT INTO categories (name, description, color, count)
@@ -261,9 +241,7 @@ class DatabaseManager:
             category_data.get("count", 0),
         )
         try:
-            new_category = await self._execute_query(
-                query, params, fetch_one=True, commit=True
-            )
+            new_category = await self._execute_query(query, params, fetch_one=True, commit=True)
             return new_category
         except psycopg2.Error as e:
             logger.error(f"Failed to create category {category_data.get('name')}: {e}")
@@ -308,10 +286,7 @@ class DatabaseManager:
 
         emails = await self._execute_query(base_query, tuple(params), fetch_all=True)
         if emails:
-            return [
-                self._parse_json_fields(email, ["analysisMetadata"])
-                for email in emails
-            ]
+            return [self._parse_json_fields(email, ["analysisMetadata"]) for email in emails]
         return []
 
     async def update_email_by_message_id(
@@ -341,41 +316,74 @@ class DatabaseManager:
                 column_name = "labels"
                 if not isinstance(value, list):
                     logger.warning(
-                        f"Labels value for update is not a list: {value}, "
-                        "attempting to wrap."
+                        f"Labels value for update is not a list: {value}, " "attempting to wrap."
                     )
                     value = [str(value)]
             elif key == "timestamp":
                 column_name = '"time"'
-            elif key == "historyId": column_name = "history_id"
-            elif key == "contentHtml": column_name = "content_html"
-            elif key == "toAddresses": column_name = "to_addresses"
-            elif key == "ccAddresses": column_name = "cc_addresses"
-            elif key == "bccAddresses": column_name = "bcc_addresses"
-            elif key == "replyTo": column_name = "reply_to"
-            elif key == "internalDate": column_name = "internal_date"
-            elif key == "labelIds": column_name = "label_ids"
-            elif key == "isStarred": column_name = "is_starred"
-            elif key == "isImportant": column_name = "is_important"
-            elif key == "isDraft": column_name = "is_draft"
-            elif key == "isSent": column_name = "is_sent"
-            elif key == "isSpam": column_name = "is_spam"
-            elif key == "isTrash": column_name = "is_trash"
-            elif key == "isChat": column_name = "is_chat"
-            elif key == "hasAttachments": column_name = "has_attachments"
-            elif key == "attachmentCount": column_name = "attachment_count"
-            elif key == "sizeEstimate": column_name = "size_estimate"
-            elif key == "spfStatus": column_name = "spf_status"
-            elif key == "dkimStatus": column_name = "dkim_status"
-            elif key == "dmarcStatus": column_name = "dmarc_status"
-            elif key == "isEncrypted": column_name = "is_encrypted"
-            elif key == "isSigned": column_name = "is_signed"
-            elif key == "isAutoReply": column_name = "is_auto_reply"
-            elif key == "mailingList": column_name = "mailing_list"
-            elif key == "inReplyTo": column_name = "in_reply_to"
-            elif key == "isFirstInThread": column_name = "is_first_in_thread"
-            elif key in ["subject", "sender", "content", "snippet",
-                         "category", "priority", "references"]:
+            elif key == "historyId":
+                column_name = "history_id"
+            elif key == "contentHtml":
+                column_name = "content_html"
+            elif key == "toAddresses":
+                column_name = "to_addresses"
+            elif key == "ccAddresses":
+                column_name = "cc_addresses"
+            elif key == "bccAddresses":
+                column_name = "bcc_addresses"
+            elif key == "replyTo":
+                column_name = "reply_to"
+            elif key == "internalDate":
+                column_name = "internal_date"
+            elif key == "labelIds":
+                column_name = "label_ids"
+            elif key == "isStarred":
+                column_name = "is_starred"
+            elif key == "isImportant":
+                column_name = "is_important"
+            elif key == "isDraft":
+                column_name = "is_draft"
+            elif key == "isSent":
+                column_name = "is_sent"
+            elif key == "isSpam":
+                column_name = "is_spam"
+            elif key == "isTrash":
+                column_name = "is_trash"
+            elif key == "isChat":
+                column_name = "is_chat"
+            elif key == "hasAttachments":
+                column_name = "has_attachments"
+            elif key == "attachmentCount":
+                column_name = "attachment_count"
+            elif key == "sizeEstimate":
+                column_name = "size_estimate"
+            elif key == "spfStatus":
+                column_name = "spf_status"
+            elif key == "dkimStatus":
+                column_name = "dkim_status"
+            elif key == "dmarcStatus":
+                column_name = "dmarc_status"
+            elif key == "isEncrypted":
+                column_name = "is_encrypted"
+            elif key == "isSigned":
+                column_name = "is_signed"
+            elif key == "isAutoReply":
+                column_name = "is_auto_reply"
+            elif key == "mailingList":
+                column_name = "mailing_list"
+            elif key == "inReplyTo":
+                column_name = "in_reply_to"
+            elif key == "isFirstInThread":
+                column_name = "is_first_in_thread"
+            elif key in [
+                "subject",
+                "sender",
+                "content",
+                "snippet",
+                "category",
+                "priority",
+                "references",
+            ]:
                 if key == "references" and not isinstance(value, list):
                     value = [str(value)]
                 column_name = key
@@ -393,17 +401,12 @@ class DatabaseManager:
             return await self.get_email_by_message_id(message_id)
 
         set_clauses.append("updated_at = NOW()")
-        query = (
-            f"UPDATE emails SET {', '.join(set_clauses)} "
-            f"WHERE message_id = %s"
-        )
+        query = f"UPDATE emails SET {', '.join(set_clauses)} " f"WHERE message_id = %s"
         params.append(message_id)
         await self._execute_query(query, tuple(params), commit=True)
         return await self.get_email_by_message_id(message_id)
 
-    async def get_email_by_message_id(
-        self, message_id: str
-    ) -> Optional[Dict[str, Any]]:
+    async def get_email_by_message_id(self, message_id: str) -> Optional[Dict[str, Any]]:
         """Get email by messageId"""
         query = (
             "SELECT e.*, c.name as categoryName, c.color as categoryColor "
@@ -413,9 +416,7 @@ class DatabaseManager:
         row = await self._execute_query(query, (message_id,), fetch_one=True)
         return self._parse_json_fields(row, ["analysisMetadata"]) if row else None
 
-    async def create_activity(
-        self, activity_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_activity(self, activity_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new activity record."""
         query = """
             INSERT INTO activities
@@ -437,12 +438,8 @@ class DatabaseManager:
             activity_data.get("icon", "default_icon"),
             activity_data.get("icon_bg", activity_data.get("iconBg", "#ffffff")),
         )
-        new_activity = await self._execute_query(
-            query, params, fetch_one=True, commit=True
-        )
-        return (
-            self._parse_json_fields(new_activity, ["details"]) if new_activity else None
-        )
+        new_activity = await self._execute_query(query, params, fetch_one=True, commit=True)
+        return self._parse_json_fields(new_activity, ["details"]) if new_activity else None
 
     async def get_recent_activities(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent activities"""
@@ -452,27 +449,29 @@ class DatabaseManager:
         )
         activities = await self._execute_query(query, (limit,), fetch_all=True)
         if activities:
-            return [
-                self._parse_json_fields(activity, ["details"])
-                for activity in activities
-            ]
+            return [self._parse_json_fields(activity, ["details"]) for activity in activities]
         return []
 
     async def get_dashboard_stats(self) -> Dict[str, Any]:
         logger.warning("get_dashboard_stats not fully migrated to PostgreSQL yet.")
         results = await asyncio.gather(
-            self._execute_query("SELECT COUNT(*) AS count FROM emails",
-                                fetch_one=True),
-            self._execute_query("SELECT COUNT(*) AS count FROM emails "
-                                "WHERE is_unread = TRUE", fetch_one=True),
-            self._execute_query("SELECT COUNT(*) AS count FROM emails "
-                                "WHERE priority = %s", ("high",), fetch_one=True),
-            self._execute_query("SELECT COUNT(*) AS count FROM emails "
-                                "WHERE is_spam = TRUE", fetch_one=True),
-            self._execute_query("SELECT COUNT(*) AS count FROM categories",
-                                fetch_one=True),
-            self._execute_query("SELECT name, color, count FROM categories "
-                                "ORDER BY count DESC LIMIT 5", fetch_all=True),
+            self._execute_query("SELECT COUNT(*) AS count FROM emails", fetch_one=True),
+            self._execute_query(
+                "SELECT COUNT(*) AS count FROM emails " "WHERE is_unread = TRUE", fetch_one=True
+            ),
+            self._execute_query(
+                "SELECT COUNT(*) AS count FROM emails " "WHERE priority = %s",
+                ("high",),
+                fetch_one=True,
+            ),
+            self._execute_query(
+                "SELECT COUNT(*) AS count FROM emails " "WHERE is_spam = TRUE", fetch_one=True
+            ),
+            self._execute_query("SELECT COUNT(*) AS count FROM categories", fetch_one=True),
+            self._execute_query(
+                "SELECT name, color, count FROM categories " "ORDER BY count DESC LIMIT 5",
+                fetch_all=True,
+            ),
         )
 
         total_emails = results[0]["count"] if results[0] else 0
@@ -483,21 +482,23 @@ class DatabaseManager:
         top_categories_list = results[5] if results[5] else []
 
         return {
-            "totalEmails": total_emails, "unreadEmails": unread_emails,
-            "importantEmails": important_emails, "spamEmails": spam_emails,
+            "totalEmails": total_emails,
+            "unreadEmails": unread_emails,
+            "importantEmails": important_emails,
+            "spamEmails": spam_emails,
             "totalCategoryTypes": total_category_types,
             "topCategories": top_categories_list,
             "autoLabeled": total_emails,  # Placeholder
             "timeSaved": "2.5 hours",  # Placeholder
-            "weeklyGrowth": { # Placeholder for complex calculation
-                "totalEmails": total_emails, "autoLabeled": total_emails,
-                "categories": total_category_types, "timeSaved": 0,
+            "weeklyGrowth": {  # Placeholder for complex calculation
+                "totalEmails": total_emails,
+                "autoLabeled": total_emails,
+                "categories": total_category_types,
+                "timeSaved": 0,
             },
         }
 
-    async def get_all_emails(
-        self, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """Get all emails with pagination"""
         return await self.get_emails(limit=limit, offset=offset)
 
@@ -505,13 +506,9 @@ class DatabaseManager:
         self, category_id: int, limit: int = 50, offset: int = 0
     ) -> List[Dict[str, Any]]:
         """Get emails by category"""
-        return await self.get_emails(
-            limit=limit, offset=offset, category_id=category_id
-        )
+        return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
-    async def search_emails(
-        self, search_term: str, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails by content or subject."""
         query = (
             "SELECT e.*, c.name as categoryName, c.color as categoryColor "
@@ -522,9 +519,7 @@ class DatabaseManager:
         params = (f"%{search_term}%", f"%{search_term}%", limit)
         emails = await self._execute_query(query, params, fetch_all=True)
         if emails:
-            return [
-                self._parse_json_fields(email, ["analysisMetadata"]) for email in emails
-            ]
+            return [self._parse_json_fields(email, ["analysisMetadata"]) for email in emails]
         return []
 
     async def get_recent_emails(self, limit: int = 100) -> List[Dict[str, Any]]:
@@ -564,18 +559,25 @@ class DatabaseManager:
             elif key == "time":
                 column_name = '"time"'
             elif key in [
-                "subject", "content", "sender", "confidence",
-                "snippet", "category", "priority",
+                "subject",
+                "content",
+                "sender",
+                "confidence",
+                "snippet",
+                "category",
+                "priority",
             ]:
                 column_name = key
             else:
                 temp_col_name = key.replace("Id", "_id").replace("Html", "_html")
                 import re
+
                 temp_col_name = re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower()
                 if temp_col_name != key:
                     logger.info(
                         f"update_email: Converted key '{key}' to "
-                        f"'{temp_col_name}' for SQL query.")
+                        f"'{temp_col_name}' for SQL query."
+                    )
                     column_name = temp_col_name
                 else:
                     logger.warning(
@@ -592,9 +594,7 @@ class DatabaseManager:
             return await self.get_email_by_id(email_id)
 
         set_clauses.append("updated_at = NOW()")
-        query = (
-            f"UPDATE emails SET {', '.join(set_clauses)} WHERE id = %s"
-        )
+        query = f"UPDATE emails SET {', '.join(set_clauses)} WHERE id = %s"
         params.append(email_id)
         await self._execute_query(query, tuple(params), commit=True)
         return await self.get_email_by_id(email_id)
