@@ -754,6 +754,23 @@ class GmailDataCollector:
         )
 
 
+"""
+Demonstrates the usage of the GmailDataCollector for email collection.
+
+This main function initializes logging, creates a GmailDataCollector instance, 
+and executes a daily email sync strategy. It handles authentication errors 
+and provides detailed guidance for resolving credential issues.
+
+Key steps:
+- Set up logging
+- Initialize Gmail data collector
+- Validate Gmail service authentication
+- Execute daily sync collection strategy
+- Print collected email details or error messages
+
+Raises:
+    Various exceptions related to authentication or email collection
+"""
 async def main():
     """Example usage of Gmail data collector"""
     # Note: The main function would need to be async if _authenticate might run an async flow,
