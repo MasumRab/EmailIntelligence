@@ -8,7 +8,7 @@ import logging
 import re
 import sqlite3
 from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
@@ -1595,7 +1595,6 @@ class SmartFilterManager:
         Apply all active, sorted filters to an email data dictionary.
         Modifies email_data in place and returns a summary of actions.
         """
-        applied_filter_results = []
         sorted_filters = self.get_active_filters_sorted()
 
         email_actions_summary = {

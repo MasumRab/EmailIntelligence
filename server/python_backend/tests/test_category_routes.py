@@ -76,4 +76,3 @@ def test_create_category_db_error(client_cat):
 
 # Note: category_routes.py does not currently have PUT /api/categories/{id}
 # If it were added, tests would be similar to update_email in test_email_routes.py
-[end of server/python_backend/tests/test_category_routes.py]

@@ -50,7 +50,7 @@ class TestSentimentModel(unittest.TestCase):
         mock_sklearn_model = MagicMock()
         mock_sklearn_model.predict.side_effect = Exception("Model error")
 
-        with patch('server.python_nlp.analysis_components.sentiment_model.TextBlob', side_effect=Exception("TextBlob error")) as mock_textblob_class:
+        with patch('server.python_nlp.analysis_components.sentiment_model.TextBlob', side_effect=Exception("TextBlob error")):
             analyzer = SentimentModel(sentiment_model=mock_sklearn_model, has_nltk_installed=True)
             result = analyzer.analyze("This is a good test!") # "good" is a positive keyword
 
@@ -97,5 +97,3 @@ class TestSentimentModel(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-[end of server/python_nlp/tests/analysis_components/test_sentiment_model.py]

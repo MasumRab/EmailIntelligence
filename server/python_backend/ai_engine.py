@@ -3,13 +3,15 @@ AI Engine Adapter for Python Backend
 Bridges FastAPI backend with existing AI/NLP services
 """
 
-import asyncio
 import json
 import logging
 # import sys # No longer needed for subprocess
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+if TYPE_CHECKING:
+    from server.python_backend.database import DatabaseManager
 
 # from .utils.async_utils import _execute_async_command # Commented out
 from server.python_nlp.nlp_engine import NLPEngine  # Changed import alias
@@ -80,47 +82,47 @@ class AdvancedAIEngine:
         # This import is problematic for circular deps if DatabaseManager imports AIEngine.
         # Consider moving DatabaseManager to a more common place or restructuring.
         # For now, assuming DatabaseManager can be imported or passed.
-        # from .database import DatabaseManager # This would be circular if DB imports AIEngine
+        # from .database import DatabaseManager # This would be circular
 
         try:
-            all_db_categories = (
-                await db.get_all_categories()
-            )  # db.get_all_categories() was adapted from get_categories
+            all_db_categories = await db.get_all_categories()
             if not all_db_categories:
                 return None
 
             for ai_cat_str in ai_categories:
                 for db_cat in all_db_categories:
-                    # Simple case-insensitive matching (can be improved)
-                    if (
-                        db_cat["name"].lower() in ai_cat_str.lower()
-                        or ai_cat_str.lower() in db_cat["name"].lower()
-                    ):
-                        logger.info(
-                            f"Matched AI category '{ai_cat_str}' to DB category '{db_cat['name']}' (ID: {db_cat['id']})"
+                    name_lower = db_cat["name"].lower()
+                    ai_cat_lower = ai_cat_str.lower()
+                    if name_lower in ai_cat_lower or ai_cat_lower in name_lower:
+                        log_msg = (
+                            f"Matched AI category '{ai_cat_str}' to DB "
+                            f"category '{db_cat['name']}' (ID: {db_cat['id']})"
                         )
+                        logger.info(log_msg)
                         return db_cat["id"]
-            logger.info(
-                f"No direct match found for AI categories: {ai_categories} against DB categories."
+            log_msg = (
+                f"No direct match for AI categories: {ai_categories} "
+                f"against DB categories."
             )
+            logger.info(log_msg)
         except Exception as e:
             logger.error(f"Error during category matching: {e}", exc_info=True)
         return None
 
     async def analyze_email(
         self, subject: str, content: str, db: Optional["DatabaseManager"] = None
-    ) -> AIAnalysisResult:  # Added db param
-        """Analyze email content with AI, including matching to DB categories if db is provided."""
+    ) -> AIAnalysisResult:
+        """Analyze email content with AI and optional DB category matching."""
+        log_subject = subject[:50] + "..." if len(subject) > 50 else subject
         logger.info(
-            f"Initiating AI analysis for email with subject: '{subject[:50]}...'"
+            f"Initiating AI analysis for email subject: '{log_subject}'"
         )
         try:
             analysis_data = self.nlp_engine.analyze_email(subject, content)
 
-            if "action_items" not in analysis_data:  # Should be present from NLPEngine
+            if "action_items" not in analysis_data:
                 analysis_data["action_items"] = []
 
-            # If a DatabaseManager instance is provided, attempt to match category_id
             if db and analysis_data.get("categories"):
                 matched_category_id = await self._match_category_id(
                     analysis_data["categories"], db
@@ -128,18 +130,18 @@ class AdvancedAIEngine:
                 if matched_category_id:
                     analysis_data["category_id"] = matched_category_id
                 else:
-                    # Ensure category_id is None if no match, or keep NLPEngine's default if any
-                    analysis_data["category_id"] = analysis_data.get(
-                        "category_id"
-                    )  # Keep if NLPEngine set it, else None
+                    analysis_data["category_id"] = analysis_data.get("category_id")
 
-            logger.info(
-                f"Successfully received analysis from NLPEngine. Category ID: {analysis_data.get('category_id')}"
+            log_msg = (
+                f"Successfully received analysis from NLPEngine. "
+                f"Category ID: {analysis_data.get('category_id')}"
             )
+            logger.info(log_msg)
             return AIAnalysisResult(analysis_data)
         except Exception as e:
             logger.error(
-                f"An unexpected error occurred during AI analysis: {e}", exc_info=True
+                f"An unexpected error occurred during AI analysis: {e}",
+                exc_info=True
             )
             return self._get_fallback_analysis(
                 subject, content, f"AI analysis error: {str(e)}"
@@ -147,49 +149,49 @@ class AdvancedAIEngine:
 
     def train_models(
         self, training_emails: Optional[List[Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:  # Changed to synchronous
-        """Train AI models with email data - Currently not functional with direct NLPEngine integration."""
-        logger.warning(
-            "train_models is not currently functional with direct NLPEngine integration. The ai_training.py script logic needs to be integrated into NLPEngine."
+    ) -> Dict[str, Any]:
+        """Train AI models - not functional with direct NLPEngine integration."""
+        warning_msg = (
+            "train_models is not functional with direct NLPEngine integration. "
+            "The ai_training.py script logic needs to be integrated into "
+            "NLPEngine."
         )
+        logger.warning(warning_msg)
 
-        # Path might need adjustment if os.path.dirname(__file__) is not appropriate in all contexts
-        # Assuming this file remains in server/python_backend/
+        current_dir = os.path.dirname(__file__)
         training_file_path = os.path.join(
-            os.path.dirname(__file__), "..", "python_nlp", "temp_training_data.json"
+            current_dir, "..", "python_nlp", "temp_training_data.json"
         )
 
-        # Create dummy training_data.json if training_emails provided, to simulate old behavior for cleanup test
         if training_emails:
             try:
                 with open(training_file_path, "w") as f:
                     json.dump(training_emails, f)
             except IOError as e:
                 logger.error(
-                    f"Error creating temporary training file {training_file_path}: {e}"
+                    f"Error creating temp training file {training_file_path}: {e}"
                 )
 
-        # Cleanup temporary file if created (or if it exists from a previous run)
         if os.path.exists(training_file_path):
             try:
                 os.remove(training_file_path)
-                logger.info(f"Removed temporary training file: {training_file_path}")
+                logger.info(f"Removed temp training file: {training_file_path}")
             except OSError as e:
                 logger.error(
-                    f"Error removing temporary training file {training_file_path}: {e}"
+                    f"Error removing temp training file {training_file_path}: {e}"
                 )
 
+        error_msg = (
+            "Model training via direct NLPEngine call is not implemented. "
+            "Requires ai_training.py logic integration."
+        )
         return {
-            "success": False,
-            "error": "Model training via direct NLPEngine call is not implemented. Requires ai_training.py logic integration.",
-            "modelsTrained": [],
-            "trainingAccuracy": {},
-            "validationAccuracy": {},
-            "trainingTime": 0,
+            "success": False, "error": error_msg, "modelsTrained": [],
+            "trainingAccuracy": {}, "validationAccuracy": {}, "trainingTime": 0,
             "emailsProcessed": len(training_emails) if training_emails else 0,
         }
 
-    def health_check(self) -> Dict[str, Any]:  # Changed to synchronous
+    def health_check(self) -> Dict[str, Any]:
         """Check AI engine health by inspecting the NLPEngine instance."""
         try:
             models_available = []
@@ -244,24 +246,27 @@ class AdvancedAIEngine:
         """Cleanup AI engine resources"""
         try:
             # Cleanup any temporary files or resources
-            # Path might need adjustment if os.path.dirname(__file__) is not appropriate in all contexts
+            # Path might need adjustment
+            current_dir = os.path.dirname(__file__)
             training_file_path = os.path.join(
-                os.path.dirname(__file__), "..", "python_nlp", "temp_training_data.json"
+                current_dir, "..", "python_nlp", "temp_training_data.json"
             )
 
-            temp_files_to_check = [training_file_path]  # Add other temp files if any
+            temp_files_to_check = [training_file_path]
 
             for temp_file in temp_files_to_check:
                 if os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)
                         logger.info(
-                            f"Removed temporary file during cleanup: {temp_file}"
+                            f"Removed temp file during cleanup: {temp_file}"
                         )
                     except OSError as e:
-                        logger.error(
-                            f"Error removing temporary file {temp_file} during cleanup: {e}"
+                        err_msg = (
+                            f"Error removing temp file {temp_file} "
+                            f"during cleanup: {e}"
                         )
+                        logger.error(err_msg)
 
             logger.info("AI Engine cleanup completed")
         except Exception as e:
@@ -304,7 +309,7 @@ class AdvancedAIEngine:
                     "categories": fallback_data.get("categories", ["general"]),
                     "keywords": fallback_data.get("keywords", []),
                     "reasoning": fallback_data.get(
-                        "reasoning", "Fallback analysis - AI service unavailable"
+                        "reasoning", "Fallback: AI service unavailable"
                     ),
                     "suggested_labels": fallback_data.get(
                         "suggested_labels", ["general"]
@@ -313,27 +318,19 @@ class AdvancedAIEngine:
                         "risk_flags", ["ai_analysis_failed"]
                     ),
                     "category_id": None,
-                    "action_items": [],  # Ensure action_items is in the fallback
+                    "action_items": [],
                 }
             )
         except Exception as e:
             logger.error(
                 f"Error generating fallback analysis itself: {e}", exc_info=True
             )
-            # If even the fallback engine fails, return a very minimal structure
-            return AIAnalysisResult(
-                {
-                    "topic": "unknown",
-                    "sentiment": "neutral",
-                    "intent": "unknown",
-                    "urgency": "low",
-                    "confidence": 0.1,
-                    "categories": ["general"],
-                    "keywords": [],
-                    "reasoning": f"Critical failure in AI analysis and fallback: {e}",
-                    "suggested_labels": ["general"],
-                    "risk_flags": ["ai_analysis_critically_failed"],
-                    "category_id": None,
-                    "action_items": [],  # Ensure action_items is in the critical fallback
-                }
-            )
+            return AIAnalysisResult({
+                "topic": "unknown", "sentiment": "neutral", "intent": "unknown",
+                "urgency": "low", "confidence": 0.1, "categories": ["general"],
+                "keywords": [],
+                "reasoning": f"Critical failure in AI and fallback: {e}",
+                "suggested_labels": ["general"],
+                "risk_flags": ["ai_analysis_critically_failed"],
+                "category_id": None, "action_items": [],
+            })

@@ -7,9 +7,8 @@ import asyncio
 import json
 import logging
 import os  # Added
-import subprocess  # Added
 import sys  # Added
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 # Import AdvancedAIEngine (assuming it's now the primary way to get AI analysis)
@@ -22,13 +21,13 @@ from server.python_backend.ai_engine import \
 from server.python_backend.database import \
     DatabaseManager  # Assuming this import works
 
-from .data_strategy import DataCollectionStrategy, EmailSample
+from .data_strategy import DataCollectionStrategy
 from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
 from .gmail_metadata import GmailMessage, GmailMetadataExtractor
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
-# from .ai_training import ModelTrainer, PromptEngineer, ModelConfig
+from .ai_training import ModelConfig
 
 
 
