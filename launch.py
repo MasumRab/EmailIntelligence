@@ -729,6 +729,21 @@ def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
     client_pkg_json = client_dir / "package.json"
 
     if client_pkg_json.exists():
+        npm_executable_path = shutil.which("npm")
+        if npm_executable_path is None:
+            logger.error(
+                f"The 'npm' command was not found in your system's PATH. "
+                f"Please ensure Node.js and npm are correctly installed and that the npm installation directory is added to your PATH environment variable. "
+                f"Attempted to find 'npm' for the client in: {client_dir}"
+            )
+            # Potentially return None here if npm is essential and not found,
+            # or let it proceed to fail at the npm install line, which will now be more informed.
+            # For now, let's log and let it try, as the original code attempts to continue.
+            # If we want to stop it here, uncomment the next line:
+            # return None
+        else:
+            logger.info(f"Found 'npm' executable at: {npm_executable_path}")
+
         logger.info(f"Found package.json in {client_dir}. Running npm install...")
         try:
             # Use subprocess.run to wait for completion and check for errors
