@@ -54,12 +54,11 @@ async def get_emails(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_emails",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
 
@@ -91,12 +90,11 @@ async def get_email(
     except Exception as e:
         log_data = {
             "message": f"Unhandled error fetching email id {email_id}",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 
@@ -155,12 +153,11 @@ async def create_email(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in create_email",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to create email")
 
 
@@ -197,10 +194,9 @@ async def update_email(
     except Exception as e:
         log_data = {
             "message": f"Unhandled error updating email id {email_id}",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to update email")
