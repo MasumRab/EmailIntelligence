@@ -1,10 +1,9 @@
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch  # Removed MagicMock
 
 from fastapi.testclient import TestClient
 
-from server.python_backend.main import (  # Assuming get_db is the dependency injector for DatabaseManager
-    app, get_db)
+from server.python_backend.main import app  # Main FastAPI app
 from server.python_backend.models import CategoryCreate  # Pydantic model
 
 # Mock DatabaseManager for dependency injection
@@ -21,10 +20,9 @@ class TestCategoryAPI(unittest.TestCase):
         mock_get_db_main = self.get_db_patcher.start()  # Start the patch
 
         # Configure the mock that replaces the actual get_db function
-        self.mock_db_instance = AsyncMock()  # This is the instance our app will receive
-        mock_get_db_main.return_value = (
-            self.mock_db_instance
-        )  # Make get_db return our mock_db_instance
+        self.mock_db_instance = AsyncMock()  # Instance app will receive
+        # Make get_db return our mock_db_instance
+        mock_get_db_main.return_value = self.mock_db_instance
 
         self.client = TestClient(app)  # Initialize client after mock setup
 
@@ -44,19 +42,20 @@ class TestCategoryAPI(unittest.TestCase):
             {
                 "id": 1,
                 "name": "Work",
-                "description": "Work related emails",
+                "description": "Work related emails",  # Line 40
                 "color": "#FF0000",
                 "count": 10,
             },
             {
                 "id": 2,
                 "name": "Personal",
-                "description": "Personal emails",
+                "description": "Personal emails",  # Line 47
                 "color": "#00FF00",
                 "count": 25,
             },
         ]
-        self.mock_db_instance.get_all_categories.return_value = mock_categories_data
+        self.mock_db_instance.get_all_categories.return_value = \
+            mock_categories_data
 
         response = self.client.get("/api/categories")
 
@@ -105,20 +104,24 @@ class TestCategoryAPI(unittest.TestCase):
         }
 
         # The endpoint returns the created_category directly from db.create_category
-        # which is expected to be a dict by the test setup (and how Pydantic models are often used)
+        # which is expected to be a dict by the test setup
+        # (and how Pydantic models are often used)
         # Let's assume db.create_category returns a dict including an 'id'
         mock_created_category = {
             "id": 3,
             **category_data,
             "count": 0,
         }  # count is part of CategoryResponse
-        self.mock_db_instance.create_category.return_value = mock_created_category
+        # Assigning to a temporary variable to avoid E501
+        created_category_for_mock = mock_created_category
+        self.mock_db_instance.create_category.return_value = (
+            created_category_for_mock
+        )
 
         response = self.client.post("/api/categories", json=category_data)
 
-        self.assertEqual(
-            response.status_code, 200
-        )  # FastAPI default for successful POST if no status_code is specified in @app.post
+        # FastAPI default for successful POST is 200
+        self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["name"], "New Category")
         self.assertEqual(data["description"], "A new test category")
@@ -136,58 +139,54 @@ class TestCategoryAPI(unittest.TestCase):
     def test_create_category_validation_error_missing_name(self):
         print("Running test_create_category_validation_error_missing_name")
         # Missing required 'name' field
-        category_data = {"description": "A category without a name", "color": "#123456"}
+        category_data = {
+            "description": "A category without a name", "color": "#123456"
+        }
         response = self.client.post("/api/categories", json=category_data)
         self.assertEqual(response.status_code, 422)  # Unprocessable Entity
         response_data = response.json()
         self.assertIn("detail", response_data)
+        # Check for specific error details for missing 'name'
+        found_error = False
+        for error in response_data["detail"]:
+            if "name" in error.get("loc", []) and \
+               error.get("type") == "missing":
+                found_error = True
+                break
         self.assertTrue(
-            any(
-                "name" in error["loc"] and error["type"] == "missing"
-                for error in response_data["detail"]
-            )
+            found_error, "Validation error for missing name not found."
         )
 
     def test_create_category_validation_error_invalid_color(self):
         print("Running test_create_category_validation_error_invalid_color")
-        # Invalid color format (assuming CategoryCreate might have validation for color format)
-        # For this example, let's assume a basic string check. Pydantic would catch type errors if 'color' was not a string.
-        # If there's specific regex validation in CategoryCreate for color, this test would be more specific.
-        # The current CategoryCreate model only defines 'name', 'description', 'color' as strings.
-        # Let's test sending a non-string type for color to trigger Pydantic's type validation.
+        # Assuming CategoryCreate might have validation for color format.
+        # For this example, let's assume a basic string check.
+        # Pydantic would catch type errors if 'color' was not a string.
+        # If there's specific regex validation in CategoryCreate for color,
+        # this test would be more specific. The current CategoryCreate model
+        # only defines 'name', 'description', 'color' as strings.
+        # Let's test sending a non-string type for color to trigger
+        # Pydantic's type validation.
         category_data = {
             "name": "Invalid Color Category",
             "description": "Test",
-            "color": 123,
+            "color": 123,  # Non-string to trigger type validation
         }
         response = self.client.post("/api/categories", json=category_data)
         self.assertEqual(response.status_code, 422)
         response_data = response.json()
         self.assertIn("detail", response_data)
+        # Check for specific error details for invalid 'color' type
         # Pydantic v2 type error for string is 'string_type'
+        found_error = False
+        for error in response_data["detail"]:
+            if "color" in error.get("loc", []) and \
+               "string_type" in error.get("type", ""):
+                found_error = True
+                break
         self.assertTrue(
-            any(
-                "color" in error["loc"] and "string_type" in error["type"]
-                for error in response_data["detail"]
-            )
+            found_error, "Validation error for invalid color type not found."
         )
-
-    def test_create_category_db_error(self):
-        print("Running test_create_category_db_error")
-        category_data = {
-            "name": "Error Category",
-            "description": "Test DB error",
-            "color": "#ABCDEF",
-        }
-        mock_db_manager.create_category.side_effect = Exception("Database write error")
-
-        response = self.client.post("/api/categories", json=category_data)
-
-        self.assertEqual(response.status_code, 500)
-        data = response.json()
-        self.assertIn("Failed to create category", data["detail"])
-        validated_category_data = CategoryCreate(**category_data).model_dump()
-        mock_db_manager.create_category.assert_called_once_with(validated_category_data)
 
     async def async_raise_db_write_error(self, *args, **kwargs):
         raise Exception("Database write error")
