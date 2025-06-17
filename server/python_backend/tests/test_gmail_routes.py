@@ -108,5 +108,3 @@ def test_get_gmail_performance(client_gmail):
     assert response.status_code == 200
     assert response.json() == mock_performance_data
     mock_gmail_service_instance.get_performance_metrics.assert_called_once()
-
-[end of server/python_backend/tests/test_gmail_routes.py]

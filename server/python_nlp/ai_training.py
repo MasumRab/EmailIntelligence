@@ -6,13 +6,12 @@ Implements comprehensive model training, prompt optimization, and model versioni
 import hashlib
 import json
 import logging
-import os
 import pickle
 import re
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 

@@ -683,16 +683,16 @@ class NLPEngine:
 
         if positive_count > negative_count:
             sentiment = "positive"
-            polarity = 0.5
-            confidence = 0.6
+            # polarity = 0.5 # Unused
+            confidence_value = 0.6
         elif negative_count > positive_count:
             sentiment = "negative"
-            polarity = -0.5
-            confidence = 0.6
+            # polarity = -0.5 # Unused
+            confidence_value = 0.6
         else:
             sentiment = "neutral"
-            polarity = 0.0
-            confidence = 0.5
+            # polarity = 0.0 # Unused
+            confidence_value = 0.5
 
         # Basic urgency detection
         urgent_words = [
@@ -724,7 +724,7 @@ class NLPEngine:
             "sentiment": sentiment,
             "intent": "informational",
             "urgency": urgency,
-            "confidence": 0.6,  # Medium confidence for fallback
+            "confidence": confidence_value, # Use calculated confidence
             "categories": categories,
             "keywords": [],
             "reasoning": "Basic analysis using keyword matching (NLTK not available)",

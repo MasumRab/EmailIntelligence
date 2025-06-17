@@ -3,19 +3,14 @@ FastAPI Backend for Gmail AI Email Management
 Unified Python backend with optimized performance and integrated NLP
 """
 
-import asyncio
 import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 
-import psycopg2
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from googleapiclient.errors import HttpError as GoogleApiHttpError
-from pydantic import BaseModel, Field
 
 # Updated import to use NLP GmailAIService directly
 from server.python_nlp.gmail_service import GmailAIService
@@ -24,9 +19,9 @@ from server.python_nlp.smart_filters import SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine
 # Import our Python modules
-from .database import DatabaseManager, get_db
-from .models import ActivityCreate, CategoryCreate, EmailCreate, EmailUpdate
 from .performance_monitor import PerformanceMonitor
+from . import (action_routes, category_routes, dashboard_routes, email_routes,
+               filter_routes, gmail_routes)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -72,10 +67,6 @@ ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
 performance_monitor = (
     PerformanceMonitor()
 )  # Used by all routes via @performance_monitor.track
-
-# Import routers
-from . import (action_routes, category_routes, dashboard_routes, email_routes,
-               filter_routes, gmail_routes)
 
 # Include routers in the app
 app.include_router(email_routes.router)
