@@ -59,7 +59,7 @@ chmod +x launch.sh
 ```
 This will set up the Python environment, install dependencies, and start the necessary services. The application will typically be available at http://localhost:5000.
 
-For alternative setup methods and more details, see the [Setup](#setup) section below and the [Launcher Guide](docs/launcher_guide.md).
+This starts the application in a local development mode. For comprehensive setup instructions, alternative methods, and details on deploying to Docker, staging, or production environments, please refer to the [Launcher Guide](docs/launcher_guide.md) and the [Deployment Guide](docs/deployment_guide.md).
 
 ## Documentation
 
@@ -67,8 +67,7 @@ This project includes comprehensive documentation in the `docs/` directory:
 
 - **[Client Development Guide](docs/client_development.md)**: Information about the frontend application, structure, and development.
 - **[Server Development Guide](docs/server_development.md)**: Details about the backend components, structure, and development.
-- **[Deployment Strategies Overview](docs/deployment_strategies.md)**: Overview of different deployment approaches (local, Docker, staging, production).
-- **[Deployment Guide](docs/deployment_guide.md)**: Specific instructions and configurations for deploying the application, primarily focusing on Docker-based setups.
+- **[Deployment Guide](docs/deployment_guide.md)**: Comprehensive guide covering all deployment environments (local, Docker, staging, production), setup, configuration, deployment strategies, and operational procedures.
 - **[Environment Management Guide](docs/env_management.md)**: Details about the Python environment management system, `launch.py`, and related features.
 - **[Launcher Guide](docs/launcher_guide.md)**: Comprehensive information about the unified launcher system (`launch.py`) and its command-line options.
 - **[Extensions Guide](docs/extensions_guide.md)**: Information on how to use and develop extensions.
@@ -89,6 +88,7 @@ The primary method for setting up EmailIntelligence is using the unified launche
 - Python dependency installation.
 - NLTK data download.
 - Starting the development servers.
+For detailed setup instructions for various environments (local, Docker, staging, production), consult the [Deployment Guide](docs/deployment_guide.md).
 
 Refer to the [Launcher Guide](docs/launcher_guide.md) for more advanced setup options and troubleshooting.
 
@@ -175,7 +175,7 @@ npm run build
 ```
 The Python server needs to be run separately in a production environment, typically using a WSGI server like Gunicorn.
 
-For comprehensive deployment strategies, including Docker builds, refer to the [Deployment Strategies Overview](docs/deployment_strategies.md) and the [Deployment Guide](docs/deployment_guide.md).
+For comprehensive information on building and deploying for production, including Docker builds and different environment strategies, please refer to the [Deployment Guide](docs/deployment_guide.md).
 
 ## Database
 
