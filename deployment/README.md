@@ -2,6 +2,6 @@
 
 This directory contains deployment configurations and scripts for the EmailIntelligence project.
 
-For a high-level overview of different deployment strategies (local, Docker, staging, production), please see the **[Deployment Strategies Overview](../../docs/deployment_strategies.md)**.
+For comprehensive information on deploying the EmailIntelligence application—including different deployment environments (local, Docker, staging, production), strategies, Docker configurations, Nginx setup, and usage of the `deploy.py` script—please see the **[Deployment Guide](../../docs/deployment_guide.md)**.
 
-For specific instructions on deploying the application, Docker configurations, Nginx setup, and using the `deploy.py` script, please see the **[Deployment Guide](../../docs/deployment_guide.md)**.
+This guide also incorporates an overview of deployment strategies. For additional, specialized topics, you may also refer to other documents in the `../../docs/` directory.

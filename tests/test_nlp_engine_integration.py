@@ -1,9 +1,11 @@
-import unittest
 import json
-from unittest.mock import patch, MagicMock # Import MagicMock for AdvancedAIEngine test
+import unittest
+from unittest.mock import (  # Import MagicMock for AdvancedAIEngine test
+    MagicMock, patch)
 
-from server.python_nlp.nlp_engine import NLPEngine
 from server.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
+from server.python_nlp.nlp_engine import NLPEngine
+
 
 class TestNLPEngineIntegration(unittest.TestCase):
 
@@ -22,36 +24,46 @@ class TestNLPEngineIntegration(unittest.TestCase):
         # otherwise, it will use the regex-only path which is also fine to test.
         analysis = self.nlp_engine.analyze_email(subject, content)
 
-        self.assertIn('action_items', analysis)
-        self.assertIsInstance(analysis['action_items'], list)
+        self.assertIn("action_items", analysis)
+        self.assertIsInstance(analysis["action_items"], list)
 
-        if analysis['action_items']: # If any actions were found
-            action_item = analysis['action_items'][0]
-            self.assertIn('action_phrase', action_item)
-            self.assertIn('verb', action_item)
-            self.assertIn('object', action_item)
-            self.assertIn('raw_due_date_text', action_item)
-            self.assertIn('context', action_item)
+        if analysis["action_items"]:  # If any actions were found
+            action_item = analysis["action_items"][0]
+            self.assertIn("action_phrase", action_item)
+            self.assertIn("verb", action_item)
+            self.assertIn("object", action_item)
+            self.assertIn("raw_due_date_text", action_item)
+            self.assertIn("context", action_item)
 
             # Check if one of the expected actions is present
-            phrases = [item['action_phrase'] for item in analysis['action_items']]
-            self.assertTrue(any("Please complete the task by Monday." in phrase for phrase in phrases))
-            self.assertTrue(any("need to also review the report." in phrase for phrase in phrases))
-
+            phrases = [item["action_phrase"] for item in analysis["action_items"]]
+            self.assertTrue(
+                any(
+                    "Please complete the task by Monday." in phrase
+                    for phrase in phrases
+                )
+            )
+            self.assertTrue(
+                any("need to also review the report." in phrase for phrase in phrases)
+            )
 
     def test_nlp_engine_fallback_analysis_includes_empty_action_items(self):
         # Test _get_fallback_analysis
         fallback_result = self.nlp_engine._get_fallback_analysis("Some error occurred.")
-        self.assertIn('action_items', fallback_result)
-        self.assertEqual(fallback_result['action_items'], [])
+        self.assertIn("action_items", fallback_result)
+        self.assertEqual(fallback_result["action_items"], [])
 
         # Test _get_simple_fallback_analysis
-        simple_fallback_result = self.nlp_engine._get_simple_fallback_analysis("Subject", "Content")
-        self.assertIn('action_items', simple_fallback_result)
-        self.assertEqual(simple_fallback_result['action_items'], [])
+        simple_fallback_result = self.nlp_engine._get_simple_fallback_analysis(
+            "Subject", "Content"
+        )
+        self.assertIn("action_items", simple_fallback_result)
+        self.assertEqual(simple_fallback_result["action_items"], [])
 
-    @patch('server.python_backend.ai_engine._execute_async_command')
-    async def test_advanced_ai_engine_analyze_email_parses_action_items(self, mock_execute_async):
+    @patch("server.python_backend.ai_engine._execute_async_command")
+    async def test_advanced_ai_engine_analyze_email_parses_action_items(
+        self, mock_execute_async
+    ):
         # Mock the output of the nlp_engine.py script
         mock_script_output = {
             "topic": "work_business",
@@ -64,17 +76,22 @@ class TestNLPEngineIntegration(unittest.TestCase):
             "reasoning": "Detected request for task completion.",
             "suggested_labels": ["work", "task"],
             "risk_flags": [],
-            "validation": {"method": "model_all", "score": 0.8, "reliable": True, "feedback": ""},
+            "validation": {
+                "method": "model_all",
+                "score": 0.8,
+                "reliable": True,
+                "feedback": "",
+            },
             "action_items": [
                 {
                     "action_phrase": "Please complete the task by Monday.",
                     "verb": "complete",
                     "object": "task",
                     "raw_due_date_text": "by Monday",
-                    "context": "This is a test email. Please complete the task by Monday."
+                    "context": "This is a test email. Please complete the task by Monday.",
                 }
             ],
-            "details": {} # Add other details if your AIAnalysisResult expects them
+            "details": {},  # Add other details if your AIAnalysisResult expects them
         }
         mock_execute_async.return_value = json.dumps(mock_script_output)
 
@@ -91,13 +108,17 @@ class TestNLPEngineIntegration(unittest.TestCase):
         self.assertEqual(len(ai_result.action_items), 1)
 
         action_item = ai_result.action_items[0]
-        self.assertEqual(action_item['action_phrase'], "Please complete the task by Monday.")
-        self.assertEqual(action_item['verb'], "complete")
-        self.assertEqual(action_item['raw_due_date_text'], "by Monday")
+        self.assertEqual(
+            action_item["action_phrase"], "Please complete the task by Monday."
+        )
+        self.assertEqual(action_item["verb"], "complete")
+        self.assertEqual(action_item["raw_due_date_text"], "by Monday")
 
     def test_advanced_ai_engine_fallback_includes_empty_action_items(self):
         # This tests the synchronous fallback method in AdvancedAIEngine
-        fallback_ai_result = self.advanced_ai_engine._get_fallback_analysis("Subject", "Content", "Test error")
+        fallback_ai_result = self.advanced_ai_engine._get_fallback_analysis(
+            "Subject", "Content", "Test error"
+        )
 
         self.assertIsInstance(fallback_ai_result, AIAnalysisResult)
         self.assertIsNotNone(fallback_ai_result.action_items)
@@ -107,7 +128,7 @@ class TestNLPEngineIntegration(unittest.TestCase):
 # This allows running the async test method with unittest
 # Note: This basic way of running async tests might not work with all test runners or older Python versions.
 # For more complex scenarios, consider using a library like `pytest-asyncio` or `asynctest`.
-if __name__ == '__main__':
+if __name__ == "__main__":
     # To run async tests with unittest's default runner, you might need something like this:
     import asyncio
 

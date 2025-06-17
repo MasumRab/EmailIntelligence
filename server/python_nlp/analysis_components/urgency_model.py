@@ -1,8 +1,9 @@
 import logging
 import re
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
+
 
 class UrgencyModel:
     def __init__(self, urgency_model: Optional[Any]):
@@ -22,9 +23,9 @@ class UrgencyModel:
             confidence = float(max(probabilities))
 
             return {
-                'urgency': str(prediction),
-                'confidence': confidence,
-                'method_used': 'model_urgency'
+                "urgency": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_urgency",
             }
         except Exception as e:
             self.logger.error(f"Error using urgency model: {e}. Trying fallback.")
@@ -36,23 +37,30 @@ class UrgencyModel:
         """
         text_lower = text.lower()
 
-        if re.search(r'\b(emergency|urgent|asap|immediately|critical|crisis|disaster)\b', text_lower):
-            urgency_label = 'critical'
+        if re.search(
+            r"\b(emergency|urgent|asap|immediately|critical|crisis|disaster)\b",
+            text_lower,
+        ):
+            urgency_label = "critical"
             confidence = 0.9
-        elif re.search(r'\b(soon|quickly|priority|important|deadline|time-sensitive)\b', text_lower):
-            urgency_label = 'high'
+        elif re.search(
+            r"\b(soon|quickly|priority|important|deadline|time-sensitive)\b", text_lower
+        ):
+            urgency_label = "high"
             confidence = 0.8
-        elif re.search(r'\b(when you can|next week|upcoming|planned|scheduled)\b', text_lower):
-            urgency_label = 'medium'
+        elif re.search(
+            r"\b(when you can|next week|upcoming|planned|scheduled)\b", text_lower
+        ):
+            urgency_label = "medium"
             confidence = 0.6
         else:
-            urgency_label = 'low'
+            urgency_label = "low"
             confidence = 0.5
 
         return {
-            'urgency': urgency_label,
-            'confidence': confidence,
-            'method_used': 'fallback_regex_urgency'
+            "urgency": urgency_label,
+            "confidence": confidence,
+            "method_used": "fallback_regex_urgency",
         }
 
     def analyze(self, text: str) -> Dict[str, Any]:
