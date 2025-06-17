@@ -231,6 +231,27 @@ This typically starts:
 For other modes (e.g., API-only, frontend-only) and advanced options, see the [Launcher Guide](docs/launcher_guide.md).
 For information on running in Docker, staging, or production environments, see the [Deployment Guide](docs/deployment_guide.md).
 
+### Running the Gradio Scientific UI
+
+For scientific exploration, direct AI model interaction, or testing specific UI components, a Gradio-based interface is available. This is a Python-only, non-Dockerized deployment that runs independently of the main FastAPI backend and Node.js frontend.
+
+To launch the Gradio UI, use the `--gradio-ui` flag with the launcher script:
+
+-   On Linux/macOS:
+    ```bash
+    ./launch.sh --gradio-ui
+    ```
+-   On Windows:
+    ```bash
+    launch.bat --gradio-ui
+    ```
+
+You can also specify the host, port, and enable debug or sharing mode using the standard launcher arguments:
+    ```bash
+    ./launch.sh --gradio-ui --host 0.0.0.0 --port 7860 --debug --share
+    ```
+This will start the Gradio interface, typically accessible at the specified host and port (Gradio's default is 7860 if `--port` is not provided).
+
 ## AI System Overview
 
 The AI and NLP capabilities are primarily based on:
