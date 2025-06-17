@@ -1,10 +1,11 @@
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 # Try to import optional dependencies
 try:
-    import nltk # Used by TextBlob and for stopwords
+    import nltk  # Used by TextBlob and for stopwords
     from textblob import TextBlob
+
     # nltk.download('punkt') # Required for TextBlob
     # nltk.download('stopwords') # Required for keyword extraction in NLPEngine
     HAS_NLTK = True
@@ -12,6 +13,7 @@ except ImportError:
     HAS_NLTK = False
 
 logger = logging.getLogger(__name__)
+
 
 class SentimentModel:
     def __init__(self, sentiment_model: Optional[Any], has_nltk_installed: bool):
@@ -32,17 +34,17 @@ class SentimentModel:
             confidence = max(probabilities)
 
             polarity = 0.0
-            if prediction == 'positive':
+            if prediction == "positive":
                 polarity = confidence
-            elif prediction == 'negative':
+            elif prediction == "negative":
                 polarity = -confidence
 
             return {
-                'sentiment': str(prediction),
-                'polarity': polarity,
-                'subjectivity': 0.5,  # Default subjectivity, model might not provide this
-                'confidence': float(confidence),
-                'method_used': 'model_sentiment'
+                "sentiment": str(prediction),
+                "polarity": polarity,
+                "subjectivity": 0.5,  # Default subjectivity, model might not provide this
+                "confidence": float(confidence),
+                "method_used": "model_sentiment",
             }
         except Exception as e:
             self.logger.error(f"Error using sentiment model: {e}. Trying fallback.")
@@ -52,7 +54,7 @@ class SentimentModel:
         """
         Analyze sentiment using TextBlob as a fallback method.
         """
-        if not self.has_nltk: # TextBlob relies on NLTK
+        if not self.has_nltk:  # TextBlob relies on NLTK
             self.logger.warning("TextBlob analysis skipped: NLTK not available.")
             return None
 
@@ -62,21 +64,21 @@ class SentimentModel:
             subjectivity = blob.sentiment.subjectivity
 
             if polarity > 0.1:
-                sentiment_label = 'positive'
+                sentiment_label = "positive"
                 confidence = min(polarity + 0.5, 1.0)
             elif polarity < -0.1:
-                sentiment_label = 'negative'
+                sentiment_label = "negative"
                 confidence = min(abs(polarity) + 0.5, 1.0)
             else:
-                sentiment_label = 'neutral'
+                sentiment_label = "neutral"
                 confidence = 0.7  # Default confidence for TextBlob neutral
 
             return {
-                'sentiment': sentiment_label,
-                'polarity': polarity,
-                'subjectivity': subjectivity,
-                'confidence': confidence,
-                'method_used': 'fallback_textblob_sentiment'
+                "sentiment": sentiment_label,
+                "polarity": polarity,
+                "subjectivity": subjectivity,
+                "confidence": confidence,
+                "method_used": "fallback_textblob_sentiment",
             }
         except Exception as e:
             self.logger.error(f"Error during TextBlob sentiment analysis: {e}")
@@ -89,36 +91,48 @@ class SentimentModel:
         text_lower = text.lower()
 
         positive_words = [
-            'good', 'great', 'excellent', 'thank', 'please',
-            'welcome', 'happy', 'love'
+            "good",
+            "great",
+            "excellent",
+            "thank",
+            "please",
+            "welcome",
+            "happy",
+            "love",
         ]
         negative_words = [
-            'bad', 'terrible', 'problem', 'issue', 'error',
-            'failed', 'hate', 'angry'
+            "bad",
+            "terrible",
+            "problem",
+            "issue",
+            "error",
+            "failed",
+            "hate",
+            "angry",
         ]
 
         positive_count = sum(1 for word in positive_words if word in text_lower)
         negative_count = sum(1 for word in negative_words if word in text_lower)
 
         if positive_count > negative_count:
-            sentiment_label = 'positive'
+            sentiment_label = "positive"
             polarity = 0.5
             confidence = 0.6
         elif negative_count > positive_count:
-            sentiment_label = 'negative'
+            sentiment_label = "negative"
             polarity = -0.5
             confidence = 0.6
         else:
-            sentiment_label = 'neutral'
+            sentiment_label = "neutral"
             polarity = 0.0
-            confidence = 0.5 # Lower confidence for keyword-based neutral
+            confidence = 0.5  # Lower confidence for keyword-based neutral
 
         return {
-            'sentiment': sentiment_label,
-            'polarity': polarity,
-            'subjectivity': 0.5, # Default subjectivity for keyword method
-            'confidence': confidence,
-            'method_used': 'fallback_keyword_sentiment'
+            "sentiment": sentiment_label,
+            "polarity": polarity,
+            "subjectivity": 0.5,  # Default subjectivity for keyword method
+            "confidence": confidence,
+            "method_used": "fallback_keyword_sentiment",
         }
 
     def analyze(self, text: str) -> Dict[str, Any]:
