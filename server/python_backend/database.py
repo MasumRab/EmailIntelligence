@@ -603,5 +603,3 @@ class DatabaseManager:
 async def get_db() -> DatabaseManager:
     """Dependency injection for database"""
     return DatabaseManager()
-
-[end of server/python_backend/database.py]
