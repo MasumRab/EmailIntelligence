@@ -120,8 +120,7 @@ async def sync_gmail(
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(
             status_code=500,
             detail=f"Gmail sync failed due to an unexpected error: {str(e)}",
@@ -180,8 +179,7 @@ async def smart_retrieval(
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(
             status_code=500,
             detail=f"Smart retrieval failed due to an unexpected error: {str(e)}",
@@ -202,8 +200,7 @@ async def get_retrieval_strategies(request: Request):
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to fetch strategies")
 
 
@@ -221,8 +218,7 @@ async def get_gmail_performance(request: Request):
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(
             status_code=500, detail="Failed to fetch performance metrics"
         )

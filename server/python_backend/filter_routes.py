@@ -23,13 +23,9 @@ performance_monitor = PerformanceMonitor()  # Initialize performance monitor
 async def get_filters(request: Request):
     """Get all active email filters"""
     try:
-        filters = (
-            await filter_manager.get_all_filters()
-        )  # This returns a list of dicts, not objects with to_dict()
-        # Assuming get_all_filters() in SmartFilterManager was updated to return list of dicts
-        # or EmailFilter dataclass has a to_dict() method.
-        # The previous version of smart_filters.py had get_filters()
-        # returning a list of dicts. Assume it's compatible.
+        # Corrected to use the available synchronous method from SmartFilterManager
+        filters = filter_manager.get_active_filters_sorted()
+        # EmailFilter objects are dataclasses and FastAPI can serialize them.
         return {"filters": filters}
     except Exception as e:
         log_data = {
@@ -82,7 +78,7 @@ async def generate_intelligent_filters(
 
         # Assuming filter_manager.create_intelligent_filters exists and
         # returns a list of filter objects/dicts.
-        created_filters = await filter_manager.create_intelligent_filters(emails)
+        created_filters = filter_manager.create_intelligent_filters(emails) # Removed await
 
         return {"created_filters": len(created_filters), "filters": created_filters}
     except psycopg2.Error as db_err:
@@ -102,8 +98,7 @@ async def generate_intelligent_filters(
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to generate filters")
 
 
@@ -114,7 +109,7 @@ async def prune_filters(request: Request):
     try:
         # Assuming filter_manager.prune_ineffective_filters exists
         # This method was not in original smart_filters.py, assuming added.
-        results = await filter_manager.prune_ineffective_filters()
+        results = filter_manager.prune_ineffective_filters() # Removed await
         return results
     except Exception as e:
         log_data = {
@@ -123,6 +118,5 @@ async def prune_filters(request: Request):
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
                 }
-            )
-        )
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to prune filters")

@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from googleapiclient.errors import HttpError
 
-from server.python_backend.main import (  # Assuming get_db is for DatabaseManager, not directly used here but good to keep consistent
-    app, get_db)
+from server.python_backend.database import get_db # Corrected import
+from server.python_backend.main import app # App import remains the same
 from server.python_backend.models import (GmailSyncRequest,
                                           SmartRetrievalRequest)
 
@@ -25,6 +25,8 @@ async def override_get_db_gmail():
 # For now, let's ensure it doesn't break other tests by being specific if needed.
 # However, the previous tests already set app.dependency_overrides[get_db].
 # Let's assume that override is fine and doesn't conflict.
+# This override will now correctly target get_db from database.py due to the import change.
+app.dependency_overrides[get_db] = override_get_db_gmail
 
 
 class TestGmailAPI(unittest.TestCase):
@@ -138,9 +140,10 @@ class TestGmailAPI(unittest.TestCase):
 
         self.assertEqual(response.status_code, 401)
         data = response.json()
+        # The detail message in main.py was updated for clarity.
         self.assertEqual(
             data["detail"],
-            "Gmail API authentication failed. Check credentials or token.",
+            "Gmail API authentication failed. Check credentials.",
         )
         self.mock_performance_monitor.record_sync_performance.assert_not_called()
 
@@ -160,9 +163,10 @@ class TestGmailAPI(unittest.TestCase):
 
         self.assertEqual(response.status_code, 502)  # Treated as Bad Gateway
         data = response.json()
+        # The detail message in main.py was updated for clarity.
         self.assertEqual(
             data["detail"],
-            "Gmail API returned an unexpected error. Please try again later.",
+            "Gmail API returned an unexpected error. Try again.",
         )
         self.mock_performance_monitor.record_sync_performance.assert_not_called()
 
@@ -222,9 +226,10 @@ class TestGmailAPI(unittest.TestCase):
 
         response = self.client.post("/api/gmail/smart-retrieval", json=request_data)
         self.assertEqual(response.status_code, 403)
+        # The detail message in main.py was updated for clarity.
         self.assertEqual(
             response.json()["detail"],
-            "Gmail API permission denied. Ensure API is enabled and scopes are correct.",
+            "Gmail API permission denied. Check API scopes.",
         )
 
     def test_smart_retrieval_generic_exception(self):

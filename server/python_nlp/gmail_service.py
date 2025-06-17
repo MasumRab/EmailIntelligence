@@ -710,7 +710,7 @@ class GmailAIService:
             cmd = [
                 sys.executable,
                 self.retrieval_script,
-                "--execute-strategies",
+                "execute-strategies", # Corrected: positional command
                 "--max-api-calls",
                 str(max_api_calls),
                 "--time-budget",
@@ -767,7 +767,7 @@ class GmailAIService:
         """Get available retrieval strategies from smart_retrieval.py script."""
         self.logger.info("Fetching retrieval strategies.")
         try:
-            cmd = [sys.executable, self.retrieval_script, "--list-strategies"]
+            cmd = [sys.executable, self.retrieval_script, "list-strategies"] # Corrected: positional command
             result = await self._execute_async_command(cmd, cwd=self.nlp_path)
 
             if result.get("success") and "strategies" in result.get(
@@ -796,7 +796,7 @@ class GmailAIService:
         """Get Gmail API performance metrics from smart_retrieval.py script."""
         self.logger.info("Fetching performance metrics.")
         try:
-            cmd = [sys.executable, self.retrieval_script, "--get-performance"]
+            cmd = [sys.executable, self.retrieval_script, "get-retrieval-analytics"] # Corrected command
             result = await self._execute_async_command(cmd, cwd=self.nlp_path)
 
             if result.get("success"):  # Script command execution was successful
