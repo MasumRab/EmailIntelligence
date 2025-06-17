@@ -62,7 +62,7 @@ ignore-imports=yes
     # Create pyproject.toml for Black and isort
     pyproject_toml = """[tool.black]
 line-length = 100
-target-version = ['py38']
+target-version = ['py311']
 include = '\.pyi?$'
 exclude = '''
 /(
