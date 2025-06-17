@@ -20,7 +20,13 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
     """Get all categories"""
     try:
         categories = await db.get_all_categories()
-        return [CategoryResponse(**cat) for cat in categories]
+        try:
+            return [CategoryResponse(**cat) for cat in categories]
+        except Exception as e_outer:
+            logger.error(f"Outer exception during get_categories Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
+            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+                logger.error(f"Pydantic errors: {e_outer.errors()}")
+            raise # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed while fetching categories",
@@ -34,11 +40,11 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_categories",
-            "endpoint": str(request.url),
-            "error_type": type(e).__name__,
-            "error_detail": str(e),
-        }
-        logger.error(json.dumps(log_data))
+                    "endpoint": str(request.url),
+                    "error_type": type(e).__name__,
+                    "error_detail": str(e),
+                }
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 
@@ -50,9 +56,17 @@ async def create_category(
     """Create new category"""
     try:
         created_category_dict = await db.create_category(
-            category.dict()
+            category.model_dump()
         )  # db.create_category returns a dict
-        return CategoryResponse(**created_category_dict)  # Ensure it returns CategoryResponse
+        try:
+            return CategoryResponse(
+                **created_category_dict
+            )  # Ensure it returns CategoryResponse
+        except Exception as e_outer:
+            logger.error(f"Outer exception during create_category Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
+            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+                logger.error(f"Pydantic errors: {e_outer.errors()}")
+            raise # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed while creating category",
@@ -66,9 +80,9 @@ async def create_category(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in create_category",
-            "endpoint": str(request.url),
-            "error_type": type(e).__name__,
-            "error_detail": str(e),
-        }
-        logger.error(json.dumps(log_data))
+                    "endpoint": str(request.url),
+                    "error_type": type(e).__name__,
+                    "error_detail": str(e),
+                }
+        logger.error(json.dumps(log_data)) # Added logger call
         raise HTTPException(status_code=500, detail="Failed to create category")
