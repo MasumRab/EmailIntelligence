@@ -82,7 +82,7 @@ This command should be run in the project's root directory (where `package.json`
 **Step 3: Set up PostgreSQL Database**
 Ensure you have a PostgreSQL database running and the `DATABASE_URL` environment variable is set. For local development, the recommended way is:
 ```bash
-# This uses Docker to start a PostgreSQL container and applies database migrations.
+# This uses Docker to start a PostgreSQL container and applies database migrations (by running `npm run db:push` internally).
 # Ensure Docker is running before executing this command.
 npm run db:setup
 ```
