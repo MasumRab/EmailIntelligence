@@ -10,7 +10,6 @@ import sys
 from pathlib import Path
 
 import uvicorn
-
 from python_backend.database import DatabaseManager
 from python_backend.main import app
 

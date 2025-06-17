@@ -5,6 +5,7 @@ Bridges FastAPI backend with existing AI/NLP services
 
 import json
 import logging
+
 # import sys # No longer needed for subprocess
 import os
 from datetime import datetime
@@ -101,8 +102,7 @@ class AdvancedAIEngine:
                         logger.info(log_msg)
                         return db_cat["id"]
             log_msg = (
-                f"No direct match for AI categories: {ai_categories} "
-                f"against DB categories."
+                f"No direct match for AI categories: {ai_categories} " f"against DB categories."
             )
             logger.info(log_msg)
         except Exception as e:
@@ -114,9 +114,7 @@ class AdvancedAIEngine:
     ) -> AIAnalysisResult:
         """Analyze email content with AI and optional DB category matching."""
         log_subject = subject[:50] + "..." if len(subject) > 50 else subject
-        logger.info(
-            f"Initiating AI analysis for email subject: '{log_subject}'"
-        )
+        logger.info(f"Initiating AI analysis for email subject: '{log_subject}'")
         try:
             analysis_data = self.nlp_engine.analyze_email(subject, content)
 
@@ -124,9 +122,7 @@ class AdvancedAIEngine:
                 analysis_data["action_items"] = []
 
             if db and analysis_data.get("categories"):
-                matched_category_id = await self._match_category_id(
-                    analysis_data["categories"], db
-                )
+                matched_category_id = await self._match_category_id(analysis_data["categories"], db)
                 if matched_category_id:
                     analysis_data["category_id"] = matched_category_id
                 else:
@@ -139,13 +135,8 @@ class AdvancedAIEngine:
             logger.info(log_msg)
             return AIAnalysisResult(analysis_data)
         except Exception as e:
-            logger.error(
-                f"An unexpected error occurred during AI analysis: {e}",
-                exc_info=True
-            )
-            return self._get_fallback_analysis(
-                subject, content, f"AI analysis error: {str(e)}"
-            )
+            logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
+            return self._get_fallback_analysis(subject, content, f"AI analysis error: {str(e)}")
 
     def train_models(
         self, training_emails: Optional[List[Dict[str, Any]]] = None
@@ -168,26 +159,26 @@ class AdvancedAIEngine:
                 with open(training_file_path, "w") as f:
                     json.dump(training_emails, f)
             except IOError as e:
-                logger.error(
-                    f"Error creating temp training file {training_file_path}: {e}"
-                )
+                logger.error(f"Error creating temp training file {training_file_path}: {e}")
 
         if os.path.exists(training_file_path):
             try:
                 os.remove(training_file_path)
                 logger.info(f"Removed temp training file: {training_file_path}")
             except OSError as e:
-                logger.error(
-                    f"Error removing temp training file {training_file_path}: {e}"
-                )
+                logger.error(f"Error removing temp training file {training_file_path}: {e}")
 
         error_msg = (
             "Model training via direct NLPEngine call is not implemented. "
             "Requires ai_training.py logic integration."
         )
         return {
-            "success": False, "error": error_msg, "modelsTrained": [],
-            "trainingAccuracy": {}, "validationAccuracy": {}, "trainingTime": 0,
+            "success": False,
+            "error": error_msg,
+            "modelsTrained": [],
+            "trainingAccuracy": {},
+            "validationAccuracy": {},
+            "trainingTime": 0,
             "emailsProcessed": len(training_emails) if training_emails else 0,
         }
 
@@ -233,9 +224,7 @@ class AdvancedAIEngine:
                 "timestamp": datetime.now().isoformat(),
             }
         except Exception as e:
-            logger.error(
-                f"AI health check failed during direct inspection: {e}", exc_info=True
-            )
+            logger.error(f"AI health check failed during direct inspection: {e}", exc_info=True)
             return {
                 "status": "unhealthy",
                 "error": str(e),
@@ -258,14 +247,9 @@ class AdvancedAIEngine:
                 if os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)
-                        logger.info(
-                            f"Removed temp file during cleanup: {temp_file}"
-                        )
+                        logger.info(f"Removed temp file during cleanup: {temp_file}")
                     except OSError as e:
-                        err_msg = (
-                            f"Error removing temp file {temp_file} "
-                            f"during cleanup: {e}"
-                        )
+                        err_msg = f"Error removing temp file {temp_file} " f"during cleanup: {e}"
                         logger.error(err_msg)
 
             logger.info("AI Engine cleanup completed")
@@ -308,29 +292,28 @@ class AdvancedAIEngine:
                     "confidence": fallback_data.get("confidence", 0.3),
                     "categories": fallback_data.get("categories", ["general"]),
                     "keywords": fallback_data.get("keywords", []),
-                    "reasoning": fallback_data.get(
-                        "reasoning", "Fallback: AI service unavailable"
-                    ),
-                    "suggested_labels": fallback_data.get(
-                        "suggested_labels", ["general"]
-                    ),
-                    "risk_flags": fallback_data.get(
-                        "risk_flags", ["ai_analysis_failed"]
-                    ),
+                    "reasoning": fallback_data.get("reasoning", "Fallback: AI service unavailable"),
+                    "suggested_labels": fallback_data.get("suggested_labels", ["general"]),
+                    "risk_flags": fallback_data.get("risk_flags", ["ai_analysis_failed"]),
                     "category_id": None,
                     "action_items": [],
                 }
             )
         except Exception as e:
-            logger.error(
-                f"Error generating fallback analysis itself: {e}", exc_info=True
+            logger.error(f"Error generating fallback analysis itself: {e}", exc_info=True)
+            return AIAnalysisResult(
+                {
+                    "topic": "unknown",
+                    "sentiment": "neutral",
+                    "intent": "unknown",
+                    "urgency": "low",
+                    "confidence": 0.1,
+                    "categories": ["general"],
+                    "keywords": [],
+                    "reasoning": f"Critical failure in AI and fallback: {e}",
+                    "suggested_labels": ["general"],
+                    "risk_flags": ["ai_analysis_critically_failed"],
+                    "category_id": None,
+                    "action_items": [],
+                }
             )
-            return AIAnalysisResult({
-                "topic": "unknown", "sentiment": "neutral", "intent": "unknown",
-                "urgency": "low", "confidence": 0.1, "categories": ["general"],
-                "keywords": [],
-                "reasoning": f"Critical failure in AI and fallback: {e}",
-                "suggested_labels": ["general"],
-                "risk_flags": ["ai_analysis_critically_failed"],
-                "category_id": None, "action_items": [],
-            })

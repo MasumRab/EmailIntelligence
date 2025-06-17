@@ -16,19 +16,15 @@ from typing import Any, Dict, List, Optional
 # This assumes AdvancedAIEngine is in a module that can be imported.
 # If it's in python_backend, the path needs to be correct.
 # For now, let's assume a placeholder for where AdvancedAIEngine would be imported from.
-from server.python_backend.ai_engine import \
-    AdvancedAIEngine  # Assuming this import works
-from server.python_backend.database import \
-    DatabaseManager  # Assuming this import works
-
-from .data_strategy import DataCollectionStrategy
-from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
-from .gmail_metadata import GmailMessage, GmailMetadataExtractor
+from server.python_backend.ai_engine import AdvancedAIEngine  # Assuming this import works
+from server.python_backend.database import DatabaseManager  # Assuming this import works
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
 from .ai_training import ModelConfig
-
+from .data_strategy import DataCollectionStrategy
+from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
+from .gmail_metadata import GmailMessage, GmailMetadataExtractor
 
 
 class GmailAIService:
@@ -85,9 +81,7 @@ class GmailAIService:
         Returns a dictionary with 'success': True/False and other command output.
         """
         try:
-            self.logger.debug(
-                f"Executing async command: {' '.join(cmd)} in {cwd or '.'}"
-            )
+            self.logger.debug(f"Executing async command: {' '.join(cmd)} in {cwd or '.'}")
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
@@ -101,9 +95,7 @@ class GmailAIService:
 
             if process.returncode != 0:
                 error_msg = (
-                    stderr_decoded
-                    or stdout_decoded
-                    or "Unknown error during command execution."
+                    stderr_decoded or stdout_decoded or "Unknown error during command execution."
                 )
                 self.logger.error(
                     f"Async command failed (return code {process.returncode}): {cmd}. Error: {error_msg}"
@@ -117,10 +109,7 @@ class GmailAIService:
             if stdout_decoded:
                 try:
                     parsed_output = json.loads(stdout_decoded)
-                    if (
-                        isinstance(parsed_output, dict)
-                        and "success" not in parsed_output
-                    ):
+                    if isinstance(parsed_output, dict) and "success" not in parsed_output:
                         # If script provides JSON dict but no 'success' field, assume true as command didn't fail
                         parsed_output["success"] = True
                     elif not isinstance(
@@ -142,17 +131,13 @@ class GmailAIService:
                 return {"success": True, "output": ""}  # Script success, no output
 
         except FileNotFoundError as e:
-            self.logger.error(
-                f"Async command failed: Executable not found for {cmd}. Error: {e}"
-            )
+            self.logger.error(f"Async command failed: Executable not found for {cmd}. Error: {e}")
             return {
                 "success": False,
                 "error": f"Executable not found: {cmd[0]}. {str(e)}",
             }
         except PermissionError as e:
-            self.logger.error(
-                f"Async command failed: Permission denied for {cmd}. Error: {e}"
-            )
+            self.logger.error(f"Async command failed: Permission denied for {cmd}. Error: {e}")
             return {
                 "success": False,
                 "error": f"Permission denied for {cmd[0]}. {str(e)}",
@@ -225,9 +210,7 @@ class GmailAIService:
         self, query_filter: str, max_emails: int
     ) -> Optional[EmailBatch]:
         """Helper to fetch emails using GmailDataCollector."""
-        self.logger.info(
-            f"Fetching emails with query: {query_filter}, max: {max_emails}"
-        )
+        self.logger.info(f"Fetching emails with query: {query_filter}, max: {max_emails}")
         try:
             email_batch = await self.collector.collect_emails_incremental(
                 query_filter=query_filter, max_emails=max_emails
@@ -250,9 +233,7 @@ class GmailAIService:
         )
         for gmail_msg in email_batch.messages:
             try:
-                gmail_metadata = self.metadata_extractor.extract_complete_metadata(
-                    gmail_msg
-                )
+                gmail_metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
 
                 # The 'training_sample' here is a bit of a misnomer if it's just for AI analysis input
                 # It's essentially the data structure expected by _perform_ai_analysis or _convert_to_db_format
@@ -268,9 +249,7 @@ class GmailAIService:
 
                 ai_analysis_result = None
                 if include_ai_analysis:
-                    ai_analysis_result = await self._perform_ai_analysis(
-                        email_data_for_analysis
-                    )
+                    ai_analysis_result = await self._perform_ai_analysis(email_data_for_analysis)
 
                 db_email = self._convert_to_db_format(
                     gmail_metadata, ai_analysis_result
@@ -287,18 +266,14 @@ class GmailAIService:
                 continue
         return processed_db_emails
 
-    async def _perform_ai_analysis(
-        self, email_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def _perform_ai_analysis(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Perform AI analysis on email data using AdvancedAIEngine.
         `email_data` should contain 'subject' and 'content'.
         """
         if not self.advanced_ai_engine:
             self.logger.error("AdvancedAIEngine not available for AI analysis.")
-            return self._get_basic_fallback_analysis_structure(
-                "AdvancedAIEngine not configured"
-            )
+            return self._get_basic_fallback_analysis_structure("AdvancedAIEngine not configured")
 
         if not self.db_manager:
             self.logger.warning(
@@ -309,9 +284,7 @@ class GmailAIService:
         else:
             db_for_analysis = self.db_manager
 
-        self.logger.debug(
-            f"Performing AI analysis for email ID: {email_data.get('id', 'unknown')}"
-        )
+        self.logger.debug(f"Performing AI analysis for email ID: {email_data.get('id', 'unknown')}")
         try:
             # AdvancedAIEngine is expected to have an `analyze_email` method
             # that takes subject and content, and returns an object or dict with analysis.
@@ -330,9 +303,7 @@ class GmailAIService:
                 self.logger.error(
                     f"Unexpected AI analysis result type for email {email_data.get('id', 'unknown')}"
                 )
-                return self._get_basic_fallback_analysis_structure(
-                    "Unexpected AI result type"
-                )
+                return self._get_basic_fallback_analysis_structure("Unexpected AI result type")
 
             self.stats["ai_analyses_completed"] += 1
             self.logger.info(
@@ -347,9 +318,7 @@ class GmailAIService:
             )
             return self._get_basic_fallback_analysis_structure(str(e))
 
-    def _get_basic_fallback_analysis_structure(
-        self, error_message: str
-    ) -> Dict[str, Any]:
+    def _get_basic_fallback_analysis_structure(self, error_message: str) -> Dict[str, Any]:
         """Returns a minimal AI analysis structure in case of errors during _perform_ai_analysis."""
         return {
             "error": error_message,
@@ -399,14 +368,10 @@ class GmailAIService:
             }
         else:
             # Handle case where AI analysis was skipped or failed
-            analysis_metadata_payload["ai_analysis"] = (
-                self._get_basic_fallback_analysis_structure(
-                    "AI analysis not performed or failed"
-                )
+            analysis_metadata_payload["ai_analysis"] = self._get_basic_fallback_analysis_structure(
+                "AI analysis not performed or failed"
             )
-            ai_topic = analysis_metadata_payload["ai_analysis"][
-                "topic"
-            ]  # Fallback topic
+            ai_topic = analysis_metadata_payload["ai_analysis"]["topic"]  # Fallback topic
             ai_confidence = analysis_metadata_payload["ai_analysis"][
                 "confidence"
             ]  # Fallback confidence
@@ -507,12 +472,8 @@ class GmailAIService:
             training_samples = []
             for gmail_msg in training_batch.messages:
                 try:
-                    metadata = self.metadata_extractor.extract_complete_metadata(
-                        gmail_msg
-                    )
-                    training_format = self.metadata_extractor.to_training_format(
-                        metadata
-                    )
+                    metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
+                    training_format = self.metadata_extractor.to_training_format(metadata)
 
                     sample_dict = {
                         "subject": training_format["subject"],
@@ -534,9 +495,7 @@ class GmailAIService:
                     continue
 
             if not training_samples:
-                self.logger.warning(
-                    "No training samples collected, aborting model training."
-                )
+                self.logger.warning("No training samples collected, aborting model training.")
                 return {
                     "success": False,
                     "error": "No training samples collected.",
@@ -557,13 +516,9 @@ class GmailAIService:
                 training_data_version="gmail_v1.0",
             )
 
-            features, labels = self.model_trainer.prepare_training_data(
-                training_samples, "topic"
-            )
+            features, labels = self.model_trainer.prepare_training_data(training_samples, "topic")
             if features and labels:
-                topic_result = self.model_trainer.train_naive_bayes(
-                    features, labels, topic_config
-                )
+                topic_result = self.model_trainer.train_naive_bayes(features, labels, topic_config)
                 training_results["topic_model"] = {
                     "model_id": topic_result.model_id,
                     "accuracy": topic_result.accuracy,
@@ -595,9 +550,7 @@ class GmailAIService:
                     "f1_score": sentiment_result.f1_score,
                 }
 
-            prompt_templates = (
-                self.prompt_engineer.generate_email_classification_prompts()
-            )
+            prompt_templates = self.prompt_engineer.generate_email_classification_prompts()
             training_results["prompt_templates"] = list(prompt_templates.keys())
 
             return {
@@ -618,8 +571,7 @@ class GmailAIService:
             if any(label in ["CATEGORY_PERSONAL"] for label in metadata.label_ids):
                 return "personal_family"
             elif metadata.mailing_list or any(
-                word in metadata.subject.lower()
-                for word in ["newsletter", "promotion", "offer"]
+                word in metadata.subject.lower() for word in ["newsletter", "promotion", "offer"]
             ):
                 return "promotions"
             else:
@@ -657,8 +609,7 @@ class GmailAIService:
         if any(word in subject_lower for word in ["?", "question", "help", "how"]):
             return "question"
         elif any(
-            word in subject_lower
-            for word in ["confirmation", "confirm", "booking", "receipt"]
+            word in subject_lower for word in ["confirmation", "confirm", "booking", "receipt"]
         ):
             return "confirmation"
         elif any(word in subject_lower for word in ["request", "please", "need"]):
@@ -673,8 +624,7 @@ class GmailAIService:
         subject_lower = metadata.subject.lower()
 
         if metadata.is_important or any(
-            word in subject_lower
-            for word in ["urgent", "asap", "emergency", "critical"]
+            word in subject_lower for word in ["urgent", "asap", "emergency", "critical"]
         ):
             return "high"
         elif any(word in subject_lower for word in ["today", "tomorrow", "deadline"]):
@@ -721,9 +671,7 @@ class GmailAIService:
 
             result = await self._execute_async_command(cmd, cwd=self.nlp_path)
 
-            if not result.get(
-                "success"
-            ):  # Check success from _execute_async_command's perspective
+            if not result.get("success"):  # Check success from _execute_async_command's perspective
                 self.logger.error(
                     f"Smart retrieval script execution failed or reported an error. Result: {result}"
                 )
@@ -732,9 +680,7 @@ class GmailAIService:
                     "strategiesExecuted": result.get("strategies_executed", []),
                     "totalEmails": result.get("total_emails", 0),
                     "performance": result.get("performance", {}),
-                    "error": result.get(
-                        "error", "Smart retrieval script execution failed."
-                    ),
+                    "error": result.get("error", "Smart retrieval script execution failed."),
                 }
 
             # If _execute_async_command was successful, 'result' contains the script's output.
@@ -746,15 +692,11 @@ class GmailAIService:
                 "strategiesExecuted": result.get("strategies_executed", []),
                 "totalEmails": result.get("total_emails", 0),
                 "performance": result.get("performance", {}),
-                "error": result.get(
-                    "error"
-                ),  # Pass along any error reported by the script
+                "error": result.get("error"),  # Pass along any error reported by the script
                 "data": result,  # Include full script result for more details
             }
         except Exception as e:
-            self.logger.error(
-                f"Smart retrieval task failed unexpectedly: {e}", exc_info=True
-            )
+            self.logger.error(f"Smart retrieval task failed unexpectedly: {e}", exc_info=True)
             return {
                 "success": False,
                 "strategiesExecuted": [],
@@ -810,9 +752,7 @@ class GmailAIService:
                         "activeStrategies": result.get("active_strategies", 0),
                     },
                     "quotaStatus": {
-                        "dailyUsage": {
-                            "percentage": result.get("quota_used_percent", 0)
-                        }
+                        "dailyUsage": {"percentage": result.get("quota_used_percent", 0)}
                     },
                     "alerts": result.get("alerts", []),
                     "recommendations": result.get("recommendations", []),
@@ -826,9 +766,7 @@ class GmailAIService:
                 self.logger.error(error_msg)
                 return None
         except Exception as e:
-            self.logger.error(
-                f"Failed to get performance metrics unexpectedly: {e}", exc_info=True
-            )
+            self.logger.error(f"Failed to get performance metrics unexpectedly: {e}", exc_info=True)
             return None
 
 

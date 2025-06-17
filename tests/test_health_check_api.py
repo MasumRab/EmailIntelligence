@@ -4,8 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from server.python_backend.main import \
-    app  # Assuming your FastAPI app instance is named 'app'
+from server.python_backend.main import app  # Assuming your FastAPI app instance is named 'app'
 
 
 class TestHealthCheckAPI(unittest.TestCase):
@@ -28,9 +27,7 @@ class TestHealthCheckAPI(unittest.TestCase):
             # or "2023-10-27T12:34:56.789012+00:00" (UTC)
             datetime.fromisoformat(data["timestamp"].replace("Z", "+00:00"))
         except ValueError as e:
-            self.fail(
-                f"Timestamp is not a valid ISO 8601 format: {data['timestamp']}. Error: {e}"
-            )
+            self.fail(f"Timestamp is not a valid ISO 8601 format: {data['timestamp']}. Error: {e}")
         self.assertEqual(data["version"], "2.0.0")  # As defined in main.py
 
     # Example of how to test a failure scenario if the health check had dependencies
@@ -49,12 +46,8 @@ class TestHealthCheckAPI(unittest.TestCase):
     # deeper, potentially flaky, mocking of internal FastAPI/Starlette components or datetime.
     # The existing error handling in the health_check endpoint catches generic Exception.
     # We can test this generic error handling by forcing an exception during the request.
-    @patch(
-        "server.python_backend.main.datetime"
-    )  # Patch datetime used within health_check
-    def test_health_check_generic_error(
-        self, mock_datetime_module
-    ):  # Renamed for clarity
+    @patch("server.python_backend.main.datetime")  # Patch datetime used within health_check
+    def test_health_check_generic_error(self, mock_datetime_module):  # Renamed for clarity
         print("Running test_health_check_generic_error")
 
         # Configure the mock for datetime.now().isoformat()

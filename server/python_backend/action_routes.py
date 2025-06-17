@@ -5,8 +5,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Request
 
 from .ai_engine import AdvancedAIEngine
-from .models import (ActionExtractionRequest,  # Changed from .main to .models
-                     ActionItem)
+from .models import ActionExtractionRequest, ActionItem  # Changed from .main to .models
 from .performance_monitor import PerformanceMonitor
 
 logger = logging.getLogger(__name__)
