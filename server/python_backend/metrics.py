@@ -8,8 +8,7 @@ import time
 from typing import Callable, Dict, Optional
 
 from fastapi import FastAPI, Request, Response
-from prometheus_client import (Counter, Gauge, Histogram, Summary,
-                               generate_latest)
+from prometheus_client import Counter, Gauge, Histogram, Summary, generate_latest
 
 # Define metrics
 REQUEST_COUNT = Counter(
@@ -61,9 +60,7 @@ def setup_metrics(app: FastAPI) -> None:
         start_time = time.time()
 
         # Increment in-progress requests
-        REQUESTS_IN_PROGRESS.labels(
-            method=request.method, endpoint=request.url.path
-        ).inc()
+        REQUESTS_IN_PROGRESS.labels(method=request.method, endpoint=request.url.path).inc()
 
         # Process the request
         try:
@@ -76,9 +73,9 @@ def setup_metrics(app: FastAPI) -> None:
         finally:
             # Record request duration
             duration = time.time() - start_time
-            REQUEST_LATENCY.labels(
-                method=request.method, endpoint=request.url.path
-            ).observe(duration)
+            REQUEST_LATENCY.labels(method=request.method, endpoint=request.url.path).observe(
+                duration
+            )
 
             # Increment request count
             REQUEST_COUNT.labels(
@@ -88,9 +85,7 @@ def setup_metrics(app: FastAPI) -> None:
             ).inc()
 
             # Decrement in-progress requests
-            REQUESTS_IN_PROGRESS.labels(
-                method=request.method, endpoint=request.url.path
-            ).dec()
+            REQUESTS_IN_PROGRESS.labels(method=request.method, endpoint=request.url.path).dec()
 
         return response
 

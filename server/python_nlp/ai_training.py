@@ -186,9 +186,7 @@ class FeatureExtractor:
             "hurry": 0.7,
         }
 
-    def extract_features(
-        self, text: str, include_advanced: bool = True
-    ) -> Dict[str, Any]:
+    def extract_features(self, text: str, include_advanced: bool = True) -> Dict[str, Any]:
         """Extract comprehensive features from text"""
         text_lower = text.lower()
         words = re.findall(r"\b\w+\b", text_lower)
@@ -202,9 +200,7 @@ class FeatureExtractor:
             # Punctuation features
             "exclamation_count": text.count("!"),
             "question_count": text.count("?"),
-            "capital_ratio": (
-                sum(1 for c in text if c.isupper()) / len(text) if text else 0
-            ),
+            "capital_ratio": (sum(1 for c in text if c.isupper()) / len(text) if text else 0),
             # Sentiment features
             "sentiment_score": self._calculate_sentiment_score(words),
             "positive_word_count": sum(
@@ -215,25 +211,17 @@ class FeatureExtractor:
             ),
             # Urgency features
             "urgency_score": self._calculate_urgency_score(words),
-            "urgency_word_count": sum(
-                1 for word in words if word in self.urgency_indicators
-            ),
+            "urgency_word_count": sum(1 for word in words if word in self.urgency_indicators),
             # Communication patterns
-            "has_greeting": any(
-                word in text_lower for word in ["hello", "hi", "hey", "dear"]
-            ),
+            "has_greeting": any(word in text_lower for word in ["hello", "hi", "hey", "dear"]),
             "has_closing": any(
-                word in text_lower
-                for word in ["regards", "sincerely", "thanks", "best"]
+                word in text_lower for word in ["regards", "sincerely", "thanks", "best"]
             ),
             "has_request": any(
-                phrase in text_lower
-                for phrase in ["please", "could you", "would you", "can you"]
+                phrase in text_lower for phrase in ["please", "could you", "would you", "can you"]
             ),
             "has_question": "?" in text,
-            "has_apology": any(
-                word in text_lower for word in ["sorry", "apologize", "apology"]
-            ),
+            "has_apology": any(word in text_lower for word in ["sorry", "apologize", "apology"]),
         }
 
         if include_advanced:
@@ -257,9 +245,7 @@ class FeatureExtractor:
             # Lexical diversity
             "unique_word_ratio": len(set(words)) / len(words) if words else 0,
             "stopword_ratio": (
-                sum(1 for word in words if word in self.stopwords) / len(words)
-                if words
-                else 0
+                sum(1 for word in words if word in self.stopwords) / len(words) if words else 0
             ),
             # N-gram features (top bigrams)
             "top_bigrams": self._extract_top_ngrams(words, n=2, top_k=5),
@@ -432,9 +418,7 @@ class ModelTrainer:
         for i, x in enumerate(X_val):
             class_scores = {}
             for label in class_counts:
-                score = math.log(
-                    class_counts[label] / len(y_train)
-                )  # Prior probability
+                score = math.log(class_counts[label] / len(y_train))  # Prior probability
                 for feature_idx, value in enumerate(x):
                     mean = feature_means[label][feature_idx]
                     std = feature_stds[label][feature_idx]
@@ -478,9 +462,7 @@ class ModelTrainer:
             recall=recall,
             f1_score=f1,
             confusion_matrix=confusion_matrix,
-            feature_importance=self._calculate_feature_importance(
-                feature_names, feature_means
-            ),
+            feature_importance=self._calculate_feature_importance(feature_names, feature_means),
             training_time=training_time,
             model_size=len(pickle.dumps(model_data)),
         )
@@ -494,10 +476,7 @@ class ModelTrainer:
         # Simplified logistic regression implementation
         feature_names = list(set().union(*(f.keys() for f in features)))
         X = np.array(
-            [
-                [feature_dict.get(name, 0) for name in feature_names]
-                for feature_dict in features
-            ]
+            [[feature_dict.get(name, 0) for name in feature_names] for feature_dict in features]
         )
 
         # Encode labels
@@ -538,9 +517,7 @@ class ModelTrainer:
         val_probabilities = self._softmax(val_scores)
         predictions = [unique_labels[np.argmax(prob)] for prob in val_probabilities]
 
-        accuracy = sum(
-            1 for i, pred in enumerate(predictions) if pred == y_val[i]
-        ) / len(y_val)
+        accuracy = sum(1 for i, pred in enumerate(predictions) if pred == y_val[i]) / len(y_val)
         precision, recall, f1 = self._calculate_metrics(y_val, predictions)
         confusion_matrix = self._calculate_confusion_matrix(y_val, predictions)
 
@@ -590,11 +567,7 @@ class ModelTrainer:
         recalls = []
 
         for label in labels:
-            tp = sum(
-                1
-                for i, pred in enumerate(y_pred)
-                if pred == label and y_true[i] == label
-            )
+            tp = sum(1 for i, pred in enumerate(y_pred) if pred == label and y_true[i] == label)
             fp = sum(1 for pred in y_pred if pred == label) - tp
             fn = sum(1 for true in y_true if true == label) - tp
 
@@ -614,9 +587,7 @@ class ModelTrainer:
 
         return avg_precision, avg_recall, f1
 
-    def _calculate_confusion_matrix(
-        self, y_true: List[str], y_pred: List[str]
-    ) -> List[List[int]]:
+    def _calculate_confusion_matrix(self, y_true: List[str], y_pred: List[str]) -> List[List[int]]:
         """Calculate confusion matrix"""
         labels = sorted(list(set(y_true + y_pred)))
         matrix = [[0 for _ in labels] for _ in labels]
@@ -639,9 +610,7 @@ class ModelTrainer:
 
         for i, name in enumerate(feature_names):
             # Calculate variance across classes
-            class_means = [
-                class_data.get(i, 0) for class_data in feature_means.values()
-            ]
+            class_means = [class_data.get(i, 0) for class_data in feature_means.values()]
             importance[name] = np.var(class_means) if class_means else 0
 
         return importance
@@ -649,9 +618,7 @@ class ModelTrainer:
     def _generate_model_id(self, config: ModelConfig) -> str:
         """Generate unique model ID"""
         config_str = json.dumps(asdict(config), sort_keys=True)
-        return hashlib.md5(
-            f"{config_str}_{datetime.now().isoformat()}".encode()
-        ).hexdigest()[:12]
+        return hashlib.md5(f"{config_str}_{datetime.now().isoformat()}".encode()).hexdigest()[:12]
 
     def save_model(self, model_id: str, filepath: str) -> None:
         """Save trained model to file"""
@@ -888,13 +855,13 @@ class PromptEngineer:
 
         # Add confidence requirements
         if "Confidence:" not in optimized:
-            optimized += "\nConfidence: [Provide confidence score 0-100 based on clarity of indicators]"
+            optimized += (
+                "\nConfidence: [Provide confidence score 0-100 based on clarity of indicators]"
+            )
 
         # Add reasoning requirement
         if "Reasoning:" not in optimized and "reasoning" not in optimized.lower():
-            optimized += (
-                "\nReasoning: [Explain the key factors that led to this classification]"
-            )
+            optimized += "\nReasoning: [Explain the key factors that led to this classification]"
 
         return optimized
 
@@ -906,9 +873,7 @@ class PromptEngineer:
         optimized = "Please follow these instructions carefully:\n\n" + optimized
 
         # Add format requirements
-        optimized += (
-            "\n\nIMPORTANT: Provide your response in the exact format specified above."
-        )
+        optimized += "\n\nIMPORTANT: Provide your response in the exact format specified above."
 
         return optimized
 
@@ -946,15 +911,11 @@ class PromptEngineer:
             return metrics
 
         # Calculate accuracy
-        correct_responses = sum(
-            1 for result in test_results if result.get("correct", False)
-        )
+        correct_responses = sum(1 for result in test_results if result.get("correct", False))
         metrics["accuracy"] = correct_responses / len(test_results)
 
         # Calculate consistency (how often same input produces same output)
-        consistency_scores = [
-            result.get("consistency_score", 0) for result in test_results
-        ]
+        consistency_scores = [result.get("consistency_score", 0) for result in test_results]
         metrics["consistency"] = np.mean(consistency_scores)
 
         # Calculate clarity score (based on response format adherence)

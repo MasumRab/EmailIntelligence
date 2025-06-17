@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from psycopg2 import Error as Psycopg2Error  # Import psycopg2.Error
 
 from server.python_backend.main import app, get_db
+
 # from server.python_backend.models import FilterRequest # Not directly used in this version of the test for payload
 from server.python_nlp.smart_filters import EmailFilter  # Changed import
 
@@ -112,9 +113,7 @@ class TestFilterAPI(unittest.TestCase):
 
     def test_get_filters_manager_error(self):
         print("Running test_get_filters_manager_error")
-        self.mock_filter_manager.get_all_filters.side_effect = Exception(
-            "Filter manager error"
-        )
+        self.mock_filter_manager.get_all_filters.side_effect = Exception("Filter manager error")
 
         response = self.client.get("/api/filters")
 
@@ -161,9 +160,7 @@ class TestFilterAPI(unittest.TestCase):
 
         self.assertEqual(data["name"], filter_payload["name"])
         self.assertEqual(data["criteria"], filter_payload["criteria"])
-        self.assertEqual(
-            data["actions"], filter_payload["actions"]
-        )  # Check actions dict
+        self.assertEqual(data["actions"], filter_payload["actions"])  # Check actions dict
         self.assertEqual(data["priority"], filter_payload["priority"])
 
         # Check for presence and type of other fields
@@ -211,9 +208,7 @@ class TestFilterAPI(unittest.TestCase):
             "actions": {"add_label": "ERROR_LABEL"},
             "priority": 1,
         }
-        self.mock_filter_manager.add_custom_filter.side_effect = Exception(
-            "Cannot add filter"
-        )
+        self.mock_filter_manager.add_custom_filter.side_effect = Exception("Cannot add filter")
 
         response = self.client.post("/api/filters", json=filter_payload)
 
@@ -232,9 +227,7 @@ class TestFilterAPI(unittest.TestCase):
 
     def test_generate_intelligent_filters_success(self):
         print("Running test_generate_intelligent_filters_success")
-        mock_emails_data = [
-            {"id": 1, "subject": "Test Email", "content": "Some content"}
-        ]
+        mock_emails_data = [{"id": 1, "subject": "Test Email", "content": "Some content"}]
         mock_generated_filters = [
             {
                 "name": "Intelligent Filter 1",
@@ -247,9 +240,7 @@ class TestFilterAPI(unittest.TestCase):
         ]
 
         mock_db_manager_filter.get_recent_emails.return_value = mock_emails_data
-        self.mock_filter_manager.create_intelligent_filters.return_value = (
-            mock_generated_filters
-        )
+        self.mock_filter_manager.create_intelligent_filters.return_value = mock_generated_filters
 
         response = self.client.post("/api/filters/generate-intelligent")
 
@@ -281,9 +272,7 @@ class TestFilterAPI(unittest.TestCase):
 
     def test_generate_intelligent_filters_manager_error(self):
         print("Running test_generate_intelligent_filters_manager_error")
-        mock_emails_data = [
-            {"id": 1, "subject": "Test Email", "content": "Some content"}
-        ]
+        mock_emails_data = [{"id": 1, "subject": "Test Email", "content": "Some content"}]
         mock_db_manager_filter.get_recent_emails.return_value = mock_emails_data
         self.mock_filter_manager.create_intelligent_filters.side_effect = Exception(
             "Filter generation failed"
@@ -304,9 +293,7 @@ class TestFilterAPI(unittest.TestCase):
             "pruned_count": 2,
             "details": "Removed 2 ineffective filters",
         }
-        self.mock_filter_manager.prune_ineffective_filters.return_value = (
-            mock_prune_results
-        )
+        self.mock_filter_manager.prune_ineffective_filters.return_value = mock_prune_results
 
         response = self.client.post("/api/filters/prune")
 
@@ -316,9 +303,7 @@ class TestFilterAPI(unittest.TestCase):
 
     def test_prune_filters_manager_error(self):
         print("Running test_prune_filters_manager_error")
-        self.mock_filter_manager.prune_ineffective_filters.side_effect = Exception(
-            "Pruning error"
-        )
+        self.mock_filter_manager.prune_ineffective_filters.side_effect = Exception("Pruning error")
 
         response = self.client.post("/api/filters/prune")
 
