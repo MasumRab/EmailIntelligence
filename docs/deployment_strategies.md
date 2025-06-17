@@ -159,4 +159,4 @@ jobs:
 
 These deployment frameworks provide a solid foundation for agile development of the EmailIntelligence project. They support the entire development lifecycle, from local development to production deployment, with consistent environments and tools.
 
-For more detailed information, see the README file in the `deployment` directory.
+For more detailed information, see the [Deployment Guide](deployment_guide.md).
