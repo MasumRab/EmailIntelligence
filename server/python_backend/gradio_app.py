@@ -98,4 +98,26 @@ with gr.Blocks(title="No-Code Email Platform (Gradio UI)", theme=gr.themes.Soft(
 
 # Launch the Gradio app
 if __name__ == "__main__":
-    iface.launch()
+    import argparse
+    parser = argparse.ArgumentParser(description="Launch Gradio UI for EmailIntelligence")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to run Gradio on")
+    # Default to None for port, so Gradio can use its default (e.g., 7860) if not overridden
+    parser.add_argument("--port", type=int, default=None, help="Port to run Gradio on")
+    parser.add_argument("--debug", action="store_true", help="Enable Gradio debug mode")
+    parser.add_argument("--share", action="store_true", help="Enable Gradio sharing link (uses gradio.live)")
+
+    gradio_args = parser.parse_args()
+
+    launch_kwargs = {
+        "server_name": gradio_args.host,
+        "debug": gradio_args.debug,
+        "share": gradio_args.share
+    }
+
+    # Only add server_port to kwargs if it's actually provided,
+    # otherwise Gradio will use its default port (e.g. 7860) or the next available one.
+    if gradio_args.port is not None:
+        launch_kwargs["server_port"] = gradio_args.port
+
+    print(f"Launching Gradio UI with options: {launch_kwargs}")
+    iface.launch(**launch_kwargs)
