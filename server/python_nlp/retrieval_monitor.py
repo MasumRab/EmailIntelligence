@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass
 # Added imports:
 from datetime import datetime  # Ensure datetime is directly available
 from datetime import timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 RETRIEVAL_LOG_FILE = "retrieval_metrics_log.jsonl"
 LOG_INTERVAL_SECONDS = 300

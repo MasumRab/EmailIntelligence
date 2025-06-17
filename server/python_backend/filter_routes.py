@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import Any, Dict, List
 
 import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -10,7 +9,7 @@ from server.python_nlp.smart_filters import (  # Assuming EmailFilter is needed 
     EmailFilter, SmartFilterManager)
 
 from .database import DatabaseManager, get_db
-from .models import FilterRequest  # Changed from .main to .models
+from .models import FilterRequest  # Models are imported from .models
 from .performance_monitor import PerformanceMonitor
 
 logger = logging.getLogger(__name__)
@@ -29,30 +28,25 @@ async def get_filters(request: Request):
         )  # This returns a list of dicts, not objects with to_dict()
         # Assuming get_all_filters() in SmartFilterManager was updated to return list of dicts
         # or EmailFilter dataclass has a to_dict() method.
-        # The previous version of smart_filters.py had get_filters() returning a list of dicts.
-        # Let's assume it's still compatible or was adjusted.
-        return {"filters": filters}  # Adjusted if get_all_filters returns list of dicts
+        # The previous version of smart_filters.py had get_filters()
+        # returning a list of dicts. Assume it's compatible.
+        return {"filters": filters}
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in get_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+        log_data = {
+            "message": "Unhandled error in get_filters",
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch filters")
 
 
-@router.post(
-    "/api/filters", response_model=EmailFilter
-)  # Assuming EmailFilter is the response model
+@router.post("/api/filters", response_model=EmailFilter)
 @performance_monitor.track
 async def create_filter(
     request: Request, filter_request_model: FilterRequest
-):  # Renamed model
+):
     """Create new email filter"""
     try:
         description = filter_request_model.criteria.get("description", "")
@@ -67,16 +61,13 @@ async def create_filter(
         # FastAPI will handle dataclass serialization to JSON
         return new_filter_object
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in create_filter",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+        log_data = {
+            "message": "Unhandled error in create_filter",
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to create filter")
 
 
@@ -85,44 +76,28 @@ async def create_filter(
 async def generate_intelligent_filters(
     request: Request, db: DatabaseManager = Depends(get_db)
 ):
-    """Generate intelligent filters based on email patterns"""
+    """Generate intelligent filters based on email patterns."""
     try:
-        # Get recent emails for pattern analysis
-        emails = await db.get_recent_emails(
-            limit=1000
-        )  # Assuming this db method exists
+        emails = await db.get_recent_emails(limit=1000)
 
-        # Generate intelligent filters
-        # Assuming filter_manager.create_intelligent_filters exists and returns a list of filter objects/dicts
-        created_filters = await filter_manager.create_intelligent_filters(
-            emails
-        )  # This method was not in original smart_filters.py
-        # Assuming it's added or this is a placeholder.
-        # If it returns objects with to_dict:
-        # return {
-        #     "created_filters": len(created_filters),
-        #     "filters": [f.to_dict() for f in created_filters]
-        # }
-        # If it returns list of dicts:
+        # Assuming filter_manager.create_intelligent_filters exists and
+        # returns a list of filter objects/dicts.
+        created_filters = await filter_manager.create_intelligent_filters(emails)
+
         return {"created_filters": len(created_filters), "filters": created_filters}
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Database operation failed while generating intelligent filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": "DB operation failed during intelligent filter generation",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in generate_intelligent_filters",
+        log_data = {
+            "message": "Unhandled error in generate_intelligent_filters",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
@@ -142,10 +117,8 @@ async def prune_filters(request: Request):
         results = await filter_manager.prune_ineffective_filters()
         return results
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in prune_filters",
+        log_data = {
+            "message": "Unhandled error in prune_filters",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),

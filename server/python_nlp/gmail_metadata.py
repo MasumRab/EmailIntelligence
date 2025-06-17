@@ -4,12 +4,11 @@ Extracts all available Gmail email metadata including headers, labels, importanc
 """
 
 import base64
-import email
 import json
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime  # noqa: F401
 from typing import Any, Dict, List, Optional
 
 

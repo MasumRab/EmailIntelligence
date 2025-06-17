@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
 from .models import \
-    DashboardStats  # Changed from .main.DashboardStatsResponse to .models.DashboardStats
+    DashboardStats
 from .performance_monitor import PerformanceMonitor
 
 logger = logging.getLogger(__name__)
@@ -25,30 +25,23 @@ async def get_dashboard_stats(request: Request, db: DatabaseManager = Depends(ge
             await db.get_dashboard_stats()
         )  # db.get_dashboard_stats returns a dict
         # Ensure that the keys in stats_dict match the fields (or aliases) in models.DashboardStats
-        # For example, models.DashboardStats might expect 'total_emails' not 'totalEmails' if aliases are used.
-        # The current db.get_dashboard_stats() returns keys like 'totalEmails'.
-        # The models.DashboardStats uses Field(alias="total_emails"). Pydantic should handle this by default
-        # when `validate_by_name = True` (formerly `allow_population_by_field_name=True`) is set in Config.
-        # The models.DashboardStats has `validate_by_name = True` so it should work.
-        return DashboardStats(**stats_dict)  # Ensure it returns DashboardStats
+        # Ensure that the keys in stats_dict match the fields (or aliases)
+        # in models.DashboardStats. Pydantic's `validate_by_name = True` (formerly
+        # `allow_population_by_field_name=True`) in model config handles this.
+        return DashboardStats(**stats_dict)
     except psycopg2.Error as db_err:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Database operation failed",
-                    "endpoint": str(request.url),
-                    "error_type": type(db_err).__name__,
-                    "error_detail": str(db_err),
-                    "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-                }
-            )
-        )
+        log_data = {
+            "message": "Database operation failed",
+            "endpoint": str(request.url),
+            "error_type": type(db_err).__name__,
+            "error_detail": str(db_err),
+            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in get_dashboard_stats",
+        log_data = {
+            "message": "Unhandled error in get_dashboard_stats",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
@@ -65,10 +58,8 @@ async def get_performance_overview(request: Request):
         overview = await performance_monitor.get_real_time_dashboard()
         return overview
     except Exception as e:
-        logger.error(
-            json.dumps(
-                {
-                    "message": "Unhandled error in get_performance_overview",
+        log_data = {
+            "message": "Unhandled error in get_performance_overview",
                     "endpoint": str(request.url),
                     "error_type": type(e).__name__,
                     "error_detail": str(e),
