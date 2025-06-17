@@ -5,8 +5,7 @@ from typing import List, Optional
 import psycopg2
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
-from server.python_nlp.smart_filters import \
-    SmartFilterManager  # Corrected import
+from server.python_nlp.smart_filters import SmartFilterManager  # Corrected import
 
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
@@ -62,13 +61,9 @@ async def get_emails(
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
 
-@router.get(
-    "/api/emails/{email_id}", response_model=EmailResponse
-)  # Changed to EmailResponse
+@router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @performance_monitor.track
-async def get_email(
-    request: Request, email_id: int, db: DatabaseManager = Depends(get_db)
-):
+async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
     """Get specific email by ID"""
     try:
         email = await db.get_email_by_id(email_id)
@@ -127,9 +122,7 @@ async def create_email(
             }
         )
 
-        created_email_dict = await db.create_email(
-            email_data
-        )  # db.create_email returns a dict
+        created_email_dict = await db.create_email(email_data)  # db.create_email returns a dict
 
         # Background tasks for performance tracking
         background_tasks.add_task(
@@ -161,9 +154,7 @@ async def create_email(
         raise HTTPException(status_code=500, detail="Failed to create email")
 
 
-@router.put(
-    "/api/emails/{email_id}", response_model=EmailResponse
-)  # Changed to EmailResponse
+@router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @performance_monitor.track
 async def update_email(
     request: Request,

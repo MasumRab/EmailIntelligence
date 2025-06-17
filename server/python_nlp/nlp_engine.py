@@ -15,8 +15,9 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from server.python_nlp.action_item_extractor import \
-    ActionItemExtractor  # Import ActionItemExtractor
+from server.python_nlp.action_item_extractor import (  # Import ActionItemExtractor
+    ActionItemExtractor,
+)
 from server.python_nlp.text_utils import clean_text
 
 from .analysis_components.intent_model import IntentModel
@@ -143,9 +144,7 @@ class NLPEngine:
                 logger.info(f"Successfully loaded model from {model_path}")
                 return model
 
-            logger.warning(
-                f"Model file not found at {model_path}. This model will be unavailable."
-            )
+            logger.warning(f"Model file not found at {model_path}. This model will be unavailable.")
             return None
         except Exception as e:
             logger.error(f"Error loading model from {model_path}: {e}")
@@ -397,9 +396,7 @@ class NLPEngine:
         # Extract important single words (not in stopwords and longer than 3 chars)
         words = blob.words
         important_words = [
-            word
-            for word in words
-            if len(word) > 3 and word.lower() not in self.stop_words
+            word for word in words if len(word) > 3 and word.lower() not in self.stop_words
         ]
 
         # Add top 10 important words
@@ -549,21 +546,16 @@ class NLPEngine:
 
         # Add topic reasoning if significant
         if topic and topic.get("topic") != "General":
-            parts.append(
-                f"Identified topic: {topic['topic']}" f"{get_method_suffix(topic)}"
-            )
+            parts.append(f"Identified topic: {topic['topic']}" f"{get_method_suffix(topic)}")
 
         # Add intent reasoning if significant
         if intent and intent.get("intent") != "informational":
-            parts.append(
-                f"Detected intent: {intent['intent']}" f"{get_method_suffix(intent)}"
-            )
+            parts.append(f"Detected intent: {intent['intent']}" f"{get_method_suffix(intent)}")
 
         # Add urgency reasoning if significant
         if urgency and urgency.get("urgency") != "low":
             parts.append(
-                f"Assessed urgency level: {urgency['urgency']}"
-                f"{get_method_suffix(urgency)}"
+                f"Assessed urgency level: {urgency['urgency']}" f"{get_method_suffix(urgency)}"
             )
 
         # Return default message if no significant insights
@@ -592,16 +584,12 @@ class NLPEngine:
             r"\b(free|winner|congratulations|claim|prize|lottery)\b",
             r"\b(click here|act now|limited time|exclusive offer)\b",
         ]
-        spam_score = sum(
-            len(re.findall(pattern, text_lower)) for pattern in spam_patterns
-        )
+        spam_score = sum(len(re.findall(pattern, text_lower)) for pattern in spam_patterns)
         if spam_score > 2:
             risk_flags.append("potential_spam")
 
         # Suspicious patterns
-        suspicious_patterns = [
-            r"\b(confidential|private|secret|password|ssn|social security)\b"
-        ]
+        suspicious_patterns = [r"\b(confidential|private|secret|password|ssn|social security)\b"]
         suspicious_score = sum(
             len(re.findall(pattern, text_lower)) for pattern in suspicious_patterns
         )
@@ -613,9 +601,7 @@ class NLPEngine:
     def _validate_analysis(self, analysis_results: Dict[str, Any]) -> Dict[str, Any]:
         """Validate the analysis results"""
         # Simple validation based on confidence levels
-        confidence = self._calculate_confidence(
-            [analysis_results[key] for key in analysis_results]
-        )
+        confidence = self._calculate_confidence([analysis_results[key] for key in analysis_results])
         is_reliable = confidence > 0.7
 
         if is_reliable:
@@ -652,9 +638,7 @@ class NLPEngine:
             "action_items": [],  # Include empty list for action items
         }
 
-    def _get_simple_fallback_analysis(
-        self, subject: str, content: str
-    ) -> Dict[str, Any]:
+    def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
         """Simple fallback analysis when NLTK is not available"""
         text = f"{subject} {content}".lower()
 
@@ -724,7 +708,7 @@ class NLPEngine:
             "sentiment": sentiment,
             "intent": "informational",
             "urgency": urgency,
-            "confidence": confidence_value, # Use calculated confidence
+            "confidence": confidence_value,  # Use calculated confidence
             "categories": categories,
             "keywords": [],
             "reasoning": "Basic analysis using keyword matching (NLTK not available)",
@@ -746,9 +730,7 @@ class NLPEngine:
         logger.info("Analyzing for action items...")
         try:
             actions = self.action_item_extractor.extract_actions(text)
-            logger.info(
-                f"Action item analysis completed. Found {len(actions)} potential actions."
-            )
+            logger.info(f"Action item analysis completed. Found {len(actions)} potential actions.")
             return actions
         except Exception as e:
             logger.error(f"Error during action item analysis: {e}", exc_info=True)
@@ -804,15 +786,11 @@ class NLPEngine:
             # This method is regex-based, no model to load for it currently per its implementation
             logger.info("Detecting risk factors...")
             risk_analysis_flags = self._detect_risk_factors(cleaned_text)
-            logger.info(
-                f"Risk factor detection completed. Flags: {risk_analysis_flags}"
-            )
+            logger.info(f"Risk factor detection completed. Flags: {risk_analysis_flags}")
 
             # Extract keywords and entities
             logger.info("Extracting keywords...")
-            keywords = self._extract_keywords(
-                cleaned_text
-            )  # Uses TextBlob if available
+            keywords = self._extract_keywords(cleaned_text)  # Uses TextBlob if available
             logger.info(f"Keyword extraction completed. Keywords: {keywords}")
 
             logger.info("Categorizing content...")
@@ -885,28 +863,18 @@ class NLPEngine:
             "intent": intent_analysis,
             "urgency": urgency_analysis,
         }
-        validation_input_filtered = {
-            k: v for k, v in validation_input.items() if v is not None
-        }
+        validation_input_filtered = {k: v for k, v in validation_input.items() if v is not None}
         validation = self._validate_analysis(validation_input_filtered)
 
         # Determine default values for primary analysis fields
-        final_topic = (
-            topic_analysis.get("topic", "General") if topic_analysis else "General"
-        )
+        final_topic = topic_analysis.get("topic", "General") if topic_analysis else "General"
         final_sentiment = (
-            sentiment_analysis.get("sentiment", "neutral")
-            if sentiment_analysis
-            else "neutral"
+            sentiment_analysis.get("sentiment", "neutral") if sentiment_analysis else "neutral"
         )
         final_intent = (
-            intent_analysis.get("intent", "informational")
-            if intent_analysis
-            else "informational"
+            intent_analysis.get("intent", "informational") if intent_analysis else "informational"
         )
-        final_urgency = (
-            urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
-        )
+        final_urgency = urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
 
         suggested_labels = self._suggest_labels(categories, final_urgency)
 
@@ -944,14 +912,10 @@ def main():
     parser = argparse.ArgumentParser(
         description="Enhanced NLP Engine for Gmail AI Email Management"
     )
-    parser.add_argument(
-        "--analyze-email", action="store_true", help="Perform email analysis."
-    )
+    parser.add_argument("--analyze-email", action="store_true", help="Perform email analysis.")
     parser.add_argument("--subject", type=str, default="", help="Subject of the email.")
     parser.add_argument("--content", type=str, default="", help="Content of the email.")
-    parser.add_argument(
-        "--health-check", action="store_true", help="Perform a health check."
-    )
+    parser.add_argument("--health-check", action="store_true", help="Perform a health check.")
     parser.add_argument(
         "--output-format",
         type=str,
@@ -968,9 +932,7 @@ def main():
         sys.exit(0)
 
     if args.analyze_email:
-        _perform_email_analysis_cli(
-            engine, args.subject, args.content, args.output_format
-        )
+        _perform_email_analysis_cli(engine, args.subject, args.content, args.output_format)
         sys.exit(0)
 
     # Backward compatibility / Default behavior
@@ -1037,9 +999,7 @@ def _perform_health_check(engine: NLPEngine, output_format: str):
         print(json.dumps(health_status, indent=2))
 
 
-def _perform_email_analysis_cli(
-    engine: NLPEngine, subject: str, content: str, output_format: str
-):
+def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, output_format: str):
     """Performs email analysis based on CLI arguments and prints the result."""
     if not subject and not content:
         # If called with --analyze-email but no subject/content, could be an error or expect empty analysis
@@ -1087,13 +1047,9 @@ def _handle_backward_compatible_cli_invocation(
         subject_old = argv[1]
         content_old = argv[2] if len(argv) > 2 else ""
 
-        logger.info(
-            "Processing with backward compatibility mode (positional arguments)."
-        )
+        logger.info("Processing with backward compatibility mode (positional arguments).")
         # Use the already defined _perform_email_analysis_cli for consistency in output
-        _perform_email_analysis_cli(
-            engine, subject_old, content_old, args.output_format
-        )
+        _perform_email_analysis_cli(engine, subject_old, content_old, args.output_format)
         return True
     return False
 
