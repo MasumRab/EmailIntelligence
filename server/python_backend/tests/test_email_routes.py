@@ -1,9 +1,12 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock, MagicMock
 
 # Adjust import path to go up one level then into python_backend package
-from server.python_backend.main import app # Assuming 'app' is your FastAPI instance in main.py
+from server.python_backend.main import \
+    app  # Assuming 'app' is your FastAPI instance in main.py
+
 # We need to ensure that dependencies in email_routes are mocked *before* TestClient(app) is called
 # or that the TestClient uses dependency overrides.
 
@@ -60,7 +63,8 @@ def mock_dependencies():
 # Fixture for TestClient with dependency overrides
 @pytest.fixture
 def client():
-    from server.python_backend.database import get_db # Import here to ensure it's the one FastAPI uses
+    from server.python_backend.database import \
+        get_db  # Import here to ensure it's the one FastAPI uses
 
     app.dependency_overrides[get_db] = lambda: mock_db_manager
     return TestClient(app)

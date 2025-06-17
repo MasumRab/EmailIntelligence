@@ -1,8 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock, MagicMock
 
-from server.python_backend.main import app # Main FastAPI app
+from server.python_backend.main import app  # Main FastAPI app
 
 # Mock DatabaseManager methods used by category_routes
 mock_db_manager_cat = MagicMock() # Use a different name to avoid conflict if tests run in same session
