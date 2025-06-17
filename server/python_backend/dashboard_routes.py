@@ -42,12 +42,11 @@ async def get_dashboard_stats(request: Request, db: DatabaseManager = Depends(ge
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_dashboard_stats",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch dashboard stats")
 
 
@@ -60,10 +59,9 @@ async def get_performance_overview(request: Request):
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_performance_overview",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch performance data")

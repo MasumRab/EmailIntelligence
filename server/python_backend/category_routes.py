@@ -35,12 +35,11 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_categories",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 
@@ -72,10 +71,9 @@ async def create_category(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in create_category",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-            )
-        )
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to create category")
