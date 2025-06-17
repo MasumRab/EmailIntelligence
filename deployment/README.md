@@ -4,7 +4,27 @@ This directory contains deployment configurations and scripts for the EmailIntel
 
 ## Deployment Environments
 
-### 1. Docker-based Development Environment
+### 1. Local Development Environment
+
+The local development environment is designed for quick testing and development on your local machine. It provides a simple way to run the Python backend with hot-reloading and debugging.
+
+**Key Features:**
+- Hot-reloading for quick development
+- Direct access to the file system
+- Simple setup with minimal dependencies
+- Easy debugging
+
+**Implementation:**
+- `deployment/local_dev.py` - Script to run the local development server (Note: ensure this file exists or adjust description)
+- Uses `uvicorn` with reload enabled
+- Connects to a local PostgreSQL database
+
+**Usage:**
+```bash
+python deployment/deploy.py local up
+```
+
+### 2. Docker-based Development Environment
 
 The Docker-based development environment provides a consistent development experience across different machines.
 

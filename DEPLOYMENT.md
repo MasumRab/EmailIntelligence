@@ -46,9 +46,12 @@ The Docker-based development environment provides a consistent development exper
 - Consistent environment across team members
 
 **Implementation:**
-- `deployment/Dockerfile.dev` - Docker configuration for the backend
-- `deployment/docker-compose.dev.yml` - Docker Compose configuration
+- `deployment/Dockerfile.backend` - Multi-stage Dockerfile for the backend (development stage used)
+- `deployment/Dockerfile.frontend` - Dockerfile for the frontend (if applicable for this environment, or note if dev server is used)
+- `deployment/docker-compose.yml` - Base Docker Compose configuration
+- `deployment/docker-compose.dev.yml` - Docker Compose overrides for development
 - Volume mounts for code changes
+This setup uses a base configuration file with environment-specific overrides for clarity and maintainability.
 
 **Usage:**
 ```bash
@@ -66,8 +69,10 @@ The staging environment is designed for testing before production deployment. It
 - Monitoring and logging
 
 **Implementation:**
-- `deployment/Dockerfile.staging` - Docker configuration for the backend
-- `deployment/docker-compose.staging.yml` - Docker Compose configuration
+- `deployment/Dockerfile.backend` - Multi-stage Dockerfile for the backend (production stage used)
+- `deployment/Dockerfile.frontend` - Dockerfile for the frontend
+- `deployment/docker-compose.yml` - Base Docker Compose configuration
+- `deployment/docker-compose.stag.yml` - Docker Compose overrides for staging
 - `deployment/nginx/staging.conf` - Nginx configuration for SSL/TLS
 
 **Usage:**
@@ -87,8 +92,10 @@ The production environment is optimized for performance, security, and reliabili
 - Performance optimizations
 
 **Implementation:**
-- `deployment/Dockerfile.production` - Docker configuration for the backend
-- `deployment/docker-compose.production.yml` - Docker Compose configuration
+- `deployment/Dockerfile.backend` - Multi-stage Dockerfile for the backend (production stage used)
+- `deployment/Dockerfile.frontend` - Dockerfile for the frontend
+- `deployment/docker-compose.yml` - Base Docker Compose configuration
+- `deployment/docker-compose.prod.yml` - Docker Compose overrides for production
 - `deployment/nginx/production.conf` - Nginx configuration for SSL/TLS
 - `deployment/monitoring/` - Prometheus and Grafana configurations
 
