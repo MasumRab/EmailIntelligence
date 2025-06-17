@@ -369,13 +369,6 @@ class GmailAIService:
         
         return db_email
     
-        # No longer using _map_topic_to_category_id, categoryId should come from AIEngine
-        # category_id = self._map_topic_to_category_id(ai_topic)
-        category_id = ai_analysis_result.get('category_id') if ai_analysis_result else None
-
-        # Common metadata to include regardless of AI analysis success/failure
-        analysis_metadata_payload.update({
-    
     async def train_models_from_gmail_data(
         self, training_query: str = "newer_than:30d", max_training_emails: int = 5000
     ) -> Dict[str, Any]:
