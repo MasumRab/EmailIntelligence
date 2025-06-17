@@ -4,14 +4,32 @@ This directory contains deployment configurations and scripts for the EmailIntel
 
 ## Deployment Environments
 
-### 1. Docker-based Development Environment
+### 1. Local Development Environment
+
+*   **Purpose:** Enables quick testing and development directly on a developer's local machine.
+*   **Key Features:**
+    *   Hot-reloading for rapid feedback on code changes.
+    *   Direct access to the project's file system.
+    *   Simple setup with minimal external dependencies.
+    *   Facilitates easy debugging of the Python backend.
+*   **Key Files:**
+    *   `deployment/local_dev.py`: The primary script for running the local development server. It utilizes `uvicorn` with reload capabilities.
+*   **Usage:**
+    ```bash
+    python deployment/deploy.py local up
+    ```
+
+### 2. Docker-based Development Environment
+
+*   **Purpose:** Provides a consistent and reproducible development environment across different machines using Docker.
 
 The Docker-based development environment provides a consistent development experience across different machines.
 
 **Features:**
-- Containerized services (backend, frontend, database)
-- Volume mounts for live code changes
-- Isolated environment that matches production
+*   Containerizes backend, frontend, and database services.
+*   Utilizes volume mounts for live code changes within containers.
+*   Offers an isolated environment that closely mirrors staging and production.
+*   Ensures all team members work with an identical development stack.
 
 **Usage:**
 ```bash
@@ -20,12 +38,15 @@ python deployment/deploy.py dev up
 
 ### 3. Staging Environment
 
+*   **Purpose:** Serves as a pre-production environment for testing changes in a setup that closely mirrors production. It helps catch issues before they reach users.
+
 The staging environment is designed for testing before production deployment.
 
 **Features:**
-- Production-like environment
-- SSL/TLS support
-- Performance optimizations
+*   Provides a production-like environment.
+*   Includes SSL/TLS support (typically via Nginx).
+*   Incorporates performance optimizations similar to production.
+*   Features enhanced monitoring and logging.
 
 **Usage:**
 ```bash
@@ -34,13 +55,16 @@ python deployment/deploy.py staging up
 
 ### 4. Production Environment
 
+*   **Purpose:** The live environment for the application, optimized for performance, security, and reliability to serve end-users.
+
 The production environment is optimized for performance, security, and reliability.
 
 **Features:**
-- High availability with multiple replicas
-- Load balancing
-- Monitoring and alerting
-- Security hardening
+*   Designed for high availability (e.g., multiple service replicas).
+*   Implements load balancing for efficient traffic distribution.
+*   Integrates advanced monitoring and alerting systems.
+*   Employs security hardening measures.
+*   Utilizes performance optimizations for fast response times.
 
 **Usage:**
 ```bash
@@ -86,7 +110,10 @@ The deployment script supports the following commands:
 - `build`: Build the environment
 - `logs`: View logs
 - `status`: Check status
-- `test`: Run tests using the `run_tests.py` script. This command executes tests within the context of the specified environment's backend service. You can pass arguments directly to `run_tests.py`. For example, to run only unit tests:
+- `test`: Run tests using the `run_tests.py` script.
+  *   **Purpose (from EXISTING_DEPLOYMENT_FRAMEWORKS.md):** Executes tests across different environments.
+  *   **Functionality (from EXISTING_DEPLOYMENT_FRAMEWORKS.md):** Supports various types of tests, including unit tests, integration tests, and end-to-end tests.
+  This command executes tests within the context of the specified environment's backend service. You can pass arguments directly to `run_tests.py`. For example, to run only unit tests:
   ```bash
   python deployment/deploy.py <environment> test -- --unit
   ```
@@ -100,6 +127,23 @@ For a comprehensive overview of testing procedures and detailed test cases, plea
 ## Testing
 
 A comprehensive suite of tests is available to ensure the quality and stability of the EmailIntelligence application. Tests can be executed via the `deploy.py` script. For detailed information on the testing strategy, different types of tests, and specific test cases, please refer to our [Testing Guide](../deployment/TESTING_GUIDE.md).
+
+## Auxiliary Scripts and Tools
+
+This section describes additional scripts that support the deployment and development lifecycle.
+
+*   **`deployment/setup_env.py`**:
+    *   **Purpose:** Assists in setting up the necessary development environment.
+    *   **Functionality:** Handles tasks like installing dependencies and configuring the database for local development.
+
+*   **`deployment/migrate.py`**:
+    *   **Purpose:** Manages database schema migrations.
+    *   **Functionality:** Supports commands like `generate` (to create new migration scripts), `apply` (to apply pending migrations), `status` (to check migration status), and `rollback` (to revert migrations).
+    *(Note: The `deploy.py` script provides a `migrate` command which utilizes this script.)*
+
+*   **`server/python_backend/metrics.py`**:
+    *   **Purpose:** Provides Prometheus metrics for application monitoring.
+    *   **Functionality:** Tracks key performance indicators such as request latency, database query performance, and other custom application-specific metrics.
 
 ## Directory Structure
 
@@ -116,6 +160,7 @@ A comprehensive suite of tests is available to ensure the quality and stability 
   - `nginx/common_*.conf`: Common configuration snippets shared across environments.
 - `monitoring/`: Prometheus and Grafana configurations.
 - `deploy.py`: Main deployment script (acts as a wrapper around Docker Compose).
+- `local_dev.py`: Script for running the local development server (without Docker).
 - `extensions.py`, `migrate.py`, `models.py`, `run_tests.py`, `setup_env.py`, `test_stages.py`: Auxiliary Python scripts for deployment, testing, or utility functions.
 
 ## Prerequisites
