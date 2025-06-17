@@ -1,11 +1,13 @@
+import json  # Added import
 import unittest
-from unittest.mock import MagicMock, AsyncMock # AsyncMock for async methods
-import json # Added import
+from unittest.mock import AsyncMock, MagicMock  # AsyncMock for async methods
 
-from server.python_nlp.gmail_service import GmailAIService
 # Assuming AdvancedAIEngine and AIAnalysisResult are importable for type hinting or mocking structure
 # from server.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
-from server.python_nlp.gmail_metadata import GmailMessage # For structuring metadata input
+from server.python_nlp.gmail_metadata import \
+    GmailMessage  # For structuring metadata input
+from server.python_nlp.gmail_service import GmailAIService
+
 
 class TestGmailAIServiceIntegration(unittest.TestCase):
 
@@ -29,37 +31,49 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
             "suggested_labels": ["important"],
             "risk_flags": [],
             "action_items": [
-                {"action_phrase": "Follow up on Theme D", "verb": "Follow", "object": "Theme", "raw_due_date_text": None, "context": "Follow up on Theme D"}
-            ]
+                {
+                    "action_phrase": "Follow up on Theme D",
+                    "verb": "Follow",
+                    "object": "Theme",
+                    "raw_due_date_text": None,
+                    "context": "Follow up on Theme D",
+                }
+            ],
         }
         # Configure the mock for an async method call
-        mock_advanced_ai_engine.analyze_email = AsyncMock(return_value=mock_analysis_output)
+        mock_advanced_ai_engine.analyze_email = AsyncMock(
+            return_value=mock_analysis_output
+        )
 
         # Instantiate GmailAIService with the mocked AdvancedAIEngine
         gmail_service = GmailAIService(advanced_ai_engine=mock_advanced_ai_engine)
 
         # Prepare a sample email_data input for _perform_ai_analysis
         email_data_for_analysis = {
-            'id': 'test_email_123',
-            'subject': 'Project Update and Action Items',
-            'content': 'Hello team, please Follow up on Theme D. We also need to discuss the budget.',
-            'sender_email': 'test@example.com',
-            'timestamp': '2023-01-01T12:00:00Z'
+            "id": "test_email_123",
+            "subject": "Project Update and Action Items",
+            "content": "Hello team, please Follow up on Theme D. We also need to discuss the budget.",
+            "sender_email": "test@example.com",
+            "timestamp": "2023-01-01T12:00:00Z",
         }
 
         # Call the method under test
-        result_analysis = await gmail_service._perform_ai_analysis(email_data_for_analysis)
+        result_analysis = await gmail_service._perform_ai_analysis(
+            email_data_for_analysis
+        )
 
         # Assertions
         self.assertIsNotNone(result_analysis)
-        self.assertIn('action_items', result_analysis)
-        self.assertEqual(len(result_analysis['action_items']), 1)
-        self.assertEqual(result_analysis['action_items'][0]['action_phrase'], "Follow up on Theme D")
+        self.assertIn("action_items", result_analysis)
+        self.assertEqual(len(result_analysis["action_items"]), 1)
+        self.assertEqual(
+            result_analysis["action_items"][0]["action_phrase"], "Follow up on Theme D"
+        )
 
         # Verify that the mocked analyze_email was called correctly
         mock_advanced_ai_engine.analyze_email.assert_called_once_with(
-            subject=email_data_for_analysis['subject'],
-            content=email_data_for_analysis['content']
+            subject=email_data_for_analysis["subject"],
+            content=email_data_for_analysis["content"],
         )
 
     def test_convert_to_db_format_includes_action_items_in_metadata(self):
@@ -73,7 +87,9 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
         mock_gmail_metadata.from_address = "sender@example.com"
         mock_gmail_metadata.subject = "DB Format Test"
         mock_gmail_metadata.body_plain = "Content with action: please do this."
-        mock_gmail_metadata.body_html = "<p>Content with action: please do this.</p>" # Added
+        mock_gmail_metadata.body_html = (
+            "<p>Content with action: please do this.</p>"  # Added
+        )
         mock_gmail_metadata.snippet = "Content with action..."
         mock_gmail_metadata.date = "2023-10-26 10:00:00"
         mock_gmail_metadata.internal_date = 1672531200000
@@ -82,7 +98,10 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
         mock_gmail_metadata.bcc_addresses = []
         mock_gmail_metadata.reply_to = None
         mock_gmail_metadata.label_ids = ["INBOX", "IMPORTANT"]
-        mock_gmail_metadata.labels = ["Inbox", "Important"] # Assuming labels are processed
+        mock_gmail_metadata.labels = [
+            "Inbox",
+            "Important",
+        ]  # Assuming labels are processed
         mock_gmail_metadata.category = "primary"
         mock_gmail_metadata.is_unread = False
         mock_gmail_metadata.is_starred = True
@@ -108,38 +127,55 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
         mock_gmail_metadata.importance_markers = []
         mock_gmail_metadata.custom_headers = {}
 
-
         ai_analysis_result_with_actions = {
-            "topic": "work", "sentiment": "neutral", "intent": "request", "urgency": "medium",
-            "confidence": 0.88, "categories": ["Work"], "keywords": ["do this"],
-            "reasoning": "Detected a task.", "suggested_labels": [], "risk_flags": [],
+            "topic": "work",
+            "sentiment": "neutral",
+            "intent": "request",
+            "urgency": "medium",
+            "confidence": 0.88,
+            "categories": ["Work"],
+            "keywords": ["do this"],
+            "reasoning": "Detected a task.",
+            "suggested_labels": [],
+            "risk_flags": [],
             "action_items": [
-                {"action_phrase": "please do this", "verb": "do", "object": "this", "raw_due_date_text": None, "context": "Content with action: please do this."}
-            ]
+                {
+                    "action_phrase": "please do this",
+                    "verb": "do",
+                    "object": "this",
+                    "raw_due_date_text": None,
+                    "context": "Content with action: please do this.",
+                }
+            ],
         }
 
-        db_email = gmail_service._convert_to_db_format(mock_gmail_metadata, ai_analysis_result_with_actions)
+        db_email = gmail_service._convert_to_db_format(
+            mock_gmail_metadata, ai_analysis_result_with_actions
+        )
 
-        self.assertIn('analysisMetadata', db_email)
-        analysis_metadata = json.loads(db_email['analysisMetadata'])
+        self.assertIn("analysisMetadata", db_email)
+        analysis_metadata = json.loads(db_email["analysisMetadata"])
 
-        self.assertIn('ai_analysis', analysis_metadata)
-        self.assertIn('action_items', analysis_metadata['ai_analysis'])
-        self.assertEqual(len(analysis_metadata['ai_analysis']['action_items']), 1)
-        self.assertEqual(analysis_metadata['ai_analysis']['action_items'][0]['action_phrase'], "please do this")
+        self.assertIn("ai_analysis", analysis_metadata)
+        self.assertIn("action_items", analysis_metadata["ai_analysis"])
+        self.assertEqual(len(analysis_metadata["ai_analysis"]["action_items"]), 1)
+        self.assertEqual(
+            analysis_metadata["ai_analysis"]["action_items"][0]["action_phrase"],
+            "please do this",
+        )
 
     def test_convert_to_db_format_no_ai_analysis(self):
         gmail_service = GmailAIService(advanced_ai_engine=None)
-        mock_gmail_metadata = MagicMock(spec=GmailMessage) # Populate as above
+        mock_gmail_metadata = MagicMock(spec=GmailMessage)  # Populate as above
         # ... (populate mock_gmail_metadata with minimal fields for the test)
         mock_gmail_metadata.message_id = "msg2"
         mock_gmail_metadata.thread_id = "thread2"
-        mock_gmail_metadata.history_id = "hist2" # Added
+        mock_gmail_metadata.history_id = "hist2"  # Added
         # ... (other fields)
         mock_gmail_metadata.from_address = "sender2@example.com"
         mock_gmail_metadata.subject = "No AI Test"
         mock_gmail_metadata.body_plain = "Content"
-        mock_gmail_metadata.body_html = "<p>Content</p>" # Added
+        mock_gmail_metadata.body_html = "<p>Content</p>"  # Added
         mock_gmail_metadata.snippet = "Content"
         mock_gmail_metadata.date = "2023-10-27 10:00:00"
         mock_gmail_metadata.internal_date = 1672531200000
@@ -149,7 +185,7 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
         mock_gmail_metadata.reply_to = None
         mock_gmail_metadata.label_ids = []
         mock_gmail_metadata.labels = []
-        mock_gmail_metadata.category = "primary" # Default category
+        mock_gmail_metadata.category = "primary"  # Default category
         mock_gmail_metadata.attachments = []
         mock_gmail_metadata.importance_markers = []
         mock_gmail_metadata.thread_info = {}
@@ -175,19 +211,20 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
         mock_gmail_metadata.in_reply_to = None
         mock_gmail_metadata.references = None
 
+        db_email = gmail_service._convert_to_db_format(
+            mock_gmail_metadata, None
+        )  # Pass None for ai_analysis_result
 
-        db_email = gmail_service._convert_to_db_format(mock_gmail_metadata, None) # Pass None for ai_analysis_result
+        self.assertIn("analysisMetadata", db_email)
+        analysis_metadata = json.loads(db_email["analysisMetadata"])
 
-        self.assertIn('analysisMetadata', db_email)
-        analysis_metadata = json.loads(db_email['analysisMetadata'])
-
-        self.assertIn('ai_analysis', analysis_metadata)
-        self.assertIn('action_items', analysis_metadata['ai_analysis'])
-        self.assertEqual(len(analysis_metadata['ai_analysis']['action_items']), 0)
-        self.assertEqual(analysis_metadata['ai_analysis']['topic'], "unknown")
+        self.assertIn("ai_analysis", analysis_metadata)
+        self.assertIn("action_items", analysis_metadata["ai_analysis"])
+        self.assertEqual(len(analysis_metadata["ai_analysis"]["action_items"]), 0)
+        self.assertEqual(analysis_metadata["ai_analysis"]["topic"], "unknown")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Unittest runner doesn't directly support async test methods out of the box
     # without helpers or specific runners like pytest-asyncio or asynctest.
     # For a simple case, one might run specific async tests using asyncio.run(),

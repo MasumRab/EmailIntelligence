@@ -3,19 +3,17 @@ Python Backend for Gmail AI Email Management
 Optimized FastAPI backend with comprehensive NLP integration
 """
 
-from .main import app
-from .database import DatabaseManager, get_db
-from .models import (
-    EmailCreate, EmailUpdate, EmailResponse,
-    CategoryCreate, CategoryResponse,
-    ActivityCreate, ActivityResponse,
-    GmailSyncRequest, GmailSyncResponse,
-    SmartRetrievalRequest, FilterRequest,
-    AIAnalysisResponse, DashboardStats
-)
 from server.python_nlp.gmail_service import GmailAIService
+from server.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
-from server.python_nlp.smart_filters import SmartFilterManager, EmailFilter
+from .database import DatabaseManager, get_db
+from .main import app
+from .models import (ActivityCreate, ActivityResponse, AIAnalysisResponse,
+                     CategoryCreate, CategoryResponse, DashboardStats,
+                     EmailCreate, EmailResponse, EmailUpdate, FilterRequest,
+                     GmailSyncRequest, GmailSyncResponse,
+                     SmartRetrievalRequest)
 from .performance_monitor import PerformanceMonitor
 
 __version__ = "2.0.0"
@@ -25,7 +23,7 @@ __all__ = [
     "DatabaseManager",
     "get_db",
     "EmailCreate",
-    "EmailUpdate", 
+    "EmailUpdate",
     "EmailResponse",
     "CategoryCreate",
     "CategoryResponse",
@@ -42,5 +40,5 @@ __all__ = [
     "AIAnalysisResult",
     "SmartFilterManager",
     "EmailFilter",
-    "PerformanceMonitor"
+    "PerformanceMonitor",
 ]

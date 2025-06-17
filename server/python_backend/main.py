@@ -3,27 +3,29 @@ FastAPI Backend for Gmail AI Email Management
 Unified Python backend with optimized performance and integrated NLP
 """
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
+import asyncio
+import json
+import logging
+import os
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import psycopg2
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
-import asyncio
-import logging
-from datetime import datetime
-import os
-import psycopg2
 from googleapiclient.errors import HttpError as GoogleApiHttpError
-import json
+from pydantic import BaseModel, Field
 
-# Import our Python modules
-from .database import DatabaseManager, get_db
-from .models import EmailCreate, EmailUpdate, CategoryCreate, ActivityCreate
 # Updated import to use NLP GmailAIService directly
 from server.python_nlp.gmail_service import GmailAIService
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from server.python_nlp.smart_filters import SmartFilterManager
+
 from .ai_engine import AdvancedAIEngine
+# Import our Python modules
+from .database import DatabaseManager, get_db
+from .models import ActivityCreate, CategoryCreate, EmailCreate, EmailUpdate
 from .performance_monitor import PerformanceMonitor
 
 # Configure logging
@@ -34,13 +36,17 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Gmail AI Email Management",
     description="Advanced email management with AI categorization and smart filtering",
-    version="2.0.0"
+    version="2.0.0",
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "http://localhost:5173", "https://*.replit.dev"],
+    allow_origins=[
+        "http://localhost:5000",
+        "http://localhost:5173",
+        "https://*.replit.dev",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,18 +60,22 @@ app.add_middleware(
 # Set up metrics if in production or staging environment
 if os.getenv("NODE_ENV") in ["production", "staging"]:
     from .metrics import setup_metrics
+
     setup_metrics(app)
 
 # Initialize services
 # Services are now initialized within their respective route files
 # or kept here if they are used by multiple route files or for general app setup.
-gmail_service = GmailAIService() # Used by gmail_routes
-filter_manager = SmartFilterManager() # Used by filter_routes
-ai_engine = AdvancedAIEngine() # Used by email_routes, action_routes
-performance_monitor = PerformanceMonitor() # Used by all routes via @performance_monitor.track
+gmail_service = GmailAIService()  # Used by gmail_routes
+filter_manager = SmartFilterManager()  # Used by filter_routes
+ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
+performance_monitor = (
+    PerformanceMonitor()
+)  # Used by all routes via @performance_monitor.track
 
 # Import routers
-from . import email_routes, category_routes, gmail_routes, filter_routes, action_routes, dashboard_routes
+from . import (action_routes, category_routes, dashboard_routes, email_routes,
+               filter_routes, gmail_routes)
 
 # Include routers in the app
 app.include_router(email_routes.router)
@@ -78,6 +88,7 @@ app.include_router(dashboard_routes.router)
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
 
+
 # Health check endpoint (usually kept in main.py)
 @app.get("/health")
 async def health_check(request: Request):
@@ -88,35 +99,34 @@ async def health_check(request: Request):
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
-            "version": "2.0.0"
+            "version": "2.0.0",
         }
-    except Exception as e: # This generic exception is fine for health check's own error
-        logger.error( # Simple log for health check itself
-            json.dumps({
-                "message": "Health check failed",
-                "endpoint": str(request.url),
-                "error_type": type(e).__name__,
-                "error_detail": str(e),
-            })
+    except (
+        Exception
+    ) as e:  # This generic exception is fine for health check's own error
+        logger.error(  # Simple log for health check itself
+            json.dumps(
+                {
+                    "message": "Health check failed",
+                    "endpoint": str(request.url),
+                    "error_type": type(e).__name__,
+                    "error_detail": str(e),
+                }
+            )
         )
         return JSONResponse(
-            status_code=503, # Service Unavailable
+            status_code=503,  # Service Unavailable
             content={
                 "status": "unhealthy",
-                "error": "Service health check failed.", # Generic message to client
+                "error": "Service health check failed.",  # Generic message to client
                 "timestamp": datetime.now().isoformat(),
-                "endpoint": str(request.url)
-            }
+                "endpoint": str(request.url),
+            },
         )
+
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=True,
-        log_level="info"
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, log_level="info")

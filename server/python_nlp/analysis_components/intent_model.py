@@ -1,8 +1,9 @@
 import logging
 import re
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
+
 
 class IntentModel:
     def __init__(self, intent_model: Optional[Any]):
@@ -22,9 +23,9 @@ class IntentModel:
             confidence = float(max(probabilities))
 
             return {
-                'intent': str(prediction),
-                'confidence': confidence,
-                'method_used': 'model_intent'
+                "intent": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_intent",
             }
         except Exception as e:
             self.logger.error(f"Error using intent model: {e}. Trying fallback.")
@@ -35,14 +36,14 @@ class IntentModel:
         Analyze intent using regex pattern matching as a fallback method.
         """
         intent_patterns = {
-            'request': r'\b(please|could you|would you|can you|need|require|request)\b',
-            'inquiry': r'\b(question|ask|wonder|curious|information|details|clarification)\b',
-            'scheduling': r'\b(schedule|calendar|meeting|appointment|time|date|available)\b',
-            'urgent_action': r'\b(urgent|asap|immediately|emergency|critical|priority)\b',
-            'gratitude': r'\b(thank|thanks|grateful|appreciate)\b',
-            'complaint': r'\b(complaint|complain|issue|problem|dissatisfied|unhappy)\b',
-            'follow_up': r'\b(follow up|follow-up|checking in|status|update|progress)\b',
-            'confirmation': r'\b(confirm|confirmation|verify|check|acknowledge)\b'
+            "request": r"\b(please|could you|would you|can you|need|require|request)\b",
+            "inquiry": r"\b(question|ask|wonder|curious|information|details|clarification)\b",
+            "scheduling": r"\b(schedule|calendar|meeting|appointment|time|date|available)\b",
+            "urgent_action": r"\b(urgent|asap|immediately|emergency|critical|priority)\b",
+            "gratitude": r"\b(thank|thanks|grateful|appreciate)\b",
+            "complaint": r"\b(complaint|complain|issue|problem|dissatisfied|unhappy)\b",
+            "follow_up": r"\b(follow up|follow-up|checking in|status|update|progress)\b",
+            "confirmation": r"\b(confirm|confirmation|verify|check|acknowledge)\b",
         }
 
         intent_scores = {}
@@ -53,18 +54,18 @@ class IntentModel:
 
         if any(score > 0 for score in intent_scores.values()):
             best_intent = max(intent_scores, key=intent_scores.get)
-            confidence = min(intent_scores[best_intent] / 3.0, 0.9) # Heuristic
+            confidence = min(intent_scores[best_intent] / 3.0, 0.9)  # Heuristic
 
             return {
-                'intent': best_intent,
-                'confidence': max(0.1, confidence),
-                'method_used': 'fallback_regex_intent'
+                "intent": best_intent,
+                "confidence": max(0.1, confidence),
+                "method_used": "fallback_regex_intent",
             }
         else:
             return {
-                'intent': 'informational',
-                'confidence': 0.6,
-                'method_used': 'fallback_regex_intent'
+                "intent": "informational",
+                "confidence": 0.6,
+                "method_used": "fallback_regex_intent",
             }
 
     def analyze(self, text: str) -> Dict[str, Any]:

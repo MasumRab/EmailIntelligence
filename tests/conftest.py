@@ -1,7 +1,11 @@
-import pytest
 from unittest.mock import AsyncMock
-from server.python_backend.main import app # Assuming 'app' is your FastAPI instance
-from server.python_backend.database import get_db # The actual dependency
+
+import pytest
+
+from server.python_backend.database import get_db  # The actual dependency
+from server.python_backend.main import \
+    app  # Assuming 'app' is your FastAPI instance
+
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_db_session_override():
@@ -15,7 +19,9 @@ def mock_db_session_override():
 
     # This is the dependency that needs to be overridden
     # Ensure this path is correct for your project structure
-    original_get_db_override = app.dependency_overrides.get(get_db) # Store original override, if any
+    original_get_db_override = app.dependency_overrides.get(
+        get_db
+    )  # Store original override, if any
 
     # Define the override function that will return our session-scoped mock
     async def override_get_db_for_session():
@@ -23,11 +29,11 @@ def mock_db_session_override():
 
     app.dependency_overrides[get_db] = override_get_db_for_session
 
-    yield mock_db # Provide the mock to tests if they request it by this fixture name
+    yield mock_db  # Provide the mock to tests if they request it by this fixture name
 
     # Teardown: Restore original dependency override if it existed, or clear it
     if original_get_db_override:
         app.dependency_overrides[get_db] = original_get_db_override
     else:
-        if get_db in app.dependency_overrides: # Check if key exists before deleting
+        if get_db in app.dependency_overrides:  # Check if key exists before deleting
             del app.dependency_overrides[get_db]
