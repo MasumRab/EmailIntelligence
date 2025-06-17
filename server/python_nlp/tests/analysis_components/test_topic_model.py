@@ -1,6 +1,6 @@
+import logging
 import unittest
 from unittest.mock import MagicMock
-import logging
 
 from server.python_nlp.analysis_components.topic_model import TopicModel
 

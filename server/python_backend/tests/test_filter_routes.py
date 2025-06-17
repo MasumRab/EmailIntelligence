@@ -1,10 +1,12 @@
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock, MagicMock
-from datetime import datetime
 
 from server.python_backend.main import app
-from server.python_nlp.smart_filters import EmailFilter # For response model type hinting
+from server.python_nlp.smart_filters import \
+    EmailFilter  # For response model type hinting
 
 # Mock SmartFilterManager methods
 mock_filter_manager_instance = MagicMock()

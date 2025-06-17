@@ -1,14 +1,15 @@
 # Script to download and save Hugging Face models for EmailIntelligence
 # Run: python download_hf_models.py
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import os
+
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 MODELS = {
     "sentiment": "distilbert-base-uncased-finetuned-sst-2-english",
     "topic": "cardiffnlp/tweet-topic-21-multi",
     "intent": "mrm8488/bert-tiny-finetuned-sms-spam-detection",
-    "urgency": "mrm8488/bert-tiny-finetuned-sms-spam-detection"  # Placeholder, replace with a better urgency model if needed
+    "urgency": "mrm8488/bert-tiny-finetuned-sms-spam-detection",  # Placeholder, replace with a better urgency model if needed
 }
 
 for category, model_name in MODELS.items():
