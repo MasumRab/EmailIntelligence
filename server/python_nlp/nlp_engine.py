@@ -15,9 +15,9 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from server.python_nlp.action_item_extractor import (  # Import ActionItemExtractor
-    ActionItemExtractor,
-)
+# from server.python_nlp.action_item_extractor import ( # Removed
+    # ActionItemExtractor, # Removed
+# ) # Removed
 from server.python_nlp.text_utils import clean_text
 
 from .analysis_components.intent_model import IntentModel
@@ -92,7 +92,7 @@ class NLPEngine:
         self.urgency_model = None
 
         # Initialize ActionItemExtractor
-        self.action_item_extractor = ActionItemExtractor()
+        # self.action_item_extractor = ActionItemExtractor() # Removed
 
         # Load models if dependencies are available
         # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
@@ -624,7 +624,7 @@ class NLPEngine:
                 "reliable": False,
                 "feedback": "Analysis failed, using fallback method",
             },
-            "action_items": [],  # Include empty list for action items
+            # "action_items": [], # Removed
         }
 
     def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
@@ -709,21 +709,15 @@ class NLPEngine:
                 "reliable": False,
                 "feedback": "Basic analysis - NLTK/models not available or failed",
             },
-            "action_items": [],  # Include empty list for action items
+            # "action_items": [], # Removed
         }
 
     def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
         """
         Analyze text for action items using ActionItemExtractor.
         """
-        logger.info("Analyzing for action items...")
-        try:
-            actions = self.action_item_extractor.extract_actions(text)
-            logger.info(f"Action item analysis completed. Found {len(actions)} potential actions.")
-            return actions
-        except Exception as e:
-            logger.error(f"Error during action item analysis: {e}", exc_info=True)
-            return []
+        logger.info("Action item analysis skipped (feature removed).")
+        return []
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         """
@@ -803,7 +797,7 @@ class NLPEngine:
                 categories,
                 keywords,
                 risk_analysis_flags,
-                action_items,
+                # action_items, # Removed - _analyze_action_items now returns empty list, but param removed from build
             )
             logger.info("Final analysis response built successfully.")
             return response
@@ -822,7 +816,7 @@ class NLPEngine:
         categories,
         keywords,
         risk_analysis_flags,
-        action_items,
+        # action_items, # Removed param
     ) -> Dict[str, Any]:
         """Helper function to consolidate analysis results and build the final response dictionary."""
 
@@ -885,7 +879,7 @@ class NLPEngine:
                 "intent_analysis": intent_analysis,
                 "urgency_analysis": urgency_analysis,
             },
-            "action_items": action_items,
+            # "action_items": action_items, # Removed
         }
 
 
