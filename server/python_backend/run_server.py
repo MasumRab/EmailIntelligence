@@ -35,7 +35,6 @@ async def startup():
         # Log startup information
         logger.info("Gmail AI Email Management Backend starting...")
         logger.info(f"Environment: {os.getenv('NODE_ENV', 'development')}")
-        logger.info(f"Database URL configured: {bool(os.getenv('DATABASE_URL'))}")
 
     except Exception as e:
         logger.error(f"Startup failed: {e}")
