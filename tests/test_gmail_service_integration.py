@@ -4,8 +4,7 @@ from unittest.mock import AsyncMock, MagicMock  # AsyncMock for async methods
 
 # Assuming AdvancedAIEngine and AIAnalysisResult are importable for type hinting or mocking structure
 # from server.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
-from server.python_nlp.gmail_metadata import \
-    GmailMessage  # For structuring metadata input
+from server.python_nlp.gmail_metadata import GmailMessage  # For structuring metadata input
 from server.python_nlp.gmail_service import GmailAIService
 
 
@@ -41,9 +40,7 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
             ],
         }
         # Configure the mock for an async method call
-        mock_advanced_ai_engine.analyze_email = AsyncMock(
-            return_value=mock_analysis_output
-        )
+        mock_advanced_ai_engine.analyze_email = AsyncMock(return_value=mock_analysis_output)
 
         # Instantiate GmailAIService with the mocked AdvancedAIEngine
         gmail_service = GmailAIService(advanced_ai_engine=mock_advanced_ai_engine)
@@ -58,9 +55,7 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
         }
 
         # Call the method under test
-        result_analysis = await gmail_service._perform_ai_analysis(
-            email_data_for_analysis
-        )
+        result_analysis = await gmail_service._perform_ai_analysis(email_data_for_analysis)
 
         # Assertions
         self.assertIsNotNone(result_analysis)
@@ -87,9 +82,7 @@ class TestGmailAIServiceIntegration(unittest.TestCase):
         mock_gmail_metadata.from_address = "sender@example.com"
         mock_gmail_metadata.subject = "DB Format Test"
         mock_gmail_metadata.body_plain = "Content with action: please do this."
-        mock_gmail_metadata.body_html = (
-            "<p>Content with action: please do this.</p>"  # Added
-        )
+        mock_gmail_metadata.body_html = "<p>Content with action: please do this.</p>"  # Added
         mock_gmail_metadata.snippet = "Content with action..."
         mock_gmail_metadata.date = "2023-10-26 10:00:00"
         mock_gmail_metadata.internal_date = 1672531200000

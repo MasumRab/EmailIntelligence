@@ -34,7 +34,9 @@ TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
 # Credentials content will be loaded from GMAIL_CREDENTIALS_JSON environment variable
 # CREDENTIALS_PATH is now a placeholder for where it *would* be if it were a file.
 # Users should set GMAIL_CREDENTIALS_JSON instead of creating credentials.json
-CREDENTIALS_PATH = "credentials.json"  # Placeholder, not directly used if GMAIL_CREDENTIALS_JSON is set.
+CREDENTIALS_PATH = (
+    "credentials.json"  # Placeholder, not directly used if GMAIL_CREDENTIALS_JSON is set.
+)
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 
@@ -154,9 +156,7 @@ class EmailCache:
 
     def get_cached_email(self, message_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve cached email by message ID"""
-        cursor = self.conn.execute(
-            "SELECT * FROM emails WHERE message_id = ?", (message_id,)
-        )
+        cursor = self.conn.execute("SELECT * FROM emails WHERE message_id = ?", (message_id,))
         row = cursor.fetchone()
 
         if row:
@@ -279,13 +279,9 @@ class GmailDataCollector:
                     if os.path.exists(token_path):
                         try:
                             os.remove(token_path)
-                            self.logger.info(
-                                f"Removed invalid token file: {token_path}"
-                            )
+                            self.logger.info(f"Removed invalid token file: {token_path}")
                         except OSError as oe:
-                            self.logger.error(
-                                f"Error removing token file {token_path}: {oe}"
-                            )
+                            self.logger.error(f"Error removing token file {token_path}: {oe}")
                     creds = None  # Force re-authentication
             # If creds are still None (not loaded or refresh failed), _authenticate will be called
 
@@ -325,9 +321,7 @@ class GmailDataCollector:
             )
             if os.path.exists(CREDENTIALS_PATH):
                 try:
-                    flow = InstalledAppFlow.from_client_secrets_file(
-                        CREDENTIALS_PATH, SCOPES
-                    )
+                    flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
                 except Exception as e:
                     self.logger.error(
                         f"Error loading fallback credentials from {CREDENTIALS_PATH}: {e}"
@@ -349,9 +343,7 @@ class GmailDataCollector:
                     "Please ensure it's a valid JSON string."
                 )
                 return
-            except (
-                Exception
-            ) as e:  # Catch other potential errors from from_client_config
+            except Exception as e:  # Catch other potential errors from from_client_config
                 self.logger.error(
                     f"Error loading credentials from {GMAIL_CREDENTIALS_ENV_VAR}: {e}"
                 )
@@ -378,9 +370,7 @@ class GmailDataCollector:
     def set_gmail_service(self, service):
         """Set the Gmail API service instance (Deprecated if using OAuth within class)"""
         # This method might be deprecated or changed if OAuth is handled internally
-        self.logger.warning(
-            "set_gmail_service is called, but OAuth is now handled internally."
-        )
+        self.logger.warning("set_gmail_service is called, but OAuth is now handled internally.")
         self.gmail_service = service
 
     async def collect_emails_incremental(
@@ -397,9 +387,7 @@ class GmailDataCollector:
             max_emails: Maximum number of emails to collect
             since_date: Only collect emails after this date
         """
-        sync_id = hashlib.md5(
-            f"{query_filter}_{datetime.now().date()}".encode()
-        ).hexdigest()
+        sync_id = hashlib.md5(f"{query_filter}_{datetime.now().date()}".encode()).hexdigest()
 
         # Check cache for existing sync state
         sync_state = self.cache.get_sync_state(query_filter)
@@ -440,9 +428,7 @@ class GmailDataCollector:
                     break
 
                 # Process messages in parallel with rate limiting
-                batch_messages = await self._process_message_batch(
-                    message_list["messages"]
-                )
+                batch_messages = await self._process_message_batch(message_list["messages"])
 
                 collected_messages.extend(batch_messages)
 
@@ -460,9 +446,7 @@ class GmailDataCollector:
                 page_token = message_list["nextPageToken"]
 
                 # Log progress
-                self.logger.info(
-                    f"Collected {len(collected_messages)} emails so far..."
-                )
+                self.logger.info(f"Collected {len(collected_messages)} emails so far...")
 
         except Exception as e:
             self.logger.error(f"Error collecting emails: {e}")
@@ -527,9 +511,7 @@ class GmailDataCollector:
 
         for i in range(min(max_results, 10)):  # Limit simulation to 10 messages
             message_id = f"msg_{base_time}_{i:03d}"
-            messages.append(
-                {"id": message_id, "threadId": f"thread_{base_time}_{i//3:03d}"}
-            )
+            messages.append({"id": message_id, "threadId": f"thread_{base_time}_{i//3:03d}"})
 
         response = {"messages": messages, "resultSizeEstimate": len(messages)}
 
@@ -554,9 +536,7 @@ class GmailDataCollector:
 
         # Filter out exceptions and None results
         valid_messages = [
-            result
-            for result in results
-            if not isinstance(result, Exception) and result is not None
+            result for result in results if not isinstance(result, Exception) and result is not None
         ]
 
         return valid_messages
@@ -583,34 +563,26 @@ class GmailDataCollector:
 
         if self.gmail_service:
             try:
-                self.logger.debug(
-                    f"Attempting to fetch message {message_id} from Gmail API."
-                )
+                self.logger.debug(f"Attempting to fetch message {message_id} from Gmail API.")
                 message = (
                     self.gmail_service.users()
                     .messages()
                     .get(userId="me", id=message_id, format="full")
                     .execute()
                 )
-                self.logger.debug(
-                    f"Successfully fetched message {message_id} from API."
-                )
+                self.logger.debug(f"Successfully fetched message {message_id} from API.")
 
                 email_data = self._parse_message_payload(message)
 
                 if email_data:
                     self.cache.cache_email(email_data)
-                    self.logger.debug(
-                        f"Successfully parsed and cached message {message_id}."
-                    )
+                    self.logger.debug(f"Successfully parsed and cached message {message_id}.")
                     return email_data
                 else:
                     self.logger.warning(
                         f"Could not parse email data for message {message_id}. This message will not be processed further."
                     )
-                    return (
-                        None  # Parsing failure, do not simulate for this specific case
-                    )
+                    return None  # Parsing failure, do not simulate for this specific case
             except HttpError as error:
                 self.logger.error(
                     f"API error fetching message {message_id}: {error}. Falling back to simulation."
@@ -632,24 +604,17 @@ class GmailDataCollector:
         email_data = await self._simulate_email_content(message_id)
 
         # Ensure message_id is present in simulated data for caching
-        if (
-            "message_id" not in email_data
-        ):  # _simulate_email_content should guarantee this
+        if "message_id" not in email_data:  # _simulate_email_content should guarantee this
             email_data["message_id"] = message_id
 
         self.cache.cache_email(email_data)
         self.logger.debug(f"Cached simulated content for message {message_id}.")
         return email_data
 
-    def _parse_message_payload(
-        self, message: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _parse_message_payload(self, message: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Parses the raw message payload from Gmail API."""
         try:
-            headers = {
-                h["name"]: h["value"]
-                for h in message.get("payload", {}).get("headers", [])
-            }
+            headers = {h["name"]: h["value"] for h in message.get("payload", {}).get("headers", [])}
 
             # Simplified content extraction (plaintext preferred)
             # Real implementation would need to handle multipart messages, base64 decoding, etc.
@@ -659,17 +624,15 @@ class GmailDataCollector:
                     if part["mimeType"] == "text/plain" and "data" in part["body"]:
                         import base64
 
-                        content = base64.urlsafe_b64decode(part["body"]["data"]).decode(
-                            "utf-8"
-                        )
+                        content = base64.urlsafe_b64decode(part["body"]["data"]).decode("utf-8")
                         break
                     # Could add more part types (e.g., text/html)
             elif "body" in message["payload"] and "data" in message["payload"]["body"]:
                 import base64
 
-                content = base64.urlsafe_b64decode(
-                    message["payload"]["body"]["data"]
-                ).decode("utf-8")
+                content = base64.urlsafe_b64decode(message["payload"]["body"]["data"]).decode(
+                    "utf-8"
+                )
 
             return {
                 "message_id": message["id"],
@@ -684,9 +647,7 @@ class GmailDataCollector:
                 ).isoformat(),
             }
         except Exception as e:
-            self.logger.error(
-                f"Error parsing message payload for {message.get('id')}: {e}"
-            )
+            self.logger.error(f"Error parsing message payload for {message.get('id')}: {e}")
             return None
 
     def _extract_email_address(self, sender_header: str) -> str:
@@ -810,9 +771,7 @@ async def main():
     collector = GmailDataCollector()  # This will trigger authentication if needed
 
     if not collector.gmail_service:
-        logger.error(
-            "Gmail service initialization failed. Please check logs for details."
-        )
+        logger.error("Gmail service initialization failed. Please check logs for details.")
         print(
             "--------------------------------------------------------------------------------------"
         )
@@ -824,24 +783,16 @@ async def main():
         print(
             f"1. {GMAIL_CREDENTIALS_ENV_VAR}: Should contain the JSON string of your Google Cloud credentials."
         )
-        print(
-            f"   Example: export {GMAIL_CREDENTIALS_ENV_VAR}='{{ \"installed\": {{ ... }} }}'"
-        )
+        print(f"   Example: export {GMAIL_CREDENTIALS_ENV_VAR}='{{ \"installed\": {{ ... }} }}'")
         print(
             f"   (Alternatively, as a fallback, place a 'credentials.json' file in the script's directory: {os.getcwd()})"
         )
-        print(
-            f"2. GMAIL_TOKEN_PATH (Optional): Specify a custom path for 'token.json'."
-        )
-        print(
-            f"   Defaults to '{TOKEN_JSON_PATH}' in the script's directory: {os.getcwd()}"
-        )
+        print(f"2. GMAIL_TOKEN_PATH (Optional): Specify a custom path for 'token.json'.")
+        print(f"   Defaults to '{TOKEN_JSON_PATH}' in the script's directory: {os.getcwd()}")
         print(
             "If running for the first time, you might need to go through the OAuth2 authentication flow in your browser."
         )
-        print(
-            "Check the console logs for more detailed error messages from the application."
-        )
+        print("Check the console logs for more detailed error messages from the application.")
         print(
             "--------------------------------------------------------------------------------------"
         )

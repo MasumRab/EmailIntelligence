@@ -9,6 +9,7 @@ import logging
 import statistics
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
+
 # Added imports:
 from datetime import datetime  # Ensure datetime is directly available
 from datetime import timedelta
@@ -83,9 +84,7 @@ class RetrievalMonitor:
                 metrics_buffer_copy = self.metrics_buffer.copy()  # Shallow copy of dict
 
                 for strategy_name, metrics_deque in metrics_buffer_copy.items():
-                    current_deque_copy = list(
-                        metrics_deque
-                    )  # Copy of the deque for this strategy
+                    current_deque_copy = list(metrics_deque)  # Copy of the deque for this strategy
                     if not current_deque_copy:
                         continue
 
@@ -95,9 +94,7 @@ class RetrievalMonitor:
                         # strategy_name is already in RetrievalMetrics dataclass, but good to have consistently
                         log_entry["strategy_name_key"] = strategy_name
                         log_entry["timestamp_logged"] = datetime.now().isoformat()
-                        f.write(
-                            json.dumps(log_entry, default=json_default_converter) + "\n"
-                        )
+                        f.write(json.dumps(log_entry, default=json_default_converter) + "\n")
 
                     # Clear the original deque for this strategy after its contents are written
                     self.metrics_buffer[strategy_name].clear()
@@ -113,9 +110,7 @@ class RetrievalMonitor:
                 f"IOError writing retrieval metrics to {self.RETRIEVAL_LOG_FILE}: {e}"
             )
         except Exception as e:
-            self.logger.error(
-                f"Unexpected error logging retrieval metrics to file: {e}"
-            )
+            self.logger.error(f"Unexpected error logging retrieval metrics to file: {e}")
 
     async def _periodic_logger_task(self):
         """Periodically logs metrics to a file."""
@@ -129,9 +124,7 @@ class RetrievalMonitor:
                 break
             except Exception as e:
                 self.logger.error(f"Error in periodic retrieval logger task: {e}")
-                await asyncio.sleep(
-                    self.LOG_INTERVAL_SECONDS / 2
-                )  # Shorter sleep on error
+                await asyncio.sleep(self.LOG_INTERVAL_SECONDS / 2)  # Shorter sleep on error
 
     def record_retrieval_metrics(self, metrics: RetrievalMetrics):
         """Record real-time retrieval metrics"""
@@ -199,9 +192,9 @@ class RetrievalMonitor:
         # Error rate check (calculated over recent window)
         recent_metrics = list(self.metrics_buffer[metrics.strategy_name])
         if len(recent_metrics) >= 5:
-            error_rate = sum(
-                1 for m in recent_metrics[-10:] if m.error_count > 0
-            ) / min(10, len(recent_metrics))
+            error_rate = sum(1 for m in recent_metrics[-10:] if m.error_count > 0) / min(
+                10, len(recent_metrics)
+            )
             if error_rate > self.alert_thresholds.max_error_rate:
                 alerts.append(
                     {
@@ -349,9 +342,7 @@ class RetrievalMonitor:
                     "total_errors": total_errors,
                     "performance_score": round(overall_score, 1),
                     "last_execution": (
-                        recent_metrics[-1].timestamp.isoformat()
-                        if recent_metrics
-                        else None
+                        recent_metrics[-1].timestamp.isoformat() if recent_metrics else None
                     ),
                     "trend": self._calculate_performance_trend(strategy_name),
                 }
@@ -428,22 +419,16 @@ class RetrievalMonitor:
         return {
             "last_hour": {
                 "avg_efficiency": (
-                    statistics.mean([t["efficiency"] for t in last_hour])
-                    if last_hour
-                    else 0
+                    statistics.mean([t["efficiency"] for t in last_hour]) if last_hour else 0
                 ),
                 "avg_latency": (
-                    statistics.mean([t["latency"] for t in last_hour])
-                    if last_hour
-                    else 0
+                    statistics.mean([t["latency"] for t in last_hour]) if last_hour else 0
                 ),
                 "total_errors": sum([t["error_count"] for t in last_hour]),
             },
             "last_24_hours": {
                 "avg_efficiency": (
-                    statistics.mean([t["efficiency"] for t in last_day])
-                    if last_day
-                    else 0
+                    statistics.mean([t["efficiency"] for t in last_day]) if last_day else 0
                 ),
                 "avg_latency": (
                     statistics.mean([t["latency"] for t in last_day]) if last_day else 0
@@ -545,9 +530,7 @@ class RetrievalMonitor:
 
         return sorted(
             recommendations,
-            key=lambda x: {"critical": 3, "high": 2, "medium": 1, "low": 0}[
-                x["priority"]
-            ],
+            key=lambda x: {"critical": 3, "high": 2, "medium": 1, "low": 0}[x["priority"]],
             reverse=True,
         )
 

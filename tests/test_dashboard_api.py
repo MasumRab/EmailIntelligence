@@ -6,8 +6,7 @@ from fastapi.testclient import TestClient
 from psycopg2 import Error as Psycopg2Error  # Import real psycopg2.Error
 
 from server.python_backend.main import app, get_db
-from server.python_backend.models import \
-    DashboardStats  # Import specific model - corrected name
+from server.python_backend.models import DashboardStats  # Import specific model - corrected name
 
 # Mock DatabaseManager for dependency injection
 # This will use the same global mock_db_manager_filter instance if tests are run together,
@@ -143,9 +142,7 @@ class TestDashboardAPI(unittest.TestCase):
         # self.mock_performance_monitor_patch.stop() # REMOVED
 
         # Use self.mock_performance_monitor directly as it's the MagicMock replacing the instance in main
-        self.mock_performance_monitor.get_real_time_dashboard.return_value = (
-            mock_performance_data
-        )
+        self.mock_performance_monitor.get_real_time_dashboard.return_value = mock_performance_data
 
         response = self.client.get("/api/performance/overview")
 

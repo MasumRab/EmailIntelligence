@@ -7,9 +7,10 @@ from fastapi.testclient import TestClient
 from googleapiclient.errors import HttpError
 
 from server.python_backend.main import (  # Assuming get_db is for DatabaseManager, not directly used here but good to keep consistent
-    app, get_db)
-from server.python_backend.models import (GmailSyncRequest,
-                                          SmartRetrievalRequest)
+    app,
+    get_db,
+)
+from server.python_backend.models import GmailSyncRequest, SmartRetrievalRequest
 
 # Mock DatabaseManager (though not directly used by these endpoints, it's good practice if other parts of app setup need it)
 mock_db_manager_gmail = MagicMock()
@@ -91,9 +92,7 @@ class TestGmailAPI(unittest.TestCase):
         self.assertTrue(data["success"])
         self.assertEqual(data["processedCount"], 5)
         self.assertEqual(data["emailsCreated"], 5)  # Approximation in main.py
-        self.assertEqual(
-            data["batchInfo"]["batchId"], "batch123"
-        )  # Changed batch_id to batchId
+        self.assertEqual(data["batchInfo"]["batchId"], "batch123")  # Changed batch_id to batchId
         self.mock_gmail_service.sync_gmail_emails.assert_called_once_with(
             max_emails=request_data["maxEmails"],
             query_filter=request_data["queryFilter"],
@@ -113,9 +112,7 @@ class TestGmailAPI(unittest.TestCase):
 
         response = self.client.post("/api/gmail/sync", json=request_data)
 
-        self.assertEqual(
-            response.status_code, 200
-        )  # Endpoint itself succeeds, but reports failure
+        self.assertEqual(response.status_code, 200)  # Endpoint itself succeeds, but reports failure
         data = response.json()
         self.assertFalse(data["success"])
         self.assertEqual(data["error"], "NLP service error")
@@ -169,17 +166,14 @@ class TestGmailAPI(unittest.TestCase):
     def test_sync_gmail_generic_exception(self):
         print("Running test_sync_gmail_generic_exception")
         request_data = {"maxEmails": 10}
-        self.mock_gmail_service.sync_gmail_emails.side_effect = Exception(
-            "Some unexpected error"
-        )
+        self.mock_gmail_service.sync_gmail_emails.side_effect = Exception("Some unexpected error")
 
         response = self.client.post("/api/gmail/sync", json=request_data)
 
         self.assertEqual(response.status_code, 500)
         data = response.json()
         self.assertTrue(
-            "Gmail sync failed due to an unexpected error: Some unexpected error"
-            in data["detail"]
+            "Gmail sync failed due to an unexpected error: Some unexpected error" in data["detail"]
         )
         self.mock_performance_monitor.record_sync_performance.assert_not_called()
 
@@ -195,9 +189,7 @@ class TestGmailAPI(unittest.TestCase):
             "emails_found": 5,
             "details": "...",
         }
-        self.mock_gmail_service.execute_smart_retrieval.return_value = (
-            mock_retrieval_result
-        )
+        self.mock_gmail_service.execute_smart_retrieval.return_value = mock_retrieval_result
 
         response = self.client.post("/api/gmail/smart-retrieval", json=request_data)
 
@@ -297,9 +289,7 @@ class TestGmailAPI(unittest.TestCase):
         response = self.client.get("/api/gmail/performance")
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(
-            response.json(), {"detail": "Failed to fetch performance metrics"}
-        )
+        self.assertEqual(response.json(), {"detail": "Failed to fetch performance metrics"})
 
 
 if __name__ == "__main__":

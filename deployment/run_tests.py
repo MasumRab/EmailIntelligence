@@ -44,15 +44,11 @@ def run_command(
         )
         if result.stdout:
             logger.info(f"Command STDOUT:\n{result.stdout}")
-        if (
-            result.stderr
-        ):  # Should be empty if check=True and no error, but log if present
+        if result.stderr:  # Should be empty if check=True and no error, but log if present
             logger.warning(f"Command STDERR:\n{result.stderr}")
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(
-            f"Command '{' '.join(e.cmd)}' failed with exit code {e.returncode}"
-        )
+        logger.error(f"Command '{' '.join(e.cmd)}' failed with exit code {e.returncode}")
         if e.stdout:
             logger.error(f"STDOUT:\n{e.stdout}")
         if e.stderr:

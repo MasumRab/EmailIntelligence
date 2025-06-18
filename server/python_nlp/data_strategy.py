@@ -182,9 +182,7 @@ class DataCollectionStrategy:
             },
         }
 
-    def collect_email_samples(
-        self, source: str, limit: Optional[int] = None
-    ) -> List[EmailSample]:
+    def collect_email_samples(self, source: str, limit: Optional[int] = None) -> List[EmailSample]:
         """
         Collect email samples from various sources
         In production, this would connect to real email APIs
@@ -266,9 +264,7 @@ class DataCollectionStrategy:
                 break
 
             sample = EmailSample(
-                id=self._generate_sample_id(
-                    email_data["subject"], email_data["sender"]
-                ),
+                id=self._generate_sample_id(email_data["subject"], email_data["sender"]),
                 subject=email_data["subject"],
                 content=email_data["content"],
                 sender=email_data["sender"],
@@ -369,26 +365,18 @@ class DataCollectionStrategy:
                 )
             ),
             "has_url": bool(
-                re.search(
-                    self.preprocessing_rules["email_patterns"]["urls"], combined_text
-                )
+                re.search(self.preprocessing_rules["email_patterns"]["urls"], combined_text)
             ),
-            "urgency_keywords": self._count_pattern_matches(
-                combined_text, "urgency_signals"
-            ),
+            "urgency_keywords": self._count_pattern_matches(combined_text, "urgency_signals"),
             "sentiment_keywords": self._count_pattern_matches(
                 combined_text, "sentiment_indicators"
             ),
-            "intent_keywords": self._count_pattern_matches(
-                combined_text, "intent_patterns"
-            ),
+            "intent_keywords": self._count_pattern_matches(combined_text, "intent_patterns"),
         }
 
         return features
 
-    def _count_pattern_matches(
-        self, text: str, pattern_category: str
-    ) -> Dict[str, int]:
+    def _count_pattern_matches(self, text: str, pattern_category: str) -> Dict[str, int]:
         """Count matches for specific pattern categories"""
         counts = {}
         patterns = self.annotation_guidelines.get(pattern_category, {})
@@ -412,34 +400,24 @@ class DataCollectionStrategy:
         Internal predictions serve as a basic fallback for data generation scenarios.
         """
         if external_analysis_results:
-            self.logger.info(
-                f"Using external analysis results for email ID: {email.id}"
-            )
+            self.logger.info(f"Using external analysis results for email ID: {email.id}")
             # Ensure keys from external_analysis_results match AnnotationSchema fields
             # and provide defaults if some keys are missing.
             topic = external_analysis_results.get(
                 "topic",
-                self._predict_topic(
-                    email.content + " " + email.subject, is_fallback=True
-                ),
+                self._predict_topic(email.content + " " + email.subject, is_fallback=True),
             )
             sentiment = external_analysis_results.get(
                 "sentiment",
-                self._predict_sentiment(
-                    email.content + " " + email.subject, is_fallback=True
-                ),
+                self._predict_sentiment(email.content + " " + email.subject, is_fallback=True),
             )
             intent = external_analysis_results.get(
                 "intent",
-                self._predict_intent(
-                    email.content + " " + email.subject, is_fallback=True
-                ),
+                self._predict_intent(email.content + " " + email.subject, is_fallback=True),
             )
             urgency = external_analysis_results.get(
                 "urgency",
-                self._predict_urgency(
-                    email.content + " " + email.subject, is_fallback=True
-                ),
+                self._predict_urgency(email.content + " " + email.subject, is_fallback=True),
             )
             # Keywords and entities might also come from external_analysis_results
             keywords = external_analysis_results.get(
@@ -453,9 +431,7 @@ class DataCollectionStrategy:
             )  # Higher confidence if from advanced engine
             annotator_id_suffix = "_external"
         else:
-            self.logger.info(
-                f"Using internal basic prediction for email ID: {email.id}"
-            )
+            self.logger.info(f"Using internal basic prediction for email ID: {email.id}")
             topic = self._predict_topic(email.content + " " + email.subject)
             sentiment = self._predict_sentiment(email.content + " " + email.subject)
             intent = self._predict_intent(email.content + " " + email.subject)
@@ -504,9 +480,7 @@ class DataCollectionStrategy:
         text_lower = text.lower()
         sentiment_scores = {}
 
-        for sentiment, keywords in self.annotation_guidelines[
-            "sentiment_indicators"
-        ].items():
+        for sentiment, keywords in self.annotation_guidelines["sentiment_indicators"].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             sentiment_scores[sentiment] = score
 
@@ -572,15 +546,11 @@ class DataCollectionStrategy:
         entities = []
 
         # Extract email addresses
-        emails = re.findall(
-            self.preprocessing_rules["email_patterns"]["email_addresses"], text
-        )
+        emails = re.findall(self.preprocessing_rules["email_patterns"]["email_addresses"], text)
         entities.extend([f"EMAIL:{email}" for email in emails])
 
         # Extract phone numbers
-        phones = re.findall(
-            self.preprocessing_rules["email_patterns"]["phone_numbers"], text
-        )
+        phones = re.findall(self.preprocessing_rules["email_patterns"]["phone_numbers"], text)
         entities.extend([f"PHONE:{phone}" for phone in phones])
 
         # Extract URLs
@@ -699,9 +669,7 @@ class DataCollectionStrategy:
 
         return dataset
 
-    def _calculate_dataset_statistics(
-        self, samples: List[EmailSample]
-    ) -> Dict[str, Any]:
+    def _calculate_dataset_statistics(self, samples: List[EmailSample]) -> Dict[str, Any]:
         """Calculate statistics for the dataset"""
         if not samples:
             return {}

@@ -64,9 +64,7 @@ class TestStages:
             logger.error(f"Unit tests failed with exit code {e.returncode}")
             return False
 
-    def run_integration_tests(
-        self, coverage: bool = False, verbose: bool = False
-    ) -> bool:
+    def run_integration_tests(self, coverage: bool = False, verbose: bool = False) -> bool:
         """Run integration tests."""
         logger.info("Running integration tests...")
 
@@ -160,9 +158,7 @@ class TestStages:
         self, duration: int = 60, users: int = 10, verbose: bool = False
     ) -> bool:
         """Run performance tests."""
-        logger.info(
-            f"Running performance tests with {users} users for {duration} seconds..."
-        )
+        logger.info(f"Running performance tests with {users} users for {duration} seconds...")
 
         # Ensure test dependencies are installed
         if not self.env_manager.setup_environment_for_stage("test"):
@@ -227,9 +223,7 @@ class TestStages:
         except subprocess.CalledProcessError:
             logger.info("OWASP ZAP Python API not found, installing...")
             try:
-                subprocess.check_call(
-                    [python, "-m", "pip", "install", "python-owasp-zap-v2.4"]
-                )
+                subprocess.check_call([python, "-m", "pip", "install", "python-owasp-zap-v2.4"])
             except subprocess.CalledProcessError as e:
                 logger.error(f"Failed to install OWASP ZAP Python API: {e}")
                 return False
@@ -286,9 +280,7 @@ class TestStages:
         elif stage == "test":
             return self.run_all_tests(coverage, verbose)
         elif stage == "staging":
-            return self.run_integration_tests(coverage, verbose) and self.run_api_tests(
-                verbose
-            )
+            return self.run_integration_tests(coverage, verbose) and self.run_api_tests(verbose)
         elif stage == "prod":
             return self.run_e2e_tests(True, verbose)
         else:
@@ -306,21 +298,15 @@ def parse_arguments() -> argparse.Namespace:
 
     # Test type arguments
     parser.add_argument("--unit", action="store_true", help="Run unit tests")
-    parser.add_argument(
-        "--integration", action="store_true", help="Run integration tests"
-    )
+    parser.add_argument("--integration", action="store_true", help="Run integration tests")
     parser.add_argument("--api", action="store_true", help="Run API tests")
     parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    parser.add_argument(
-        "--performance", action="store_true", help="Run performance tests"
-    )
+    parser.add_argument("--performance", action="store_true", help="Run performance tests")
     parser.add_argument("--security", action="store_true", help="Run security tests")
     parser.add_argument("--all", action="store_true", help="Run all tests")
 
     # Test configuration
-    parser.add_argument(
-        "--coverage", action="store_true", help="Generate coverage report"
-    )
+    parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument(
         "--stage",
@@ -357,11 +343,7 @@ def main() -> int:
 
     # Determine which tests to run
     if args.stage:
-        return (
-            0
-            if test_stages.run_tests_for_stage(args.stage, args.coverage, args.verbose)
-            else 1
-        )
+        return 0 if test_stages.run_tests_for_stage(args.stage, args.coverage, args.verbose) else 1
 
     if args.all:
         return 0 if test_stages.run_all_tests(args.coverage, args.verbose) else 1
@@ -373,9 +355,7 @@ def main() -> int:
         success = test_stages.run_unit_tests(args.coverage, args.verbose) and success
 
     if args.integration:
-        success = (
-            test_stages.run_integration_tests(args.coverage, args.verbose) and success
-        )
+        success = test_stages.run_integration_tests(args.coverage, args.verbose) and success
 
     if args.api:
         success = test_stages.run_api_tests(args.verbose) and success
@@ -385,8 +365,7 @@ def main() -> int:
 
     if args.performance:
         success = (
-            test_stages.run_performance_tests(args.duration, args.users, args.verbose)
-            and success
+            test_stages.run_performance_tests(args.duration, args.users, args.verbose) and success
         )
 
     if args.security:

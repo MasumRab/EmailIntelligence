@@ -74,9 +74,7 @@ def rollback_migration():
 
 def main():
     """Main entry point for the migration script."""
-    parser = argparse.ArgumentParser(
-        description="Database Migration Script for EmailIntelligence"
-    )
+    parser = argparse.ArgumentParser(description="Database Migration Script for EmailIntelligence")
     parser.add_argument(
         "command",
         choices=["generate", "apply", "status", "rollback"],

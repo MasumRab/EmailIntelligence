@@ -200,9 +200,7 @@ class TestEmailAPI_GET(unittest.TestCase):
 
     def test_get_email_by_id_db_error(self):
         print("Running test_get_email_by_id_db_error")
-        mock_db_manager.get_email_by_id = (
-            AsyncMock()
-        )  # Ensure fresh AsyncMock for this test
+        mock_db_manager.get_email_by_id = AsyncMock()  # Ensure fresh AsyncMock for this test
         mock_db_manager.get_email_by_id.side_effect = self.async_raise_exception
         response = self.client.get("/api/emails/1")
         self.assertEqual(response.status_code, 500)
@@ -219,8 +217,8 @@ class TestEmailAPI_GET(unittest.TestCase):
         mock_db_manager.get_all_emails.assert_called_once()
 
 
-from server.python_backend.ai_engine import \
-    AIAnalysisResult  # Ensure this is imported
+from server.python_backend.ai_engine import AIAnalysisResult  # Ensure this is imported
+
 # Import Pydantic models if not already at the top
 from server.python_backend.models import EmailCreate, EmailUpdate
 
@@ -324,7 +322,9 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # For the purpose of this test, we are mocking `db.create_email`'s return value.
         # So, it should be a dict that FastAPI can convert using `EmailResponse` as the response_model.
 
-        mock_db_manager.create_email.return_value = created_email_response  # This mock is what the endpoint returns after db call
+        mock_db_manager.create_email.return_value = (
+            created_email_response  # This mock is what the endpoint returns after db call
+        )
 
         response = self.client.post("/api/emails", json=email_data)
 
@@ -337,21 +337,15 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["subject"], "New Email")
-        self.assertEqual(
-            data["confidence"], 95
-        )  # This matches our created_email_response
+        self.assertEqual(data["confidence"], 95)  # This matches our created_email_response
         self.assertEqual(data["id"], 100)
 
-        mock_analyze_email.assert_called_once_with(
-            email_data["subject"], email_data["content"]
-        )
+        mock_analyze_email.assert_called_once_with(email_data["subject"], email_data["content"])
         mock_apply_filters.assert_called_once()
 
         # What `db.create_email` is called with in main.py:
         expected_db_payload_to_main_create_email_func = {
-            **EmailCreate(
-                **email_data
-            ).model_dump(),  # Ensures it's validated by EmailCreate first
+            **EmailCreate(**email_data).model_dump(),  # Ensures it's validated by EmailCreate first
             "confidence": 95,
             "categoryId": 1,
             "labels": ["inbox"],
@@ -369,9 +363,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # would pass to `db.create_email`.
 
         # The `email_data` in `main.py` is `email.dict()` (from `EmailCreate`) then updated.
-        temp_email_create_obj = EmailCreate(
-            **email_data
-        )  # Pydantic validation of input
+        temp_email_create_obj = EmailCreate(**email_data)  # Pydantic validation of input
         db_call_arg = temp_email_create_obj.model_dump()
         db_call_arg.update(
             {
@@ -456,9 +448,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         mock_apply_filters.return_value = {"matched_filters": [], "applied_actions": []}
 
         mock_db_manager.create_email = AsyncMock()  # Ensure fresh AsyncMock
-        mock_db_manager.create_email.side_effect = (
-            self.async_raise_exception
-        )  # Use helper
+        mock_db_manager.create_email.side_effect = self.async_raise_exception  # Use helper
 
         response = self.client.post("/api/emails", json=email_data)
         self.assertEqual(response.status_code, 500)
@@ -496,9 +486,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         }
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
 
-        print(
-            f"PUT /api/emails/{email_id} Response Status Code: {response.status_code}"
-        )
+        print(f"PUT /api/emails/{email_id} Response Status Code: {response.status_code}")
         try:
             print(f"PUT /api/emails/{email_id} Response JSON: {response.json()}")
         except Exception as e:
@@ -512,9 +500,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         # await db.update_email(email_id, email_update.dict(exclude_unset=True))
         # So, the mock should expect the payload with exclude_unset=True applied.
         # For `email_update_payload` this is the same.
-        mock_db_manager.update_email.assert_called_once_with(
-            email_id, email_update_payload
-        )
+        mock_db_manager.update_email.assert_called_once_with(email_id, email_update_payload)
 
     def test_update_email_not_found(self):
         print("Running test_update_email_not_found")
@@ -525,9 +511,7 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json(), {"detail": "Email not found"})
-        mock_db_manager.update_email.assert_called_once_with(
-            email_id, email_update_payload
-        )
+        mock_db_manager.update_email.assert_called_once_with(email_id, email_update_payload)
 
     def test_update_email_validation_error(self):
         print("Running test_update_email_validation_error")
@@ -546,15 +530,11 @@ class TestEmailAPI_POST_PUT(unittest.TestCase):
         email_id = 1
         email_update_payload = {"subject": "Updated Subject"}
         mock_db_manager.update_email = AsyncMock()  # Ensure fresh AsyncMock
-        mock_db_manager.update_email.side_effect = (
-            self.async_raise_exception
-        )  # Use helper
+        mock_db_manager.update_email.side_effect = self.async_raise_exception  # Use helper
         response = self.client.put(f"/api/emails/{email_id}", json=email_update_payload)
         self.assertEqual(response.status_code, 500)
         self.assertIn("Failed to update email", response.json()["detail"])
-        mock_db_manager.update_email.assert_called_once_with(
-            email_id, email_update_payload
-        )
+        mock_db_manager.update_email.assert_called_once_with(email_id, email_update_payload)
 
 
 if __name__ == "__main__":

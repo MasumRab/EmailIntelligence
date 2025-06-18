@@ -137,9 +137,7 @@ class GmailMetadataExtractor:
 
             # Extract labels and determine message state
             label_ids = gmail_message.get("labelIds", [])
-            labels = [
-                self.system_labels.get(label_id, label_id) for label_id in label_ids
-            ]
+            labels = [self.system_labels.get(label_id, label_id) for label_id in label_ids]
 
             # Determine message state from labels
             is_unread = "UNREAD" in label_ids
@@ -172,9 +170,7 @@ class GmailMetadataExtractor:
             thread_info = self._extract_thread_info(headers, gmail_message)
 
             # Extract security information
-            spf_status, dkim_status, dmarc_status = self._extract_security_status(
-                headers
-            )
+            spf_status, dkim_status, dmarc_status = self._extract_security_status(headers)
             encryption_info = self._extract_encryption_info(headers)
 
             # Extract priority information
@@ -592,9 +588,7 @@ class GmailMetadataExtractor:
 
         custom_headers = {}
         for name, value in headers.items():
-            if name not in standard_headers and (
-                name.startswith("X-") or name.startswith("x-")
-            ):
+            if name not in standard_headers and (name.startswith("X-") or name.startswith("x-")):
                 custom_headers[name] = value
 
         return custom_headers
@@ -646,9 +640,7 @@ class GmailMetadataExtractor:
             raw_email=None,
         )
 
-    def extract_batch_metadata(
-        self, gmail_messages: List[Dict[str, Any]]
-    ) -> List[GmailMessage]:
+    def extract_batch_metadata(self, gmail_messages: List[Dict[str, Any]]) -> List[GmailMessage]:
         """Extract metadata from multiple messages efficiently"""
         extracted_messages = []
 
@@ -721,9 +713,7 @@ def main():
                 {"name": "Message-ID", "value": "<unique-id@example.com>"},
                 {"name": "X-Priority", "value": "High"},
             ],
-            "body": {
-                "data": base64.urlsafe_b64encode(b"This is the email content.").decode()
-            },
+            "body": {"data": base64.urlsafe_b64encode(b"This is the email content.").decode()},
             "mimeType": "text/plain",
         },
     }

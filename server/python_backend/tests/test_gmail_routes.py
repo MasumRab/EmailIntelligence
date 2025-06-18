@@ -21,14 +21,27 @@ mock_ai_engine_for_gmail = MagicMock()
 # Mock PerformanceMonitor
 mock_performance_monitor_gmail_instance = MagicMock()
 
+
 @pytest.fixture(scope="module", autouse=True)
 def mock_gmail_dependencies():
     patches = [
-        patch('server.python_backend.gmail_routes.GmailAIService', return_value=mock_gmail_service_instance),
+        patch(
+            "server.python_backend.gmail_routes.GmailAIService",
+            return_value=mock_gmail_service_instance,
+        ),
         # Patch the constructors if they are called directly in gmail_routes for instantiation
-        patch('server.python_backend.gmail_routes.DatabaseManager', return_value=mock_db_manager_for_gmail),
-        patch('server.python_backend.gmail_routes.AdvancedAIEngine', return_value=mock_ai_engine_for_gmail),
-        patch('server.python_backend.gmail_routes.performance_monitor', mock_performance_monitor_gmail_instance)
+        patch(
+            "server.python_backend.gmail_routes.DatabaseManager",
+            return_value=mock_db_manager_for_gmail,
+        ),
+        patch(
+            "server.python_backend.gmail_routes.AdvancedAIEngine",
+            return_value=mock_ai_engine_for_gmail,
+        ),
+        patch(
+            "server.python_backend.gmail_routes.performance_monitor",
+            mock_performance_monitor_gmail_instance,
+        ),
     ]
     for p in patches:
         p.start()
@@ -36,13 +49,22 @@ def mock_gmail_dependencies():
     for p in patches:
         p.stop()
 
+
 @pytest.fixture
 def client_gmail():
     # No db override needed here as gmail_routes doesn't use get_db directly for its main functions
     return TestClient(app)
 
+
 def test_sync_gmail(client_gmail):
-    mock_sync_result = {"success": True, "processedCount": 100, "emailsCreated": 5, "errorsCount": 0, "batchInfo": {}, "statistics": {}}
+    mock_sync_result = {
+        "success": True,
+        "processedCount": 100,
+        "emailsCreated": 5,
+        "errorsCount": 0,
+        "batchInfo": {},
+        "statistics": {},
+    }
     mock_gmail_service_instance.sync_gmail_emails.return_value = mock_sync_result
 
     request_payload = {
@@ -50,7 +72,7 @@ def test_sync_gmail(client_gmail):
         "queryFilter": "test",
         "includeAIAnalysis": True,
         "strategies": [],
-        "timeBudgetMinutes": 10
+        "timeBudgetMinutes": 10,
     }
     response = client_gmail.post("/api/gmail/sync", json=request_payload)
 
@@ -69,14 +91,19 @@ def test_sync_gmail(client_gmail):
         # For now, this test is fine, but the mock call check might need to be more specific.
     )
 
+
 def test_sync_gmail_api_error(client_gmail):
     # Simulate GoogleApiHttpError (which should be caught and result in HTTPException)
     from googleapiclient.errors import HttpError
-    mock_gmail_service_instance.sync_gmail_emails.side_effect = HttpError(MagicMock(status=401, reason="Auth error"), b'{"error": "Auth error"}')
 
-    response = client_gmail.post("/api/gmail/sync", json={}) # Basic payload
-    assert response.status_code == 401 # Or whatever status code the route maps it to
+    mock_gmail_service_instance.sync_gmail_emails.side_effect = HttpError(
+        MagicMock(status=401, reason="Auth error"), b'{"error": "Auth error"}'
+    )
+
+    response = client_gmail.post("/api/gmail/sync", json={})  # Basic payload
+    assert response.status_code == 401  # Or whatever status code the route maps it to
     assert "Gmail API authentication failed" in response.json()["detail"]
+
 
 def test_smart_retrieval(client_gmail):
     mock_retrieval_result = {"success": True, "totalEmails": 50}
@@ -91,6 +118,7 @@ def test_smart_retrieval(client_gmail):
         strategies=["strat1"], max_api_calls=50, time_budget_minutes=20
     )
 
+
 def test_get_retrieval_strategies(client_gmail):
     mock_strategies_data = [{"name": "strategy1", "details": "..."}]
     mock_gmail_service_instance.get_retrieval_strategies.return_value = mock_strategies_data
@@ -99,6 +127,7 @@ def test_get_retrieval_strategies(client_gmail):
     assert response.status_code == 200
     assert response.json() == {"strategies": mock_strategies_data}
     mock_gmail_service_instance.get_retrieval_strategies.assert_called_once()
+
 
 def test_get_gmail_performance(client_gmail):
     mock_performance_data = {"status": "healthy", "metrics": {}}

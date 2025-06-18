@@ -10,8 +10,7 @@ from server.python_nlp.gmail_service import GmailAIService
 
 from .ai_engine import AdvancedAIEngine  # Import AdvancedAIEngine
 from .database import DatabaseManager  # Import DatabaseManager
-from .models import (GmailSyncRequest,  # Changed from .main to .models
-                     SmartRetrievalRequest)
+from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
 from .performance_monitor import PerformanceMonitor
 
 logger = logging.getLogger(__name__)
@@ -59,14 +58,17 @@ async def sync_gmail(
                     ),
                     "queryFilter": request_model.queryFilter,  # Use the original request's query_filter
                     "timestamp": nlp_result.get("batch_info", {}).get(
-                        "timestamp", datetime.now().isoformat()),
+                        "timestamp", datetime.now().isoformat()
+                    ),
                 },
                 "statistics": nlp_result.get("statistics", {}),
                 "error": None,
             }
         else:
             result = {
-                "success": False, "processedCount": 0, "emailsCreated": 0,
+                "success": False,
+                "processedCount": 0,
+                "emailsCreated": 0,
                 "errorsCount": 1,
                 "batchInfo": {
                     "batchId": f"error_batch_{int(datetime.now().timestamp())}",
@@ -92,15 +94,13 @@ async def sync_gmail(
             "message": "Gmail API operation failed during sync",
             "endpoint": str(req.url),
             "error_type": type(gmail_err).__name__,
-            "error_detail": error_details_dict.get("error", {}).get(
-                "message", str(gmail_err)
-            ),
-            "gmail_status_code": getattr(gmail_err.resp, 'status', None),
+            "error_detail": error_details_dict.get("error", {}).get("message", str(gmail_err)),
+            "gmail_status_code": getattr(gmail_err.resp, "status", None),
             "full_gmail_error": error_details_dict,
         }
         logger.error(json.dumps(log_data))
 
-        status_code = getattr(gmail_err.resp, 'status', 502)
+        status_code = getattr(gmail_err.resp, "status", 502)
         detail = "Gmail API error during sync."
         if status_code == 401:
             detail = "Gmail API authentication failed. Check credentials."
@@ -129,9 +129,7 @@ async def sync_gmail(
 
 @router.post("/api/gmail/smart-retrieval")
 @performance_monitor.track
-async def smart_retrieval(
-    req: Request, request_model: SmartRetrievalRequest
-):  # Renamed params
+async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  # Renamed params
     """Execute smart Gmail retrieval with multiple strategies"""
     try:
         result = await gmail_service.execute_smart_retrieval(
@@ -151,15 +149,13 @@ async def smart_retrieval(
             "message": "Gmail API operation failed during smart retrieval",
             "endpoint": str(req.url),
             "error_type": type(gmail_err).__name__,
-            "error_detail": error_details_dict.get("error", {}).get(
-                "message", str(gmail_err)
-            ),
-            "gmail_status_code": getattr(gmail_err.resp, 'status', None),
+            "error_detail": error_details_dict.get("error", {}).get("message", str(gmail_err)),
+            "gmail_status_code": getattr(gmail_err.resp, "status", None),
             "full_gmail_error": error_details_dict,
         }
         logger.error(json.dumps(log_data))
 
-        status_code = getattr(gmail_err.resp, 'status', 502)
+        status_code = getattr(gmail_err.resp, "status", 502)
         detail = "Gmail API error during smart retrieval."
         if status_code == 401:
             detail = "Gmail API authentication failed. Check credentials."
@@ -219,6 +215,4 @@ async def get_gmail_performance(request: Request):
             "error_detail": str(e),
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch performance metrics"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch performance metrics")

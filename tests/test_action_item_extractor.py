@@ -1,8 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from server.python_nlp.action_item_extractor import (HAS_NLTK,
-                                                     ActionItemExtractor)
+from server.python_nlp.action_item_extractor import HAS_NLTK, ActionItemExtractor
 
 
 class TestActionItemExtractor(unittest.TestCase):
@@ -15,13 +14,9 @@ class TestActionItemExtractor(unittest.TestCase):
         actions = self.extractor.extract_actions(text)
         self.assertEqual(len(actions), 1)
         action = actions[0]
-        self.assertEqual(
-            action["action_phrase"], "Please review the attached document by Friday."
-        )
+        self.assertEqual(action["action_phrase"], "Please review the attached document by Friday.")
         self.assertEqual(action["raw_due_date_text"], "by Friday")
-        self.assertEqual(
-            action["context"], "Please review the attached document by Friday."
-        )
+        self.assertEqual(action["context"], "Please review the attached document by Friday.")
         if HAS_NLTK:
             self.assertIsNotNone(action["verb"])  # NLTK should find 'review'
             # self.assertEqual(action['object'], "document") # Object extraction can be tricky
@@ -31,13 +26,9 @@ class TestActionItemExtractor(unittest.TestCase):
         actions = self.extractor.extract_actions(text)
         self.assertEqual(len(actions), 1)
         action = actions[0]
-        self.assertTrue(
-            action["action_phrase"].startswith("Task: John to complete the slides")
-        )
+        self.assertTrue(action["action_phrase"].startswith("Task: John to complete the slides"))
         self.assertEqual(action["raw_due_date_text"], "by tomorrow")
-        self.assertEqual(
-            action["context"], "Task: John to complete the slides by tomorrow."
-        )
+        self.assertEqual(action["context"], "Task: John to complete the slides by tomorrow.")
         if HAS_NLTK:
             self.assertIsNotNone(action["verb"])  # NLTK might pick up 'complete'
 
@@ -46,9 +37,7 @@ class TestActionItemExtractor(unittest.TestCase):
         actions = self.extractor.extract_actions(text)
         self.assertEqual(len(actions), 1)
         action = actions[0]
-        self.assertEqual(
-            action["action_phrase"], "Action required: Update the JIRA ticket."
-        )
+        self.assertEqual(action["action_phrase"], "Action required: Update the JIRA ticket.")
         self.assertIsNone(action["raw_due_date_text"])
         self.assertEqual(action["context"], "Action required: Update the JIRA ticket.")
         if HAS_NLTK:
@@ -80,9 +69,7 @@ class TestActionItemExtractor(unittest.TestCase):
         if HAS_NLTK:
             self.assertEqual(actions[0]["verb"], "call")
 
-        self.assertEqual(
-            actions[1]["action_phrase"], "can you send the invoice by EOD?"
-        )
+        self.assertEqual(actions[1]["action_phrase"], "can you send the invoice by EOD?")
         self.assertEqual(actions[1]["raw_due_date_text"], "by EOD")
         if HAS_NLTK:
             self.assertEqual(actions[1]["verb"], "send")
@@ -100,9 +87,7 @@ class TestActionItemExtractor(unittest.TestCase):
         self.assertEqual(len(actions_with_keyword), 1)
         self.assertEqual(actions_with_keyword[0]["raw_due_date_text"], "by tomorrow")
         self.assertTrue(
-            actions_with_keyword[0]["action_phrase"].startswith(
-                "should Submit the expenses"
-            )
+            actions_with_keyword[0]["action_phrase"].startswith("should Submit the expenses")
         )
 
     def test_extract_actions_due_date_on_monday(self):
@@ -141,25 +126,19 @@ class TestActionItemExtractor(unittest.TestCase):
     @patch("server.python_nlp.action_item_extractor.HAS_NLTK", False)
     def test_extract_actions_without_nltk(self):
         # This test will run as if NLTK is not installed
-        extractor_no_nltk = (
-            ActionItemExtractor()
-        )  # Re-initialize to pick up the patched HAS_NLTK
+        extractor_no_nltk = ActionItemExtractor()  # Re-initialize to pick up the patched HAS_NLTK
         text = "Please review the document."
         actions = extractor_no_nltk.extract_actions(text)
         self.assertEqual(len(actions), 1)
         action = actions[0]
         self.assertEqual(action["action_phrase"], "Please review the document.")
-        self.assertIsNone(
-            action["verb"]
-        )  # Verb should be None as NLTK is mocked to False
+        self.assertIsNone(action["verb"])  # Verb should be None as NLTK is mocked to False
         self.assertIsNone(action["object"])  # Object should be None
 
     @patch("server.python_nlp.action_item_extractor.HAS_NLTK", True)
     @patch("nltk.pos_tag")
     @patch("nltk.word_tokenize")
-    def test_extract_actions_with_nltk_mocked_behavior(
-        self, mock_word_tokenize, mock_pos_tag
-    ):
+    def test_extract_actions_with_nltk_mocked_behavior(self, mock_word_tokenize, mock_pos_tag):
         # This test runs with NLTK assumed present, but mocks its functions
         mock_word_tokenize.return_value = ["Please", "review", "the", "document", "."]
         mock_pos_tag.return_value = [
@@ -182,9 +161,7 @@ class TestActionItemExtractor(unittest.TestCase):
         self.assertEqual(
             action["verb"], "Please"
         )  # Because "Please" is the first VB as per mock_pos_tag
-        self.assertEqual(
-            action["object"], "document"
-        )  # "document" is the first NN after "Please"
+        self.assertEqual(action["object"], "document")  # "document" is the first NN after "Please"
         mock_word_tokenize.assert_called_once()  # Check if it was called on the relevant part
         mock_pos_tag.assert_called_once()
 

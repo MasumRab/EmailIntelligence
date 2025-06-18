@@ -99,16 +99,12 @@ class Extension:
 class ExtensionsManager:
     """Manages extensions for the EmailIntelligence application."""
 
-    def __init__(
-        self, root_dir: Path = ROOT_DIR, python_executable: Optional[str] = None
-    ):
+    def __init__(self, root_dir: Path = ROOT_DIR, python_executable: Optional[str] = None):
         """Initialize the extensions manager."""
         self.root_dir = root_dir
         self.extensions_dir = root_dir / "extensions"
         self.extensions: Dict[str, Extension] = {}
-        self.python_executable = (
-            python_executable if python_executable else sys.executable
-        )
+        self.python_executable = python_executable if python_executable else sys.executable
 
     def set_python_executable(self, python_executable: str):
         """Set the Python executable path."""
@@ -130,9 +126,7 @@ class ExtensionsManager:
             # Check if the extension has a metadata file
             metadata_file = ext_dir / "metadata.json"
             if not metadata_file.exists():
-                logger.warning(
-                    f"Extension {ext_dir.name} does not have a metadata.json file"
-                )
+                logger.warning(f"Extension {ext_dir.name} does not have a metadata.json file")
                 continue
 
             # Load the metadata
@@ -140,9 +134,7 @@ class ExtensionsManager:
                 with open(metadata_file, "r") as f:
                     metadata = json.load(f)
             except json.JSONDecodeError as e:
-                logger.error(
-                    f"Failed to parse metadata for extension {ext_dir.name}: {e}"
-                )
+                logger.error(f"Failed to parse metadata for extension {ext_dir.name}: {e}")
                 continue
 
             # Check if the extension has a main module
@@ -198,9 +190,7 @@ class ExtensionsManager:
                     all_initialized = False
                     failed_extensions.append(name)
         if failed_extensions:
-            logger.error(
-                f"Extensions failed to initialize: {', '.join(failed_extensions)}"
-            )
+            logger.error(f"Extensions failed to initialize: {', '.join(failed_extensions)}")
         return all_initialized
 
     def shutdown_extensions(self) -> bool:
@@ -283,9 +273,7 @@ class ExtensionsManager:
 
         # Clone the repository
         try:
-            subprocess.check_call(
-                ["git", "clone", url, str(self.extensions_dir / name)]
-            )
+            subprocess.check_call(["git", "clone", url, str(self.extensions_dir / name)])
 
             # Check if the extension has a requirements.txt file
             requirements_file = self.extensions_dir / name / "requirements.txt"
@@ -457,12 +445,8 @@ if __name__ == "__main__":
 
     print(f"Found {len(extensions)} extensions:")
     for extension in extensions:
-        print(
-            f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}"
-        )
+        print(f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}")
         print(f"    Path: {extension['path']}")
         print(f"    Loaded: {extension['loaded']}")
-        print(
-            f"    Description: {extension['metadata'].get('description', 'No description')}"
-        )
+        print(f"    Description: {extension['metadata'].get('description', 'No description')}")
         print()

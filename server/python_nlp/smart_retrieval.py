@@ -89,9 +89,7 @@ class SmartGmailRetriever:
                 self.gmail_service = None  # Ensure service is None if build fails
                 self.logger.error("Gmail service initialization failed.")
         else:
-            self.logger.error(
-                "Failed to obtain valid credentials. Gmail service not initialized."
-            )
+            self.logger.error("Failed to obtain valid credentials. Gmail service not initialized.")
 
         # Gmail API quotas and limits
         self.api_limits = {
@@ -158,9 +156,7 @@ class SmartGmailRetriever:
                 creds = Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
                 self.logger.info(f"Loaded credentials from {TOKEN_JSON_PATH}")
             except Exception as e:
-                self.logger.error(
-                    f"Error loading credentials from {TOKEN_JSON_PATH}: {e}"
-                )
+                self.logger.error(f"Error loading credentials from {TOKEN_JSON_PATH}: {e}")
         return creds
 
     def _store_credentials(self, creds: Credentials):
@@ -196,14 +192,10 @@ class SmartGmailRetriever:
 
         if not flow and os.path.exists(CREDENTIALS_PATH):
             try:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    CREDENTIALS_PATH, SCOPES
-                )
+                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
                 self.logger.info(f"Loaded credentials from {CREDENTIALS_PATH}.")
             except Exception as e:
-                self.logger.error(
-                    f"Error loading credentials from {CREDENTIALS_PATH}: {e}"
-                )
+                self.logger.error(f"Error loading credentials from {CREDENTIALS_PATH}: {e}")
                 return None  # Cannot proceed without client secrets
 
         if not flow:
@@ -522,18 +514,14 @@ class SmartGmailRetriever:
                 query = self.get_incremental_query(strategy, checkpoint)
 
                 # Execute retrieval for this strategy
-                self.logger.debug(
-                    f"Calling _execute_strategy_retrieval for '{strategy.name}'"
-                )
+                self.logger.debug(f"Calling _execute_strategy_retrieval for '{strategy.name}'")
                 strategy_result = await self._execute_strategy_retrieval(
                     strategy,
                     query,
                     checkpoint,
                     remaining_api_calls=max_api_calls - api_calls_used,
                 )
-                self.logger.debug(
-                    f"Strategy '{strategy.name}' result: {strategy_result}"
-                )
+                self.logger.debug(f"Strategy '{strategy.name}' result: {strategy_result}")
 
                 # Update results
                 results["strategies_executed"].append(
@@ -564,8 +552,7 @@ class SmartGmailRetriever:
                             last_sync_date=datetime.now(),
                             last_history_id=strategy_result.get("last_history_id", ""),
                             processed_count=(
-                                checkpoint.processed_count
-                                + strategy_result["emails_count"]
+                                checkpoint.processed_count + strategy_result["emails_count"]
                                 if checkpoint
                                 else strategy_result["emails_count"]
                             ),
@@ -591,9 +578,7 @@ class SmartGmailRetriever:
                 else 0
             ),
             "api_efficiency": (
-                results["total_emails_retrieved"] / api_calls_used
-                if api_calls_used > 0
-                else 0
+                results["total_emails_retrieved"] / api_calls_used if api_calls_used > 0 else 0
             ),
         }
 
@@ -673,9 +658,7 @@ class SmartGmailRetriever:
 
                 # Count actual API calls: 1 for list + N for individual message gets
                 messages_in_batch = batch_result.get("messages", [])
-                batch_api_calls = 1 + len(
-                    messages_in_batch
-                )  # 1 list call + N get calls
+                batch_api_calls = 1 + len(messages_in_batch)  # 1 list call + N get calls
                 api_calls_for_strategy += batch_api_calls
 
                 if batch_result.get("error"):
@@ -687,9 +670,7 @@ class SmartGmailRetriever:
                         "emails_count": len(emails_retrieved_for_strategy),
                         "api_calls": api_calls_for_strategy,
                         "error": batch_result["error"],
-                        "last_history_id": (
-                            checkpoint.last_history_id if checkpoint else None
-                        ),
+                        "last_history_id": (checkpoint.last_history_id if checkpoint else None),
                         "next_page_token": current_page_token,
                     }
 
@@ -741,9 +722,7 @@ class SmartGmailRetriever:
                     else 0
                 ),
                 "api_calls": (
-                    api_calls_for_strategy
-                    if "api_calls_for_strategy" in locals()
-                    else 0
+                    api_calls_for_strategy if "api_calls_for_strategy" in locals() else 0
                 ),
                 "error": str(e),
             }
@@ -801,17 +780,14 @@ class SmartGmailRetriever:
                             "threadId": msg_detail["threadId"],
                             "snippet": msg_detail.get("snippet", ""),
                             "payload": {
-                                "headers": msg_detail.get("payload", {}).get(
-                                    "headers", []
-                                )
+                                "headers": msg_detail.get("payload", {}).get("headers", [])
                             },
                         }
                         fetched_messages.append(transformed_message)
                         if msg_detail.get("historyId"):
                             current_msg_hist_id = str(msg_detail.get("historyId"))
-                            if (
-                                history_id_from_list is None
-                                or current_msg_hist_id > str(history_id_from_list)
+                            if history_id_from_list is None or current_msg_hist_id > str(
+                                history_id_from_list
                             ):
                                 history_id_from_list = current_msg_hist_id
                                 self.logger.debug(
@@ -856,9 +832,7 @@ class SmartGmailRetriever:
         return {
             "messages": fetched_messages,
             "nextPageToken": next_page_token_from_list,
-            "resultSizeEstimate": list_response.get(
-                "resultSizeEstimate", len(fetched_messages)
-            ),
+            "resultSizeEstimate": list_response.get("resultSizeEstimate", len(fetched_messages)),
             "historyId": history_id_from_list,
         }
 
@@ -889,9 +863,7 @@ class SmartGmailRetriever:
                             },
                             {
                                 "name": "Date",
-                                "value": datetime.now().strftime(
-                                    "%a, %d %b %Y %H:%M:%S %z"
-                                ),
+                                "value": datetime.now().strftime("%a, %d %b %Y %H:%M:%S %z"),
                             },
                         ]
                     },
@@ -904,9 +876,7 @@ class SmartGmailRetriever:
             "historyId": f"history_simulated_{datetime.now().timestamp()}",
         }
 
-        if (
-            batch_size >= 10 and not page_token
-        ):  # Simplified simulation of next page token
+        if batch_size >= 10 and not page_token:  # Simplified simulation of next page token
             response["nextPageToken"] = f"token_simulated_{datetime.now().timestamp()}"
 
         self.logger.debug(f"Simulated response: {response}")
@@ -984,9 +954,7 @@ class SmartGmailRetriever:
                 today,
                 results["total_emails_retrieved"],
                 results["api_calls_used"],
-                json.dumps(
-                    [s["strategy_name"] for s in results["strategies_executed"]]
-                ),
+                json.dumps([s["strategy_name"] for s in results["strategies_executed"]]),
                 json.dumps(results["performance_metrics"]),
             ),
         )
@@ -1061,9 +1029,7 @@ class SmartGmailRetriever:
                 "average_daily_retrieval": (
                     total_retrieved / len(daily_stats) if daily_stats else 0
                 ),
-                "api_efficiency": (
-                    total_retrieved / total_api_calls if total_api_calls > 0 else 0
-                ),
+                "api_efficiency": (total_retrieved / total_api_calls if total_api_calls > 0 else 0),
                 "days_analyzed": len(daily_stats),
             },
             "daily_stats": daily_stats,
@@ -1072,9 +1038,7 @@ class SmartGmailRetriever:
 
     def optimize_strategies_based_on_performance(self) -> List[RetrievalStrategy]:
         """Optimize retrieval strategies based on historical performance"""
-        self.logger.info(
-            "Attempting to optimize strategies based on performance (last 7 days)."
-        )
+        self.logger.info("Attempting to optimize strategies based on performance (last 7 days).")
         analytics = self.get_retrieval_analytics(days=7)
 
         # Get current strategies
@@ -1092,9 +1056,7 @@ class SmartGmailRetriever:
 
             perf = strategy_performance_map.get(strategy.name)
             if perf:
-                self.logger.debug(
-                    f"Performance data for strategy '{strategy.name}': {perf}"
-                )
+                self.logger.debug(f"Performance data for strategy '{strategy.name}': {perf}")
                 error_rate = perf.get("error_rate", 0)
                 avg_per_sync = perf.get("avg_per_sync", 0)
 
@@ -1174,9 +1136,7 @@ async def run_example_usage():
 async def main_cli():
     """Command-line interface for Smart Gmail Retriever"""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
-    subparsers = parser.add_subparsers(
-        dest="command", required=True, help="Available commands"
-    )
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
 
     # list-strategies subparser
     list_parser = subparsers.add_parser(
@@ -1261,9 +1221,7 @@ async def main_cli():
             selected_strategies = None
             if args.strategy_names:
                 all_strategies = retriever.get_optimized_retrieval_strategies()
-                selected_strategies = [
-                    s for s in all_strategies if s.name in args.strategy_names
-                ]
+                selected_strategies = [s for s in all_strategies if s.name in args.strategy_names]
                 if not selected_strategies:
                     print(
                         json.dumps(

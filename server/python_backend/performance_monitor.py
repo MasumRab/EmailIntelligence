@@ -9,6 +9,7 @@ import json
 import logging
 import time
 from collections import defaultdict, deque
+
 # import sqlite3 # Removed SQLite
 from dataclasses import asdict, dataclass  # Added dataclass and field
 from datetime import datetime  # Ensure datetime is directly available
@@ -78,9 +79,7 @@ class PerformanceMonitor:
         self.system_health_history = deque(maxlen=100)  # In-memory for system health
         # self.service_metrics = defaultdict(list) # This was not used, can be removed
         # self.init_database() # Removed SQLite database initialization
-        logger.info(
-            "PerformanceMonitor initialized (in-memory mode with file logging)."
-        )
+        logger.info("PerformanceMonitor initialized (in-memory mode with file logging).")
         self.LOG_INTERVAL_SECONDS = (
             LOG_INTERVAL_SECONDS  # Make it instance variable for potential override
         )
@@ -101,9 +100,7 @@ class PerformanceMonitor:
                         log_entry = asdict(metric)
                         log_entry["type"] = "performance_metric"
                         log_entry["timestamp_logged"] = datetime.now().isoformat()
-                        f.write(
-                            json.dumps(log_entry, default=json_default_converter) + "\n"
-                        )
+                        f.write(json.dumps(log_entry, default=json_default_converter) + "\n")
                     self.metrics_buffer.clear()  # Clear after successful write
                     logged_anything = True
 
@@ -114,9 +111,7 @@ class PerformanceMonitor:
                         log_entry = alert.copy()  # Make a copy before modifying
                         log_entry["type"] = "alert"
                         log_entry["timestamp_logged"] = datetime.now().isoformat()
-                        f.write(
-                            json.dumps(log_entry, default=json_default_converter) + "\n"
-                        )
+                        f.write(json.dumps(log_entry, default=json_default_converter) + "\n")
                     self.alerts_buffer.clear()  # Clear after successful write
                     logged_anything = True
 
@@ -127,21 +122,15 @@ class PerformanceMonitor:
                         log_entry = asdict(health_record)
                         log_entry["type"] = "system_health"
                         log_entry["timestamp_logged"] = datetime.now().isoformat()
-                        f.write(
-                            json.dumps(log_entry, default=json_default_converter) + "\n"
-                        )
+                        f.write(json.dumps(log_entry, default=json_default_converter) + "\n")
                     self.system_health_history.clear()  # Clear after successful write
                     logged_anything = True
 
             if logged_anything:
-                logger.info(
-                    f"Successfully logged performance data to {self.PERFORMANCE_LOG_FILE}"
-                )
+                logger.info(f"Successfully logged performance data to {self.PERFORMANCE_LOG_FILE}")
 
         except IOError as e:
-            logger.error(
-                f"IOError writing performance metrics to {self.PERFORMANCE_LOG_FILE}: {e}"
-            )
+            logger.error(f"IOError writing performance metrics to {self.PERFORMANCE_LOG_FILE}: {e}")
         except Exception as e:
             logger.error(f"Unexpected error logging performance metrics to file: {e}")
 
@@ -232,9 +221,9 @@ class PerformanceMonitor:
             success_rate = 1.0
 
             if recent_emails:
-                success_rate = sum(
-                    1 for m in recent_emails if m["processing_success"]
-                ) / len(recent_emails)
+                success_rate = sum(1 for m in recent_emails if m["processing_success"]) / len(
+                    recent_emails
+                )
 
             return {
                 "timestamp": datetime.now().isoformat(),
@@ -263,9 +252,7 @@ class PerformanceMonitor:
                     }
                 ],
                 "alerts": self._generate_alerts(recent_emails, recent_syncs),
-                "recommendations": self._generate_recommendations(
-                    recent_emails, recent_syncs
-                ),
+                "recommendations": self._generate_recommendations(recent_emails, recent_syncs),
             }
 
         except Exception as e:
@@ -287,8 +274,7 @@ class PerformanceMonitor:
 
         if recent_emails:
             error_rate = 1 - (
-                sum(1 for m in recent_emails if m["processing_success"])
-                / len(recent_emails)
+                sum(1 for m in recent_emails if m["processing_success"]) / len(recent_emails)
             )
             if error_rate > self.alert_thresholds["error_rate"]:
                 alerts.append(
@@ -343,9 +329,7 @@ class PerformanceMonitor:
 
         # Store in database (Removed)
         # await self._store_metric(metric)
-        logger.debug(
-            f"Metric recorded (in-memory): {metric.metric_name} = {metric.value}"
-        )
+        logger.debug(f"Metric recorded (in-memory): {metric.metric_name} = {metric.value}")
 
         # Check for alerts (in-memory)
         await self._check_alerts(metric)
@@ -356,7 +340,9 @@ class PerformanceMonitor:
         """Check if metric triggers any alerts and store them in-memory."""
         threshold = self.alert_thresholds.get(metric.metric_name)
         if threshold and metric.value > threshold:
-            alert_message = f"{metric.metric_name} exceeded threshold: {metric.value:.2f} > {threshold}"
+            alert_message = (
+                f"{metric.metric_name} exceeded threshold: {metric.value:.2f} > {threshold}"
+            )
             severity = "warning" if metric.value < threshold * 1.2 else "critical"
 
             alert_data = {
@@ -475,35 +461,22 @@ class PerformanceMonitor:
             "total_metrics_recorded_in_buffer_for_period": len(relevant_metrics),
         }
 
-    async def get_service_performance(
-        self, service_name: str, hours: int = 24
-    ) -> Dict[str, Any]:
+    async def get_service_performance(self, service_name: str, hours: int = 24) -> Dict[str, Any]:
         """Get performance data for a specific service from in-memory buffer."""
         since_time = datetime.now() - timedelta(hours=hours)
 
         service_data_points = []
         for metric in self.metrics_buffer:
-            if (
-                metric.timestamp > since_time
-                and metric.tags.get("service") == service_name
-            ):
-                service_data_points.append(
-                    metric
-                )  # Store the whole PerformanceMetric object
+            if metric.timestamp > since_time and metric.tags.get("service") == service_name:
+                service_data_points.append(metric)  # Store the whole PerformanceMetric object
 
-        response_times = [
-            m.value for m in service_data_points if m.metric_name == "response_time"
-        ]
+        response_times = [m.value for m in service_data_points if m.metric_name == "response_time"]
         error_counts = [
             m.value for m in service_data_points if m.metric_name == "error_count"
         ]  # Assuming error_count is 1 per error
 
-        avg_response_time = (
-            sum(response_times) / len(response_times) if response_times else 0
-        )
-        total_errors = sum(
-            error_counts
-        )  # Sum of values (e.g., if value is 1 per error)
+        avg_response_time = sum(response_times) / len(response_times) if response_times else 0
+        total_errors = sum(error_counts)  # Sum of values (e.g., if value is 1 per error)
 
         return {
             "service_name": service_name,
@@ -542,9 +515,7 @@ class PerformanceMonitor:
                     raise
                 finally:
                     end_time = time.time()
-                    response_time = (
-                        end_time - start_time
-                    ) * 1000  # Convert to milliseconds
+                    response_time = (end_time - start_time) * 1000  # Convert to milliseconds
 
                     await self.record_metric(
                         "response_time",
@@ -646,9 +617,7 @@ class PerformanceMonitor:
         """Clean up old performance data (No longer needed for in-memory)"""
         # This method is no longer needed as deques handle fixed-size history.
         # If specific cleanup of in-memory buffers were needed, it would go here.
-        logger.info(
-            "cleanup_old_data called, but not applicable for in-memory PerformanceMonitor."
-        )
+        logger.info("cleanup_old_data called, but not applicable for in-memory PerformanceMonitor.")
         return {
             "metrics_deleted": 0,  # No direct deletion like from DB
             "health_records_deleted": 0,

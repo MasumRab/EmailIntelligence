@@ -72,9 +72,7 @@ STAG_COMPOSE_FILE = "docker-compose.stag.yml"
 PROD_COMPOSE_FILE = "docker-compose.prod.yml"
 
 
-def docker_environment(
-    command, base_compose_file, env_compose_file, remaining_args=None
-):
+def docker_environment(command, base_compose_file, env_compose_file, remaining_args=None):
     """Manage a Docker-based environment."""
     if remaining_args is None:
         remaining_args = []
@@ -125,9 +123,7 @@ def docker_environment(
 
 def main():
     """Main entry point for the deployment script."""
-    parser = argparse.ArgumentParser(
-        description="Deployment Script for EmailIntelligence"
-    )
+    parser = argparse.ArgumentParser(description="Deployment Script for EmailIntelligence")
     parser.add_argument(
         "environment", choices=["dev", "staging", "prod"], help="Deployment environment"
     )
@@ -173,9 +169,7 @@ def main():
         logger.error(f"Base Docker Compose file not found: {base_file}")
         sys.exit(1)
     if not env_specific_file or not env_specific_file.exists():
-        logger.error(
-            f"Environment-specific Docker Compose file not found: {env_specific_file}"
-        )
+        logger.error(f"Environment-specific Docker Compose file not found: {env_specific_file}")
         sys.exit(1)
     else:
         # This case should ideally not be reached if choices are correctly defined in argparser

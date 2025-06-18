@@ -66,22 +66,16 @@ class ActionItemExtractor:
             r"next (week|month|year))\b",
             re.IGNORECASE,
         )
-        self.sentence_splitter_regex = re.compile(
-            r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s"
-        )
+        self.sentence_splitter_regex = re.compile(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s")
 
         if HAS_NLTK:
-            logger.info(
-                "NLTK found. POS tagging will be available for action item extraction."
-            )
+            logger.info("NLTK found. POS tagging will be available for action item extraction.")
         else:
             logger.warning(
                 "NLTK not found. Action item extraction will rely solely on regex and keyword spotting."
             )
 
-    def _extract_verb_object_with_nltk(
-        self, text: str
-    ) -> tuple[Optional[str], Optional[str]]:
+    def _extract_verb_object_with_nltk(self, text: str) -> tuple[Optional[str], Optional[str]]:
         """
         Extracts verb and object from a phrase using NLTK POS tagging.
         This is a simplified approach.
@@ -107,21 +101,15 @@ class ActionItemExtractor:
                     verb_index = tokens.index(verb)
                     for i in range(verb_index + 1, len(tagged_tokens)):
                         token, tag = tagged_tokens[i]
-                        if tag.startswith("NN") or tag.startswith(
-                            "PRP"
-                        ):  # Noun or Pronoun
+                        if tag.startswith("NN") or tag.startswith("PRP"):  # Noun or Pronoun
                             obj = token
                             break
                 except ValueError:
                     # Verb not found in tokens (shouldn't happen but being safe)
-                    logger.debug(
-                        f"Verb '{verb}' not found in tokens during object extraction"
-                    )
+                    logger.debug(f"Verb '{verb}' not found in tokens during object extraction")
             return verb, obj
         except Exception as e:
-            logger.error(
-                f"Error during NLTK POS tagging or verb/object extraction: {e}"
-            )
+            logger.error(f"Error during NLTK POS tagging or verb/object extraction: {e}")
             return None, None
 
     def extract_actions(self, text: str) -> List[Dict[str, Any]]:
@@ -156,9 +144,7 @@ class ActionItemExtractor:
                     # Try to get a more specific part of the sentence for verb/object extraction
                     # This could be the text following the keyword.
                     potential_action_segment = sentence[match.end() :].strip()
-                    verb, obj = self._extract_verb_object_with_nltk(
-                        potential_action_segment
-                    )
+                    verb, obj = self._extract_verb_object_with_nltk(potential_action_segment)
 
                 due_date_match = self.due_date_regex.search(action_phrase)
                 raw_due_date_text = None
@@ -189,7 +175,9 @@ if __name__ == "__main__":
     test_text_1 = "Please submit the report by Friday. We also need to review the budget. Can you schedule a meeting?"
     test_text_2 = "Action: John to complete the slides. Task: Maria to send out invites by tomorrow. Required to update the JIRA ticket."
     test_text_3 = "No actions here, just a general update."
-    test_text_4 = "Could you please finalize the presentation by next Monday? Also, will you call the vendor?"
+    test_text_4 = (
+        "Could you please finalize the presentation by next Monday? Also, will you call the vendor?"
+    )
 
     print("\n--- Test Text 1 ---")
     actions1 = extractor.extract_actions(test_text_1)
