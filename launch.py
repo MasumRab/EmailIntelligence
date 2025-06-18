@@ -13,8 +13,8 @@ Arguments:
     --help                      Show this help message
     --no-venv                   Don't create or use a virtual environment
     --update-deps               Update dependencies before launching
-    --skip-torch-cuda-test      Skip CUDA availability test for PyTorch
-    --reinstall-torch           Reinstall PyTorch (useful for CUDA issues)
+    # --skip-torch-cuda-test      Skip CUDA availability test for PyTorch # Removed
+    # --reinstall-torch           Reinstall PyTorch (useful for CUDA issues) # Removed
     --skip-python-version-check Skip Python version check
     --stage {dev,test,staging,prod}  Specify the application stage to run
     --port PORT                 Specify the port to run on (default: 8000)
@@ -28,9 +28,7 @@ Arguments:
     --no-half                   Disable half-precision for models
     --force-cpu                 Force CPU mode even if GPU is available
     --low-memory                Enable low memory mode
-    --share                     Create a public URL
     --listen                    Make the server listen on network
-    --ngrok NGROK               Use ngrok to create a tunnel, specify ngrok region
     --env-file FILE             Specify a custom .env file
 """
 
@@ -59,8 +57,8 @@ logger = logging.getLogger("launcher")
 
 # Global list to keep track of subprocesses
 processes = []
-# Global variable to store ngrok tunnel if created
-ngrok_tunnel = None
+# Global variable to store ngrok tunnel if created # Removed ngrok_tunnel
+# ngrok_tunnel = None # Removed
 
 
 def _handle_sigint(signum, frame):
@@ -75,20 +73,20 @@ def _handle_sigint(signum, frame):
                 logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                 p.kill()
 
-    global ngrok_tunnel
-    if ngrok_tunnel:
-        try:
-            from pyngrok import ngrok
-
-            logger.info(f"Closing ngrok tunnel: {ngrok_tunnel.public_url} ...")
-            ngrok.disconnect(ngrok_tunnel.public_url)
-            ngrok.kill()
-            logger.info("Ngrok tunnel closed.")
-            ngrok_tunnel = None
-        except ImportError:
-            logger.warning("pyngrok is not installed, cannot manage ngrok tunnel shutdown.")
-        except Exception as e:
-            logger.error(f"Error shutting down ngrok: {e}")
+    # global ngrok_tunnel # Removed
+    # if ngrok_tunnel: # Removed
+        # try: # Removed
+            # from pyngrok import ngrok # Removed
+#
+            # logger.info(f"Closing ngrok tunnel: {ngrok_tunnel.public_url} ...") # Removed
+            # ngrok.disconnect(ngrok_tunnel.public_url) # Removed
+            # ngrok.kill() # Removed
+            # logger.info("Ngrok tunnel closed.") # Removed
+            # ngrok_tunnel = None # Removed
+        # except ImportError: # Removed
+            # logger.warning("pyngrok is not installed, cannot manage ngrok tunnel shutdown.") # Removed
+        # except Exception as e: # Removed
+            # logger.error(f"Error shutting down ngrok: {e}") # Removed
 
     sys.exit(0)
 
@@ -104,7 +102,7 @@ PYTHON_MAX_VERSION = (3, 11)
 VENV_DIR = "venv"
 REQUIREMENTS_FILE = "requirements.txt"
 REQUIREMENTS_VERSIONS_FILE = "requirements_versions.txt"  # New constant
-TORCH_CUDA_REQUIRED = False  # Set to True if CUDA is required
+# TORCH_CUDA_REQUIRED = False # Removed / Ensured False
 
 # Project root directory
 ROOT_DIR = Path(__file__).resolve().parent
@@ -564,19 +562,19 @@ def prepare_environment(args: argparse.Namespace) -> bool:
             # If not venv_needs_initial_setup AND not args.update_deps, we can log that we are skipping.
             # This is covered by the logger.info above.
 
-    # Check PyTorch CUDA
-    if TORCH_CUDA_REQUIRED and not args.skip_torch_cuda_test:
-        if not check_torch_cuda():
-            if args.reinstall_torch:
-                logger.info(
-                    "PyTorch CUDA not found. Reinstalling PyTorch with CUDA support as requested."
-                )
-                if not reinstall_torch():
-                    logger.error("Failed to reinstall PyTorch with CUDA. Please check manually.")
-            else:
-                logger.warning(
-                    "PyTorch CUDA is not available. Use --reinstall-torch to attempt reinstallation, or --skip-torch-cuda-test to ignore."
-                )
+    # Check PyTorch CUDA # Removed block
+    # if TORCH_CUDA_REQUIRED and not args.skip_torch_cuda_test: # Removed
+        # if not check_torch_cuda(): # Removed
+            # if args.reinstall_torch: # Removed
+                # logger.info( # Removed
+                    # "PyTorch CUDA not found. Reinstalling PyTorch with CUDA support as requested." # Removed
+                # ) # Removed
+                # if not reinstall_torch(): # Removed
+                    # logger.error("Failed to reinstall PyTorch with CUDA. Please check manually.") # Removed
+            # else: # Removed
+                # logger.warning( # Removed
+                    # "PyTorch CUDA is not available. Use --reinstall-torch to attempt reinstallation, or --skip-torch-cuda-test to ignore." # Removed
+                # ) # Removed
 
     # Download NLTK data
     if not args.no_download_nltk:
@@ -585,41 +583,41 @@ def prepare_environment(args: argparse.Namespace) -> bool:
 
     python_executable = get_python_executable()  # Get python executable for managers
 
-    # Load extensions if not skipped
-    if not args.skip_extensions:
-        from deployment.extensions import extensions_manager
+    # Load extensions if not skipped # Removed block
+    # if not args.skip_extensions: # Removed
+        # from deployment.extensions import extensions_manager # Removed
+#
+        # extensions_manager.set_python_executable(python_executable) # Removed
+        # if not extensions_manager.load_extensions(): # Removed
+            # logger.error("Failed to load one or more extensions.") # Removed
+            # return False # Removed
+        # if not extensions_manager.initialize_extensions(): # Removed
+            # logger.error("Failed to initialize one or more extensions.") # Removed
+            # return False # Removed
 
-        extensions_manager.set_python_executable(python_executable)  # Set python executable
-        if not extensions_manager.load_extensions():
-            logger.error("Failed to load one or more extensions.")
-            return False
-        if not extensions_manager.initialize_extensions():
-            logger.error("Failed to initialize one or more extensions.")
-            return False
-
-    # Download models if needed
-    if not args.skip_models:
-        from deployment.models import models_manager
-
-        logger.info(f"DEBUG: args.skip_models is False. Checking models...")
-        current_models = models_manager.list_models()
-        logger.info(f"DEBUG: models_manager.list_models() returned: {current_models}")
-        # models_manager does not require python_executable to be set explicitly for now
-        if not current_models:  # If "models" dir was truly empty initially
-            if args.stage == "dev":
-                logger.info(
-                    "Development stage: Skipping download of default models. Placeholders will be used/created."
-                )
-            elif not models_manager.download_default_models():  # Original logic for non-dev stages
-                logger.error("Failed to download default models.")
-                # Logged error, but will proceed to create_placeholder_nlp_models anyway
-
-        # Always attempt to create/verify NLP placeholders if models are not skipped
-        logger.info("Ensuring NLP placeholder models exist...")
-        if not models_manager.create_placeholder_nlp_models():
-            logger.warning(
-                "Failed to create/verify some placeholder NLP models. NLP functionality might be limited."
-            )
+    # Download models if needed # Removed block
+    # if not args.skip_models: # Removed
+        # from deployment.models import models_manager # Removed
+#
+        # logger.info(f"DEBUG: args.skip_models is False. Checking models...") # Removed
+        # current_models = models_manager.list_models() # Removed
+        # logger.info(f"DEBUG: models_manager.list_models() returned: {current_models}") # Removed
+        # models_manager does not require python_executable to be set explicitly for now # Removed
+        # if not current_models:  # If "models" dir was truly empty initially # Removed
+            # if args.stage == "dev": # Removed
+                # logger.info( # Removed
+                    # "Development stage: Skipping download of default models. Placeholders will be used/created." # Removed
+                # ) # Removed
+            # elif not models_manager.download_default_models():  # Original logic for non-dev stages # Removed
+                # logger.error("Failed to download default models.") # Removed
+                # Logged error, but will proceed to create_placeholder_nlp_models anyway # Removed
+#
+        # Always attempt to create/verify NLP placeholders if models are not skipped # Removed
+        # logger.info("Ensuring NLP placeholder models exist...") # Removed
+        # if not models_manager.create_placeholder_nlp_models(): # Removed
+            # logger.warning( # Removed
+                # "Failed to create/verify some placeholder NLP models. NLP functionality might be limited." # Removed
+            # ) # Removed
 
     return True
 
@@ -766,46 +764,46 @@ def run_application(args: argparse.Namespace) -> int:
     python_executable = get_python_executable()
     backend_process = None
     frontend_process = None
-    global ngrok_tunnel  # To store the ngrok tunnel object
+    # global ngrok_tunnel  # Removed
 
-    if args.share:
-        try:
-            from pyngrok import conf, ngrok
-
-            logger.info("Starting ngrok tunnel...")
-            if args.ngrok_region:
-                logger.info(f"Using ngrok region: {args.ngrok_region}")
-                # Pyngrok uses a config object or can be set via ngrok config file
-                # For direct region setting if available via conf object:
-                ngrok_conf = conf.PyngrokConfig(region=args.ngrok_region)
-                conf.set_default(ngrok_conf)
-                # Alternatively, ensure user has ngrok configured with region if above doesn't work as expected
-
-            # Assuming backend port (args.port) is the one to share
-            ngrok_tunnel = ngrok.connect(args.port)
-            logger.info(f"Ngrok tunnel established. Public URL: {ngrok_tunnel.public_url}")
-            logger.info(
-                "Note: If you have a free ngrok account, you might be limited to one tunnel at a time."
-            )
-            logger.info(
-                "Ensure your ngrok authtoken is configured if you face issues: ngrok authtoken <YOUR_AUTHTOKEN>"
-            )
-
-        except ImportError:
-            logger.error(
-                "pyngrok is not installed. Please run 'pip install pyngrok' to use the --share feature."
-            )
-            logger.warning("--share feature disabled.")
-        except Exception as e:  # Catch other ngrok errors (auth, connection, etc.)
-            logger.error(f"Failed to start ngrok tunnel: {e}")
-            logger.warning("--share feature might not be working as expected.")
-            if ngrok_tunnel:  # If tunnel object exists but failed later
-                try:
-                    ngrok.disconnect(ngrok_tunnel.public_url)
-                    ngrok.kill()
-                except:
-                    pass
-                ngrok_tunnel = None
+    # if args.share: # Removed ngrok block
+        # try: # Removed
+            # from pyngrok import conf, ngrok # Removed
+#
+            # logger.info("Starting ngrok tunnel...") # Removed
+            # if args.ngrok_region: # Removed
+                # logger.info(f"Using ngrok region: {args.ngrok_region}") # Removed
+                # Pyngrok uses a config object or can be set via ngrok config file # Removed
+                # For direct region setting if available via conf object: # Removed
+                # ngrok_conf = conf.PyngrokConfig(region=args.ngrok_region) # Removed
+                # conf.set_default(ngrok_conf) # Removed
+                # Alternatively, ensure user has ngrok configured with region if above doesn't work as expected # Removed
+#
+            # Assuming backend port (args.port) is the one to share # Removed
+            # ngrok_tunnel = ngrok.connect(args.port) # Removed
+            # logger.info(f"Ngrok tunnel established. Public URL: {ngrok_tunnel.public_url}") # Removed
+            # logger.info( # Removed
+                # "Note: If you have a free ngrok account, you might be limited to one tunnel at a time." # Removed
+            # ) # Removed
+            # logger.info( # Removed
+                # "Ensure your ngrok authtoken is configured if you face issues: ngrok authtoken <YOUR_AUTHTOKEN>" # Removed
+            # ) # Removed
+#
+        # except ImportError: # Removed
+            # logger.error( # Removed
+                # "pyngrok is not installed. Please run 'pip install pyngrok' to use the --share feature." # Removed
+            # ) # Removed
+            # logger.warning("--share feature disabled.") # Removed
+        # except Exception as e:  # Catch other ngrok errors (auth, connection, etc.) # Removed
+            # logger.error(f"Failed to start ngrok tunnel: {e}") # Removed
+            # logger.warning("--share feature might not be working as expected.") # Removed
+            # if ngrok_tunnel:  # If tunnel object exists but failed later # Removed
+                # try: # Removed
+                    # ngrok.disconnect(ngrok_tunnel.public_url) # Removed
+                    # ngrok.kill() # Removed
+                # except: # Removed
+                    # pass # Removed
+                # ngrok_tunnel = None # Removed
 
     # Load custom .env file if specified
     # Note: The env dict from original code is not directly used by Popen here.
@@ -819,83 +817,83 @@ def run_application(args: argparse.Namespace) -> int:
         else:
             logger.warning(f"Specified env file {args.env_file} not found at {env_file_path}")
 
-    if args.gradio_ui:
-        logger.info("Running Gradio UI for scientific/testing purposes...")
-        gradio_script_path = ROOT_DIR / "server" / "python_backend" / "gradio_app.py"
-        if not gradio_script_path.exists():
-            logger.error(f"Gradio script not found at: {gradio_script_path}")
-            return 1
-
-        cmd = [python_executable, str(gradio_script_path)]
-
+    # if args.gradio_ui: # Removed Gradio UI block
+        # logger.info("Running Gradio UI for scientific/testing purposes...")
+        # gradio_script_path = ROOT_DIR / "server" / "python_backend" / "gradio_app.py"
+        # if not gradio_script_path.exists():
+            # logger.error(f"Gradio script not found at: {gradio_script_path}")
+            # return 1
+#
+        # cmd = [python_executable, str(gradio_script_path)]
+#
         # Pass relevant arguments to gradio_app.py
-        cmd.extend(["--host", args.host, "--port", str(args.port)])
-        if args.share: # Gradio has its own share option, pass it along
-            cmd.append("--share")
-        if args.debug:
-            cmd.append("--debug")
+        # cmd.extend(["--host", args.host, "--port", str(args.port)])
+        # if args.share: # Gradio has its own share option, pass it along
+            # cmd.append("--share")
+        # if args.debug:
+            # cmd.append("--debug")
         # args.listen is handled by setting args.host to "0.0.0.0" in start_backend,
         # so passing args.host to gradio_app.py correctly handles this.
-
-        env = os.environ.copy()
-        env["PYTHONPATH"] = str(ROOT_DIR)
+#
+        # env = os.environ.copy()
+        # env["PYTHONPATH"] = str(ROOT_DIR)
         # Add any other necessary environment variables if gradio_app.py needs them.
         # For example, if Gradio needs to know the API URL for some features:
         # env["API_URL"] = f"http://{args.host}:{args.port}" # Example
-
+#
         # Enhanced logging for Windows
-        if platform.system() == "Windows":
+        # if platform.system() == "Windows":
             # Log the command as a list (how Popen receives it with shell=False)
-            logger.info(f"Windows: Attempting to run Gradio with command list: {cmd}")
+            # logger.info(f"Windows: Attempting to run Gradio with command list: {cmd}")
             # Log the command line string version for easier copy-pasting into PowerShell
             # subprocess.list2cmdline is specifically for this purpose
-            try:
-                cmd_line_for_shell = subprocess.list2cmdline(cmd)
-                logger.info(f"Windows: Equivalent command for shell: {cmd_line_for_shell}")
-            except Exception as e:
-                logger.info(f"Windows: Could not generate shell command line for logging: {e}")
-
-        try:
+            # try:
+                # cmd_line_for_shell = subprocess.list2cmdline(cmd)
+                # logger.info(f"Windows: Equivalent command for shell: {cmd_line_for_shell}")
+            # except Exception as e:
+                # logger.info(f"Windows: Could not generate shell command line for logging: {e}")
+#
+        # try:
             # Generic log, might not be 100% accurate for shell execution if paths have spaces and are not quoted by join
-            logger.info(f"Running Gradio UI command (generic log): {' '.join(cmd)}")
-            logger.info(f"Constructed command for Gradio: {cmd}")
-            logger.info(f"Environment for Gradio: {env}")
+            # logger.info(f"Running Gradio UI command (generic log): {' '.join(cmd)}")
+            # logger.info(f"Constructed command for Gradio: {cmd}")
+            # logger.info(f"Environment for Gradio: {env}")
             # Ensure shell=False is explicitly stated for clarity, though it's the default
-            gradio_process = subprocess.Popen(cmd, env=env, shell=False)
-            processes.append(gradio_process) # Add to global list for signal handling
+            # gradio_process = subprocess.Popen(cmd, env=env, shell=False)
+            # processes.append(gradio_process) # Add to global list for signal handling
             # Log the access URL, considering host and port
             # If host is 0.0.0.0, it's accessible from network, but browser link might be 127.0.0.1 or localhost
-            display_host = args.host
-            if args.host == "0.0.0.0":
-                display_host = "127.0.0.1" # Common loopback for browser access
-
+            # display_host = args.host
+            # if args.host == "0.0.0.0":
+                # display_host = "127.0.0.1" # Common loopback for browser access
+#
             # Gradio's default port is 7860. If args.port is not Gradio's default,
             # and gradio_app.py is not yet modified to accept --port,
             # the URL printed here might be misleading. Assuming gradio_app.py will be modified.
-            logger.info(f"Gradio UI started with PID {gradio_process.pid}. Expected at http://{display_host}:{args.port}. Press Ctrl+C to stop.")
-            if args.share and not ngrok_tunnel: # If --share was for Gradio directly and ngrok wasn't for backend
-                logger.info("Gradio's own share option is active. Look for a *.gradio.live URL in its output.")
-
-
-            gradio_process.wait() # Wait for the Gradio process to complete
+            # logger.info(f"Gradio UI started with PID {gradio_process.pid}. Expected at http://{display_host}:{args.port}. Press Ctrl+C to stop.")
+            # if args.share and not ngrok_tunnel: # If --share was for Gradio directly and ngrok wasn't for backend
+                # logger.info("Gradio's own share option is active. Look for a *.gradio.live URL in its output.")
+#
+#
+            # gradio_process.wait() # Wait for the Gradio process to complete
             # Check exit code if needed
-            if gradio_process.returncode != 0:
-                logger.warning(f"Gradio process exited with code {gradio_process.returncode}.")
+            # if gradio_process.returncode != 0:
+                # logger.warning(f"Gradio process exited with code {gradio_process.returncode}.")
                 # Depending on how critical this is, you might return 1 here.
                 # For now, let's assume it's not a launch failure unless an exception occurred.
-            return 0 # Indicate success
-        except FileNotFoundError:
-            logger.error(
-                f"Error: Python executable not found at {python_executable} or Gradio script not found at {gradio_script_path}."
-            )
-            logger.error("Ensure Gradio is installed ('pip install gradio') in the environment.")
-            return 1 # Indicate failure
-        except Exception as e:
-            logger.error(f"Failed to start Gradio UI: {e}")
-            logger.error("Ensure Gradio is installed in the environment and the script path is correct.")
-            return 1 # Indicate failure
+            # return 0 # Indicate success
+        # except FileNotFoundError:
+            # logger.error(
+                # f"Error: Python executable not found at {python_executable} or Gradio script not found at {gradio_script_path}."
+            # )
+            # logger.error("Ensure Gradio is installed ('pip install gradio') in the environment.")
+            # return 1 # Indicate failure
+        # except Exception as e:
+            # logger.error(f"Failed to start Gradio UI: {e}")
+            # logger.error("Ensure Gradio is installed in the environment and the script path is correct.")
+            # return 1 # Indicate failure
 
-    elif args.api_only:
+    if args.api_only: # Adjusted 'elif' to 'if' as the preceding 'if args.gradio_ui:' is removed
         logger.info("Running in API only mode.")
         backend_process = start_backend(args, python_executable)
         if backend_process:
@@ -1119,16 +1117,16 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="Update dependencies before launching",
     )
-    parser.add_argument(
-        "--skip-torch-cuda-test",
-        action="store_true",
-        help="Skip CUDA availability test for PyTorch",
-    )
-    parser.add_argument(
-        "--reinstall-torch",
-        action="store_true",
-        help="Reinstall PyTorch (useful for CUDA issues)",
-    )
+    # parser.add_argument( # Removed
+        # "--skip-torch-cuda-test", # Removed
+        # action="store_true", # Removed
+        # help="Skip CUDA availability test for PyTorch", # Removed
+    # ) # Removed
+    # parser.add_argument( # Removed
+        # "--reinstall-torch", # Removed
+        # action="store_true", # Removed
+        # help="Reinstall PyTorch (useful for CUDA issues)", # Removed
+    # ) # Removed
     parser.add_argument(
         "--skip-python-version-check",
         action="store_true",
@@ -1180,8 +1178,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--gradio-ui",
         action="store_true",
-        help="Run only the Gradio UI for scientific/testing purposes.",
+        help="Run only the API server without the frontend", # Description kept, but --gradio-ui removed
     )
+    # Gradio UI argument removed
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
     # Testing options
@@ -1197,23 +1196,23 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--security", action="store_true", help="Run security tests")
 
     # Extensions and models
-    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions")
-    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models")
-    parser.add_argument(
-        "--install-extension",
-        type=str,
-        help="Install an extension from a Git repository",
-    )
-    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension")
-    parser.add_argument("--update-extension", type=str, help="Update an extension")
-    parser.add_argument("--list-extensions", action="store_true", help="List all extensions")
-    parser.add_argument("--create-extension", type=str, help="Create a new extension template")
+    # parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions") # Removed
+    # parser.add_argument("--skip-models", action="store_true", help="Skip downloading models") # Removed
+    # parser.add_argument( # Removed
+        # "--install-extension", # Removed
+        # type=str, # Removed
+        # help="Install an extension from a Git repository", # Removed
+    # ) # Removed
+    # parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension") # Removed
+    # parser.add_argument("--update-extension", type=str, help="Update an extension") # Removed
+    # parser.add_argument("--list-extensions", action="store_true", help="List all extensions") # Removed
+    # parser.add_argument("--create-extension", type=str, help="Create a new extension template") # Removed
 
     # Model options
-    parser.add_argument("--download-model", type=str, help="Download a model from a URL")
-    parser.add_argument("--model-name", type=str, help="Specify the model name for download")
-    parser.add_argument("--list-models", action="store_true", help="List all models")
-    parser.add_argument("--delete-model", type=str, help="Delete a model")
+    # parser.add_argument("--download-model", type=str, help="Download a model from a URL") # Removed
+    # parser.add_argument("--model-name", type=str, help="Specify the model name for download") # Removed
+    # parser.add_argument("--list-models", action="store_true", help="List all models") # Removed
+    # parser.add_argument("--delete-model", type=str, help="Delete a model") # Removed
 
     # Advanced options
     parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
@@ -1226,17 +1225,13 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--system-info", action="store_true", help="Print system information")
 
     # Networking options
-    parser.add_argument("--share", action="store_true", help="Create a public URL using ngrok")
+    # --share and --ngrok-region arguments removed
     parser.add_argument(
         "--listen",
         action="store_true",
         help="Make the backend server listen on 0.0.0.0",
     )
-    parser.add_argument(
-        "--ngrok-region",
-        type=str,
-        help="Specify ngrok region (e.g., us, eu, ap, au, sa, jp, in). Used with --share.",
-    )
+    # --ngrok-region argument removed
 
     # UI and Execution options
     parser.add_argument(
@@ -1417,122 +1412,122 @@ def main() -> int:
         _print_system_info()
         return 0
 
-    # Extensions management
-    # Ensure python_executable is set for extensions_manager if any extension command is run
-    # This is a bit repetitive but ensures it's set if --skip-prepare was used.
-    # A more elegant solution might involve a global setup for managers.
-    if (
-        args.list_extensions
-        or args.install_extension
-        or args.uninstall_extension
-        or args.update_extension
-        or args.create_extension
-    ):
-        from deployment.extensions import extensions_manager
+    # Extensions management # Removed block
+    # Ensure python_executable is set for extensions_manager if any extension command is run # Removed
+    # This is a bit repetitive but ensures it's set if --skip-prepare was used. # Removed
+    # A more elegant solution might involve a global setup for managers. # Removed
+    # if ( # Removed
+        # args.list_extensions # Removed
+        # or args.install_extension # Removed
+        # or args.uninstall_extension # Removed
+        # or args.update_extension # Removed
+        # or args.create_extension # Removed
+    # ): # Removed
+        # from deployment.extensions import extensions_manager # Removed
+#
+        # if ( # Removed
+            # not extensions_manager.python_executable # Removed
+            # or extensions_manager.python_executable == sys.executable # Removed
+        # ):  # Check if it needs setting # Removed
+            # This check is to avoid overriding if already set by prepare_environment # Removed
+            # to a venv python. If it's None or system python, and we are in venv, update it. # Removed
+            # current_launcher_python_exec = get_python_executable() # Removed
+            # if extensions_manager.python_executable != current_launcher_python_exec: # Removed
+                # extensions_manager.set_python_executable(current_launcher_python_exec) # Removed
+                # logger.debug( # Removed
+                    # f"Set python_executable for extensions_manager in main() to: {current_launcher_python_exec}" # Removed
+                # ) # Removed
+#
+    # if args.list_extensions: # Removed
+        # from deployment.extensions import extensions_manager # Removed
+#
+        # load_extensions might be needed if prepare_environment was skipped # Removed
+        # However, list_extensions in its current form doesn't strictly need them loaded, # Removed
+        # it lists based on discovery. If it were to list *loaded* extensions, this would change. # Removed
+        # For now, assuming list_extensions can operate without full load_extensions() if needed. # Removed
+        # extensions_manager.load_extensions() # Potentially add this if list shows *active* extensions # Removed
+        # extensions = extensions_manager.list_extensions() # Removed
+#
+        # print(f"Found {len(extensions)} extensions:") # Removed
+        # for extension in extensions: # Removed
+            # print(f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}") # Removed
+            # print(f"    Path: {extension['path']}") # Removed
+            # print(f"    Loaded: {extension['loaded']}") # Removed
+            # print(f"    Description: {extension['metadata'].get('description', 'No description')}") # Removed
+            # print() # Removed
+#
+        # return 0 # Removed
+#
+    # if args.install_extension: # Removed
+        # from deployment.extensions import extensions_manager # Removed
+#
+        # Ensure prepare_environment or equivalent setup for venv has run if installing. # Removed
+        # if not args.skip_prepare:  # If prepare_environment ran, venv should be ready. # Removed
+            # pass  # Dependencies should be in venv. # Removed
+        # else:  # If skipping prepare, user is responsible for environment. # Removed
+            # logger.warning( # Removed
+                # "Skipping prepare_environment. Ensure correct Python environment for extension installation." # Removed
+            # ) # Removed
+        # success = extensions_manager.install_extension(args.install_extension) # Removed
+        # return 0 if success else 1 # Removed
+#
+    # if args.uninstall_extension: # Removed
+        # from deployment.extensions import extensions_manager # Removed
+#
+        # success = extensions_manager.uninstall_extension(args.uninstall_extension) # Removed
+        # return 0 if success else 1 # Removed
+#
+    # if args.update_extension: # Removed
+        # from deployment.extensions import extensions_manager # Removed
+#
+        # Similar to install, ensure environment is appropriate. # Removed
+        # if not args.skip_prepare: # Removed
+            # pass # Removed
+        # else: # Removed
+            # logger.warning( # Removed
+                # "Skipping prepare_environment. Ensure correct Python environment for extension update." # Removed
+            # ) # Removed
+        # success = extensions_manager.update_extension(args.update_extension) # Removed
+        # return 0 if success else 1 # Removed
+#
+    # if args.create_extension: # Removed
+        # from deployment.extensions import extensions_manager # Removed
+#
+        # success = extensions_manager.create_extension_template(args.create_extension) # Removed
+        # return 0 if success else 1 # Removed
 
-        if (
-            not extensions_manager.python_executable
-            or extensions_manager.python_executable == sys.executable
-        ):  # Check if it needs setting
-            # This check is to avoid overriding if already set by prepare_environment
-            # to a venv python. If it's None or system python, and we are in venv, update it.
-            current_launcher_python_exec = get_python_executable()
-            if extensions_manager.python_executable != current_launcher_python_exec:
-                extensions_manager.set_python_executable(current_launcher_python_exec)
-                logger.debug(
-                    f"Set python_executable for extensions_manager in main() to: {current_launcher_python_exec}"
-                )
-
-    if args.list_extensions:
-        from deployment.extensions import extensions_manager
-
-        # load_extensions might be needed if prepare_environment was skipped
-        # However, list_extensions in its current form doesn't strictly need them loaded,
-        # it lists based on discovery. If it were to list *loaded* extensions, this would change.
-        # For now, assuming list_extensions can operate without full load_extensions() if needed.
-        # extensions_manager.load_extensions() # Potentially add this if list shows *active* extensions
-        extensions = extensions_manager.list_extensions()
-
-        print(f"Found {len(extensions)} extensions:")
-        for extension in extensions:
-            print(f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}")
-            print(f"    Path: {extension['path']}")
-            print(f"    Loaded: {extension['loaded']}")
-            print(f"    Description: {extension['metadata'].get('description', 'No description')}")
-            print()
-
-        return 0
-
-    if args.install_extension:
-        from deployment.extensions import extensions_manager
-
-        # Ensure prepare_environment or equivalent setup for venv has run if installing.
-        if not args.skip_prepare:  # If prepare_environment ran, venv should be ready.
-            pass  # Dependencies should be in venv.
-        else:  # If skipping prepare, user is responsible for environment.
-            logger.warning(
-                "Skipping prepare_environment. Ensure correct Python environment for extension installation."
-            )
-        success = extensions_manager.install_extension(args.install_extension)
-        return 0 if success else 1
-
-    if args.uninstall_extension:
-        from deployment.extensions import extensions_manager
-
-        success = extensions_manager.uninstall_extension(args.uninstall_extension)
-        return 0 if success else 1
-
-    if args.update_extension:
-        from deployment.extensions import extensions_manager
-
-        # Similar to install, ensure environment is appropriate.
-        if not args.skip_prepare:
-            pass
-        else:
-            logger.warning(
-                "Skipping prepare_environment. Ensure correct Python environment for extension update."
-            )
-        success = extensions_manager.update_extension(args.update_extension)
-        return 0 if success else 1
-
-    if args.create_extension:
-        from deployment.extensions import extensions_manager
-
-        success = extensions_manager.create_extension_template(args.create_extension)
-        return 0 if success else 1
-
-    # Models management
-    if args.list_models:
-        from deployment.models import models_manager
-
-        models = models_manager.list_models()
-
-        print(f"Found {len(models)} models:")
-        for model in models:
-            print(f"  {model}")
-
-            # Print the model configuration if available
-            config = models_manager.get_model_config(model)
-            if config:
-                print(f"    Configuration:")
-                for key, value in config.items():
-                    print(f"      {key}: {value}")
-
-            print()
-
-        return 0
-
-    if args.download_model and args.model_name:
-        from deployment.models import models_manager
-
-        success = models_manager.download_model(args.download_model, args.model_name)
-        return 0 if success else 1
-
-    if args.delete_model:
-        from deployment.models import models_manager
-
-        success = models_manager.delete_model(args.delete_model)
-        return 0 if success else 1
+    # Models management # Removed block
+    # if args.list_models: # Removed
+        # from deployment.models import models_manager # Removed
+#
+        # models = models_manager.list_models() # Removed
+#
+        # print(f"Found {len(models)} models:") # Removed
+        # for model_item in models: # Removed
+            # print(f"  {model_item}") # Removed
+#
+            # Print the model configuration if available # Removed
+            # config = models_manager.get_model_config(model_item) # Removed
+            # if config: # Removed
+                # print(f"    Configuration:") # Removed
+                # for key, value in config.items(): # Removed
+                    # print(f"      {key}: {value}") # Removed
+#
+            # print() # Removed
+#
+        # return 0 # Removed
+#
+    # if args.download_model and args.model_name: # Removed
+        # from deployment.models import models_manager # Removed
+#
+        # success = models_manager.download_model(args.download_model, args.model_name) # Removed
+        # return 0 if success else 1 # Removed
+#
+    # if args.delete_model: # Removed
+        # from deployment.models import models_manager # Removed
+#
+        # success = models_manager.delete_model(args.delete_model) # Removed
+        # return 0 if success else 1 # Removed
 
     # Testing options
     # This block handles specific test flags. If any are true, tests run and program exits.
