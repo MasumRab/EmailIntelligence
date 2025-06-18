@@ -146,4 +146,3 @@ describe('Category Routes', () => {
     });
   });
 });
-[end of server/categoryRoutes.test.ts]
