@@ -9,6 +9,7 @@ try:
     # nltk.download('stopwords') # Required for keyword extraction in NLPEngine
     HAS_NLTK = True
 except ImportError:
+    TextBlob = None  # Ensure TextBlob name exists even if import fails
     HAS_NLTK = False
 
 logger = logging.getLogger(__name__)

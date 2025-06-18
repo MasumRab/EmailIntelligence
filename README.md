@@ -21,6 +21,7 @@ EmailIntelligence is a full-stack application that provides intelligent email an
 - [Database](#database)
 - [Extension System](#extension-system)
 - [Debugging Hangs](#debugging-hangs)
+- [Testing](#testing)
 
 ## Project Overview
 
@@ -315,3 +316,37 @@ For more detailed guides and specific component documentation, please refer to t
 - Attempts to override these nested `esbuild` versions to a non-vulnerable version (e.g., `^0.25.5`, which is used by other parts of this project like Vite) using npm's `overrides` feature in `package.json` were made. However, these overrides were not fully effective, with `npm list` indicating version incompatibilities for the overridden packages. `npm audit` continued to report the vulnerabilities.
 - These `esbuild` vulnerabilities cannot be fully remediated without an update to `drizzle-kit` itself that addresses its `esbuild` dependency requirements, particularly for the deprecated `@esbuild-kit/*` packages.
 - On a related note, `vite` and `@vitejs/plugin-react` were successfully updated to their latest compatible versions (`vite@6.3.5` and `@vitejs/plugin-react@4.5.2` respectively) during the audit process to address other potential issues and ensure compatibility.
+
+## Testing
+
+This project includes unit tests for the Python backend components, primarily focusing on the NLP functionalities.
+
+### Python Test Setup
+
+1.  **Install Python Development Dependencies:**
+    Ensure you have Python installed (as per `pyproject.toml`, e.g., Python 3.11+). The development dependencies, including `pytest` and libraries like `textblob` and `nltk`, are listed in `pyproject.toml` under the `[project.group.dev.dependencies]` section. Install them using pip:
+    ```bash
+    pip install .[dev]
+    ```
+    (If you encounter issues with this, ensure your pip is up to date (`pip install --upgrade pip`) as support for `project.group` is relatively new. Alternatively, you might need to manually install the packages listed in the `dev` group.)
+
+2.  **NLTK Data (for NLP tests):**
+    The NLP tests require certain NLTK data packages. Download the 'punkt' tokenizer data:
+    ```bash
+    python -m nltk.downloader punkt
+    ```
+
+### Running Python Tests
+
+To run all available Python unit tests, use the following npm script:
+
+```bash
+npm test
+```
+
+This command executes `pytest` with the necessary configurations. It currently runs tests located in `server/python_nlp/tests/` and ensures all these tests pass.
+
+**Important Notes:**
+
+*   **Excluded Tests:** Tests for the main Python backend (`server/python_backend/tests/`) are currently skipped. This is due to their dependency on the `server.python_nlp.action_item_extractor` module, which is not present in the current branch. The testing strategy focuses on the capabilities available within this branch.
+*   **TypeScript Tests:** TypeScript-based tests for the frontend or Node.js server components are not executed by the `npm test` command.
