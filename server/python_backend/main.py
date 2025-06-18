@@ -92,7 +92,6 @@ async def health_check(request: Request):
     """System health check"""
     try:
         # Perform any necessary checks, e.g., DB connectivity if desired
-        # await db.execute_query("SELECT 1") # Example DB check
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),

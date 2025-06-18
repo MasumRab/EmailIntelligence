@@ -152,20 +152,7 @@ class SmartFilterManager:
                 FOREIGN KEY (filter_id) REFERENCES email_filters (filter_id)
             )
             """,
-            """
-            CREATE TABLE IF NOT EXISTS google_scripts (
-                script_id TEXT PRIMARY KEY,
-                script_name TEXT NOT NULL,
-                script_type TEXT,
-                script_content TEXT,
-                version TEXT,
-                created_date TEXT,
-                last_modified TEXT,
-                is_deployed BOOLEAN DEFAULT 0,
-                performance_score REAL DEFAULT 0.0,
-                error_count INTEGER DEFAULT 0
-            )
-            """,
+            # Removed CREATE TABLE IF NOT EXISTS google_scripts
         ]
         conn = self._get_db_connection()
         try:
