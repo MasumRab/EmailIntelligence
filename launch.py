@@ -843,9 +843,23 @@ def run_application(args: argparse.Namespace) -> int:
         # For example, if Gradio needs to know the API URL for some features:
         # env["API_URL"] = f"http://{args.host}:{args.port}" # Example
 
+        # Enhanced logging for Windows
+        if platform.system() == "Windows":
+            # Log the command as a list (how Popen receives it with shell=False)
+            logger.info(f"Windows: Attempting to run Gradio with command list: {cmd}")
+            # Log the command line string version for easier copy-pasting into PowerShell
+            # subprocess.list2cmdline is specifically for this purpose
+            try:
+                cmd_line_for_shell = subprocess.list2cmdline(cmd)
+                logger.info(f"Windows: Equivalent command for shell: {cmd_line_for_shell}")
+            except Exception as e:
+                logger.info(f"Windows: Could not generate shell command line for logging: {e}")
+
         try:
-            logger.info(f"Running Gradio UI command: {' '.join(cmd)}")
-            gradio_process = subprocess.Popen(cmd, env=env)
+            # Generic log, might not be 100% accurate for shell execution if paths have spaces and are not quoted by join
+            logger.info(f"Running Gradio UI command (generic log): {' '.join(cmd)}")
+            # Ensure shell=False is explicitly stated for clarity, though it's the default
+            gradio_process = subprocess.Popen(cmd, env=env, shell=False)
             processes.append(gradio_process) # Add to global list for signal handling
             # Log the access URL, considering host and port
             # If host is 0.0.0.0, it's accessible from network, but browser link might be 127.0.0.1 or localhost
