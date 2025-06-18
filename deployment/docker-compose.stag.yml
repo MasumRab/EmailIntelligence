@@ -20,7 +20,7 @@ services:
       dockerfile: deployment/Dockerfile.backend
       target: production # Use production target for staging backend
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-emailintelligence_stag}
+      # - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-emailintelligence_stag} # Commented out for SQLite
       - NODE_ENV=staging
       - LOG_LEVEL=info # Or debug, depending on staging needs
       # Other staging-specific environment variables
