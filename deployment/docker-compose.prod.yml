@@ -1,22 +1,6 @@
 version: '3.8'
 
 services:
-  postgres:
-    # image, base environment, volumes, healthcheck are inherited from docker-compose.yml
-    # We only add/override production specific settings
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-    networks:
-      - backend_network
-
   backend:
     # build context, Dockerfile path, base volumes, base depends_on are inherited
     build:
@@ -24,12 +8,13 @@ services:
       dockerfile: deployment/Dockerfile.backend
       target: production # Target production stage
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB} # Commented out for SQLite
       - NODE_ENV=production
       - LOG_LEVEL=info
       # Other production environment variables
     command: gunicorn server.python_backend.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
     restart: unless-stopped
+    depends_on: {} # Ensure backend does not depend on a postgres service that's removed
     deploy:
       replicas: 2
       resources:
@@ -128,7 +113,7 @@ services:
       - monitoring_network
 
 volumes:
-  postgres_data: # Already defined in base, but listed here for clarity if needed by docker-compose merge
+  # postgres_data: # Already defined in base, but listed here for clarity if needed by docker-compose merge - Removed
   prometheus_data:
   grafana_data:
 

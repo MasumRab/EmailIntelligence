@@ -9,7 +9,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/emailintelligence
+      # - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/emailintelligence # Commented out for SQLite
       - NODE_ENV=development
       - DEBUG=True
       # Any other dev-specific backend environment variables
