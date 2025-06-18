@@ -5,7 +5,6 @@ google-api-python-client
 python-dotenv
 scikit-learn
 joblib
-pyngrok>=0.7.0
 nltk
 uvicorn>=0.34.3
 transformers
