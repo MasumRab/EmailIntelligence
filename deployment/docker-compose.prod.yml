@@ -24,7 +24,7 @@ services:
       dockerfile: deployment/Dockerfile.backend
       target: production # Target production stage
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB} # Commented out for SQLite
       - NODE_ENV=production
       - LOG_LEVEL=info
       # Other production environment variables

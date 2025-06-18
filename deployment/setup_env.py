@@ -103,7 +103,7 @@ def setup_environment_variables(force=False):
     # Create .env file
     env_content = """# Environment variables for EmailIntelligence
 NODE_ENV=development
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/emailintelligence
+# DATABASE_URL=postgresql://postgres:postgres@localhost:5432/emailintelligence # Commented out for SQLite default
 PORT=8000
 DEBUG=True
 """
