@@ -858,6 +858,8 @@ def run_application(args: argparse.Namespace) -> int:
         try:
             # Generic log, might not be 100% accurate for shell execution if paths have spaces and are not quoted by join
             logger.info(f"Running Gradio UI command (generic log): {' '.join(cmd)}")
+            logger.info(f"Constructed command for Gradio: {cmd}")
+            logger.info(f"Environment for Gradio: {env}")
             # Ensure shell=False is explicitly stated for clarity, though it's the default
             gradio_process = subprocess.Popen(cmd, env=env, shell=False)
             processes.append(gradio_process) # Add to global list for signal handling
