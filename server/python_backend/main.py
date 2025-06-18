@@ -19,9 +19,9 @@ from server.python_nlp.gmail_service import GmailAIService
 from server.python_nlp.smart_filters import SmartFilterManager
 
 from . import (
-    action_routes,
+    # action_routes, # Removed
     category_routes,
-    dashboard_routes,
+    # dashboard_routes, # Removed
     email_routes,
     filter_routes,
     gmail_routes,
@@ -29,7 +29,7 @@ from . import (
 from .ai_engine import AdvancedAIEngine
 
 # Import our Python modules
-from .performance_monitor import PerformanceMonitor
+# from .performance_monitor import PerformanceMonitor # Removed
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -61,26 +61,25 @@ app.add_middleware(
 # Other shared request/response models like EmailResponse, CategoryResponse etc. are also in models.py.
 
 # Set up metrics if in production or staging environment
-if os.getenv("NODE_ENV") in ["production", "staging"]:
-    from .metrics import setup_metrics
-
-    setup_metrics(app)
+# if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
+    # from .metrics import setup_metrics # Removed
+    # setup_metrics(app) # Removed
 
 # Initialize services
 # Services are now initialized within their respective route files
 # or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
-performance_monitor = PerformanceMonitor()  # Used by all routes via @performance_monitor.track
+ai_engine = AdvancedAIEngine()  # Used by email_routes
+# performance_monitor = PerformanceMonitor() # Removed
 
 # Include routers in the app
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
-app.include_router(action_routes.router)
-app.include_router(dashboard_routes.router)
+# app.include_router(action_routes.router) # Removed
+# app.include_router(dashboard_routes.router) # Removed
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
