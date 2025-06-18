@@ -819,7 +819,81 @@ def run_application(args: argparse.Namespace) -> int:
         else:
             logger.warning(f"Specified env file {args.env_file} not found at {env_file_path}")
 
-    if args.api_only:
+    if args.gradio_ui:
+        logger.info("Running Gradio UI for scientific/testing purposes...")
+        gradio_script_path = ROOT_DIR / "server" / "python_backend" / "gradio_app.py"
+        if not gradio_script_path.exists():
+            logger.error(f"Gradio script not found at: {gradio_script_path}")
+            return 1
+
+        cmd = [python_executable, str(gradio_script_path)]
+
+        # Pass relevant arguments to gradio_app.py
+        cmd.extend(["--host", args.host, "--port", str(args.port)])
+        if args.share: # Gradio has its own share option, pass it along
+            cmd.append("--share")
+        if args.debug:
+            cmd.append("--debug")
+        # args.listen is handled by setting args.host to "0.0.0.0" in start_backend,
+        # so passing args.host to gradio_app.py correctly handles this.
+
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(ROOT_DIR)
+        # Add any other necessary environment variables if gradio_app.py needs them.
+        # For example, if Gradio needs to know the API URL for some features:
+        # env["API_URL"] = f"http://{args.host}:{args.port}" # Example
+
+        # Enhanced logging for Windows
+        if platform.system() == "Windows":
+            # Log the command as a list (how Popen receives it with shell=False)
+            logger.info(f"Windows: Attempting to run Gradio with command list: {cmd}")
+            # Log the command line string version for easier copy-pasting into PowerShell
+            # subprocess.list2cmdline is specifically for this purpose
+            try:
+                cmd_line_for_shell = subprocess.list2cmdline(cmd)
+                logger.info(f"Windows: Equivalent command for shell: {cmd_line_for_shell}")
+            except Exception as e:
+                logger.info(f"Windows: Could not generate shell command line for logging: {e}")
+
+        try:
+            # Generic log, might not be 100% accurate for shell execution if paths have spaces and are not quoted by join
+            logger.info(f"Running Gradio UI command (generic log): {' '.join(cmd)}")
+            # Ensure shell=False is explicitly stated for clarity, though it's the default
+            gradio_process = subprocess.Popen(cmd, env=env, shell=False)
+            processes.append(gradio_process) # Add to global list for signal handling
+            # Log the access URL, considering host and port
+            # If host is 0.0.0.0, it's accessible from network, but browser link might be 127.0.0.1 or localhost
+            display_host = args.host
+            if args.host == "0.0.0.0":
+                display_host = "127.0.0.1" # Common loopback for browser access
+
+            # Gradio's default port is 7860. If args.port is not Gradio's default,
+            # and gradio_app.py is not yet modified to accept --port,
+            # the URL printed here might be misleading. Assuming gradio_app.py will be modified.
+            logger.info(f"Gradio UI started with PID {gradio_process.pid}. Expected at http://{display_host}:{args.port}. Press Ctrl+C to stop.")
+            if args.share and not ngrok_tunnel: # If --share was for Gradio directly and ngrok wasn't for backend
+                logger.info("Gradio's own share option is active. Look for a *.gradio.live URL in its output.")
+
+
+            gradio_process.wait() # Wait for the Gradio process to complete
+            # Check exit code if needed
+            if gradio_process.returncode != 0:
+                logger.warning(f"Gradio process exited with code {gradio_process.returncode}.")
+                # Depending on how critical this is, you might return 1 here.
+                # For now, let's assume it's not a launch failure unless an exception occurred.
+            return 0 # Indicate success
+        except FileNotFoundError:
+            logger.error(
+                f"Error: Python executable not found at {python_executable} or Gradio script not found at {gradio_script_path}."
+            )
+            logger.error("Ensure Gradio is installed ('pip install gradio') in the environment.")
+            return 1 # Indicate failure
+        except Exception as e:
+            logger.error(f"Failed to start Gradio UI: {e}")
+            logger.error("Ensure Gradio is installed in the environment and the script path is correct.")
+            return 1 # Indicate failure
+
+    elif args.api_only:
         logger.info("Running in API only mode.")
         backend_process = start_backend(args, python_executable)
         if backend_process:
@@ -1100,6 +1174,11 @@ def parse_arguments() -> argparse.Namespace:
         "--frontend-only",
         action="store_true",
         help="Run only the frontend without the API server",
+    )
+    parser.add_argument(
+        "--gradio-ui",
+        action="store_true",
+        help="Run only the Gradio UI for scientific/testing purposes.",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
