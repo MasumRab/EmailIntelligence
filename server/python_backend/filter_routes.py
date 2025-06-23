@@ -12,16 +12,16 @@ from server.python_nlp.smart_filters import (  # Assuming EmailFilter is needed 
 
 from .database import DatabaseManager, get_db
 from .models import FilterRequest  # Models are imported from .models
-# from .performance_monitor import PerformanceMonitor # Removed
+from .performance_monitor import PerformanceMonitor
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 filter_manager = SmartFilterManager()  # Initialize filter manager
-# performance_monitor = PerformanceMonitor() # Removed
+performance_monitor = PerformanceMonitor()  # Initialize performance monitor
 
 
 @router.get("/api/filters")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def get_filters(request: Request):
     """Get all active email filters"""
     try:
@@ -41,7 +41,7 @@ async def get_filters(request: Request):
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def create_filter(request: Request, filter_request_model: FilterRequest):
     """Create new email filter"""
     try:
@@ -68,7 +68,7 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
 
 
 @router.post("/api/filters/generate-intelligent")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
     """Generate intelligent filters based on email patterns."""
     try:
@@ -101,7 +101,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
 
 
 @router.post("/api/filters/prune")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def prune_filters(request: Request):
     """Prune ineffective filters"""
     try:

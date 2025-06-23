@@ -7,7 +7,6 @@ import type { EmailWithCategory } from "@shared/schema";
 interface EmailListProps {
   emails: EmailWithCategory[];
   loading: boolean;
-  onEmailSelect: (email: EmailWithCategory) => void;
 }
 
 /**
@@ -17,9 +16,8 @@ interface EmailListProps {
  *
  * @param emails - Array of email objects with category and metadata to display.
  * @param loading - Whether to show loading skeletons instead of email content.
- * @param onEmailSelect - Callback function to execute when an email is selected.
  */
-export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
+export function EmailList({ emails, loading }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
@@ -66,7 +64,8 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   };
 
   const handleEmailClick = (email: EmailWithCategory) => {
-    onEmailSelect(email);
+    // In a real app, this would open the email detail view or redirect to Gmail
+    console.log("Opening email:", email.subject);
   };
 
   if (emails.length === 0) {

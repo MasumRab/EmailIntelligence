@@ -5,6 +5,7 @@ google-api-python-client
 python-dotenv
 scikit-learn
 joblib
+psycopg2-binary
 pyngrok>=0.7.0
 gradio
 nltk

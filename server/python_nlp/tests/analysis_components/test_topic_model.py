@@ -53,7 +53,7 @@ class TestTopicModel(unittest.TestCase):
 
     def test_keyword_analysis_general_if_no_keywords(self):
         analyzer = TopicModel(topic_model=None)
-        result = analyzer._analyze_keyword("This is a plain sentence.")
+        result = analyzer._analyze_keyword("This is a simple statement.")
         self.assertEqual(result["topic"], "General")
         self.assertEqual(result["confidence"], 0.5)  # Default for general
 

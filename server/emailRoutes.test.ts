@@ -257,3 +257,4 @@ describe('Email Routes', () => {
 // This is a limitation of not using `supertest`.
 // The tests are still valuable for checking handler logic given mocked storage.
 // The `createApp` helper is good for potential future `supertest` integration.
+[end of server/emailRoutes.test.ts]

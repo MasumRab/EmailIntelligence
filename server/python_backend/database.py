@@ -1,122 +1,113 @@
 """
 Database management for Gmail AI email processing
-JSON file storage implementation.
+PostgreSQL implementation.
 """
 
 import asyncio
 import json
 import logging
 import os
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Literal
+from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import psycopg2
+import psycopg2.extras  # For RealDictCursor
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = "server/python_backend/data"
-EMAILS_FILE = os.path.join(DATA_DIR, "emails.json")
-CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json")
-USERS_FILE = os.path.join(DATA_DIR, "users.json") # For future use
 
 class DatabaseManager:
-    """Async database manager for email data using JSON file storage."""
+    """Async database manager for email data using PostgreSQL"""
 
-    def __init__(self):
-        self.emails_file = EMAILS_FILE
-        self.categories_file = CATEGORIES_FILE
-        self.users_file = USERS_FILE # For future use
+    def __init__(self, db_url: Optional[str] = None):
+        self.database_url = db_url or os.getenv("DATABASE_URL")
+        if not self.database_url:
+            logger.error("DATABASE_URL environment variable not set.")
+            raise ValueError("DATABASE_URL environment variable not set.")
+        # self.init_database() # Table creation handled by Drizzle ORM
+        # Seeding default data can be done here if needed.
 
-        self.emails_data: List[Dict[str, Any]] = []
-        self.categories_data: List[Dict[str, Any]] = []
-        self.users_data: List[Dict[str, Any]] = [] # For future use
-
-        # Ensure data directory exists
-        if not os.path.exists(DATA_DIR):
-            os.makedirs(DATA_DIR)
-            logger.info(f"Created data directory: {DATA_DIR}")
-
-        asyncio.run(self._load_data()) # Load data during initialization
-
-    async def _load_data(self):
-        """Loads data from JSON files into memory. Creates files if they don't exist."""
-        for data_type, file_path, data_list_attr in [
-            ('emails', self.emails_file, 'emails_data'),
-            ('categories', self.categories_file, 'categories_data'),
-            ('users', self.users_file, 'users_data')
-        ]:
-            try:
-                if os.path.exists(file_path):
-                    with open(file_path, 'r') as f:
-                        data = await asyncio.to_thread(json.load, f)
-                        setattr(self, data_list_attr, data)
-                    logger.info(f"Loaded {len(data)} items from {file_path}")
-                else:
-                    setattr(self, data_list_attr, [])
-                    await self._save_data(data_type) # Create file with empty list
-                    logger.info(f"Created empty data file: {file_path}")
-            except (IOError, json.JSONDecodeError) as e:
-                logger.error(f"Error loading data from {file_path}: {e}. Initializing with empty list.")
-                setattr(self, data_list_attr, [])
-
-
-    async def _save_data(self, data_type: Literal['emails', 'categories', 'users']):
-        """Saves the specified in-memory data list to its JSON file."""
-        file_path = ""
-        data_to_save: List[Dict[str, Any]] = []
-
-        if data_type == 'emails':
-            file_path = self.emails_file
-            data_to_save = self.emails_data
-        elif data_type == 'categories':
-            file_path = self.categories_file
-            data_to_save = self.categories_data
-        elif data_type == 'users':
-            file_path = self.users_file
-            data_to_save = self.users_data
-        else:
-            logger.error(f"Unknown data type for saving: {data_type}")
-            return
-
+    async def _execute_query(
+        self,
+        query: str,
+        params: Optional[tuple] = None,
+        fetch_one: bool = False,
+        fetch_all: bool = False,
+        commit: bool = False,
+    ):
+        """Helper to execute queries using asyncio.to_thread for sync psycopg2."""
+        conn = await asyncio.to_thread(psycopg2.connect, self.database_url)
         try:
-            with open(file_path, 'w') as f:
-                await asyncio.to_thread(json.dump, data_to_save, f, indent=4)
-            logger.debug(f"Saved {len(data_to_save)} items to {file_path}")
-        except IOError as e:
-            logger.error(f"Error saving data to {file_path}: {e}")
+            cursor_factory = psycopg2.extras.RealDictCursor
+            async with conn.cursor(cursor_factory=cursor_factory) as cur:
+                await asyncio.to_thread(cur.execute, query, params)
 
-    def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-        """Generates a new unique integer ID."""
-        if not data_list:
-            return 1
-        return max(item.get('id', 0) for item in data_list) + 1
+                result = None
+                if fetch_one:
+                    result_row = await asyncio.to_thread(cur.fetchone)
+                    result = dict(result_row) if result_row else None
+                elif fetch_all:
+                    result_rows = await asyncio.to_thread(cur.fetchall)
+                    result = [dict(row) for row in result_rows]
+
+                if commit:
+                    await asyncio.to_thread(conn.commit)
+
+                if (
+                    query.strip().upper().startswith("INSERT")
+                    and "RETURNING id" in query.lower()
+                    and not result
+                ):
+                    # If RETURNING id used & fetch_one=False (e.g. for lastrowid).
+                    # For psycopg2, RETURNING is standard. If ID needed &
+                    # fetch_one=False, assume "INSERT...RETURNING id" and
+                    # result should have been fetched.
+                    # If fetch_one=True with RETURNING id, 'result' has it.
+                    # For lastrowid, prefer RETURNING id and fetch_one.
+                    pass
+
+                return result
+        except psycopg2.Error as e:
+            logger.error(f"Database error: {e}")
+            await asyncio.to_thread(conn.rollback)
+            raise
+        finally:
+            await asyncio.to_thread(conn.close)
+
+    def init_database(self):
+        """
+        Initializes the database with default categories.
+        Table creation is assumed to be handled by Drizzle migrations.
+        This method now only seeds default categories if they don't exist.
+        """
+        # Seeding is handled by the TypeScript side / Drizzle migrations.
+        pass
+
+    @asynccontextmanager
+    async def get_connection(self):
+        """Async context manager for database connections using psycopg2."""
+        conn = None
+        try:
+            conn = await asyncio.to_thread(psycopg2.connect, self.database_url)
+            conn.autocommit = False  # Ensure transactions are handled explicitly
+            yield conn
+        except psycopg2.Error as e:
+            logger.error(f"Failed to connect to database: {e}")
+            if conn:  # pragma: no cover
+                await asyncio.to_thread(conn.rollback)
+            raise
+        finally:
+            if conn:
+                await asyncio.to_thread(conn.close)
 
     async def initialize(self):
-        """
-        Initializes the database by ensuring data files and directory exist.
-        Default categories can be seeded here if needed.
-        """
-        if not os.path.exists(DATA_DIR):
-            os.makedirs(DATA_DIR)
-            logger.info(f"Created data directory during initialization: {DATA_DIR}")
-
-        await self._load_data() # Ensure files are loaded/created
-
-        # Example: Seed default categories if categories.json is empty
-        if not self.categories_data:
-            default_categories = [
-                {"name": "Primary", "description": "Default primary category", "color": "#4CAF50", "count": 0},
-                {"name": "Promotions", "description": "Promotional emails", "color": "#2196F3", "count": 0},
-                {"name": "Social", "description": "Social media notifications", "color": "#FFC107", "count": 0},
-                {"name": "Updates", "description": "Updates and notifications", "color": "#9C27B0", "count": 0},
-                {"name": "Forums", "description": "Forum discussions", "color": "#795548", "count": 0},
-            ]
-            for cat_data in default_categories:
-                await self.create_category(cat_data)
-            logger.info("Seeded default categories.")
-
+        """Initialize database asynchronously (e.g., seed data)"""
+        logger.info("DatabaseManager initialized. Default categories seeding attempted.")
+        pass
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
         """Helper to parse stringified JSON fields in a row."""
-        # This might still be needed if analysisMetadata is stored as a string
         if not row:
             return row
         for field in fields:
@@ -127,7 +118,7 @@ class DatabaseManager:
                     logger.warning(
                         f"Failed to parse JSON for field {field} " f"in row {row.get('id')}"
                     )
-                    if field in ("analysisMetadata", "metadata"): # "metadata" for compatibility
+                    if field in ("analysisMetadata", "metadata"):
                         row[field] = {}
                     else:
                         row[field] = []
@@ -135,135 +126,135 @@ class DatabaseManager:
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record."""
-        # Check for existing email by message_id
-        existing_email = await self.get_email_by_message_id(email_data.get("message_id", email_data.get("messageId")))
-        if existing_email:
-            logger.warning(f"Email with messageId {email_data.get('message_id', email_data.get('messageId'))} already exists. Updating.")
-            # Convert camelCase to snake_case for update_data if necessary
-            update_payload = {k: v for k, v in email_data.items()} # Assuming update_email_by_message_id handles keys
-            return await self.update_email_by_message_id(email_data.get("message_id", email_data.get("messageId")), update_payload)
+        is_unread = not email_data.get("is_read", False)
 
-        new_id = self._generate_id(self.emails_data)
-        now = datetime.now(timezone.utc).isoformat()
-
-        # Ensure analysisMetadata is a dict, not a string, before storing
-        analysis_metadata = email_data.get("analysis_metadata", email_data.get("analysisMetadata", {}))
-        if isinstance(analysis_metadata, str):
-            try:
-                analysis_metadata = json.loads(analysis_metadata)
-            except json.JSONDecodeError:
-                logger.warning("Failed to parse analysis_metadata string, defaulting to {}")
-                analysis_metadata = {}
-
-        email_record = {
-            "id": new_id,
-            "message_id": email_data.get("message_id", email_data.get("messageId")),
-            "thread_id": email_data.get("thread_id", email_data.get("threadId")),
-            "subject": email_data.get("subject"),
-            "sender": email_data.get("sender"),
-            "sender_email": email_data.get("sender_email", email_data.get("senderEmail")),
-            "content": email_data.get("content"),
-            "snippet": email_data.get("snippet"),
-            "labels": email_data.get("labels", []),
-            "time": email_data.get("time", email_data.get("timestamp", now)),
-            "is_unread": not email_data.get("is_read", False),
-            "category_id": email_data.get("category_id", email_data.get("categoryId")),
-            "confidence": email_data.get("confidence", 0),
-            "analysis_metadata": analysis_metadata,
-            "created_at": now,
-            "updated_at": now,
-            "history_id": email_data.get("history_id", email_data.get("historyId")),
-            "content_html": email_data.get("content_html", email_data.get("contentHtml")),
-            "preview": email_data.get("preview", email_data.get("snippet")), # Using snippet as fallback
-            "to_addresses": email_data.get("to_addresses", email_data.get("toAddresses", [])),
-            "cc_addresses": email_data.get("cc_addresses", email_data.get("ccAddresses", [])),
-            "bcc_addresses": email_data.get("bcc_addresses", email_data.get("bccAddresses", [])),
-            "reply_to": email_data.get("reply_to", email_data.get("replyTo")),
-            "internal_date": email_data.get("internal_date", email_data.get("internalDate")),
-            "label_ids": email_data.get("label_ids", email_data.get("labelIds", [])),
-            "category": email_data.get("category"), # This might be redundant if category_id is used
-            "is_starred": email_data.get("is_starred", email_data.get("isStarred", False)),
-            "is_important": email_data.get("is_important", email_data.get("isImportant", False)),
-            "is_draft": email_data.get("is_draft", email_data.get("isDraft", False)),
-            "is_sent": email_data.get("is_sent", email_data.get("isSent", False)),
-            "is_spam": email_data.get("is_spam", email_data.get("isSpam", False)),
-            "is_trash": email_data.get("is_trash", email_data.get("isTrash", False)),
-            "is_chat": email_data.get("is_chat", email_data.get("isChat", False)),
-            "has_attachments": email_data.get("has_attachments", email_data.get("hasAttachments", False)),
-            "attachment_count": email_data.get("attachment_count", email_data.get("attachmentCount", 0)),
-            "size_estimate": email_data.get("size_estimate", email_data.get("sizeEstimate")),
-            "spf_status": email_data.get("spf_status", email_data.get("spfStatus")),
-            "dkim_status": email_data.get("dkim_status", email_data.get("dkimStatus")),
-            "dmarc_status": email_data.get("dmarc_status", email_data.get("dmarcStatus")),
-            "is_encrypted": email_data.get("is_encrypted", email_data.get("isEncrypted", False)),
-            "is_signed": email_data.get("is_signed", email_data.get("isSigned", False)),
-            "priority": email_data.get("priority", "normal"),
-            "is_auto_reply": email_data.get("is_auto_reply", email_data.get("isAutoReply", False)),
-            "mailing_list": email_data.get("mailing_list", email_data.get("mailingList")),
-            "in_reply_to": email_data.get("in_reply_to", email_data.get("inReplyTo")),
-            "references": email_data.get("references", []),
-            "is_first_in_thread": email_data.get("is_first_in_thread", email_data.get("isFirstInThread", True)),
-        }
-        self.emails_data.append(email_record)
-        await self._save_data('emails')
-
-        category_id = email_record.get("category_id")
-        if category_id is not None: # Ensure category_id can be 0
-            await self._update_category_count(category_id)
-
-        return await self.get_email_by_id(new_id) # Fetch with category details
+        query = """
+            INSERT INTO emails (
+                message_id, thread_id, subject, sender, sender_email, content,
+                snippet, labels, "time", is_unread, category_id, confidence,
+                analysis_metadata, created_at, updated_at, history_id, content_html,
+                preview, to_addresses, cc_addresses, bcc_addresses, reply_to,
+                internal_date, label_ids, category, is_starred, is_important,
+                is_draft, is_sent, is_spam, is_trash, is_chat, has_attachments,
+                attachment_count, size_estimate, spf_status, dkim_status,
+                dmarc_status, is_encrypted, is_signed, priority, is_auto_reply,
+                mailing_list, in_reply_to, "references", is_first_in_thread
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW(),
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            ) RETURNING id;
+        """
+        params = (
+            email_data.get("message_id", email_data.get("messageId")),
+            email_data.get("thread_id", email_data.get("threadId")),
+            email_data.get("subject"),
+            email_data.get("sender"),
+            email_data.get("sender_email", email_data.get("senderEmail")),
+            email_data.get("content"),
+            email_data.get("snippet"),
+            email_data.get("labels", []),
+            email_data.get("time", email_data.get("timestamp")),
+            is_unread,
+            email_data.get("category_id", email_data.get("categoryId")),
+            email_data.get("confidence", 0),
+            json.dumps(email_data.get("analysis_metadata", email_data.get("analysisMetadata", {}))),
+            email_data.get("history_id", email_data.get("historyId")),
+            email_data.get("content_html", email_data.get("contentHtml")),
+            email_data.get("preview", email_data.get("snippet")),
+            email_data.get("to_addresses", email_data.get("toAddresses", [])),
+            email_data.get("cc_addresses", email_data.get("ccAddresses", [])),
+            email_data.get("bcc_addresses", email_data.get("bccAddresses", [])),
+            email_data.get("reply_to", email_data.get("replyTo")),
+            email_data.get("internal_date", email_data.get("internalDate")),
+            email_data.get("label_ids", email_data.get("labelIds", [])),
+            email_data.get("category"),
+            email_data.get("is_starred", email_data.get("isStarred", False)),
+            email_data.get("is_important", email_data.get("isImportant", False)),
+            email_data.get("is_draft", email_data.get("isDraft", False)),
+            email_data.get("is_sent", email_data.get("isSent", False)),
+            email_data.get("is_spam", email_data.get("isSpam", False)),
+            email_data.get("is_trash", email_data.get("isTrash", False)),
+            email_data.get("is_chat", email_data.get("isChat", False)),
+            email_data.get("has_attachments", email_data.get("hasAttachments", False)),
+            email_data.get("attachment_count", email_data.get("attachmentCount", 0)),
+            email_data.get("size_estimate", email_data.get("sizeEstimate")),
+            email_data.get("spf_status", email_data.get("spfStatus")),
+            email_data.get("dkim_status", email_data.get("dkimStatus")),
+            email_data.get("dmarc_status", email_data.get("dmarcStatus")),
+            email_data.get("is_encrypted", email_data.get("isEncrypted", False)),
+            email_data.get("is_signed", email_data.get("isSigned", False)),
+            email_data.get("priority", "normal"),
+            email_data.get("is_auto_reply", email_data.get("isAutoReply", False)),
+            email_data.get("mailing_list", email_data.get("mailingList")),
+            email_data.get("in_reply_to", email_data.get("inReplyTo")),
+            email_data.get("references", []),
+            email_data.get("is_first_in_thread", email_data.get("isFirstInThread", True)),
+        )
+        try:
+            result = await self._execute_query(query, params, fetch_one=True, commit=True)
+            if result and result.get("id"):
+                email_id = result["id"]
+                category_id = email_data.get("categoryId", email_data.get("category_id"))
+                if category_id:
+                    await self._update_category_count(category_id)
+                return await self.get_email_by_id(email_id)
+            return None
+        except psycopg2.IntegrityError as e:
+            logger.warning(
+                f"Email with messageId {email_data.get('messageId')} " f"likely already exists: {e}"
+            )
+            return await self.update_email_by_message_id(email_data["messageId"], email_data)
 
     async def get_email_by_id(self, email_id: int) -> Optional[Dict[str, Any]]:
-        """Get email by ID."""
-        email = next((e for e in self.emails_data if e.get('id') == email_id), None)
-        if email:
-            # Add category details if category_id exists
-            category_id = email.get("category_id")
-            if category_id is not None:
-                category = next((c for c in self.categories_data if c.get('id') == category_id), None)
-                if category:
-                    email["categoryName"] = category.get("name")
-                    email["categoryColor"] = category.get("color")
-            return self._parse_json_fields(email, ["analysis_metadata"]) # Ensure analysis_metadata is parsed
-        return None
+        """Get email by ID"""
+        query = """
+            SELECT e.*, c.name as "categoryName", c.color as "categoryColor"
+            FROM emails e
+            LEFT JOIN categories c ON e.category_id = c.id
+            WHERE e.id = %s
+        """
+        row = await self._execute_query(query, (email_id,), fetch_one=True)
+        return self._parse_json_fields(row, ["analysisMetadata"]) if row else None
 
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
+    async def get_all_categories(self) -> List[Dict[str, Any]]:  # Renamed for clarity
         """Get all categories with their counts."""
-        # Sort categories by name before returning
-        return sorted(self.categories_data, key=lambda c: c.get('name', ''))
-
+        query = """
+            SELECT id, name, description, color, count
+            FROM categories
+            ORDER BY name
+        """
+        categories = await self._execute_query(query, fetch_all=True)
+        return categories if categories else []
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category."""
-        # Check if category with the same name already exists
-        existing_category = next((c for c in self.categories_data if c.get('name', '').lower() == category_data.get('name', '').lower()), None)
-        if existing_category:
-            logger.warning(f"Category with name '{category_data.get('name')}' already exists. Returning existing.")
-            return existing_category # Or update, or raise error, depending on desired behavior
-
-        new_id = self._generate_id(self.categories_data)
-        category_record = {
-            "id": new_id,
-            "name": category_data["name"],
-            "description": category_data.get("description"),
-            "color": category_data.get("color", "#6366f1"), # Default color
-            "count": category_data.get("count", 0),
-        }
-        self.categories_data.append(category_record)
-        await self._save_data('categories')
-        return category_record
+        query = """
+            INSERT INTO categories (name, description, color, count)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id, name, description, color, count;
+        """
+        params = (
+            category_data["name"],
+            category_data.get("description"),
+            category_data.get("color", "#6366f1"),
+            category_data.get("count", 0),
+        )
+        try:
+            new_category = await self._execute_query(query, params, fetch_one=True, commit=True)
+            return new_category
+        except psycopg2.Error as e:
+            logger.error(f"Failed to create category {category_data.get('name')}: {e}")
+            return None
 
     async def _update_category_count(self, category_id: int):
         """Update category email count."""
-        category = next((c for c in self.categories_data if c.get('id') == category_id), None)
-        if category:
-            count = sum(1 for email in self.emails_data if email.get('category_id') == category_id)
-            if category.get('count') != count:
-                 category['count'] = count
-                 await self._save_data('categories')
-        else:
-            logger.warning(f"Attempted to update count for non-existent category ID: {category_id}")
-
+        query = """
+            UPDATE categories
+            SET count = (SELECT COUNT(*) FROM emails WHERE category_id = %s)
+            WHERE id = %s;
+        """
+        await self._execute_query(query, (category_id, category_id), commit=True)
 
     async def get_emails(
         self,
@@ -273,117 +264,239 @@ class DatabaseManager:
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
-        filtered_emails = self.emails_data
-
+        params = []
+        base_query = (
+            "SELECT e.*, c.name as categoryName, c.color as categoryColor "
+            "FROM emails e LEFT JOIN categories c ON e.category_id = c.id"
+        )
+        where_clauses = []
         if category_id is not None:
-            filtered_emails = [e for e in filtered_emails if e.get('category_id') == category_id]
+            where_clauses.append("e.category_id = %s")
+            params.append(category_id)
 
         if is_unread is not None:
-            filtered_emails = [e for e in filtered_emails if e.get('is_unread') == is_unread]
+            where_clauses.append("e.is_unread = %s")
+            params.append(is_unread)
 
-        # Sort by time descending (assuming 'time' is a comparable string like ISO format or timestamp)
-        # More robust sorting would convert 'time' to datetime objects
-        try:
-            # Attempt to sort by 'time' if it exists and is valid.
-            # Fallback to 'created_at' or no sort if 'time' is problematic.
-            filtered_emails = sorted(filtered_emails, key=lambda e: e.get('time', e.get('created_at', '')), reverse=True)
-        except TypeError: # Handles cases where 'time' might be None or not comparable
-            logger.warning("Sorting emails by time failed due to incomparable types. Using 'created_at'.")
-            filtered_emails = sorted(filtered_emails, key=lambda e: e.get('created_at', ''), reverse=True)
+        if where_clauses:
+            base_query += " WHERE " + " AND ".join(where_clauses)
 
+        base_query += ' ORDER BY e."time" DESC LIMIT %s OFFSET %s'
+        params.extend([limit, offset])
 
-        paginated_emails = filtered_emails[offset : offset + limit]
-
-        # Add category details and parse JSON fields
-        result_emails = []
-        for email in paginated_emails:
-            cat_id = email.get("category_id")
-            if cat_id is not None:
-                category = next((c for c in self.categories_data if c.get('id') == cat_id), None)
-                if category:
-                    email["categoryName"] = category.get("name")
-                    email["categoryColor"] = category.get("color")
-            result_emails.append(self._parse_json_fields(email, ["analysis_metadata"]))
-        return result_emails
-
+        emails = await self._execute_query(base_query, tuple(params), fetch_all=True)
+        if emails:
+            return [self._parse_json_fields(email, ["analysisMetadata"]) for email in emails]
+        return []
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Update email by messageId."""
-        email_to_update = await self.get_email_by_message_id(message_id)
-        if not email_to_update:
-            logger.warning(f"Email with message_id {message_id} not found for update.")
-            return None
-
-        original_category_id = email_to_update.get("category_id")
-        changed_fields = False
+        set_clauses = []
+        params = []
 
         for key, value in update_data.items():
-            # Normalize keys (e.g. messageId -> message_id)
-            snake_key = key.replace("Id", "_id").replace("Html", "_html").replace("Addresses", "_addresses")
-            snake_key = ''.join(['_'+i.lower() if i.isupper() else i for i in snake_key]).lstrip('_')
-
-
-            if snake_key == "message_id": continue # Cannot change message_id
-
-            if snake_key == "is_read":
-                if email_to_update.get("is_unread") == value: # is_read=True means is_unread=False
-                    email_to_update["is_unread"] = not value
-                    changed_fields = True
-            elif snake_key == "analysis_metadata":
-                if isinstance(value, str):
-                    try:
-                        value = json.loads(value)
-                    except json.JSONDecodeError:
-                        logger.warning(f"Invalid JSON string for analysis_metadata: {value}")
-                        value = email_to_update.get(snake_key, {}) # Keep old if new is invalid
-                if email_to_update.get(snake_key) != value:
-                    email_to_update[snake_key] = value
-                    changed_fields = True
-            elif snake_key in email_to_update: # Check if the key exists in the email dict
-                if email_to_update.get(snake_key) != value:
-                    email_to_update[snake_key] = value
-                    changed_fields = True
+            column_name = key
+            if key == "message_id":
+                continue
+            if key == "is_read":
+                column_name = "is_unread"
+                value = not value
+            elif key == "category_id":
+                column_name = "category_id"
+            elif key == "sender_email":
+                column_name = "sender_email"
+            elif key == "thread_id":
+                column_name = "thread_id"
+            elif key == "analysis_metadata":
+                column_name = "analysis_metadata"
+                value = json.dumps(value)
+            elif key == "labels":
+                column_name = "labels"
+                if not isinstance(value, list):
+                    logger.warning(
+                        f"Labels value for update is not a list: {value}, " "attempting to wrap."
+                    )
+                    value = [str(value)]
+            elif key == "timestamp":
+                column_name = '"time"'
+            elif key == "historyId":
+                column_name = "history_id"
+            elif key == "contentHtml":
+                column_name = "content_html"
+            elif key == "toAddresses":
+                column_name = "to_addresses"
+            elif key == "ccAddresses":
+                column_name = "cc_addresses"
+            elif key == "bccAddresses":
+                column_name = "bcc_addresses"
+            elif key == "replyTo":
+                column_name = "reply_to"
+            elif key == "internalDate":
+                column_name = "internal_date"
+            elif key == "labelIds":
+                column_name = "label_ids"
+            elif key == "isStarred":
+                column_name = "is_starred"
+            elif key == "isImportant":
+                column_name = "is_important"
+            elif key == "isDraft":
+                column_name = "is_draft"
+            elif key == "isSent":
+                column_name = "is_sent"
+            elif key == "isSpam":
+                column_name = "is_spam"
+            elif key == "isTrash":
+                column_name = "is_trash"
+            elif key == "isChat":
+                column_name = "is_chat"
+            elif key == "hasAttachments":
+                column_name = "has_attachments"
+            elif key == "attachmentCount":
+                column_name = "attachment_count"
+            elif key == "sizeEstimate":
+                column_name = "size_estimate"
+            elif key == "spfStatus":
+                column_name = "spf_status"
+            elif key == "dkimStatus":
+                column_name = "dkim_status"
+            elif key == "dmarcStatus":
+                column_name = "dmarc_status"
+            elif key == "isEncrypted":
+                column_name = "is_encrypted"
+            elif key == "isSigned":
+                column_name = "is_signed"
+            elif key == "isAutoReply":
+                column_name = "is_auto_reply"
+            elif key == "mailingList":
+                column_name = "mailing_list"
+            elif key == "inReplyTo":
+                column_name = "in_reply_to"
+            elif key == "isFirstInThread":
+                column_name = "is_first_in_thread"
+            elif key in [
+                "subject",
+                "sender",
+                "content",
+                "snippet",
+                "category",
+                "priority",
+                "references",
+            ]:
+                if key == "references" and not isinstance(value, list):
+                    value = [str(value)]
+                column_name = key
             else:
-                # If the key doesn't exist, it might be a new field or a typo
-                # For now, we'll add it if it's not a known field to ignore
-                # This part might need refinement based on strictness of schema
-                known_fields = list(email_to_update.keys()) # Get all current fields
-                if snake_key not in known_fields and key not in ["id", "created_at", "updated_at"]: # don't add these
-                     email_to_update[snake_key] = value # Add as new field
-                     changed_fields = True
-                     logger.info(f"Added new field '{snake_key}' to email {message_id}")
+                logger.warning(
+                    f"update_email_by_message_id: Unhandled key '{key}'. "
+                    "Skipping update for this field."
+                )
+                continue
+            set_clauses.append(f"{column_name} = %s")
+            params.append(value)
 
+        if not set_clauses:
+            logger.warning(f"No valid fields to update for message_id: {message_id}")
+            return await self.get_email_by_message_id(message_id)
 
-        if changed_fields:
-            email_to_update["updated_at"] = datetime.now(timezone.utc).isoformat()
-            await self._save_data('emails')
-
-            new_category_id = email_to_update.get("category_id")
-            if original_category_id != new_category_id:
-                if original_category_id is not None:
-                    await self._update_category_count(original_category_id)
-                if new_category_id is not None:
-                    await self._update_category_count(new_category_id)
-
-        return await self.get_email_by_id(email_to_update["id"]) # Fetch with category details
-
+        set_clauses.append("updated_at = NOW()")
+        query = f"UPDATE emails SET {', '.join(set_clauses)} " f"WHERE message_id = %s"
+        params.append(message_id)
+        await self._execute_query(query, tuple(params), commit=True)
+        return await self.get_email_by_message_id(message_id)
 
     async def get_email_by_message_id(self, message_id: str) -> Optional[Dict[str, Any]]:
         """Get email by messageId"""
-        if not message_id: return None
-        email = next((e for e in self.emails_data if e.get('message_id') == message_id), None)
-        if email:
-            # Add category details
-            category_id = email.get("category_id")
-            if category_id is not None:
-                category = next((c for c in self.categories_data if c.get('id') == category_id), None)
-                if category:
-                    email["categoryName"] = category.get("name")
-                    email["categoryColor"] = category.get("color")
-            return self._parse_json_fields(email, ["analysis_metadata"])
-        return None
+        query = (
+            "SELECT e.*, c.name as categoryName, c.color as categoryColor "
+            "FROM emails e LEFT JOIN categories c ON e.category_id = c.id "
+            "WHERE e.message_id = %s"
+        )
+        row = await self._execute_query(query, (message_id,), fetch_one=True)
+        return self._parse_json_fields(row, ["analysisMetadata"]) if row else None
+
+    async def create_activity(self, activity_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new activity record."""
+        query = """
+            INSERT INTO activities
+                (type, description, details, "timestamp", icon, icon_bg)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id, type, description, details, "timestamp", icon, icon_bg;
+        """
+        details_data = activity_data.get("metadata", {})
+        if "email_id" in activity_data:
+            details_data["emailId"] = activity_data["email_id"]
+        if "email_subject" in activity_data:
+            details_data["emailSubject"] = activity_data["email_subject"]
+
+        params = (
+            activity_data["type"],
+            activity_data["description"],
+            json.dumps(details_data) if details_data else None,
+            activity_data.get("timestamp", datetime.now().isoformat()),
+            activity_data.get("icon", "default_icon"),
+            activity_data.get("icon_bg", activity_data.get("iconBg", "#ffffff")),
+        )
+        new_activity = await self._execute_query(query, params, fetch_one=True, commit=True)
+        return self._parse_json_fields(new_activity, ["details"]) if new_activity else None
+
+    async def get_recent_activities(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get recent activities"""
+        query = (
+            'SELECT id, type, description, details, "timestamp", icon, icon_bg '
+            'FROM activities ORDER BY "timestamp" DESC LIMIT %s'
+        )
+        activities = await self._execute_query(query, (limit,), fetch_all=True)
+        if activities:
+            return [self._parse_json_fields(activity, ["details"]) for activity in activities]
+        return []
+
+    async def get_dashboard_stats(self) -> Dict[str, Any]:
+        logger.warning("get_dashboard_stats not fully migrated to PostgreSQL yet.")
+        results = await asyncio.gather(
+            self._execute_query("SELECT COUNT(*) AS count FROM emails", fetch_one=True),
+            self._execute_query(
+                "SELECT COUNT(*) AS count FROM emails " "WHERE is_unread = TRUE", fetch_one=True
+            ),
+            self._execute_query(
+                "SELECT COUNT(*) AS count FROM emails " "WHERE priority = %s",
+                ("high",),
+                fetch_one=True,
+            ),
+            self._execute_query(
+                "SELECT COUNT(*) AS count FROM emails " "WHERE is_spam = TRUE", fetch_one=True
+            ),
+            self._execute_query("SELECT COUNT(*) AS count FROM categories", fetch_one=True),
+            self._execute_query(
+                "SELECT name, color, count FROM categories " "ORDER BY count DESC LIMIT 5",
+                fetch_all=True,
+            ),
+        )
+
+        total_emails = results[0]["count"] if results[0] else 0
+        unread_emails = results[1]["count"] if results[1] else 0
+        important_emails = results[2]["count"] if results[2] else 0
+        spam_emails = results[3]["count"] if results[3] else 0
+        total_category_types = results[4]["count"] if results[4] else 0
+        top_categories_list = results[5] if results[5] else []
+
+        return {
+            "totalEmails": total_emails,
+            "unreadEmails": unread_emails,
+            "importantEmails": important_emails,
+            "spamEmails": spam_emails,
+            "totalCategoryTypes": total_category_types,
+            "topCategories": top_categories_list,
+            "autoLabeled": total_emails,  # Placeholder
+            "timeSaved": "2.5 hours",  # Placeholder
+            "weeklyGrowth": {  # Placeholder for complex calculation
+                "totalEmails": total_emails,
+                "autoLabeled": total_emails,
+                "categories": total_category_types,
+                "timeSaved": 0,
+            },
+        }
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """Get all emails with pagination"""
@@ -396,45 +509,18 @@ class DatabaseManager:
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails by content or subject (basic substring matching)."""
-        if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
-
-        search_term_lower = search_term.lower()
-        # Filter by subject or content
-        # A more sophisticated search might involve splitting terms, checking sender, etc.
-        # For now, simple substring match on subject and content.
-        # Also, ensure content is string before .lower()
-        filtered_emails = [
-            email for email in self.emails_data
-            if (search_term_lower in email.get('subject', '').lower() or
-                (isinstance(email.get('content'), str) and search_term_lower in email.get('content', '').lower()) or
-                search_term_lower in email.get('sender', '').lower() or # Also search sender
-                search_term_lower in email.get('sender_email', '').lower() # And sender email
-            )
-        ]
-
-        # Sort results
-        try:
-            sorted_emails = sorted(filtered_emails, key=lambda e: e.get('time', e.get('created_at','')), reverse=True)
-        except TypeError:
-            logger.warning("Sorting search results by time failed. Using 'created_at'.")
-            sorted_emails = sorted(filtered_emails, key=lambda e: e.get('created_at',''), reverse=True)
-
-        paginated_emails = sorted_emails[:limit] # Simple slicing for limit, no offset for basic search
-
-        # Add category details and parse JSON fields
-        result_emails = []
-        for email in paginated_emails:
-            cat_id = email.get("category_id")
-            if cat_id is not None:
-                category = next((c for c in self.categories_data if c.get('id') == cat_id), None)
-                if category:
-                    email["categoryName"] = category.get("name")
-                    email["categoryColor"] = category.get("color")
-            result_emails.append(self._parse_json_fields(email, ["analysis_metadata"]))
-        return result_emails
-
+        """Search emails by content or subject."""
+        query = (
+            "SELECT e.*, c.name as categoryName, c.color as categoryColor "
+            "FROM emails e LEFT JOIN categories c ON e.category_id = c.id "
+            "WHERE e.subject ILIKE %s OR e.content ILIKE %s "
+            'ORDER BY e."time" DESC LIMIT %s'
+        )
+        params = (f"%{search_term}%", f"%{search_term}%", limit)
+        emails = await self._execute_query(query, params, fetch_all=True)
+        if emails:
+            return [self._parse_json_fields(email, ["analysisMetadata"]) for email in emails]
+        return []
 
     async def get_recent_emails(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get recent emails for analysis, ordered by reception time."""
@@ -444,102 +530,76 @@ class DatabaseManager:
         self, email_id: int, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Update email by its internal ID."""
-        email_to_update = await self.get_email_by_id(email_id) # This already fetches category details
-        if not email_to_update:
-            logger.warning(f"Email with id {email_id} not found for update.")
-            return None
-
-        original_category_id = email_to_update.get("category_id")
-        changed_fields = False
+        set_clauses = []
+        params = []
 
         for key, value in update_data.items():
-            if key == "id": continue # Cannot change id
+            column_name = key
+            if key == "id":
+                continue
 
             if key == "is_read":
-                if email_to_update.get("is_unread") == value: # is_read=True means is_unread=False
-                    email_to_update["is_unread"] = not value
-                    changed_fields = True
+                column_name = "is_unread"
+                value = not value
+            elif key == "is_important":
+                column_name = "is_important"
+            elif key == "is_starred":
+                column_name = "is_starred"
+            elif key == "category_id":
+                column_name = "category_id"
             elif key == "analysis_metadata":
-                if isinstance(value, str):
-                    try:
-                        value = json.loads(value)
-                    except json.JSONDecodeError:
-                        logger.warning(f"Invalid JSON string for analysis_metadata: {value}")
-                        value = email_to_update.get(key, {})
-                if email_to_update.get(key) != value:
-                    email_to_update[key] = value
-                    changed_fields = True
-            elif key in email_to_update:
-                if email_to_update.get(key) != value:
-                    email_to_update[key] = value
-                    changed_fields = True
+                column_name = "analysis_metadata"
+                value = json.dumps(value)
+            elif key == "labels":
+                column_name = "labels"
+                if not isinstance(value, list):
+                    value = [str(value)]
+            elif key == "sender_email":
+                column_name = "sender_email"
+            elif key == "time":
+                column_name = '"time"'
+            elif key in [
+                "subject",
+                "content",
+                "sender",
+                "confidence",
+                "snippet",
+                "category",
+                "priority",
+            ]:
+                column_name = key
             else:
-                # Add as new field if it's not a known protected field
-                 if key not in ["created_at", "updated_at"]:
-                    email_to_update[key] = value
-                    changed_fields = True
-                    logger.info(f"Added new field '{key}' to email ID {email_id} during update_email")
+                temp_col_name = key.replace("Id", "_id").replace("Html", "_html")
+                import re
 
+                temp_col_name = re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower()
+                if temp_col_name != key:
+                    logger.info(
+                        f"update_email: Converted key '{key}' to "
+                        f"'{temp_col_name}' for SQL query."
+                    )
+                    column_name = temp_col_name
+                else:
+                    logger.warning(
+                        f"update_email: Unhandled key '{key}' or key not "
+                        "directly updatable by internal ID method. Skipping."
+                    )
+                    continue
 
-        if changed_fields:
-            email_to_update["updated_at"] = datetime.now(timezone.utc).isoformat()
-            # Find the index and update in self.emails_data
-            idx = next((i for i, email in enumerate(self.emails_data) if email.get('id') == email_id), -1)
-            if idx != -1:
-                self.emails_data[idx] = email_to_update
-                await self._save_data('emails')
+            set_clauses.append(f"{column_name} = %s")
+            params.append(value)
 
-                new_category_id = email_to_update.get("category_id")
-                if original_category_id != new_category_id:
-                    if original_category_id is not None:
-                        await self._update_category_count(original_category_id)
-                    if new_category_id is not None:
-                        await self._update_category_count(new_category_id)
-            else: # Should not happen if get_email_by_id found it
-                logger.error(f"Email with ID {email_id} found by get_email_by_id but not in self.emails_data for update.")
-                return None
+        if not set_clauses:
+            logger.info(f"No valid fields to update for email id: {email_id}")
+            return await self.get_email_by_id(email_id)
 
-        # Return the updated email, ensuring category name/color are fresh
-        updated_email_with_details = await self.get_email_by_id(email_id)
-        return updated_email_with_details
+        set_clauses.append("updated_at = NOW()")
+        query = f"UPDATE emails SET {', '.join(set_clauses)} WHERE id = %s"
+        params.append(email_id)
+        await self._execute_query(query, tuple(params), commit=True)
+        return await self.get_email_by_id(email_id)
 
-    # --- User methods (basic implementation for future use) ---
-    async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        if not user_data.get("username"): # Basic validation
-            logger.error("Username is required to create a user.")
-            return None
-
-        existing_user = await self.get_user_by_username(user_data["username"])
-        if existing_user:
-            logger.warning(f"User with username '{user_data['username']}' already exists.")
-            return existing_user
-
-        new_id = self._generate_id(self.users_data)
-        now = datetime.now(timezone.utc).isoformat()
-        user_record = {
-            "id": new_id,
-            "created_at": now,
-            "updated_at": now,
-            **user_data # Spread other user data like username, password_hash, email etc.
-        }
-        self.users_data.append(user_record)
-        await self._save_data('users')
-        return user_record
-
-    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
-        return next((u for u in self.users_data if u.get('username') == username), None)
-
-    async def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
-        return next((u for u in self.users_data if u.get('id') == user_id), None)
-
-_db_manager_instance = None
 
 async def get_db() -> DatabaseManager:
-    """Dependency injection for database. Returns a singleton instance."""
-    global _db_manager_instance
-    if _db_manager_instance is None:
-        _db_manager_instance = DatabaseManager()
-        await _db_manager_instance.initialize() # Ensure it's initialized
-    return _db_manager_instance
-
-[end of server/python_backend/database.py]
+    """Dependency injection for database"""
+    return DatabaseManager()
