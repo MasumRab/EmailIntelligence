@@ -100,4 +100,3 @@ describe('Activity Routes', () => {
       });
   });
 });
-[end of server/activityRoutes.test.ts]
