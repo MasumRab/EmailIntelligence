@@ -1,8 +1,9 @@
 import json
 import logging
 from typing import List, Optional
+import sqlite3 # Added for SQLite error handling
 
-import psycopg2
+# import psycopg2 # Removed
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
 from server.python_nlp.smart_filters import SmartFilterManager  # Corrected import
@@ -45,13 +46,13 @@ async def get_emails(
             if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
             raise # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
+    except sqlite3.Error as db_err: # Changed to sqlite3.Error
         log_data = {
             "message": "Database operation failed while fetching emails",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            # "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None, # Removed pgcode
         }
         logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
@@ -83,13 +84,13 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
             raise # Re-raise for FastAPI to handle
     except HTTPException:
         raise
-    except psycopg2.Error as db_err:
+    except sqlite3.Error as db_err: # Changed to sqlite3.Error
         log_data = {
             "message": f"Database operation failed while fetching email id {email_id}",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            # "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None, # Removed pgcode
         }
         logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
@@ -149,13 +150,13 @@ async def create_email(
             if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
             raise # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
+    except sqlite3.Error as db_err: # Changed to sqlite3.Error
         log_data = {
             "message": "Database operation failed while creating email",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            # "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None, # Removed pgcode
         }
         logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
@@ -194,13 +195,13 @@ async def update_email(
             raise # Re-raise for FastAPI to handle
     except HTTPException:
         raise
-    except psycopg2.Error as db_err:
+    except sqlite3.Error as db_err: # Changed to sqlite3.Error
         log_data = {
             "message": f"Database operation failed while updating email id {email_id}",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            # "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None, # Removed pgcode
         }
         logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")
