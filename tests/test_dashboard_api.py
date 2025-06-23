@@ -1,10 +1,10 @@
 import unittest
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
+import sqlite3 # Added for SQLite error handling
 
 from fastapi.testclient import TestClient
-from psycopg2 import Error as Psycopg2Error  # Import real psycopg2.Error
-
+# from psycopg2 import Error as Psycopg2Error  # Import real psycopg2.Error # Removed
 from server.python_backend.database import get_db  # Corrected import
 from server.python_backend.main import app  # App import remains the same
 from server.python_backend.models import \
@@ -112,23 +112,22 @@ class TestDashboardAPI(unittest.TestCase):
         self.assertIn("Failed to fetch dashboard stats", data["detail"])
         mock_db_manager.get_dashboard_stats.assert_called_once()  # Changed to mock_db_manager
 
-    # Removed @patch('psycopg2.Error', create=True)
-    async def async_raise_psycopg2_error(self, *args, **kwargs):
+    async def async_raise_sqlite_error(self, *args, **kwargs): # Renamed method
         # It's important that the side_effect function itself doesn't try to re-instantiate
         # complex error objects if they are not needed for the test's core logic,
         # or ensure they are properly picklable/transmissible if used across boundaries.
         # Here, we just raise a pre-constructed or simple one.
-        raise Psycopg2Error("Simulated DB error from async side_effect")
+        raise sqlite3.Error("Simulated DB error from async side_effect") # Changed to sqlite3.Error
 
-    def test_get_dashboard_stats_psycopg2_error(
+    def test_get_dashboard_stats_sqlite_error( # Renamed test
         self,
-    ):  # Removed mock_psycopg2_error_type from params
-        print("Running test_get_dashboard_stats_psycopg2_error")
+    ):
+        print("Running test_get_dashboard_stats_sqlite_error") # Updated print
         mock_db_manager.get_dashboard_stats = (
             AsyncMock()
         )  # Ensure it's fresh # Changed to mock_db_manager
         mock_db_manager.get_dashboard_stats.side_effect = (
-            self.async_raise_psycopg2_error
+            self.async_raise_sqlite_error # Changed to use renamed method
         )  # Changed to mock_db_manager
 
         response = self.client.get("/api/dashboard/stats")
