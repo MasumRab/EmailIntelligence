@@ -1,23 +1,24 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sql } from 'drizzle-orm';
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
 
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
+export const categories = sqliteTable("categories", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description"),
   color: text("color").notNull(),
   count: integer("count").default(0),
 });
 
-export const emails = pgTable("emails", {
-  id: serial("id").primaryKey(),
+export const emails = sqliteTable("emails", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   
   // Core identifiers
   messageId: text("message_id").unique(),
@@ -34,9 +35,9 @@ export const emails = pgTable("emails", {
   snippet: text("snippet"),
   
   // Recipients
-  toAddresses: text("to_addresses").array(),
-  ccAddresses: text("cc_addresses").array(),
-  bccAddresses: text("bcc_addresses").array(),
+  toAddresses: text("to_addresses"), // Changed from .array()
+  ccAddresses: text("cc_addresses"), // Changed from .array()
+  bccAddresses: text("bcc_addresses"), // Changed from .array()
   replyTo: text("reply_to"),
   
   // Timestamps
@@ -44,22 +45,22 @@ export const emails = pgTable("emails", {
   internalDate: text("internal_date"),
   
   // Gmail-specific properties
-  labelIds: text("label_ids").array(),
-  labels: text("labels").array(),
+  labelIds: text("label_ids"), // Changed from .array()
+  labels: text("labels"), // Changed from .array()
   category: text("category"), // primary, social, promotions, updates, forums
   
   // Message state
-  isUnread: boolean("is_unread").default(true),
-  isStarred: boolean("is_starred").default(false),
-  isImportant: boolean("is_important").default(false),
-  isDraft: boolean("is_draft").default(false),
-  isSent: boolean("is_sent").default(false),
-  isSpam: boolean("is_spam").default(false),
-  isTrash: boolean("is_trash").default(false),
-  isChat: boolean("is_chat").default(false),
+  isUnread: integer("is_unread", { mode: 'boolean' }).default(true),
+  isStarred: integer("is_starred", { mode: 'boolean' }).default(false),
+  isImportant: integer("is_important", { mode: 'boolean' }).default(false),
+  isDraft: integer("is_draft", { mode: 'boolean' }).default(false),
+  isSent: integer("is_sent", { mode: 'boolean' }).default(false),
+  isSpam: integer("is_spam", { mode: 'boolean' }).default(false),
+  isTrash: integer("is_trash", { mode: 'boolean' }).default(false),
+  isChat: integer("is_chat", { mode: 'boolean' }).default(false),
   
   // Content properties
-  hasAttachments: boolean("has_attachments").default(false),
+  hasAttachments: integer("has_attachments", { mode: 'boolean' }).default(false),
   attachmentCount: integer("attachment_count").default(0),
   sizeEstimate: integer("size_estimate"),
   
@@ -67,18 +68,18 @@ export const emails = pgTable("emails", {
   spfStatus: text("spf_status"), // pass, fail, neutral, etc.
   dkimStatus: text("dkim_status"),
   dmarcStatus: text("dmarc_status"),
-  isEncrypted: boolean("is_encrypted").default(false),
-  isSigned: boolean("is_signed").default(false),
+  isEncrypted: integer("is_encrypted", { mode: 'boolean' }).default(false),
+  isSigned: integer("is_signed", { mode: 'boolean' }).default(false),
   
   // Priority and handling
   priority: text("priority").default("normal"), // low, normal, high
-  isAutoReply: boolean("is_auto_reply").default(false),
+  isAutoReply: integer("is_auto_reply", { mode: 'boolean' }).default(false),
   mailingList: text("mailing_list"),
   
   // Thread and conversation
   inReplyTo: text("in_reply_to"),
-  references: text("references").array(),
-  isFirstInThread: boolean("is_first_in_thread").default(true),
+  references: text("references"), // Changed from .array()
+  isFirstInThread: integer("is_first_in_thread", { mode: 'boolean' }).default(true),
   
   // AI analysis results
   categoryId: integer("category_id").references(() => categories.id),
@@ -86,15 +87,15 @@ export const emails = pgTable("emails", {
   analysisMetadata: text("analysis_metadata"), // JSON string for additional metadata
   
   // Legacy compatibility
-  isRead: boolean("is_read").default(false), // Computed from isUnread
+  isRead: integer("is_read", { mode: 'boolean' }).default(false), // Computed from isUnread
 
   // Timestamps for record creation and updates
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
-export const activities = pgTable("activities", {
-  id: serial("id").primaryKey(),
+export const activities = sqliteTable("activities", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   type: text("type").notNull(), // 'label', 'category', 'sync', 'review'
   description: text("description").notNull(),
   details: text("details"),

@@ -5,8 +5,8 @@ import { z } from "zod";
 
 const router = express.Router();
 
-// Emails
-router.get("/", async (req, res) => {
+// Handler for GET /api/emails
+export const getEmailsHandler = async (req, res) => {
   try {
     const { category, search } = req.query;
 
@@ -30,9 +30,10 @@ router.get("/", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch emails" });
   }
-});
+};
 
-router.get("/:id", async (req, res) => {
+// Handler for GET /api/emails/:id
+export const getEmailByIdHandler = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     console.time("storage.getEmailById");
@@ -47,9 +48,10 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch email" });
   }
-});
+};
 
-router.post("/", async (req, res) => {
+// Handler for POST /api/emails
+export const createEmailHandler = async (req, res) => {
   try {
     const emailData = insertEmailSchema.parse(req.body);
     console.time("storage.createEmail");
@@ -63,9 +65,10 @@ router.post("/", async (req, res) => {
       res.status(500).json({ message: "Failed to create email" });
     }
   }
-});
+};
 
-router.put("/:id", async (req, res) => {
+// Handler for PUT /api/emails/:id
+export const updateEmailHandler = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const updateData = req.body;
@@ -81,6 +84,12 @@ router.put("/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to update email" });
   }
-});
+};
+
+// Emails
+router.get("/", getEmailsHandler);
+router.get("/:id", getEmailByIdHandler);
+router.post("/", createEmailHandler);
+router.put("/:id", updateEmailHandler);
 
 export default router;

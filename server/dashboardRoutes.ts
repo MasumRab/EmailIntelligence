@@ -3,8 +3,8 @@ import { storage } from "./storage";
 
 const router = express.Router();
 
-// Dashboard stats
-router.get("/stats", async (_req, res) => {
+// Handler for GET /api/dashboard/stats
+export const getDashboardStatsHandler = async (_req, res) => {
   try {
     console.time("storage.getDashboardStats");
     const stats = await storage.getDashboardStats();
@@ -13,6 +13,9 @@ router.get("/stats", async (_req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch dashboard stats" });
   }
-});
+};
+
+// Dashboard stats
+router.get("/stats", getDashboardStatsHandler);
 
 export default router;

@@ -120,12 +120,37 @@ def test_smart_retrieval(client_gmail):
 
 
 def test_get_retrieval_strategies(client_gmail):
-    mock_strategies_data = [{"name": "strategy1", "details": "..."}]
+    # Create mock data that matches the structure of serialized RetrievalStrategy objects
+    # (as defined in smart_retrieval.py and returned by GmailAIService.get_retrieval_strategies)
+    mock_strategies_data = [
+        {
+            "name": "critical_inbox_test",
+            "query_filter": "in:inbox is:important newer_than:1h",
+            "priority": 10,
+            "batch_size": 50,
+            "frequency": "hourly",
+            "max_emails_per_run": 200,
+            "include_folders": ["INBOX", "IMPORTANT"],
+            "exclude_folders": ["SPAM", "TRASH"],
+            "date_range_days": 1,
+        },
+        {
+            "name": "starred_recent_test",
+            "query_filter": "is:starred newer_than:6h",
+            "priority": 9,
+            "batch_size": 30,
+            "frequency": "hourly",
+            "max_emails_per_run": 100,
+            "include_folders": ["STARRED"],
+            "exclude_folders": ["SPAM", "TRASH"],
+            "date_range_days": 7,
+        }
+    ]
     mock_gmail_service_instance.get_retrieval_strategies.return_value = mock_strategies_data
 
     response = client_gmail.get("/api/gmail/strategies")
     assert response.status_code == 200
-    assert response.json() == {"strategies": mock_strategies_data}
+    assert response.json() == {"strategies": mock_strategies_data} # Assuming the route returns it under "strategies" key
     mock_gmail_service_instance.get_retrieval_strategies.assert_called_once()
 
 

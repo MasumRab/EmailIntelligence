@@ -33,6 +33,10 @@ def mock_action_dependencies():
 
 @pytest.fixture
 def client_action():
+    # Reset the mock before each test that uses this client
+    mock_ai_engine_action.reset_mock() # Reset the main mock
+    mock_ai_engine_action.analyze_email.reset_mock() # Reset the specific AsyncMock attribute
+
     # No db override needed as action_routes.ai_engine.analyze_email is called with db=None
     return TestClient(app)
 

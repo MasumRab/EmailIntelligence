@@ -1,9 +1,10 @@
 import unittest
 from datetime import datetime  # Added import
 from unittest.mock import AsyncMock, MagicMock, patch
+import sqlite3 # Added for SQLite error handling
 
 from fastapi.testclient import TestClient
-from psycopg2 import Error as Psycopg2Error  # Import psycopg2.Error
+# from psycopg2 import Error as Psycopg2Error  # Import psycopg2.Error # Removed
 
 from server.python_backend.database import get_db  # Corrected import
 from server.python_backend.main import app # App import remains the same
@@ -259,9 +260,9 @@ class TestFilterAPI(unittest.TestCase):
 
     def test_generate_intelligent_filters_db_error(self):
         print("Running test_generate_intelligent_filters_db_error")
-        # Simulate a psycopg2 specific error
-        db_error = Psycopg2Error("Simulated DB connection error")
-        # db_error.pgcode = "08001" # pgcode is a readonly attribute after instantiation
+        # Simulate an sqlite3 specific error
+        db_error = sqlite3.Error("Simulated DB connection error") # Changed to sqlite3.Error
+        # db_error.pgcode = "08001" # pgcode is a readonly attribute after instantiation # Removed
         mock_db_manager_filter.get_recent_emails.side_effect = db_error
 
         response = self.client.post("/api/filters/generate-intelligent")
