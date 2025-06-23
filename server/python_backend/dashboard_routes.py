@@ -1,7 +1,8 @@
 import json
 import logging
+import sqlite3 # Added for SQLite error handling
 
-import psycopg2
+# import psycopg2 # Removed
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
@@ -32,13 +33,13 @@ async def get_dashboard_stats(request: Request, db: DatabaseManager = Depends(ge
             if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
             raise # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
+    except sqlite3.Error as db_err: # Changed to sqlite3.Error
         log_data = {
             "message": "Database operation failed",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            # "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None, # Removed pgcode
         }
         logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")

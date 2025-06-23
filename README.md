@@ -55,9 +55,9 @@ To successfully set up and run EmailIntelligence, you will need the following:
 *   **npm:** Included with Node.js. Used for managing frontend and Node.js backend dependencies.
 *   **Python:** Version 3.11 or later recommended (Python 3.11 is particularly advised for Windows). You can download it from [python.org](https://www.python.org/downloads/).
 *   **Git:** For cloning the repository. Download from [git-scm.com](https://git-scm.com/).
-*   **PostgreSQL:** A running PostgreSQL database instance is required for data storage.
-    *   The `DATABASE_URL` environment variable must be configured to point to your PostgreSQL instance (see [Configuration](#configuration)).
-    *   For local development, using Docker is highly recommended to set up PostgreSQL easily. See [Database Setup for Development](#database-setup-for-development).
+# *   **PostgreSQL:** A running PostgreSQL database instance is required for data storage. # Removed for SQLite
+    # *   The `DATABASE_URL` environment variable must be configured to point to your PostgreSQL instance (see [Configuration](#configuration)). # Removed for SQLite
+    *   For local development, using Docker is highly recommended to set up PostgreSQL easily. See [Database Setup for Development](#database-setup-for-development). # This line will be adjusted in the Database Setup section.
 *   **Docker (Recommended for Development):** While not strictly mandatory for running the application if you have an existing PostgreSQL setup, Docker simplifies managing services like PostgreSQL locally. Download from [docker.com](https://www.docker.com/products/docker-desktop).
 
 For detailed Python environment setup, refer to the [Environment Management Guide](docs/env_management.md).
@@ -79,14 +79,8 @@ npm install
 ```
 This command should be run in the project's root directory (where `package.json` is located).
 
-**Step 3: Set up PostgreSQL Database**
-Ensure you have a PostgreSQL database running and the `DATABASE_URL` environment variable is set. For local development, the recommended way is:
-```bash
-# This uses Docker to start a PostgreSQL container and applies database migrations (by running `npm run db:push` internally).
-# Ensure Docker is running before executing this command.
-npm run db:setup
-```
-Alternatively, if you have an existing PostgreSQL instance, ensure `DATABASE_URL` is configured to point to it (see [Configuration](#configuration) for details on setting environment variables). You might need to manually apply database migrations using `npm run db:push` after setting up `DATABASE_URL`.
+**Step 3: Database Setup**
+The application now uses SQLite. The database file (e.g., `sqlite.db`) will typically be created in the `server` directory when the application starts or when database operations are first performed. Ensure the `server` directory is writable.
 
 **Step 4: Run the Application using the Launcher**
 ```bash
@@ -163,26 +157,19 @@ Developing or sourcing appropriate training data and adapting the `ai_training.p
 
 *(Consider creating a dedicated guide in `docs/ai_model_training_guide.md` for more detailed future instructions on data preparation and model training workflows.)*
 
-### Database Setup for Development
+### Database Setup
 
-The application requires a PostgreSQL database.
--   **Environment Variable:** Ensure the `DATABASE_URL` environment variable is correctly set to point to your PostgreSQL instance. (Example format: `postgresql://user:password@host:port/database_name`). This is typically managed via a `.env` file in the project root (ensure it's in `.gitignore`) or set in your shell environment.
--   **Recommended Method (Docker):**
-    ```bash
-    npm run db:setup
-    ```
-    This command uses `docker-compose` (typically from `deployment/docker-compose.dev.yml` or `docker-compose.yml` if configured for development) to start a PostgreSQL container. It then runs `npm run db:push` (which uses Drizzle ORM) to apply the latest database schema. Ensure Docker is installed and running.
--   **Manual Setup:** If you have an existing PostgreSQL server:
-    1.  Create a database for EmailIntelligence.
-    2.  Set the `DATABASE_URL` environment variable.
-    3.  Run `npm run db:push` to apply schema migrations to your database.
+The application uses an SQLite database. The database file (e.g., `sqlite.db`) is typically located in the `server` directory. No special setup is usually required beyond ensuring the application has write permissions to create/manage this file.
+If Drizzle ORM is used for schema management (e.g., by the Node.js part, potentially for a shared schema now targeting SQLite), the following command can apply schema changes:
+```bash
+npm run db:push
+```
 
 ## Configuration
 
 This section details important environment variables used by the application. These can typically be set in a `.env` file in the project root or directly in your shell environment.
 
-*   **`DATABASE_URL`**: Connection string for the PostgreSQL database.
-    *   Example: `postgresql://user:password@host:port/database_name`
+*   **`DATABASE_URL`**: Connection string for the database. For SQLite, this might be `sqlite:sqlite.db` or similar if used, though the application may default to a hardcoded path.
 *   **`GMAIL_CREDENTIALS_JSON`**: JSON content of OAuth 2.0 Client ID credentials for Gmail API.
 *   **`credentials.json` (File Alternative)**: Alternative to `GMAIL_CREDENTIALS_JSON`, placed in project root. Ensure this file is in `.gitignore` if used.
 *   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `token.json`). Ensure this file is in `.gitignore`.
@@ -273,12 +260,12 @@ For comprehensive information on building and deploying for production, includin
 
 ## Database
 
-The application uses a PostgreSQL database.
-- Configure `DATABASE_URL` environment variable (see [Configuration](#configuration) and [Database Setup for Development](#database-setup-for-development)).
-- Schema migrations are handled by Drizzle ORM:
+The application now uses an SQLite database (e.g., `sqlite.db` in the `server` directory).
+- If `DATABASE_URL` is used, it should be set for SQLite (e.g., `sqlite:sqlite.db`). Otherwise, the application defaults to a local file path.
+- Schema migrations/synchronization for the Node.js part (if Drizzle ORM is still used and configured for SQLite) are handled by Drizzle ORM:
   - `npm run db:push`: Applies schema changes to the database.
   - `npm run db:generate`: Generates new migration files if you change Drizzle schema definitions (typically in `shared/schema.ts` or similar).
-  (Or via `python deployment/deploy.py <env> migrate` for Dockerized environments as part of a deployment workflow).
+  (Or via `python deployment/deploy.py <env> migrate` for Dockerized environments as part of a deployment workflow, assuming this part is adapted for SQLite).
 
 ## Extension System
 

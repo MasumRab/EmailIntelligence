@@ -1,37 +1,23 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: emailintelligence
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: .. # Assuming context is the parent directory of 'deployment'
       dockerfile: deployment/Dockerfile.backend
       target: development # Default target stage
-    depends_on:
-      postgres:
-        condition: service_healthy
+    depends_on: # Keep depends_on key, but remove postgres
+      # postgres: # Removed as backend will use SQLite
+      #   condition: service_healthy # Removed
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/emailintelligence
+      # - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/emailintelligence # Commented out for SQLite
       # Other common environment variables can be added here
     volumes:
       - ../server:/app/server
       - ../shared:/app/shared
 
 volumes:
-  postgres_data:
+  # postgres_data: # Removed as the postgres service is removed
 
 networks:
   default:
