@@ -60,53 +60,41 @@ def test_get_dashboard_stats(client_dashboard):
             "timeSaved": 1,
         },
     }
-    mock_db_manager_dashboard.get_dashboard_stats.return_value = mock_stats_data_from_db
-
-    response = client_dashboard.get("/api/dashboard/stats")
-    assert response.status_code == 200
-
-    # The response model is models.DashboardStats, which uses aliases.
-    # Pydantic should handle the conversion from the db_dict keys to the aliased field names if necessary on serialization.
-    # However, when comparing, ensure the response JSON matches the aliased names.
-    # models.DashboardStats: totalEmails (alias total_emails), autoLabeled (alias auto_labeled), timeSaved (alias time_saved)
-    # weeklyGrowth (alias weekly_growth) which itself has {emails, percentage}
-    # The db_dict returns camelCase. The Pydantic model DashboardStats uses Field(alias=...)
-    # So, the JSON response should have the aliased names if serialization respects aliases.
-    # Let's check a few key fields.
-    response_json = response.json()
-    assert response_json["total_emails"] == mock_stats_data_from_db["totalEmails"]
-    assert response_json["auto_labeled"] == mock_stats_data_from_db["autoLabeled"]
-    assert response_json["time_saved"] == mock_stats_data_from_db["timeSaved"]
-    # The weeklyGrowth structure is different between db_dict and models.DashboardStats.
-    # db_dict: "weeklyGrowth": {"totalEmails": 100, "autoLabeled": 80, "categories": 2, "timeSaved": 1}
-    # models.DashboardStats.weeklyGrowth: WeeklyGrowth (model) with {emails: int, percentage: float}
-    # This means db.get_dashboard_stats needs to return a dict compatible with models.WeeklyGrowth for this field.
-    # For this test, we assume the structure returned by db mock is what pydantic expects for DashboardStats model.
-    # This implies the db_dict for weeklyGrowth should align with the Pydantic WeeklyGrowth model.
-    # Let's adjust the mock_stats_data_from_db to reflect what DashboardStats model expects for weeklyGrowth.
+    # Set the correct mock return value *before* the first API call
     mock_stats_data_from_db_for_model = {
         "total_emails": 1000,
         "auto_labeled": 800,
         "categories": 10,
         "time_saved": "10 hours",
-        "weekly_growth": {"emails": 100, "percentage": 0.1},  # This matches models.WeeklyGrowth
-        # Other fields like unreadEmails, importantEmails from db.get_dashboard_stats are not in DashboardStats model.
+        "weekly_growth": {"emails": 100, "percentage": 0.1},
     }
     mock_db_manager_dashboard.get_dashboard_stats.return_value = mock_stats_data_from_db_for_model
+    # Reset call count specifically for the upcoming assertion
+    mock_db_manager_dashboard.get_dashboard_stats.reset_mock()
 
-    response = client_dashboard.get("/api/dashboard/stats")  # Re-run with corrected mock
+    response = client_dashboard.get("/api/dashboard/stats")
     assert response.status_code == 200
-    response_json_rerun = response.json()
-    assert response_json_rerun["total_emails"] == mock_stats_data_from_db_for_model["total_emails"]
+
+    response_json = response.json()
+    assert response_json["total_emails"] == mock_stats_data_from_db_for_model["total_emails"]
+    assert response_json["auto_labeled"] == mock_stats_data_from_db_for_model["auto_labeled"]
+    assert response_json["time_saved"] == mock_stats_data_from_db_for_model["time_saved"]
+    assert response_json["categories"] == mock_stats_data_from_db_for_model["categories"]
     assert (
-        response_json_rerun["weekly_growth"]["emails"]
+        response_json["weekly_growth"]["emails"]
         == mock_stats_data_from_db_for_model["weekly_growth"]["emails"]
+    )
+    assert (
+        response_json["weekly_growth"]["percentage"]
+        == mock_stats_data_from_db_for_model["weekly_growth"]["percentage"]
     )
 
     mock_db_manager_dashboard.get_dashboard_stats.assert_called_once()
 
 
 def test_get_dashboard_stats_db_error(client_dashboard):
+    # Reset the mock for this specific test to ensure clean state
+    mock_db_manager_dashboard.get_dashboard_stats.reset_mock()
     mock_db_manager_dashboard.get_dashboard_stats.side_effect = Exception("DB Stats Error")
 
     response = client_dashboard.get("/api/dashboard/stats")
