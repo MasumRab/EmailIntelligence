@@ -5,8 +5,8 @@ import { z } from "zod";
 
 const router = express.Router();
 
-// Categories
-router.get("/", async (_req, res) => {
+// Handler for GET /api/categories
+export const getAllCategoriesHandler = async (_req, res) => {
   try {
     console.time("storage.getAllCategories");
     const categories = await storage.getAllCategories();
@@ -15,9 +15,10 @@ router.get("/", async (_req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch categories" });
   }
-});
+};
 
-router.post("/", async (req, res) => {
+// Handler for POST /api/categories
+export const createCategoryHandler = async (req, res) => {
   try {
     const categoryData = insertCategorySchema.parse(req.body);
     console.time("storage.createCategory");
@@ -31,9 +32,10 @@ router.post("/", async (req, res) => {
       res.status(500).json({ message: "Failed to create category" });
     }
   }
-});
+};
 
-router.put("/:id", async (req, res) => {
+// Handler for PUT /api/categories/:id
+export const updateCategoryHandler = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const updateData = req.body;
@@ -49,6 +51,11 @@ router.put("/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to update category" });
   }
-});
+};
+
+// Categories
+router.get("/", getAllCategoriesHandler);
+router.post("/", createCategoryHandler);
+router.put("/:id", updateCategoryHandler);
 
 export default router;
