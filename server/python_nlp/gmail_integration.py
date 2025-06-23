@@ -28,6 +28,8 @@ load_dotenv()
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
+GMAIL_TOKEN_PATH =".\\jsons"
+
 # Path for token.json, configurable via environment variable
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
 
