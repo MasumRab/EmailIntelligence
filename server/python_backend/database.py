@@ -19,6 +19,7 @@ class DatabaseManager:
     """Async database manager for email data using PostgreSQL"""
 
     def __init__(self, db_url: Optional[str] = None):
+<<<<<<< HEAD
         raw_db_url = db_url or os.getenv("DATABASE_URL")
 
         if raw_db_url:
@@ -37,6 +38,11 @@ class DatabaseManager:
 
         logger.info(f"DatabaseManager initialized with SQLite path: {self.db_path}")
         # self.init_database() # Table creation can be called explicitly if needed, e.g., at app startup or in tests.
+=======
+        self.database_url = db_url or os.getenv("DATABASE_URL", "sqlite.db")  # Default to sqlite.db
+        # self.init_database() # Table creation handled by Drizzle ORM / or manually for SQLite
+        # Seeding default data can be done here if needed.
+>>>>>>> 3b25c44ce8d35ed3fff3b3d8b18a6149725285f5
 
     async def _execute_query(
         self,
@@ -47,6 +53,7 @@ class DatabaseManager:
         commit: bool = False,
     ):
         """Helper to execute queries using asyncio.to_thread for sync sqlite3."""
+<<<<<<< HEAD
 
         def db_operation():
             conn = sqlite3.connect(self.db_path) # Use self.db_path
@@ -101,6 +108,46 @@ class DatabaseManager:
         except sqlite3.Error as e: # Catch errors from db_operation or asyncio.to_thread itself
             logger.error(f"Database error: {e}")
             # No conn object to rollback or close here as it's managed within db_operation
+=======
+        conn = await asyncio.to_thread(sqlite3.connect, self.database_url)
+        conn.row_factory = sqlite3.Row  # Access columns by name
+        try:
+            # For SQLite, PRAGMA foreign_keys=ON should be enabled per connection if FKs are used.
+            # await asyncio.to_thread(conn.execute, "PRAGMA foreign_keys = ON;")
+
+            cur = await asyncio.to_thread(conn.cursor)
+            await asyncio.to_thread(cur.execute, query, params or ())
+
+            result = None
+            if fetch_one:
+                result_row = await asyncio.to_thread(cur.fetchone)
+                result = dict(result_row) if result_row else None
+            elif fetch_all:
+                result_rows = await asyncio.to_thread(cur.fetchall)
+                result = [dict(row) for row in result_rows]
+
+            if commit:
+                await asyncio.to_thread(conn.commit)
+
+            # For INSERT statements, handle lastrowid for SQLite
+            if query.strip().upper().startswith("INSERT") and not fetch_one and not fetch_all:
+                # If RETURNING id was part of the original query, it needs to be removed for SQLite.
+                # The caller will need to be adjusted if it expected a dict with 'id'.
+                # For SQLite, cur.lastrowid gives the ID of the last inserted row.
+                # This part might need further adjustment based on how INSERT + RETURNING id was used.
+                # If the original query used "RETURNING id" and `fetch_one` was True, that's handled.
+                # If `fetch_one` was False, it means the result of RETURNING id was not directly used or
+                # it was expected to be implicitly handled (which psycopg2 might do differently).
+                # For now, we are not returning cur.lastrowid directly from here unless fetch_one is true
+                # and the query is adapted to something like "SELECT last_insert_rowid();"
+                pass
+
+
+            return result
+        except sqlite3.Error as e:
+            logger.error(f"Database error: {e}")
+            await asyncio.to_thread(conn.rollback) # Rollback is implicit on error if not committed
+>>>>>>> 3b25c44ce8d35ed3fff3b3d8b18a6149725285f5
             raise
         # No finally block needed here for conn, it's handled in db_operation
 
@@ -112,6 +159,7 @@ class DatabaseManager:
         """
         # Seeding could be handled here or by external scripts.
         # Example: Create tables if they don't exist (simplified)
+<<<<<<< HEAD
         # For SQLite, table creation might need to be handled here if not by external tools.
         # This method could seed default categories if they don't exist.
         # Seeding could be handled here or by external scripts.
@@ -229,6 +277,11 @@ class DatabaseManager:
             raise
         finally:
             conn.close()
+=======
+        # await self._execute_query("CREATE TABLE IF NOT EXISTS categories (...);", commit=True)
+        # await self._execute_query("CREATE TABLE IF NOT EXISTS emails (...);", commit=True)
+        # await self._execute_query("CREATE TABLE IF NOT EXISTS activities (...);", commit=True)
+>>>>>>> 3b25c44ce8d35ed3fff3b3d8b18a6149725285f5
         pass
 
     @asynccontextmanager
@@ -236,7 +289,11 @@ class DatabaseManager:
         """Async context manager for database connections using sqlite3."""
         conn = None
         try:
+<<<<<<< HEAD
             conn = await asyncio.to_thread(sqlite3.connect, self.db_path) # Use self.db_path
+=======
+            conn = await asyncio.to_thread(sqlite3.connect, self.database_url)
+>>>>>>> 3b25c44ce8d35ed3fff3b3d8b18a6149725285f5
             conn.row_factory = sqlite3.Row
             # For SQLite, PRAGMA foreign_keys=ON should be enabled per connection if FKs are used.
             # await asyncio.to_thread(conn.execute, "PRAGMA foreign_keys = ON;")
