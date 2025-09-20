@@ -46,14 +46,12 @@ const testConfig = defineTestConfig({
     globals: true,
     environment: 'node', // Or 'jsdom' if testing browser-like environment
     include: ['server/**/*.test.ts'], // Adjust if your tests are elsewhere
-    // setupFiles: './server/tests/setup.ts', // Optional: if you have a setup file
+    setupFiles: './server/tests/setup.ts', // Optional: if you have a setup file
     plugins: [tsconfigPaths()], // Add tsconfigPaths to Vitest plugins
-    // alias: { // Removed
-    //   '@shared': path.resolve(__dirname, './shared'),
-    // You might need to replicate other aliases from viteConfig.resolve.alias if tests need them
-    // For example:
-    // "@": path.resolve(__dirname, './client/src'),
-    // },
+    alias: {
+      '@shared': path.resolve('.', 'shared'),
+      '@': path.resolve('.', "client", "src"),
+    },
     coverage: {
       provider: 'v8', // or 'istanbul'
       reporter: ['text', 'json', 'html'],
