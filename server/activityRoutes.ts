@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     const { limit } = req.query;
     console.time("storage.getRecentActivities");
     const activities = await storage.getRecentActivities(
-      limit ? parseInt(limit as string) : undefined
+      limit ? parseInt(limit as string) : 10
     );
     console.timeEnd("storage.getRecentActivities");
     res.json(activities);
