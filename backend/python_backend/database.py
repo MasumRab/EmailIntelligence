@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Literal, Tuple
 logger = logging.getLogger(__name__)
 
 # File paths
-DATA_DIR = "server/python_backend/data"
+DATA_DIR = "backend/data"
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json")
 USERS_FILE = os.path.join(DATA_DIR, "users.json")
