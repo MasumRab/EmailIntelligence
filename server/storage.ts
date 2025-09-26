@@ -6,22 +6,15 @@ import {
   type Activity, type InsertActivity,
   type DashboardStats
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, desc, ilike, count, sql } from "drizzle-orm";
+import { pythonNLP } from "./python-bridge.js";
 
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-
-  // Email methods
-  getAllEmails(): Promise<EmailWithCategory[]>;
-  getEmailById(id: number): Promise<EmailWithCategory | undefined>;
-  createEmail(email: InsertEmail): Promise<Email>;
-  updateEmail(id: number, email: Partial<Email>): Promise<Email | undefined>;
-  getEmailsByCategory(categoryId: number): Promise<EmailWithCategory[]>;
-  searchEmails(query: string): Promise<EmailWithCategory[]>;
 
   // Category methods
   getAllCategories(): Promise<Category[]>;
@@ -57,104 +50,6 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
-  }
-
-  // Email methods
-  async getAllEmails(): Promise<EmailWithCategory[]> {
-    const result = await db
-      .select({
-        email: emails,
-        category: categories,
-      })
-      .from(emails)
-      .leftJoin(categories, eq(emails.categoryId, categories.id))
-      .orderBy(desc(emails.id));
-
-    return result.map(row => ({
-      ...row.email,
-      categoryData: row.category || undefined,
-    }));
-  }
-
-  async getEmailById(id: number): Promise<EmailWithCategory | undefined> {
-    const result = await db
-      .select({
-        email: emails,
-        category: categories,
-      })
-      .from(emails)
-      .leftJoin(categories, eq(emails.categoryId, categories.id))
-      .where(eq(emails.id, id));
-
-    const row = result[0];
-    if (!row) return undefined;
-
-    return {
-      ...row.email,
-      categoryData: row.category || undefined,
-    };
-  }
-
-  async createEmail(insertEmail: InsertEmail): Promise<Email> {
-    const [email] = await db
-      .insert(emails)
-      .values(insertEmail)
-      .returning();
-    
-    // Update category count
-    if (email.categoryId) {
-      await this.updateCategoryCount(email.categoryId);
-    }
-    
-    return email;
-  }
-
-  async updateEmail(id: number, emailUpdate: Partial<Email>): Promise<Email | undefined> {
-    const [updatedEmail] = await db
-      .update(emails)
-      .set(emailUpdate)
-      .where(eq(emails.id, id))
-      .returning();
-    
-    return updatedEmail || undefined;
-  }
-
-  async getEmailsByCategory(categoryId: number): Promise<EmailWithCategory[]> {
-    const result = await db
-      .select({
-        email: emails,
-        category: categories,
-      })
-      .from(emails)
-      .leftJoin(categories, eq(emails.categoryId, categories.id))
-      .where(eq(emails.categoryId, categoryId))
-      .orderBy(desc(emails.id));
-
-    return result.map(row => ({
-      ...row.email,
-      categoryData: row.category || undefined,
-    }));
-  }
-
-  async searchEmails(query: string): Promise<EmailWithCategory[]> {
-    const result = await db
-      .select({
-        email: emails,
-        category: categories,
-      })
-      .from(emails)
-      .leftJoin(categories, eq(emails.categoryId, categories.id))
-      .where(sql`
-        ${emails.subject} ILIKE ${`%${query}%`} OR 
-        ${emails.sender} ILIKE ${`%${query}%`} OR 
-        ${emails.content} ILIKE ${`%${query}%`}
-      `)
-      .orderBy(desc(emails.id));
-
-    return result.map(row => ({
-      ...row.email,
-      categoryData: row.category || undefined,
-    }));
   }
 
   // Category methods
@@ -280,7 +175,7 @@ export class DatabaseStorage implements IStorage {
 
     const newEmails: Email[] = [];
     for (const emailData of newEmailsData) {
-      const email = await this.createEmail(emailData);
+      const email = await pythonNLP.createEmail(emailData);
       newEmails.push(email);
     }
 
