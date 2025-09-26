@@ -2,9 +2,12 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { AIAnalysis, AccuracyValidation } from './ai-engine'; // Import backend types
+import { type Email, type InsertEmail, type EmailWithCategory } from '@shared/schema';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const PYTHON_SERVER_URL = 'http://127.0.0.1:8000';
 
 // This interface represents the direct output from the Python script
 interface PythonScriptOutput {
@@ -36,6 +39,25 @@ export class PythonNLPBridge {
     this.pythonScriptPath = path.join(__dirname, 'python_nlp', 'nlp_engine.py');
   }
 
+  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const url = `${PYTHON_SERVER_URL}${path}`;
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Python server request failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+
   private mapPythonOutputToNLPResult(pyOutput: PythonScriptOutput): MappedNLPResult {
     return {
       topic: pyOutput.topic,
@@ -56,6 +78,31 @@ export class PythonNLPBridge {
       },
       categoryId: pyOutput.category_id, // Map category_id
     };
+  }
+
+  async getEmails(category?: string, search?: string): Promise<EmailWithCategory[]> {
+    const params = new URLSearchParams();
+    if (category) params.append('category_id', category);
+    if (search) params.append('search', search);
+    return this.request<EmailWithCategory[]>(`/api/emails?${params.toString()}`);
+  }
+
+  async getEmailById(id: number): Promise<EmailWithCategory> {
+    return this.request<EmailWithCategory>(`/api/emails/${id}`);
+  }
+
+  async createEmail(email: InsertEmail): Promise<Email> {
+    return this.request<Email>('/api/emails', {
+      method: 'POST',
+      body: JSON.stringify(email),
+    });
+  }
+
+  async updateEmail(id: number, email: Partial<Email>): Promise<Email> {
+    return this.request<Email>(`/api/emails/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(email),
+    });
   }
 
   async analyzeEmail(subject: string, content: string): Promise<MappedNLPResult> {
