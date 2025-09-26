@@ -1,27 +1,21 @@
-import express, { type Application, type Request, type Response, type NextFunction } from 'express';
+import express, { type Application } from 'express';
+import { vi } from 'vitest';
+import request from 'supertest';
 import dashboardRoutes from './dashboardRoutes';
 import { storage } from './storage';
 import { type DashboardStats } from '@shared/schema';
 
-jest.mock('./storage', () => ({
+vi.mock('./storage', () => ({
   storage: {
-    getDashboardStats: jest.fn(),
+    getDashboardStats: vi.fn(),
   },
 }));
 
-const createApp = (): Application => {
-  const app = express();
-  app.use(express.json());
-  app.use('/api/dashboard', dashboardRoutes); // Assuming dashboardRoutes handles paths like /stats
-  return app;
-};
+const app: Application = express();
+app.use(express.json());
+app.use('/api/dashboard', dashboardRoutes);
 
 describe('Dashboard Routes', () => {
-  let app: Application;
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
-  let nextFunction: NextFunction = jest.fn();
-
   const mockStats: DashboardStats = {
     totalEmails: 100,
     autoLabeled: 50,
@@ -36,38 +30,26 @@ describe('Dashboard Routes', () => {
   };
 
   beforeEach(() => {
-    app = createApp();
-    mockRequest = {}; // Reset request object for each test
-    mockResponse = { // Reset response object for each test
-      json: jest.fn().mockReturnThis(),
-      status: jest.fn().mockReturnThis(),
-    };
-    (storage.getDashboardStats as jest.Mock).mockClear();
+    vi.clearAllMocks();
   });
 
   describe('GET /api/dashboard/stats', () => {
     it('should get dashboard stats and return 200', async () => {
-      (storage.getDashboardStats as jest.Mock).mockResolvedValue(mockStats);
-      // Simulate the Express router handling by directly invoking the router function
-      // For this to work correctly, the path matching (e.g., /stats) is handled internally by the Express Router instance
-      // when mounted in an app. For unit testing the handler logic directly:
-      mockRequest = { path: '/stats', method: 'GET' }; // Path might not be needed if not checked by handler itself
+      (storage.getDashboardStats as ReturnType<typeof vi.fn>).mockResolvedValue(mockStats);
 
-      await dashboardRoutes(mockRequest as Request, mockResponse as Response, nextFunction);
+      const response = await request(app).get('/api/dashboard/stats');
 
-      expect(storage.getDashboardStats).toHaveBeenCalledTimes(1);
-      expect(mockResponse.json).toHaveBeenCalledWith(mockStats);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockStats);
     });
 
     it('should return 500 if fetching stats fails', async () => {
-      (storage.getDashboardStats as jest.Mock).mockRejectedValue(new Error('DB Error'));
-      mockRequest = { path: '/stats', method: 'GET' };
+      (storage.getDashboardStats as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB Error'));
 
-      await dashboardRoutes(mockRequest as Request, mockResponse as Response, nextFunction);
+      const response = await request(app).get('/api/dashboard/stats');
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Failed to fetch dashboard stats' });
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: 'Failed to fetch dashboard stats' });
     });
   });
 });
-[end of server/dashboardRoutes.test.ts]
