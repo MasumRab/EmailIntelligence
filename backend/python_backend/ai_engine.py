@@ -12,10 +12,10 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from server.python_backend.database import DatabaseManager
+    from .database import DatabaseManager
 
 # from .utils.async_utils import _execute_async_command # Commented out
-from server.python_nlp.nlp_engine import NLPEngine  # Changed import alias
+from ..python_nlp.nlp_engine import NLPEngine  # Changed import alias
 
 logger = logging.getLogger(__name__)
 

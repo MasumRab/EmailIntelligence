@@ -16,8 +16,8 @@ from typing import Any, Dict, List, Optional
 # This assumes AdvancedAIEngine is in a module that can be imported.
 # If it's in python_backend, the path needs to be correct.
 # For now, let's assume a placeholder for where AdvancedAIEngine would be imported from.
-from server.python_backend.ai_engine import AdvancedAIEngine  # Assuming this import works
-from server.python_backend.database import DatabaseManager  # Assuming this import works
+from ..python_backend.ai_engine import AdvancedAIEngine  # Assuming this import works
+from ..python_backend.database import DatabaseManager  # Assuming this import works
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.

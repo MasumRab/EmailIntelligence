@@ -6,15 +6,11 @@ Optimized Python FastAPI backend with comprehensive performance monitoring
 
 import logging
 import os
-import sys
-from pathlib import Path
 
 import uvicorn
-from python_backend.database import DatabaseManager
-from python_backend.main import app
 
-# Add the parent directory to the Python path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from .database import DatabaseManager
+from .main import app
 
 # Configure logging
 logging.basicConfig(
