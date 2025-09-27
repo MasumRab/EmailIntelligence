@@ -5,7 +5,7 @@ from typing import List, Optional
 import psycopg2
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
-from server.python_nlp.smart_filters import SmartFilterManager  # Corrected import
+from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
