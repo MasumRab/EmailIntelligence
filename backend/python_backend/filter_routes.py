@@ -5,7 +5,7 @@ import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 # Corrected import path for SmartFilterManager
-from server.python_nlp.smart_filters import (  # Assuming EmailFilter is needed for response model
+from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for response model
     EmailFilter,
     SmartFilterManager,
 )
