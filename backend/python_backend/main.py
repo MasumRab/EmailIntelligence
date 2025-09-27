@@ -10,13 +10,14 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 # Updated import to use NLP GmailAIService directly
-from server.python_nlp.gmail_service import GmailAIService
+from ..python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from server.python_nlp.smart_filters import SmartFilterManager
+from ..python_nlp.smart_filters import SmartFilterManager
 
 from . import (
     # action_routes, # Removed
@@ -80,6 +81,16 @@ app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
 # app.include_router(action_routes.router) # Removed
 # app.include_router(dashboard_routes.router) # Removed
+
+# Mount the static files directories
+app.mount("/src", StaticFiles(directory="client/src"), name="src")
+app.mount("/", StaticFiles(directory="client", html=True), name="client")
+
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    # This is a fallback to serve index.html for any path that is not an API route or a file.
+    # This is necessary for single-page applications.
+    return FileResponse('client/index.html')
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models

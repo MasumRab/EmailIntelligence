@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from googleapiclient.errors import HttpError as GoogleApiHttpError
 
 # Corrected import path for GmailAIService
-from server.python_nlp.gmail_service import GmailAIService
+from ..python_nlp.gmail_service import GmailAIService
 
 from .ai_engine import AdvancedAIEngine  # Import AdvancedAIEngine
 from .database import DatabaseManager  # Import DatabaseManager
