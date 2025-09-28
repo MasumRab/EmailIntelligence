@@ -45,13 +45,13 @@ async def get_filters(request: Request):
 async def create_filter(request: Request, filter_request_model: FilterRequest):
     """Create new email filter"""
     try:
-        description = filter_request_model.criteria.get("description", "")
+        description = filter_request_model.description or ""
 
         new_filter_object = filter_manager.add_custom_filter(
             name=filter_request_model.name,
             description=description,
-            criteria=filter_request_model.criteria,
-            actions=filter_request_model.actions,
+            criteria=filter_request_model.criteria.model_dump(),
+            actions=filter_request_model.actions.model_dump(),
             priority=filter_request_model.priority,
         )
         # FastAPI will handle dataclass serialization to JSON
@@ -76,7 +76,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
 
         # Assuming filter_manager.create_intelligent_filters exists and
         # returns a list of filter objects/dicts.
-        created_filters = filter_manager.create_intelligent_filters(emails) # Removed await
+        created_filters = await filter_manager.create_intelligent_filters(emails)
 
         return {"created_filters": len(created_filters), "filters": created_filters}
     except psycopg2.Error as db_err:
@@ -107,7 +107,7 @@ async def prune_filters(request: Request):
     try:
         # Assuming filter_manager.prune_ineffective_filters exists
         # This method was not in original smart_filters.py, assuming added.
-        results = filter_manager.prune_ineffective_filters() # Removed await
+        results = await filter_manager.prune_ineffective_filters()
         return results
     except Exception as e:
         log_data = {
