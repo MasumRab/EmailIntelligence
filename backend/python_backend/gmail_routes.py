@@ -90,11 +90,18 @@ async def sync_gmail(
         except Exception:  # Broad except for decoding issues
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
+        error_content = error_details_dict.get("error", {})
+        error_detail_message = str(gmail_err)
+        if isinstance(error_content, dict):
+            error_detail_message = error_content.get("message", str(gmail_err))
+        elif isinstance(error_content, str):
+            error_detail_message = error_content
+
         log_data = {
             "message": "Gmail API operation failed during sync",
             "endpoint": str(req.url),
             "error_type": type(gmail_err).__name__,
-            "error_detail": error_details_dict.get("error", {}).get("message", str(gmail_err)),
+            "error_detail": error_detail_message,
             "gmail_status_code": getattr(gmail_err.resp, "status", None),
             "full_gmail_error": error_details_dict,
         }
@@ -145,11 +152,18 @@ async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  
         except Exception:  # Broad except for decoding issues
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
+        error_content = error_details_dict.get("error", {})
+        error_detail_message = str(gmail_err)
+        if isinstance(error_content, dict):
+            error_detail_message = error_content.get("message", str(gmail_err))
+        elif isinstance(error_content, str):
+            error_detail_message = error_content
+
         log_data = {
             "message": "Gmail API operation failed during smart retrieval",
             "endpoint": str(req.url),
             "error_type": type(gmail_err).__name__,
-            "error_detail": error_details_dict.get("error", {}).get("message", str(gmail_err)),
+            "error_detail": error_detail_message,
             "gmail_status_code": getattr(gmail_err.resp, "status", None),
             "full_gmail_error": error_details_dict,
         }

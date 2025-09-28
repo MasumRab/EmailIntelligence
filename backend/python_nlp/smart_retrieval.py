@@ -1154,7 +1154,9 @@ async def main_cli():
         "execute-strategies", help="Execute retrieval strategies"
     )
     execute_parser.add_argument(
+        "--strategies",
         "--strategy-names",
+        dest="strategies",
         nargs="+",
         help="Names of specific strategies to execute (optional)",
     )
@@ -1219,15 +1221,15 @@ async def main_cli():
                 sys.exit(1)
 
             selected_strategies = None
-            if args.strategy_names:
+            if args.strategies:
                 all_strategies = retriever.get_optimized_retrieval_strategies()
-                selected_strategies = [s for s in all_strategies if s.name in args.strategy_names]
+                selected_strategies = [s for s in all_strategies if s.name in args.strategies]
                 if not selected_strategies:
                     print(
                         json.dumps(
                             {
                                 "success": False,
-                                "error": f"Specified strategy names not found: {args.strategy_names}",
+                                "error": f"Specified strategy names not found: {args.strategies}",
                             },
                             indent=2,
                         )
