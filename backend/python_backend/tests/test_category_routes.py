@@ -1,9 +1,9 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from server.python_backend.main import app  # Main FastAPI app
+from backend.python_backend.main import app  # Main FastAPI app
 
 # Mock DatabaseManager methods used by category_routes
 mock_db_manager_cat = (
@@ -20,23 +20,13 @@ mock_performance_monitor_cat_instance = MagicMock()
 
 @pytest.fixture(scope="module", autouse=True)
 def mock_cat_dependencies():
-    patches = [
-        patch(
-            "server.python_backend.category_routes.performance_monitor",
-            mock_performance_monitor_cat_instance,
-        )
-        # No module-level instances of other services like AIEngine in category_routes
-    ]
-    for p in patches:
-        p.start()
+    # No module-level instances to mock in category_routes since performance_monitor is commented out
     yield
-    for p in patches:
-        p.stop()
 
 
 @pytest.fixture
 def client_cat():
-    from server.python_backend.database import get_db
+    from backend.python_backend.database import get_db
 
     app.dependency_overrides[get_db] = lambda: mock_db_manager_cat
     client = TestClient(app)

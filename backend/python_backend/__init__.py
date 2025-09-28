@@ -3,8 +3,8 @@ Python Backend for Gmail AI Email Management
 Optimized FastAPI backend with comprehensive NLP integration
 """
 
-from server.python_nlp.gmail_service import GmailAIService
-from server.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+from backend.python_nlp.gmail_service import GmailAIService
+from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db

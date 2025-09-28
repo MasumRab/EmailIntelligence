@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from server.python_backend.main import app
+from backend.python_backend.main import app
 
 # Mock GmailAIService methods used by gmail_routes
 # GmailAIService is instantiated at module level in gmail_routes.py
@@ -26,22 +26,19 @@ mock_performance_monitor_gmail_instance = MagicMock()
 def mock_gmail_dependencies():
     patches = [
         patch(
-            "server.python_backend.gmail_routes.GmailAIService",
+            "backend.python_backend.gmail_routes.GmailAIService",
             return_value=mock_gmail_service_instance,
         ),
         # Patch the constructors if they are called directly in gmail_routes for instantiation
         patch(
-            "server.python_backend.gmail_routes.DatabaseManager",
+            "backend.python_backend.gmail_routes.DatabaseManager",
             return_value=mock_db_manager_for_gmail,
         ),
         patch(
-            "server.python_backend.gmail_routes.AdvancedAIEngine",
+            "backend.python_backend.gmail_routes.AdvancedAIEngine",
             return_value=mock_ai_engine_for_gmail,
         ),
-        patch(
-            "server.python_backend.gmail_routes.performance_monitor",
-            mock_performance_monitor_gmail_instance,
-        ),
+        # performance_monitor is commented out in gmail_routes.py, so no need to mock it
     ]
     for p in patches:
         p.start()
