@@ -119,12 +119,16 @@ class AdvancedAIEngine:
             # if "action_items" not in analysis_data: # Removed
                 # analysis_data["action_items"] = [] # Removed
 
-            if db and analysis_data.get("categories"):
-                matched_category_id = await self._match_category_id(analysis_data["categories"], db)
+            # Only attempt to match categories if the AI returns a non-empty list.
+            ai_categories = analysis_data.get("categories")
+            if db and ai_categories:
+                matched_category_id = await self._match_category_id(ai_categories, db)
                 if matched_category_id:
                     analysis_data["category_id"] = matched_category_id
-                else:
-                    analysis_data["category_id"] = analysis_data.get("category_id")
+
+            # Ensure category_id is present in the final result, even if it's None.
+            if "category_id" not in analysis_data:
+                analysis_data["category_id"] = None
 
             log_msg = (
                 f"Successfully received analysis from NLPEngine. "
