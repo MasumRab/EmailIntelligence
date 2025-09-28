@@ -1,0 +1,18 @@
+{
+  "name": "emailintelligence",
+  "version": "1.0.0",
+  "description": "This is a streamlined version of the Email Intelligence application, focusing on core functionalities for local scientific and development use. It features a simplified environment setup and uses local file-based data storage.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "zod": "^4.1.11"
+  }
+}

@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Category } from "@shared/schema";
-import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   categories: Category[];
@@ -33,7 +32,7 @@ export function Sidebar({ categories }: SidebarProps) {
     { href: "/ai-training", icon: Brain, label: "AI Training" },
   ];
 
-  const getCategoryColor = (color: string) => {
+  const getCategoryColor = (color?: string) => {
     switch (color) {
       case "#34A853": return "bg-green-500";
       case "#4285F4": return "bg-blue-500";

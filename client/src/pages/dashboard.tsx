@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 // Filtered lucide-react imports: Brain, Zap, BarChart3, Bell, Settings removed
 import { Search, FolderSync } from "lucide-react";
 import { useState } from "react";
-import type { DashboardStats, Category, EmailWithCategory, Activity } from "@shared/schema";
+import type { Category, EmailWithCategory } from "@shared/schema";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,7 +26,7 @@ export default function Dashboard() {
   //   queryKey: ["/api/dashboard/stats"], // Removed
   // }); // Removed
 
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
