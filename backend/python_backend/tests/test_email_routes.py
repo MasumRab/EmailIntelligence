@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Adjust import path to go up one level then into python_backend package
-from server.python_backend.main import app  # Assuming 'app' is your FastAPI instance in main.py
+from backend.python_backend.main import app  # Assuming 'app' is your FastAPI instance in main.py
 
 # We need to ensure that dependencies in email_routes are mocked *before* TestClient(app) is called
 # or that the TestClient uses dependency overrides.
@@ -49,12 +49,9 @@ def mock_dependencies():
     # performance_monitor = PerformanceMonitor() (module-level instance)
 
     patches = [
-        patch("server.python_backend.email_routes.ai_engine", mock_ai_engine),
-        patch("server.python_backend.email_routes.filter_manager", mock_filter_manager),
-        patch(
-            "server.python_backend.email_routes.performance_monitor",
-            mock_performance_monitor_instance,
-        ),
+        patch("backend.python_backend.email_routes.ai_engine", mock_ai_engine),
+        patch("backend.python_backend.email_routes.filter_manager", mock_filter_manager),
+        # performance_monitor is commented out in email_routes.py, so no need to mock it
     ]
     for p in patches:
         p.start()
@@ -66,7 +63,7 @@ def mock_dependencies():
 # Fixture for TestClient with dependency overrides
 @pytest.fixture
 def client():
-    from server.python_backend.database import (  # Import here to ensure it's the one FastAPI uses
+    from backend.python_backend.database import (  # Import here to ensure it's the one FastAPI uses
         get_db,
     )
 
