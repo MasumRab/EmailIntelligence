@@ -46,7 +46,10 @@ import venv
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import pkg_resources
+try:
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    from importlib_metadata import version, PackageNotFoundError
 from dotenv import load_dotenv
 
 # Configure logging
@@ -98,7 +101,7 @@ def _setup_signal_handlers():
 
 # Constants
 PYTHON_MIN_VERSION = (3, 11)
-PYTHON_MAX_VERSION = (3, 11)
+PYTHON_MAX_VERSION = (3, 12)
 VENV_DIR = "venv"
 REQUIREMENTS_FILE = "requirements.txt"
 REQUIREMENTS_VERSIONS_FILE = "requirements_versions.txt"  # New constant
@@ -631,7 +634,7 @@ def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[
         python_executable,
         "-m",
         "uvicorn",
-        "server.python_backend.main:app",  # Assuming this is the correct path to your ASGI app
+        "backend.python_backend.main:app",  # Correct path to the ASGI app
         "--host",
         actual_host,  # Use actual_host here
         "--port",
@@ -1268,21 +1271,25 @@ def main() -> int:
         current_major, current_minor = sys.version_info[:2]
         target_major, target_minor = PYTHON_MIN_VERSION  # Assuming PYTHON_MIN_VERSION is (3, 11)
 
-        if not (current_major == target_major and current_minor == target_minor):
+        current_version = (current_major, current_minor)
+        if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
             logger.info(
                 f"Current Python is {current_major}.{current_minor}. "
-                f"Launcher requires Python {target_major}.{target_minor}. Attempting to find and re-execute."
+                f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
             )
 
             candidate_interpreters = []
             if platform.system() == "Windows":
                 candidate_interpreters = [
+                    ["py", "-3.12"],  # Python Launcher for Windows
                     ["py", "-3.11"],  # Python Launcher for Windows
+                    ["python3.12"],
                     ["python3.11"],
                     ["python"],  # General python, check version
                 ]
             else:  # Linux/macOS
                 candidate_interpreters = [
+                    ["python3.12"],
                     ["python3.11"],
                     ["python3"],  # General python3, check version
                 ]
@@ -1310,16 +1317,27 @@ def main() -> int:
                         # Python version can be in stdout or stderr
                         version_output = result.stdout.strip() + result.stderr.strip()
 
-                        # Example outputs: "Python 3.11.5" or "Python 3.11.0rc1"
-                        if f"Python {target_major}.{target_minor}" in version_output:
-                            logger.info(
-                                f"Found compatible Python {target_major}.{target_minor} interpreter: {potential_path} (version output: {version_output})"
-                            )
-                            found_interpreter_path = potential_path
+                        # Example outputs: "Python 3.11.5" or "Python 3.12.0rc1"
+                        # Check if version is in supported range
+                        compatible = False
+                        for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
+                            for minor in range(PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0, 
+                                             PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100):
+                                if f"Python {major}.{minor}" in version_output:
+                                    logger.info(
+                                        f"Found compatible Python {major}.{minor} interpreter: {potential_path} (version output: {version_output})"
+                                    )
+                                    found_interpreter_path = potential_path
+                                    compatible = True
+                                    break
+                            if compatible:
+                                break
+                        
+                        if compatible:
                             break
                         else:
                             logger.debug(
-                                f"Candidate {potential_path} (from {exe_name}) is not Python {target_major}.{target_minor}. Output: {version_output}"
+                                f"Candidate {potential_path} (from {exe_name}) is not in supported Python version range. Output: {version_output}"
                             )
                     except subprocess.TimeoutExpired:
                         logger.warning(

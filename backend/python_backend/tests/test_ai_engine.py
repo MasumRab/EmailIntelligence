@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from server.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
-from server.python_nlp.nlp_engine import NLPEngine  # NLPEngine is used by AdvancedAIEngine
+from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
+from backend.python_nlp.nlp_engine import NLPEngine  # NLPEngine is used by AdvancedAIEngine
 
 # Mock for DatabaseManager
 mock_db_manager_for_ai_engine = MagicMock()
