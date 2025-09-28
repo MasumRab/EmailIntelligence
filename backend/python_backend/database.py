@@ -8,7 +8,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Literal, Tuple
+from typing import Any, Dict, List, Optional, Literal
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,13 @@ class DatabaseManager:
             os.makedirs(DATA_DIR)
             logger.info(f"Created data directory: {DATA_DIR}")
 
-        asyncio.run(self._load_data())
+        self._initialized = False
+
+    async def _ensure_initialized(self) -> None:
+        """Ensure data is loaded."""
+        if not self._initialized:
+            await self._load_data()
+            self._initialized = True
 
     async def _load_data(self) -> None:
         """Loads data from JSON files into memory. Creates files if they don't exist."""

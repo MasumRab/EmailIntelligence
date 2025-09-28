@@ -2,7 +2,7 @@ import logging
 import unittest
 from unittest.mock import MagicMock
 
-from server.python_nlp.analysis_components.urgency_model import UrgencyModel
+from backend.python_nlp.analysis_components.urgency_model import UrgencyModel
 
 logging.disable(logging.CRITICAL)
 

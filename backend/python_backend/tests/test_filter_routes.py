@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from server.python_backend.main import app
-from server.python_nlp.smart_filters import EmailFilter  # For response model type hinting
+from backend.python_backend.main import app
+from backend.python_nlp.smart_filters import EmailFilter  # For response model type hinting
 
 # Mock SmartFilterManager methods
 mock_filter_manager_instance = MagicMock()
@@ -25,11 +25,8 @@ mock_performance_monitor_filter_instance = MagicMock()
 @pytest.fixture(scope="module", autouse=True)
 def mock_filter_dependencies():
     patches = [
-        patch("server.python_backend.filter_routes.filter_manager", mock_filter_manager_instance),
-        patch(
-            "server.python_backend.filter_routes.performance_monitor",
-            mock_performance_monitor_filter_instance,
-        ),
+        patch("backend.python_backend.filter_routes.filter_manager", mock_filter_manager_instance),
+        # performance_monitor is commented out in filter_routes.py, so no need to mock it
     ]
     for p in patches:
         p.start()
@@ -40,7 +37,7 @@ def mock_filter_dependencies():
 
 @pytest.fixture
 def client_filter():
-    from server.python_backend.database import get_db
+    from backend.python_backend.database import get_db
 
     app.dependency_overrides[get_db] = lambda: mock_db_manager_filter
     client = TestClient(app)

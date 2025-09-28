@@ -2,8 +2,6 @@
 AI Engine Adapter for Python Backend
 Bridges FastAPI backend with existing AI/NLP services
 """
-
-import json
 import logging
 
 # import sys # No longer needed for subprocess
