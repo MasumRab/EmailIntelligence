@@ -1,0 +1,86 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+          
+      - name: Run tests
+        run: |
+          uv run pytest backend/ -v --tb=short
+          
+      - name: Run linting
+        run: |
+          uv run flake8 backend/
+          uv run black --check backend/
+          uv run isort --check-only backend/
+
+  auto-merge:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' && success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check if PR is ready for merge
+        id: check-pr
+        run: |
+          # Check if PR is mergeable and not in draft state
+          PR_STATE=$(gh pr view ${{ github.event.pull_request.number }} --json mergeable,isDraft --jq '{mergeable: .mergeable, isDraft: .isDraft}')
+          echo "PR state: $PR_STATE"
+          
+          MERGEABLE=$(echo $PR_STATE | jq -r '.mergeable')
+          IS_DRAFT=$(echo $PR_STATE | jq -r '.isDraft')
+          
+          if [ "$MERGEABLE" = "MERGEABLE" ] && [ "$IS_DRAFT" = "false" ]; then
+            echo "ready=true" >> $GITHUB_OUTPUT
+          else
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "PR is not ready for merge. Mergeable: $MERGEABLE, Draft: $IS_DRAFT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Enable auto-merge for Dependabot PRs
+        if: steps.check-pr.outputs.ready == 'true'
+        run: |
+          echo "Enabling auto-merge for PR #${{ github.event.pull_request.number }}"
+          gh pr merge --auto --merge ${{ github.event.pull_request.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Add approval comment
+        if: steps.check-pr.outputs.ready == 'true'
+        run: |
+          gh pr review ${{ github.event.pull_request.number }} --approve --body "✅ Tests passed! Auto-merging this Dependabot PR."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
