@@ -336,11 +336,11 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 )
                 # Treat as incompatible, prompt for re-creation
                 try:
-                    # Check for CI environment variable
-                    if os.environ.get("CI"):
-                        response = "no"
+                    # Check for --force-recreate-venv flag or CI environment variable
+                    if args.force_recreate_venv or os.environ.get("CI"):
+                        response = "yes"
                         logger.warning(
-                            "CI environment detected, defaulting to not recreating corrupted venv."
+                            "CI environment or --force-recreate-venv flag detected, automatically recreating corrupted venv."
                         )
                     else:
                         response = (
@@ -411,11 +411,11 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                     f"This project requires Python {target_major}.{target_minor}."
                                 )
                                 try:
-                                    # Check for CI environment variable
-                                    if os.environ.get("CI"):
-                                        response = "no"
+                                    # Check for --force-recreate-venv flag or CI environment variable
+                                    if args.force_recreate_venv or os.environ.get("CI"):
+                                        response = "yes"
                                         logger.warning(
-                                            "CI environment detected, defaulting to not recreating incompatible venv."
+                                            "CI environment or --force-recreate-venv flag detected, automatically recreating incompatible venv."
                                         )
                                     else:
                                         response = (
@@ -1155,6 +1155,11 @@ def parse_arguments() -> argparse.Namespace:
         "--skip-python-version-check",
         action="store_true",
         help="Skip Python version check",
+    )
+    parser.add_argument(
+        "--force-recreate-venv",
+        action="store_true",
+        help="Force deletion and recreation of the virtual environment if it's corrupted or incompatible.",
     )
     parser.add_argument(
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data"
