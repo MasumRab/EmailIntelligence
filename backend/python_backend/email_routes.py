@@ -32,9 +32,11 @@ async def get_emails(
 ):
     """Get emails with optional filtering"""
     try:
-        if search:
+        if search and category_id is not None:
+            emails = await db.search_emails_by_category(search, category_id)
+        elif search:
             emails = await db.search_emails(search)
-        elif category_id:
+        elif category_id is not None:
             emails = await db.get_emails_by_category(category_id)
         else:
             emails = await db.get_all_emails()

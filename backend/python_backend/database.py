@@ -474,6 +474,53 @@ class DatabaseManager:
         return result_emails
 
 
+    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50) -> List[Dict[str, Any]]:
+        """Search emails within a specific category."""
+        if not search_term:
+            return await self.get_emails_by_category(category_id, limit=limit)
+
+        search_term_lower = search_term.lower()
+
+        # First, filter by category
+        category_emails = [
+            email for email in self.emails_data if email.get(FIELD_CATEGORY_ID) == category_id
+        ]
+
+        # Then, filter by search term
+        filtered_emails = [
+            email for email in category_emails
+            if (search_term_lower in email.get(FIELD_SUBJECT, '').lower() or
+                (isinstance(email.get(FIELD_CONTENT), str) and
+                 search_term_lower in email.get(FIELD_CONTENT, '').lower()) or
+                search_term_lower in email.get(FIELD_SENDER, '').lower() or
+                search_term_lower in email.get(FIELD_SENDER_EMAIL, '').lower()
+            )
+        ]
+
+        # Sort results
+        try:
+            sorted_emails = sorted(
+                filtered_emails,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, '')),
+                reverse=True
+            )
+        except TypeError:
+            logger.warning(f"Sorting search results by {FIELD_TIME} failed. Using '{FIELD_CREATED_AT}'.")
+            sorted_emails = sorted(
+                filtered_emails,
+                key=lambda e: e.get(FIELD_CREATED_AT, ''),
+                reverse=True
+            )
+
+        paginated_emails = sorted_emails[:limit]
+
+        # Add category details
+        result_emails = []
+        for email in paginated_emails:
+            result_emails.append(self._add_category_details(email))
+        return result_emails
+
+
     async def get_recent_emails(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get recent emails for analysis, ordered by reception time."""
         return await self.get_emails(limit=limit, offset=0)
