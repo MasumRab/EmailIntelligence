@@ -234,13 +234,20 @@ def reinstall_torch() -> bool:
 
     # Install PyTorch with CUDA support
     logger.info("Installing PyTorch with CUDA support...")
-    if os.name == "nt":  # Windows
-        cmd = f"{python} -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118"
-    else:  # Linux/MacOS
-        cmd = f"{python} -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118"
+    cmd = [
+        python,
+        "-m",
+        "pip",
+        "install",
+        "torch",
+        "torchvision",
+        "torchaudio",
+        "--index-url",
+        "https://download.pytorch.org/whl/cu118",
+    ]
 
     try:
-        subprocess.check_call(cmd, shell=True)
+        subprocess.check_call(cmd)
         return True
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to reinstall PyTorch: {e}")
@@ -328,14 +335,21 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 )
                 # Treat as incompatible, prompt for re-creation
                 try:
-                    response = (
-                        input(
-                            f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
-                            f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
+                    # Check for CI environment variable
+                    if os.environ.get("CI"):
+                        response = "no"
+                        logger.warning(
+                            "CI environment detected, defaulting to not recreating corrupted venv."
                         )
-                        .strip()
-                        .lower()
-                    )
+                    else:
+                        response = (
+                            input(
+                                f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
+                                f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
+                            )
+                            .strip()
+                            .lower()
+                        )
                 except EOFError:
                     response = "no"
                     logger.warning(
@@ -396,14 +410,21 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                     f"This project requires Python {target_major}.{target_minor}."
                                 )
                                 try:
-                                    response = (
-                                        input(
-                                            "Do you want to delete and recreate the virtual environment with "
-                                            f"Python {target_major}.{target_minor}? (yes/no): "
+                                    # Check for CI environment variable
+                                    if os.environ.get("CI"):
+                                        response = "no"
+                                        logger.warning(
+                                            "CI environment detected, defaulting to not recreating incompatible venv."
                                         )
-                                        .strip()
-                                        .lower()
-                                    )
+                                    else:
+                                        response = (
+                                            input(
+                                                "Do you want to delete and recreate the virtual environment with "
+                                                f"Python {target_major}.{target_minor}? (yes/no): "
+                                            )
+                                            .strip()
+                                            .lower()
+                                        )
                                 except EOFError:
                                     response = "no"
                                     logger.warning(
