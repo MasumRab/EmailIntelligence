@@ -19,6 +19,7 @@ class DatabaseManager:
     """Async database manager for email data using PostgreSQL"""
 
     def __init__(self, db_url: Optional[str] = None):
+
         raw_db_url = db_url or os.getenv("DATABASE_URL")
 
         if raw_db_url:
@@ -87,6 +88,7 @@ class DatabaseManager:
 
         try:
             result = await asyncio.to_thread(db_operation)
+
             if fetch_one:
                 result_row = await asyncio.to_thread(cur.fetchone)
                 result = dict(result_row) if result_row else None
@@ -101,6 +103,7 @@ class DatabaseManager:
         except sqlite3.Error as e: # Catch errors from db_operation or asyncio.to_thread itself
             logger.error(f"Database error: {e}")
             # No conn object to rollback or close here as it's managed within db_operation
+
             raise
         # No finally block needed here for conn, it's handled in db_operation
 
@@ -229,6 +232,7 @@ class DatabaseManager:
             raise
         finally:
             conn.close()
+
         pass
 
     @asynccontextmanager
