@@ -15,10 +15,10 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-# from server.python_nlp.action_item_extractor import ( # Removed
+# from backend.python_nlp.action_item_extractor import ( # Removed
     # ActionItemExtractor, # Removed
 # ) # Removed
-from server.python_nlp.text_utils import clean_text
+from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.intent_model import IntentModel
 from .analysis_components.sentiment_model import SentimentModel

@@ -2,7 +2,7 @@ import logging
 import unittest
 from unittest.mock import MagicMock
 
-from server.python_nlp.analysis_components.topic_model import TopicModel
+from backend.python_nlp.analysis_components.topic_model import TopicModel
 
 logging.disable(logging.CRITICAL)
 

@@ -2,7 +2,7 @@ import logging
 import unittest
 from unittest.mock import MagicMock
 
-from server.python_nlp.analysis_components.intent_model import IntentModel
+from backend.python_nlp.analysis_components.intent_model import IntentModel
 
 logging.disable(logging.CRITICAL)
 
