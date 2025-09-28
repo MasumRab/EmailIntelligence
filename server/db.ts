@@ -15,5 +15,6 @@ import * as schema from "@shared/schema";
 // }
 
 // export const pool = new Pool({ connectionString: process.env.DATABASE_URL }); // Removed for SQLite
-const sqlite = new Database('sqlite.db');
+const sqliteDbPath = process.env.DATABASE_URL || 'sqlite.db';
+const sqlite = new Database(sqliteDbPath);
 export const db = drizzle(sqlite, { schema });

@@ -4,8 +4,8 @@ import { pythonNLP, type MappedNLPResult } from "./python-bridge"; // Import Map
 
 const router = express.Router();
 
-// Advanced AI Analysis
-router.post("/analyze", async (req, res) => {
+// Handler for POST /api/ai/analyze
+export const analyzeEmailHandler = async (req, res) => {
   try {
     const { subject, content } = req.body;
 
@@ -22,10 +22,10 @@ router.post("/analyze", async (req, res) => {
     console.error("AI analysis error:", error);
     res.status(500).json({ message: "Failed to analyze email with AI" });
   }
-});
+};
 
-// Enhanced AI categorization with accuracy validation
-router.post("/categorize", async (req, res) => {
+// Handler for POST /api/ai/categorize
+export const categorizeEmailHandler = async (req, res) => {
   try {
     const { emailId, autoAnalyze } = req.body;
 
@@ -113,10 +113,10 @@ router.post("/categorize", async (req, res) => {
     console.error("Categorization error:", error);
     res.status(500).json({ message: "Failed to categorize email" });
   }
-});
+};
 
-// Batch AI processing
-router.post("/batch-analyze", async (req, res) => {
+// Handler for POST /api/ai/batch-analyze
+export const batchAnalyzeEmailsHandler = async (req, res) => {
   try {
     const { emailIds } = req.body;
 
@@ -204,10 +204,10 @@ router.post("/batch-analyze", async (req, res) => {
     console.error("Batch analysis error:", error);
     res.status(500).json({ message: "Failed to perform batch analysis" });
   }
-});
+};
 
-// AI accuracy validation endpoint
-router.post("/validate", async (req, res) => {
+// Handler for POST /api/ai/validate
+export const validateAIAnalysisHandler = async (req, res) => {
   try {
     const { emailId, userFeedback, correctCategory } = req.body;
 
@@ -269,10 +269,10 @@ router.post("/validate", async (req, res) => {
     console.error("Validation error:", error);
     res.status(500).json({ message: "Failed to validate AI analysis" });
   }
-});
+};
 
-// AI engine health check
-router.get("/health", async (_req, res) => {
+// Handler for GET /api/ai/health
+export const getAIHealthHandler = async (_req, res) => {
   try {
     console.time("pythonNLP.testConnection");
     const isHealthy = await pythonNLP.testConnection();
@@ -293,6 +293,17 @@ router.get("/health", async (_req, res) => {
       timestamp: new Date().toISOString()
     });
   }
-});
+};
+
+// Advanced AI Analysis
+router.post("/analyze", analyzeEmailHandler);
+// Enhanced AI categorization with accuracy validation
+router.post("/categorize", categorizeEmailHandler);
+// Batch AI processing
+router.post("/batch-analyze", batchAnalyzeEmailsHandler);
+// AI accuracy validation endpoint
+router.post("/validate", validateAIAnalysisHandler);
+// AI engine health check
+router.get("/health", getAIHealthHandler);
 
 export default router;
