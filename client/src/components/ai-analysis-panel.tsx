@@ -9,13 +9,11 @@ import {
   Brain, 
   CheckCircle, 
   AlertTriangle, 
-  TrendingUp, 
   Zap, 
   Target,
   Eye,
   ThumbsUp,
-  ThumbsDown,
-  RotateCcw
+  ThumbsDown
 } from "lucide-react";
 import type { EmailWithCategory } from "@shared/schema";
 
