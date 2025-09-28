@@ -6,6 +6,7 @@ Data validation and serialization models
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
+from .constants import DEFAULT_CATEGORY_COLOR
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
@@ -101,7 +102,7 @@ class EmailResponse(EmailBase):
 class CategoryBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
-    color: str = Field(default="#6366f1", pattern=r"^#[0-9A-Fa-f]{6}$")
+    color: str = Field(default=DEFAULT_CATEGORY_COLOR, pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
 class CategoryCreate(CategoryBase):
