@@ -12,6 +12,10 @@ mock_db_manager_for_ai_engine.get_all_categories = AsyncMock()
 
 @pytest.fixture
 def ai_engine_instance():
+    # Reset mocks before each test to ensure test isolation
+    mock_db_manager_for_ai_engine.get_all_categories.reset_mock()
+    mock_db_manager_for_ai_engine.get_all_categories.side_effect = None
+
     # We need to mock NLPEngine that AdvancedAIEngine instantiates,
     # or mock its analyze_email method.
     with patch.object(NLPEngine, "analyze_email") as mock_nlp_analyze:

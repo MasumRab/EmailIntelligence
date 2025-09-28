@@ -210,3 +210,28 @@ def test_update_email_not_found(client):
     response = client.put("/api/emails/99", json={"subject": "test"})
     assert response.status_code == 404
     assert response.json() == {"detail": "Email not found"}
+
+
+def test_get_emails_db_error(client):
+    """Test that a database error is handled gracefully."""
+    # We need to import psycopg2 to raise the correct error type
+    try:
+        import psycopg2
+    except ImportError:
+        # If psycopg2 is not installed in the test environment, we can't run this test.
+        # A more robust solution would be to mock the error class itself,
+        # but for this case, let's assume it's available or create a mock error class.
+        class MockPsycopg2Error(Exception):
+            pass
+        psycopg2 = MagicMock()
+        psycopg2.Error = MockPsycopg2Error
+
+    mock_db_manager.get_all_emails.side_effect = psycopg2.Error("Database connection failed")
+
+    response = client.get("/api/emails")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Database service unavailable."}
+
+    # Reset the mock to avoid affecting other tests
+    mock_db_manager.get_all_emails.side_effect = None
