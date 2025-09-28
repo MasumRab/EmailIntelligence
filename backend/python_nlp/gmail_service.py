@@ -782,8 +782,8 @@ async def main():
     )  # This will use the root logger if not further specified
 
     # For testing, if AdvancedAIEngine is required, you'd mock it or instantiate it:
-    # from server.python_backend.ai_engine import AdvancedAIEngine
-    # from server.python_backend.database import DatabaseManager
+    # from backend.python_backend.ai_engine import AdvancedAIEngine
+    # from backend.python_backend.database import DatabaseManager
     # advanced_ai_engine_instance = AdvancedAIEngine()
     # db_manager_instance = DatabaseManager() # Needs DATABASE_URL
     # service = GmailAIService(advanced_ai_engine=advanced_ai_engine_instance, db_manager=db_manager_instance)
