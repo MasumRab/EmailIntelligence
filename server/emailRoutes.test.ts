@@ -1,59 +1,64 @@
 import express, { type Application, type Request, type Response, type NextFunction } from 'express';
-import emailRoutes from './emailRoutes'; // Assuming this is the correct path to your routes
+import { vi } from 'vitest'; // Import vi
+// Import the exported handlers
+import {
+    getEmailsHandler,
+    getEmailByIdHandler,
+    createEmailHandler,
+    updateEmailHandler
+} from './emailRoutes';
 import { storage } from './storage'; // To mock its methods
 
 // Mock the storage module
-jest.mock('./storage', () => ({
+vi.mock('./storage', () => ({
   storage: {
-    searchEmails: jest.fn(),
-    getEmailsByCategory: jest.fn(),
-    getAllEmails: jest.fn(),
-    getEmailById: jest.fn(),
-    createEmail: jest.fn(),
-    updateEmail: jest.fn(),
+    searchEmails: vi.fn(),
+    getEmailsByCategory: vi.fn(),
+    getAllEmails: vi.fn(),
+    getEmailById: vi.fn(),
+    createEmail: vi.fn(),
+    updateEmail: vi.fn(),
   },
 }));
 
 // Helper to create a test app
-const createApp = (): Application => {
-  const app = express();
-  app.use(express.json()); // Important for POST/PUT requests
-  app.use('/api/emails', emailRoutes); // Mount the routes under a base path
-  return app;
-};
+// const createApp = (): Application => { // Not needed for direct handler testing
+//   const app = express();
+//   app.use(express.json());
+//   app.use('/api/emails', emailRoutes);
+//   return app;
+// };
 
-describe('Email Routes', () => {
-  let app: Application;
+describe('Email Route Handlers', () => { // Updated describe
+  // let app: Application; // Not needed
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
-  let nextFunction: NextFunction = jest.fn();
+  let nextFunction: NextFunction = vi.fn();
 
   beforeEach(() => {
-    app = createApp();
+    // app = createApp(); // Not needed
     mockRequest = {};
     mockResponse = {
-      json: jest.fn().mockReturnThis(),
-      status: jest.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+      status: vi.fn().mockReturnThis(),
     };
     // Reset mocks for storage methods
-    (storage.getAllEmails as jest.Mock).mockClear();
-    (storage.getEmailById as jest.Mock).mockClear();
-    (storage.createEmail as jest.Mock).mockClear();
-    (storage.updateEmail as jest.Mock).mockClear();
-    (storage.searchEmails as jest.Mock).mockClear();
-    (storage.getEmailsByCategory as jest.Mock).mockClear();
+    (storage.getAllEmails as any).mockClear();
+    (storage.getEmailById as any).mockClear();
+    (storage.createEmail as any).mockClear();
+    (storage.updateEmail as any).mockClear();
+    (storage.searchEmails as any).mockClear();
+    (storage.getEmailsByCategory as any).mockClear();
+    nextFunction = vi.fn(); // Reset nextFunction
   });
 
-  describe('GET /api/emails', () => {
+  describe('getEmailsHandler', () => { // Updated describe
     it('should get all emails and return 200', async () => {
       const mockEmails = [{ id: 1, subject: 'Test Email' }];
-      (storage.getAllEmails as jest.Mock).mockResolvedValue(mockEmails);
+      (storage.getAllEmails as any).mockResolvedValue(mockEmails);
+      mockRequest = { query: {} };
 
-      await emailRoutes(
-        { ...mockRequest, query: {} } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await getEmailsHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(storage.getAllEmails).toHaveBeenCalledTimes(1);
       expect(mockResponse.json).toHaveBeenCalledWith(mockEmails);
@@ -62,13 +67,10 @@ describe('Email Routes', () => {
     it('should search emails if "search" query is present and return 200', async () => {
       const mockEmails = [{ id: 1, subject: 'Searched Email' }];
       const searchQuery = 'test_search';
-      (storage.searchEmails as jest.Mock).mockResolvedValue(mockEmails);
+      (storage.searchEmails as any).mockResolvedValue(mockEmails);
+      mockRequest = { query: { search: searchQuery } };
 
-      await emailRoutes(
-        { ...mockRequest, query: { search: searchQuery } } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await getEmailsHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(storage.searchEmails).toHaveBeenCalledWith(searchQuery);
       expect(mockResponse.json).toHaveBeenCalledWith(mockEmails);
@@ -77,80 +79,57 @@ describe('Email Routes', () => {
     it('should get emails by category if "category" query is present and return 200', async () => {
         const mockEmails = [{ id: 1, subject: 'Category Email', categoryId: 1 }];
         const categoryId = '1';
-        (storage.getEmailsByCategory as jest.Mock).mockResolvedValue(mockEmails);
+        (storage.getEmailsByCategory as any).mockResolvedValue(mockEmails);
+        mockRequest = { query: { category: categoryId } };
 
-        await emailRoutes(
-          { ...mockRequest, query: { category: categoryId } } as Request,
-          mockResponse as Response,
-          nextFunction
-        );
+        await getEmailsHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
         expect(storage.getEmailsByCategory).toHaveBeenCalledWith(parseInt(categoryId));
         expect(mockResponse.json).toHaveBeenCalledWith(mockEmails);
       });
 
     it('should return 500 if fetching emails fails', async () => {
-      (storage.getAllEmails as jest.Mock).mockRejectedValue(new Error('DB Error'));
+      (storage.getAllEmails as any).mockRejectedValue(new Error('DB Error'));
+      mockRequest = { query: {} }; // Simulates error in the getAllEmails path
 
-      await emailRoutes(
-        { ...mockRequest, query: {} } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await getEmailsHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Failed to fetch emails' });
     });
   });
 
-  describe('GET /api/emails/:id', () => {
+  describe('getEmailByIdHandler', () => { // Updated describe
     it('should get an email by ID and return 200', async () => {
       const mockEmail = { id: 1, subject: 'Test Email' };
-      (storage.getEmailById as jest.Mock).mockResolvedValue(mockEmail);
+      (storage.getEmailById as any).mockResolvedValue(mockEmail);
+      mockRequest = { params: { id: '1' } };
 
-      await emailRoutes(
-        { ...mockRequest, params: { id: '1' } } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await getEmailByIdHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(storage.getEmailById).toHaveBeenCalledWith(1);
       expect(mockResponse.json).toHaveBeenCalledWith(mockEmail);
     });
 
     it('should return 404 if email not found', async () => {
-      (storage.getEmailById as jest.Mock).mockResolvedValue(undefined);
+      (storage.getEmailById as any).mockResolvedValue(undefined);
+      mockRequest = { params: { id: '99' } };
 
-      await emailRoutes(
-        { ...mockRequest, params: { id: '99' } } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await getEmailByIdHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Email not found' });
     });
   });
 
-  describe('POST /api/emails', () => {
+  describe('createEmailHandler', () => { // Updated describe
     it('should create an email and return 201', async () => {
       const newEmailData = { subject: 'New Email', content: 'Content', sender: 't@t.com', senderEmail: 't@t.com', time:'t', preview:'p' };
       const createdEmail = { id: 2, ...newEmailData };
-      (storage.createEmail as jest.Mock).mockResolvedValue(createdEmail);
+      (storage.createEmail as any).mockResolvedValue(createdEmail);
+      mockRequest = { body: newEmailData };
 
-      // For POST, the router itself will call the handler. We need to simulate a request to the app.
-      // This test structure is more for testing the handler function directly.
-      // To test the router with `supertest`:
-      // const response = await request(app).post('/api/emails').send(newEmailData);
-      // expect(response.status).toBe(201);
-      // expect(response.body).toEqual(createdEmail);
-
-      // Direct handler call:
-      await emailRoutes(
-        { ...mockRequest, body: newEmailData } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await createEmailHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(storage.createEmail).toHaveBeenCalledWith(expect.objectContaining(newEmailData));
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -179,7 +158,7 @@ describe('Email Routes', () => {
         // If storage.createEmail itself threw a Zod-like error:
         const zodError = new Error("Invalid data") as any; // Simulate ZodError
         zodError.errors = [{ message: "Validation failed" }];
-        (storage.createEmail as jest.Mock).mockRejectedValue(zodError);
+        (storage.createEmail as any).mockRejectedValue(zodError);
 
 
         // This test will not work as expected because storage.createEmail is mocked AFTER zod parsing.
@@ -188,30 +167,24 @@ describe('Email Routes', () => {
     });
   });
 
-  describe('PUT /api/emails/:id', () => {
+  describe('updateEmailHandler', () => { // Updated describe
     it('should update an email and return 200', async () => {
       const updateData = { subject: 'Updated Subject' };
       const updatedEmail = { id: 1, subject: 'Updated Subject' };
-      (storage.updateEmail as jest.Mock).mockResolvedValue(updatedEmail);
+      (storage.updateEmail as any).mockResolvedValue(updatedEmail);
+      mockRequest = { params: { id: '1' }, body: updateData };
 
-      await emailRoutes(
-        { ...mockRequest, params: { id: '1' }, body: updateData } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await updateEmailHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(storage.updateEmail).toHaveBeenCalledWith(1, updateData);
       expect(mockResponse.json).toHaveBeenCalledWith(updatedEmail);
     });
 
     it('should return 404 if email to update not found', async () => {
-      (storage.updateEmail as jest.Mock).mockResolvedValue(undefined);
+      (storage.updateEmail as any).mockResolvedValue(undefined);
+      mockRequest = { params: { id: '99' }, body: { subject: 'test' } };
 
-      await emailRoutes(
-        { ...mockRequest, params: { id: '99' }, body: { subject: 'test' } } as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+      await updateEmailHandler(mockRequest as Request, mockResponse as Response, nextFunction);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Email not found' });
@@ -257,4 +230,3 @@ describe('Email Routes', () => {
 // This is a limitation of not using `supertest`.
 // The tests are still valuable for checking handler logic given mocked storage.
 // The `createApp` helper is good for potential future `supertest` integration.
-[end of server/emailRoutes.test.ts]

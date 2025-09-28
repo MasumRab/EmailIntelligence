@@ -5,8 +5,8 @@ import { z } from "zod";
 
 const router = express.Router();
 
-// Activities
-router.get("/", async (req, res) => {
+// Handler for GET /api/activities
+export const getAllActivitiesHandler = async (req, res) => {
   try {
     const { limit } = req.query;
     console.time("storage.getRecentActivities");
@@ -18,9 +18,10 @@ router.get("/", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch activities" });
   }
-});
+};
 
-router.post("/", async (req, res) => {
+// Handler for POST /api/activities
+export const createActivityHandler = async (req, res) => {
   try {
     const activityData = insertActivitySchema.parse(req.body);
     console.time("storage.createActivity");
@@ -34,6 +35,10 @@ router.post("/", async (req, res) => {
       res.status(500).json({ message: "Failed to create activity" });
     }
   }
-});
+};
+
+// Activities
+router.get("/", getAllActivitiesHandler);
+router.post("/", createActivityHandler);
 
 export default router;

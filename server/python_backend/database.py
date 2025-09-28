@@ -19,9 +19,25 @@ class DatabaseManager:
     """Async database manager for email data using PostgreSQL"""
 
     def __init__(self, db_url: Optional[str] = None):
-        self.database_url = db_url or os.getenv("DATABASE_URL", "sqlite.db")  # Default to sqlite.db
-        # self.init_database() # Table creation handled by Drizzle ORM / or manually for SQLite
-        # Seeding default data can be done here if needed.
+
+        raw_db_url = db_url or os.getenv("DATABASE_URL")
+
+        if raw_db_url:
+            if raw_db_url.startswith("sqlite:"):
+                # Examples: "sqlite:./sqlite.db", "sqlite:///./sqlite.db", "sqlite:mydatabase.db"
+                path_part = raw_db_url.split(":", 1)[1]
+                if path_part.startswith("//"): # Handles "sqlite:///path"
+                    path_part = path_part[2:]
+                self.db_path = path_part
+            else:
+                # Assume it's a direct file path if not starting with "sqlite:"
+                self.db_path = raw_db_url
+        else:
+            # Default path if DATABASE_URL is not set
+            self.db_path = "./sqlite.db"
+
+        logger.info(f"DatabaseManager initialized with SQLite path: {self.db_path}")
+        # self.init_database() # Table creation can be called explicitly if needed, e.g., at app startup or in tests.
 
     async def _execute_query(
         self,
@@ -32,16 +48,47 @@ class DatabaseManager:
         commit: bool = False,
     ):
         """Helper to execute queries using asyncio.to_thread for sync sqlite3."""
-        conn = await asyncio.to_thread(sqlite3.connect, self.database_url)
-        conn.row_factory = sqlite3.Row  # Access columns by name
+
+        def db_operation():
+            conn = sqlite3.connect(self.db_path) # Use self.db_path
+            conn.row_factory = sqlite3.Row  # Access columns by name
+            # Enable foreign key constraint enforcement for SQLite, per connection
+            conn.execute("PRAGMA foreign_keys = ON;")
+            try:
+                cur = conn.cursor()
+                cur.execute(query, params or ())
+
+                result = None
+                if fetch_one:
+                    result_row = cur.fetchone()
+                    result = dict(result_row) if result_row else None
+                elif fetch_all:
+                    result_rows = cur.fetchall()
+                    result = [dict(row) for row in result_rows]
+
+                if commit:
+                    conn.commit()
+
+                # For INSERT statements, handle lastrowid for SQLite
+                if query.strip().upper().startswith("INSERT") and not fetch_one and not fetch_all:
+                    # If RETURNING id was part of the original query, it needs to be removed for SQLite.
+                    # The caller will need to be adjusted if it expected a dict with 'id'.
+                    # For SQLite, cur.lastrowid gives the ID of the last inserted row.
+                    pass # No explicit return of lastrowid here unless specifically queried
+
+                return result
+            except sqlite3.Error as e:
+                logger.error(f"Database error during operation: {e}")
+                if conn: # conn will always be defined here, but defensive
+                    conn.rollback()
+                raise # Re-raise the original error to be caught by the outer try-except
+            finally:
+                if conn:
+                    conn.close()
+
         try:
-            # For SQLite, PRAGMA foreign_keys=ON should be enabled per connection if FKs are used.
-            # await asyncio.to_thread(conn.execute, "PRAGMA foreign_keys = ON;")
+            result = await asyncio.to_thread(db_operation)
 
-            cur = await asyncio.to_thread(conn.cursor)
-            await asyncio.to_thread(cur.execute, query, params or ())
-
-            result = None
             if fetch_one:
                 result_row = await asyncio.to_thread(cur.fetchone)
                 result = dict(result_row) if result_row else None
@@ -52,27 +99,13 @@ class DatabaseManager:
             if commit:
                 await asyncio.to_thread(conn.commit)
 
-            # For INSERT statements, handle lastrowid for SQLite
-            if query.strip().upper().startswith("INSERT") and not fetch_one and not fetch_all:
-                # If RETURNING id was part of the original query, it needs to be removed for SQLite.
-                # The caller will need to be adjusted if it expected a dict with 'id'.
-                # For SQLite, cur.lastrowid gives the ID of the last inserted row.
-                # This part might need further adjustment based on how INSERT + RETURNING id was used.
-                # If the original query used "RETURNING id" and `fetch_one` was True, that's handled.
-                # If `fetch_one` was False, it means the result of RETURNING id was not directly used or
-                # it was expected to be implicitly handled (which psycopg2 might do differently).
-                # For now, we are not returning cur.lastrowid directly from here unless fetch_one is true
-                # and the query is adapted to something like "SELECT last_insert_rowid();"
-                pass
-
-
             return result
-        except sqlite3.Error as e:
+        except sqlite3.Error as e: # Catch errors from db_operation or asyncio.to_thread itself
             logger.error(f"Database error: {e}")
-            await asyncio.to_thread(conn.rollback) # Rollback is implicit on error if not committed
+            # No conn object to rollback or close here as it's managed within db_operation
+
             raise
-        finally:
-            await asyncio.to_thread(conn.close)
+        # No finally block needed here for conn, it's handled in db_operation
 
     def init_database(self):
         """
@@ -82,9 +115,124 @@ class DatabaseManager:
         """
         # Seeding could be handled here or by external scripts.
         # Example: Create tables if they don't exist (simplified)
-        # await self._execute_query("CREATE TABLE IF NOT EXISTS categories (...);", commit=True)
-        # await self._execute_query("CREATE TABLE IF NOT EXISTS emails (...);", commit=True)
-        # await self._execute_query("CREATE TABLE IF NOT EXISTS activities (...);", commit=True)
+        # For SQLite, table creation might need to be handled here if not by external tools.
+        # This method could seed default categories if they don't exist.
+        # Seeding could be handled here or by external scripts.
+        # Create tables if they don't exist (simplified)
+        # This method is synchronous, so we'll use a synchronous helper or adapt _execute_query
+        # For now, let's assume _execute_query can be called from a sync context if run with asyncio.run
+        # or we make a sync version for init.
+        # Given the current structure, we'll define the CREATE TABLE statements
+        # and assume they will be executed by a mechanism that calls this init_database.
+        # The actual execution will be triggered by the test setup (conftest.py or similar)
+        # by calling this method on a DatabaseManager instance.
+        # The `init_database` method itself uses self.db_path via self.database_url (which will be updated)
+
+        # Simplified schema based on shared/schema.ts for SQLite
+        create_users_table = """
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL
+        );
+        """
+        create_categories_table = """
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            color TEXT NOT NULL,
+            count INTEGER DEFAULT 0
+        );
+        """
+        create_emails_table = """
+        CREATE TABLE IF NOT EXISTS emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message_id TEXT UNIQUE,
+            thread_id TEXT,
+            history_id TEXT,
+            sender TEXT NOT NULL,
+            sender_email TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            content TEXT NOT NULL,
+            content_html TEXT,
+            preview TEXT NOT NULL,
+            snippet TEXT,
+            to_addresses TEXT, -- JSON string
+            cc_addresses TEXT, -- JSON string
+            bcc_addresses TEXT, -- JSON string
+            reply_to TEXT,
+            "time" TEXT NOT NULL, -- Assuming ISO8601 or similar string
+            internal_date TEXT,
+            label_ids TEXT, -- JSON string
+            labels TEXT, -- JSON string
+            category TEXT,
+            is_unread INTEGER DEFAULT 1,
+            is_starred INTEGER DEFAULT 0,
+            is_important INTEGER DEFAULT 0,
+            is_draft INTEGER DEFAULT 0,
+            is_sent INTEGER DEFAULT 0,
+            is_spam INTEGER DEFAULT 0,
+            is_trash INTEGER DEFAULT 0,
+            is_chat INTEGER DEFAULT 0,
+            has_attachments INTEGER DEFAULT 0,
+            attachment_count INTEGER DEFAULT 0,
+            size_estimate INTEGER,
+            spf_status TEXT,
+            dkim_status TEXT,
+            dmarc_status TEXT,
+            is_encrypted INTEGER DEFAULT 0,
+            is_signed INTEGER DEFAULT 0,
+            priority TEXT DEFAULT 'normal',
+            is_auto_reply INTEGER DEFAULT 0,
+            mailing_list TEXT,
+            in_reply_to TEXT,
+            "references" TEXT, -- JSON string
+            is_first_in_thread INTEGER DEFAULT 1,
+            category_id INTEGER,
+            confidence INTEGER DEFAULT 95,
+            analysis_metadata TEXT, -- JSON string
+            is_read INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            FOREIGN KEY (category_id) REFERENCES categories (id)
+        );
+        """
+        create_activities_table = """
+        CREATE TABLE IF NOT EXISTS activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT NOT NULL,
+            description TEXT NOT NULL,
+            details TEXT, -- JSON string
+            "timestamp" TEXT NOT NULL,
+            icon TEXT NOT NULL,
+            icon_bg TEXT NOT NULL
+        );
+        """
+        # Note: Direct execution from here might be tricky due to async nature of _execute_query
+        # This method is currently synchronous.
+        # For tests, this init_database() would be called by a test fixture.
+        # We'll assume the test runner or conftest will handle running these.
+        # A better approach might be to have a separate setup_schema async method.
+        # For now, this defines the queries. The actual execution needs to be handled.
+        # To make it work with current structure, we'd need a sync execution method.
+        # Let's create a temporary sync execution for init_database
+        conn = sqlite3.connect(self.db_path) # Corrected to use self.db_path
+        try:
+            cur = conn.cursor()
+            cur.execute(create_users_table)
+            cur.execute(create_categories_table)
+            cur.execute(create_emails_table)
+            cur.execute(create_activities_table)
+            conn.commit()
+            logger.info("Database tables initialized/verified for SQLite.")
+        except sqlite3.Error as e:
+            logger.error(f"Error initializing SQLite tables: {e}")
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
         pass
 
     @asynccontextmanager
@@ -92,7 +240,7 @@ class DatabaseManager:
         """Async context manager for database connections using sqlite3."""
         conn = None
         try:
-            conn = await asyncio.to_thread(sqlite3.connect, self.database_url)
+            conn = await asyncio.to_thread(sqlite3.connect, self.db_path) # Use self.db_path
             conn.row_factory = sqlite3.Row
             # For SQLite, PRAGMA foreign_keys=ON should be enabled per connection if FKs are used.
             # await asyncio.to_thread(conn.execute, "PRAGMA foreign_keys = ON;")

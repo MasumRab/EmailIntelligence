@@ -58,3 +58,10 @@ exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.pytest.ini_options]
+# Try setting via addopts as the plugin might not be loading to register the asyncio_mode option directly
+addopts = "--asyncio-mode=auto"
+markers = [
+    "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
+]
