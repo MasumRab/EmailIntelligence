@@ -1,20 +1,6 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: emailintelligence
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: .. # Assuming context is the parent directory of 'deployment'
@@ -31,7 +17,7 @@ services:
       - ../shared:/app/shared
 
 volumes:
-  postgres_data:
+  # postgres_data: # Removed as the postgres service is removed
 
 networks:
   default:

@@ -1,7 +1,8 @@
 import json
 import logging
+import sqlite3 # Added for SQLite error handling
 
-import psycopg2
+# import psycopg2 # Removed
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 # Corrected import path for SmartFilterManager
@@ -45,13 +46,15 @@ async def get_filters(request: Request):
 async def create_filter(request: Request, filter_request_model: FilterRequest):
     """Create new email filter"""
     try:
-        description = filter_request_model.criteria.get("description", "")
+        # Correctly access description from filter_request_model directly
+        description = filter_request_model.description if filter_request_model.description is not None else ""
 
         new_filter_object = filter_manager.add_custom_filter(
             name=filter_request_model.name,
             description=description,
-            criteria=filter_request_model.criteria,
-            actions=filter_request_model.actions,
+            # Assuming add_custom_filter expects dicts for criteria and actions
+            criteria=filter_request_model.criteria.model_dump(by_alias=True),
+            actions=filter_request_model.actions.model_dump(by_alias=True),
             priority=filter_request_model.priority,
         )
         # FastAPI will handle dataclass serialization to JSON
@@ -79,13 +82,13 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
         created_filters = filter_manager.create_intelligent_filters(emails) # Removed await
 
         return {"created_filters": len(created_filters), "filters": created_filters}
-    except psycopg2.Error as db_err:
+    except sqlite3.Error as db_err: # Changed to sqlite3.Error
         log_data = {
             "message": "DB operation failed during intelligent filter generation",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            # "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None, # Removed pgcode
         }
         logger.error(json.dumps(log_data))
         raise HTTPException(status_code=503, detail="Database service unavailable.")

@@ -663,11 +663,11 @@ class GmailAIService:
                 "execute-strategies", # Corrected: positional command
                 "--max-api-calls",
                 str(max_api_calls),
-                "--time-budget",
+                "--time-budget-minutes", # Corrected argument name
                 str(time_budget_minutes),
             ]
             if strategies:
-                cmd.extend(["--strategies"] + strategies)
+                cmd.extend(["--strategy-names"] + strategies) # Corrected argument name
 
             result = await self._execute_async_command(cmd, cwd=self.nlp_path)
 

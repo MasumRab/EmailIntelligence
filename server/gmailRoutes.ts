@@ -1,27 +1,25 @@
-import express from "express";
-import { storage } from "./storage";
+import express, { Request, Response, NextFunction } from "express";
+import { storage } from "./storage"; // Assuming storage is used, though not visible in these handlers
 import { gmailAIService } from "./gmail-ai-service";
 
 const router = express.Router();
 
 // Gmail sync simulation
-router.post("/sync", async (req, res) => {
+export const syncGmailHandler = async (req: Request, res: Response) => {
   try {
     const {
       maxEmails = 500,
       queryFilter = "newer_than:1d",
       includeAIAnalysis = true,
-      strategies = [],
-      timeBudgetMinutes = 15
+      // strategies = [], // Not used by underlying service.syncGmailEmails
+      // timeBudgetMinutes = 15 // Not used by underlying service.syncGmailEmails
     } = req.body;
 
     console.time("gmailAIService.syncGmailEmails");
     const result = await gmailAIService.syncGmailEmails({
       maxEmails,
       queryFilter,
-      includeAIAnalysis,
-      strategies,
-      timeBudgetMinutes
+      includeAIAnalysis
     });
     console.timeEnd("gmailAIService.syncGmailEmails");
 
@@ -34,11 +32,11 @@ router.post("/sync", async (req, res) => {
       processedCount: 0
     });
   }
-});
+};
+router.post("/sync", syncGmailHandler);
 
 // Gmail Smart Retrieval Routes
-// Execute smart Gmail retrieval with multiple strategies
-router.post("/smart-retrieval", async (req, res) => {
+export const smartRetrievalHandler = async (req: Request, res: Response) => {
   try {
     const { strategies = [], maxApiCalls = 100, timeBudgetMinutes = 30 } = req.body;
 
@@ -59,10 +57,11 @@ router.post("/smart-retrieval", async (req, res) => {
       processedCount: 0
     });
   }
-});
+};
+router.post("/smart-retrieval", smartRetrievalHandler);
 
 // Get available retrieval strategies
-router.get("/strategies", async (_req, res) => {
+export const getStrategiesHandler = async (_req: Request, res: Response) => {
   try {
     console.time("gmailAIService.getRetrievalStrategies");
     const strategies = await gmailAIService.getRetrievalStrategies();
@@ -75,10 +74,11 @@ router.get("/strategies", async (_req, res) => {
       strategies: []
     });
   }
-});
+};
+router.get("/strategies", getStrategiesHandler);
 
 // Quick inbox sync
-router.post("/sync-inbox", async (req, res) => {
+export const syncInboxHandler = async (req: Request, res: Response) => {
   try {
     const { maxEmails = 500 } = req.body;
     console.time("gmailAIService.syncInboxEmails");
@@ -93,10 +93,11 @@ router.post("/sync-inbox", async (req, res) => {
       processedCount: 0
     });
   }
-});
+};
+router.post("/sync-inbox", syncInboxHandler);
 
 // Sync important emails
-router.post("/sync-important", async (req, res) => {
+export const syncImportantEmailsHandler = async (req: Request, res: Response) => {
   try {
     const { maxEmails = 200 } = req.body;
     console.time("gmailAIService.syncImportantEmails");
@@ -111,10 +112,11 @@ router.post("/sync-important", async (req, res) => {
       processedCount: 0
     });
   }
-});
+};
+router.post("/sync-important", syncImportantEmailsHandler);
 
 // Weekly batch processing
-router.post("/weekly-batch", async (req, res) => {
+export const syncWeeklyBatchHandler = async (req: Request, res: Response) => {
   try {
     const { maxEmails = 2000 } = req.body;
     console.time("gmailAIService.syncWeeklyBatch");
@@ -129,11 +131,11 @@ router.post("/weekly-batch", async (req, res) => {
       processedCount: 0
     });
   }
-});
+};
+router.post("/weekly-batch", syncWeeklyBatchHandler);
 
 // AI Training Routes
-// Train models from Gmail data
-router.post("/train-models", async (req, res) => {
+export const trainModelsHandler = async (req: Request, res: Response) => {
   try {
     const {
       trainingQuery = "newer_than:30d",
@@ -155,10 +157,11 @@ router.post("/train-models", async (req, res) => {
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-});
+};
+router.post("/train-models", trainModelsHandler);
 
 // Apply adaptive optimization to a strategy
-router.post("/optimize", async (req, res) => {
+export const optimizeStrategyHandler = async (req: Request, res: Response) => {
   try {
     const { strategyName } = req.body;
 
@@ -180,11 +183,11 @@ router.post("/optimize", async (req, res) => {
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-});
+};
+router.post("/optimize", optimizeStrategyHandler);
 
 // Utility Routes
-// Get Gmail API rate limit status
-router.get("/quota-status", async (_req, res) => {
+export const getQuotaStatusHandler = async (_req: Request, res: Response) => {
   try {
     console.time("gmailAIService.getPerformanceMetrics_quota");
     const metrics = await gmailAIService.getPerformanceMetrics();
@@ -204,10 +207,11 @@ router.get("/quota-status", async (_req, res) => {
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-});
+};
+router.get("/quota-status", getQuotaStatusHandler);
 
 // Get active alerts
-router.get("/alerts", async (_req, res) => {
+export const getAlertsHandler = async (_req: Request, res: Response) => {
   try {
     console.time("gmailAIService.getPerformanceMetrics_alerts");
     const metrics = await gmailAIService.getPerformanceMetrics();
@@ -224,10 +228,11 @@ router.get("/alerts", async (_req, res) => {
       count: 0
     });
   }
-});
+};
+router.get("/alerts", getAlertsHandler);
 
 // Get optimization recommendations
-router.get("/recommendations", async (_req, res) => {
+export const getRecommendationsHandler = async (_req: Request, res: Response) => {
   try {
     console.time("gmailAIService.getPerformanceMetrics_recommendations");
     const metrics = await gmailAIService.getPerformanceMetrics();
@@ -244,6 +249,7 @@ router.get("/recommendations", async (_req, res) => {
       count: 0
     });
   }
-});
+};
+router.get("/recommendations", getRecommendationsHandler);
 
 export default router;
