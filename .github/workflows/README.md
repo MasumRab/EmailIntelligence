@@ -16,23 +16,25 @@ This directory contains GitHub Actions workflows for the EmailIntelligence proje
 
 ### 2. Dependabot Auto-Merge (`dependabot-auto-merge.yml`)
 - **Trigger**: Pull requests opened, synchronized, or reopened
-- **Purpose**: Automatically merges Dependabot pull requests when tests pass
+- **Purpose**: Automatically merges Dependabot pull requests when CI passes
 - **Safety Features**:
   - Only runs for PRs created by `dependabot[bot]`
-  - Runs full test suite before merging
-  - Checks code formatting and linting
-  - Verifies PR is mergeable and not in draft state
-  - Adds approval comment before merging
+  - Uses GitHub's native PR status checks (no bash JSON parsing)
+  - Waits for CI workflow completion before proceeding
+  - Verifies PR is mergeable and not in draft state using GitHub context
+  - Comprehensive error handling for GitHub CLI operations
+  - Adds approval comment before enabling auto-merge
   - Uses GitHub's auto-merge feature for safety
 
 ## Security Considerations
 
 The Dependabot auto-merge workflow includes several safety measures:
 1. **Identity Verification**: Only runs for PRs from `dependabot[bot]`
-2. **Test Requirements**: All tests must pass before merge
-3. **Code Quality**: Linting and formatting checks must pass
-4. **Merge Readiness**: Verifies PR is in a mergeable state
-5. **Approval Process**: Automatically approves and adds explanatory comment
+2. **CI Dependency**: Waits for and requires CI workflow success
+3. **Native GitHub Checks**: Uses GitHub's built-in PR status instead of fragile parsing
+4. **Merge Readiness**: Verifies PR is in a mergeable state using GitHub context
+5. **Error Handling**: Comprehensive error handling with graceful degradation
+6. **Approval Process**: Automatically approves and adds explanatory comment
 
 ## Setup Requirements
 
@@ -45,6 +47,15 @@ For the workflows to function properly, ensure:
 ## Customization
 
 To modify the auto-merge behavior:
-- Edit the conditions in the `if` statements
-- Adjust the test commands in the `test` job
+- Edit the conditions in the workflow `if` statement (line 15)
+- Adjust the CI check name in the `wait-for-check` action (line 23)
 - Modify the merge strategy (currently uses `--merge`, could use `--squash` or `--rebase`)
+- Change timeout values for CI wait (currently 600 seconds)
+
+## Architecture Improvements
+
+The workflows have been optimized for:
+- **Reliability**: Native GitHub API usage instead of bash JSON parsing
+- **Simplicity**: Single-purpose jobs without unnecessary complexity
+- **Error Handling**: Comprehensive error checking with graceful degradation
+- **Performance**: Eliminates duplicate test runs by trusting CI results
