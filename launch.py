@@ -517,6 +517,7 @@ def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
                 f"Please ensure Node.js and npm are correctly installed and that the npm installation directory is added to your PATH environment variable. "
                 f"Attempted to find 'npm' for the client in: {client_dir}"
             )
+            return None
         else:
             logger.info(f"Found 'npm' executable at: {npm_executable_path}")
 
@@ -533,10 +534,12 @@ def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
                 logger.error(f"Failed to install frontend dependencies in {client_dir}.")
                 logger.error(f"npm stdout:\n{install_result.stdout}")
                 logger.error(f"npm stderr:\n{install_result.stderr}")
+                return None
             else:
                 logger.info(f"Frontend dependencies installed successfully in {client_dir}.")
         except Exception as e:
             logger.error(f"Error running npm install in {client_dir}: {e}")
+            return None
     else:
         logger.warning(f"No package.json found in {client_dir}. Skipping npm install for frontend.")
 
