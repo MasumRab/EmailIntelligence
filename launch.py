@@ -239,14 +239,21 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                     f"Venv python executable not found at {venv_python_exe_path}. Assuming incompatible or corrupted venv."
                 )
                 try:
-                    response = (
-                        input(
-                            f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
-                            f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
+                    # Check for --force-recreate-venv flag or CI environment variable
+                    if args.force_recreate_venv or os.environ.get("CI"):
+                        response = "yes"
+                        logger.warning(
+                            "CI environment or --force-recreate-venv flag detected, automatically recreating corrupted venv."
                         )
-                        .strip()
-                        .lower()
-                    )
+                    else:
+                        response = (
+                            input(
+                                f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
+                                f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
+                            )
+                            .strip()
+                            .lower()
+                        )
                 except EOFError:
                     response = "no"
                     logger.warning(
@@ -303,14 +310,21 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                     f"This project requires Python {target_major}.{target_minor}."
                                 )
                                 try:
-                                    response = (
-                                        input(
-                                            "Do you want to delete and recreate the virtual environment with "
-                                            f"Python {target_major}.{target_minor}? (yes/no): "
+                                    # Check for --force-recreate-venv flag or CI environment variable
+                                    if args.force_recreate_venv or os.environ.get("CI"):
+                                        response = "yes"
+                                        logger.warning(
+                                            "CI environment or --force-recreate-venv flag detected, automatically recreating incompatible venv."
                                         )
-                                        .strip()
-                                        .lower()
-                                    )
+                                    else:
+                                        response = (
+                                            input(
+                                                "Do you want to delete and recreate the virtual environment with "
+                                                f"Python {target_major}.{target_minor}? (yes/no): "
+                                            )
+                                            .strip()
+                                            .lower()
+                                        )
                                 except EOFError:
                                     response = "no"
                                     logger.warning(
@@ -796,6 +810,11 @@ def parse_arguments() -> argparse.Namespace:
         "--skip-python-version-check",
         action="store_true",
         help="Skip Python version check",
+    )
+    parser.add_argument(
+        "--force-recreate-venv",
+        action="store_true",
+        help="Force deletion and recreation of the virtual environment if it's corrupted or incompatible.",
     )
     parser.add_argument(
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data"
