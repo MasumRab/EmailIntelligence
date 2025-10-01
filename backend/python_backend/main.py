@@ -78,15 +78,6 @@ app.include_router(filter_routes.router)
 # app.include_router(action_routes.router) # Removed
 # app.include_router(dashboard_routes.router) # Removed
 
-# Mount the static files directories
-app.mount("/src", StaticFiles(directory="client/src"), name="src")
-app.mount("/", StaticFiles(directory="client", html=True), name="client")
-
-@app.get("/{full_path:path}")
-async def catch_all(full_path: str):
-    # This is a fallback to serve index.html for any path that is not an API route or a file.
-    # This is necessary for single-page applications.
-    return FileResponse('client/index.html')
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
