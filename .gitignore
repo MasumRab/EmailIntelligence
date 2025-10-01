@@ -51,9 +51,6 @@ pip-wheel-metadata/
 *.whl
 
 # Databases
-*.sqlite3
-*.db
-*.db-journal
 
 # Coverage
 .coverage
