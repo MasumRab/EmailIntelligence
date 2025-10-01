@@ -170,6 +170,59 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
 install_dependencies = install_requirements_from_file
 
 
+# Original functions are now fully replaced.
+# The aliasing and del operations for _standalone versions are no longer needed.
+
+
+def check_torch_cuda() -> bool:
+    """Check if PyTorch with CUDA is available."""
+    python = get_python_executable()
+
+    try:
+        result = subprocess.run(
+            [python, "-c", "import torch; print(torch.cuda.is_available())"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        is_available = result.stdout.strip() == "True"
+        logger.info(f"PyTorch CUDA is {'available' if is_available else 'not available'}")
+        return is_available
+    except subprocess.CalledProcessError:
+        logger.warning("Failed to check PyTorch CUDA availability")
+        return False
+
+
+def reinstall_torch() -> bool:
+    """Reinstall PyTorch with CUDA support."""
+    python = get_python_executable()
+
+    # Uninstall existing PyTorch
+    logger.info("Uninstalling existing PyTorch...")
+    subprocess.run([python, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"])
+
+    # Install PyTorch with CUDA support
+    logger.info("Installing PyTorch with CUDA support...")
+    cmd = [
+        python,
+        "-m",
+        "pip",
+        "install",
+        "torch",
+        "torchvision",
+        "torchaudio",
+        "--index-url",
+        "https://download.pytorch.org/whl/cu118",
+    ]
+
+    try:
+        subprocess.check_call(cmd)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to reinstall PyTorch: {e}")
+        return False
+
+
 def download_nltk_data() -> bool:
     """Download NLTK data."""
     python = get_python_executable()
@@ -239,14 +292,21 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                     f"Venv python executable not found at {venv_python_exe_path}. Assuming incompatible or corrupted venv."
                 )
                 try:
-                    response = (
-                        input(
-                            f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
-                            f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
+                    # Check for --force-recreate-venv flag or CI environment variable
+                    if args.force_recreate_venv or os.environ.get("CI"):
+                        response = "yes"
+                        logger.warning(
+                            "CI environment or --force-recreate-venv flag detected, automatically recreating corrupted venv."
                         )
-                        .strip()
-                        .lower()
-                    )
+                    else:
+                        response = (
+                            input(
+                                f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
+                                f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
+                            )
+                            .strip()
+                            .lower()
+                        )
                 except EOFError:
                     response = "no"
                     logger.warning(
@@ -303,14 +363,21 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                     f"This project requires Python {target_major}.{target_minor}."
                                 )
                                 try:
-                                    response = (
-                                        input(
-                                            "Do you want to delete and recreate the virtual environment with "
-                                            f"Python {target_major}.{target_minor}? (yes/no): "
+                                    # Check for --force-recreate-venv flag or CI environment variable
+                                    if args.force_recreate_venv or os.environ.get("CI"):
+                                        response = "yes"
+                                        logger.warning(
+                                            "CI environment or --force-recreate-venv flag detected, automatically recreating incompatible venv."
                                         )
-                                        .strip()
-                                        .lower()
-                                    )
+                                    else:
+                                        response = (
+                                            input(
+                                                "Do you want to delete and recreate the virtual environment with "
+                                                f"Python {target_major}.{target_minor}? (yes/no): "
+                                            )
+                                            .strip()
+                                            .lower()
+                                        )
                                 except EOFError:
                                     response = "no"
                                     logger.warning(
@@ -796,6 +863,11 @@ def parse_arguments() -> argparse.Namespace:
         "--skip-python-version-check",
         action="store_true",
         help="Skip Python version check",
+    )
+    parser.add_argument(
+        "--force-recreate-venv",
+        action="store_true",
+        help="Force deletion and recreation of the virtual environment if it's corrupted or incompatible.",
     )
     parser.add_argument(
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data"

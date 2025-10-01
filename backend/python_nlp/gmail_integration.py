@@ -8,7 +8,6 @@ import hashlib
 import json
 import logging
 import os
-import sqlite3
 import time
 from collections import deque
 from dataclasses import dataclass
@@ -113,129 +112,38 @@ class RateLimiter:
 
 
 class EmailCache:
-    """SQLite-based cache for email metadata and content"""
+    """In-memory cache for email metadata and content."""
 
-    def __init__(self, cache_path: str = "email_cache.db"):
-        self.cache_path = cache_path
-        self.conn = sqlite3.connect(cache_path, check_same_thread=False)
-        self._init_cache()
-
-    def _init_cache(self):
-        """Initialize cache database tables"""
-        self.conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS emails (
-                message_id TEXT PRIMARY KEY,
-                thread_id TEXT,
-                subject TEXT,
-                sender TEXT,
-                sender_email TEXT,
-                content TEXT,
-                labels TEXT,
-                timestamp TEXT,
-                retrieved_at TEXT,
-                content_hash TEXT
-            )
-        """
-        )
-
-        self.conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS sync_metadata (
-                sync_id TEXT PRIMARY KEY,
-                query_filter TEXT,
-                last_sync TEXT,
-                total_messages INTEGER,
-                processed_messages INTEGER,
-                next_page_token TEXT
-            )
-        """
-        )
-
-        self.conn.commit()
+    def __init__(self):
+        self.emails: Dict[str, Dict[str, Any]] = {}
+        self.sync_states: Dict[str, Dict[str, Any]] = {}
+        logging.getLogger(__name__).info("Initialized in-memory EmailCache.")
 
     def get_cached_email(self, message_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieve cached email by message ID"""
-        cursor = self.conn.execute("SELECT * FROM emails WHERE message_id = ?", (message_id,))
-        row = cursor.fetchone()
-
-        if row:
-            return {
-                "message_id": row[0],
-                "thread_id": row[1],
-                "subject": row[2],
-                "sender": row[3],
-                "sender_email": row[4],
-                "content": row[5],
-                "labels": json.loads(row[6]) if row[6] else [],
-                "timestamp": row[7],
-                "retrieved_at": row[8],
-                "content_hash": row[9],
-            }
-        return None
+        """Retrieve cached email by message ID."""
+        return self.emails.get(message_id)
 
     def cache_email(self, email_data: Dict[str, Any]) -> None:
-        """Cache email data"""
-        content_hash = hashlib.md5(email_data.get("content", "").encode()).hexdigest()
+        """Cache email data in memory."""
+        message_id = email_data.get("message_id")
+        if not message_id:
+            return
 
-        self.conn.execute(
-            """
-            INSERT OR REPLACE INTO emails 
-            (message_id, thread_id, subject, sender, sender_email, content, 
-             labels, timestamp, retrieved_at, content_hash)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-            (
-                email_data["message_id"],
-                email_data.get("thread_id", ""),
-                email_data.get("subject", ""),
-                email_data.get("sender", ""),
-                email_data.get("sender_email", ""),
-                email_data.get("content", ""),
-                json.dumps(email_data.get("labels", [])),
-                email_data.get("timestamp", ""),
-                datetime.now().isoformat(),
-                content_hash,
-            ),
-        )
-        self.conn.commit()
+        # Create a copy to cache to avoid modifying the original dict
+        cached_data = email_data.copy()
+        cached_data["retrieved_at"] = datetime.now().isoformat()
+        self.emails[message_id] = cached_data
 
     def get_sync_state(self, query_filter: str) -> Optional[Dict[str, Any]]:
-        """Get synchronization state for a query filter"""
-        cursor = self.conn.execute(
-            "SELECT * FROM sync_metadata WHERE query_filter = ?", (query_filter,)
-        )
-        row = cursor.fetchone()
-
-        if row:
-            return {
-                "sync_id": row[0],
-                "query_filter": row[1],
-                "last_sync": row[2],
-                "total_messages": row[3],
-                "processed_messages": row[4],
-                "next_page_token": row[5],
-            }
-        return None
+        """Get synchronization state for a query filter."""
+        return self.sync_states.get(query_filter)
 
     def update_sync_state(self, sync_data: Dict[str, Any]) -> None:
-        """Update synchronization state"""
-        self.conn.execute(
-            """
-            INSERT OR REPLACE INTO sync_metadata 
-            (sync_id, query_filter, last_sync, total_messages, processed_messages, next_page_token)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """,
-            (
-                sync_data["sync_id"],
-                sync_data["query_filter"],
-                sync_data["last_sync"],
-                sync_data["total_messages"],
-                sync_data["processed_messages"],
-                sync_data.get("next_page_token", ""),
-            ),
-        )
-        self.conn.commit()
+        """Update synchronization state in memory."""
+        query_filter = sync_data.get("query_filter")
+        if not query_filter:
+            return
+        self.sync_states[query_filter] = sync_data
 
 
 class GmailDataCollector:
@@ -265,23 +173,23 @@ class GmailDataCollector:
             try:
                 creds = Credentials.from_authorized_user_file(token_path, SCOPES)
             except Exception as e:
-                self.logger.error(f"Error loading credentials from {token_path}: {e}")
+                self.logger.error("Error loading credentials from %s: %s", token_path, e)
                 creds = None  # Ensure creds is None if loading fails
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                self.logger.info(f"Refreshing expired credentials from {token_path}...")
+                self.logger.info("Refreshing expired credentials from %s...", token_path)
                 try:
                     creds.refresh(Request())
                 except Exception as e:
-                    self.logger.error(f"Error refreshing credentials: {e}")
+                    self.logger.error("Error refreshing credentials: %s", e)
                     # Potentially delete token.json and force re-authentication
                     if os.path.exists(token_path):
                         try:
                             os.remove(token_path)
-                            self.logger.info(f"Removed invalid token file: {token_path}")
+                            self.logger.info("Removed invalid token file: %s", token_path)
                         except OSError as oe:
-                            self.logger.error(f"Error removing token file {token_path}: {oe}")
+                            self.logger.error("Error removing token file %s: %s", token_path, oe)
                     creds = None  # Force re-authentication
             # If creds are still None (not loaded or refresh failed), _authenticate will be called
 
@@ -299,9 +207,9 @@ class GmailDataCollector:
         try:
             with open(token_path, "w") as token_file:
                 token_file.write(creds.to_json())
-            self.logger.info(f"Credentials stored in {token_path}")
+            self.logger.info("Credentials stored in %s", token_path)
         except OSError as e:
-            self.logger.error(f"Error storing credentials to {token_path}: {e}")
+            self.logger.error("Error storing credentials to %s: %s", token_path, e)
 
     def _authenticate(self):
         """Authenticates the user and obtains credentials using GMAIL_CREDENTIALS_JSON env var."""
@@ -310,27 +218,31 @@ class GmailDataCollector:
 
         if not credentials_json_str:
             self.logger.error(
-                f"Environment variable {GMAIL_CREDENTIALS_ENV_VAR} is not set. "
-                "This variable should contain the JSON content of your Google Cloud credentials file."
+                "Environment variable %s is not set. "
+                "This variable should contain the JSON content of your Google Cloud credentials file.",
+                GMAIL_CREDENTIALS_ENV_VAR,
             )
             # Attempt to fall back to local credentials.json if GMAIL_CREDENTIALS_JSON is not set
             # This maintains previous behavior if the env var is not set, but logs a warning.
             self.logger.warning(
-                f"Attempting to use local '{CREDENTIALS_PATH}' as fallback for OAuth. "
-                f"It is recommended to set the {GMAIL_CREDENTIALS_ENV_VAR} environment variable."
+                "Attempting to use local '%s' as fallback for OAuth. "
+                "It is recommended to set the %s environment variable.",
+                CREDENTIALS_PATH,
+                GMAIL_CREDENTIALS_ENV_VAR,
             )
             if os.path.exists(CREDENTIALS_PATH):
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
                 except Exception as e:
                     self.logger.error(
-                        f"Error loading fallback credentials from {CREDENTIALS_PATH}: {e}"
+                        "Error loading fallback credentials from %s: %s", CREDENTIALS_PATH, e
                     )
                     return  # Exit if fallback also fails
             else:
                 self.logger.error(
-                    f"Fallback credentials file '{CREDENTIALS_PATH}' not found. "
-                    "Please set the GMAIL_CREDENTIALS_JSON environment variable or provide the file."
+                    "Fallback credentials file '%s' not found. "
+                    "Please set the GMAIL_CREDENTIALS_JSON environment variable or provide the file.",
+                    CREDENTIALS_PATH,
                 )
                 return  # Exit if no credentials source is found
         else:
@@ -339,13 +251,14 @@ class GmailDataCollector:
                 flow = InstalledAppFlow.from_client_config(credentials_info, SCOPES)
             except json.JSONDecodeError:
                 self.logger.error(
-                    f"Invalid JSON content in {GMAIL_CREDENTIALS_ENV_VAR}. "
-                    "Please ensure it's a valid JSON string."
+                    "Invalid JSON content in %s. "
+                    "Please ensure it's a valid JSON string.",
+                    GMAIL_CREDENTIALS_ENV_VAR,
                 )
                 return
             except Exception as e:  # Catch other potential errors from from_client_config
                 self.logger.error(
-                    f"Error loading credentials from {GMAIL_CREDENTIALS_ENV_VAR}: {e}"
+                    "Error loading credentials from %s: %s", GMAIL_CREDENTIALS_ENV_VAR, e
                 )
                 return
 
@@ -356,7 +269,7 @@ class GmailDataCollector:
         try:
             creds = flow.run_local_server(port=0)
         except Exception as e:  # Catch generic exception from run_local_server
-            self.logger.error(f"OAuth flow failed: {e}")
+            self.logger.error("OAuth flow failed: %s", e)
             return
 
         if creds:
@@ -446,10 +359,10 @@ class GmailDataCollector:
                 page_token = message_list["nextPageToken"]
 
                 # Log progress
-                self.logger.info(f"Collected {len(collected_messages)} emails so far...")
+                self.logger.info("Collected %s emails so far...", len(collected_messages))
 
         except Exception as e:
-            self.logger.error(f"Error collecting emails: {e}")
+            self.logger.error("Error collecting emails: %s", e)
             # Save current state for resumption
             self.cache.update_sync_state(sync_state)
             raise
@@ -485,14 +398,14 @@ class GmailDataCollector:
                     .execute()
                 )
             except HttpError as error:
-                self.logger.error(f"An API error occurred: {error}")
+                self.logger.error("An API error occurred: %s", error)
                 # Implement more sophisticated error handling and retry logic if needed
                 return {
                     "messages": [],
                     "resultSizeEstimate": 0,
                 }  # Return empty on error
             except Exception as e:
-                self.logger.error(f"Unexpected error in _get_message_list: {e}")
+                self.logger.error("Unexpected error in _get_message_list: %s", e)
                 return {"messages": [], "resultSizeEstimate": 0}
 
         # Fallback to simulated response if gmail_service is not available
@@ -557,50 +470,56 @@ class GmailDataCollector:
         # Check cache first
         cached_email = self.cache.get_cached_email(message_id)
         if cached_email:
-            self.logger.debug(f"Cache hit for message {message_id}")
+            self.logger.debug("Cache hit for message %s", message_id)
             return cached_email
-        self.logger.debug(f"Cache miss for message {message_id}")
+        self.logger.debug("Cache miss for message %s", message_id)
 
         if self.gmail_service:
             try:
-                self.logger.debug(f"Attempting to fetch message {message_id} from Gmail API.")
+                self.logger.debug("Attempting to fetch message %s from Gmail API.", message_id)
                 message = (
                     self.gmail_service.users()
                     .messages()
                     .get(userId="me", id=message_id, format="full")
                     .execute()
                 )
-                self.logger.debug(f"Successfully fetched message {message_id} from API.")
+                self.logger.debug("Successfully fetched message %s from API.", message_id)
 
                 email_data = self._parse_message_payload(message)
 
                 if email_data:
                     self.cache.cache_email(email_data)
-                    self.logger.debug(f"Successfully parsed and cached message {message_id}.")
+                    self.logger.debug("Successfully parsed and cached message %s.", message_id)
                     return email_data
                 else:
                     self.logger.warning(
-                        f"Could not parse email data for message {message_id}. This message will not be processed further."
+                        "Could not parse email data for message %s. This message will not be processed further.",
+                        message_id,
                     )
                     return None  # Parsing failure, do not simulate for this specific case
             except HttpError as error:
                 self.logger.error(
-                    f"API error fetching message {message_id}: {error}. Falling back to simulation."
+                    "API error fetching message %s: %s. Falling back to simulation.",
+                    message_id,
+                    error,
                 )
                 # Fall through to simulation block below
             except Exception as e:
                 self.logger.error(
-                    f"Unexpected error retrieving message {message_id}: {e}. Falling back to simulation."
+                    "Unexpected error retrieving message %s: %s. Falling back to simulation.",
+                    message_id,
+                    e,
                 )
                 # Fall through to simulation block below
         else:
             self.logger.warning(
-                f"Gmail service not available. Falling back to simulation for message {message_id}."
+                "Gmail service not available. Falling back to simulation for message %s.",
+                message_id,
             )
             # Fall through to simulation block below
 
         # Fallback to simulated response if API call failed or service was unavailable
-        self.logger.info(f"Using simulated content for message {message_id}.")
+        self.logger.info("Using simulated content for message %s.", message_id)
         email_data = await self._simulate_email_content(message_id)
 
         # Ensure message_id is present in simulated data for caching
@@ -608,7 +527,7 @@ class GmailDataCollector:
             email_data["message_id"] = message_id
 
         self.cache.cache_email(email_data)
-        self.logger.debug(f"Cached simulated content for message {message_id}.")
+        self.logger.debug("Cached simulated content for message %s.", message_id)
         return email_data
 
     def _parse_message_payload(self, message: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -647,7 +566,9 @@ class GmailDataCollector:
                 ).isoformat(),
             }
         except Exception as e:
-            self.logger.error(f"Error parsing message payload for {message.get('id')}: {e}")
+            self.logger.error(
+                "Error parsing message payload for %s: %s", message.get("id"), e
+            )
             return None
 
     def _extract_email_address(self, sender_header: str) -> str:
@@ -746,8 +667,8 @@ class GmailDataCollector:
 
         strategy = strategies[strategy_name]
 
-        self.logger.info(f"Executing collection strategy: {strategy_name}")
-        self.logger.info(f"Description: {strategy['description']}")
+        self.logger.info("Executing collection strategy: %s", strategy_name)
+        self.logger.info("Description: %s", strategy['description'])
 
         return await self.collect_emails_incremental(
             query_filter=strategy["query"], max_emails=strategy["max_emails"]
