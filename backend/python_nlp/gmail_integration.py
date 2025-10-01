@@ -180,8 +180,8 @@ class EmailCache:
 
         self.conn.execute(
             """
-            INSERT OR REPLACE INTO emails 
-            (message_id, thread_id, subject, sender, sender_email, content, 
+            INSERT OR REPLACE INTO emails
+            (message_id, thread_id, subject, sender, sender_email, content,
              labels, timestamp, retrieved_at, content_hash)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -222,7 +222,7 @@ class EmailCache:
         """Update synchronization state"""
         self.conn.execute(
             """
-            INSERT OR REPLACE INTO sync_metadata 
+            INSERT OR REPLACE INTO sync_metadata
             (sync_id, query_filter, last_sync, total_messages, processed_messages, next_page_token)
             VALUES (?, ?, ?, ?, ?, ?)
         """,

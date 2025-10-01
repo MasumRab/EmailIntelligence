@@ -918,8 +918,8 @@ class SmartGmailRetriever:
         conn = sqlite3.connect(self.checkpoint_db_path)
         conn.execute(
             """
-            INSERT OR REPLACE INTO sync_checkpoints 
-            (strategy_name, last_sync_date, last_history_id, processed_count, 
+            INSERT OR REPLACE INTO sync_checkpoints
+            (strategy_name, last_sync_date, last_history_id, processed_count,
              next_page_token, errors_count, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
@@ -946,7 +946,7 @@ class SmartGmailRetriever:
         conn = sqlite3.connect(self.checkpoint_db_path)
         conn.execute(
             """
-            INSERT OR REPLACE INTO retrieval_stats 
+            INSERT OR REPLACE INTO retrieval_stats
             (date, total_retrieved, api_calls_used, strategies_executed, performance_metrics)
             VALUES (?, ?, ?, ?, ?)
         """,
@@ -970,7 +970,7 @@ class SmartGmailRetriever:
         cursor = conn.execute(
             """
             SELECT date, total_retrieved, api_calls_used, strategies_executed, performance_metrics
-            FROM retrieval_stats 
+            FROM retrieval_stats
             WHERE date >= date('now', '-{} days')
             ORDER BY date DESC
         """.format(
@@ -993,12 +993,12 @@ class SmartGmailRetriever:
         # Get strategy performance
         cursor = conn.execute(
             """
-            SELECT strategy_name, 
+            SELECT strategy_name,
                    COUNT(*) as sync_count,
                    SUM(processed_count) as total_processed,
                    AVG(processed_count) as avg_per_sync,
                    SUM(errors_count) as total_errors
-            FROM sync_checkpoints 
+            FROM sync_checkpoints
             GROUP BY strategy_name
         """
         )
