@@ -9,21 +9,18 @@ from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
+from .performance_monitor import performance_monitor
 from .models import EmailResponse  # Changed from .main to .models
 from .models import EmailCreate, EmailUpdate
-# from .performance_monitor import PerformanceMonitor # Removed
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 ai_engine = AdvancedAIEngine()  # Initialize AI engine
 filter_manager = SmartFilterManager()  # Initialize filter manager
-# performance_monitor = ( # Removed
-    # PerformanceMonitor() # Removed
-# ) # Removed
 
 
 @router.get("/api/emails", response_model=List[EmailResponse])
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
@@ -69,7 +66,7 @@ async def get_emails(
 
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
     """Get specific email by ID"""
     try:
@@ -107,7 +104,7 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
 
 
 @router.post("/api/emails", response_model=EmailResponse)  # Changed to EmailResponse
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def create_email(
     request: Request,
     email: EmailCreate,
@@ -137,13 +134,6 @@ async def create_email(
 
         created_email_dict = await db.create_email(email_data)  # db.create_email returns a dict
 
-        # Background tasks for performance tracking
-        # background_tasks.add_task( # Removed
-            # performance_monitor.record_email_processing, # Removed
-            # created_email_dict["id"], # Removed
-            # ai_analysis, # Removed
-            # filter_results, # Removed
-        # ) # Removed
         try:
             return EmailResponse(**created_email_dict)  # Ensure it returns EmailResponse
         except Exception as e_outer:
@@ -173,7 +163,7 @@ async def create_email(
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def update_email(
     request: Request,
     email_id: int,
