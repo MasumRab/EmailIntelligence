@@ -28,8 +28,8 @@ export const emailSchema = z.object({
   hasAttachments: z.boolean(),
   attachmentCount: z.number(),
   sizeEstimate: z.number(),
-  aiAnalysis: z.record(z.any()).optional(),
-  filterResults: z.record(z.any()).optional(),
+  aiAnalysis: z.record(z.string(), z.any()).optional(),
+  filterResults: z.record(z.string(), z.any()).optional(),
 });
 
 export const insertEmailSchema = emailSchema.omit({ id: true });
@@ -39,8 +39,26 @@ export const emailWithCategorySchema = emailSchema.extend({
   categoryData: categorySchema.optional(),
 });
 
+export const dashboardStatsSchema = z.object({
+  totalEmails: z.number(),
+  unreadEmails: z.number(),
+  importantEmails: z.number(),
+  categorizedEmails: z.number(),
+  categories: z.array(categorySchema),
+});
+
+export const activitySchema = z.object({
+  id: z.number(),
+  type: z.string(),
+  description: z.string(),
+  timestamp: z.string(),
+  metadata: z.record(z.string(), z.any()).optional(),
+});
+
 export type Category = z.infer<typeof categorySchema>;
 export type Email = z.infer<typeof emailSchema>;
 export type InsertEmail = z.infer<typeof insertEmailSchema>;
 export type UpdateEmail = z.infer<typeof updateEmailSchema>;
 export type EmailWithCategory = z.infer<typeof emailWithCategorySchema>;
+export type DashboardStats = z.infer<typeof dashboardStatsSchema>;
+export type Activity = z.infer<typeof activitySchema>;
