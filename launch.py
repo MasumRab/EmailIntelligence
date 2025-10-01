@@ -13,8 +13,6 @@ Arguments:
     --help                      Show this help message
     --no-venv                   Don't create or use a virtual environment
     --update-deps               Update dependencies before launching
-    # --skip-torch-cuda-test      Skip CUDA availability test for PyTorch # Removed
-    # --reinstall-torch           Reinstall PyTorch (useful for CUDA issues) # Removed
     --skip-python-version-check Skip Python version check
     --stage {dev,test,staging,prod}  Specify the application stage to run
     --port PORT                 Specify the port to run on (default: 8000)
@@ -24,7 +22,6 @@ Arguments:
     --debug                     Enable debug mode
     --no-download-nltk          Skip downloading NLTK data
     --skip-prepare              Skip preparation steps
-    --skip-extensions           Skip loading extensions
     --no-half                   Disable half-precision for models
     --force-cpu                 Force CPU mode even if GPU is available
     --low-memory                Enable low memory mode
@@ -60,8 +57,6 @@ logger = logging.getLogger("launcher")
 
 # Global list to keep track of subprocesses
 processes = []
-# Global variable to store ngrok tunnel if created # Removed ngrok_tunnel
-# ngrok_tunnel = None # Removed
 
 
 def _handle_sigint(signum, frame):
@@ -75,22 +70,6 @@ def _handle_sigint(signum, frame):
             except subprocess.TimeoutExpired:
                 logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                 p.kill()
-
-    # global ngrok_tunnel # Removed
-    # if ngrok_tunnel: # Removed
-        # try: # Removed
-            # from pyngrok import ngrok # Removed
-#
-            # logger.info(f"Closing ngrok tunnel: {ngrok_tunnel.public_url} ...") # Removed
-            # ngrok.disconnect(ngrok_tunnel.public_url) # Removed
-            # ngrok.kill() # Removed
-            # logger.info("Ngrok tunnel closed.") # Removed
-            # ngrok_tunnel = None # Removed
-        # except ImportError: # Removed
-            # logger.warning("pyngrok is not installed, cannot manage ngrok tunnel shutdown.") # Removed
-        # except Exception as e: # Removed
-            # logger.error(f"Error shutting down ngrok: {e}") # Removed
-
     sys.exit(0)
 
 
@@ -104,18 +83,10 @@ PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 12)
 VENV_DIR = "venv"
 REQUIREMENTS_FILE = "requirements.txt"
-REQUIREMENTS_VERSIONS_FILE = "requirements_versions.txt"  # New constant
-# TORCH_CUDA_REQUIRED = False # Removed / Ensured False
+REQUIREMENTS_VERSIONS_FILE = "requirements_versions.txt"
 
 # Project root directory
 ROOT_DIR = Path(__file__).resolve().parent
-
-# --- Functions migrated from deployment/env_manager.py ---
-# These are initially named with _standalone to avoid conflict
-# and will be renamed later.
-
-# --- Start of functions that were migrated and renamed ---
-# The _standalone suffix is removed from definitions and calls directly.
 
 
 def check_python_version() -> bool:
@@ -159,7 +130,7 @@ def create_venv() -> bool:
 
 def get_python_executable() -> str:
     """Get the Python executable path."""
-    if is_venv_available():  # Internal call uses the final name
+    if is_venv_available():
         if os.name == "nt":  # Windows
             return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
         else:  # Unix-based systems
@@ -171,7 +142,7 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
     """Install or update requirements from a file.
     requirements_file_path_str is relative to ROOT_DIR.
     """
-    python = get_python_executable()  # Internal call uses the final name
+    python = get_python_executable()
     requirements_path = ROOT_DIR / requirements_file_path_str
 
     if not requirements_path.exists():
@@ -187,7 +158,6 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
         f"{'Updating' if update else 'Installing'} dependencies from {requirements_path.name}..."
     )
     try:
-        # Using subprocess.run to capture output for better error reporting (as per previous subtask)
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return True
     except subprocess.CalledProcessError as e:
@@ -197,62 +167,7 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
         return False
 
 
-# Alias for backward compatibility or consistent naming if preferred elsewhere
 install_dependencies = install_requirements_from_file
-
-# --- End of functions that were migrated and renamed ---
-
-# Original functions are now fully replaced.
-# The aliasing and del operations for _standalone versions are no longer needed.
-
-
-def check_torch_cuda() -> bool:
-    """Check if PyTorch with CUDA is available."""
-    python = get_python_executable()
-
-    try:
-        result = subprocess.run(
-            [python, "-c", "import torch; print(torch.cuda.is_available())"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        is_available = result.stdout.strip() == "True"
-        logger.info(f"PyTorch CUDA is {'available' if is_available else 'not available'}")
-        return is_available
-    except subprocess.CalledProcessError:
-        logger.warning("Failed to check PyTorch CUDA availability")
-        return False
-
-
-def reinstall_torch() -> bool:
-    """Reinstall PyTorch with CUDA support."""
-    python = get_python_executable()
-
-    # Uninstall existing PyTorch
-    logger.info("Uninstalling existing PyTorch...")
-    subprocess.run([python, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"])
-
-    # Install PyTorch with CUDA support
-    logger.info("Installing PyTorch with CUDA support...")
-    cmd = [
-        python,
-        "-m",
-        "pip",
-        "install",
-        "torch",
-        "torchvision",
-        "torchaudio",
-        "--index-url",
-        "https://download.pytorch.org/whl/cu118",
-    ]
-
-    try:
-        subprocess.check_call(cmd)
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to reinstall PyTorch: {e}")
-        return False
 
 
 def download_nltk_data() -> bool:
@@ -270,26 +185,22 @@ def download_nltk_data() -> bool:
         logger.info("NLTK data download process completed.")
         if result.stdout:
             logger.debug(f"NLTK download stdout:\n{result.stdout}")
-        if result.stderr:  # NLTK often prints to stderr even on success for some messages
+        if result.stderr:
             logger.debug(
                 f"NLTK download stderr:\n{result.stderr}"
-            )  # Use debug for potentially noisy stderr
+            )
         return True
     except subprocess.CalledProcessError as e:
         logger.error("Failed to download NLTK data.")
-        if e.stdout:  # Only log if there's actual content
+        if e.stdout:
             logger.error(f"NLTK download stdout:\n{e.stdout}")
-        if e.stderr:  # Only log if there's actual content
+        if e.stderr:
             logger.error(f"NLTK download stderr:\n{e.stderr}")
         return False
 
 
-# Helper function to get the primary requirements file (factored out in a previous task)
 def _get_primary_requirements_file() -> str:
-    """Determines the primary requirements file to use.
-    Prefers requirements_versions.txt, falls back to requirements.txt.
-    Returns the file name string (relative to ROOT_DIR).
-    """
+    """Determines the primary requirements file to use."""
     versions_file_path = ROOT_DIR / REQUIREMENTS_VERSIONS_FILE
     if versions_file_path.exists():
         return REQUIREMENTS_VERSIONS_FILE
@@ -302,19 +213,12 @@ def _get_primary_requirements_file() -> str:
 
 def prepare_environment(args: argparse.Namespace) -> bool:
     """Prepare the environment for running the application."""
-    # Remove Import environment manager
-    # from deployment.env_manager import env_manager # This line is removed.
-
-    # Check Python version
     if not args.skip_python_version_check and not check_python_version():
-        # This check ensures the current interpreter running launch.py is correct.
-        # The interpreter discovery logic in main() should have already handled this.
         logger.error(
             "Initial Python version check failed. This should have been handled by interpreter discovery."
         )
         return False
 
-    # Create virtual environment if needed and install/update dependencies
     if not args.no_venv:
         venv_recreated_this_run = False
         venv_needs_initial_setup = False
@@ -334,7 +238,6 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 logger.warning(
                     f"Venv python executable not found at {venv_python_exe_path}. Assuming incompatible or corrupted venv."
                 )
-                # Treat as incompatible, prompt for re-creation
                 try:
                     # Check for --force-recreate-venv flag or CI environment variable
                     if args.force_recreate_venv or os.environ.get("CI"):
@@ -382,11 +285,8 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                         f"User declined or non-interactive. Proceeding with the potentially corrupted virtual environment in './{VENV_DIR}'. "
                         "This may cause errors."
                     )
-                    # If we proceed with a corrupted venv, dependency installation might fail or use wrong python.
-                    # It's safer to return False if we can't verify its Python.
-                    # However, the original subtask said "acceptable to proceed with caution". For now, we'll log and let it try.
 
-            else:  # Venv Python executable found, check its version
+            else:
                 try:
                     result = subprocess.run(
                         [venv_python_exe_path, "--version"],
@@ -397,7 +297,6 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                     )
                     version_output = result.stdout.strip() + result.stderr.strip()
 
-                    # Basic parsing: "Python X.Y.Z"
                     if version_output.startswith("Python "):
                         parts = version_output.split(" ")[1].split(".")
                         if len(parts) >= 2:
@@ -447,7 +346,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                         )
                                         return False
 
-                                    if not create_venv():  # create_venv logs success/failure
+                                    if not create_venv():
                                         logger.error(
                                             "Failed to recreate virtual environment. Exiting."
                                         )
@@ -468,11 +367,11 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                 logger.info(
                                     f"Existing virtual environment at './{VENV_DIR}' uses compatible Python {venv_major}.{venv_minor}."
                                 )
-                        else:  # Malformed version string
+                        else:
                             logger.warning(
                                 f"Could not parse Python version from venv output: '{version_output}'. Assuming incompatibility and proceeding with caution."
                             )
-                    else:  # Does not start with "Python "
+                    else:
                         logger.warning(
                             f"Unrecognized version output from venv Python: '{version_output}'. Assuming incompatibility and proceeding with caution."
                         )
@@ -486,49 +385,40 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                         f"Error checking version of venv Python at '{venv_python_exe_path}': {e}. Proceeding with caution."
                     )
 
-        else:  # No venv found initially
+        else:
             logger.info(f"Virtual environment not found at './{VENV_DIR}'. Creating...")
             if not create_venv():
                 logger.error("Failed to create virtual environment. Exiting.")
                 return False
-            venv_needs_initial_setup = True  # Mark for dependency installation
+            venv_needs_initial_setup = True
 
-        # Install/update dependencies if venv was just created/recreated, or if --update-deps is specified
         if venv_needs_initial_setup:
             primary_req_file = _get_primary_requirements_file()
             logger.info(
                 f"Installing base dependencies from {Path(primary_req_file).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
             )
-            # Pass update=False because it's a fresh setup of dependencies.
-            # args.update_deps is handled below for existing, compatible venvs.
             if not install_dependencies(primary_req_file, update=False):
                 logger.error(
                     f"Failed to install base dependencies from {Path(primary_req_file).name}. Exiting."
                 )
                 return False
-        elif (
-            args.update_deps
-        ):  # Venv existed, was compatible (or user chose to proceed), and user wants to update
+        elif args.update_deps:
             primary_req_file = _get_primary_requirements_file()
             logger.info(
                 f"Updating base dependencies from {Path(primary_req_file).name} in existing venv as per --update-deps..."
             )
-            if not install_dependencies(primary_req_file, update=True):  # Force update True
+            if not install_dependencies(primary_req_file, update=True):
                 logger.error(
                     f"Failed to update base dependencies from {Path(primary_req_file).name}. Exiting."
                 )
                 return False
-        else:  # Venv existed, was compatible (or user chose to proceed), and no --update-deps
-            chosen_req_file = (
-                _get_primary_requirements_file()
-            )  # Log which primary file is considered active
+        else:
+            chosen_req_file = _get_primary_requirements_file()
             logger.info(
                 f"Compatible virtual environment found (or user chose to proceed with existing). Primary requirements file: {Path(chosen_req_file).name}. Skipping base dependency installation unless --update-deps is used."
             )
 
-        # Handle stage-specific requirements
-        # This logic should run if venv was newly set up, or if args.update_deps is true for existing venv
-        stage_requirements_file_path_str = None  # Use full path string for install_dependencies
+        stage_requirements_file_path_str = None
         if args.stage == "dev":
             dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
             if dev_req_path_obj.exists():
@@ -539,42 +429,22 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 stage_requirements_file_path_str = "requirements-test.txt"
 
         if stage_requirements_file_path_str:
-            # Install stage-specific if:
-            # 1. Venv was just set up (fresh install of stage deps)
-            # 2. Venv existed and --update-deps was passed (update stage deps)
-            # 3. Venv existed, was re-created, and user chose to proceed (fresh install of stage deps)
-            # The 'args.update_deps' flag for install_dependencies handles the update part.
-            # If venv_needs_initial_setup is true, we want a fresh install (update=False).
-            # Otherwise, respect args.update_deps.
-            # This logic is a bit subtle. If venv_needs_initial_setup, then primary deps were installed with update=False.
-            # Stage deps should also be fresh in that case.
-            # If not venv_needs_initial_setup, then primary deps were updated based on args.update_deps.
-            # Stage deps should follow the same update flag.
-
             install_stage_deps_update_flag = args.update_deps
-            if (
-                venv_needs_initial_setup
-            ):  # If we did a fresh install of base, do fresh for stage too
+            if venv_needs_initial_setup:
                 install_stage_deps_update_flag = False
                 logger.info(
                     f"Installing stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
                 )
-            elif (
-                args.update_deps
-            ):  # Only log about updating if not a fresh setup and update_deps is true
+            elif args.update_deps:
                 logger.info(
                     f"Updating stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} as per --update-deps..."
                 )
-            else:  # No initial setup, no update_deps, so skip stage-specific unless they were missing
+            else:
                 logger.info(
                     f"Skipping stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} unless missing or --update-deps is used."
                 )
 
-            # The install_dependencies function itself is idempotent if packages are already there and update=False
-            # So, it's generally safe to call it. The update flag controls upgrade behavior.
-            if (
-                venv_needs_initial_setup or args.update_deps
-            ):  # Only proceed if new/recreated or updating
+            if venv_needs_initial_setup or args.update_deps:
                 if not install_dependencies(
                     stage_requirements_file_path_str,
                     update=install_stage_deps_update_flag,
@@ -583,65 +453,10 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                         f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
                     )
                     return False
-            # If not venv_needs_initial_setup AND not args.update_deps, we can log that we are skipping.
-            # This is covered by the logger.info above.
 
-    # Check PyTorch CUDA # Removed block
-    # if TORCH_CUDA_REQUIRED and not args.skip_torch_cuda_test: # Removed
-        # if not check_torch_cuda(): # Removed
-            # if args.reinstall_torch: # Removed
-                # logger.info( # Removed
-                    # "PyTorch CUDA not found. Reinstalling PyTorch with CUDA support as requested." # Removed
-                # ) # Removed
-                # if not reinstall_torch(): # Removed
-                    # logger.error("Failed to reinstall PyTorch with CUDA. Please check manually.") # Removed
-            # else: # Removed
-                # logger.warning( # Removed
-                    # "PyTorch CUDA is not available. Use --reinstall-torch to attempt reinstallation, or --skip-torch-cuda-test to ignore." # Removed
-                # ) # Removed
-
-    # Download NLTK data
     if not args.no_download_nltk:
         if not download_nltk_data():
             return False
-
-    python_executable = get_python_executable()  # Get python executable for managers
-
-    # Load extensions if not skipped # Removed block
-    # if not args.skip_extensions: # Removed
-        # from deployment.extensions import extensions_manager # Removed
-#
-        # extensions_manager.set_python_executable(python_executable) # Removed
-        # if not extensions_manager.load_extensions(): # Removed
-            # logger.error("Failed to load one or more extensions.") # Removed
-            # return False # Removed
-        # if not extensions_manager.initialize_extensions(): # Removed
-            # logger.error("Failed to initialize one or more extensions.") # Removed
-            # return False # Removed
-
-    # Download models if needed # Removed block
-    # if not args.skip_models: # Removed
-        # from deployment.models import models_manager # Removed
-#
-        # logger.info(f"DEBUG: args.skip_models is False. Checking models...") # Removed
-        # current_models = models_manager.list_models() # Removed
-        # logger.info(f"DEBUG: models_manager.list_models() returned: {current_models}") # Removed
-        # models_manager does not require python_executable to be set explicitly for now # Removed
-        # if not current_models:  # If "models" dir was truly empty initially # Removed
-            # if args.stage == "dev": # Removed
-                # logger.info( # Removed
-                    # "Development stage: Skipping download of default models. Placeholders will be used/created." # Removed
-                # ) # Removed
-            # elif not models_manager.download_default_models():  # Original logic for non-dev stages # Removed
-                # logger.error("Failed to download default models.") # Removed
-                # Logged error, but will proceed to create_placeholder_nlp_models anyway # Removed
-#
-        # Always attempt to create/verify NLP placeholders if models are not skipped # Removed
-        # logger.info("Ensuring NLP placeholder models exist...") # Removed
-        # if not models_manager.create_placeholder_nlp_models(): # Removed
-            # logger.warning( # Removed
-                # "Failed to create/verify some placeholder NLP models. NLP functionality might be limited." # Removed
-            # ) # Removed
 
     return True
 
@@ -655,31 +470,29 @@ def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[
         python_executable,
         "-m",
         "uvicorn",
-        "backend.python_backend.main:app",  # Correct path to the ASGI app
+        "backend.python_backend.main:app",
         "--host",
-        actual_host,  # Use actual_host here
+        actual_host,
         "--port",
         str(args.port),
     ]
 
-    if args.debug:  # For local development, --reload is often useful
+    if args.debug:
         cmd.append("--log-level=debug")
-        cmd.append("--reload")  # Add reload for development
+        cmd.append("--reload")
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
-    # Determine NODE_ENV based on stage, default to development
     env["NODE_ENV"] = "development" if args.stage == "dev" else args.stage
     env["DEBUG"] = str(args.debug)
 
     try:
-        # Log the command with the actual host
         log_cmd = cmd[:]
-        if args.listen:  # For logging, show the original intention if --listen was used
+        if args.listen:
             log_cmd[log_cmd.index(actual_host)] = f"{args.host} (via --listen on 0.0.0.0)"
         logger.info(f"Running backend command: {' '.join(log_cmd)}")
         process = subprocess.Popen(cmd, env=env)
-        processes.append(process)  # Add to global list
+        processes.append(process)
         logger.info(f"Backend server started with PID {process.pid} on {actual_host}:{args.port}.")
         return process
     except FileNotFoundError:
@@ -699,10 +512,50 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
     """Starts the Gradio UI server."""
     logger.info("Starting Gradio UI...")
 
-    gradio_script_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
-    if not gradio_script_path.exists():
-        logger.error(f"Gradio UI script not found at: {gradio_script_path}")
+    try:
+        subprocess.check_call(
+            ["node", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        logger.error("Node.js is not installed or not found in PATH. Cannot start frontend.")
         return None
+
+    client_dir = ROOT_DIR / "client"
+    client_pkg_json = client_dir / "package.json"
+
+    if client_pkg_json.exists():
+        npm_executable_path = shutil.which("npm")
+        if npm_executable_path is None:
+            logger.error(
+                f"The 'npm' command was not found in your system's PATH. "
+                f"Please ensure Node.js and npm are correctly installed and that the npm installation directory is added to your PATH environment variable. "
+                f"Attempted to find 'npm' for the client in: {client_dir}"
+            )
+            return None
+        else:
+            logger.info(f"Found 'npm' executable at: {npm_executable_path}")
+
+        logger.info(f"Found package.json in {client_dir}. Running npm install...")
+        try:
+            install_result = subprocess.run(
+                ["npm", "install"],
+                cwd=client_dir,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if install_result.returncode != 0:
+                logger.error(f"Failed to install frontend dependencies in {client_dir}.")
+                logger.error(f"npm stdout:\n{install_result.stdout}")
+                logger.error(f"npm stderr:\n{install_result.stderr}")
+                return None
+            else:
+                logger.info(f"Frontend dependencies installed successfully in {client_dir}.")
+        except Exception as e:
+            logger.error(f"Error running npm install in {client_dir}: {e}")
+            return None
+    else:
+        logger.warning(f"No package.json found in {client_dir}. Skipping npm install for frontend.")
 
     cmd = [
         python_executable,
@@ -722,13 +575,14 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
         cmd.append("--share")
 
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
+    env["VITE_API_URL"] = f"http://{args.host}:{args.port}"
+    env["NODE_ENV"] = "development"
 
     try:
-        logger.info(f"Running Gradio UI command: {' '.join(cmd)}")
-        process = subprocess.Popen(cmd, env=env)
+        logger.info(f"Running frontend command: {' '.join(cmd)} in {str(ROOT_DIR / 'client')}")
+        process = subprocess.Popen(cmd, cwd=str(ROOT_DIR / "client"), env=env)
         processes.append(process)
-        logger.info(f"Gradio UI started with PID {process.pid}.")
+        logger.info(f"Frontend server started with PID {process.pid}.")
         return process
     except Exception as e:
         logger.error(f"Failed to start Gradio UI: {e}")
@@ -739,7 +593,7 @@ def run_application(args: argparse.Namespace) -> int:
     """Run the application with the specified arguments."""
     python_executable = get_python_executable()
     backend_process = None
-    gradio_process = None
+    frontend_process = None
 
     if args.env_file:
         env_file_path = ROOT_DIR / args.env_file
@@ -757,16 +611,20 @@ def run_application(args: argparse.Namespace) -> int:
         else:
             logger.error("Failed to start backend server in API only mode.")
             return 1
-    elif args.ui_only:
-        logger.info("Running in UI only mode.")
-        gradio_process = start_gradio_ui(args, python_executable)
-        if gradio_process:
-            gradio_process.wait()
+    elif args.frontend_only:
+        logger.info("Running in Frontend only mode.")
+        if not args.api_url:
+            logger.warning(
+                "Frontend only mode: VITE_API_URL might not be correctly set if backend is not running or --api-url is not provided."
+            )
+        frontend_process = start_frontend(args)
+        if frontend_process:
+            frontend_process.wait()
         else:
             logger.error("Failed to start Gradio UI in UI only mode.")
             return 1
     elif args.stage == "dev" or not args.stage:
-        logger.info("Running in local development mode (backend and Gradio UI).")
+        logger.info("Running in local development mode (backend and frontend).")
         unexpected_exit = False
         backend_process = start_backend(args, python_executable)
         gradio_process = start_gradio_ui(args, python_executable)
@@ -775,8 +633,8 @@ def run_application(args: argparse.Namespace) -> int:
             logger.info(f"Backend accessible at http://{args.host}:{args.port}")
         else:
             logger.error("Backend server failed to start.")
-            if gradio_process and gradio_process.poll() is None:
-                gradio_process.terminate()
+            if frontend_process and frontend_process.poll() is None:
+                frontend_process.terminate()
             return 1
 
         if gradio_process:
@@ -808,12 +666,14 @@ def run_application(args: argparse.Namespace) -> int:
                         break
                     time.sleep(1)
             except KeyboardInterrupt:
-                logger.info("KeyboardInterrupt in run_application. Signal handler should take over.")
+                logger.info(
+                    "KeyboardInterrupt in run_application. Signal handler should take over."
+                )
                 pass
             except Exception as e:
                 logger.error(f"An unexpected error occurred in run_application main loop: {e}")
             finally:
-                for p in [backend_process, gradio_process]:
+                for p in [backend_process, frontend_process]:
                     if p and p.poll() is None:
                         p.terminate()
                         try:
@@ -823,10 +683,23 @@ def run_application(args: argparse.Namespace) -> int:
             if unexpected_exit:
                 logger.error("One or more services exited unexpectedly.")
                 return 1
+
+        elif backend_process:
+            logger.info("Only backend process is running. Waiting for it to complete.")
+            backend_process.wait()
+            if backend_process.returncode != 0:
+                logger.error(f"Backend process exited with code: {backend_process.returncode}")
+                return 1
+
     elif args.stage == "test":
         logger.info("Running application in 'test' stage (executing tests)...")
+        logger.info(
+            f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided."
+        )
         from deployment.test_stages import test_stages
+
         test_run_success = True
+
         if hasattr(test_stages, "run_unit_tests"):
             logger.info("Running unit tests (default for --stage test)...")
             if not test_stages.run_unit_tests(args.coverage, args.debug):
@@ -834,13 +707,17 @@ def run_application(args: argparse.Namespace) -> int:
                 logger.error("Unit tests failed.")
         else:
             logger.warning("test_stages.run_unit_tests not found, cannot run unit tests.")
+
         if hasattr(test_stages, "run_integration_tests"):
             logger.info("Running integration tests (default for --stage test)...")
             if not test_stages.run_integration_tests(args.coverage, args.debug):
                 test_run_success = False
                 logger.error("Integration tests failed.")
         else:
-            logger.warning("test_stages.run_integration_tests not found, cannot run integration tests.")
+            logger.warning(
+                "test_stages.run_integration_tests not found, cannot run integration tests."
+            )
+
         logger.info(f"Default test suite execution finished. Success: {test_run_success}")
         return 0 if test_run_success else 1
 
@@ -877,14 +754,7 @@ def _print_system_info():
         print(f"{req_file_name}: {status} at {req_file_path}")
 
     print("\n--- PyTorch Information ---")
-    # Check if PyTorch is installed before trying to import or run check_torch_cuda
-    # This avoids ModuleNotFoundError if torch isn't even in the environment.
-    # A more robust check might involve trying to import torch.
     try:
-        # Attempt a lightweight check first using pkg_resources if available,
-        # or directly try importing torch if that's preferred.
-        # For simplicity, directly call check_torch_cuda and let it handle import errors if any.
-        # However, check_torch_cuda itself calls get_python_executable and runs a subprocess.
         python_exec = get_python_executable()
         torch_version_proc = subprocess.run(
             [python_exec, "-c", "import torch; print(torch.__version__)"],
@@ -893,7 +763,7 @@ def _print_system_info():
         )
         if torch_version_proc.returncode == 0:
             print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
-            check_torch_cuda()  # This will print CUDA availability
+            # check_torch_cuda() # This function was removed
         else:
             print("PyTorch Version: Not installed or importable with current Python executable.")
             logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
@@ -936,16 +806,6 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="Update dependencies before launching",
     )
-    # parser.add_argument( # Removed
-        # "--skip-torch-cuda-test", # Removed
-        # action="store_true", # Removed
-        # help="Skip CUDA availability test for PyTorch", # Removed
-    # ) # Removed
-    # parser.add_argument( # Removed
-        # "--reinstall-torch", # Removed
-        # action="store_true", # Removed
-        # help="Reinstall PyTorch (useful for CUDA issues)", # Removed
-    # ) # Removed
     parser.add_argument(
         "--skip-python-version-check",
         action="store_true",
@@ -1014,25 +874,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--performance", action="store_true", help="Run performance tests")
     parser.add_argument("--security", action="store_true", help="Run security tests")
 
-    # Extensions and models
-    # parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions") # Removed
-    # parser.add_argument("--skip-models", action="store_true", help="Skip downloading models") # Removed
-    # parser.add_argument( # Removed
-        # "--install-extension", # Removed
-        # type=str, # Removed
-        # help="Install an extension from a Git repository", # Removed
-    # ) # Removed
-    # parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension") # Removed
-    # parser.add_argument("--update-extension", type=str, help="Update an extension") # Removed
-    # parser.add_argument("--list-extensions", action="store_true", help="List all extensions") # Removed
-    # parser.add_argument("--create-extension", type=str, help="Create a new extension template") # Removed
-
-    # Model options
-    # parser.add_argument("--download-model", type=str, help="Download a model from a URL") # Removed
-    # parser.add_argument("--model-name", type=str, help="Specify the model name for download") # Removed
-    # parser.add_argument("--list-models", action="store_true", help="List all models") # Removed
-    # parser.add_argument("--delete-model", type=str, help="Delete a model") # Removed
-
     # Advanced options
     parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
     parser.add_argument(
@@ -1044,13 +885,11 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--system-info", action="store_true", help="Print system information")
 
     # Networking options
-    # --share and --ngrok-region arguments removed
     parser.add_argument(
         "--listen",
         action="store_true",
         help="Make the backend server listen on 0.0.0.0",
     )
-    # --ngrok-region argument removed
 
     # UI and Execution options
     parser.add_argument(
@@ -1080,12 +919,9 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     """Main entry point."""
-
-    # Python interpreter discovery and re-execution logic
-    # Goal: Ensure launch.py runs with Python 3.11.x
     if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
         current_major, current_minor = sys.version_info[:2]
-        target_major, target_minor = PYTHON_MIN_VERSION  # Assuming PYTHON_MIN_VERSION is (3, 11)
+        target_major, target_minor = PYTHON_MIN_VERSION
 
         current_version = (current_major, current_minor)
         if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
@@ -1097,29 +933,28 @@ def main() -> int:
             candidate_interpreters = []
             if platform.system() == "Windows":
                 candidate_interpreters = [
-                    ["py", "-3.12"],  # Python Launcher for Windows
-                    ["py", "-3.11"],  # Python Launcher for Windows
+                    ["py", "-3.12"],
+                    ["py", "-3.11"],
                     ["python3.12"],
                     ["python3.11"],
-                    ["python"],  # General python, check version
+                    ["python"],
                 ]
-            else:  # Linux/macOS
+            else:
                 candidate_interpreters = [
                     ["python3.12"],
                     ["python3.11"],
-                    ["python3"],  # General python3, check version
+                    ["python3"],
                 ]
 
             found_interpreter_path = None
             for candidate_parts in candidate_interpreters:
                 exe_name = candidate_parts[0]
-                version_check_args = candidate_parts[1:]  # Args for "py -3.11"
+                version_check_args = candidate_parts[1:]
 
                 potential_path = shutil.which(exe_name)
                 if potential_path:
                     cmd_to_check = [potential_path] + version_check_args + ["--version"]
                     try:
-                        # Ensure PATH is inherited by subprocess, especially for `py` on Windows
                         env = os.environ.copy()
                         result = subprocess.run(
                             cmd_to_check,
@@ -1130,11 +965,8 @@ def main() -> int:
                             timeout=5,
                         )
 
-                        # Python version can be in stdout or stderr
                         version_output = result.stdout.strip() + result.stderr.strip()
 
-                        # Example outputs: "Python 3.11.5" or "Python 3.12.0rc1"
-                        # Check if version is in supported range
                         compatible = False
                         for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
                             for minor in range(PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0, 
@@ -1169,27 +1001,13 @@ def main() -> int:
                 new_env = os.environ.copy()
                 new_env["LAUNCHER_REEXEC_GUARD"] = "1"
 
-                # On Windows, os.execve is not ideal for .exe files if they are not true executables (e.g. py.exe might be tricky).
-                # subprocess.Popen might be more robust for re-launching, then sys.exit.
-                # However, the requirement is to use os.execve.
                 try:
-                    # sys.argv[0] should be launch.py. If it's an absolute path, use it.
-                    # If not, it might be relative, which is fine for execve's second arg.
-                    script_path = sys.argv[0]
-                    if not os.path.isabs(script_path) and shutil.which(script_path):
-                        # If sys.argv[0] is just "launch.py", make it absolute if possible,
-                        # assuming it's in PATH or CWD. For robustness, ensure it's discoverable.
-                        # A safer bet is to use __file__ from the script's context.
-                        script_path = str(Path(__file__).resolve())
-
+                    script_path = str(Path(__file__).resolve())
                     args_for_exec = [found_interpreter_path, script_path] + sys.argv[1:]
                     os.execve(found_interpreter_path, args_for_exec, new_env)
-                    # os.execve does not return if successful
                 except Exception as e:
                     logger.error(f"Failed to re-execute with {found_interpreter_path}: {e}")
-                    # Fall through to the error below if execve fails critically
 
-            # If loop completes or execve fails before replacing the process
             logger.error(
                 f"Python {target_major}.{target_minor} is required, but a compatible version was not found "
                 f"on your system after searching common paths (candidates: {[c[0] for c in candidate_interpreters]}). "
@@ -1197,178 +1015,40 @@ def main() -> int:
                 f"or run {Path(__file__).name} using a Python {target_major}.{target_minor} interpreter directly."
             )
             sys.exit(1)
-        # If current version is already the target, and guard is not set, it implies first direct run with correct version.
-        # No specific log needed here, it will just proceed.
 
     elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
         logger.info(
             f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor} "
             f"(Guard was set). Skipping further Python version discovery."
         )
-        # Optionally, unset the guard if it's not needed by child processes spawned by this script itself.
-        # For now, keep it, as it doesn't harm.
-        # del os.environ["LAUNCHER_REEXEC_GUARD"]
 
-    _setup_signal_handlers()  # Setup signal handlers at the beginning
-    # Parse arguments
+    _setup_signal_handlers()
     args = parse_arguments()
 
-    # Configure logging level based on command line argument
     numeric_level = getattr(logging, args.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        # This should not happen due to choices in argparse, but good practice to check
         raise ValueError(f"Invalid log level: {args.loglevel}")
 
-    # Reconfigure the root logger. Using force=True (Python 3.8+) to allow this.
-    # This will affect all loggers unless they have had their level set explicitly.
     logging.basicConfig(
         level=numeric_level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         force=True,
     )
-    # Ensure our main launcher logger also adheres to this level.
-    # (basicConfig sets root, getLogger then inherits or can be set specifically)
     logger.setLevel(numeric_level)
-    # Other loggers (e.g., from libraries) will also use this level unless configured otherwise.
-
     logger.info(f"Launcher log level set to: {args.loglevel}")
 
-    # Load default .env file if it exists
     default_env_file = ROOT_DIR / ".env"
     if default_env_file.exists():
         logger.info(f"Loading environment variables from default .env file: {default_env_file}")
         load_dotenv(dotenv_path=default_env_file, override=True)
 
-    # Handle special commands
-
-    # System information
     if args.system_info:
         _print_system_info()
         return 0
 
-    # Extensions management # Removed block
-    # Ensure python_executable is set for extensions_manager if any extension command is run # Removed
-    # This is a bit repetitive but ensures it's set if --skip-prepare was used. # Removed
-    # A more elegant solution might involve a global setup for managers. # Removed
-    # if ( # Removed
-        # args.list_extensions # Removed
-        # or args.install_extension # Removed
-        # or args.uninstall_extension # Removed
-        # or args.update_extension # Removed
-        # or args.create_extension # Removed
-    # ): # Removed
-        # from deployment.extensions import extensions_manager # Removed
-#
-        # if ( # Removed
-            # not extensions_manager.python_executable # Removed
-            # or extensions_manager.python_executable == sys.executable # Removed
-        # ):  # Check if it needs setting # Removed
-            # This check is to avoid overriding if already set by prepare_environment # Removed
-            # to a venv python. If it's None or system python, and we are in venv, update it. # Removed
-            # current_launcher_python_exec = get_python_executable() # Removed
-            # if extensions_manager.python_executable != current_launcher_python_exec: # Removed
-                # extensions_manager.set_python_executable(current_launcher_python_exec) # Removed
-                # logger.debug( # Removed
-                    # f"Set python_executable for extensions_manager in main() to: {current_launcher_python_exec}" # Removed
-                # ) # Removed
-#
-    # if args.list_extensions: # Removed
-        # from deployment.extensions import extensions_manager # Removed
-#
-        # load_extensions might be needed if prepare_environment was skipped # Removed
-        # However, list_extensions in its current form doesn't strictly need them loaded, # Removed
-        # it lists based on discovery. If it were to list *loaded* extensions, this would change. # Removed
-        # For now, assuming list_extensions can operate without full load_extensions() if needed. # Removed
-        # extensions_manager.load_extensions() # Potentially add this if list shows *active* extensions # Removed
-        # extensions = extensions_manager.list_extensions() # Removed
-#
-        # print(f"Found {len(extensions)} extensions:") # Removed
-        # for extension in extensions: # Removed
-            # print(f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}") # Removed
-            # print(f"    Path: {extension['path']}") # Removed
-            # print(f"    Loaded: {extension['loaded']}") # Removed
-            # print(f"    Description: {extension['metadata'].get('description', 'No description')}") # Removed
-            # print() # Removed
-#
-        # return 0 # Removed
-#
-    # if args.install_extension: # Removed
-        # from deployment.extensions import extensions_manager # Removed
-#
-        # Ensure prepare_environment or equivalent setup for venv has run if installing. # Removed
-        # if not args.skip_prepare:  # If prepare_environment ran, venv should be ready. # Removed
-            # pass  # Dependencies should be in venv. # Removed
-        # else:  # If skipping prepare, user is responsible for environment. # Removed
-            # logger.warning( # Removed
-                # "Skipping prepare_environment. Ensure correct Python environment for extension installation." # Removed
-            # ) # Removed
-        # success = extensions_manager.install_extension(args.install_extension) # Removed
-        # return 0 if success else 1 # Removed
-#
-    # if args.uninstall_extension: # Removed
-        # from deployment.extensions import extensions_manager # Removed
-#
-        # success = extensions_manager.uninstall_extension(args.uninstall_extension) # Removed
-        # return 0 if success else 1 # Removed
-#
-    # if args.update_extension: # Removed
-        # from deployment.extensions import extensions_manager # Removed
-#
-        # Similar to install, ensure environment is appropriate. # Removed
-        # if not args.skip_prepare: # Removed
-            # pass # Removed
-        # else: # Removed
-            # logger.warning( # Removed
-                # "Skipping prepare_environment. Ensure correct Python environment for extension update." # Removed
-            # ) # Removed
-        # success = extensions_manager.update_extension(args.update_extension) # Removed
-        # return 0 if success else 1 # Removed
-#
-    # if args.create_extension: # Removed
-        # from deployment.extensions import extensions_manager # Removed
-#
-        # success = extensions_manager.create_extension_template(args.create_extension) # Removed
-        # return 0 if success else 1 # Removed
-
-    # Models management # Removed block
-    # if args.list_models: # Removed
-        # from deployment.models import models_manager # Removed
-#
-        # models = models_manager.list_models() # Removed
-#
-        # print(f"Found {len(models)} models:") # Removed
-        # for model_item in models: # Removed
-            # print(f"  {model_item}") # Removed
-#
-            # Print the model configuration if available # Removed
-            # config = models_manager.get_model_config(model_item) # Removed
-            # if config: # Removed
-                # print(f"    Configuration:") # Removed
-                # for key, value in config.items(): # Removed
-                    # print(f"      {key}: {value}") # Removed
-#
-            # print() # Removed
-#
-        # return 0 # Removed
-#
-    # if args.download_model and args.model_name: # Removed
-        # from deployment.models import models_manager # Removed
-#
-        # success = models_manager.download_model(args.download_model, args.model_name) # Removed
-        # return 0 if success else 1 # Removed
-#
-    # if args.delete_model: # Removed
-        # from deployment.models import models_manager # Removed
-#
-        # success = models_manager.delete_model(args.delete_model) # Removed
-        # return 0 if success else 1 # Removed
-
-    # Testing options
-    # This block handles specific test flags. If any are true, tests run and program exits.
-    # If --stage test is specified WITHOUT these specific flags, it will be handled in run_application.
     if args.unit or args.integration or args.e2e or args.performance or args.security:
         logger.info("Specific test flags detected. Running requested tests...")
-        from deployment.test_stages import test_stages  # Import here as it's specific to this block
+        from deployment.test_stages import test_stages
 
         test_run_success = True
 
@@ -1404,14 +1084,9 @@ def main() -> int:
         logger.info(f"Test execution finished. Success: {test_run_success}")
         return 0 if test_run_success else 1
 
-    # If --stage is 'test' but no specific test flags were given, run_application will handle it.
-    # For other stages or default 'dev' stage, proceed to prepare environment and run application.
-
-    # Prepare environment
     if not args.skip_prepare and not prepare_environment(args):
         return 1
 
-    # Run application
     return run_application(args)
 
 
