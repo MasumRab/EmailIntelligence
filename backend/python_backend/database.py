@@ -9,6 +9,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Literal
+from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +44,6 @@ FIELD_SENDER_EMAIL = 'sender_email'
 # UI field names
 FIELD_CATEGORY_NAME = 'categoryName'
 FIELD_CATEGORY_COLOR = 'categoryColor'
-
-# Default values
-DEFAULT_COLOR = "#6366f1"
 
 class DatabaseManager:
     """Async database manager for email data using JSON file storage."""
@@ -138,14 +136,7 @@ class DatabaseManager:
 
         # Seed default categories if categories.json is empty
         if not self.categories_data:
-            default_categories = [
-                {FIELD_NAME: "Primary", "description": "Default primary category", FIELD_COLOR: "#4CAF50", FIELD_COUNT: 0},
-                {FIELD_NAME: "Promotions", "description": "Promotional emails", FIELD_COLOR: "#2196F3", FIELD_COUNT: 0},
-                {FIELD_NAME: "Social", "description": "Social media notifications", FIELD_COLOR: "#FFC107", FIELD_COUNT: 0},
-                {FIELD_NAME: "Updates", "description": "Updates and notifications", FIELD_COLOR: "#9C27B0", FIELD_COUNT: 0},
-                {FIELD_NAME: "Forums", "description": "Forum discussions", FIELD_COLOR: "#795548", FIELD_COUNT: 0},
-            ]
-            for cat_data in default_categories:
+            for cat_data in DEFAULT_CATEGORIES:
                 await self.create_category(cat_data)
             logger.info("Seeded default categories.")
 
@@ -293,7 +284,7 @@ class DatabaseManager:
             FIELD_ID: new_id,
             FIELD_NAME: category_data[FIELD_NAME],
             "description": category_data.get("description"),
-            FIELD_COLOR: category_data.get(FIELD_COLOR, DEFAULT_COLOR),
+            FIELD_COLOR: category_data.get(FIELD_COLOR, DEFAULT_CATEGORY_COLOR),
             FIELD_COUNT: category_data.get(FIELD_COUNT, 0),
         }
         self.categories_data.append(category_record)

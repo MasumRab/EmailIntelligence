@@ -1232,7 +1232,7 @@ class SmartFilterManager:
     def _save_filter(self, filter_obj: EmailFilter):
         """Save filter to database"""
         query = """
-            INSERT OR REPLACE INTO email_filters 
+            INSERT OR REPLACE INTO email_filters
             (filter_id, name, description, criteria, actions, priority, effectiveness_score,
              created_date, last_used, usage_count, false_positive_rate, performance_metrics, is_active)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -1325,7 +1325,7 @@ class SmartFilterManager:
     def _save_filter_performance(self, performance: FilterPerformance):
         """Save filter performance metrics"""
         query = """
-            INSERT INTO filter_performance 
+            INSERT INTO filter_performance
             (performance_id, filter_id, measurement_date, accuracy, precision_score, recall_score,
              f1_score, processing_time_ms, emails_processed, true_positives, false_positives, false_negatives)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -1351,9 +1351,9 @@ class SmartFilterManager:
     def _get_filter_performance(self, filter_id: str) -> Optional[FilterPerformance]:
         """Get latest performance metrics for filter"""
         query = """
-            SELECT * FROM filter_performance 
-            WHERE filter_id = ? 
-            ORDER BY measurement_date DESC 
+            SELECT * FROM filter_performance
+            WHERE filter_id = ?
+            ORDER BY measurement_date DESC
             LIMIT 1
         """
         row = self._db_fetchone(query, (filter_id,))
@@ -1380,7 +1380,7 @@ class SmartFilterManager:
         """Get performance history for filter"""
         cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
         query = """
-            SELECT * FROM filter_performance 
+            SELECT * FROM filter_performance
             WHERE filter_id = ? AND measurement_date >= ?
             ORDER BY measurement_date DESC
         """
