@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 import os
+import sqlite3
 import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -59,17 +60,12 @@ class SyncCheckpoint:
 class SmartGmailRetriever:
     """Advanced Gmail retrieval with intelligent filtering and batching"""
 
-    def __init__(self, checkpoint_path: str = "sync_checkpoints.json", stats_path: str = "retrieval_stats.json"):
+    def __init__(self, checkpoint_db_path: str = "sync_checkpoints.db"):
         self.logger = logging.getLogger(__name__)
-        self.checkpoint_path = checkpoint_path
-        self.stats_path = stats_path
-        self.checkpoints: Dict[str, SyncCheckpoint] = {}
-        self.daily_stats: Dict[str, Dict[str, Any]] = {}
-
-        self.logger.info(f"Using checkpoint file: {self.checkpoint_path}")
+        self.checkpoint_db_path = checkpoint_db_path
+        self.logger.info(f"Using checkpoint database: {self.checkpoint_db_path}")
         self.gmail_service = None
-        self._load_checkpoints()
-        self._load_daily_stats()
+        self._init_checkpoint_db()
 
         creds = self._load_credentials()
         if not creds or not creds.valid:
@@ -79,29 +75,31 @@ class SmartGmailRetriever:
                     self._store_credentials(creds)
                 except Exception as e:
                     self.logger.error(f"Failed to refresh token: {e}")
-                    creds = self._authenticate()
+                    creds = self._authenticate()  # Try to re-authenticate
             else:
                 creds = self._authenticate()
 
         if creds and creds.valid:
             try:
                 self.gmail_service = build("gmail", "v1", credentials=creds)
-                self._store_credentials(creds)
+                self._store_credentials(creds)  # Save refreshed or new credentials
                 self.logger.info("Gmail service initialized successfully.")
             except Exception as e:
                 self.logger.error(f"Failed to build Gmail service: {e}")
-                self.gmail_service = None
+                self.gmail_service = None  # Ensure service is None if build fails
                 self.logger.error("Gmail service initialization failed.")
         else:
             self.logger.error("Failed to obtain valid credentials. Gmail service not initialized.")
 
+        # Gmail API quotas and limits
         self.api_limits = {
-            "daily_quota": 1000000000,
-            "per_user_per_100_seconds": 250,
-            "batch_size_limit": 100,
-            "concurrent_requests": 10,
+            "daily_quota": 1000000000,  # 1 billion units per day
+            "per_user_per_100_seconds": 250,  # 250 units per 100 seconds
+            "batch_size_limit": 100,  # Max emails per batch request
+            "concurrent_requests": 10,  # Max concurrent API calls
         }
 
+        # Smart filtering categories
         self.folder_mappings = {
             "INBOX": {"priority": 10, "frequency": "hourly"},
             "SENT": {"priority": 5, "frequency": "daily"},
@@ -116,36 +114,39 @@ class SmartGmailRetriever:
             "TRASH": {"priority": 1, "frequency": "never"},
         }
 
-    def _load_checkpoints(self):
-        """Load checkpoints from JSON file."""
-        try:
-            if os.path.exists(self.checkpoint_path):
-                with open(self.checkpoint_path, 'r') as f:
-                    data = json.load(f)
-                    for name, cp_data in data.items():
-                        self.checkpoints[name] = SyncCheckpoint(
-                            strategy_name=cp_data['strategy_name'],
-                            last_sync_date=datetime.fromisoformat(cp_data['last_sync_date']),
-                            last_history_id=cp_data['last_history_id'],
-                            processed_count=cp_data['processed_count'],
-                            next_page_token=cp_data.get('next_page_token'),
-                            errors_count=cp_data['errors_count']
-                        )
-                self.logger.info(f"Loaded {len(self.checkpoints)} checkpoints from {self.checkpoint_path}")
-        except (IOError, json.JSONDecodeError, KeyError) as e:
-            self.logger.error(f"Error loading checkpoints from {self.checkpoint_path}: {e}. Starting fresh.")
-            self.checkpoints = {}
+    def _init_checkpoint_db(self):
+        """Initialize checkpoint database for sync state management"""
+        conn = sqlite3.connect(self.checkpoint_db_path)
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS sync_checkpoints (
+                strategy_name TEXT PRIMARY KEY,
+                last_sync_date TEXT,
+                last_history_id TEXT,
+                processed_count INTEGER DEFAULT 0,
+                next_page_token TEXT,
+                errors_count INTEGER DEFAULT 0,
+                created_at TEXT,
+                updated_at TEXT
+            )
+        """
+        )
 
-    def _load_daily_stats(self):
-        """Load daily stats from JSON file."""
-        try:
-            if os.path.exists(self.stats_path):
-                with open(self.stats_path, 'r') as f:
-                    self.daily_stats = json.load(f)
-                self.logger.info(f"Loaded daily stats from {self.stats_path}")
-        except (IOError, json.JSONDecodeError) as e:
-            self.logger.error(f"Error loading daily stats from {self.stats_path}: {e}. Starting fresh.")
-            self.daily_stats = {}
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS retrieval_stats (
+                date TEXT PRIMARY KEY,
+                total_retrieved INTEGER DEFAULT 0,
+                api_calls_used INTEGER DEFAULT 0,
+                quota_remaining INTEGER DEFAULT 0,
+                strategies_executed TEXT,
+                performance_metrics TEXT
+            )
+        """
+        )
+
+        conn.commit()
+        conn.close()
 
     def _load_credentials(self) -> Credentials | None:
         """Loads credentials from TOKEN_JSON_PATH if it exists."""
@@ -881,82 +882,158 @@ class SmartGmailRetriever:
         self.logger.debug(f"Simulated response: {response}")
         return response
 
-    def _save_checkpoints(self):
-        """Save the current checkpoints to the JSON file."""
-        try:
-            with open(self.checkpoint_path, 'w') as f:
-                data_to_save = {name: asdict(cp) for name, cp in self.checkpoints.items()}
-                json.dump(data_to_save, f, indent=4, default=str)
-            self.logger.debug(f"Saved {len(self.checkpoints)} checkpoints to {self.checkpoint_path}")
-        except IOError as e:
-            self.logger.error(f"Error saving checkpoints to {self.checkpoint_path}: {e}")
-
-    def _save_daily_stats(self):
-        """Save the current daily stats to the JSON file."""
-        try:
-            with open(self.stats_path, 'w') as f:
-                json.dump(self.daily_stats, f, indent=4)
-            self.logger.debug(f"Saved daily stats to {self.stats_path}")
-        except IOError as e:
-            self.logger.error(f"Error saving daily stats to {self.stats_path}: {e}")
-
     def _load_checkpoint(self, strategy_name: str) -> Optional[SyncCheckpoint]:
-        """Load sync checkpoint for a strategy from memory."""
+        """Load sync checkpoint for strategy"""
         self.logger.debug(f"Loading checkpoint for strategy: {strategy_name}")
-        checkpoint = self.checkpoints.get(strategy_name)
-        if checkpoint:
-            self.logger.info(f"Checkpoint loaded for '{strategy_name}': Last sync {checkpoint.last_sync_date}, Processed {checkpoint.processed_count}")
-        else:
-            self.logger.info(f"No checkpoint found for strategy: {strategy_name}")
-        return checkpoint
+        conn = sqlite3.connect(self.checkpoint_db_path)
+        cursor = conn.execute(
+            "SELECT * FROM sync_checkpoints WHERE strategy_name = ?", (strategy_name,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if row:
+            loaded_checkpoint = SyncCheckpoint(
+                strategy_name=row[0],
+                last_sync_date=(
+                    datetime.fromisoformat(row[1]) if row[1] else datetime.now()
+                ),  # Consider default if None
+                last_history_id=row[2] or "",
+                processed_count=row[3] or 0,
+                next_page_token=row[4],
+                errors_count=row[5] or 0,
+            )
+            self.logger.info(
+                f"Checkpoint loaded for '{strategy_name}': Last sync {loaded_checkpoint.last_sync_date}, Processed {loaded_checkpoint.processed_count}"
+            )
+            return loaded_checkpoint
+        self.logger.info(f"No checkpoint found for strategy: {strategy_name}")
+        return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
-        """Save sync checkpoint to memory and persist to file."""
-        self.logger.info(f"Saving checkpoint for strategy '{checkpoint.strategy_name}': Last sync {checkpoint.last_sync_date}, Processed {checkpoint.processed_count}, HistoryID {checkpoint.last_history_id}")
-        self.checkpoints[checkpoint.strategy_name] = checkpoint
-        self._save_checkpoints()
+        """Save sync checkpoint"""
+        self.logger.info(
+            f"Saving checkpoint for strategy '{checkpoint.strategy_name}': Last sync {checkpoint.last_sync_date}, Processed {checkpoint.processed_count}, HistoryID {checkpoint.last_history_id}"
+        )
+        conn = sqlite3.connect(self.checkpoint_db_path)
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO sync_checkpoints
+            (strategy_name, last_sync_date, last_history_id, processed_count,
+             next_page_token, errors_count, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+            (
+                checkpoint.strategy_name,
+                checkpoint.last_sync_date.isoformat(),
+                checkpoint.last_history_id,
+                checkpoint.processed_count,
+                checkpoint.next_page_token,
+                checkpoint.errors_count,
+                datetime.now().isoformat(),
+            ),
+        )
+        conn.commit()
+        conn.close()
 
     def _store_daily_stats(self, results: Dict[str, Any]):
-        """Store daily retrieval statistics in memory and persist to file."""
+        """Store daily retrieval statistics"""
         today = datetime.now().date().isoformat()
-        self.logger.info(f"Storing daily stats for {today}. Total retrieved: {results['total_emails_retrieved']}, API calls: {results['api_calls_used']}")
-        self.daily_stats[today] = {
-            "total_retrieved": results["total_emails_retrieved"],
-            "api_calls_used": results["api_calls_used"],
-            "strategies_executed": [s["strategy_name"] for s in results["strategies_executed"]],
-            "performance_metrics": results["performance_metrics"],
-        }
-        self._save_daily_stats()
+        self.logger.info(
+            f"Storing daily stats for {today}. Total retrieved: {results['total_emails_retrieved']}, API calls: {results['api_calls_used']}"
+        )
+
+        conn = sqlite3.connect(self.checkpoint_db_path)
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO retrieval_stats
+            (date, total_retrieved, api_calls_used, strategies_executed, performance_metrics)
+            VALUES (?, ?, ?, ?, ?)
+        """,
+            (
+                today,
+                results["total_emails_retrieved"],
+                results["api_calls_used"],
+                json.dumps([s["strategy_name"] for s in results["strategies_executed"]]),
+                json.dumps(results["performance_metrics"]),
+            ),
+        )
+        conn.commit()
+        conn.close()
 
     def get_retrieval_analytics(self, days: int = 30) -> Dict[str, Any]:
-        """Get retrieval analytics for the past N days from in-memory data."""
-        from datetime import timedelta
+        """Get retrieval analytics for the past N days"""
         self.logger.info(f"Fetching retrieval analytics for the last {days} days.")
+        conn = sqlite3.connect(self.checkpoint_db_path)
 
-        # Filter daily stats for the requested date range
-        cutoff_date = datetime.now().date() - timedelta(days=days)
-        recent_daily_stats = {date: stats for date, stats in self.daily_stats.items() if datetime.fromisoformat(date).date() >= cutoff_date}
+        # Get daily stats
+        cursor = conn.execute(
+            """
+            SELECT date, total_retrieved, api_calls_used, strategies_executed, performance_metrics
+            FROM retrieval_stats
+            WHERE date >= date('now', '-{} days')
+            ORDER BY date DESC
+        """.format(
+                days
+            )
+        )
 
-        # Sort by date descending
-        daily_stats_list = sorted(recent_daily_stats.items(), key=lambda item: item[0], reverse=True)
-        daily_stats_formatted = [{"date": date, **stats} for date, stats in daily_stats_list]
+        daily_stats = []
+        for row in cursor.fetchall():
+            daily_stats.append(
+                {
+                    "date": row[0],
+                    "total_retrieved": row[1],
+                    "api_calls_used": row[2],
+                    "strategies_executed": json.loads(row[3]) if row[3] else [],
+                    "performance_metrics": json.loads(row[4]) if row[4] else {},
+                }
+            )
 
-        # Aggregate strategy performance from in-memory checkpoints
-        strategy_map = {s.name: s.frequency for s in self.get_optimized_retrieval_strategies()}
-        aggregated_performance = defaultdict(lambda: {"sync_count": 0, "total_processed": 0, "total_errors": 0, "strategy_count": 0})
+        # Get strategy performance
+        cursor = conn.execute(
+            """
+            SELECT strategy_name,
+                   COUNT(*) as sync_count,
+                   SUM(processed_count) as total_processed,
+                   AVG(processed_count) as avg_per_sync,
+                   SUM(errors_count) as total_errors
+            FROM sync_checkpoints
+            GROUP BY strategy_name
+        """
+        )
 
-        for cp in self.checkpoints.values():
-            category = strategy_map.get(cp.strategy_name, "uncategorized")
-            # This logic provides a snapshot, not historical aggregation like the DB version.
-            # For a more direct equivalent, we would need to store performance history per checkpoint.
-            # This simplified version reflects current totals.
-            aggregated_performance[category]["sync_count"] += 1 # Represents one checkpoint record
-            aggregated_performance[category]["total_processed"] += cp.processed_count
-            aggregated_performance[category]["total_errors"] += cp.errors_count
+        # Create a map of strategy name to its category (frequency) for aggregation
+        strategy_map = {
+            s.name: s.frequency for s in self.get_optimized_retrieval_strategies()
+        }
+
+        # Aggregate performance by category (frequency)
+        aggregated_performance = {}
+
+        for row in cursor.fetchall():
+            strategy_name = row[0]
+            sync_count = row[1]
+            total_processed = row[2]
+            # avg_per_sync is per-strategy, so we'll recalculate it for the category
+            total_errors = row[4]
+
+            category = strategy_map.get(strategy_name, "uncategorized")
+
+            if category not in aggregated_performance:
+                aggregated_performance[category] = {
+                    "sync_count": 0, "total_processed": 0, "total_errors": 0, "strategy_count": 0
+                }
+
+            aggregated_performance[category]["sync_count"] += sync_count
+            aggregated_performance[category]["total_processed"] += total_processed
+            aggregated_performance[category]["total_errors"] += total_errors
             aggregated_performance[category]["strategy_count"] += 1
 
-        strategy_category_performance = [
-            {
+        # Format the aggregated data for the final output
+        strategy_category_performance = []
+        for category, data in aggregated_performance.items():
+            strategy_category_performance.append({
                 "category": category,
                 "sync_count": data["sync_count"],
                 "total_processed": data["total_processed"],
@@ -964,22 +1041,25 @@ class SmartGmailRetriever:
                 "total_errors": data["total_errors"],
                 "error_rate": (data["total_errors"] / data["sync_count"]) * 100 if data["sync_count"] > 0 else 0,
                 "strategy_count": data["strategy_count"],
-            }
-            for category, data in aggregated_performance.items()
-        ]
+            })
 
-        total_retrieved = sum(day["total_retrieved"] for day in daily_stats_formatted)
-        total_api_calls = sum(day["api_calls_used"] for day in daily_stats_formatted)
+        conn.close()
+
+        # Calculate summary metrics
+        total_retrieved = sum(day["total_retrieved"] for day in daily_stats)
+        total_api_calls = sum(day["api_calls_used"] for day in daily_stats)
 
         return {
             "summary": {
                 "total_emails_retrieved": total_retrieved,
                 "total_api_calls_used": total_api_calls,
-                "average_daily_retrieval": total_retrieved / len(daily_stats_formatted) if daily_stats_formatted else 0,
-                "api_efficiency": total_retrieved / total_api_calls if total_api_calls > 0 else 0,
-                "days_analyzed": len(daily_stats_formatted),
+                "average_daily_retrieval": (
+                    total_retrieved / len(daily_stats) if daily_stats else 0
+                ),
+                "api_efficiency": (total_retrieved / total_api_calls if total_api_calls > 0 else 0),
+                "days_analyzed": len(daily_stats),
             },
-            "daily_stats": daily_stats_formatted,
+            "daily_stats": daily_stats,
             "strategy_performance": strategy_category_performance,
         }
 
