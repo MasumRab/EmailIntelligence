@@ -24,7 +24,7 @@ def mock_filter_dependencies():
     with patch(
         "backend.python_backend.filter_routes.filter_manager",
         mock_filter_manager_instance,
-    ):
+    ), patch("backend.python_backend.filter_routes.performance_monitor"):
         yield
 
 
