@@ -44,13 +44,13 @@ This is a streamlined version of the Email Intelligence application, focusing on
 
 ## Data Storage
 
-This version uses local file-based and in-memory storage:
+This version uses local file-based storage:
 
 *   **Main Application Data:** Email data, categories, and user information are stored as JSON files in the `server/python_backend/data/` directory.
-*   **Smart Filter Rules:** Configuration for smart filters is stored in a JSON file named `smart_filters.json`.
-*   **Email Cache:** A local cache for fetched email content is stored in-memory and is not persisted between sessions.
+*   **Smart Filter Rules:** Configuration for smart filters is stored in an SQLite database file named `smart_filters.db` located in the project root.
+*   **Email Cache:** A local cache for fetched email content is stored in `email_cache.db` in the project root.
 
-The JSON files will be created automatically when the application runs if they don't already exist.
+These files will be created automatically when the application runs if they don't already exist.
 
 ## Stopping the Application
 
