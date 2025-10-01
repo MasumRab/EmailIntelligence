@@ -1,22 +1,11 @@
 # EmailIntelligence Server Components
 
-This directory contains the server-side components of the EmailIntelligence application. The server is split into multiple parts:
+This directory contains the server-side components of the EmailIntelligence application. The server is split into two main parts:
 
-1. **Node.js/TypeScript Backend**: Handles the main application logic, database interactions, and serves the frontend
-2. **Python FastAPI Backend**: Provides AI and NLP capabilities through a REST API
-3. **Python NLP Engine**: Implements the core AI and NLP functionality
+1. **Python FastAPI Backend**: Provides AI and NLP capabilities through a REST API
+2. **Python NLP Engine**: Implements the core AI and NLP functionality
 
 ## Directory Structure
-
-- **Root Directory**: Contains the Node.js/TypeScript backend files
-  - `index.ts` - Main entry point for the Node.js server
-  - `routes.ts` - API route definitions
-  - `db.ts` - Database connection and models
-  - `python-bridge.ts` - Bridge to communicate with the Python backend
-  - `gmail-ai-service.ts` - Service for Gmail AI integration
-  - `ai-engine.ts` - TypeScript interface to the AI engine
-  - `storage.ts` - File storage utilities
-  - `vite.ts` - Vite configuration for serving the frontend
 
 - **python_backend/**: Contains the Python FastAPI backend
   - `main.py` - Main entry point for the FastAPI server
