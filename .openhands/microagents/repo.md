@@ -93,8 +93,8 @@ EmailIntelligence/
 
 ### Data Storage:
 - **Application Data**: JSON files in `backend/data/`
-- **Smart Filters**: JSON file (`smart_filters.json`) for rule persistence.
-- **Email Cache**: In-memory cache (not persisted).
+- **Smart Filters**: SQLite database (`smart_filters.db`)
+- **Email Cache**: SQLite database (`email_cache.db`)
 
 ### Testing:
 - **Unit Tests**: Comprehensive test suite using pytest
