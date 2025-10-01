@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,14 +14,11 @@ mock_db_manager_cat.create_category = AsyncMock()
 # update_category is not used by the current category_routes.py, but good to have if it were
 mock_db_manager_cat.update_category = AsyncMock()
 
-# Mock PerformanceMonitor
-mock_performance_monitor_cat_instance = MagicMock()
-
 
 @pytest.fixture(scope="module", autouse=True)
 def mock_cat_dependencies():
-    # No module-level instances to mock in category_routes since performance_monitor is commented out
-    yield
+    with patch("backend.python_backend.category_routes.performance_monitor"):
+        yield
 
 
 @pytest.fixture
