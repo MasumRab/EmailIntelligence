@@ -695,91 +695,43 @@ def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[
         return None
 
 
-def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
-    """Starts the frontend development server."""
-    logger.info(f"Starting frontend server on {args.host}:{args.frontend_port}...")
+def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optional[subprocess.Popen]:
+    """Starts the Gradio UI server."""
+    logger.info("Starting Gradio UI...")
 
-    # Check for Node.js
-    try:
-        subprocess.check_call(
-            ["node", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        logger.error("Node.js is not installed or not found in PATH. Cannot start frontend.")
+    gradio_script_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
+    if not gradio_script_path.exists():
+        logger.error(f"Gradio UI script not found at: {gradio_script_path}")
         return None
-
-    client_dir = ROOT_DIR / "client"
-    client_pkg_json = client_dir / "package.json"
-
-    if client_pkg_json.exists():
-        npm_executable_path = shutil.which("npm")
-        if npm_executable_path is None:
-            logger.error(
-                f"The 'npm' command was not found in your system's PATH. "
-                f"Please ensure Node.js and npm are correctly installed and that the npm installation directory is added to your PATH environment variable. "
-                f"Attempted to find 'npm' for the client in: {client_dir}"
-            )
-            # Potentially return None here if npm is essential and not found,
-            # or let it proceed to fail at the npm install line, which will now be more informed.
-            # For now, let's log and let it try, as the original code attempts to continue.
-            # If we want to stop it here, uncomment the next line:
-            # return None
-        else:
-            logger.info(f"Found 'npm' executable at: {npm_executable_path}")
-
-        logger.info(f"Found package.json in {client_dir}. Running npm install...")
-        try:
-            # Use subprocess.run to wait for completion and check for errors
-            install_result = subprocess.run(
-                ["npm", "install"],
-                cwd=client_dir,
-                capture_output=True,
-                text=True,
-                check=False,  # check=False to handle errors manually
-            )
-            if install_result.returncode != 0:
-                logger.error(f"Failed to install frontend dependencies in {client_dir}.")
-                logger.error(f"npm stdout:\n{install_result.stdout}")
-                logger.error(f"npm stderr:\n{install_result.stderr}")
-                # Optionally, decide if this is a fatal error for frontend launch
-                # For now, log and attempt to continue, Vite might still run if some deps are missing but core is there.
-            else:
-                logger.info(f"Frontend dependencies installed successfully in {client_dir}.")
-        except Exception as e:
-            logger.error(f"Error running npm install in {client_dir}: {e}")
-            # Decide how to handle this, for now, attempt to continue
-    else:
-        logger.warning(f"No package.json found in {client_dir}. Skipping npm install for frontend.")
-        # This would likely lead to `npm run dev` failing, but the check is here.
 
     cmd = [
-        "npm",
-        "run",
-        "dev",
-        "--",
+        python_executable,
+        str(gradio_script_path),
         "--host",
         args.host,
-        "--port",
-        str(args.frontend_port),
     ]
 
+    # Add port if specified, Gradio has its own default port (7860)
+    if args.gradio_port:
+        cmd.extend(["--port", str(args.gradio_port)])
+
+    if args.debug:
+        cmd.append("--debug")
+
+    if args.share:
+        cmd.append("--share")
+
     env = os.environ.copy()
-    env["VITE_API_URL"] = f"http://{args.host}:{args.port}"  # Backend URL for Vite
-    env["NODE_ENV"] = "development"  # Or args.stage if relevant for frontend build
+    env["PYTHONPATH"] = str(ROOT_DIR)
 
     try:
-        logger.info(f"Running frontend command: {' '.join(cmd)} in {str(ROOT_DIR / 'client')}")
-        process = subprocess.Popen(cmd, cwd=str(ROOT_DIR / "client"), env=env)
-        processes.append(process)  # Add to global list
-        logger.info(f"Frontend server started with PID {process.pid}.")
+        logger.info(f"Running Gradio UI command: {' '.join(cmd)}")
+        process = subprocess.Popen(cmd, env=env)
+        processes.append(process)
+        logger.info(f"Gradio UI started with PID {process.pid}.")
         return process
-    except FileNotFoundError:
-        logger.error(
-            "Error: 'npm' not found. Please ensure Node.js and npm are installed and in your PATH."
-        )
-        return None
     except Exception as e:
-        logger.error(f"Failed to start frontend server: {e}")
+        logger.error(f"Failed to start Gradio UI: {e}")
         return None
 
 
@@ -787,52 +739,8 @@ def run_application(args: argparse.Namespace) -> int:
     """Run the application with the specified arguments."""
     python_executable = get_python_executable()
     backend_process = None
-    frontend_process = None
-    # global ngrok_tunnel  # Removed
+    gradio_process = None
 
-    # if args.share: # Removed ngrok block
-        # try: # Removed
-            # from pyngrok import conf, ngrok # Removed
-#
-            # logger.info("Starting ngrok tunnel...") # Removed
-            # if args.ngrok_region: # Removed
-                # logger.info(f"Using ngrok region: {args.ngrok_region}") # Removed
-                # Pyngrok uses a config object or can be set via ngrok config file # Removed
-                # For direct region setting if available via conf object: # Removed
-                # ngrok_conf = conf.PyngrokConfig(region=args.ngrok_region) # Removed
-                # conf.set_default(ngrok_conf) # Removed
-                # Alternatively, ensure user has ngrok configured with region if above doesn't work as expected # Removed
-#
-            # Assuming backend port (args.port) is the one to share # Removed
-            # ngrok_tunnel = ngrok.connect(args.port) # Removed
-            # logger.info(f"Ngrok tunnel established. Public URL: {ngrok_tunnel.public_url}") # Removed
-            # logger.info( # Removed
-                # "Note: If you have a free ngrok account, you might be limited to one tunnel at a time." # Removed
-            # ) # Removed
-            # logger.info( # Removed
-                # "Ensure your ngrok authtoken is configured if you face issues: ngrok authtoken <YOUR_AUTHTOKEN>" # Removed
-            # ) # Removed
-#
-        # except ImportError: # Removed
-            # logger.error( # Removed
-                # "pyngrok is not installed. Please run 'pip install pyngrok' to use the --share feature." # Removed
-            # ) # Removed
-            # logger.warning("--share feature disabled.") # Removed
-        # except Exception as e:  # Catch other ngrok errors (auth, connection, etc.) # Removed
-            # logger.error(f"Failed to start ngrok tunnel: {e}") # Removed
-            # logger.warning("--share feature might not be working as expected.") # Removed
-            # if ngrok_tunnel:  # If tunnel object exists but failed later # Removed
-                # try: # Removed
-                    # ngrok.disconnect(ngrok_tunnel.public_url) # Removed
-                    # ngrok.kill() # Removed
-                # except: # Removed
-                    # pass # Removed
-                # ngrok_tunnel = None # Removed
-
-    # Load custom .env file if specified
-    # Note: The env dict from original code is not directly used by Popen here.
-    # Environment variables for Popen are set directly in start_backend/start_frontend.
-    # Custom .env file will override any values from the default .env file
     if args.env_file:
         env_file_path = ROOT_DIR / args.env_file
         if env_file_path.exists():
@@ -841,159 +749,71 @@ def run_application(args: argparse.Namespace) -> int:
         else:
             logger.warning(f"Specified env file {args.env_file} not found at {env_file_path}")
 
-    # if args.gradio_ui: # Removed Gradio UI block
-        # logger.info("Running Gradio UI for scientific/testing purposes...")
-        # gradio_script_path = ROOT_DIR / "server" / "python_backend" / "gradio_app.py"
-        # if not gradio_script_path.exists():
-            # logger.error(f"Gradio script not found at: {gradio_script_path}")
-            # return 1
-#
-        # cmd = [python_executable, str(gradio_script_path)]
-#
-        # Pass relevant arguments to gradio_app.py
-        # cmd.extend(["--host", args.host, "--port", str(args.port)])
-        # if args.share: # Gradio has its own share option, pass it along
-            # cmd.append("--share")
-        # if args.debug:
-            # cmd.append("--debug")
-        # args.listen is handled by setting args.host to "0.0.0.0" in start_backend,
-        # so passing args.host to gradio_app.py correctly handles this.
-#
-        # env = os.environ.copy()
-        # env["PYTHONPATH"] = str(ROOT_DIR)
-        # Add any other necessary environment variables if gradio_app.py needs them.
-        # For example, if Gradio needs to know the API URL for some features:
-        # env["API_URL"] = f"http://{args.host}:{args.port}" # Example
-#
-        # Enhanced logging for Windows
-        # if platform.system() == "Windows":
-            # Log the command as a list (how Popen receives it with shell=False)
-            # logger.info(f"Windows: Attempting to run Gradio with command list: {cmd}")
-            # Log the command line string version for easier copy-pasting into PowerShell
-            # subprocess.list2cmdline is specifically for this purpose
-            # try:
-                # cmd_line_for_shell = subprocess.list2cmdline(cmd)
-                # logger.info(f"Windows: Equivalent command for shell: {cmd_line_for_shell}")
-            # except Exception as e:
-                # logger.info(f"Windows: Could not generate shell command line for logging: {e}")
-#
-        # try:
-            # Generic log, might not be 100% accurate for shell execution if paths have spaces and are not quoted by join
-            # logger.info(f"Running Gradio UI command (generic log): {' '.join(cmd)}")
-            # logger.info(f"Constructed command for Gradio: {cmd}")
-            # logger.info(f"Environment for Gradio: {env}")
-            # Ensure shell=False is explicitly stated for clarity, though it's the default
-            # gradio_process = subprocess.Popen(cmd, env=env, shell=False)
-            # processes.append(gradio_process) # Add to global list for signal handling
-            # Log the access URL, considering host and port
-            # If host is 0.0.0.0, it's accessible from network, but browser link might be 127.0.0.1 or localhost
-            # display_host = args.host
-            # if args.host == "0.0.0.0":
-                # display_host = "127.0.0.1" # Common loopback for browser access
-#
-            # Gradio's default port is 7860. If args.port is not Gradio's default,
-            # and gradio_app.py is not yet modified to accept --port,
-            # the URL printed here might be misleading. Assuming gradio_app.py will be modified.
-            # logger.info(f"Gradio UI started with PID {gradio_process.pid}. Expected at http://{display_host}:{args.port}. Press Ctrl+C to stop.")
-            # if args.share and not ngrok_tunnel: # If --share was for Gradio directly and ngrok wasn't for backend
-                # logger.info("Gradio's own share option is active. Look for a *.gradio.live URL in its output.")
-#
-#
-            # gradio_process.wait() # Wait for the Gradio process to complete
-            # Check exit code if needed
-            # if gradio_process.returncode != 0:
-                # logger.warning(f"Gradio process exited with code {gradio_process.returncode}.")
-                # Depending on how critical this is, you might return 1 here.
-                # For now, let's assume it's not a launch failure unless an exception occurred.
-            # return 0 # Indicate success
-        # except FileNotFoundError:
-            # logger.error(
-                # f"Error: Python executable not found at {python_executable} or Gradio script not found at {gradio_script_path}."
-            # )
-            # logger.error("Ensure Gradio is installed ('pip install gradio') in the environment.")
-            # return 1 # Indicate failure
-        # except Exception as e:
-            # logger.error(f"Failed to start Gradio UI: {e}")
-            # logger.error("Ensure Gradio is installed in the environment and the script path is correct.")
-            # return 1 # Indicate failure
-
-    if args.api_only: # Adjusted 'elif' to 'if' as the preceding 'if args.gradio_ui:' is removed
+    if args.api_only:
         logger.info("Running in API only mode.")
         backend_process = start_backend(args, python_executable)
         if backend_process:
-            backend_process.wait()  # Wait for backend to finish or be interrupted
+            backend_process.wait()
         else:
             logger.error("Failed to start backend server in API only mode.")
             return 1
-    elif args.frontend_only:
-        logger.info("Running in Frontend only mode.")
-        # Note: Frontend usually needs API URL. User must ensure API is running elsewhere or configured.
-        if not args.api_url:  # Or some other check if frontend can run without live API
-            logger.warning(
-                "Frontend only mode: VITE_API_URL might not be correctly set if backend is not running or --api-url is not provided."
-            )
-        frontend_process = start_frontend(args)
-        if frontend_process:
-            frontend_process.wait()
+    elif args.ui_only:
+        logger.info("Running in UI only mode.")
+        gradio_process = start_gradio_ui(args, python_executable)
+        if gradio_process:
+            gradio_process.wait()
         else:
-            logger.error("Failed to start frontend server in frontend only mode.")
+            logger.error("Failed to start Gradio UI in UI only mode.")
             return 1
-    elif args.stage == "dev" or not args.stage:  # Default to local development mode
-        logger.info("Running in local development mode (backend and frontend).")
+    elif args.stage == "dev" or not args.stage:
+        logger.info("Running in local development mode (backend and Gradio UI).")
         unexpected_exit = False
         backend_process = start_backend(args, python_executable)
-        frontend_process = start_frontend(args)
+        gradio_process = start_gradio_ui(args, python_executable)
 
         if backend_process:
             logger.info(f"Backend accessible at http://{args.host}:{args.port}")
         else:
             logger.error("Backend server failed to start.")
-            if frontend_process and frontend_process.poll() is None:
-                frontend_process.terminate()  # Stop frontend if backend failed
-            return 1  # Critical failure
+            if gradio_process and gradio_process.poll() is None:
+                gradio_process.terminate()
+            return 1
 
-        if frontend_process:
-            logger.info(f"Frontend accessible at http://{args.host}:{args.frontend_port}")
+        if gradio_process:
+            gradio_port_info = f":{args.gradio_port}" if args.gradio_port else " on default port (e.g. 7860)"
+            logger.info(f"Gradio UI starting at http://{args.host}{gradio_port_info}. Check console for exact URL.")
         else:
-            logger.error("Frontend server failed to start.")
+            logger.error("Gradio UI failed to start.")
             if backend_process and backend_process.poll() is None:
-                backend_process.terminate()  # Stop backend if frontend failed
-            return 1  # Critical failure
+                backend_process.terminate()
+            return 1
 
-        if backend_process and frontend_process:
-            logger.info("Backend and Frontend started. Press Ctrl+C to stop.")
+        if backend_process and gradio_process:
+            logger.info("Backend and Gradio UI started. Press Ctrl+C to stop.")
             try:
-                # Keep main thread alive until SIGINT, which is handled by _handle_sigint
                 while True:
-                    # Check if either process has exited unexpectedly
                     if backend_process.poll() is not None:
                         logger.error(f"Backend process {backend_process.pid} exited unexpectedly.")
                         unexpected_exit = True
-                        if frontend_process.poll() is None:
-                            logger.info(f"Terminating frontend process {frontend_process.pid}...")
-                            frontend_process.terminate()
+                        if gradio_process.poll() is None:
+                            logger.info(f"Terminating Gradio UI process {gradio_process.pid}...")
+                            gradio_process.terminate()
                         break
-                    if frontend_process.poll() is not None:
-                        logger.error(
-                            f"Frontend process {frontend_process.pid} exited unexpectedly."
-                        )
+                    if gradio_process.poll() is not None:
+                        logger.error(f"Gradio UI process {gradio_process.pid} exited unexpectedly.")
                         unexpected_exit = True
                         if backend_process.poll() is None:
                             logger.info(f"Terminating backend process {backend_process.pid}...")
                             backend_process.terminate()
                         break
                     time.sleep(1)
-            except KeyboardInterrupt:  # This should ideally be caught by the SIGINT handler
-                logger.info(
-                    "KeyboardInterrupt in run_application. Signal handler should take over."
-                )
-                pass  # Signal handler will manage shutdown
+            except KeyboardInterrupt:
+                logger.info("KeyboardInterrupt in run_application. Signal handler should take over.")
+                pass
             except Exception as e:
                 logger.error(f"An unexpected error occurred in run_application main loop: {e}")
             finally:
-                # Ensure processes are terminated if loop exits for other reasons
-                # _handle_sigint should manage this, but as a fallback:
-                for p in [backend_process, frontend_process]:
+                for p in [backend_process, gradio_process]:
                     if p and p.poll() is None:
                         p.terminate()
                         try:
@@ -1003,26 +823,10 @@ def run_application(args: argparse.Namespace) -> int:
             if unexpected_exit:
                 logger.error("One or more services exited unexpectedly.")
                 return 1
-
-        elif backend_process:  # Only backend started and frontend failed earlier
-            logger.info("Only backend process is running. Waiting for it to complete.")
-            backend_process.wait()
-            # If backend exits with an error code, it might be an unexpected exit
-            if backend_process.returncode != 0:
-                logger.error(f"Backend process exited with code: {backend_process.returncode}")
-                return 1
-        # (No case for only frontend, as backend failure would terminate it)
-
     elif args.stage == "test":
         logger.info("Running application in 'test' stage (executing tests)...")
-        logger.info(
-            f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided."
-        )
-        from deployment.test_stages import test_stages  # Moved import here for locality
-
-        test_run_success = True  # Assume success initially
-
-        # Run unit tests by default
+        from deployment.test_stages import test_stages
+        test_run_success = True
         if hasattr(test_stages, "run_unit_tests"):
             logger.info("Running unit tests (default for --stage test)...")
             if not test_stages.run_unit_tests(args.coverage, args.debug):
@@ -1030,26 +834,17 @@ def run_application(args: argparse.Namespace) -> int:
                 logger.error("Unit tests failed.")
         else:
             logger.warning("test_stages.run_unit_tests not found, cannot run unit tests.")
-            # Consider if this should be a failure for the 'test' stage
-            # test_run_success = False
-
-        # Run integration tests by default
         if hasattr(test_stages, "run_integration_tests"):
             logger.info("Running integration tests (default for --stage test)...")
             if not test_stages.run_integration_tests(args.coverage, args.debug):
                 test_run_success = False
                 logger.error("Integration tests failed.")
         else:
-            logger.warning(
-                "test_stages.run_integration_tests not found, cannot run integration tests."
-            )
-            # Consider if this should be a failure for the 'test' stage
-            # test_run_success = False
-
+            logger.warning("test_stages.run_integration_tests not found, cannot run integration tests.")
         logger.info(f"Default test suite execution finished. Success: {test_run_success}")
         return 0 if test_run_success else 1
 
-    return 0  # Assuming success if processes managed by signal handler or exited cleanly for other stages
+    return 0
 
 
 def _print_system_info():
@@ -1188,29 +983,24 @@ def parse_arguments() -> argparse.Namespace:
         help="Specify the host to run on (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--frontend-port",
+        "--gradio-port",
         type=int,
-        default=5173,
-        help="Specify the frontend port to run on (default: 5173)",
+        default=None,
+        help="Specify the port for the Gradio UI (default: 7860 or next available)",
     )
     parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend")
     parser.add_argument(
         "--api-only",
         action="store_true",
-        help="Run only the API server without the frontend",
+        help="Run only the API server without the Gradio UI",
     )
     parser.add_argument(
-        "--frontend-only",
+        "--ui-only",
         action="store_true",
-        help="Run only the frontend without the API server",
+        help="Run only the Gradio UI without the API server",
     )
-    parser.add_argument(
-        "--gradio-ui",
-        action="store_true",
-        help="Run only the API server without the frontend", # Description kept, but --gradio-ui removed
-    )
-    # Gradio UI argument removed
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--share", action="store_true", help="Enable Gradio sharing link")
 
     # Testing options
     parser.add_argument(
