@@ -918,8 +918,8 @@ class SmartGmailRetriever:
         conn = sqlite3.connect(self.checkpoint_db_path)
         conn.execute(
             """
-            INSERT OR REPLACE INTO sync_checkpoints 
-            (strategy_name, last_sync_date, last_history_id, processed_count, 
+            INSERT OR REPLACE INTO sync_checkpoints
+            (strategy_name, last_sync_date, last_history_id, processed_count,
              next_page_token, errors_count, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
@@ -946,7 +946,7 @@ class SmartGmailRetriever:
         conn = sqlite3.connect(self.checkpoint_db_path)
         conn.execute(
             """
-            INSERT OR REPLACE INTO retrieval_stats 
+            INSERT OR REPLACE INTO retrieval_stats
             (date, total_retrieved, api_calls_used, strategies_executed, performance_metrics)
             VALUES (?, ?, ?, ?, ?)
         """,
@@ -970,7 +970,7 @@ class SmartGmailRetriever:
         cursor = conn.execute(
             """
             SELECT date, total_retrieved, api_calls_used, strategies_executed, performance_metrics
-            FROM retrieval_stats 
+            FROM retrieval_stats
             WHERE date >= date('now', '-{} days')
             ORDER BY date DESC
         """.format(
@@ -993,28 +993,55 @@ class SmartGmailRetriever:
         # Get strategy performance
         cursor = conn.execute(
             """
-            SELECT strategy_name, 
+            SELECT strategy_name,
                    COUNT(*) as sync_count,
                    SUM(processed_count) as total_processed,
                    AVG(processed_count) as avg_per_sync,
                    SUM(errors_count) as total_errors
-            FROM sync_checkpoints 
+            FROM sync_checkpoints
             GROUP BY strategy_name
         """
         )
 
-        strategy_performance = []
+        # Create a map of strategy name to its category (frequency) for aggregation
+        strategy_map = {
+            s.name: s.frequency for s in self.get_optimized_retrieval_strategies()
+        }
+
+        # Aggregate performance by category (frequency)
+        aggregated_performance = {}
+
         for row in cursor.fetchall():
-            strategy_performance.append(
-                {
-                    "strategy_name": row[0],
-                    "sync_count": row[1],
-                    "total_processed": row[2],
-                    "avg_per_sync": row[3],
-                    "total_errors": row[4],
-                    "error_rate": (row[4] / row[1]) * 100 if row[1] > 0 else 0,
+            strategy_name = row[0]
+            sync_count = row[1]
+            total_processed = row[2]
+            # avg_per_sync is per-strategy, so we'll recalculate it for the category
+            total_errors = row[4]
+
+            category = strategy_map.get(strategy_name, "uncategorized")
+
+            if category not in aggregated_performance:
+                aggregated_performance[category] = {
+                    "sync_count": 0, "total_processed": 0, "total_errors": 0, "strategy_count": 0
                 }
-            )
+
+            aggregated_performance[category]["sync_count"] += sync_count
+            aggregated_performance[category]["total_processed"] += total_processed
+            aggregated_performance[category]["total_errors"] += total_errors
+            aggregated_performance[category]["strategy_count"] += 1
+
+        # Format the aggregated data for the final output
+        strategy_category_performance = []
+        for category, data in aggregated_performance.items():
+            strategy_category_performance.append({
+                "category": category,
+                "sync_count": data["sync_count"],
+                "total_processed": data["total_processed"],
+                "avg_per_sync": data["total_processed"] / data["sync_count"] if data["sync_count"] > 0 else 0,
+                "total_errors": data["total_errors"],
+                "error_rate": (data["total_errors"] / data["sync_count"]) * 100 if data["sync_count"] > 0 else 0,
+                "strategy_count": data["strategy_count"],
+            })
 
         conn.close()
 
@@ -1033,7 +1060,7 @@ class SmartGmailRetriever:
                 "days_analyzed": len(daily_stats),
             },
             "daily_stats": daily_stats,
-            "strategy_performance": strategy_performance,
+            "strategy_performance": strategy_category_performance,
         }
 
     def optimize_strategies_based_on_performance(self) -> List[RetrievalStrategy]:
