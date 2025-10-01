@@ -8,7 +8,6 @@ import hashlib
 import json
 import logging
 import os
-import sqlite3
 import time
 from collections import deque
 from dataclasses import dataclass
@@ -113,129 +112,38 @@ class RateLimiter:
 
 
 class EmailCache:
-    """SQLite-based cache for email metadata and content"""
+    """In-memory cache for email metadata and content."""
 
-    def __init__(self, cache_path: str = "email_cache.db"):
-        self.cache_path = cache_path
-        self.conn = sqlite3.connect(cache_path, check_same_thread=False)
-        self._init_cache()
-
-    def _init_cache(self):
-        """Initialize cache database tables"""
-        self.conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS emails (
-                message_id TEXT PRIMARY KEY,
-                thread_id TEXT,
-                subject TEXT,
-                sender TEXT,
-                sender_email TEXT,
-                content TEXT,
-                labels TEXT,
-                timestamp TEXT,
-                retrieved_at TEXT,
-                content_hash TEXT
-            )
-        """
-        )
-
-        self.conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS sync_metadata (
-                sync_id TEXT PRIMARY KEY,
-                query_filter TEXT,
-                last_sync TEXT,
-                total_messages INTEGER,
-                processed_messages INTEGER,
-                next_page_token TEXT
-            )
-        """
-        )
-
-        self.conn.commit()
+    def __init__(self):
+        self.emails: Dict[str, Dict[str, Any]] = {}
+        self.sync_states: Dict[str, Dict[str, Any]] = {}
+        logging.getLogger(__name__).info("Initialized in-memory EmailCache.")
 
     def get_cached_email(self, message_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieve cached email by message ID"""
-        cursor = self.conn.execute("SELECT * FROM emails WHERE message_id = ?", (message_id,))
-        row = cursor.fetchone()
-
-        if row:
-            return {
-                "message_id": row[0],
-                "thread_id": row[1],
-                "subject": row[2],
-                "sender": row[3],
-                "sender_email": row[4],
-                "content": row[5],
-                "labels": json.loads(row[6]) if row[6] else [],
-                "timestamp": row[7],
-                "retrieved_at": row[8],
-                "content_hash": row[9],
-            }
-        return None
+        """Retrieve cached email by message ID."""
+        return self.emails.get(message_id)
 
     def cache_email(self, email_data: Dict[str, Any]) -> None:
-        """Cache email data"""
-        content_hash = hashlib.md5(email_data.get("content", "").encode()).hexdigest()
+        """Cache email data in memory."""
+        message_id = email_data.get("message_id")
+        if not message_id:
+            return
 
-        self.conn.execute(
-            """
-            INSERT OR REPLACE INTO emails 
-            (message_id, thread_id, subject, sender, sender_email, content, 
-             labels, timestamp, retrieved_at, content_hash)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-            (
-                email_data["message_id"],
-                email_data.get("thread_id", ""),
-                email_data.get("subject", ""),
-                email_data.get("sender", ""),
-                email_data.get("sender_email", ""),
-                email_data.get("content", ""),
-                json.dumps(email_data.get("labels", [])),
-                email_data.get("timestamp", ""),
-                datetime.now().isoformat(),
-                content_hash,
-            ),
-        )
-        self.conn.commit()
+        # Create a copy to cache to avoid modifying the original dict
+        cached_data = email_data.copy()
+        cached_data["retrieved_at"] = datetime.now().isoformat()
+        self.emails[message_id] = cached_data
 
     def get_sync_state(self, query_filter: str) -> Optional[Dict[str, Any]]:
-        """Get synchronization state for a query filter"""
-        cursor = self.conn.execute(
-            "SELECT * FROM sync_metadata WHERE query_filter = ?", (query_filter,)
-        )
-        row = cursor.fetchone()
-
-        if row:
-            return {
-                "sync_id": row[0],
-                "query_filter": row[1],
-                "last_sync": row[2],
-                "total_messages": row[3],
-                "processed_messages": row[4],
-                "next_page_token": row[5],
-            }
-        return None
+        """Get synchronization state for a query filter."""
+        return self.sync_states.get(query_filter)
 
     def update_sync_state(self, sync_data: Dict[str, Any]) -> None:
-        """Update synchronization state"""
-        self.conn.execute(
-            """
-            INSERT OR REPLACE INTO sync_metadata 
-            (sync_id, query_filter, last_sync, total_messages, processed_messages, next_page_token)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """,
-            (
-                sync_data["sync_id"],
-                sync_data["query_filter"],
-                sync_data["last_sync"],
-                sync_data["total_messages"],
-                sync_data["processed_messages"],
-                sync_data.get("next_page_token", ""),
-            ),
-        )
-        self.conn.commit()
+        """Update synchronization state in memory."""
+        query_filter = sync_data.get("query_filter")
+        if not query_filter:
+            return
+        self.sync_states[query_filter] = sync_data
 
 
 class GmailDataCollector:
