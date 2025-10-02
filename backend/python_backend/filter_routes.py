@@ -75,7 +75,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
 
         # Assuming filter_manager.create_intelligent_filters exists and
         # returns a list of filter objects/dicts.
-        created_filters = await filter_manager.create_intelligent_filters(emails)
+        created_filters = filter_manager.create_intelligent_filters(emails)
 
         return {"created_filters": len(created_filters), "filters": created_filters}
     except psycopg2.Error as db_err:
@@ -106,7 +106,7 @@ async def prune_filters(request: Request):
     try:
         # Assuming filter_manager.prune_ineffective_filters exists
         # This method was not in original smart_filters.py, assuming added.
-        results = await filter_manager.prune_ineffective_filters()
+        results = filter_manager.prune_ineffective_filters()
         return results
     except Exception as e:
         log_data = {
