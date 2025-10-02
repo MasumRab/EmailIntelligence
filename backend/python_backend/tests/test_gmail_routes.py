@@ -14,27 +14,25 @@ mock_gmail_service_instance.get_retrieval_strategies = AsyncMock()
 mock_gmail_service_instance.get_performance_metrics = AsyncMock()
 
 
-# Use a fixture to patch the *instance* of the service, not the class.
-# This ensures that the already-created `gmail_service` object in `gmail_routes.py`
-# is replaced by our mock.
-@pytest.fixture(scope="module", autouse=True)
-def mock_gmail_dependencies():
-    with patch(
-        "backend.python_backend.gmail_routes.gmail_service",
-        mock_gmail_service_instance,
-    ), patch("backend.python_backend.gmail_routes.performance_monitor"):
-        yield
-
-
 @pytest.fixture
 def client_gmail():
+    """
+    Provides a TestClient with all external services mocked for gmail routes.
+    """
+    from backend.python_backend.dependencies import get_gmail_service
+
     # Reset mocks before each test to ensure isolation
     mock_gmail_service_instance.reset_mock()
-    mock_gmail_service_instance.sync_gmail_emails.reset_mock()
-    mock_gmail_service_instance.execute_smart_retrieval.reset_mock()
-    mock_gmail_service_instance.get_retrieval_strategies.reset_mock()
-    mock_gmail_service_instance.get_performance_metrics.reset_mock()
-    return TestClient(app)
+
+    # Set up the dependency overrides
+    app.dependency_overrides[get_gmail_service] = lambda: mock_gmail_service_instance
+
+    # Patch performance_monitor directly as it's not injected
+    with patch("backend.python_backend.gmail_routes.performance_monitor", MagicMock()):
+        yield TestClient(app)
+
+    # Clean up overrides after the test
+    app.dependency_overrides.clear()
 
 
 def test_sync_gmail(client_gmail):

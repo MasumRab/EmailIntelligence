@@ -47,7 +47,6 @@ try:
     from importlib.metadata import version, PackageNotFoundError
 except ImportError:
     from importlib_metadata import version, PackageNotFoundError
-from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
@@ -603,6 +602,7 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
 
 def run_application(args: argparse.Namespace) -> int:
     """Run the application with the specified arguments."""
+    from dotenv import load_dotenv
     python_executable = get_python_executable()
     backend_process = None
     gradio_process = None
@@ -809,6 +809,7 @@ def parse_arguments() -> argparse.Namespace:
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data"
     )
     parser.add_argument("--skip-prepare", action="store_true", help="Skip preparation steps")
+    parser.add_argument("--setup", action="store_true", help="Only run environment setup and exit.")
 
     # Application stage
     parser.add_argument(
@@ -1026,11 +1027,6 @@ def main() -> int:
     logger.setLevel(numeric_level)
     logger.info(f"Launcher log level set to: {args.loglevel}")
 
-    default_env_file = ROOT_DIR / ".env"
-    if default_env_file.exists():
-        logger.info(f"Loading environment variables from default .env file: {default_env_file}")
-        load_dotenv(dotenv_path=default_env_file, override=True)
-
     if args.system_info:
         _print_system_info()
         return 0
@@ -1075,6 +1071,16 @@ def main() -> int:
 
     if not args.skip_prepare and not prepare_environment(args):
         return 1
+
+    from dotenv import load_dotenv
+    default_env_file = ROOT_DIR / ".env"
+    if default_env_file.exists():
+        logger.info(f"Loading environment variables from default .env file: {default_env_file}")
+        load_dotenv(dotenv_path=default_env_file, override=True)
+
+    if args.setup:
+        logger.info("Environment setup complete. Exiting as requested by --setup flag.")
+        return 0
 
     return run_application(args)
 
