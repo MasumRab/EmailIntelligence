@@ -62,14 +62,6 @@ mock_ai_engine.analyze_email = AsyncMock()
 mock_filter_manager = MagicMock()
 mock_filter_manager.apply_filters_to_email_data = AsyncMock()
 
-# Mock PerformanceMonitor as a decorator and instance
-# The decorator @performance_monitor.track won't be easily mockable without deeper changes.
-# For unit tests, we often test the handler functions directly without decorator effects,
-# or ensure the decorator mock doesn't break things.
-# If PerformanceMonitor is instantiated, mock its methods if called.
-mock_performance_monitor_instance = MagicMock()
-
-
 @pytest.fixture(scope="module", autouse=True)
 def mock_dependencies():
     # Patch the locations where these are imported and used in email_routes.py
@@ -78,12 +70,12 @@ def mock_dependencies():
     # from .database import get_db (FastAPI dependency) -> We'll override this in TestClient
     # ai_engine = AdvancedAIEngine() (module-level instance)
     # filter_manager = SmartFilterManager() (module-level instance)
-    # performance_monitor = PerformanceMonitor() (module-level instance)
+    # performance_monitor = performance_monitor (from main)
 
     patches = [
         patch("backend.python_backend.email_routes.ai_engine", mock_ai_engine),
         patch("backend.python_backend.email_routes.filter_manager", mock_filter_manager),
-        # performance_monitor is commented out in email_routes.py, so no need to mock it
+        patch("backend.python_backend.email_routes.performance_monitor", MagicMock()),
     ]
     for p in patches:
         p.start()

@@ -22,7 +22,7 @@ def mock_gmail_dependencies():
     with patch(
         "backend.python_backend.gmail_routes.gmail_service",
         mock_gmail_service_instance,
-    ):
+    ), patch("backend.python_backend.gmail_routes.performance_monitor"):
         yield
 
 

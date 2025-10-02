@@ -29,9 +29,6 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 
-# Import our Python modules
-# from .performance_monitor import PerformanceMonitor # Removed
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,7 +69,6 @@ app.add_middleware(
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine()  # Used by email_routes
-# performance_monitor = PerformanceMonitor() # Removed
 
 # Include routers in the app
 app.include_router(email_routes.router)
