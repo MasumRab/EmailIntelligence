@@ -1,8 +1,22 @@
+/**
+ * @file Service layer for handling AI-related business logic.
+ *
+ * This service orchestrates interactions between the API routes, the Python
+ * NLP bridge, and the database storage for all AI-powered features, including
+ * email analysis, categorization, and validation.
+ */
 import { storage } from "../storage";
 import { pythonNLP, type MappedNLPResult } from "../python-bridge";
 import { measureExecutionTime } from "../utils/performance";
 
 export const aiService = {
+  /**
+   * Analyzes the subject and content of an email.
+   * @param {string} subject - The subject of the email.
+   * @param {string} content - The content of the email.
+   * @returns {Promise<MappedNLPResult>} The analysis result from the Python NLP bridge.
+   * @throws {Error} If subject or content are missing.
+   */
   async analyzeEmail(subject: string, content: string) {
     if (!subject || !content) {
       throw new Error("Subject and content are required");
@@ -10,6 +24,15 @@ export const aiService = {
     return await measureExecutionTime(() => pythonNLP.analyzeEmail(subject, content), "pythonNLP.analyzeEmail");
   },
 
+  /**
+   * Categorizes an email, either automatically using AI or manually.
+   * @param {number} emailId - The ID of the email to categorize.
+   * @param {boolean} autoAnalyze - If true, use AI to determine the category.
+   * @param {number} [categoryId] - The category ID for manual categorization.
+   * @param {number} [confidence] - The confidence score for manual categorization.
+   * @returns {Promise<object>} An object containing the result of the operation.
+   * @throws {Error} If the email is not found.
+   */
   async categorizeEmail(emailId: number, autoAnalyze: boolean, categoryId?: number, confidence?: number) {
     const email = await measureExecutionTime(() => storage.getEmailById(emailId), `storage.getEmailById:${emailId}`);
     if (!email) {
@@ -71,6 +94,12 @@ export const aiService = {
     }
   },
 
+  /**
+   * Performs AI analysis on a batch of emails.
+   * @param {number[]} emailIds - An array of email IDs to analyze.
+   * @returns {Promise<object>} An object containing the results and a summary of the batch operation.
+   * @throws {Error} If the email IDs array is not provided.
+   */
   async batchAnalyzeEmails(emailIds: number[]) {
     if (!emailIds || !Array.isArray(emailIds)) {
       throw new Error("Email IDs array is required");
@@ -142,6 +171,14 @@ export const aiService = {
     };
   },
 
+  /**
+   * Validates an AI analysis based on user feedback.
+   * @param {number} emailId - The ID of the email being validated.
+   * @param {string} userFeedback - The feedback from the user (e.g., 'correct', 'incorrect').
+   * @param {string} [correctCategory] - The correct category, if provided by the user.
+   * @returns {Promise<object>} An object containing the validation result.
+   * @throws {Error} If the email is not found.
+   */
   async validateAnalysis(emailId: number, userFeedback: string, correctCategory?: string) {
     const email = await measureExecutionTime(() => storage.getEmailById(emailId), `storage.getEmailById:${emailId}`);
     if (!email) {
@@ -184,6 +221,10 @@ export const aiService = {
     };
   },
 
+  /**
+   * Checks the health of the AI service and its connection to the Python NLP bridge.
+   * @returns {Promise<object>} An object containing the health status of the service.
+   */
   async getHealth() {
     try {
       const isHealthy = await measureExecutionTime(() => pythonNLP.testConnection(), "pythonNLP.testConnection");
