@@ -10,8 +10,8 @@ from ..python_nlp.gmail_service import GmailAIService
 
 from .ai_engine import AdvancedAIEngine  # Import AdvancedAIEngine
 from .database import DatabaseManager  # Import DatabaseManager
+from .performance_monitor import performance_monitor
 from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
-# from .performance_monitor import PerformanceMonitor # Removed
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -24,11 +24,10 @@ gmail_service = GmailAIService(
     db_manager=db_manager_for_gmail_service,
     advanced_ai_engine=ai_engine_for_gmail_service,
 )
-# performance_monitor = PerformanceMonitor() # Removed
 
 
 @router.post("/api/gmail/sync")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def sync_gmail(
     req: Request,  # Renamed to req to avoid conflict with request model
     request_model: GmailSyncRequest,  # Renamed model
@@ -78,9 +77,6 @@ async def sync_gmail(
                 "statistics": nlp_result.get("statistics", {}),
                 "error": nlp_result.get("error", "Unknown NLP error"),
             }
-
-        # Background performance monitoring
-        # background_tasks.add_task(performance_monitor.record_sync_performance, result) # Removed
 
         return result
     except GoogleApiHttpError as gmail_err:
@@ -135,7 +131,7 @@ async def sync_gmail(
 
 
 @router.post("/api/gmail/smart-retrieval")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  # Renamed params
     """Execute smart Gmail retrieval with multiple strategies"""
     try:
@@ -197,7 +193,7 @@ async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  
 
 
 @router.get("/api/gmail/strategies")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def get_retrieval_strategies(request: Request):
     """Get available Gmail retrieval strategies"""
     try:
@@ -215,7 +211,7 @@ async def get_retrieval_strategies(request: Request):
 
 
 @router.get("/api/gmail/performance")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def get_gmail_performance(request: Request):
     """Get Gmail API performance metrics"""
     try:
