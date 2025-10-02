@@ -15,9 +15,6 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-# from backend.python_nlp.action_item_extractor import ( # Removed
-    # ActionItemExtractor, # Removed
-# ) # Removed
 from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.intent_model import IntentModel
@@ -90,9 +87,6 @@ class NLPEngine:
         self.topic_model = None
         self.intent_model = None
         self.urgency_model = None
-
-        # Initialize ActionItemExtractor
-        # self.action_item_extractor = ActionItemExtractor() # Removed
 
         # Load models if dependencies are available
         # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
@@ -301,7 +295,7 @@ class NLPEngine:
                 "method_used": "fallback_keyword_topic",
             }
 
-    def _analyze_topic(self, text: str) -> Dict[str, Any]:
+    def _analyze_topic(self, text: str) -> Optional[Dict[str, Any]]:
         """
         Identify the main topic of the email using the TopicAnalyzer component.
 
@@ -309,11 +303,14 @@ class NLPEngine:
             text: Text to analyze
 
         Returns:
-            Dictionary containing topic analysis results
+            Dictionary containing topic analysis results or None if analysis fails.
         """
-        return self.topic_analyzer.analyze(text)
+        if self.topic_analyzer:
+            return self.topic_analyzer.analyze(text)
+        logger.warning("Topic analyzer not available. Skipping topic analysis.")
+        return self._analyze_topic_keyword(text)  # Fallback to keyword analysis
 
-    def _analyze_intent(self, text: str) -> Dict[str, Any]:
+    def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
         """
         Determine the intent of the email using the IntentAnalyzer component.
 
@@ -321,11 +318,14 @@ class NLPEngine:
             text: Text to analyze
 
         Returns:
-            Dictionary containing intent analysis results
+            Dictionary containing intent analysis results or None if analysis fails.
         """
-        return self.intent_analyzer.analyze(text)
+        if self.intent_analyzer:
+            return self.intent_analyzer.analyze(text)
+        logger.warning("Intent analyzer not available. Skipping intent analysis.")
+        return None
 
-    def _analyze_urgency(self, text: str) -> Dict[str, Any]:
+    def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
         """
         Assess the urgency level of the email using the UrgencyAnalyzer component.
 
@@ -333,9 +333,12 @@ class NLPEngine:
             text: Text to analyze
 
         Returns:
-            Dictionary containing urgency analysis results
+            Dictionary containing urgency analysis results or None if analysis fails.
         """
-        return self.urgency_analyzer.analyze(text)
+        if self.urgency_analyzer:
+            return self.urgency_analyzer.analyze(text)
+        logger.warning("Urgency analyzer not available. Skipping urgency analysis.")
+        return None
 
     def _extract_keywords(self, text: str) -> List[str]:
         """
@@ -624,7 +627,6 @@ class NLPEngine:
                 "reliable": False,
                 "feedback": "Analysis failed, using fallback method",
             },
-            # "action_items": [], # Removed
         }
 
     def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
@@ -709,15 +711,7 @@ class NLPEngine:
                 "reliable": False,
                 "feedback": "Basic analysis - NLTK/models not available or failed",
             },
-            # "action_items": [], # Removed
         }
-
-    def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
-        """
-        Analyze text for action items using ActionItemExtractor.
-        """
-        logger.info("Action item analysis skipped (feature removed).")
-        return []
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         """
@@ -780,14 +774,6 @@ class NLPEngine:
             categories = self._categorize_content(cleaned_text)  # Regex-based
             logger.info(f"Content categorization completed. Categories: {categories}")
 
-            logger.info("Analyzing action items...")
-            action_items = self._analyze_action_items(
-                full_text
-            )  # Use full_text for action items for broader context before cleaning for other models
-            logger.info(
-                f"Action item analysis completed. Found {len(action_items)} potential actions."
-            )
-
             logger.info("Building final analysis response...")
             response = self._build_final_analysis_response(
                 sentiment_analysis,
@@ -797,7 +783,6 @@ class NLPEngine:
                 categories,
                 keywords,
                 risk_analysis_flags,
-                # action_items, # Removed - _analyze_action_items now returns empty list, but param removed from build
             )
             logger.info("Final analysis response built successfully.")
             return response
@@ -816,7 +801,6 @@ class NLPEngine:
         categories,
         keywords,
         risk_analysis_flags,
-        # action_items, # Removed param
     ) -> Dict[str, Any]:
         """Helper function to consolidate analysis results and build the final response dictionary."""
 
@@ -879,7 +863,6 @@ class NLPEngine:
                 "intent_analysis": intent_analysis,
                 "urgency_analysis": urgency_analysis,
             },
-            # "action_items": action_items, # Removed
         }
 
 
