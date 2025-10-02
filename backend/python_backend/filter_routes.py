@@ -21,13 +21,21 @@ filter_manager = SmartFilterManager()  # Initialize filter manager
 
 
 @router.get("/api/filters")
-# @performance_monitor.track # Removed
 async def get_filters(request: Request):
-    """Get all active email filters"""
+    """
+    Retrieves all active smart filters, sorted by priority.
+
+    Args:
+        request: The incoming request object.
+
+    Returns:
+        A dictionary containing a list of all active filter objects.
+
+    Raises:
+        HTTPException: If an unexpected error occurs.
+    """
     try:
-        # Corrected to use the available synchronous method from SmartFilterManager
         filters = filter_manager.get_active_filters_sorted()
-        # EmailFilter objects are dataclasses and FastAPI can serialize them.
         return {"filters": filters}
     except Exception as e:
         log_data = {
@@ -41,9 +49,20 @@ async def get_filters(request: Request):
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-# @performance_monitor.track # Removed
 async def create_filter(request: Request, filter_request_model: FilterRequest):
-    """Create new email filter"""
+    """
+    Creates a new custom smart filter.
+
+    Args:
+        request: The incoming request object.
+        filter_request_model: The data for the new filter to be created.
+
+    Returns:
+        The newly created filter object.
+
+    Raises:
+        HTTPException: If an unexpected error occurs.
+    """
     try:
         description = filter_request_model.description or ""
 
@@ -54,7 +73,6 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
             actions=filter_request_model.actions.model_dump(),
             priority=filter_request_model.priority,
         )
-        # FastAPI will handle dataclass serialization to JSON
         return new_filter_object
     except Exception as e:
         log_data = {
@@ -68,16 +86,26 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
 
 
 @router.post("/api/filters/generate-intelligent")
-# @performance_monitor.track # Removed
 async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
-    """Generate intelligent filters based on email patterns."""
+    """
+    Analyzes recent emails to intelligently generate new smart filters.
+
+    This endpoint scans a batch of recent emails to identify patterns and
+    proposes new filters to automate email organization.
+
+    Args:
+        request: The incoming request object.
+        db: The database manager dependency.
+
+    Returns:
+        A dictionary containing the count of created filters and the filter objects.
+
+    Raises:
+        HTTPException: If a database error or other unexpected error occurs.
+    """
     try:
         emails = await db.get_recent_emails(limit=1000)
-
-        # Assuming filter_manager.create_intelligent_filters exists and
-        # returns a list of filter objects/dicts.
         created_filters = await filter_manager.create_intelligent_filters(emails)
-
         return {"created_filters": len(created_filters), "filters": created_filters}
     except psycopg2.Error as db_err:
         log_data = {
@@ -92,29 +120,40 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
     except Exception as e:
         log_data = {
             "message": "Unhandled error in generate_intelligent_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to generate filters")
 
 
 @router.post("/api/filters/prune")
-# @performance_monitor.track # Removed
 async def prune_filters(request: Request):
-    """Prune ineffective filters"""
+    """
+    Prunes ineffective or redundant smart filters.
+
+    This endpoint triggers a process to analyze filter performance and remove
+    those that are no longer effective.
+
+    Args:
+        request: The incoming request object.
+
+    Returns:
+        A dictionary with the results of the pruning operation.
+
+    Raises:
+        HTTPException: If an unexpected error occurs.
+    """
     try:
-        # Assuming filter_manager.prune_ineffective_filters exists
-        # This method was not in original smart_filters.py, assuming added.
         results = await filter_manager.prune_ineffective_filters()
         return results
     except Exception as e:
         log_data = {
             "message": "Unhandled error in prune_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to prune filters")
