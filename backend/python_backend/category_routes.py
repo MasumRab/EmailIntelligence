@@ -6,6 +6,7 @@ import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
+from .exceptions import DatabaseError
 from .performance_monitor import performance_monitor
 from .models import CategoryCreate, CategoryResponse  # Added CategoryResponse, changed from .main
 
@@ -35,16 +36,16 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_categories",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to fetch categories")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise DatabaseError(detail="Failed to fetch categories due to an unexpected error.")
 
 
 @router.post("/api/categories", response_model=CategoryResponse)  # Changed to CategoryResponse
@@ -75,13 +76,13 @@ async def create_category(
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": "Unhandled error in create_category",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to create category")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise DatabaseError(detail="Failed to create category due to an unexpected error.")
