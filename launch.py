@@ -356,11 +356,11 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                             venv_major = int(parts[0])
                             venv_minor = int(parts[1])
 
-                            target_major, target_minor = PYTHON_MIN_VERSION
-                            if not (venv_major == target_major and venv_minor == target_minor):
+                            venv_version = (venv_major, venv_minor)
+                            if not (PYTHON_MIN_VERSION <= venv_version <= PYTHON_MAX_VERSION):
                                 logger.warning(
                                     f"WARNING: The existing virtual environment at './{VENV_DIR}' was created with Python {venv_major}.{venv_minor}. "
-                                    f"This project requires Python {target_major}.{target_minor}."
+                                    f"This project requires Python between {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} and {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}."
                                 )
                                 try:
                                     # Check for --force-recreate-venv flag or CI environment variable
@@ -373,7 +373,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                                         response = (
                                             input(
                                                 "Do you want to delete and recreate the virtual environment with "
-                                                f"Python {target_major}.{target_minor}? (yes/no): "
+                                                f"a compatible Python version ({PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]}-{PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]})? (yes/no): "
                                             )
                                             .strip()
                                             .lower()
@@ -752,7 +752,7 @@ def _print_system_info():
         )
         if torch_version_proc.returncode == 0:
             print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
-            # check_torch_cuda() # This function was removed
+            check_torch_cuda()
         else:
             print("PyTorch Version: Not installed or importable with current Python executable.")
             logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
@@ -837,7 +837,6 @@ def parse_arguments() -> argparse.Namespace:
         default=None,
         help="Specify the port for the Gradio UI (default: 7860 or next available)",
     )
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend")
     parser.add_argument(
         "--api-only",
         action="store_true",
@@ -864,13 +863,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--security", action="store_true", help="Run security tests")
 
     # Advanced options
-    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
-    parser.add_argument(
-        "--force-cpu",
-        action="store_true",
-        help="Force CPU mode even if GPU is available",
-    )
-    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode")
     parser.add_argument("--system-info", action="store_true", help="Print system information")
 
     # Networking options
@@ -881,17 +873,6 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     # UI and Execution options
-    parser.add_argument(
-        "--theme",
-        type=str,
-        default="system",
-        help="UI theme (e.g., light, dark, system). For future use.",
-    )
-    parser.add_argument(
-        "--allow-code",
-        action="store_true",
-        help="Allow execution of custom code from extensions (for future use).",
-    )
     parser.add_argument(
         "--loglevel",
         type=str,
