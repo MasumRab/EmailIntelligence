@@ -9,14 +9,13 @@ from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
+from .dependencies import get_ai_engine, get_filter_manager
 from .performance_monitor import performance_monitor
 from .models import EmailResponse  # Changed from .main to .models
 from .models import EmailCreate, EmailUpdate
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-ai_engine = AdvancedAIEngine()  # Initialize AI engine
-filter_manager = SmartFilterManager()  # Initialize filter manager
 
 
 @router.get("/api/emails", response_model=List[EmailResponse])
@@ -110,6 +109,8 @@ async def create_email(
     email: EmailCreate,
     background_tasks: BackgroundTasks,
     db: DatabaseManager = Depends(get_db),
+    ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
+    filter_manager: SmartFilterManager = Depends(get_filter_manager),
 ):
     """Create new email with AI analysis"""
     try:
