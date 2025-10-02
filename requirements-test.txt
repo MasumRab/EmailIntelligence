@@ -1,0 +1,2 @@
+# Test-specific dependencies
+pytest-asyncio>=0.18.0
