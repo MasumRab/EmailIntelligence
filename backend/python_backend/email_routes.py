@@ -8,6 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 
 from .ai_engine import AdvancedAIEngine
+from .exceptions import AIAnalysisError, DatabaseError
 from .database import DatabaseManager, get_db
 from .dependencies import get_ai_engine, get_filter_manager
 from .performance_monitor import performance_monitor
@@ -52,7 +53,7 @@ async def get_emails(
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_emails",
@@ -90,7 +91,7 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": f"Unhandled error fetching email id {email_id}",
@@ -151,16 +152,16 @@ async def create_email(
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": "Unhandled error in create_email",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to create email")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise AIAnalysisError(detail="Failed to create email due to an unexpected error.")
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
@@ -196,13 +197,13 @@ async def update_email(
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": f"Unhandled error updating email id {email_id}",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to update email")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise DatabaseError(detail="Failed to update email due to an unexpected error.")
