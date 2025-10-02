@@ -14,17 +14,14 @@ Arguments:
     --no-venv                   Don't create or use a virtual environment
     --update-deps               Update dependencies before launching
     --skip-python-version-check Skip Python version check
-    --stage {dev,test,staging,prod}  Specify the application stage to run
+    --stage {dev,test}          Specify the application stage to run
     --port PORT                 Specify the port to run on (default: 8000)
     --host HOST                 Specify the host to run on (default: 127.0.0.1)
-    --api-only                  Run only the API server without the frontend
-    --frontend-only             Run only the frontend without the API server
+    --api-only                  Run only the API server without the Gradio UI
+    --ui-only                   Run only the Gradio UI without the API server
     --debug                     Enable debug mode
     --no-download-nltk          Skip downloading NLTK data
     --skip-prepare              Skip preparation steps
-    --no-half                   Disable half-precision for models
-    --force-cpu                 Force CPU mode even if GPU is available
-    --low-memory                Enable low memory mode
     --listen                    Make the server listen on network
     --env-file FILE             Specify a custom .env file
 """
@@ -536,7 +533,6 @@ def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
-    env["NODE_ENV"] = "development" if args.stage == "dev" else args.stage
     env["DEBUG"] = str(args.debug)
 
     try:
