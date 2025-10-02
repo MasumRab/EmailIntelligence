@@ -2,28 +2,20 @@ import json
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from googleapiclient.errors import HttpError as GoogleApiHttpError
 
 # Corrected import path for GmailAIService
 from ..python_nlp.gmail_service import GmailAIService
 
-from .ai_engine import AdvancedAIEngine  # Import AdvancedAIEngine
-from .database import DatabaseManager  # Import DatabaseManager
+from .ai_engine import AdvancedAIEngine
+from .database import DatabaseManager, get_db
+from .dependencies import get_gmail_service
 from .performance_monitor import performance_monitor
 from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-# Instantiate services with necessary dependencies
-# This assumes DatabaseManager() and AdvancedAIEngine() can be
-# instantiated simply here. If complex setup, use FastAPI Depends or factory.
-db_manager_for_gmail_service = DatabaseManager()
-ai_engine_for_gmail_service = AdvancedAIEngine()
-gmail_service = GmailAIService(
-    db_manager=db_manager_for_gmail_service,
-    advanced_ai_engine=ai_engine_for_gmail_service,
-)
 
 
 @router.post("/api/gmail/sync")
@@ -32,6 +24,7 @@ async def sync_gmail(
     req: Request,  # Renamed to req to avoid conflict with request model
     request_model: GmailSyncRequest,  # Renamed model
     background_tasks: BackgroundTasks,
+    gmail_service: GmailAIService = Depends(get_gmail_service),
 ):
     """Sync emails from Gmail with AI analysis"""
     try:
@@ -132,7 +125,11 @@ async def sync_gmail(
 
 @router.post("/api/gmail/smart-retrieval")
 @performance_monitor.track
-async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  # Renamed params
+async def smart_retrieval(
+    req: Request,
+    request_model: SmartRetrievalRequest,
+    gmail_service: GmailAIService = Depends(get_gmail_service),
+):  # Renamed params
     """Execute smart Gmail retrieval with multiple strategies"""
     try:
         result = await gmail_service.execute_smart_retrieval(
@@ -194,7 +191,9 @@ async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  
 
 @router.get("/api/gmail/strategies")
 @performance_monitor.track
-async def get_retrieval_strategies(request: Request):
+async def get_retrieval_strategies(
+    request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
+):
     """Get available Gmail retrieval strategies"""
     try:
         strategies = await gmail_service.get_retrieval_strategies()
@@ -212,7 +211,9 @@ async def get_retrieval_strategies(request: Request):
 
 @router.get("/api/gmail/performance")
 @performance_monitor.track
-async def get_gmail_performance(request: Request):
+async def get_gmail_performance(
+    request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
+):
     """Get Gmail API performance metrics"""
     try:
         metrics = await gmail_service.get_performance_metrics()

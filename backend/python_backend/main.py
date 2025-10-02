@@ -63,12 +63,7 @@ app.add_middleware(
     # from .metrics import setup_metrics # Removed
     # setup_metrics(app) # Removed
 
-# Initialize services
-# Services are now initialized within their respective route files
-# or kept here if they are used by multiple route files or for general app setup.
-gmail_service = GmailAIService()  # Used by gmail_routes
-filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine()  # Used by email_routes
+# Services are now managed by the dependency injection system.
 
 # Include routers in the app
 app.include_router(email_routes.router)
