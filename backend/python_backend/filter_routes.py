@@ -11,17 +11,16 @@ from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for r
 )
 
 from .database import DatabaseManager, get_db
+from .performance_monitor import performance_monitor
 from .models import FilterRequest  # Models are imported from .models
-# from .performance_monitor import PerformanceMonitor # Removed
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 filter_manager = SmartFilterManager()  # Initialize filter manager
-# performance_monitor = PerformanceMonitor() # Removed
 
 
 @router.get("/api/filters")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def get_filters(request: Request):
     """Get all active email filters"""
     try:
@@ -41,7 +40,7 @@ async def get_filters(request: Request):
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def create_filter(request: Request, filter_request_model: FilterRequest):
     """Create new email filter"""
     try:
@@ -68,7 +67,7 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
 
 
 @router.post("/api/filters/generate-intelligent")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
     """Generate intelligent filters based on email patterns."""
     try:
@@ -76,7 +75,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
 
         # Assuming filter_manager.create_intelligent_filters exists and
         # returns a list of filter objects/dicts.
-        created_filters = await filter_manager.create_intelligent_filters(emails)
+        created_filters = filter_manager.create_intelligent_filters(emails)
 
         return {"created_filters": len(created_filters), "filters": created_filters}
     except psycopg2.Error as db_err:
@@ -101,13 +100,13 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
 
 
 @router.post("/api/filters/prune")
-# @performance_monitor.track # Removed
+@performance_monitor.track
 async def prune_filters(request: Request):
     """Prune ineffective filters"""
     try:
         # Assuming filter_manager.prune_ineffective_filters exists
         # This method was not in original smart_filters.py, assuming added.
-        results = await filter_manager.prune_ineffective_filters()
+        results = filter_manager.prune_ineffective_filters()
         return results
     except Exception as e:
         log_data = {
