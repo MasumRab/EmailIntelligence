@@ -11,8 +11,8 @@ from backend.python_nlp.smart_filters import EmailFilter
 mock_filter_manager_instance = MagicMock()
 mock_filter_manager_instance.get_active_filters_sorted = MagicMock()
 mock_filter_manager_instance.add_custom_filter = MagicMock()
-mock_filter_manager_instance.create_intelligent_filters = AsyncMock()
-mock_filter_manager_instance.prune_ineffective_filters = AsyncMock()
+mock_filter_manager_instance.create_intelligent_filters = MagicMock()
+mock_filter_manager_instance.prune_ineffective_filters = MagicMock()
 
 # Mock DatabaseManager
 mock_db_manager_filter = MagicMock()
