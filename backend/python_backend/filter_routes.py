@@ -11,17 +11,19 @@ from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for r
 )
 
 from .database import DatabaseManager, get_db
+from .dependencies import get_filter_manager
 from .performance_monitor import performance_monitor
 from .models import FilterRequest  # Models are imported from .models
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-filter_manager = SmartFilterManager()  # Initialize filter manager
 
 
 @router.get("/api/filters")
 @performance_monitor.track
-async def get_filters(request: Request):
+async def get_filters(
+    request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
+):
     """Get all active email filters"""
     try:
         # Corrected to use the available synchronous method from SmartFilterManager
@@ -41,7 +43,11 @@ async def get_filters(request: Request):
 
 @router.post("/api/filters", response_model=EmailFilter)
 @performance_monitor.track
-async def create_filter(request: Request, filter_request_model: FilterRequest):
+async def create_filter(
+    request: Request,
+    filter_request_model: FilterRequest,
+    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+):
     """Create new email filter"""
     try:
         description = filter_request_model.description or ""
@@ -68,7 +74,11 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
 
 @router.post("/api/filters/generate-intelligent")
 @performance_monitor.track
-async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
+async def generate_intelligent_filters(
+    request: Request,
+    db: DatabaseManager = Depends(get_db),
+    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+):
     """Generate intelligent filters based on email patterns."""
     try:
         emails = await db.get_recent_emails(limit=1000)
@@ -101,7 +111,9 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
 
 @router.post("/api/filters/prune")
 @performance_monitor.track
-async def prune_filters(request: Request):
+async def prune_filters(
+    request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
+):
     """Prune ineffective filters"""
     try:
         # Assuming filter_manager.prune_ineffective_filters exists
