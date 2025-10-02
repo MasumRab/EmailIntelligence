@@ -12,6 +12,7 @@ from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for r
 
 from .database import DatabaseManager, get_db
 from .dependencies import get_filter_manager
+from .exceptions import AIAnalysisError, DatabaseError
 from .performance_monitor import performance_monitor
 from .models import FilterRequest  # Models are imported from .models
 
@@ -38,7 +39,7 @@ async def get_filters(
             "error_detail": str(e),
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to fetch filters")
+        raise AIAnalysisError(detail="Failed to fetch filters")
 
 
 @router.post("/api/filters", response_model=EmailFilter)
@@ -69,7 +70,7 @@ async def create_filter(
             "error_detail": str(e),
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to create filter")
+        raise AIAnalysisError(detail="Failed to create filter")
 
 
 @router.post("/api/filters/generate-intelligent")
@@ -97,16 +98,16 @@ async def generate_intelligent_filters(
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": "Unhandled error in generate_intelligent_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to generate filters")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise AIAnalysisError(detail="Failed to generate filters")
 
 
 @router.post("/api/filters/prune")
@@ -123,9 +124,9 @@ async def prune_filters(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in prune_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to prune filters")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise AIAnalysisError(detail="Failed to prune filters")

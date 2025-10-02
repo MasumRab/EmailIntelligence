@@ -49,9 +49,9 @@ def test_get_all_categories_db_error(client_cat):
     )  # Simulate generic exception
 
     response = client_cat.get("/api/categories")
-    assert response.status_code == 500
+    assert response.status_code == 503
     assert response.json() == {
-        "detail": "Failed to fetch categories"
+        "detail": "Failed to fetch categories due to an unexpected error."
     }  # Match error detail in route
 
 
@@ -74,8 +74,8 @@ def test_create_category_db_error(client_cat):
     mock_db_manager_cat.create_category.side_effect = Exception("DB Create Error")
 
     response = client_cat.post("/api/categories", json=new_category_data)
-    assert response.status_code == 500
-    assert response.json() == {"detail": "Failed to create category"}
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Failed to create category due to an unexpected error."}
 
 
 # Note: category_routes.py does not currently have PUT /api/categories/{id}

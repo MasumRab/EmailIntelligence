@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from .exceptions import BaseAppException
 
 # Updated import to use NLP GmailAIService directly
 from ..python_nlp.gmail_service import GmailAIService
@@ -39,6 +40,13 @@ app = FastAPI(
     description="Advanced email management with AI categorization and smart filtering",
     version="2.0.0",
 )
+
+@app.exception_handler(BaseAppException)
+async def app_exception_handler(request: Request, exc: BaseAppException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
 
 # Configure CORS
 app.add_middleware(
