@@ -38,7 +38,7 @@ class TestSentimentModel(unittest.TestCase):
         mock_textblob_instance.sentiment.subjectivity = 0.5
 
         with patch(
-            "server.python_nlp.analysis_components.sentiment_model.TextBlob",
+            "backend.python_nlp.analysis_components.sentiment_model.TextBlob",
             return_value=mock_textblob_instance,
         ) as mock_textblob_class:
             analyzer = SentimentModel(sentiment_model=mock_sklearn_model, has_nltk_installed=True)
@@ -54,7 +54,7 @@ class TestSentimentModel(unittest.TestCase):
         mock_sklearn_model.predict.side_effect = Exception("Model error")
 
         with patch(
-            "server.python_nlp.analysis_components.sentiment_model.TextBlob",
+            "backend.python_nlp.analysis_components.sentiment_model.TextBlob",
             side_effect=Exception("TextBlob error"),
         ):
             analyzer = SentimentModel(sentiment_model=mock_sklearn_model, has_nltk_installed=True)
@@ -70,7 +70,7 @@ class TestSentimentModel(unittest.TestCase):
         mock_textblob_instance.sentiment.subjectivity = 0.4
 
         with patch(
-            "server.python_nlp.analysis_components.sentiment_model.TextBlob",
+            "backend.python_nlp.analysis_components.sentiment_model.TextBlob",
             return_value=mock_textblob_instance,
         ) as mock_textblob_class:
             analyzer = SentimentModel(sentiment_model=None, has_nltk_installed=True)  # No model
