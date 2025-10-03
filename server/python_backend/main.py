@@ -30,6 +30,7 @@ from .ai_engine import AdvancedAIEngine
 
 # Import our Python modules
 from .performance_monitor import PerformanceMonitor
+from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +42,16 @@ app = FastAPI(
     description="Advanced email management with AI categorization and smart filtering",
     version="2.0.0",
 )
+
+@app.on_event("startup")
+async def startup_event():
+    """Application startup: connect to the database."""
+    await db_manager.connect()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Application shutdown: disconnect from the database."""
+    await db_manager.close()
 
 # Configure CORS
 app.add_middleware(
