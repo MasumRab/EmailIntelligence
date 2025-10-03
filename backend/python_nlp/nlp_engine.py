@@ -15,6 +15,9 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+# from backend.python_nlp.action_item_extractor import ( # Removed
+    # ActionItemExtractor, # Removed
+# ) # Removed
 from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.intent_model import IntentModel
@@ -126,6 +129,9 @@ class NLPEngine:
         self.topic_model = None
         self.intent_model = None
         self.urgency_model = None
+
+        # Initialize ActionItemExtractor
+        # self.action_item_extractor = ActionItemExtractor() # Removed
 
         # Load models if dependencies are available
         # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
@@ -343,7 +349,7 @@ class NLPEngine:
                 "method_used": "fallback_keyword_topic",
             }
 
-    def _analyze_topic(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_topic(self, text: str) -> Dict[str, Any]:
         """
         Identify the main topic of the email using the TopicAnalyzer component.
 
@@ -351,14 +357,11 @@ class NLPEngine:
             text: Text to analyze
 
         Returns:
-            Dictionary containing topic analysis results or None if analysis fails.
+            Dictionary containing topic analysis results
         """
-        if self.topic_analyzer:
-            return self.topic_analyzer.analyze(text)
-        logger.warning("Topic analyzer not available. Skipping topic analysis.")
-        return self._analyze_topic_keyword(text)  # Fallback to keyword analysis
+        return self.topic_analyzer.analyze(text)
 
-    def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_intent(self, text: str) -> Dict[str, Any]:
         """
         Determine the intent of the email using the IntentAnalyzer component.
 
@@ -366,14 +369,11 @@ class NLPEngine:
             text: Text to analyze
 
         Returns:
-            Dictionary containing intent analysis results or None if analysis fails.
+            Dictionary containing intent analysis results
         """
-        if self.intent_analyzer:
-            return self.intent_analyzer.analyze(text)
-        logger.warning("Intent analyzer not available. Skipping intent analysis.")
-        return None
+        return self.intent_analyzer.analyze(text)
 
-    def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_urgency(self, text: str) -> Dict[str, Any]:
         """
         Assess the urgency level of the email using the UrgencyAnalyzer component.
 
@@ -381,12 +381,9 @@ class NLPEngine:
             text: Text to analyze
 
         Returns:
-            Dictionary containing urgency analysis results or None if analysis fails.
+            Dictionary containing urgency analysis results
         """
-        if self.urgency_analyzer:
-            return self.urgency_analyzer.analyze(text)
-        logger.warning("Urgency analyzer not available. Skipping urgency analysis.")
-        return None
+        return self.urgency_analyzer.analyze(text)
 
     def _extract_keywords(self, text: str) -> List[str]:
         """
