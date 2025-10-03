@@ -14,14 +14,17 @@ Arguments:
     --no-venv                   Don't create or use a virtual environment
     --update-deps               Update dependencies before launching
     --skip-python-version-check Skip Python version check
-    --stage {dev,test}          Specify the application stage to run
+    --stage {dev,test,staging,prod}  Specify the application stage to run
     --port PORT                 Specify the port to run on (default: 8000)
     --host HOST                 Specify the host to run on (default: 127.0.0.1)
-    --api-only                  Run only the API server without the Gradio UI
-    --ui-only                   Run only the Gradio UI without the API server
+    --api-only                  Run only the API server without the frontend
+    --frontend-only             Run only the frontend without the API server
     --debug                     Enable debug mode
     --no-download-nltk          Skip downloading NLTK data
     --skip-prepare              Skip preparation steps
+    --no-half                   Disable half-precision for models
+    --force-cpu                 Force CPU mode even if GPU is available
+    --low-memory                Enable low memory mode
     --listen                    Make the server listen on network
     --env-file FILE             Specify a custom .env file
 """
@@ -39,6 +42,7 @@ import time
 import venv
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+from enum import Enum, auto
 
 try:
     from importlib.metadata import version, PackageNotFoundError
@@ -56,9 +60,49 @@ logger = logging.getLogger("launcher")
 processes = []
 
 
+class VenvStatus(Enum):
+    """Represents the status of the virtual environment."""
+    OK = auto()
+    MISSING = auto()
+    CORRUPTED = auto()
+    INCOMPATIBLE = auto()
+
+
+def _get_venv_status() -> Tuple[VenvStatus, Optional[str]]:
+    """Checks the status of the virtual environment."""
+    if not is_venv_available():
+        return VenvStatus.MISSING, None
+
+    venv_python_exe_path = ""
+    if os.name == "nt":
+        venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
+    else:
+        venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "bin" / "python")
+
+    if not Path(venv_python_exe_path).exists():
+        return VenvStatus.CORRUPTED, None
+
+    try:
+        result = subprocess.run(
+            [venv_python_exe_path, "--version"],
+            capture_output=True, text=True, check=False, timeout=5
+        )
+        version_output = result.stdout.strip() + result.stderr.strip()
+        if version_output.startswith("Python "):
+            parts = version_output.split(" ")[1].split(".")
+            if len(parts) >= 2:
+                venv_major, venv_minor = int(parts[0]), int(parts[1])
+                venv_version = (venv_major, venv_minor)
+                if not (PYTHON_MIN_VERSION <= venv_version <= PYTHON_MAX_VERSION):
+                    return VenvStatus.INCOMPATIBLE, venv_python_exe_path
+                return VenvStatus.OK, venv_python_exe_path
+    except (subprocess.TimeoutExpired, ValueError, IndexError) as e:
+        logger.warning(f"Could not determine venv Python version: {e}")
+
+    return VenvStatus.CORRUPTED, None
+
+
 def _handle_sigint(signum, frame):
-    logger.info("Received SIGINT/SIGTERM, shutting down...")
-    for p in processes:
         if p.poll() is None:  # Check if process is still running
             logger.info(f"Terminating process {p.pid}...")
             p.terminate()
@@ -261,248 +305,81 @@ def _get_primary_requirements_file() -> str:
         return REQUIREMENTS_FILE
 
 
+def _recreate_venv() -> bool:
+    """Deletes and recreates the virtual environment. Returns True on success."""
+    logger.info(f"Deleting and recreating virtual environment at './{VENV_DIR}'.")
+    try:
+        shutil.rmtree(ROOT_DIR / VENV_DIR)
+        logger.info(f"Successfully deleted existing virtual environment './{VENV_DIR}'.")
+    except OSError as e:
+        logger.error(f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart.")
+        return False
+
+    if not create_venv():
+        logger.error("Failed to recreate virtual environment. Exiting.")
+        return False
+    return True
+
+
 def prepare_environment(args: argparse.Namespace) -> bool:
     """Prepare the environment for running the application."""
     if not args.skip_python_version_check and not check_python_version():
-        logger.error(
-            "Initial Python version check failed. This should have been handled by interpreter discovery."
-        )
         return False
 
-    if not args.no_venv:
-        venv_recreated_this_run = False
-        venv_needs_initial_setup = False
+    if args.no_venv:
+        if not args.no_download_nltk and not download_nltk_data():
+            return False
+        return True
 
-        if is_venv_available():
-            logger.info(
-                f"Virtual environment found at '{ROOT_DIR / VENV_DIR}'. Checking Python version..."
-            )
+    venv_needs_initial_setup = False
+    status, _ = _get_venv_status()
 
-            venv_python_exe_path = ""
-            if os.name == "nt":
-                venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
-            else:
-                venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "bin" / "python")
+    if status == VenvStatus.MISSING:
+        logger.info(f"Virtual environment not found at './{VENV_DIR}'. Creating...")
+        if not create_venv():
+            return False
+        venv_needs_initial_setup = True
+    elif status in (VenvStatus.CORRUPTED, VenvStatus.INCOMPATIBLE):
+        issue = "corrupted" if status == VenvStatus.CORRUPTED else "incompatible"
+        logger.warning(f"The existing virtual environment at './{VENV_DIR}' is {issue}.")
 
-            if not Path(venv_python_exe_path).exists():
-                logger.warning(
-                    f"Venv python executable not found at {venv_python_exe_path}. Assuming incompatible or corrupted venv."
-                )
-                try:
-                    # Check for --force-recreate-venv flag or CI environment variable
-                    if args.force_recreate_venv or os.environ.get("CI"):
-                        response = "yes"
-                        logger.warning(
-                            "CI environment or --force-recreate-venv flag detected, automatically recreating corrupted venv."
-                        )
-                    else:
-                        response = (
-                            input(
-                                f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
-                                f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
-                            )
-                            .strip()
-                            .lower()
-                        )
-                except EOFError:
-                    response = "no"
-                    logger.warning(
-                        "Non-interactive session, defaulting to not recreating corrupted venv."
-                    )
-
-                if response == "yes":
-                    logger.info(
-                        f"User approved. Deleting and recreating virtual environment at './{VENV_DIR}'."
-                    )
-                    try:
-                        shutil.rmtree(ROOT_DIR / VENV_DIR)
-                        logger.info(
-                            f"Successfully deleted existing virtual environment './{VENV_DIR}'."
-                        )
-                    except OSError as e:
-                        logger.error(
-                            f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart."
-                        )
-                        return False
-
-                    if not create_venv():
-                        logger.error("Failed to recreate virtual environment. Exiting.")
-                        return False
-                    venv_recreated_this_run = True
-                    venv_needs_initial_setup = True
-                else:
-                    logger.warning(
-                        f"User declined or non-interactive. Proceeding with the potentially corrupted virtual environment in './{VENV_DIR}'. "
-                        "This may cause errors."
-                    )
-
-            else:
-                try:
-                    result = subprocess.run(
-                        [venv_python_exe_path, "--version"],
-                        capture_output=True,
-                        text=True,
-                        check=False,
-                        timeout=5,
-                    )
-                    version_output = result.stdout.strip() + result.stderr.strip()
-
-                    if version_output.startswith("Python "):
-                        parts = version_output.split(" ")[1].split(".")
-                        if len(parts) >= 2:
-                            venv_major = int(parts[0])
-                            venv_minor = int(parts[1])
-
-                            venv_version = (venv_major, venv_minor)
-                            if not (PYTHON_MIN_VERSION <= venv_version <= PYTHON_MAX_VERSION):
-                                logger.warning(
-                                    f"WARNING: The existing virtual environment at './{VENV_DIR}' was created with Python {venv_major}.{venv_minor}. "
-                                    f"This project requires Python between {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} and {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}."
-                                )
-                                try:
-                                    # Check for --force-recreate-venv flag or CI environment variable
-                                    if args.force_recreate_venv or os.environ.get("CI"):
-                                        response = "yes"
-                                        logger.warning(
-                                            "CI environment or --force-recreate-venv flag detected, automatically recreating incompatible venv."
-                                        )
-                                    else:
-                                        response = (
-                                            input(
-                                                "Do you want to delete and recreate the virtual environment with "
-                                                f"a compatible Python version ({PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]}-{PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]})? (yes/no): "
-                                            )
-                                            .strip()
-                                            .lower()
-                                        )
-                                except EOFError:
-                                    response = "no"
-                                    logger.warning(
-                                        "Non-interactive session, defaulting to not recreating incompatible venv."
-                                    )
-
-                                if response == "yes":
-                                    logger.info(
-                                        f"User approved. Deleting and recreating virtual environment at './{VENV_DIR}'."
-                                    )
-                                    try:
-                                        shutil.rmtree(ROOT_DIR / VENV_DIR)
-                                        logger.info(
-                                            f"Successfully deleted existing virtual environment './{VENV_DIR}'."
-                                        )
-                                    except OSError as e:
-                                        logger.error(
-                                            f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart."
-                                        )
-                                        return False
-
-                                    if not create_venv():
-                                        logger.error(
-                                            "Failed to recreate virtual environment. Exiting."
-                                        )
-                                        return False
-                                    venv_recreated_this_run = True
-                                    venv_needs_initial_setup = True
-                                else:
-                                    logger.warning(
-                                        f"User declined or non-interactive. Proceeding with the existing, "
-                                        f"potentially incompatible virtual environment (Python {venv_major}.{venv_minor}) in './{VENV_DIR}'."
-                                    )
-                                    print(
-                                        f"WARNING: You chose to proceed with an incompatible Python version ({venv_major}.{venv_minor}) "
-                                        f"in the virtual environment './{VENV_DIR}'. This may cause errors or unexpected behavior. "
-                                        f"It is strongly recommended to use a Python {target_major}.{target_minor} environment."
-                                    )
-                            else:
-                                logger.info(
-                                    f"Existing virtual environment at './{VENV_DIR}' uses compatible Python {venv_major}.{venv_minor}."
-                                )
-                        else:
-                            logger.warning(
-                                f"Could not parse Python version from venv output: '{version_output}'. Assuming incompatibility and proceeding with caution."
-                            )
-                    else:
-                        logger.warning(
-                            f"Unrecognized version output from venv Python: '{version_output}'. Assuming incompatibility and proceeding with caution."
-                        )
-
-                except subprocess.TimeoutExpired:
-                    logger.warning(
-                        f"Timeout checking version of venv Python at '{venv_python_exe_path}'. Proceeding with caution."
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"Error checking version of venv Python at '{venv_python_exe_path}': {e}. Proceeding with caution."
-                    )
-
+        response = ""
+        if args.force_recreate_venv or os.environ.get("CI"):
+            response = "yes"
+            logger.warning(f"CI environment or --force-recreate-venv flag detected, automatically recreating {issue} venv.")
         else:
-            logger.info(f"Virtual environment not found at './{VENV_DIR}'. Creating...")
-            if not create_venv():
-                logger.error("Failed to create virtual environment. Exiting.")
+            try:
+                prompt_message = (
+                    f"Do you want to delete and recreate the {issue} virtual environment? (yes/no): "
+                )
+                response = input(prompt_message).strip().lower()
+            except EOFError:
+                response = "no"
+                logger.warning("Non-interactive session, defaulting to not recreating venv.")
+
+        if response == "yes":
+            if not _recreate_venv():
                 return False
             venv_needs_initial_setup = True
-
-        if venv_needs_initial_setup:
-            primary_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Installing base dependencies from {Path(primary_req_file).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
-            )
-            if not install_dependencies(primary_req_file, update=False):
-                logger.error(
-                    f"Failed to install base dependencies from {Path(primary_req_file).name}. Exiting."
-                )
-                return False
-        elif args.update_deps:
-            primary_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Updating base dependencies from {Path(primary_req_file).name} in existing venv as per --update-deps..."
-            )
-            if not install_dependencies(primary_req_file, update=True):
-                logger.error(
-                    f"Failed to update base dependencies from {Path(primary_req_file).name}. Exiting."
-                )
-                return False
         else:
-            chosen_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Compatible virtual environment found (or user chose to proceed with existing). Primary requirements file: {Path(chosen_req_file).name}. Skipping base dependency installation unless --update-deps is used."
-            )
+            logger.warning(f"Proceeding with the existing, potentially {issue} virtual environment.")
 
-        stage_requirements_file_path_str = None
-        if args.stage == "dev":
-            dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
-            if dev_req_path_obj.exists():
-                stage_requirements_file_path_str = "requirements-dev.txt"
-        elif args.stage == "test":
-            test_req_path_obj = ROOT_DIR / "requirements-test.txt"
-            if test_req_path_obj.exists():
-                stage_requirements_file_path_str = "requirements-test.txt"
+    # Install/update dependencies
+    if venv_needs_initial_setup or args.update_deps:
+        primary_req_file = _get_primary_requirements_file()
+        update_flag = args.update_deps and not venv_needs_initial_setup
 
-        if stage_requirements_file_path_str:
-            install_stage_deps_update_flag = args.update_deps
-            if venv_needs_initial_setup:
-                install_stage_deps_update_flag = False
-                logger.info(
-                    f"Installing stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
-                )
-            elif args.update_deps:
-                logger.info(
-                    f"Updating stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} as per --update-deps..."
-                )
-            else:
-                logger.info(
-                    f"Skipping stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} unless missing or --update-deps is used."
-                )
+        logger.info(f"{'Updating' if update_flag else 'Installing'} base dependencies from {primary_req_file}...")
+        if not install_dependencies(primary_req_file, update=update_flag):
+            return False
 
-            if venv_needs_initial_setup or args.update_deps:
-                if not install_dependencies(
-                    stage_requirements_file_path_str,
-                    update=install_stage_deps_update_flag,
-                ):
-                    logger.error(
-                        f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
-                    )
-                    return False
+        stage_req_file = f"requirements-{args.stage}.txt"
+        if (ROOT_DIR / stage_req_file).exists():
+            logger.info(f"{'Updating' if update_flag else 'Installing'} stage-specific dependencies from {stage_req_file}...")
+            if not install_dependencies(stage_req_file, update=update_flag):
+                return False
+    else:
+        logger.info("Virtual environment is OK. Skipping dependency installation unless --update-deps is used.")
 
     if not args.no_download_nltk:
         if not download_nltk_data():
@@ -533,6 +410,7 @@ def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
+    env["NODE_ENV"] = "development" if args.stage == "dev" else args.stage
     env["DEBUG"] = str(args.debug)
 
     try:
@@ -748,7 +626,7 @@ def _print_system_info():
         )
         if torch_version_proc.returncode == 0:
             print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
-            check_torch_cuda()
+            # check_torch_cuda() # This function was removed
         else:
             print("PyTorch Version: Not installed or importable with current Python executable.")
             logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
@@ -833,6 +711,7 @@ def parse_arguments() -> argparse.Namespace:
         default=None,
         help="Specify the port for the Gradio UI (default: 7860 or next available)",
     )
+    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend")
     parser.add_argument(
         "--api-only",
         action="store_true",
@@ -859,6 +738,13 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--security", action="store_true", help="Run security tests")
 
     # Advanced options
+    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
+    parser.add_argument(
+        "--force-cpu",
+        action="store_true",
+        help="Force CPU mode even if GPU is available",
+    )
+    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode")
     parser.add_argument("--system-info", action="store_true", help="Print system information")
 
     # Networking options
@@ -869,6 +755,17 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     # UI and Execution options
+    parser.add_argument(
+        "--theme",
+        type=str,
+        default="system",
+        help="UI theme (e.g., light, dark, system). For future use.",
+    )
+    parser.add_argument(
+        "--allow-code",
+        action="store_true",
+        help="Allow execution of custom code from extensions (for future use).",
+    )
     parser.add_argument(
         "--loglevel",
         type=str,
