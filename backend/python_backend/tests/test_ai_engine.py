@@ -131,9 +131,10 @@ async def test_analyze_email_db_error_during_category_match(ai_engine_instance: 
 
     assert isinstance(result, AIAnalysisResult)
     assert result.category_id is None  # Error during matching, so no ID
-    # Should still return the rest of the analysis from NLPEngine
-    assert result.topic == "some_topic"
-    assert result.categories == ["Some AI Category"]
+    # The method should now return a fallback analysis result
+    assert result.topic != "some_topic"  # Should not be the original topic
+    assert "Fallback analysis" in result.reasoning
+    assert "DB connection error" in result.reasoning
 
 
 @pytest.mark.asyncio
@@ -157,3 +158,48 @@ async def test_analyze_email_no_ai_categories_to_match(ai_engine_instance: Advan
     assert result.categories == []
     # Ensure get_all_categories is not called if there are no AI categories to match
     mock_db_manager_for_ai_engine.get_all_categories.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_category_lookup_map_is_built_and_used(ai_engine_instance: AdvancedAIEngine):
+    """Test that the category lookup map is built on first use and reused."""
+    subject = "Work Email"
+    content = "Project discussion about work."
+    ai_engine_instance.nlp_engine.analyze_email.return_value["categories"] = ["Work Related"]
+
+    mock_db_categories = [
+        {"id": 5, "name": "Work Related"},
+    ]
+    mock_db_manager_for_ai_engine.get_all_categories.return_value = mock_db_categories
+
+    # First call - should build the cache
+    result1 = await ai_engine_instance.analyze_email(
+        subject, content, db=mock_db_manager_for_ai_engine
+    )
+
+    assert result1.category_id == 5
+    # The map should now be populated
+    assert "work related" in ai_engine_instance.category_lookup_map
+    assert ai_engine_instance.category_lookup_map["work related"]["id"] == 5
+    mock_db_manager_for_ai_engine.get_all_categories.assert_called_once()
+
+    # Second call - should use the cache, not call the DB again
+    ai_engine_instance.nlp_engine.analyze_email.return_value["categories"] = ["Work Related"]
+    result2 = await ai_engine_instance.analyze_email(
+        subject, content, db=mock_db_manager_for_ai_engine
+    )
+
+    assert result2.category_id == 5
+    # DB should not have been called again
+    mock_db_manager_for_ai_engine.get_all_categories.assert_called_once()
+
+@pytest.mark.asyncio
+async def test_initialize_precompiles_patterns():
+    """Test that AIEngine's initialize method calls NLPEngine's pattern initialization."""
+    with patch.object(NLPEngine, "initialize_patterns") as mock_init_patterns, \
+         patch.object(AdvancedAIEngine, "health_check"): # Mock health_check to isolate the test
+
+        engine = AdvancedAIEngine()
+        engine.initialize()
+
+        mock_init_patterns.assert_called_once()
