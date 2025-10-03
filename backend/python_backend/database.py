@@ -9,15 +9,10 @@ import logging
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Literal
+from .config import settings
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 
 logger = logging.getLogger(__name__)
-
-# File paths
-DATA_DIR = "backend/data"
-EMAILS_FILE = os.path.join(DATA_DIR, "emails.json")
-CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json")
-USERS_FILE = os.path.join(DATA_DIR, "users.json")
 
 # Data types
 DATA_TYPE_EMAILS = 'emails'
@@ -49,18 +44,18 @@ class DatabaseManager:
     """Async database manager for email data using JSON file storage."""
 
     def __init__(self):
-        self.emails_file = EMAILS_FILE
-        self.categories_file = CATEGORIES_FILE
-        self.users_file = USERS_FILE
+        self.emails_file = settings.EMAILS_FILE
+        self.categories_file = settings.CATEGORIES_FILE
+        self.users_file = settings.USERS_FILE
 
         self.emails_data: List[Dict[str, Any]] = []
         self.categories_data: List[Dict[str, Any]] = []
         self.users_data: List[Dict[str, Any]] = []
 
         # Ensure data directory exists
-        if not os.path.exists(DATA_DIR):
-            os.makedirs(DATA_DIR)
-            logger.info(f"Created data directory: {DATA_DIR}")
+        if not settings.DATA_DIR.exists():
+            os.makedirs(settings.DATA_DIR)
+            logger.info(f"Created data directory: {settings.DATA_DIR}")
 
         self._initialized = False
 
@@ -128,9 +123,9 @@ class DatabaseManager:
         Initializes the database by ensuring data files and directory exist.
         Default categories can be seeded here if needed.
         """
-        if not os.path.exists(DATA_DIR):
-            os.makedirs(DATA_DIR)
-            logger.info(f"Created data directory during initialization: {DATA_DIR}")
+        if not settings.DATA_DIR.exists():
+            os.makedirs(settings.DATA_DIR)
+            logger.info(f"Created data directory during initialization: {settings.DATA_DIR}")
 
         await self._load_data()  # Ensure files are loaded/created
 
