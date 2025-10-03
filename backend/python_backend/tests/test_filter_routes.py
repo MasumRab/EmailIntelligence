@@ -36,7 +36,8 @@ def client_filter():
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager_instance
 
     # Patch performance_monitor directly as it's not injected
-    with patch("backend.python_backend.filter_routes.performance_monitor", MagicMock()):
+    with patch("backend.python_backend.filter_routes.log_performance") as mock_log_performance:
+        mock_log_performance.side_effect = lambda name: (lambda func: func)
         yield TestClient(app)
 
     # Clean up overrides after the test

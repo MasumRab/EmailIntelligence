@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
 from .exceptions import DatabaseError
-from .performance_monitor import performance_monitor
+from .performance_monitor import log_performance
 from .models import CategoryCreate, CategoryResponse  # Added CategoryResponse, changed from .main
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 @router.get("/api/categories", response_model=List[CategoryResponse])
-@performance_monitor.track
+@log_performance("get_categories")
 async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
     """Get all categories"""
     try:
@@ -49,7 +49,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
 
 
 @router.post("/api/categories", response_model=CategoryResponse)  # Changed to CategoryResponse
-@performance_monitor.track
+@log_performance("create_category")
 async def create_category(
     request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
 ):
