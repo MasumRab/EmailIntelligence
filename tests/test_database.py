@@ -94,3 +94,58 @@ async def test_create_duplicate_email_updates(db_manager: DatabaseManager):
         await cur.execute("SELECT COUNT(*) FROM emails WHERE message_id = ?", ("duplicate_msg",))
         count = await cur.fetchone()
         assert count[0] == 1
+
+@pytest.mark.asyncio
+async def test_category_caching(db_manager: DatabaseManager, caplog):
+    """Test that categories are cached after the first fetch."""
+    # 1. First call, should fetch from DB
+    with caplog.at_level("INFO"):
+        categories1 = await db_manager.get_all_categories()
+        assert "Fetching categories from database" in caplog.text
+        assert db_manager._category_cache is not None
+
+    # 2. Second call, should use cache
+    caplog.clear()
+    with caplog.at_level("INFO"):
+        categories2 = await db_manager.get_all_categories()
+        assert "Returning categories from cache" in caplog.text
+        assert "Fetching categories from database" not in caplog.text
+        assert categories1 == categories2
+
+@pytest.mark.asyncio
+async def test_cache_invalidation_on_create(db_manager: DatabaseManager):
+    """Test that the category cache is invalidated on create."""
+    # 1. Populate cache
+    await db_manager.get_all_categories()
+    assert db_manager._category_cache is not None
+
+    # 2. Create a new category
+    await db_manager.create_category({"name": "New Category", "color": "#ffffff"})
+
+    # 3. Check that cache is now None
+    assert db_manager._category_cache is None
+
+@pytest.mark.asyncio
+async def test_cache_invalidation_on_update(db_manager: DatabaseManager):
+    """Test that the category cache is invalidated on update."""
+    # 1. Create a category and populate cache
+    cat = await db_manager.create_category({"name": "Work", "color": "#ffffff"})
+    await db_manager.get_all_categories()
+    assert db_manager._category_cache is not None
+    assert db_manager._category_cache[0]["count"] == 0
+
+    # 2. Create an email, which triggers _update_category_count
+    email_data = {
+        "message_id": "test_msg_cache", "subject": "Test", "sender": "t@e.com",
+        "sender_email": "t@e.com", "content": "Test", "preview": "Test",
+        "time": "2025-01-01T12:00:00Z", "category_id": cat["id"],
+    }
+    await db_manager.create_email(email_data)
+
+    # 3. Check that cache is invalidated
+    assert db_manager._category_cache is None
+
+    # 4. Fetch again and check for updated count
+    categories = await db_manager.get_all_categories()
+    assert len(categories) == 1
+    assert categories[0]["count"] == 1
