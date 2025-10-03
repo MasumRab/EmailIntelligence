@@ -6,6 +6,8 @@ import asyncio
 import json
 import logging
 import os
+import shutil
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -34,6 +36,12 @@ class DatabaseManager:
         logger.info(f"DatabaseManager initialized with SQLite path: {self.db_path}")
         self._db = None
         self._category_cache: Optional[List[Dict[str, Any]]] = None
+        self._email_write_cache = asyncio.Queue()
+        self._last_write_time = asyncio.get_event_loop().time()
+        self._write_lock = asyncio.Lock()
+        self._backup_dir = "db_backups"
+        self._last_backup_time = 0
+        os.makedirs(self._backup_dir, exist_ok=True)
 
     async def connect(self):
         """Establish a database connection."""
@@ -47,6 +55,7 @@ class DatabaseManager:
     async def close(self):
         """Close the database connection."""
         if self._db:
+            await self._flush_email_cache(force=True)
             await self._db.close()
             self._db = None
             logger.info("Disconnected from SQLite database.")
@@ -171,53 +180,56 @@ class DatabaseManager:
         return row_dict
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        query = """
-            INSERT INTO emails (
-                message_id, thread_id, subject, sender, sender_email, content,
-                snippet, labels, "time", is_unread, category_id, confidence,
-                analysis_metadata, history_id, content_html,
-                preview, to_addresses, cc_addresses, bcc_addresses, reply_to,
-                internal_date, label_ids, category, is_starred, is_important,
-                is_draft, is_sent, is_spam, is_trash, is_chat, has_attachments,
-                attachment_count, size_estimate, spf_status, dkim_status,
-                dmarc_status, is_encrypted, is_signed, priority, is_auto_reply,
-                mailing_list, in_reply_to, "references", is_first_in_thread
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
-        params = (
-            email_data.get("message_id"), email_data.get("thread_id"), email_data.get("subject"),
-            email_data.get("sender"), email_data.get("sender_email"), email_data.get("content"),
-            email_data.get("snippet"), json.dumps(email_data.get("labels", [])), email_data.get("time"),
-            not email_data.get("is_read", False), email_data.get("category_id"), email_data.get("confidence", 0),
-            json.dumps(email_data.get("analysis_metadata", {})), email_data.get("history_id"),
-            email_data.get("content_html"), email_data.get("preview"), json.dumps(email_data.get("to_addresses", [])),
-            json.dumps(email_data.get("cc_addresses", [])), json.dumps(email_data.get("bcc_addresses", [])),
-            email_data.get("reply_to"), email_data.get("internal_date"), json.dumps(email_data.get("label_ids", [])),
-            email_data.get("category"), email_data.get("is_starred", False), email_data.get("is_important", False),
-            email_data.get("is_draft", False), email_data.get("is_sent", False), email_data.get("is_spam", False),
-            email_data.get("is_trash", False), email_data.get("is_chat", False), email_data.get("has_attachments", False),
-            email_data.get("attachment_count", 0), email_data.get("size_estimate"), email_data.get("spf_status"),
-            email_data.get("dkim_status"), email_data.get("dmarc_status"), email_data.get("is_encrypted", False),
-            email_data.get("is_signed", False), email_data.get("priority", "normal"),
-            email_data.get("is_auto_reply", False), email_data.get("mailing_list"), email_data.get("in_reply_to"),
-            json.dumps(email_data.get("references", [])), email_data.get("is_first_in_thread", True)
-        )
+        """Add an email to the write cache and trigger a flush if needed."""
+        await self._email_write_cache.put(email_data)
+        await self._flush_email_cache()
+        return email_data
+
+    async def create_emails_batch(self, emails_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Add a batch of emails to the write cache."""
+        for email_data in emails_data:
+            await self._email_write_cache.put(email_data)
+        await self._flush_email_cache()
+        return emails_data
+
+    async def update_emails_batch(self, email_ids: List[int], updates: Dict[str, Any]) -> bool:
+        """Update a batch of emails with the same data."""
+        if not email_ids or not updates:
+            return False
+
+        set_clauses = []
+        params = []
+        for key, value in updates.items():
+            column_name = ''.join(['_'+i.lower() if i.isupper() else i for i in key]).lstrip('_')
+            set_clauses.append(f"{column_name} = ?")
+            params.append(value)
+
+        if not set_clauses:
+            return False
+
+        set_clauses.append("updated_at = datetime('now')")
+
+        placeholders = ','.join('?' for _ in email_ids)
+        query = f"UPDATE emails SET {', '.join(set_clauses)} WHERE id IN ({placeholders})"
+
+        params.extend(email_ids)
 
         try:
             async with self.get_cursor() as cur:
-                await cur.execute(query, params)
-                email_id = cur.lastrowid
+                await cur.execute(query, tuple(params))
                 await self._db.commit()
 
-            if email_data.get("category_id"):
-                await self._update_category_count(email_data["category_id"], increment=True)
+            if "categoryId" in updates or "category_id" in updates:
+                self._category_cache = None
 
-            return await self.get_email_by_id(email_id)
-        except aiosqlite.IntegrityError:
-            logger.warning(f"Email with messageId {email_data.get('message_id')} likely already exists. Updating.")
-            return await self.update_email_by_message_id(email_data["message_id"], email_data)
+            logger.info(f"Successfully updated batch of {len(email_ids)} emails.")
+            return True
+        except aiosqlite.Error as e:
+            logger.error(f"Failed to update email batch: {e}")
+            return False
 
     async def get_email_by_id(self, email_id: int) -> Optional[Dict[str, Any]]:
+        await self._flush_email_cache(force=True)
         query = "SELECT e.*, c.name as categoryName, c.color as categoryColor FROM emails e LEFT JOIN categories c ON e.category_id = c.id WHERE e.id = ?"
         async with self.get_cursor() as cur:
             await cur.execute(query, (email_id,))
@@ -247,7 +259,7 @@ class DatabaseManager:
                 await cur.execute(query, params)
                 category_id = cur.lastrowid
                 await self._db.commit()
-            self._category_cache = None  # Invalidate cache
+            self._category_cache = None
             return {"id": category_id, **category_data, "count": 0}
         except aiosqlite.Error as e:
             logger.error(f"Failed to create category {category_data.get('name')}: {e}")
@@ -259,9 +271,80 @@ class DatabaseManager:
         async with self.get_cursor() as cur:
             await cur.execute(query, (category_id,))
             await self._db.commit()
-        self._category_cache = None  # Invalidate cache
+        self._category_cache = None
+
+    async def _flush_email_cache(self, force: bool = False):
+        """Write emails from the cache to the database if conditions are met or if forced."""
+        now = asyncio.get_event_loop().time()
+        should_flush = force or self._email_write_cache.qsize() >= 10 or (now - self._last_write_time) > 5
+
+        if not should_flush or self._email_write_cache.empty():
+            return
+
+        async with self._write_lock:
+            if self._email_write_cache.empty():
+                return
+
+            emails_to_write = []
+            while not self._email_write_cache.empty():
+                emails_to_write.append(self._email_write_cache.get_nowait())
+
+            if not emails_to_write:
+                return
+
+            query = """
+                INSERT INTO emails (
+                    message_id, thread_id, subject, sender, sender_email, content,
+                    snippet, labels, "time", is_unread, category_id, confidence,
+                    analysis_metadata, history_id, content_html,
+                    preview, to_addresses, cc_addresses, bcc_addresses, reply_to,
+                    internal_date, label_ids, category, is_starred, is_important,
+                    is_draft, is_sent, is_spam, is_trash, is_chat, has_attachments,
+                    attachment_count, size_estimate, spf_status, dkim_status,
+                    dmarc_status, is_encrypted, is_signed, priority, is_auto_reply,
+                    mailing_list, in_reply_to, "references", is_first_in_thread
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+
+            params_list = [
+                (
+                    email.get("message_id"), email.get("thread_id"), email.get("subject"),
+                    email.get("sender"), email.get("sender_email"), email.get("content"),
+                    email.get("snippet"), json.dumps(email.get("labels", [])), email.get("time"),
+                    not email.get("is_read", False), email.get("category_id"), email.get("confidence", 0),
+                    json.dumps(email.get("analysis_metadata", {})), email.get("history_id"),
+                    email.get("content_html"), email.get("preview"), json.dumps(email.get("to_addresses", [])),
+                    json.dumps(email.get("cc_addresses", [])), json.dumps(email.get("bcc_addresses", [])),
+                    email.get("reply_to"), email.get("internal_date"), json.dumps(email.get("label_ids", [])),
+                    email.get("category"), email.get("is_starred", False), email.get("is_important", False),
+                    email.get("is_draft", False), email.get("is_sent", False), email.get("is_spam", False),
+                    email.get("is_trash", False), email.get("is_chat", False), email.get("has_attachments", False),
+                    email.get("attachment_count", 0), email.get("size_estimate"), email.get("spf_status"),
+                    email.get("dkim_status"), email.get("dmarc_status"), email.get("is_encrypted", False),
+                    email.get("is_signed", False), email.get("priority", "normal"),
+                    email.get("is_auto_reply", False), email.get("mailing_list"), email.get("in_reply_to"),
+                    json.dumps(email.get("references", [])), email.get("is_first_in_thread", True)
+                )
+                for email in emails_to_write
+            ]
+
+            try:
+                async with self.get_cursor() as cur:
+                    await cur.executemany(query, params_list)
+                    await self._db.commit()
+
+                logger.info(f"Flushed {len(emails_to_write)} emails to the database.")
+                self._last_write_time = now
+
+                category_ids = {email.get("category_id") for email in emails_to_write if email.get("category_id")}
+                for category_id in category_ids:
+                    await self._update_category_count(category_id, increment=True)
+
+            except aiosqlite.Error as e:
+                logger.error(f"Failed to flush email cache: {e}")
 
     async def get_emails(self, limit: int = 50, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None) -> List[Dict[str, Any]]:
+        await self._flush_email_cache(force=True)
         params = []
         base_query = "SELECT e.*, c.name as categoryName, c.color as categoryColor FROM emails e LEFT JOIN categories c ON e.category_id = c.id"
         where_clauses = []
@@ -284,34 +367,6 @@ class DatabaseManager:
 
         json_fields = ["labels", "analysisMetadata", "to_addresses", "cc_addresses", "bcc_addresses", "label_ids", "references"]
         return [self._parse_json_fields(row, json_fields) for row in rows]
-
-    async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        set_clauses = []
-        params = []
-        for key, value in update_data.items():
-            if key not in ["message_id", "id"]:
-                set_clauses.append(f"{key} = ?")
-                params.append(json.dumps(value) if isinstance(value, (dict, list)) else value)
-
-        if not set_clauses:
-            return await self.get_email_by_message_id(message_id)
-
-        set_clauses.append("updated_at = datetime('now')")
-        query = f"UPDATE emails SET {', '.join(set_clauses)} WHERE message_id = ?"
-        params.append(message_id)
-
-        async with self.get_cursor() as cur:
-            await cur.execute(query, tuple(params))
-            await self._db.commit()
-
-        return await self.get_email_by_message_id(message_id)
-
-    async def get_email_by_message_id(self, message_id: str) -> Optional[Dict[str, Any]]:
-        query = "SELECT e.*, c.name as categoryName, c.color as categoryColor FROM emails e LEFT JOIN categories c ON e.category_id = c.id WHERE e.message_id = ?"
-        async with self.get_cursor() as cur:
-            await cur.execute(query, (message_id,))
-            row = await cur.fetchone()
-        return self._parse_json_fields(row, ["labels", "analysisMetadata", "to_addresses", "cc_addresses", "bcc_addresses", "label_ids", "references"])
 
     async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         original_email = await self.get_email_by_id(email_id)
@@ -349,90 +404,39 @@ class DatabaseManager:
 
         return await self.get_email_by_id(email_id)
 
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        query = (
-            "SELECT e.*, c.name as categoryName, c.color as categoryColor "
-            "FROM emails e LEFT JOIN categories c ON e.category_id = c.id "
-            "WHERE e.subject LIKE ? OR e.content LIKE ? "
-            'ORDER BY e."time" DESC LIMIT ?'
-        )
-        params = (f"%{search_term}%", f"%{search_term}%", limit)
-
-        async with self.get_cursor() as cur:
-            await cur.execute(query, params)
-            rows = await cur.fetchall()
-
-        json_fields = ["labels", "analysisMetadata", "to_addresses", "cc_addresses", "bcc_addresses", "label_ids", "references"]
-        return [self._parse_json_fields(row, json_fields) for row in rows]
-
-    async def create_activity(self, activity_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        query = """
-            INSERT INTO activities (type, description, details, "timestamp", icon, icon_bg)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """
-        details_data = activity_data.get("metadata", {})
-        if "emailId" in activity_data:
-            details_data["emailId"] = activity_data["emailId"]
-        if "email_subject" in activity_data:
-            details_data["emailSubject"] = activity_data["email_subject"]
-
-        params = (
-            activity_data["type"],
-            activity_data["description"],
-            json.dumps(details_data),
-            activity_data.get("timestamp", datetime.now().isoformat()),
-            activity_data.get("icon", "default_icon"),
-            activity_data.get("icon_bg", "#ffffff"),
-        )
+    def _cleanup_old_backups(self, keep=7):
+        """Removes old backup files, keeping the most recent `keep` number of backups."""
         try:
-            async with self.get_cursor() as cur:
-                await cur.execute(query, params)
-                activity_id = cur.lastrowid
-                await self._db.commit()
+            backups = sorted(
+                [os.path.join(self._backup_dir, f) for f in os.listdir(self._backup_dir)],
+                key=os.path.getmtime,
+                reverse=True
+            )
+            if len(backups) > keep:
+                for old_backup in backups[keep:]:
+                    os.remove(old_backup)
+                    logger.info(f"Removed old backup: {old_backup}")
+        except Exception as e:
+            logger.error(f"Error cleaning up old backups: {e}")
 
-            async with self.get_cursor() as cur:
-                await cur.execute("SELECT * FROM activities WHERE id = ?", (activity_id,))
-                row = await cur.fetchone()
-            return self._parse_json_fields(row, ["details"])
-        except aiosqlite.Error as e:
-            logger.error(f"Failed to create activity: {e}")
-            return None
+    async def backup_database(self):
+        """Creates a backup of the database if it hasn't been backed up in the last 24 hours."""
+        now = time.time()
+        if (now - self._last_backup_time) > 86400:
+            logger.info("Starting scheduled database backup...")
+            backup_file_name = f"backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')}.db"
+            backup_path = os.path.join(self._backup_dir, backup_file_name)
 
-    async def get_recent_activities(self, limit: int = 10) -> List[Dict[str, Any]]:
-        query = (
-            'SELECT id, type, description, details, "timestamp", icon, icon_bg as "iconBg" '
-            'FROM activities ORDER BY "timestamp" DESC LIMIT ?'
-        )
-        async with self.get_cursor() as cur:
-            await cur.execute(query, (limit,))
-            rows = await cur.fetchall()
+            try:
+                await self._flush_email_cache(force=True)
 
-        return [self._parse_json_fields(row, ["details"]) for row in rows]
+                await asyncio.to_thread(shutil.copy, self.db_path, backup_path)
 
-    async def get_dashboard_stats(self) -> Dict[str, Any]:
-        async with self.get_cursor() as cur:
-            await cur.execute("SELECT COUNT(*) FROM emails")
-            total_emails = (await cur.fetchone())[0]
-
-            await cur.execute("SELECT COUNT(*) FROM emails WHERE category_id IS NOT NULL")
-            auto_labeled = (await cur.fetchone())[0]
-
-            await cur.execute("SELECT COUNT(*) FROM categories")
-            total_category_types = (await cur.fetchone())[0]
-
-            await cur.execute("SELECT COUNT(*) FROM emails WHERE time >= date('now', '-7 days')")
-            weekly_emails = (await cur.fetchone())[0]
-
-        return {
-            "total_emails": total_emails,
-            "auto_labeled": auto_labeled,
-            "categories": total_category_types,
-            "time_saved": "2.5 hours",
-            "weekly_growth": {
-                "emails": weekly_emails,
-                "percentage": round((weekly_emails / total_emails) * 100, 2) if total_emails > 0 else 0,
-            },
-        }
+                self._last_backup_time = now
+                logger.info(f"Database backup created successfully at {backup_path}")
+                self._cleanup_old_backups()
+            except Exception as e:
+                logger.error(f"Failed to create database backup: {e}")
 
 db_manager = DatabaseManager()
 
