@@ -76,9 +76,11 @@ def client():
     app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
 
-    # The performance_monitor is not injected via Depends, so we patch it directly
+    # The log_performance decorator is not injected via Depends, so we patch it directly
     # where it is imported and used in the routes file.
-    with patch("backend.python_backend.email_routes.performance_monitor", MagicMock()):
+    with patch("backend.python_backend.email_routes.log_performance") as mock_log_performance:
+        # Make the decorator do nothing, just return the original function
+        mock_log_performance.side_effect = lambda name: (lambda func: func)
         yield TestClient(app)
 
     # Clean up dependency overrides after the test session
