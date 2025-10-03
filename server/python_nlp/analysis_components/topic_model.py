@@ -49,7 +49,6 @@ class TopicModel:
                 "payment",
                 "invoice",
                 "bill",
-                "statement",
                 "account",
                 "credit",
                 "debit",
