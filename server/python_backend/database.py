@@ -33,6 +33,7 @@ class DatabaseManager:
 
         logger.info(f"DatabaseManager initialized with SQLite path: {self.db_path}")
         self._db = None
+        self._category_cache: Optional[List[Dict[str, Any]]] = None
 
     async def connect(self):
         """Establish a database connection."""
@@ -151,8 +152,10 @@ class DatabaseManager:
             await cur.execute(create_categories_table)
             await cur.execute(create_emails_table)
             await cur.execute(create_activities_table)
+            await cur.execute("CREATE INDEX IF NOT EXISTS idx_emails_category_id ON emails (category_id);")
+            await cur.execute('CREATE INDEX IF NOT EXISTS idx_emails_time ON emails ("time");')
         await self._db.commit()
-        logger.info("Database tables initialized/verified for SQLite.")
+        logger.info("Database tables and indexes initialized/verified for SQLite.")
 
     def _parse_json_fields(self, row: aiosqlite.Row, fields: List[str]) -> Dict[str, Any]:
         if not row:
@@ -222,11 +225,19 @@ class DatabaseManager:
         return self._parse_json_fields(row, ["labels", "analysisMetadata", "to_addresses", "cc_addresses", "bcc_addresses", "label_ids", "references"])
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
+        """Get all categories with their counts."""
+        if self._category_cache is not None:
+            logger.info("Returning categories from cache.")
+            return self._category_cache
+
+        logger.info("Fetching categories from database.")
         query = "SELECT id, name, description, color, count FROM categories ORDER BY name"
         async with self.get_cursor() as cur:
             await cur.execute(query)
             rows = await cur.fetchall()
-        return [dict(row) for row in rows]
+
+        self._category_cache = [dict(row) for row in rows]
+        return self._category_cache
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         query = "INSERT INTO categories (name, description, color, count) VALUES (?, ?, ?, ?)"
@@ -236,6 +247,7 @@ class DatabaseManager:
                 await cur.execute(query, params)
                 category_id = cur.lastrowid
                 await self._db.commit()
+            self._category_cache = None  # Invalidate cache
             return {"id": category_id, **category_data, "count": 0}
         except aiosqlite.Error as e:
             logger.error(f"Failed to create category {category_data.get('name')}: {e}")
@@ -247,6 +259,7 @@ class DatabaseManager:
         async with self.get_cursor() as cur:
             await cur.execute(query, (category_id,))
             await self._db.commit()
+        self._category_cache = None  # Invalidate cache
 
     async def get_emails(self, limit: int = 50, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None) -> List[Dict[str, Any]]:
         params = []
