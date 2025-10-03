@@ -41,6 +41,16 @@ app = FastAPI(
     version="2.0.0",
 )
 
+# Import the get_db function to access the database manager
+from .database import get_db
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """On shutdown, save any pending data."""
+    logger.info("Application shutdown event received.")
+    db = await get_db()
+    await db.shutdown()
+
 @app.exception_handler(BaseAppException)
 async def app_exception_handler(request: Request, exc: BaseAppException):
     return JSONResponse(
