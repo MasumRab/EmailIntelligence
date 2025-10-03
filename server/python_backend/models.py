@@ -144,7 +144,7 @@ class AIAnalysisResponse(BaseModel):
     categoryId: Optional[int] = None
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 # Models moved from main.py for Action Item Extraction
@@ -201,26 +201,26 @@ class RetrievalStrategy(BaseModel):
 
 # Filter Models
 class EmailFilterCriteria(BaseModel):
-    fromPatterns: Optional[List[str]] = Field(alias="from_patterns")
-    subjectKeywords: Optional[List[str]] = Field(alias="subject_keywords")
-    contentKeywords: Optional[List[str]] = Field(alias="content_keywords")
-    excludePatterns: Optional[List[str]] = Field(alias="exclude_patterns")
-    timeSensitivity: Optional[str] = Field(alias="time_sensitivity")
+    fromPatterns: Optional[List[str]] = Field(default=None, alias="from_patterns")
+    subjectKeywords: Optional[List[str]] = Field(default=None, alias="subject_keywords")
+    contentKeywords: Optional[List[str]] = Field(default=None, alias="content_keywords")
+    excludePatterns: Optional[List[str]] = Field(default=None, alias="exclude_patterns")
+    timeSensitivity: Optional[str] = Field(default=None, alias="time_sensitivity")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class EmailFilterActions(BaseModel):
-    addLabel: Optional[str] = Field(alias="add_label")
+    addLabel: Optional[str] = Field(default=None, alias="add_label")
     markImportant: bool = Field(default=False, alias="mark_important")
     markRead: bool = Field(default=False, alias="mark_read")
     archive: bool = False
-    forwardTo: Optional[str] = Field(alias="forward_to")
+    forwardTo: Optional[str] = Field(default=None, alias="forward_to")
     autoReply: bool = Field(default=False, alias="auto_reply")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class FilterRequest(BaseModel):
@@ -246,7 +246,7 @@ class FilterResponse(BaseModel):
     isActive: bool = Field(alias="is_active")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 # Performance Models
@@ -258,7 +258,7 @@ class PerformanceMetric(BaseModel):
     recordedAt: datetime = Field(alias="recorded_at")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class QuotaStatus(BaseModel):
@@ -267,7 +267,7 @@ class QuotaStatus(BaseModel):
     projectedDailyUsage: int = Field(alias="projected_daily_usage")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class PerformanceAlert(BaseModel):
@@ -287,7 +287,7 @@ class PerformanceRecommendation(BaseModel):
     action: str
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class PerformanceOverview(BaseModel):
@@ -299,7 +299,7 @@ class PerformanceOverview(BaseModel):
     recommendations: List[PerformanceRecommendation]
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 # Dashboard Models
@@ -316,7 +316,7 @@ class DashboardStats(BaseModel):
     weeklyGrowth: WeeklyGrowth = Field(alias="weekly_growth")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 # Training Models
@@ -330,7 +330,7 @@ class TrainingRequest(BaseModel):
     validationSplit: float = Field(default=0.2, ge=0.1, le=0.5, alias="validation_split")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class TrainingResponse(BaseModel):
@@ -343,7 +343,7 @@ class TrainingResponse(BaseModel):
     error: Optional[str] = None
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 # Health Check Models
@@ -354,7 +354,7 @@ class ServiceHealth(BaseModel):
     responseTime: Optional[float] = Field(alias="response_time")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class SystemHealth(BaseModel):
@@ -378,7 +378,7 @@ class SearchRequest(BaseModel):
     offset: int = Field(default=0, ge=0)
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class SearchResponse(BaseModel):
@@ -388,7 +388,7 @@ class SearchResponse(BaseModel):
     searchTime: float = Field(alias="search_time")
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 # Batch Operations
@@ -397,7 +397,7 @@ class BatchEmailUpdate(BaseModel):
     updates: EmailUpdate
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
 
 
 class BatchOperationResponse(BaseModel):
@@ -408,4 +408,4 @@ class BatchOperationResponse(BaseModel):
     errors: List[Dict[str, Any]] = Field(default_factory=list)
 
     class Config:
-        validate_by_name = True
+        allow_population_by_field_name = True
