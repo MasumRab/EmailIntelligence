@@ -12,7 +12,7 @@ from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
 from .dependencies import get_gmail_service
 from .exceptions import GmailServiceError
-from .performance_monitor import performance_monitor
+from .performance_monitor import log_performance
 from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ router = APIRouter()
 
 
 @router.post("/api/gmail/sync")
-@performance_monitor.track
+@log_performance("sync_gmail")
 async def sync_gmail(
     req: Request,  # Renamed to req to avoid conflict with request model
     request_model: GmailSyncRequest,  # Renamed model
@@ -124,7 +124,7 @@ async def sync_gmail(
 
 
 @router.post("/api/gmail/smart-retrieval")
-@performance_monitor.track
+@log_performance("smart_retrieval")
 async def smart_retrieval(
     req: Request,
     request_model: SmartRetrievalRequest,
@@ -189,7 +189,7 @@ async def smart_retrieval(
 
 
 @router.get("/api/gmail/strategies")
-@performance_monitor.track
+@log_performance("get_retrieval_strategies")
 async def get_retrieval_strategies(
     request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
 ):
@@ -209,7 +209,7 @@ async def get_retrieval_strategies(
 
 
 @router.get("/api/gmail/performance")
-@performance_monitor.track
+@log_performance("get_gmail_performance")
 async def get_gmail_performance(
     request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
 ):

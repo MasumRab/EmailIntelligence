@@ -4,9 +4,10 @@ import json
 import gzip
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, mock_open
 
 from backend.python_backend.database import DatabaseManager, HEAVY_EMAIL_FIELDS
+from backend.python_backend.performance_monitor import LOG_FILE
 
 # Mark all tests in this file as asyncio
 pytestmark = pytest.mark.asyncio
@@ -139,3 +140,18 @@ class TestDatabaseOptimizations:
         assert retrieved_full is not None
         assert retrieved_full['content'] == "This is the very large email body."
         assert "Large HTML" in retrieved_full['content_html']
+
+    async def test_performance_logging(self, fresh_db: DatabaseManager):
+        """Verify that the log_performance decorator writes to the log file."""
+        with patch("backend.python_backend.performance_monitor.open", mock_open()) as mocked_file:
+            await fresh_db.search_emails("test")
+
+            mocked_file.assert_called_once_with(LOG_FILE, 'a')
+
+            handle = mocked_file()
+            written_content = handle.write.call_args[0][0]
+            log_data = json.loads(written_content)
+
+            assert log_data['operation'] == 'search_emails'
+            assert 'duration_seconds' in log_data
+            assert isinstance(log_data['duration_seconds'], float)
