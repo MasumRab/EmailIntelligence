@@ -1,47 +1,63 @@
-"""
-Performance monitoring module for the Email Intelligence backend.
-"""
-
-import time
-import logging
-from typing import Dict, Any, Callable
-from functools import wraps
 import asyncio
+import json
+import logging
+import time
+from datetime import datetime, timezone
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
-class PerformanceMonitor:
-    """Monitor and log performance metrics for the application."""
+LOG_FILE = "performance_metrics_log.jsonl"
 
-    def __init__(self):
-        self.metrics: Dict[str, Any] = {}
-
-    def track(self, func: Callable) -> Callable:
-        """Decorator to track and log the execution time of a function."""
+def log_performance(operation: str):
+    """
+    A decorator to log the performance of both sync and async functions.
+    """
+    def decorator(func):
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            start_time = time.time()
+        def sync_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": operation,
+                "duration_seconds": duration,
+            }
+
             try:
-                if asyncio.iscoroutinefunction(func):
-                    return await func(*args, **kwargs)
-                else:
-                    return func(*args, **kwargs)
-            finally:
-                duration = time.time() - start_time
-                self.record_metric(func.__name__, duration)
-        return wrapper
+                with open(LOG_FILE, 'a') as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
-    def record_metric(self, name: str, value: Any):
-        """Record a performance metric."""
-        self.metrics[name] = value
-        logger.info(f"Performance: {name} took {value:.4f}s")
+            return result
 
-    def get_metrics(self) -> Dict[str, Any]:
-        """Get all recorded metrics."""
-        return self.metrics.copy()
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = await func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
 
-    def clear_metrics(self):
-        """Clear all recorded metrics."""
-        self.metrics.clear()
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": operation,
+                "duration_seconds": duration,
+            }
 
-performance_monitor = PerformanceMonitor()
+            try:
+                with open(LOG_FILE, 'a') as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
+
+            return result
+
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
+    return decorator
