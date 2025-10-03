@@ -24,7 +24,6 @@ from .models import (
     GmailSyncResponse,
     SmartRetrievalRequest,
 )
-from .performance_monitor import PerformanceMonitor
 
 __version__ = "2.0.0"
 
@@ -50,5 +49,4 @@ __all__ = [
     "AIAnalysisResult",
     "SmartFilterManager",
     "EmailFilter",
-    "PerformanceMonitor",
 ]
