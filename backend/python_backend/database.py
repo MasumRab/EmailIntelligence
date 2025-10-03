@@ -9,7 +9,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Literal
-from .config import settings
+from functools import partial
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 
 logger = logging.getLogger(__name__)
@@ -41,16 +41,29 @@ FIELD_CATEGORY_NAME = 'categoryName'
 FIELD_CATEGORY_COLOR = 'categoryColor'
 
 class DatabaseManager:
-    """Async database manager for email data using JSON file storage."""
+    """Optimized async database manager with in-memory caching and write-behind."""
 
     def __init__(self):
         self.emails_file = settings.EMAILS_FILE
         self.categories_file = settings.CATEGORIES_FILE
         self.users_file = settings.USERS_FILE
 
+        # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []
         self.categories_data: List[Dict[str, Any]] = []
         self.users_data: List[Dict[str, Any]] = []
+
+        # In-memory indexes for O(1) lookups
+        self.emails_by_id: Dict[int, Dict[str, Any]] = {}
+        self.emails_by_message_id: Dict[str, Dict[str, Any]] = {}
+        self.categories_by_id: Dict[int, Dict[str, Any]] = {}
+        self.categories_by_name: Dict[str, Dict[str, Any]] = {}
+
+        # In-memory cache for category counts
+        self.category_counts: Dict[int, int] = {}
+
+        # Write-behind cache state
+        self._dirty_data: set[Literal['emails', 'categories', 'users']] = set()
 
         # Ensure data directory exists
         if not settings.DATA_DIR.exists():
@@ -60,10 +73,38 @@ class DatabaseManager:
         self._initialized = False
 
     async def _ensure_initialized(self) -> None:
-        """Ensure data is loaded."""
+        """Ensure data is loaded and indexes are built."""
         if not self._initialized:
             await self._load_data()
+            self._build_indexes()
             self._initialized = True
+
+    def _build_indexes(self) -> None:
+        """Builds or rebuilds all in-memory indexes from the loaded data."""
+        logger.info("Building in-memory indexes...")
+        # Index emails
+        self.emails_by_id = {email[FIELD_ID]: email for email in self.emails_data}
+        self.emails_by_message_id = {email[FIELD_MESSAGE_ID]: email for email in self.emails_data if FIELD_MESSAGE_ID in email}
+
+        # Index categories
+        self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
+        self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
+
+        # Cache category counts
+        self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
+        for email in self.emails_data:
+            cat_id = email.get(FIELD_CATEGORY_ID)
+            if cat_id in self.category_counts:
+                self.category_counts[cat_id] += 1
+
+        for cat_id, count in self.category_counts.items():
+            if self.categories_by_id[cat_id].get(FIELD_COUNT) != count:
+                 self.categories_by_id[cat_id][FIELD_COUNT] = count
+                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
+
+
+        logger.info("In-memory indexes built successfully.")
+
 
     async def _load_data(self) -> None:
         """Loads data from JSON files into memory. Creates files if they don't exist."""
@@ -80,37 +121,48 @@ class DatabaseManager:
                     logger.info(f"Loaded {len(data)} items from {file_path}")
                 else:
                     setattr(self, data_list_attr, [])
-                    await self._save_data(data_type)  # Create file with empty list
+                    await self._save_data_to_file(data_type) # Create file with empty list
                     logger.info(f"Created empty data file: {file_path}")
             except (IOError, json.JSONDecodeError) as e:
                 logger.error(f"Error loading data from {file_path}: {e}. Initializing with empty list.")
                 setattr(self, data_list_attr, [])
 
-
-    async def _save_data(self, data_type: Literal[DATA_TYPE_EMAILS, DATA_TYPE_CATEGORIES, DATA_TYPE_USERS]) -> None:
+    async def _save_data_to_file(self, data_type: Literal['emails', 'categories', 'users']) -> None:
         """Saves the specified in-memory data list to its JSON file."""
-        file_path = ""
-        data_to_save: List[Dict[str, Any]] = []
-
+        file_path, data_to_save = "", []
         if data_type == DATA_TYPE_EMAILS:
-            file_path = self.emails_file
-            data_to_save = self.emails_data
+            file_path, data_to_save = self.emails_file, self.emails_data
         elif data_type == DATA_TYPE_CATEGORIES:
-            file_path = self.categories_file
-            data_to_save = self.categories_data
+            # Before saving, ensure the counts in categories_data are up-to-date from the cache
+            for cat in self.categories_data:
+                if cat['id'] in self.category_counts:
+                    cat['count'] = self.category_counts[cat['id']]
+            file_path, data_to_save = self.categories_file, self.categories_data
         elif data_type == DATA_TYPE_USERS:
-            file_path = self.users_file
-            data_to_save = self.users_data
+            file_path, data_to_save = self.users_file, self.users_data
         else:
             logger.error(f"Unknown data type for saving: {data_type}")
             return
 
         try:
             with open(file_path, 'w') as f:
-                await asyncio.to_thread(json.dump, data_to_save, f, indent=4)
-            logger.debug(f"Saved {len(data_to_save)} items to {file_path}")
+                dump_func = partial(json.dump, data_to_save, f, indent=4)
+                await asyncio.to_thread(dump_func)
+            logger.info(f"Persisted {len(data_to_save)} items to {file_path}")
         except IOError as e:
             logger.error(f"Error saving data to {file_path}: {e}")
+
+    async def _save_data(self, data_type: Literal['emails', 'categories', 'users']) -> None:
+        """Marks data as dirty for write-behind saving."""
+        self._dirty_data.add(data_type)
+
+    async def shutdown(self) -> None:
+        """Saves all dirty data to files before shutting down."""
+        logger.info("DatabaseManager shutting down. Saving dirty data...")
+        for data_type in list(self._dirty_data):
+            await self._save_data_to_file(data_type)
+        self._dirty_data.clear()
+        logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
         """Generates a new unique integer ID."""
@@ -155,13 +207,13 @@ class DatabaseManager:
         return row
         
     def _add_category_details(self, email: Dict[str, Any]) -> Dict[str, Any]:
-        """Add category name and color to an email."""
+        """Add category name and color to an email using cached category data."""
         if not email:
             return email
             
         category_id = email.get(FIELD_CATEGORY_ID)
         if category_id is not None:
-            category = next((c for c in self.categories_data if c.get(FIELD_ID) == category_id), None)
+            category = self.categories_by_id.get(category_id)
             if category:
                 email[FIELD_CATEGORY_NAME] = category.get(FIELD_NAME)
                 email[FIELD_CATEGORY_COLOR] = category.get(FIELD_COLOR)
@@ -241,38 +293,41 @@ class DatabaseManager:
             "is_first_in_thread": email_data.get("is_first_in_thread", email_data.get("isFirstInThread", True)),
         }
         self.emails_data.append(email_record)
+        self.emails_by_id[new_id] = email_record
+        if FIELD_MESSAGE_ID in email_record:
+            self.emails_by_message_id[email_record[FIELD_MESSAGE_ID]] = email_record
+
         await self._save_data(DATA_TYPE_EMAILS)
 
         category_id = email_record.get(FIELD_CATEGORY_ID)
-        if category_id is not None:  # Ensure category_id can be 0
-            await self._update_category_count(category_id)
+        if category_id is not None:
+            await self._update_category_count(category_id, increment=True)
 
-        return await self.get_email_by_id(new_id)  # Fetch with category details
+        return self._add_category_details(email_record)
 
     async def get_email_by_id(self, email_id: int) -> Optional[Dict[str, Any]]:
-        """Get email by ID."""
-        email = next((e for e in self.emails_data if e.get(FIELD_ID) == email_id), None)
+        """Get email by ID using in-memory index."""
+        email = self.emails_by_id.get(email_id)
         if email:
             return self._add_category_details(email)
         return None
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
-        """Get all categories with their counts."""
-        # Sort categories by name before returning
-        return sorted(self.categories_data, key=lambda c: c.get(FIELD_NAME, ''))
+        """Get all categories with their counts from cache."""
+        # Update counts from cache before returning
+        for cat_id, count in self.category_counts.items():
+            if cat_id in self.categories_by_id:
+                self.categories_by_id[cat_id][FIELD_COUNT] = count
 
+        # Return sorted list of category values
+        return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ''))
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Create a new category."""
-        # Check if category with the same name already exists
-        existing_category = next(
-            (c for c in self.categories_data 
-             if c.get(FIELD_NAME, '').lower() == category_data.get(FIELD_NAME, '').lower()), 
-            None
-        )
-        if existing_category:
+        """Create a new category and update indexes."""
+        category_name_lower = category_data.get(FIELD_NAME, '').lower()
+        if category_name_lower in self.categories_by_name:
             logger.warning(f"Category with name '{category_data.get(FIELD_NAME)}' already exists. Returning existing.")
-            return existing_category
+            return self.categories_by_name[category_name_lower]
 
         new_id = self._generate_id(self.categories_data)
         category_record = {
@@ -280,22 +335,29 @@ class DatabaseManager:
             FIELD_NAME: category_data[FIELD_NAME],
             "description": category_data.get("description"),
             FIELD_COLOR: category_data.get(FIELD_COLOR, DEFAULT_CATEGORY_COLOR),
-            FIELD_COUNT: category_data.get(FIELD_COUNT, 0),
+            FIELD_COUNT: 0,
         }
         self.categories_data.append(category_record)
+        self.categories_by_id[new_id] = category_record
+        self.categories_by_name[category_name_lower] = category_record
+        self.category_counts[new_id] = 0
+
         await self._save_data(DATA_TYPE_CATEGORIES)
         return category_record
 
-    async def _update_category_count(self, category_id: int) -> None:
-        """Update category email count."""
-        category = next((c for c in self.categories_data if c.get(FIELD_ID) == category_id), None)
-        if category:
-            count = sum(1 for email in self.emails_data if email.get(FIELD_CATEGORY_ID) == category_id)
-            if category.get(FIELD_COUNT) != count:
-                category[FIELD_COUNT] = count
-                await self._save_data(DATA_TYPE_CATEGORIES)
-        else:
+    async def _update_category_count(self, category_id: int, increment: bool = False, decrement: bool = False) -> None:
+        """Incrementally update category email count in the cache."""
+        if category_id not in self.category_counts:
             logger.warning(f"Attempted to update count for non-existent category ID: {category_id}")
+            return
+
+        if increment:
+            self.category_counts[category_id] += 1
+        if decrement:
+            self.category_counts[category_id] -= 1
+
+        # Mark categories as dirty to be saved later
+        self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
 
     async def get_emails(
@@ -393,18 +455,17 @@ class DatabaseManager:
             new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
             if original_category_id != new_category_id:
                 if original_category_id is not None:
-                    await self._update_category_count(original_category_id)
+                    await self._update_category_count(original_category_id, decrement=True)
                 if new_category_id is not None:
-                    await self._update_category_count(new_category_id)
+                    await self._update_category_count(new_category_id, increment=True)
 
-        return await self.get_email_by_id(email_to_update[FIELD_ID])  # Fetch with category details
-
+        return self._add_category_details(email_to_update)
 
     async def get_email_by_message_id(self, message_id: str) -> Optional[Dict[str, Any]]:
-        """Get email by messageId"""
+        """Get email by messageId using in-memory index."""
         if not message_id: 
             return None
-        email = next((e for e in self.emails_data if e.get(FIELD_MESSAGE_ID) == message_id), None)
+        email = self.emails_by_message_id.get(message_id)
         if email:
             return self._add_category_details(email)
         return None
@@ -563,16 +624,14 @@ class DatabaseManager:
                 new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
                 if original_category_id != new_category_id:
                     if original_category_id is not None:
-                        await self._update_category_count(original_category_id)
+                        await self._update_category_count(original_category_id, decrement=True)
                     if new_category_id is not None:
-                        await self._update_category_count(new_category_id)
-            else:  # Should not happen if get_email_by_id found it
-                logger.error(f"Email with ID {email_id} found by get_email_by_id but not in self.emails_data for update.")
+                        await self._update_category_count(new_category_id, increment=True)
+            else:
+                logger.error(f"Email with ID {email_id} not found in self.emails_data for update.")
                 return None
 
-        # Return the updated email, ensuring category name/color are fresh
-        updated_email_with_details = await self.get_email_by_id(email_id)
-        return updated_email_with_details
+        return self._add_category_details(email_to_update)
 
     # --- User methods (basic implementation for future use) ---
     async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -611,5 +670,5 @@ async def get_db() -> DatabaseManager:
     global _db_manager_instance
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
-        await _db_manager_instance.initialize()   # Ensure it's initialized
+        await _db_manager_instance._ensure_initialized()
     return _db_manager_instance
