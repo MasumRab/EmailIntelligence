@@ -48,7 +48,7 @@ class UrgencyModel:
         ):
             urgency_label = "high"
             confidence = 0.8
-        elif re.search(r"\b(when you can|next week|upcoming|planned|scheduled)\b", text_lower):
+        elif re.search(r"\b(next week|upcoming|planned|scheduled)\b", text_lower):
             urgency_label = "medium"
             confidence = 0.6
         else:

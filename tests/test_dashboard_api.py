@@ -1,183 +1,67 @@
-import unittest
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
-import sqlite3 # Added for SQLite error handling
+import pytest
+from unittest.mock import AsyncMock, patch
 
-from fastapi.testclient import TestClient
-# from psycopg2 import Error as Psycopg2Error  # Import real psycopg2.Error # Removed
-from server.python_backend.database import get_db  # Corrected import
-from server.python_backend.main import app  # App import remains the same
-from server.python_backend.models import \
-    DashboardStats  # Import specific model - corrected name
+@pytest.fixture
+def mock_performance_monitor():
+    """Fixture to mock the performance monitor used in dashboard routes."""
+    with patch("server.python_backend.dashboard_routes.performance_monitor", new_callable=AsyncMock) as mock_pm:
+        mock_pm.track = lambda func: func
+        yield mock_pm
 
-# Mock DatabaseManager for dependency injection
-# This will use the same global mock_db_manager_filter instance if tests are run together,
-# or a new one if run in isolation. For cleaner tests, a proper fixture setup is better.
-# For now, we re-assert the override for clarity in this specific file's context.
-# Standardizing to use the same mock_db_manager name as other API test files
-mock_db_manager = AsyncMock()
+def test_get_dashboard_stats_success(client, mock_db_manager: AsyncMock, mock_performance_monitor):
+    """Test successful retrieval of dashboard stats."""
+    mock_stats_data = {
+        "total_emails": 1000,
+        "auto_labeled": 800,
+        "categories": 5,
+        "time_saved": "10h 30m",
+        "weekly_growth": {"emails": 75, "percentage": 0.15},
+    }
+    mock_db_manager.get_dashboard_stats.return_value = mock_stats_data
 
+    response = client.get("/api/dashboard/stats")
 
-async def override_get_db():  # Standardized name
-    return mock_db_manager
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["total_emails"] == 1000
+    assert response_data["time_saved"] == "10h 30m"
+    assert response_data["weekly_growth"]["emails"] == 75
+    mock_db_manager.get_dashboard_stats.assert_called_once()
 
+def test_get_dashboard_stats_db_error(client, mock_db_manager: AsyncMock, mock_performance_monitor):
+    """Test database error when fetching dashboard stats."""
+    mock_db_manager.get_dashboard_stats.side_effect = Exception("DB Error")
 
-app.dependency_overrides[get_db] = override_get_db  # Standardized override
+    response = client.get("/api/dashboard/stats")
 
+    assert response.status_code == 500
+    assert "Failed to fetch dashboard stats" in response.json()["detail"]
+    mock_db_manager.get_dashboard_stats.assert_called_once()
 
-class TestDashboardAPI(unittest.TestCase):
-    def setUp(self):
-        self.client = TestClient(app)
+def test_get_performance_overview_success(client, mock_performance_monitor: AsyncMock):
+    """Test successful retrieval of performance overview."""
+    mock_performance_data = {
+        "timestamp": "2023-01-01T12:00:00Z",
+        "overallStatus": {"status": "healthy"},
+        "quotaStatus": {"dailyUsage": {"percentage": 50, "remaining": 5000}},
+        "strategyPerformance": [],
+        "alerts": [],
+        "recommendations": [],
+    }
+    mock_performance_monitor.get_real_time_dashboard.return_value = mock_performance_data
 
-        # Patch PerformanceMonitor instance used in main.py
-        self.mock_performance_monitor_patch = patch(
-            "server.python_backend.main.performance_monitor", autospec=True
-        )
-        self.mock_performance_monitor = self.mock_performance_monitor_patch.start()
+    response = client.get("/api/performance/overview")
 
-        # Configure async method mocks
-        self.mock_performance_monitor.get_real_time_dashboard = AsyncMock()
+    assert response.status_code == 200
+    assert response.json()["overallStatus"] == {"status": "healthy"}
+    mock_performance_monitor.get_real_time_dashboard.assert_called_once()
 
-        # Reset and configure mock_db_manager for this suite
-        mock_db_manager.reset_mock()  # Changed to mock_db_manager
-        # Method of an AsyncMock is an AsyncMock by default.
-        mock_db_manager.get_dashboard_stats = AsyncMock()  # Changed to mock_db_manager
+def test_get_performance_overview_error(client, mock_performance_monitor: AsyncMock):
+    """Test error when fetching performance overview."""
+    mock_performance_monitor.get_real_time_dashboard.side_effect = Exception("Performance monitor error")
 
-        # Mock performance_monitor.track decorator to just return the function
-        self.track_patch = patch(
-            "server.python_backend.main.performance_monitor.track", # This still points to main.performance_monitor
-            MagicMock(side_effect=lambda func: func),
-        )
-        self.track_patch.start()
+    response = client.get("/api/performance/overview")
 
-        # Patch the get_db dependency (even if overridden, good for consistency or if override is removed)
-        # self.get_db_patcher = patch("server.python_backend.database.get_db") # Corrected patch target
-        # self.mock_get_db = self.get_db_patcher.start()
-        # self.mock_get_db.return_value = mock_db_manager
-
-
-    def tearDown(self):
-        self.mock_performance_monitor_patch.stop()
-        self.track_patch.stop()
-        # if hasattr(self, 'get_db_patcher'): # Stop patcher if it was started
-        #    self.get_db_patcher.stop()
-        # Clean up dependency override if it was specific to this test class
-        # For now, we assume the override is managed if tests are run together
-        # or this is the last test file being set up for these dependencies.
-
-    def test_get_dashboard_stats_success(self):
-        print("Running test_get_dashboard_stats_success")
-        # mock_db_manager.get_dashboard_stats.return_value = mock_stats_data # Original
-        async def mock_get_stats_async(*args, **kwargs):
-            # Ensure data matches DashboardStats fields, including aliases if used for keys
-            return {
-                "total_emails": 1000, # Using alias
-                "auto_labeled": 200,  # Using alias
-                "categories": 5,
-                "time_saved": "10h 30m", # Using alias
-                "weekly_growth": {    # Using alias
-                    "emails": 75,     # Corrected to match WeeklyGrowth model
-                    "percentage": 0.15  # Corrected to match WeeklyGrowth model (e.g., 15%)
-                },
-            }
-        mock_db_manager.get_dashboard_stats.side_effect = mock_get_stats_async
-
-
-        response = self.client.get("/api/dashboard/stats")
-
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(data["totalEmails"], 1000)
-        self.assertEqual(data["timeSaved"], "10h 30m")
-        # Ensure the response matches the DashboardStatsResponse model structure if it's strictly enforced
-        # For this test, we're checking key fields.
-        mock_db_manager.get_dashboard_stats.assert_called_once()  # Changed to mock_db_manager
-
-    async def async_raise_db_error(self, *args, **kwargs):
-        raise Exception("DB error")
-
-    def test_get_dashboard_stats_db_error(self):
-        print("Running test_get_dashboard_stats_db_error")
-        mock_db_manager.get_dashboard_stats = (
-            AsyncMock()
-        )  # Ensure it's a fresh AsyncMock # Changed to mock_db_manager
-        mock_db_manager.get_dashboard_stats.side_effect = (
-            self.async_raise_db_error
-        )  # Changed to mock_db_manager
-
-        response = self.client.get("/api/dashboard/stats")
-
-        self.assertEqual(response.status_code, 500)
-        data = response.json()
-        self.assertIn("Failed to fetch dashboard stats", data["detail"])
-        mock_db_manager.get_dashboard_stats.assert_called_once()  # Changed to mock_db_manager
-
-    async def async_raise_sqlite_error(self, *args, **kwargs): # Renamed method
-        # It's important that the side_effect function itself doesn't try to re-instantiate
-        # complex error objects if they are not needed for the test's core logic,
-        # or ensure they are properly picklable/transmissible if used across boundaries.
-        # Here, we just raise a pre-constructed or simple one.
-        raise sqlite3.Error("Simulated DB error from async side_effect") # Changed to sqlite3.Error
-
-    def test_get_dashboard_stats_sqlite_error( # Renamed test
-        self,
-    ):
-        print("Running test_get_dashboard_stats_sqlite_error") # Updated print
-        mock_db_manager.get_dashboard_stats = (
-            AsyncMock()
-        )  # Ensure it's fresh # Changed to mock_db_manager
-        mock_db_manager.get_dashboard_stats.side_effect = (
-            self.async_raise_sqlite_error # Changed to use renamed method
-        )  # Changed to mock_db_manager
-
-        response = self.client.get("/api/dashboard/stats")
-
-        self.assertEqual(response.status_code, 503)
-        data = response.json()
-        self.assertEqual(data["detail"], "Database service unavailable.")
-        mock_db_manager.get_dashboard_stats.assert_called_once()  # Changed to mock_db_manager
-
-    def test_get_performance_overview_success(self):
-        print("Running test_get_performance_overview_success")
-        mock_performance_data = {
-            "timestamp": "2023-01-01T12:00:00Z",  # Example data matching PerformanceOverview
-            "overallStatus": {"status": "healthy"},
-            "quotaStatus": {"dailyUsage": {"percentage": 50, "remaining": 5000}},
-            "strategyPerformance": [],
-            "alerts": [],
-            "recommendations": [],
-        }
-        # Ensure the mock_performance_monitor instance (the one patched in main) has its method mocked
-        # patched_monitor_instance = self.mock_performance_monitor_patch.start().return_value # REMOVED
-        # patched_monitor_instance.get_real_time_dashboard = AsyncMock(return_value=mock_performance_data) # REMOVED
-        # self.mock_performance_monitor_patch.stop() # REMOVED
-
-        # Use self.mock_performance_monitor directly as it's the MagicMock replacing the instance in main
-        self.mock_performance_monitor.get_real_time_dashboard.return_value = mock_performance_data
-
-        response = self.client.get("/api/performance/overview")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), mock_performance_data)
-        self.mock_performance_monitor.get_real_time_dashboard.assert_called_once()
-
-    async def async_raise_performance_monitor_error(self, *args, **kwargs):
-        raise Exception("Performance monitor error")
-
-    def test_get_performance_overview_error(self):
-        print("Running test_get_performance_overview_error")
-        # self.mock_performance_monitor.get_real_time_dashboard is already an AsyncMock from setUp
-        self.mock_performance_monitor.get_real_time_dashboard.side_effect = (
-            self.async_raise_performance_monitor_error
-        )
-
-        response = self.client.get("/api/performance/overview")
-
-        self.assertEqual(response.status_code, 500)
-        data = response.json()
-        self.assertIn("Failed to fetch performance data", data["detail"])
-        self.mock_performance_monitor.get_real_time_dashboard.assert_called_once()
-
-
-if __name__ == "__main__":
-    unittest.main()
+    assert response.status_code == 500
+    assert "Failed to fetch performance data" in response.json()["detail"]
+    mock_performance_monitor.get_real_time_dashboard.assert_called_once()
