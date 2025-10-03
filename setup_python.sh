@@ -1,4 +1,14 @@
 #!/bin/bash
+#
+# DEPRECATED - This script is no longer recommended for use.
+#
+# This script was originally used to set up the Python environment for the
+# EmailIntelligence project. It is now deprecated and has been replaced by the
+# more comprehensive `launch.py` script.
+#
+# Please use `launch.py` for all environment setup and application management.
+#
+
 # ##############################################################################
 # # DEPRECATION NOTICE                                                         #
 # ##############################################################################
