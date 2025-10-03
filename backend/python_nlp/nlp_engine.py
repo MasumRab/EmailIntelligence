@@ -60,6 +60,44 @@ class NLPEngine:
     This class provides methods for analyzing email content using various NLP techniques,
     including sentiment analysis, topic identification, intent detection, and urgency assessment.
     """
+    CATEGORY_PATTERNS = {
+        "Work & Business": [
+            r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
+            r"colleague|office|work|business|professional|corporate|company|organization)\b",
+            r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
+            r"quarterly|annual|monthly|weekly|daily)\b",
+        ],
+        "Finance & Banking": [
+            r"\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|"
+            r"money|financial|insurance|investment|loan|mortgage)\b",
+            r"\$[\d,]+|\b\d+\s?(dollars?|USD|EUR|GBP)\b",
+            r"\b(tax|taxes|irs|refund|audit|accountant|bookkeeping|overdraft|bankruptcy)\b",
+        ],
+        "Healthcare": [
+            r"\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|"
+            r"treatment|therapy|checkup|surgery|dental|pharmacy)\b",
+            r"\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|"
+            r"medicare|medicaid|covid|coronavirus|vaccine)\b",
+        ],
+        "Personal & Family": [
+            r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|"
+            r"dinner|lunch|home|house|kids|children)\b",
+            r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|"
+            r"graduation|baby|party|celebration)\b",
+        ],
+        "Travel": [
+            r"\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|"
+            r"airport|airline|passport|visa|itinerary)\b",
+            r"\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|"
+            r"tickets|confirmation)\b",
+        ],
+        "Technology": [
+            r"\b(software|hardware|computer|laptop|mobile|app|application|website|"
+            r"internet|email|password|account|login)\b",
+            r"\b(server|database|API|code|programming|development|tech|technical|"
+            r"IT|support|troubleshoot|install)\b",
+        ],
+    }
 
     def __init__(self):
         """Initialize the NLP engine and load required models."""
@@ -70,6 +108,7 @@ class NLPEngine:
         self.topic_model_path = os.path.join(model_dir, "topic_model.pkl")
         self.intent_model_path = os.path.join(model_dir, "intent_model.pkl")
         self.urgency_model_path = os.path.join(model_dir, "urgency_model.pkl")
+        self.compiled_patterns = {}
 
         # Initialize stop words if NLTK is available
         if HAS_NLTK:
@@ -121,6 +160,15 @@ class NLPEngine:
 
         # Initialize UrgencyModel (previously UrgencyAnalyzer)
         self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
+
+    def initialize_patterns(self):
+        """Pre-compiles regex patterns for categorization."""
+        logger.info("Compiling regex patterns for categorization...")
+        self.compiled_patterns = {
+            category: [re.compile(p) for p in patterns]
+            for category, patterns in self.CATEGORY_PATTERNS.items()
+        }
+        logger.info("Regex patterns compiled successfully.")
 
     def _load_model(self, model_path: str) -> Optional[Any]:
         """
@@ -399,79 +447,32 @@ class NLPEngine:
 
     def _categorize_content(self, text: str) -> List[str]:
         """
-        Categorize email content based on keyword patterns.
-
+        Categorize email content based on pre-compiled keyword patterns.
         This method uses regex pattern matching to identify the categories
         that best match the email content.
-
         Args:
             text: Text to categorize
-
         Returns:
             List of matched categories (up to 3)
         """
-        categories = []
         text_lower = text.lower()
 
-        # Define category patterns for content categorization
-        category_patterns = {
-            "Work & Business": [
-                r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
-                r"colleague|office|work|business|professional|corporate|company|organization)\b",
-                r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
-                r"quarterly|annual|monthly|weekly|daily)\b",
-            ],
-            "Finance & Banking": [
-                r"\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|"
-                r"money|financial|insurance|investment|loan|mortgage)\b",
-                r"\$[\d,]+|\b\d+\s?(dollars?|USD|EUR|GBP)\b",
-                r"\b(tax|taxes|irs|refund|audit|accountant|bookkeeping|overdraft|bankruptcy)\b",
-            ],
-            "Healthcare": [
-                r"\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|"
-                r"treatment|therapy|checkup|surgery|dental|pharmacy)\b",
-                r"\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|"
-                r"medicare|medicaid|covid|coronavirus|vaccine)\b",
-            ],
-            "Personal & Family": [
-                r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|"
-                r"dinner|lunch|home|house|kids|children)\b",
-                r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|"
-                r"graduation|baby|party|celebration)\b",
-            ],
-            "Travel": [
-                r"\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|"
-                r"airport|airline|passport|visa|itinerary)\b",
-                r"\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|"
-                r"tickets|confirmation)\b",
-            ],
-            "Technology": [
-                r"\b(software|hardware|computer|laptop|mobile|app|application|website|"
-                r"internet|email|password|account|login)\b",
-                r"\b(server|database|API|code|programming|development|tech|technical|"
-                r"IT|support|troubleshoot|install)\b",
-            ],
-        }
+        if not self.compiled_patterns:
+            logger.warning("Regex patterns not compiled. Call initialize_patterns() first. Falling back to on-the-fly compilation.")
+            self.initialize_patterns()
 
-        # Calculate scores for each category
         category_scores = {}
-        for category, patterns in category_patterns.items():
-            score = 0
-            for pattern in patterns:
-                matches = re.findall(pattern, text_lower)
-                score += len(matches)
-
+        for category, patterns in self.compiled_patterns.items():
+            score = sum(len(pattern.findall(text_lower)) for pattern in patterns)
             if score > 0:
                 category_scores[category] = score
-                categories.append(category)
 
-        # Sort categories by score (descending)
-        if categories:
-            categories.sort(key=lambda cat: category_scores[cat], reverse=True)
-            return categories[:3]  # Return top 3 matched categories
+        if not category_scores:
+            return ["General"]
 
-        # Default category if no matches found
-        return ["General"]
+        # Sort categories by score (descending) and return top 3
+        sorted_categories = sorted(category_scores.keys(), key=lambda cat: category_scores[cat], reverse=True)
+        return sorted_categories[:3]
 
     def _calculate_confidence(self, analysis_results: List[Dict[str, Any]]) -> float:
         """

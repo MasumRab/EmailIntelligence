@@ -53,58 +53,51 @@ class AIAnalysisResult:
 
 
 class AdvancedAIEngine:
-    """Advanced AI engine with async support"""
+    """Optimized Advanced AI engine with async support and caching."""
 
     def __init__(self):
-        # Removed: self.python_nlp_path, self.ai_training_script, self.nlp_service_script
-        # Instantiate the NLP engine for fallback analysis
-        self.nlp_engine = NLPEngine()  # Renamed from self.fallback_nlp_engine
-        # DatabaseManager instance will be passed if needed for category matching
-        # Or use FastAPI's Depends if AIEngine methods become FastAPI path operations directly
+        self.nlp_engine = NLPEngine()
+        # Cache for category lookup map
+        self.category_lookup_map: Dict[str, Dict[str, Any]] = {}
 
-    def initialize(self):  # Changed to synchronous
-        """Initialize AI engine"""
+    def initialize(self):
+        """Initialize AI engine and pre-compile patterns."""
         try:
-            # Test connection to NLP services
-            self.health_check()  # Changed to synchronous call
+            self.nlp_engine.initialize_patterns() # Pre-compile regex
+            self.health_check()
             logger.info("AI Engine initialized successfully")
         except Exception as e:
             logger.error(f"AI Engine initialization failed: {e}")
 
+    async def _build_category_lookup(self, db: "DatabaseManager") -> None:
+        """Builds a normalized lookup map for categories."""
+        all_db_categories = await db.get_all_categories()
+        self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
+        logger.info("Built category lookup map.")
+
     async def _match_category_id(
         self, ai_categories: List[str], db: "DatabaseManager"
     ) -> Optional[int]:
-        """Matches AI suggested category strings to database categories."""
+        """Matches AI suggested categories to DB categories using a lookup map."""
         if not ai_categories:
             return None
 
-        # This import is problematic for circular deps if DatabaseManager imports AIEngine.
-        # Consider moving DatabaseManager to a more common place or restructuring.
-        # For now, assuming DatabaseManager can be imported or passed.
-        # from .database import DatabaseManager # This would be circular
+        # Build the lookup map if it's empty
+        if not self.category_lookup_map:
+            await self._build_category_lookup(db)
 
-        try:
-            all_db_categories = await db.get_all_categories()
-            if not all_db_categories:
-                return None
+        if not self.category_lookup_map:
+            return None
 
-            for ai_cat_str in ai_categories:
-                for db_cat in all_db_categories:
-                    name_lower = db_cat["name"].lower()
-                    ai_cat_lower = ai_cat_str.lower()
-                    if name_lower in ai_cat_lower or ai_cat_lower in name_lower:
-                        log_msg = (
-                            f"Matched AI category '{ai_cat_str}' to DB "
-                            f"category '{db_cat['name']}' (ID: {db_cat['id']})"
-                        )
-                        logger.info(log_msg)
-                        return db_cat["id"]
-            log_msg = (
-                f"No direct match for AI categories: {ai_categories} " f"against DB categories."
-            )
-            logger.info(log_msg)
-        except Exception as e:
-            logger.error(f"Error during category matching: {e}", exc_info=True)
+        for ai_cat_str in ai_categories:
+            ai_cat_lower = ai_cat_str.lower()
+            # O(1) lookup
+            if ai_cat_lower in self.category_lookup_map:
+                matched_cat = self.category_lookup_map[ai_cat_lower]
+                logger.info(f"Matched AI category '{ai_cat_str}' to DB category '{matched_cat['name']}' (ID: {matched_cat['id']})")
+                return matched_cat['id']
+
+        logger.info(f"No direct match for AI categories: {ai_categories} against DB categories.")
         return None
 
     async def analyze_email(
