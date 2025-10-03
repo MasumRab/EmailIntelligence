@@ -13,7 +13,7 @@ from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for r
 from .database import DatabaseManager, get_db
 from .dependencies import get_filter_manager
 from .exceptions import AIAnalysisError, DatabaseError
-from .performance_monitor import performance_monitor
+from .performance_monitor import log_performance
 from .models import FilterRequest  # Models are imported from .models
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/api/filters")
-@performance_monitor.track
+@log_performance("get_filters")
 async def get_filters(
     request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
 ):
@@ -43,7 +43,7 @@ async def get_filters(
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-@performance_monitor.track
+@log_performance("create_filter")
 async def create_filter(
     request: Request,
     filter_request_model: FilterRequest,
@@ -74,7 +74,7 @@ async def create_filter(
 
 
 @router.post("/api/filters/generate-intelligent")
-@performance_monitor.track
+@log_performance("generate_intelligent_filters")
 async def generate_intelligent_filters(
     request: Request,
     db: DatabaseManager = Depends(get_db),
@@ -111,7 +111,7 @@ async def generate_intelligent_filters(
 
 
 @router.post("/api/filters/prune")
-@performance_monitor.track
+@log_performance("prune_filters")
 async def prune_filters(
     request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
 ):

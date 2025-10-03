@@ -28,7 +28,8 @@ def client_gmail():
     app.dependency_overrides[get_gmail_service] = lambda: mock_gmail_service_instance
 
     # Patch performance_monitor directly as it's not injected
-    with patch("backend.python_backend.gmail_routes.performance_monitor", MagicMock()):
+    with patch("backend.python_backend.gmail_routes.log_performance") as mock_log_performance:
+        mock_log_performance.side_effect = lambda name: (lambda func: func)
         yield TestClient(app)
 
     # Clean up overrides after the test

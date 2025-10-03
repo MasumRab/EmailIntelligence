@@ -17,7 +17,9 @@ mock_db_manager_cat.update_category = AsyncMock()
 
 @pytest.fixture(scope="module", autouse=True)
 def mock_cat_dependencies():
-    with patch("backend.python_backend.category_routes.performance_monitor"):
+    with patch("backend.python_backend.category_routes.log_performance") as mock_log_performance:
+        # Make the decorator do nothing, just return the original function
+        mock_log_performance.side_effect = lambda name: (lambda func: func)
         yield
 
 
