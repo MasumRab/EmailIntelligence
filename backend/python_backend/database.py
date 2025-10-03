@@ -55,7 +55,22 @@ class DatabaseManager:
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
+    This class provides an asynchronous interface for all CRUD (Create, Read,
+    Update, Delete) operations. It handles loading data from files into memory
+    on initialization and saving data back to files when modifications occur.
+    It is designed to be used as a singleton within the application.
+
+    Attributes:
+        emails_file (str): Path to the emails JSON file.
+        categories_file (str): Path to the categories JSON file.
+        users_file (str): Path to the users JSON file.
+        emails_data (List[Dict[str, Any]]): In-memory cache of email records.
+        categories_data (List[Dict[str, Any]]): In-memory cache of category records.
+        users_data (List[Dict[str, Any]]): In-memory cache of user records.
+    """
+
     def __init__(self):
+        """Initializes the DatabaseManager, setting up file paths and data caches."""
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -131,7 +146,11 @@ class DatabaseManager:
 
     @log_performance("load_data")
     async def _load_data(self) -> None:
-        """Loads data from JSON files into memory. Creates files if they don't exist."""
+        """
+        Loads data from JSON files into memory.
+
+        If a data file does not exist, it creates an empty one.
+        """
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, 'emails_data'),
             (DATA_TYPE_CATEGORIES, self.categories_file, 'categories_data'),
@@ -189,13 +208,30 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-        """Generates a new unique integer ID."""
+        """
+        Generates a new unique integer ID for a record.
+
+        Args:
+            data_list: The list of records to scan for the current maximum ID.
+
+        Returns:
+            A new unique integer ID.
+        """
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-        """Helper to parse stringified JSON fields in a row."""
+        """
+        Parses fields in a data row that are stored as JSON strings.
+
+        Args:
+            row: The data record (dictionary).
+            fields: A list of field names to parse.
+
+        Returns:
+            The modified data record with parsed fields.
+        """
         if not row:
             return row
         for field in fields:
@@ -401,7 +437,16 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """Get all emails with pagination"""
+        """
+        Retrieves all emails with pagination.
+
+        Args:
+            limit: The maximum number of emails to return.
+            offset: The number of emails to skip.
+
+        Returns:
+            A list of email record dictionaries.
+        """
         return await self.get_emails(limit=limit, offset=offset)
 
     async def get_emails_by_category(self, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
@@ -495,7 +540,17 @@ class DatabaseManager:
 _db_manager_instance = None
 
 async def get_db() -> DatabaseManager:
-    """Dependency injection for database. Returns a singleton instance."""
+    """
+    Provides the singleton instance of the DatabaseManager.
+
+    This function is used for dependency injection in FastAPI routes. It ensures
+    that only one instance of the DatabaseManager is used throughout the
+
+    application's lifecycle.
+
+    Returns:
+        The singleton DatabaseManager instance.
+    """
     global _db_manager_instance
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
