@@ -6,6 +6,7 @@ This module provides advanced natural language processing capabilities with mult
 and validation for analyzing email content.
 """
 
+
 import argparse
 import json
 import logging
@@ -15,9 +16,7 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-# from backend.python_nlp.action_item_extractor import ( # Removed
-    # ActionItemExtractor, # Removed
-# ) # Removed
+
 from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.intent_model import IntentModel
@@ -130,8 +129,7 @@ class NLPEngine:
         self.intent_model = None
         self.urgency_model = None
 
-        # Initialize ActionItemExtractor
-        # self.action_item_extractor = ActionItemExtractor() # Removed
+
 
         # Load models if dependencies are available
         # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
@@ -733,30 +731,19 @@ class NLPEngine:
             logger.info("Email text preprocessed successfully.")
 
             # Multi-model analysis
-            # These methods will internally use models if available, or fall back.
-            logger.info("Analyzing sentiment...")
-            sentiment_analysis = self._analyze_sentiment(cleaned_text)
-            logger.info(
-                f"Sentiment analysis completed. Method: {sentiment_analysis.get('method_used', 'unknown')}"
-            )
+            analyses = [
+                ("sentiment", self._analyze_sentiment),
+                ("topic", self._analyze_topic),
+                ("intent", self._analyze_intent),
+                ("urgency", self._analyze_urgency),
+            ]
 
-            logger.info("Analyzing topic...")
-            topic_analysis = self._analyze_topic(cleaned_text)
-            logger.info(
-                f"Topic analysis completed. Method: {topic_analysis.get('method_used', 'unknown')}"
-            )
-
-            logger.info("Analyzing intent...")
-            intent_analysis = self._analyze_intent(cleaned_text)
-            logger.info(
-                f"Intent analysis completed. Method: {intent_analysis.get('method_used', 'unknown')}"
-            )
-
-            logger.info("Analyzing urgency...")
-            urgency_analysis = self._analyze_urgency(cleaned_text)
-            logger.info(
-                f"Urgency analysis completed. Method: {urgency_analysis.get('method_used', 'unknown')}"
-            )
+            results = {}
+            for name, func in analyses:
+                logger.info(f"Analyzing {name}...")
+                result = func(cleaned_text)
+                logger.info(f"{name.capitalize()} analysis completed. Method: {result.get('method_used', 'unknown')}")
+                results[name] = result
 
             # This method is regex-based, no model to load for it currently per its implementation
             logger.info("Detecting risk factors...")
@@ -774,10 +761,10 @@ class NLPEngine:
 
             logger.info("Building final analysis response...")
             response = self._build_final_analysis_response(
-                sentiment_analysis,
-                topic_analysis,
-                intent_analysis,
-                urgency_analysis,
+                results["sentiment"],
+                results["topic"],
+                results["intent"],
+                results["urgency"],
                 categories,
                 keywords,
                 risk_analysis_flags,

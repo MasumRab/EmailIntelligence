@@ -18,3 +18,11 @@ transformers
 torch
 accelerate
 sentencepiece
+pandas
+numpy
+matplotlib
+seaborn
+scipy
+jupyter
+ipykernel
+ipywidgets
