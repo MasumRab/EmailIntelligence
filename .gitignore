@@ -79,6 +79,8 @@ diagnosis_message.txt
 *.local.yml
 config.local.*
 config/*.local.*
+performance_metrics_log.jsonl
+.qwen/PROJECT_SUMMARY.md
 
 # Keep the docs placeholder
 !docs/.gitkeep
