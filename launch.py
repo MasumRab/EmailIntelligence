@@ -143,13 +143,19 @@ def check_python_version() -> bool:
     return True
 
 
+def get_venv_python_path() -> Path:
+    """Get the path to the venv python executable."""
+    venv_path = ROOT_DIR / VENV_DIR
+    if os.name == "nt":  # Windows
+        return venv_path / "Scripts" / "python.exe"
+    else:  # Unix-based systems
+        return venv_path / "bin" / "python"
+
 def is_venv_available() -> bool:
     """Check if a virtual environment is available."""
     venv_path = ROOT_DIR / VENV_DIR
-    if os.name == "nt":  # Windows
-        return venv_path.exists() and (venv_path / "Scripts" / "python.exe").exists()
-    else:  # Unix-based systems
-        return venv_path.exists() and (venv_path / "bin" / "python").exists()
+    python_path = get_venv_python_path()
+    return venv_path.exists() and python_path.exists()
 
 
 def create_venv() -> bool:
@@ -171,12 +177,21 @@ def create_venv() -> bool:
 def get_python_executable() -> str:
     """Get the Python executable path."""
     if is_venv_available():
-        if os.name == "nt":  # Windows
-            return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
-        else:  # Unix-based systems
-            return str(ROOT_DIR / VENV_DIR / "bin" / "python")
+        return str(get_venv_python_path())
     return sys.executable
 
+
+def run_command_with_logging(cmd: List[str], description: str) -> bool:
+    """Run a subprocess command with logging."""
+    logger.info(f"Running: {description}")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed: {description}")
+        logger.error(f"stdout:\n{e.stdout}")
+        logger.error(f"stderr:\n{e.stderr}")
+        return False
 
 def install_requirements_from_file(requirements_file_path_str: str, update: bool = False) -> bool:
     """Install or update requirements from a file.
@@ -194,17 +209,8 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
         cmd.append("--upgrade")
     cmd.extend(["-r", str(requirements_path)])
 
-    logger.info(
-        f"{'Updating' if update else 'Installing'} dependencies from {requirements_path.name}..."
-    )
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install dependencies from {requirements_path.name}.")
-        logger.error(f"pip stdout:\n{e.stdout}")
-        logger.error(f"pip stderr:\n{e.stderr}")
-        return False
+    desc = f"{'Updating' if update else 'Installing'} dependencies from {requirements_path.name}"
+    return run_command_with_logging(cmd, desc)
 
 
 install_dependencies = install_requirements_from_file
@@ -626,7 +632,6 @@ def _print_system_info():
         )
         if torch_version_proc.returncode == 0:
             print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
-            # check_torch_cuda() # This function was removed
         else:
             print("PyTorch Version: Not installed or importable with current Python executable.")
             logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
@@ -653,6 +658,136 @@ def _print_system_info():
 
     print("\n--- End of System Information ---")
 
+
+def find_compatible_python_interpreter() -> Optional[str]:
+    """Find a compatible Python interpreter if current is not."""
+    current_major, current_minor = sys.version_info[:2]
+    target_major, target_minor = PYTHON_MIN_VERSION
+
+    current_version = (current_major, current_minor)
+    if PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION:
+        return None  # Current is compatible
+
+    logger.info(
+        f"Current Python is {current_major}.{current_minor}. "
+        f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
+    )
+
+    candidate_interpreters = []
+    if platform.system() == "Windows":
+        candidate_interpreters = [
+            ["py", "-3.12"],
+            ["py", "-3.11"],
+            ["python3.12"],
+            ["python3.11"],
+            ["python"],
+        ]
+    else:
+        candidate_interpreters = [
+            ["python3.12"],
+            ["python3.11"],
+            ["python3"],
+        ]
+
+    for candidate_parts in candidate_interpreters:
+        exe_name = candidate_parts[0]
+        version_check_args = candidate_parts[1:]
+
+        potential_path = shutil.which(exe_name)
+        if potential_path:
+            cmd_to_check = [potential_path] + version_check_args + ["--version"]
+            try:
+                env = os.environ.copy()
+                result = subprocess.run(
+                    cmd_to_check,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=env,
+                    timeout=5,
+                )
+
+                version_output = result.stdout.strip() + result.stderr.strip()
+
+                for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
+                    for minor in range(PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0,
+                                     PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100):
+                        if f"Python {major}.{minor}" in version_output:
+                            logger.info(
+                                f"Found compatible Python {major}.{minor} interpreter: {potential_path}"
+                            )
+                            return potential_path
+                logger.debug(
+                    f"Candidate {potential_path} not compatible. Output: {version_output}"
+                )
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Timeout checking {potential_path}")
+            except Exception as e:
+                logger.warning(f"Error checking {potential_path}: {e}")
+
+    return None
+
+def re_execute_with_compatible_python(interpreter_path: str) -> None:
+    """Re-execute the launcher with the given interpreter."""
+    logger.info(f"Re-executing launcher with interpreter: {interpreter_path}")
+    new_env = os.environ.copy()
+    new_env["LAUNCHER_REEXEC_GUARD"] = "1"
+
+    script_path = str(Path(__file__).resolve())
+    args_for_exec = [interpreter_path, script_path] + sys.argv[1:]
+    os.execve(interpreter_path, args_for_exec, new_env)
+
+def setup_logging(args) -> None:
+    """Setup logging based on args."""
+    numeric_level = getattr(logging, args.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f"Invalid log level: {args.loglevel}")
+
+    logging.basicConfig(
+        level=numeric_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
+    )
+    logger.setLevel(numeric_level)
+    logger.info(f"Launcher log level set to: {args.loglevel}")
+
+def load_default_env() -> None:
+    """Load default .env file if exists."""
+    from dotenv import load_dotenv
+    default_env_file = ROOT_DIR / ".env"
+    if default_env_file.exists():
+        logger.info(f"Loading environment variables from default .env file: {default_env_file}")
+        load_dotenv(dotenv_path=default_env_file, override=True)
+
+def handle_specific_tests(args) -> int:
+    """Handle specific test flags and return exit code."""
+    logger.info("Specific test flags detected. Running requested tests...")
+    from deployment.test_stages import test_stages
+
+    test_run_success = True
+
+    if args.unit:
+        logger.info("Running unit tests...")
+        test_run_success &= test_stages.run_unit_tests(args.coverage, args.debug)
+
+    if args.integration:
+        logger.info("Running integration tests...")
+        test_run_success &= test_stages.run_integration_tests(args.coverage, args.debug)
+
+    if args.e2e:
+        logger.info("Running e2e tests...")
+        test_run_success &= test_stages.run_e2e_tests(True, args.debug)
+
+    if args.performance:
+        logger.info("Running performance tests...")
+        test_run_success &= test_stages.run_performance_tests(60, 10, args.debug)
+
+    if args.security:
+        logger.info("Running security tests...")
+        test_run_success &= test_stages.run_security_tests(f"http://{args.host}:{args.port}", args.debug)
+
+    logger.info(f"Test execution finished. Success: {test_run_success}")
+    return 0 if test_run_success else 1
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
@@ -712,7 +847,6 @@ def parse_arguments() -> argparse.Namespace:
         default=None,
         help="Specify the port for the Gradio UI (default: 7860 or next available)",
     )
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend")
     parser.add_argument(
         "--api-only",
         action="store_true",
@@ -738,14 +872,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--performance", action="store_true", help="Run performance tests")
     parser.add_argument("--security", action="store_true", help="Run security tests")
 
-    # Advanced options
-    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
-    parser.add_argument(
-        "--force-cpu",
-        action="store_true",
-        help="Force CPU mode even if GPU is available",
-    )
-    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode")
     parser.add_argument("--system-info", action="store_true", help="Print system information")
 
     # Networking options
@@ -755,18 +881,6 @@ def parse_arguments() -> argparse.Namespace:
         help="Make the backend server listen on 0.0.0.0",
     )
 
-    # UI and Execution options
-    parser.add_argument(
-        "--theme",
-        type=str,
-        default="system",
-        help="UI theme (e.g., light, dark, system). For future use.",
-    )
-    parser.add_argument(
-        "--allow-code",
-        action="store_true",
-        help="Allow execution of custom code from extensions (for future use).",
-    )
     parser.add_argument(
         "--loglevel",
         type=str,
@@ -784,106 +898,20 @@ def parse_arguments() -> argparse.Namespace:
 def main() -> int:
     """Main entry point."""
     if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
-        current_major, current_minor = sys.version_info[:2]
-        target_major, target_minor = PYTHON_MIN_VERSION
-
-        current_version = (current_major, current_minor)
-        if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-            logger.info(
-                f"Current Python is {current_major}.{current_minor}. "
-                f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
-            )
-
-            candidate_interpreters = []
-            if platform.system() == "Windows":
-                candidate_interpreters = [
-                    ["py", "-3.12"],
-                    ["py", "-3.11"],
-                    ["python3.12"],
-                    ["python3.11"],
-                    ["python"],
-                ]
-            else:
-                candidate_interpreters = [
-                    ["python3.12"],
-                    ["python3.11"],
-                    ["python3"],
-                ]
-
-            found_interpreter_path = None
-            for candidate_parts in candidate_interpreters:
-                exe_name = candidate_parts[0]
-                version_check_args = candidate_parts[1:]
-
-                potential_path = shutil.which(exe_name)
-                if potential_path:
-                    cmd_to_check = [potential_path] + version_check_args + ["--version"]
-                    try:
-                        env = os.environ.copy()
-                        result = subprocess.run(
-                            cmd_to_check,
-                            capture_output=True,
-                            text=True,
-                            check=False,
-                            env=env,
-                            timeout=5,
-                        )
-
-                        version_output = result.stdout.strip() + result.stderr.strip()
-
-                        compatible = False
-                        for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
-                            for minor in range(PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0, 
-                                             PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100):
-                                if f"Python {major}.{minor}" in version_output:
-                                    logger.info(
-                                        f"Found compatible Python {major}.{minor} interpreter: {potential_path} (version output: {version_output})"
-                                    )
-                                    found_interpreter_path = potential_path
-                                    compatible = True
-                                    break
-                            if compatible:
-                                break
-                        
-                        if compatible:
-                            break
-                        else:
-                            logger.debug(
-                                f"Candidate {potential_path} (from {exe_name}) is not in supported Python version range. Output: {version_output}"
-                            )
-                    except subprocess.TimeoutExpired:
-                        logger.warning(
-                            f"Timeout checking version of interpreter candidate: {potential_path} (from {exe_name})"
-                        )
-                    except Exception as e:
-                        logger.warning(
-                            f"Error checking version of interpreter candidate: {potential_path} (from {exe_name}): {e}"
-                        )
-
-            if found_interpreter_path:
-                logger.info(f"Re-executing launcher with interpreter: {found_interpreter_path}")
-                new_env = os.environ.copy()
-                new_env["LAUNCHER_REEXEC_GUARD"] = "1"
-
-                try:
-                    script_path = str(Path(__file__).resolve())
-                    args_for_exec = [found_interpreter_path, script_path] + sys.argv[1:]
-                    os.execve(found_interpreter_path, args_for_exec, new_env)
-                except Exception as e:
-                    logger.error(f"Failed to re-execute with {found_interpreter_path}: {e}")
-
+        interpreter = find_compatible_python_interpreter()
+        if interpreter:
+            re_execute_with_compatible_python(interpreter)
+        else:
+            target_major, target_minor = PYTHON_MIN_VERSION
             logger.error(
-                f"Python {target_major}.{target_minor} is required, but a compatible version was not found "
-                f"on your system after searching common paths (candidates: {[c[0] for c in candidate_interpreters]}). "
-                f"Please install Python {target_major}.{target_minor}, ensure it's in your PATH, "
-                f"or run {Path(__file__).name} using a Python {target_major}.{target_minor} interpreter directly."
+                f"Python {target_major}.{target_minor} is required, but not found. "
+                "Please install it or run with a compatible interpreter."
             )
             sys.exit(1)
 
     elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
         logger.info(
-            f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor} "
-            f"(Guard was set). Skipping further Python version discovery."
+            f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor}"
         )
 
     _setup_signal_handlers()
@@ -955,6 +983,43 @@ def main() -> int:
     if args.setup:
         logger.info("Environment setup complete. Exiting as requested by --setup flag.")
         return 0
+
+    return run_application(args)
+
+
+def main() -> int:
+    """Main entry point."""
+    if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
+        interpreter = find_compatible_python_interpreter()
+        if interpreter:
+            re_execute_with_compatible_python(interpreter)
+        else:
+            target_major, target_minor = PYTHON_MIN_VERSION
+            logger.error(
+                f"Python {target_major}.{target_minor} is required, but not found. "
+                "Please install it or run with a compatible interpreter."
+            )
+            sys.exit(1)
+
+    elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
+        logger.info(
+            f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor}"
+        )
+
+    _setup_signal_handlers()
+    args = parse_arguments()
+    setup_logging(args)
+    load_default_env()
+
+    if args.system_info:
+        _print_system_info()
+        return 0
+
+    if args.unit or args.integration or args.e2e or args.performance or args.security:
+        return handle_specific_tests(args)
+
+    if not args.skip_prepare and not prepare_environment(args):
+        return 1
 
     return run_application(args)
 
