@@ -1,7 +1,8 @@
-import uvicorn
 import os
 import sys
 from pathlib import Path
+
+import uvicorn
 
 # Add the current directory to the path to ensure modules can be found
 sys.path.append(str(Path(__file__).parent))

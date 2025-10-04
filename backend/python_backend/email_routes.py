@@ -6,14 +6,13 @@ import psycopg2
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
-
 from .ai_engine import AdvancedAIEngine
-from .exceptions import AIAnalysisError, DatabaseError
 from .database import DatabaseManager, get_db
 from .dependencies import get_ai_engine, get_filter_manager
-from .performance_monitor import log_performance
+from .exceptions import AIAnalysisError, DatabaseError
 from .models import EmailResponse  # Changed from .main to .models
 from .models import EmailCreate, EmailUpdate
+from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

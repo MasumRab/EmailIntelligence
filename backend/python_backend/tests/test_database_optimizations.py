@@ -1,12 +1,13 @@
 import asyncio
-import os
-import json
 import gzip
+import json
+import os
+from unittest.mock import AsyncMock, mock_open, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, patch, mock_open
 
-from backend.python_backend.database import DatabaseManager, HEAVY_EMAIL_FIELDS
+from backend.python_backend.database import HEAVY_EMAIL_FIELDS, DatabaseManager
 from backend.python_backend.performance_monitor import LOG_FILE
 
 # Mark all tests in this file as asyncio

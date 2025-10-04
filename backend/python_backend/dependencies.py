@@ -1,7 +1,8 @@
 """
 Dependency injectors for the FastAPI application.
 """
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
 from fastapi import Depends
 
 # To avoid circular imports with type hints
@@ -11,11 +12,10 @@ if TYPE_CHECKING:
     from ..python_nlp.smart_filters import SmartFilterManager
     from .database import DatabaseManager
 
-from .ai_engine import AdvancedAIEngine
 from ..python_nlp.gmail_service import GmailAIService
 from ..python_nlp.smart_filters import SmartFilterManager
-from .database import get_db, DatabaseManager
-
+from .ai_engine import AdvancedAIEngine
+from .database import DatabaseManager, get_db
 
 # Singleton instances
 _ai_engine_instance: Optional[AdvancedAIEngine] = None

@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
 from .exceptions import DatabaseError
-from .performance_monitor import log_performance
 from .models import CategoryCreate, CategoryResponse  # Added CategoryResponse, changed from .main
+from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

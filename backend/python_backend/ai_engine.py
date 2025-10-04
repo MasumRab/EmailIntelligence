@@ -7,7 +7,16 @@ import logging
 # import sys # No longer needed for subprocess
 import os
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from abc import ABC, abstractmethod
+
+# Define a protocol to avoid circular import dependency
+class DatabaseProtocol(ABC):
+    """Protocol/Interface for database operations to avoid circular import"""
+    
+    @abstractmethod
+    async def get_all_categories(self) -> List[Dict[str, Any]]:
+        pass
 
 if TYPE_CHECKING:
     from .database import DatabaseManager
@@ -69,14 +78,14 @@ class AdvancedAIEngine:
         except Exception as e:
             logger.error(f"AI Engine initialization failed: {e}")
 
-    async def _build_category_lookup(self, db) -> None:
+    async def _build_category_lookup(self, db: DatabaseProtocol) -> None:
         """Builds a normalized lookup map for categories."""
         all_db_categories = await db.get_all_categories()
         self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
         logger.info("Built category lookup map.")
 
     async def _match_category_id(
-        self, ai_categories: List[str], db
+        self, ai_categories: List[str], db: DatabaseProtocol
     ) -> Optional[int]:
         """Matches AI suggested categories to DB categories using a lookup map."""
         if not ai_categories:
@@ -101,7 +110,7 @@ class AdvancedAIEngine:
         return None
 
     async def analyze_email(
-        self, subject: str, content: str, db = None
+        self, subject: str, content: str, db: Optional[DatabaseProtocol] = None
     ) -> AIAnalysisResult:
         """Analyze email content with AI and optional DB category matching."""
         log_subject = subject[:50] + "..." if len(subject) > 50 else subject
