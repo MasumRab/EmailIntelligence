@@ -78,7 +78,7 @@ def _setup_signal_handlers():
 
 
 # Constants
-PYTHON_MIN_VERSION = (3, 11)
+PYTHON_MIN_VERSION = (3, 12)
 PYTHON_MAX_VERSION = (3, 12)
 VENV_DIR = "venv"
 REQUIREMENTS_FILE = "requirements.txt"
