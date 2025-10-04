@@ -413,10 +413,16 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 )
                 return False
         else:
-            chosen_req_file = _get_primary_requirements_file()
+            # Even if not updating, ensure all dependencies from the primary requirements file are installed.
+            primary_req_file = _get_primary_requirements_file()
             logger.info(
-                f"Compatible virtual environment found (or user chose to proceed with existing). Primary requirements file: {Path(chosen_req_file).name}. Skipping base dependency installation unless --update-deps is used."
+                f"Ensuring dependencies from {Path(primary_req_file).name} are installed..."
             )
+            if not install_dependencies(primary_req_file, update=False):
+                logger.error(
+                    f"Failed to install dependencies from {Path(primary_req_file).name}. Exiting."
+                )
+                return False
 
         stage_requirements_file_path_str = None
         if args.stage == "dev":
@@ -441,18 +447,17 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 )
             else:
                 logger.info(
-                    f"Skipping stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} unless missing or --update-deps is used."
+                    f"Ensuring stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} are installed..."
                 )
 
-            if venv_needs_initial_setup or args.update_deps:
-                if not install_dependencies(
-                    stage_requirements_file_path_str,
-                    update=install_stage_deps_update_flag,
-                ):
-                    logger.error(
-                        f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
-                    )
-                    return False
+            if not install_dependencies(
+                stage_requirements_file_path_str,
+                update=install_stage_deps_update_flag,
+            ):
+                logger.error(
+                    f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
+                )
+                return False
 
     if not args.no_download_nltk:
         if not download_nltk_data():
@@ -511,6 +516,8 @@ def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[
 def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optional[subprocess.Popen]:
     """Starts the Gradio UI server."""
     logger.info("Starting Gradio UI...")
+
+    gradio_script_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
 
     try:
         subprocess.check_call(
@@ -617,7 +624,7 @@ def run_application(args: argparse.Namespace) -> int:
             logger.warning(
                 "Frontend only mode: VITE_API_URL might not be correctly set if backend is not running or --api-url is not provided."
             )
-        frontend_process = start_frontend(args)
+        frontend_process = start_gradio_ui(args, python_executable)
         if frontend_process:
             frontend_process.wait()
         else:
@@ -967,25 +974,31 @@ def main() -> int:
 
                         version_output = result.stdout.strip() + result.stderr.strip()
 
-                        compatible = False
-                        for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
-                            for minor in range(PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0, 
-                                             PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100):
-                                if f"Python {major}.{minor}" in version_output:
+                        version_str = ""
+                        if "Python " in version_output:
+                            version_part = version_output.split("Python ")[1]
+                            version_str = version_part.split(" ")[0]
+
+                        if version_str:
+                            try:
+                                version_tuple = tuple(map(int, version_str.split(".")[:2]))
+                                if PYTHON_MIN_VERSION <= version_tuple <= PYTHON_MAX_VERSION:
                                     logger.info(
-                                        f"Found compatible Python {major}.{minor} interpreter: {potential_path} (version output: {version_output})"
+                                        f"Found compatible Python {version_tuple[0]}.{version_tuple[1]} interpreter: {potential_path} (version output: {version_output})"
                                     )
                                     found_interpreter_path = potential_path
-                                    compatible = True
                                     break
-                            if compatible:
-                                break
-                        
-                        if compatible:
-                            break
+                                else:
+                                    logger.debug(
+                                        f"Candidate {potential_path} (from {exe_name}) is not in supported Python version range. Parsed version: {version_tuple}"
+                                    )
+                            except (ValueError, IndexError):
+                                logger.debug(
+                                    f"Could not parse version from string: '{version_str}' for candidate {potential_path}"
+                                )
                         else:
                             logger.debug(
-                                f"Candidate {potential_path} (from {exe_name}) is not in supported Python version range. Output: {version_output}"
+                                f"Could not extract version string from output: '{version_output}' for candidate {potential_path}"
                             )
                     except subprocess.TimeoutExpired:
                         logger.warning(
@@ -1007,14 +1020,15 @@ def main() -> int:
                     os.execve(found_interpreter_path, args_for_exec, new_env)
                 except Exception as e:
                     logger.error(f"Failed to re-execute with {found_interpreter_path}: {e}")
-
-            logger.error(
-                f"Python {target_major}.{target_minor} is required, but a compatible version was not found "
-                f"on your system after searching common paths (candidates: {[c[0] for c in candidate_interpreters]}). "
-                f"Please install Python {target_major}.{target_minor}, ensure it's in your PATH, "
-                f"or run {Path(__file__).name} using a Python {target_major}.{target_minor} interpreter directly."
-            )
-            sys.exit(1)
+                    sys.exit(1)
+            else:
+                logger.error(
+                    f"Python {target_major}.{target_minor} is required, but a compatible version was not found "
+                    f"on your system after searching common paths (candidates: {[c[0] for c in candidate_interpreters]}). "
+                    f"Please install Python {target_major}.{target_minor}, ensure it's in your PATH, "
+                    f"or run {Path(__file__).name} using a Python {target_major}.{target_minor} interpreter directly."
+                )
+                sys.exit(1)
 
     elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
         logger.info(
