@@ -1,6 +1,9 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import pytest
+
 from backend.python_nlp.nlp_engine import NLPEngine
+
 
 @patch("backend.python_nlp.nlp_engine.NLPEngine._load_model", return_value=None)
 def test_analyze_email_success_path(mock_load_model):

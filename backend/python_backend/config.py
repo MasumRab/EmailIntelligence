@@ -2,7 +2,9 @@
 Configuration for the FastAPI application, using Pydantic's BaseSettings.
 """
 from pathlib import Path
+
 from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     """
