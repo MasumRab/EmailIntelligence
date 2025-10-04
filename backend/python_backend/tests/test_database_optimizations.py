@@ -15,7 +15,9 @@ pytestmark = pytest.mark.asyncio
 @pytest_asyncio.fixture
 async def fresh_db():
     """Fixture to provide a fresh, isolated DatabaseManager instance for each test."""
-    temp_data_dir = "backend/python_backend/tests/temp_data"
+    import os
+    from pathlib import Path
+    temp_data_dir = os.getenv("TEMP_DATA_DIR", "backend/python_backend/tests/temp_data")
     content_dir = os.path.join(temp_data_dir, "email_content")
     if not os.path.exists(content_dir):
         os.makedirs(content_dir)
