@@ -1,0 +1,16 @@
+{
+    "branch": "opencode",
+    "model": "gpt-4o-code",
+    "temperature": 0.0,
+    "max_tokens": 2048,
+    "system_instructions": "Opencode preset: prefer code-first, ample examples, explicit typing, and follow the project's style guides.",
+    "safety": {
+        "filter_sensitive": true
+    },
+    "use_cases": {
+        "code": {
+            "format": "apply black/isort for Python; run prettierrc for JS/TS",
+            "tests": "Include unit tests for new public behavior"
+        }
+    }
+}
