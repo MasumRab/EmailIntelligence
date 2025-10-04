@@ -141,7 +141,7 @@ This section describes additional scripts that support the deployment and develo
     *   **Functionality:** Supports commands like `generate` (to create new migration scripts), `apply` (to apply pending migrations), `status` (to check migration status), and `rollback` (to revert migrations).
     *(Note: The `deploy.py` script provides a `migrate` command which utilizes this script.)*
 
-*   **`server/python_backend/metrics.py`**:
+*   **`backend/python_backend/metrics.py`**:
     *   **Purpose:** Provides Prometheus metrics for application monitoring.
     *   **Functionality:** Tracks key performance indicators such as request latency, database query performance, and other custom application-specific metrics.
 
@@ -165,7 +165,7 @@ This section describes additional scripts that support the deployment and develo
 
 ## Prerequisites
 
-- Python 3.11 or higher
+- Python 3.12 or higher
 - Docker and Docker Compose (for containerized environments)
 - PostgreSQL (for local development)
 - Node.js and npm (for frontend development)
@@ -223,7 +223,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - name: Deploy to staging
         run: |
           python deployment/deploy.py staging build
