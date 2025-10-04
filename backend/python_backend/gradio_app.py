@@ -62,24 +62,41 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
                     analyze_button = gr.Button("Analyze Email", variant="primary")
                 with gr.Column(scale=1):
                     gr.Markdown("### Analysis Results")
-                    analysis_output = gr.JSON(label="AI Analysis")
+                    topic_output = gr.Label(label="Topic")
+                    sentiment_output = gr.Label(label="Sentiment")
+                    reasoning_output = gr.Textbox(label="Reasoning", lines=5)
+                    keywords_output = gr.HighlightedText(label="Keywords")
+                    analysis_output = gr.JSON(label="Full Analysis (JSON)")
+
+            def update_outputs(subject, content):
+                result = analyze_email_interface(subject, content)
+                if "error" in result:
+                    return gr.update(), gr.update(), result.get("error", "An error occurred."), [], result, gr.update(), gr.update()
+
+                topic = result.get("topic", "N/A")
+                sentiment = result.get("sentiment", "N/A")
+                reasoning = result.get("reasoning", "N/A")
+                categories = result.get("categories", [])
+
+                keywords = result.get("keywords", [])
+                highlighted_keywords = [(k, result.get("topic")) for k in keywords]
+
+                sentiment_chart_fig = generate_sentiment_chart(sentiment)
+                topic_chart_fig = generate_topic_pie(categories)
+
+                return topic, sentiment, reasoning, highlighted_keywords, result, sentiment_chart_fig, topic_chart_fig
 
             analyze_button.click(
-                fn=analyze_email_interface,
+                fn=update_outputs,
                 inputs=[email_subject, email_content],
-                outputs=analysis_output
+                outputs=[topic_output, sentiment_output, reasoning_output, keywords_output, analysis_output, sentiment_chart, topic_chart]
             )
 
         with gr.TabItem("Visualization"):
             gr.Markdown("### Data Visualization")
             sentiment_chart = gr.Plot(label="Sentiment Gauge")
             topic_chart = gr.Plot(label="Topic Pie Chart")
-            # For demo, use sample data or trigger from analysis
-            gr.Button("Generate Sample Charts").click(
-                fn=lambda: (generate_sentiment_chart("neutral"), generate_topic_pie(["Work", "Personal"])),
-                inputs=[],
-                outputs=[sentiment_chart, topic_chart]
-            )
+            gr.Markdown("The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab.")
 
         with gr.TabItem("Scientific Analysis"):
             gr.Markdown("### Advanced Data Analysis")
