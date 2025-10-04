@@ -27,3 +27,4 @@ scipy
 jupyter
 ipykernel
 ipywidgets
+plotly
