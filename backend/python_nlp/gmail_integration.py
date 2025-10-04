@@ -11,6 +11,7 @@ import os
 import sqlite3
 import time
 from collections import deque
+from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -27,6 +28,10 @@ load_dotenv()
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+
+# Define the project's root directory and default path for the email cache
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_CACHE_PATH = PROJECT_ROOT / "email_cache.db"
 
 # Path for token.json, configurable via environment variable
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
@@ -115,7 +120,7 @@ class RateLimiter:
 class EmailCache:
     """SQLite-based cache for email metadata and content"""
 
-    def __init__(self, cache_path: str = "email_cache.db"):
+    def __init__(self, cache_path: str = DEFAULT_CACHE_PATH):
         self.cache_path = cache_path
         self.conn = sqlite3.connect(cache_path, check_same_thread=False)
         self._init_cache()
