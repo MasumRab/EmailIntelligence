@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from launch import ROOT_DIR, start_frontend
+from launch import ROOT_DIR, main, start_gradio_ui
 
 
 # Test case 1: npm executable is not found
@@ -22,11 +22,11 @@ def test_start_frontend_npm_not_found(
     mock_logger, mock_check_call, mock_which, mock_exists
 ):
     """
-    Verifies that start_frontend exits gracefully if npm is not installed.
+    Verifies that start_gradio_ui exits gracefully if npm is not installed.
     """
     # The function expects 'port' for VITE_API_URL, which was missing before
-    args = argparse.Namespace(host="127.0.0.1", port=8000, frontend_port=5173)
-    result = start_frontend(args)
+    args = argparse.Namespace(host="127.0.0.1", port=8000, gradio_port=7860, debug=False, share=False)
+    result = start_gradio_ui(args, sys.executable)
 
     # This assertion is expected to fail with the buggy code
     assert result is None, "Function should return None when npm is not found"
@@ -55,11 +55,11 @@ def test_start_frontend_npm_install_fails(
     mock_logger, mock_run, mock_check_call, mock_which, mock_exists
 ):
     """
-    Verifies that start_frontend exits gracefully if 'npm install' fails.
+    Verifies that start_gradio_ui exits gracefully if 'npm install' fails.
     """
     # The function expects 'port' for VITE_API_URL, which was missing before
-    args = argparse.Namespace(host="127.0.0.1", port=8000, frontend_port=5173)
-    result = start_frontend(args)
+    args = argparse.Namespace(host="127.0.0.1", port=8000, gradio_port=7860, debug=False, share=False)
+    result = start_gradio_ui(args, sys.executable)
 
     # This assertion is expected to fail with the buggy code
     assert result is None, "Function should return None when npm install fails"
@@ -67,3 +67,46 @@ def test_start_frontend_npm_install_fails(
     mock_logger.error.assert_any_call(
         f"Failed to install frontend dependencies in {client_dir}."
     )
+
+@patch('launch.os.environ', {"LAUNCHER_REEXEC_GUARD": "0"})
+@patch('launch.sys.argv', ['launch.py'])
+@patch('launch.platform.system', return_value='Linux')
+@patch('launch.sys.version_info', (3, 10, 0)) # Incompatible version
+@patch('launch.shutil.which')
+@patch('launch.subprocess.run')
+@patch('launch.os.execve', side_effect=Exception("Called execve"))
+@patch('launch.sys.exit')
+@patch('launch.logger')
+def test_python_interpreter_discovery_avoids_substring_match(
+    mock_logger, mock_exit, mock_execve, mock_subprocess_run, mock_which, _mock_system
+):
+    """
+    Tests that the launcher does not incorrectly match partial version strings (e.g., 3.111 vs 3.11).
+    This test should fail with the old string-based comparison and pass with the new tuple-based one.
+    """
+    # Arrange
+    mock_which.side_effect = [
+        '/usr/bin/python-tricky',   # for python3.12
+        '/usr/bin/python-good',     # for python3.11
+        None,                       # for python3
+    ]
+    # The first interpreter found returns a version that could be a problem for string matching
+    # The second one is fine.
+    mock_subprocess_run.side_effect = [
+        MagicMock(stdout="Python 3.111.0", stderr="", returncode=0), # Should be rejected
+        MagicMock(stdout="Python 3.11.5", stderr="", returncode=0), # Should be accepted
+    ]
+
+    # Act
+    main()
+
+    # Assert
+    # It should have tried to execute the second, valid interpreter
+    mock_execve.assert_called_once()
+    exec_path, _, _ = mock_execve.call_args[0]
+    assert exec_path == '/usr/bin/python-good'
+
+    # When the mocked execve raises an exception, the except block should log it
+    # and then exit with status 1.
+    assert mock_logger.error.call_count > 0
+    mock_exit.assert_called_once_with(1)
