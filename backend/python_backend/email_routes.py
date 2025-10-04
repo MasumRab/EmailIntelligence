@@ -13,6 +13,7 @@ from .exceptions import AIAnalysisError, DatabaseError
 from .models import EmailResponse  # Changed from .main to .models
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
+from .utils import handle_pydantic_validation, create_log_data
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -36,31 +37,26 @@ async def get_emails(
             emails = await db.get_emails_by_category(category_id)
         else:
             emails = await db.get_all_emails()
-        try:
-            return [EmailResponse(**email) for email in emails]
-        except Exception as e_outer:
-            logger.error(f"Outer exception during get_emails Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
-            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise # Re-raise for FastAPI to handle
+        
+        return await handle_pydantic_validation(emails, EmailResponse, "get_emails")
     except psycopg2.Error as db_err:
-        log_data = {
-            "message": "Database operation failed while fetching emails",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
+        log_data = create_log_data(
+            message="Database operation failed while fetching emails",
+            request_url=request.url,
+            error_type=type(db_err).__name__,
+            error_detail=str(db_err),
+            pgcode=db_err.pgcode if hasattr(db_err, "pgcode") else None,
+        )
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
-        log_data = {
-            "message": "Unhandled error in get_emails",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
+        log_data = create_log_data(
+            message="Unhandled error in get_emails",
+            request_url=request.url,
+            error_type=type(e).__name__,
+            error_detail=str(e),
+        )
+        logger.error(json.dumps(log_data))
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
 

@@ -8,18 +8,10 @@ import logging
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
-from abc import ABC, abstractmethod
-
-# Define a protocol to avoid circular import dependency
-class DatabaseProtocol(ABC):
-    """Protocol/Interface for database operations to avoid circular import"""
-    
-    @abstractmethod
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
-        pass
 
 if TYPE_CHECKING:
     from .database import DatabaseManager
+    from ..python_nlp.protocols import DatabaseProtocol
 
 # from .utils.async_utils import _execute_async_command # Commented out
 from ..python_nlp.nlp_engine import NLPEngine  # Changed import alias
