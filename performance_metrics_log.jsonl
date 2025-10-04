@@ -251,3 +251,12 @@
 {"timestamp": "2025-10-04T11:29:09.101414+00:00", "operation": "smart_retrieval", "duration_seconds": 6.651499995768972e-05}
 {"timestamp": "2025-10-04T11:29:09.108212+00:00", "operation": "get_retrieval_strategies", "duration_seconds": 6.064000001515524e-05}
 {"timestamp": "2025-10-04T11:29:09.114501+00:00", "operation": "get_gmail_performance", "duration_seconds": 6.534600004215463e-05}
+{"timestamp": "2025-10-04T12:55:51.524564+00:00", "operation": "save_data_to_file", "duration_seconds": 0.027104300001155934}
+{"timestamp": "2025-10-04T12:55:51.528594+00:00", "operation": "save_data_to_file", "duration_seconds": 0.0031453999999939697}
+{"timestamp": "2025-10-04T12:55:51.532616+00:00", "operation": "save_data_to_file", "duration_seconds": 0.00243889999910607}
+{"timestamp": "2025-10-04T12:55:51.532616+00:00", "operation": "load_data", "duration_seconds": 0.03683339999952295}
+{"timestamp": "2025-10-04T12:55:51.534628+00:00", "operation": "build_indexes", "duration_seconds": 0.0004518999994616024}
+{"timestamp": "2025-10-04T12:56:01.348936+00:00", "operation": "load_data", "duration_seconds": 0.04591859999891312}
+{"timestamp": "2025-10-04T12:56:01.353438+00:00", "operation": "build_indexes", "duration_seconds": 0.0013067999989289092}
+{"timestamp": "2025-10-04T12:59:22.215525+00:00", "operation": "load_data", "duration_seconds": 0.00905869999951392}
+{"timestamp": "2025-10-04T12:59:22.218054+00:00", "operation": "build_indexes", "duration_seconds": 0.0004307999988668598}

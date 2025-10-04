@@ -88,3 +88,6 @@ jsons/
  
 # Ignore local LLM guideline overrides so developers can keep ephemeral configs
 config/llm_guidelines.local.json
+
+.gemini/
+gha-creds-*.json
