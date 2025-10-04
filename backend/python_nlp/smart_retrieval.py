@@ -29,6 +29,10 @@ TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
 CREDENTIALS_PATH = "credentials.json"  # Fallback
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
+# Define the project's root directory and default path for the checkpoint database
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DEFAULT_CHECKPOINT_DB_PATH = os.path.join(PROJECT_ROOT, "sync_checkpoints.db")
+
 
 @dataclass
 class RetrievalStrategy:
@@ -60,7 +64,7 @@ class SyncCheckpoint:
 class SmartGmailRetriever:
     """Advanced Gmail retrieval with intelligent filtering and batching"""
 
-    def __init__(self, checkpoint_db_path: str = "sync_checkpoints.db"):
+    def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
         self.logger = logging.getLogger(__name__)
         self.checkpoint_db_path = checkpoint_db_path
         self.logger.info(f"Using checkpoint database: {self.checkpoint_db_path}")

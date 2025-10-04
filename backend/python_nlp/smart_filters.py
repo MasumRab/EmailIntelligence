@@ -5,12 +5,18 @@ Implements intelligent filter creation, pruning, and Google Apps Script integrat
 
 import json
 import logging
+import os
 import re
 import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
+
+# Define the project's root directory
+# This assumes the script is in backend/python_nlp, so we go up two levels
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DEFAULT_DB_PATH = os.path.join(PROJECT_ROOT, "smart_filters.db")
 
 
 @dataclass
@@ -50,7 +56,7 @@ class FilterPerformance:
 class SmartFilterManager:
     """Intelligent email filter management with performance optimization"""
 
-    def __init__(self, db_path: str = "smart_filters.db"):
+    def __init__(self, db_path: str = DEFAULT_DB_PATH):
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None  # For persistent in-memory connection
