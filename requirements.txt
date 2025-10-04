@@ -8,6 +8,7 @@ joblib
 pyngrok>=0.7.0
 gradio
 nltk
+textblob
 uvicorn>=0.34.3
 transformers
 # Hugging Face model dependencies
@@ -15,7 +16,7 @@ transformers
 # If you only want PyTorch support, you can omit tensorflow
 # If you want both, you can include both
 # Below is a recommended set for PyTorch-based Hugging Face models:
-torch
+torch-cpu
 accelerate
 sentencepiece
 pandas
