@@ -471,10 +471,16 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 )
                 return False
         else:
-            chosen_req_file = _get_primary_requirements_file()
+            # Even if not updating, ensure all dependencies from the primary requirements file are installed.
+            primary_req_file = _get_primary_requirements_file()
             logger.info(
-                f"Compatible virtual environment found (or user chose to proceed with existing). Primary requirements file: {Path(chosen_req_file).name}. Skipping base dependency installation unless --update-deps is used."
+                f"Ensuring dependencies from {Path(primary_req_file).name} are installed..."
             )
+            if not install_dependencies(primary_req_file, update=False):
+                logger.error(
+                    f"Failed to install dependencies from {Path(primary_req_file).name}. Exiting."
+                )
+                return False
 
         stage_requirements_file_path_str = None
         if args.stage == "dev":
@@ -499,18 +505,17 @@ def prepare_environment(args: argparse.Namespace) -> bool:
                 )
             else:
                 logger.info(
-                    f"Skipping stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} unless missing or --update-deps is used."
+                    f"Ensuring stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} are installed..."
                 )
 
-            if venv_needs_initial_setup or args.update_deps:
-                if not install_dependencies(
-                    stage_requirements_file_path_str,
-                    update=install_stage_deps_update_flag,
-                ):
-                    logger.error(
-                        f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
-                    )
-                    return False
+            if not install_dependencies(
+                stage_requirements_file_path_str,
+                update=install_stage_deps_update_flag,
+            ):
+                logger.error(
+                    f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
+                )
+                return False
 
     if not args.no_download_nltk:
         if not download_nltk_data():
