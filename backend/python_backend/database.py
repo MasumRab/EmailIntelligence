@@ -16,12 +16,15 @@ from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
-# File paths
-DATA_DIR = "backend/data"
-EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
-EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
-CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
-USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+# File paths - now configurable via environment variable
+import os
+from pathlib import Path
+
+DATA_DIR = Path(os.getenv("DATA_DIR", "backend/data"))
+EMAIL_CONTENT_DIR = DATA_DIR / "email_content"
+EMAILS_FILE = DATA_DIR / "emails.json.gz"
+CATEGORIES_FILE = DATA_DIR / "categories.json.gz"
+USERS_FILE = DATA_DIR / "users.json.gz"
 
 # Data types
 DATA_TYPE_EMAILS = 'emails'
