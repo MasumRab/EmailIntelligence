@@ -6,7 +6,7 @@ This guide will help you set up the EmailIntelligence application in a fresh env
 
 Before starting, ensure you have the following installed:
 
-- **Python 3.11+** - [Download Python](https://python.org/downloads/)
+- **Python 3.12+** - [Download Python](https://python.org/downloads/)
 - **Node.js 18+** - [Download Node.js](https://nodejs.org/)
 - **npm** (comes with Node.js)
 - **Git** - [Download Git](https://git-scm.com/)
@@ -74,7 +74,7 @@ cd ..
 source venv/bin/activate
 
 # Start the FastAPI backend server
-python3 backend/main.py
+python3 backend/python_backend/main.py
 ```
 
 The backend will be available at: http://localhost:8000
@@ -102,7 +102,7 @@ The application includes a Python-based launcher that can start both backend and
 source venv/bin/activate
 
 # Use the launcher
-python3 launcher.py --help
+python3 launch.py --help
 ```
 
 ## Verification
@@ -117,7 +117,7 @@ To verify your setup is working:
 
 ### Common Issues
 
-1. **Python version error**: Ensure you have Python 3.11 or higher
+1. **Python version error**: Ensure you have Python 3.12 or higher
    ```bash
    python3 --version
    ```

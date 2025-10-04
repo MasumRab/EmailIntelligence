@@ -201,7 +201,7 @@ The following environment variables are used by the deployment framework:
     - Backend: http://localhost:8000 (or as configured)
     - Frontend: http://localhost:5173 (or as configured)
 
-    *(Note: For pure local development without Docker, you would typically run the backend and frontend services manually. For example, for a Python backend: `python server/main.py` and for a Node.js frontend: `npm run dev` from within the client directory. Refer to specific service documentation for manual setup details.)*
+    *(Note: For pure local development without Docker, you would typically run the backend and frontend services manually. For example, for a Python backend: `python backend/python_backend/main.py` and for a Node.js frontend: `npm run dev` from within the client directory. Refer to specific service documentation for manual setup details.)*
 
 ## Continuous Integration/Continuous Deployment (CI/CD)
 

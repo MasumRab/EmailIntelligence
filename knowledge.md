@@ -5,7 +5,7 @@ Email Intelligence is an AI-powered email management application that provides i
 
 ## Architecture
 - **Frontend**: React (client/) with TypeScript, TailwindCSS, and Radix UI components
-- **Backend**: Express.js (server/) with Python AI/ML integration
+- **Backend**: Python FastAPI (backend/) with AI/ML integration
 - **AI Engine**: Python-based NLP models for sentiment, intent, topic, and urgency analysis
 - **Database**: SQLite for local storage and caching
 
@@ -17,9 +17,9 @@ Email Intelligence is an AI-powered email management application that provides i
 
 ## Project Structure
 - `/client/` - React frontend application
-- `/server/` - Express.js backend and API routes
-- `/server/python_nlp/` - Python NLP models and analysis components
-- `/server/python_backend/` - Python backend services
+- `/backend/` - Python FastAPI backend and API routes
+- `/backend/python_nlp/` - Python NLP models and analysis components
+- `/backend/python_backend/` - Python backend services
 - `/extensions/` - Extensible plugin system
 - `/shared/` - Shared TypeScript schemas
 
