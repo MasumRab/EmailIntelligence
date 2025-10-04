@@ -9,15 +9,13 @@ import logging
 import os  # Added
 import sys  # Added
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-# Import AdvancedAIEngine (assuming it's now the primary way to get AI analysis)
-# Adjust the import path as necessary based on your project structure.
-# This assumes AdvancedAIEngine is in a module that can be imported.
-# If it's in python_backend, the path needs to be correct.
-# For now, let's assume a placeholder for where AdvancedAIEngine would be imported from.
-from ..python_backend.ai_engine import AdvancedAIEngine  # Assuming this import works
-from ..python_backend.database import DatabaseManager  # Assuming this import works
+# To avoid circular imports with type hints
+if TYPE_CHECKING:
+    from ..python_backend.ai_engine import AdvancedAIEngine
+    from ..python_backend.database import DatabaseManager
+    from .protocols import AIEngineProtocol, DatabaseProtocol
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
@@ -33,8 +31,8 @@ class GmailAIService:
     def __init__(
         self,
         rate_config: Optional[RateLimitConfig] = None,
-        advanced_ai_engine: Optional[AdvancedAIEngine] = None,  # Typed hint
-        db_manager: Optional[DatabaseManager] = None,
+        advanced_ai_engine: Optional["AIEngineProtocol"] = None,  # Using protocol
+        db_manager: Optional["DatabaseProtocol"] = None,  # Using protocol
     ):  # Added db_manager
         self.collector = GmailDataCollector(rate_config)
         self.metadata_extractor = GmailMetadataExtractor()
@@ -44,20 +42,17 @@ class GmailAIService:
         if advanced_ai_engine:
             self.advanced_ai_engine = advanced_ai_engine
         else:
-            self.logger.info(
-                "No AdvancedAIEngine provided, instantiating a new one for GmailAIService."
+            self.logger.warning(
+                "No AI engine provided to GmailAIService. AI analysis will be disabled."
             )
-            self.advanced_ai_engine = AdvancedAIEngine()
-            # Consider if AIEngine needs initialization here, e.g., self.advanced_ai_engine.initialize()
+            self.advanced_ai_engine = None
 
         self.db_manager = db_manager
         if not self.db_manager:
-            self.logger.info(
-                "No DatabaseManager provided to GmailAIService, instantiating a new one."
+            self.logger.warning(
+                "No Database manager provided to GmailAIService. Category matching will be disabled."
             )
-            # This might be problematic if DB URL isn't available easily here or for testing.
-            # Ideally, db_manager should be a required dependency if category matching is always on.
-            self.db_manager = DatabaseManager()
+            self.db_manager = None
 
         # Path definitions for scripts (like smart_retrieval.py) might still be relevant
         self.nlp_path = os.path.dirname(__file__)
@@ -272,17 +267,11 @@ class GmailAIService:
         `email_data` should contain 'subject' and 'content'.
         """
         if not self.advanced_ai_engine:
-            self.logger.error("AdvancedAIEngine not available for AI analysis.")
-            return self._get_basic_fallback_analysis_structure("AdvancedAIEngine not configured")
+            self.logger.error("AI engine not available for AI analysis.")
+            return self._get_basic_fallback_analysis_structure("AI engine not configured")
 
-        if not self.db_manager:
-            self.logger.warning(
-                "DatabaseManager not available in GmailAIService, category ID matching will be skipped for AI analysis."
-            )
-            # Fallback to analysis without DB-based category matching
-            db_for_analysis = None
-        else:
-            db_for_analysis = self.db_manager
+        # Pass the db manager (which could be None) to the AI engine
+        db_for_analysis = self.db_manager
 
         self.logger.debug(f"Performing AI analysis for email ID: {email_data.get('id', 'unknown')}")
         try:
@@ -291,7 +280,7 @@ class GmailAIService:
             analysis_result_obj = await self.advanced_ai_engine.analyze_email(
                 subject=email_data.get("subject", ""),
                 content=email_data.get("content", ""),
-                db=db_for_analysis,  # Pass the db_manager instance
+                db=db_for_analysis,  # Pass the db manager (could be None)
             )
 
             # Assuming analyze_email returns an object with a to_dict() method or is a dict
