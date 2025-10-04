@@ -16,7 +16,7 @@ transformers
 # If you only want PyTorch support, you can omit tensorflow
 # If you want both, you can include both
 # Below is a recommended set for PyTorch-based Hugging Face models:
-torch-cpu
+torch
 accelerate
 sentencepiece
 pandas
