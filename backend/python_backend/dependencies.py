@@ -11,22 +11,45 @@ if TYPE_CHECKING:
     from ..python_nlp.gmail_service import GmailAIService
     from ..python_nlp.smart_filters import SmartFilterManager
     from .database import DatabaseManager
+    from ..python_nlp.protocols import AIEngineProtocol, DatabaseProtocol
 
 from ..python_nlp.gmail_service import GmailAIService
 from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
 
-# Singleton instances
+# Module-level variables to store instances (better than global variables in functions)
 _ai_engine_instance: Optional[AdvancedAIEngine] = None
 _filter_manager_instance: Optional[SmartFilterManager] = None
 _gmail_service_instance: Optional[GmailAIService] = None
+
+
+async def initialize_services():
+    """Initialize all singleton services. This should be called on application startup."""
+    global _ai_engine_instance, _filter_manager_instance, _gmail_service_instance
+    
+    # Initialize AI Engine
+    if _ai_engine_instance is None:
+        _ai_engine_instance = AdvancedAIEngine()
+        _ai_engine_instance.initialize()
+    
+    # Initialize Filter Manager
+    if _filter_manager_instance is None:
+        _filter_manager_instance = SmartFilterManager()
+    
+    # Initialize Gmail Service (requires other services)
+    if _gmail_service_instance is None:
+        db = await get_db()
+        _gmail_service_instance = GmailAIService(
+            db_manager=db, advanced_ai_engine=_ai_engine_instance
+        )
 
 
 def get_ai_engine() -> "AdvancedAIEngine":
     """Dependency injector for AdvancedAIEngine. Returns a singleton instance."""
     global _ai_engine_instance
     if _ai_engine_instance is None:
+        # This should not happen if initialize_services is called at startup
         _ai_engine_instance = AdvancedAIEngine()
         _ai_engine_instance.initialize()
     return _ai_engine_instance
@@ -36,13 +59,13 @@ def get_filter_manager() -> "SmartFilterManager":
     """Dependency injector for SmartFilterManager. Returns a singleton instance."""
     global _filter_manager_instance
     if _filter_manager_instance is None:
+        # This should not happen if initialize_services is called at startup
         _filter_manager_instance = SmartFilterManager()
     return _filter_manager_instance
 
 
 def get_gmail_service(
     db: DatabaseManager = Depends(get_db),
-    ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
 ) -> "GmailAIService":
     """
     Dependency injector for GmailAIService. Returns a singleton instance.
@@ -50,6 +73,8 @@ def get_gmail_service(
     """
     global _gmail_service_instance
     if _gmail_service_instance is None:
+        # This should not happen if initialize_services is called at startup
+        ai_engine = get_ai_engine()
         _gmail_service_instance = GmailAIService(
             db_manager=db, advanced_ai_engine=ai_engine
         )
