@@ -1,7 +1,6 @@
 import json
 import logging
 
-import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 # Corrected import path for SmartFilterManager
@@ -88,13 +87,13 @@ async def generate_intelligent_filters(
         created_filters = filter_manager.create_intelligent_filters(emails)
 
         return {"created_filters": len(created_filters), "filters": created_filters}
-    except psycopg2.Error as db_err:
+    except Exception as db_err:
         log_data = {
             "message": "DB operation failed during intelligent filter generation",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            "pgcode": None,
         }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
