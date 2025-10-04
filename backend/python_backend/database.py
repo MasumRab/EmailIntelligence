@@ -4,14 +4,15 @@ JSON file storage implementation.
 """
 
 import asyncio
+import gzip
 import json
 import logging
 import os
-import gzip
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Literal
 from functools import partial
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from typing import Any, Dict, List, Literal, Optional
+
+from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
