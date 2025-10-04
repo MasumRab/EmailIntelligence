@@ -4,7 +4,7 @@ This is a streamlined version of the Email Intelligence application, focusing on
 
 ## Prerequisites
 
-*   **Python:** Version 3.11.x is required.
+*   **Python:** Version 3.12.x is required.
 *   **Node.js:** A recent LTS version (e.g., 18.x or 20.x) is recommended.
 *   **Git:** For cloning the repository.
 
@@ -46,7 +46,7 @@ This is a streamlined version of the Email Intelligence application, focusing on
 
 This version uses local file-based storage:
 
-*   **Main Application Data:** Email data, categories, and user information are stored as JSON files in the `server/python_backend/data/` directory.
+*   **Main Application Data:** Email data, categories, and user information are stored as JSON files in the `backend/python_backend/data/` directory.
 *   **Smart Filter Rules:** Configuration for smart filters is stored in an SQLite database file named `smart_filters.db` located in the project root.
 *   **Email Cache:** A local cache for fetched email content is stored in `email_cache.db` in the project root.
 
@@ -58,8 +58,8 @@ To stop both the backend and frontend servers, press `Ctrl+C` in the terminal wi
 
 ## Development Notes
 
-*   The Python backend is located in `server/python_backend/`.
-*   The NLP processing logic is in `server/python_nlp/`.
+*   The Python backend is located in `backend/python_backend/`.
+*   The NLP processing logic is in `backend/python_nlp/`.
 *   The frontend client (React/Vite) is in `client/`.
 *   Ensure the Python virtual environment (`venv/bin/activate` or `venv\Scripts\activate`) is active if you need to run Python commands manually.
 ```
