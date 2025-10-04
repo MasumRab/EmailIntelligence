@@ -2,7 +2,6 @@ import json
 import logging
 from typing import List
 
-import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
@@ -22,13 +21,13 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
     try:
         categories = await db.get_all_categories()
         return await handle_pydantic_validation(categories, CategoryResponse, "get_categories")
-    except psycopg2.Error as db_err:
+    except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while fetching categories",
             request_url=request.url,
             error_type=type(db_err).__name__,
             error_detail=str(db_err),
-            pgcode=db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            pgcode=None,
         )
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
@@ -56,13 +55,13 @@ async def create_category(
         # Use the utility function to handle Pydantic validation
         validated_categories = await handle_pydantic_validation([created_category_dict], CategoryResponse, "create_category")
         return validated_categories[0]  # Return the single validated category
-    except psycopg2.Error as db_err:
+    except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while creating category",
             request_url=request.url,
             error_type=type(db_err).__name__,
             error_detail=str(db_err),
-            pgcode=db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            pgcode=None,
         )
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
