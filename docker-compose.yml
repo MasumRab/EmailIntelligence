@@ -1,21 +1,29 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: emailintelligence
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+  # SQLite doesn't require a dedicated database service like PostgreSQL
+  # The application uses a local sqlite.db file for storage
+  app:
+    build: .
     ports:
-      - "5432:5432"
+      - "8000:8000"
+      - "5000:5000"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - .:/app
+      - sqlite_data:/app/sqlite.db
+    environment:
+      - DATABASE_URL=sqlite.db
+    depends_on:
+      - redis  # If using redis for sessions/cache
+    # Add other services as needed
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 volumes:
-  postgres_data:
+  sqlite_data:
+  redis_data:
