@@ -1,4 +1,0 @@
-# requirements-test.txt
-# This file should contain any testing-specific dependencies.
-pytest
-pytest-asyncio
