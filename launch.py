@@ -102,6 +102,8 @@ def _get_venv_status() -> Tuple[VenvStatus, Optional[str]]:
 
 
 def _handle_sigint(signum, frame):
+    logger.info("Received SIGINT/SIGTERM, shutting down...")
+    for p in processes:
         if p.poll() is None:  # Check if process is still running
             logger.info(f"Terminating process {p.pid}...")
             p.terminate()
