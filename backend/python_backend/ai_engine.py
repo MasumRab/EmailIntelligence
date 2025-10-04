@@ -133,49 +133,7 @@ class AdvancedAIEngine:
             logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
             return self._get_fallback_analysis(subject, content, f"AI analysis error: {str(e)}")
 
-    # def train_models( # Removed entire method
-        # self, training_emails: Optional[List[Dict[str, Any]]] = None
-    # ) -> Dict[str, Any]:
-        # """Train AI models - not functional with direct NLPEngine integration."""
-        # warning_msg = (
-            # "train_models is not functional with direct NLPEngine integration. "
-            # "The ai_training.py script logic needs to be integrated into "
-            # "NLPEngine."
-        # )
-        # logger.warning(warning_msg)
 
-        # current_dir = os.path.dirname(__file__)
-        # training_file_path = os.path.join(
-            # current_dir, "..", "python_nlp", "temp_training_data.json"
-        # )
-
-        # if training_emails:
-            # try:
-                # with open(training_file_path, "w") as f:
-                    # json.dump(training_emails, f)
-            # except IOError as e:
-                # logger.error(f"Error creating temp training file {training_file_path}: {e}")
-
-        # if os.path.exists(training_file_path):
-            # try:
-                # os.remove(training_file_path)
-                # logger.info(f"Removed temp training file: {training_file_path}")
-            # except OSError as e:
-                # logger.error(f"Error removing temp training file {training_file_path}: {e}")
-
-        # error_msg = (
-            # "Model training via direct NLPEngine call is not implemented. "
-            # "Requires ai_training.py logic integration."
-        # )
-        # return {
-            # "success": False,
-            # "error": error_msg,
-            # "modelsTrained": [],
-            # "trainingAccuracy": {},
-            # "validationAccuracy": {},
-            # "trainingTime": 0,
-            # "emailsProcessed": len(training_emails) if training_emails else 0,
-        # }
 
     def health_check(self) -> Dict[str, Any]:
         """Check AI engine health by inspecting the NLPEngine instance."""
