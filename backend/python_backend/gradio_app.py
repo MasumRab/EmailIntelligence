@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+import json
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -107,7 +108,7 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
 
             def analyze_batch(data_str):
                 try:
-                    emails = eval(data_str)  # Simple eval for demo; use json.loads in prod
+                    emails = json.loads(data_str)  # Switched to safe parsing
                     results = []
                     for email in emails:
                         result = nlp_engine.analyze_email(email["subject"], email["content"])
