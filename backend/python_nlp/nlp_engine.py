@@ -151,18 +151,18 @@ class NLPEngine:
 
         # Initialize SentimentModel (previously SentimentAnalyzer)
         # These attributes self.sentiment_analyzer, self.topic_analyzer etc. are instances of our analyzer/model classes
-        self.sentiment_analyzer = SentimentModel(
-            sentiment_model=_sentiment_model_obj, has_nltk_installed=HAS_NLTK
-        )
+        # self.sentiment_analyzer = SentimentModel(
+        #     sentiment_model=_sentiment_model_obj, has_nltk_installed=HAS_NLTK
+        # )
 
         # Initialize TopicModel (previously TopicAnalyzer)
-        self.topic_analyzer = TopicModel(topic_model=_topic_model_obj)
+        # self.topic_analyzer = TopicModel(topic_model=_topic_model_obj) # This is now redundant
 
         # Initialize IntentModel (previously IntentAnalyzer)
-        self.intent_analyzer = IntentModel(intent_model=_intent_model_obj)
+        # self.intent_analyzer = IntentModel(intent_model=_intent_model_obj)
 
         # Initialize UrgencyModel (previously UrgencyAnalyzer)
-        self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
+        # self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
 
     def initialize_patterns(self):
         """Pre-compiles regex patterns for categorization."""
@@ -207,17 +207,117 @@ class NLPEngine:
         """
         return clean_text(text)
 
+    def _analyze_sentiment_model(self, text: str) -> Optional[Dict[str, Any]]:
+        """
+        Analyze sentiment using the loaded sklearn model.
+        """
+        if not self.sentiment_model:
+            return None
+
+        try:
+            prediction = self.sentiment_model.predict([text])[0]
+            probabilities = self.sentiment_model.predict_proba([text])[0]
+            confidence = max(probabilities)
+
+            polarity = 0.0
+            if prediction == "positive":
+                polarity = confidence
+            elif prediction == "negative":
+                polarity = -confidence
+
+            return {
+                "sentiment": str(prediction),
+                "polarity": polarity,
+                "subjectivity": 0.5,
+                "confidence": float(confidence),
+                "method_used": "model_sentiment",
+            }
+        except Exception as e:
+            logger.error(f"Error using sentiment model: {e}. Trying fallback.")
+            return None
+
+    def _analyze_sentiment_textblob(self, text: str) -> Optional[Dict[str, Any]]:
+        """
+        Analyze sentiment using TextBlob as a fallback method.
+        """
+        if not HAS_NLTK:
+            logger.warning("TextBlob analysis skipped: NLTK not available.")
+            return None
+
+        try:
+            blob = TextBlob(text)
+            polarity = blob.sentiment.polarity
+            subjectivity = blob.sentiment.subjectivity
+
+            if polarity > 0.1:
+                sentiment_label = "positive"
+                confidence = min(polarity + 0.5, 1.0)
+            elif polarity < -0.1:
+                sentiment_label = "negative"
+                confidence = min(abs(polarity) + 0.5, 1.0)
+            else:
+                sentiment_label = "neutral"
+                confidence = 0.7
+
+            return {
+                "sentiment": sentiment_label,
+                "polarity": polarity,
+                "subjectivity": subjectivity,
+                "confidence": confidence,
+                "method_used": "fallback_textblob_sentiment",
+            }
+        except Exception as e:
+            logger.error(f"Error during TextBlob sentiment analysis: {e}")
+            return None
+
+    def _analyze_sentiment_keyword(self, text: str) -> Dict[str, Any]:
+        """
+        Analyze sentiment using keyword matching as a final fallback method.
+        """
+        text_lower = text.lower()
+        positive_words = ["good", "great", "excellent", "thank", "please", "welcome", "happy", "love"]
+        negative_words = ["bad", "terrible", "problem", "issue", "error", "failed", "hate", "angry"]
+
+        positive_count = sum(1 for word in positive_words if word in text_lower)
+        negative_count = sum(1 for word in negative_words if word in text_lower)
+
+        if positive_count > negative_count:
+            sentiment_label = "positive"
+            polarity = 0.5
+            confidence = 0.6
+        elif negative_count > positive_count:
+            sentiment_label = "negative"
+            polarity = -0.5
+            confidence = 0.6
+        else:
+            sentiment_label = "neutral"
+            polarity = 0.0
+            confidence = 0.5
+
+        return {
+            "sentiment": sentiment_label,
+            "polarity": polarity,
+            "subjectivity": 0.5,
+            "confidence": confidence,
+            "method_used": "fallback_keyword_sentiment",
+        }
+
     def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
         """
-        Perform sentiment analysis using the SentimentAnalyzer component.
-
-        Args:
-            text: Text to analyze
-
-        Returns:
-            Dictionary containing sentiment analysis results
+        Perform sentiment analysis using available methods in order of preference.
         """
-        return self.sentiment_analyzer.analyze(text)
+        analysis_result = self._analyze_sentiment_model(text)
+        if analysis_result:
+            logger.info("Sentiment analysis performed using ML model.")
+            return analysis_result
+
+        analysis_result = self._analyze_sentiment_textblob(text)
+        if analysis_result:
+            logger.info("Sentiment analysis performed using TextBlob as fallback.")
+            return analysis_result
+
+        logger.info("Sentiment analysis performed using keyword matching as final fallback.")
+        return self._analyze_sentiment_keyword(text)
 
     def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
@@ -348,45 +448,151 @@ class NLPEngine:
 
     def _analyze_topic(self, text: str) -> Dict[str, Any]:
         """
-        Identify the main topic of the email using the TopicAnalyzer component.
-
-        Args:
-            text: Text to analyze
-
-        Returns:
-            Dictionary containing topic analysis results
+        Identify the main topic of the email using available methods.
+        It first tries the ML model and then falls back to keyword matching.
         """
-        if self.topic_analyzer and getattr(self.topic_analyzer, 'topic_model', None) is not None:
-            return self.topic_analyzer.analyze(text)
+        # Try model-based analysis first
+        analysis_result = self._analyze_topic_model(text)
+        if analysis_result:
+            logger.info("Topic analysis performed using ML model.")
+            return analysis_result
+
+        # Use keyword matching as fallback
+        logger.info("Topic analysis performed using keyword matching as fallback.")
         return self._analyze_topic_keyword(text)
 
-    def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_intent_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
-        Determine the intent of the email using the IntentAnalyzer component.
-
-        Args:
-            text: Text to analyze
-
-        Returns:
-            Dictionary containing intent analysis results or None if not available.
+        Analyze intent using the loaded sklearn model.
         """
-        if self.intent_analyzer and getattr(self.intent_analyzer, 'intent_model', None) is not None:
-            return self.intent_analyzer.analyze(text)
-        return None
+        if not self.intent_model:
+            return None
 
-    def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
+        try:
+            prediction = self.intent_model.predict([text])[0]
+            probabilities = self.intent_model.predict_proba([text])[0]
+            confidence = float(max(probabilities))
+
+            return {
+                "intent": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_intent",
+            }
+        except Exception as e:
+            logger.error(f"Error using intent model: {e}. Trying fallback.")
+            return None
+
+    def _analyze_intent_regex(self, text: str) -> Dict[str, Any]:
         """
-        Assess the urgency level of the email using the UrgencyAnalyzer component.
-
-        Args:
-            text: Text to analyze
-
-        Returns:
-            Dictionary containing urgency analysis results or None if not available.
+        Analyze intent using regex pattern matching as a fallback method.
         """
-        if self.urgency_analyzer and getattr(self.urgency_analyzer, 'urgency_model', None) is not None:
-            return self.urgency_analyzer.analyze(text)
-        return None
+        intent_patterns = {
+            "request": r"\b(please|could you|would you|can you|need|require|request)\b",
+            "inquiry": r"\b(question|ask|wonder|curious|information|details|clarification)\b",
+            "scheduling": r"\b(schedule|calendar|meeting|appointment|time|date|available)\b",
+            "urgent_action": r"\b(urgent|asap|immediately|emergency|critical|priority)\b",
+            "gratitude": r"\b(thank|thanks|grateful|appreciate)\b",
+            "complaint": r"\b(complaint|complain|issue|problem|dissatisfied|unhappy)\b",
+            "follow_up": r"\b(follow up|follow-up|checking in|status|update|progress)\b",
+            "confirmation": r"\b(confirm|confirmation|verify|check|acknowledge)\b",
+        }
+
+        intent_scores = {}
+        text_lower = text.lower()
+        for intent, pattern in intent_patterns.items():
+            matches = re.findall(pattern, text_lower)
+            intent_scores[intent] = len(matches)
+
+        if any(score > 0 for score in intent_scores.values()):
+            best_intent = max(intent_scores, key=intent_scores.get)
+            confidence = min(intent_scores[best_intent] / 3.0, 0.9)  # Heuristic
+
+            return {
+                "intent": best_intent,
+                "confidence": max(0.1, confidence),
+                "method_used": "fallback_regex_intent",
+            }
+        else:
+            return {
+                "intent": "informational",
+                "confidence": 0.6,
+                "method_used": "fallback_regex_intent",
+            }
+
+    def _analyze_intent(self, text: str) -> Dict[str, Any]:
+        """
+        Determine the intent of the email using available methods.
+        """
+        analysis_result = self._analyze_intent_model(text)
+        if analysis_result:
+            logger.info("Intent analysis performed using ML model.")
+            return analysis_result
+
+        logger.info("Intent analysis performed using regex matching as fallback.")
+        return self._analyze_intent_regex(text)
+
+    def _analyze_urgency_model(self, text: str) -> Optional[Dict[str, Any]]:
+        """
+        Analyze urgency using the loaded sklearn model.
+        """
+        if not self.urgency_model:
+            return None
+
+        try:
+            prediction = self.urgency_model.predict([text])[0]
+            probabilities = self.urgency_model.predict_proba([text])[0]
+            confidence = float(max(probabilities))
+
+            return {
+                "urgency": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_urgency",
+            }
+        except Exception as e:
+            logger.error(f"Error using urgency model: {e}. Trying fallback.")
+            return None
+
+    def _analyze_urgency_regex(self, text: str) -> Dict[str, Any]:
+        """
+        Analyze urgency using regex pattern matching as a fallback method.
+        """
+        text_lower = text.lower()
+
+        if re.search(
+            r"\b(emergency|urgent|asap|immediately|critical|crisis|disaster)\b",
+            text_lower,
+        ):
+            urgency_label = "critical"
+            confidence = 0.9
+        elif re.search(
+            r"\b(soon|quickly|priority|important|deadline|time-sensitive)\b", text_lower
+        ):
+            urgency_label = "high"
+            confidence = 0.8
+        elif re.search(r"\b(when you can|next week|upcoming|planned|scheduled)\b", text_lower):
+            urgency_label = "medium"
+            confidence = 0.6
+        else:
+            urgency_label = "low"
+            confidence = 0.5
+
+        return {
+            "urgency": urgency_label,
+            "confidence": confidence,
+            "method_used": "fallback_regex_urgency",
+        }
+
+    def _analyze_urgency(self, text: str) -> Dict[str, Any]:
+        """
+        Assess the urgency level of the email using available methods.
+        """
+        analysis_result = self._analyze_urgency_model(text)
+        if analysis_result:
+            logger.info("Urgency analysis performed using ML model.")
+            return analysis_result
+
+        logger.info("Urgency analysis performed using regex matching as fallback.")
+        return self._analyze_urgency_regex(text)
 
     def _extract_keywords(self, text: str) -> List[str]:
         """
