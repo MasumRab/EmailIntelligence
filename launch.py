@@ -662,17 +662,9 @@ def _print_system_info():
 
 
 def find_compatible_python_interpreter() -> Optional[str]:
-    """Find a compatible Python interpreter if current is not."""
-    current_major, current_minor = sys.version_info[:2]
-    target_major, target_minor = PYTHON_MIN_VERSION
-
-    current_version = (current_major, current_minor)
-    if PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION:
-        return None  # Current is compatible
-
+    """Find a compatible Python interpreter."""
     logger.info(
-        f"Current Python is {current_major}.{current_minor}. "
-        f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
+        f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find."
     )
 
     candidate_interpreters = []
@@ -992,16 +984,18 @@ def main() -> int:
 def main() -> int:
     """Main entry point."""
     if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
-        interpreter = find_compatible_python_interpreter()
-        if interpreter:
-            re_execute_with_compatible_python(interpreter)
-        else:
-            target_major, target_minor = PYTHON_MIN_VERSION
-            logger.error(
-                f"Python {target_major}.{target_minor} is required, but not found. "
-                "Please install it or run with a compatible interpreter."
-            )
-            sys.exit(1)
+        current_version = (sys.version_info.major, sys.version_info.minor)
+        if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
+            interpreter = find_compatible_python_interpreter()
+            if interpreter:
+                re_execute_with_compatible_python(interpreter)
+            else:
+                target_major, target_minor = PYTHON_MIN_VERSION
+                logger.error(
+                    f"Python {target_major}.{target_minor} is required, but not found. "
+                    "Please install it or run with a compatible interpreter."
+                )
+                sys.exit(1)
 
     elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
         logger.info(
