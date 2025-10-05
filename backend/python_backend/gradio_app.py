@@ -166,9 +166,16 @@ print(df.head())
             code_output = gr.Textbox(label="Output", lines=10)
 
             def run_custom_code(code):
+                forbidden_keywords = [
+                    "import os", "import sys", "import subprocess", "import socket", "import shutil",
+                    "exec(", "eval(", "__import__", "open(", "input(", "os.", "sys.", "subprocess.", "shutil.", "__builtins__", "globals(", "locals(", "breakpoint("
+                ]
+                for keyword in forbidden_keywords:
+                    if keyword in code:
+                        return f"Error: Usage of `{keyword}` is not allowed for security reasons."
                 try:
-                    # Safe exec in a restricted environment
-                    exec_globals = {"pd": pd, "np": np, "plt": plt, "sns": sns}
+                    # More restricted exec environment
+                    exec_globals = {"pd": pd, "np": np, "plt": plt, "sns": sns, "__builtins__": {}}
                     exec(code, exec_globals)
                     return "Code executed successfully."
                 except Exception as e:
