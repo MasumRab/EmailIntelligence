@@ -89,6 +89,7 @@
 {"timestamp": "2025-10-03T13:42:32.066168+00:00", "operation": "smart_retrieval", "duration_seconds": 5.485200017574243e-05}
 {"timestamp": "2025-10-03T13:42:32.071699+00:00", "operation": "get_retrieval_strategies", "duration_seconds": 5.5298999996011844e-05}
 {"timestamp": "2025-10-03T13:42:32.076974+00:00", "operation": "get_gmail_performance", "duration_seconds": 5.2706000133184716e-05}
+<<<<<<< HEAD
 {"timestamp": "2025-10-04T09:33:55.621983+00:00", "operation": "get_categories", "duration_seconds": 0.00040443999978378997}
 {"timestamp": "2025-10-04T09:33:55.637134+00:00", "operation": "create_category", "duration_seconds": 0.0001505929999439104}
 {"timestamp": "2025-10-04T09:33:55.650319+00:00", "operation": "save_data_to_file", "duration_seconds": 0.003107485999862547}
@@ -422,3 +423,12 @@
 {"timestamp": "2025-10-04T13:45:56.578085+00:00", "operation": "smart_retrieval", "duration_seconds": 6.629499989685428e-05}
 {"timestamp": "2025-10-04T13:45:56.584209+00:00", "operation": "get_retrieval_strategies", "duration_seconds": 0.00014735000013388344}
 {"timestamp": "2025-10-04T13:45:56.590407+00:00", "operation": "get_gmail_performance", "duration_seconds": 5.447100011224393e-05}
+=======
+{"timestamp": "2025-10-05T04:35:02.634519+00:00", "operation": "save_data_to_file", "duration_seconds": 0.00132943200014779}
+{"timestamp": "2025-10-05T04:35:02.637434+00:00", "operation": "save_data_to_file", "duration_seconds": 0.0010035390000666666}
+{"timestamp": "2025-10-05T04:35:02.638597+00:00", "operation": "save_data_to_file", "duration_seconds": 0.0008596719999331981}
+{"timestamp": "2025-10-05T04:35:02.638795+00:00", "operation": "load_data", "duration_seconds": 0.005703865000214137}
+{"timestamp": "2025-10-05T04:35:02.639091+00:00", "operation": "build_indexes", "duration_seconds": 0.0002129300000888179}
+{"timestamp": "2025-10-05T04:35:02.639400+00:00", "operation": "create_category", "duration_seconds": 7.02520001141238e-05}
+{"timestamp": "2025-10-05T04:35:02.641450+00:00", "operation": "get_categories", "duration_seconds": 3.524000021570828e-05}
+>>>>>>> origin/feat/modular-architecture

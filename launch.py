@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+<<<<<<< HEAD
 EmailIntelligence Unified Launcher
 
 <<<<<<< HEAD
@@ -35,20 +36,32 @@ Usage:
 Arguments can be viewed by running:
     python launch.py --help
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+EmailIntelligence Launcher (v3)
+
+This script automates the environment setup for the Email Intelligence Platform
+and then hands off control to the main application entry point.
+
+Key Features:
+-   **Environment Setup**: Manages the Python virtual environment and installs
+    dependencies from `requirements.txt`.
+-   **NLTK Data Download**: Ensures necessary NLTK data models are available.
+-   **Application Handoff**: Executes the core application located at `src/main.py`.
+>>>>>>> origin/feat/modular-architecture
 """
 
 import argparse
 import logging
 import os
-import platform
 import shutil
-import signal
 import subprocess
 import sys
-import time
 import venv
 from pathlib import Path
+<<<<<<< HEAD
 from typing import List, Optional
+=======
+>>>>>>> origin/feat/modular-architecture
 
 # Configure logging
 logging.basicConfig(
@@ -56,6 +69,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("launcher")
 
+<<<<<<< HEAD
 # --- Global state ---
 processes = []
 ROOT_DIR = Path(__file__).resolve().parent
@@ -136,82 +150,31 @@ VENV_DIR = "venv"
 REQUIREMENTS_FILE = "requirements.txt"
 REQUIREMENTS_VERSIONS_FILE = "requirements_versions.txt"
 
+=======
+>>>>>>> origin/feat/modular-architecture
 # Project root directory
 ROOT_DIR = Path(__file__).resolve().parent
-
-
-def check_python_version() -> bool:
-    """
-    Checks if the current Python version is within the supported range.
-
-    Returns:
-        True if the version is supported, False otherwise.
-    """
-    current_version = sys.version_info[:2]
-    if current_version < PYTHON_MIN_VERSION:
-        logger.error(f"Python {'.'.join(map(str, PYTHON_MIN_VERSION))} or higher is required")
-        return False
-    if current_version > PYTHON_MAX_VERSION:
-        logger.warning(
-            f"Python {'.'.join(map(str, current_version))} is not officially supported. "
-            f"Recommended version is {'.'.join(map(str, PYTHON_MAX_VERSION))} or lower."
-        )
-    return True
-
-
-def is_venv_available() -> bool:
-    """
-    Checks if a virtual environment is available and properly configured.
-
-    Returns:
-        True if a virtual environment exists and contains a Python executable.
-    """
-    venv_path = ROOT_DIR / VENV_DIR
-    if os.name == "nt":  # Windows
-        return venv_path.exists() and (venv_path / "Scripts" / "python.exe").exists()
-    else:  # Unix-based systems
-        return venv_path.exists() and (venv_path / "bin" / "python").exists()
-
-
-def create_venv() -> bool:
-    """
-    Creates a new virtual environment.
-
-    Returns:
-        True if the virtual environment was created successfully, False otherwise.
-    """
-    venv_path = ROOT_DIR / VENV_DIR
-    if venv_path.exists():
-        logger.info(f"Virtual environment already exists at {venv_path}")
-        return True
-
-    logger.info(f"Creating virtual environment at {venv_path}")
-    try:
-        venv.create(venv_path, with_pip=True)
-        return True
-    except Exception as e:
-        logger.error(f"Failed to create virtual environment: {e}")
-        return False
-
+VENV_DIR = "venv"
 
 def get_python_executable() -> str:
+    """Gets the path to the virtual environment's Python executable."""
+    if os.name == "nt":
+        return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
+    else:
+        return str(ROOT_DIR / VENV_DIR / "bin" / "python")
+
+def prepare_environment():
     """
-    Gets the path to the appropriate Python executable.
-
-    Returns the path to the virtual environment's Python executable if it exists,
-    otherwise returns the path to the system's Python executable.
-
-    Returns:
-        The path to the Python executable.
+    Sets up the Python virtual environment and installs dependencies.
     """
-    if is_venv_available():
-        if os.name == "nt":  # Windows
-            return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
-        else:  # Unix-based systems
-            return str(ROOT_DIR / VENV_DIR / "bin" / "python")
-    return sys.executable
+    venv_path = ROOT_DIR / VENV_DIR
+    if not venv_path.exists():
+        logger.info(f"Creating virtual environment at {venv_path}...")
+        venv.create(venv_path, with_pip=True)
 
+    python_executable = get_python_executable()
 
+<<<<<<< HEAD
 def install_requirements_from_file(requirements_file_path_str: str, update: bool = False) -> bool:
     """
     Installs or updates Python packages from a requirements file.
@@ -314,8 +277,21 @@ def download_nltk_data() -> bool:
         True if the download process completes successfully, False otherwise.
     """
     python = get_python_executable()
+=======
+    # Install dependencies
+    requirements_path = ROOT_DIR / "requirements.txt"
+    if requirements_path.exists():
+        logger.info(f"Installing dependencies from {requirements_path}...")
+        subprocess.check_call(
+            [python_executable, "-m", "pip", "install", "-r", str(requirements_path)]
+        )
+    else:
+        logger.warning(f"'{requirements_path}' not found. Skipping dependency installation.")
+>>>>>>> origin/feat/modular-architecture
 
+    # Download NLTK data
     logger.info("Downloading NLTK data...")
+<<<<<<< HEAD
     cmd = [
         python,
         "-c",
@@ -346,23 +322,45 @@ def download_nltk_data() -> bool:
     return run_command(cmd, desc)
 =======
 def _get_primary_requirements_file() -> str:
-    """
-    Determines the primary requirements file to use.
+=======
+    subprocess.check_call(
+        [
+            python_executable,
+            "-c",
+            "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True);",
+        ]
+    )
 
-    Prioritizes `requirements_versions.txt` if it exists, otherwise falls back
-    to `requirements.txt`.
-
-    Returns:
-        The name of the requirements file to use.
+def main():
+>>>>>>> origin/feat/modular-architecture
     """
+    Main entry point for the launcher script.
+    """
+<<<<<<< HEAD
     if (ROOT_DIR / REQUIREMENTS_VERSIONS_FILE).exists():
         return REQUIREMENTS_VERSIONS_FILE
     else:
         logger.info(f"'{REQUIREMENTS_VERSIONS_FILE}' not found, using '{REQUIREMENTS_FILE}'.")
         return REQUIREMENTS_FILE
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+    parser = argparse.ArgumentParser(
+        description="Launch the Email Intelligence Platform."
+    )
+    parser.add_argument(
+        "--host", type=str, default="127.0.0.1", help="Host to run the server on."
+    )
+    parser.add_argument(
+        "--port", type=int, default=7860, help="Port to run the server on."
+    )
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
+    args, unknown_args = parser.parse_known_args()
+>>>>>>> origin/feat/modular-architecture
 
+    # Prepare the environment
+    prepare_environment()
 
+<<<<<<< HEAD
 def download_nltk_data(python_executable: str) -> bool:
     """Download required NLTK data."""
     nltk_script = (
@@ -506,26 +504,32 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
     if not gradio_script_path.exists():
         logger.error(f"Gradio UI script not found at: {gradio_script_path}")
         return None
+=======
+    # Run the main application
+    python_executable = get_python_executable()
+    main_app_path = ROOT_DIR / "src" / "main.py"
+>>>>>>> origin/feat/modular-architecture
 
     cmd = [
         python_executable,
-        str(gradio_script_path),
-        "--host",
-        args.host,
+        str(main_app_path),
+        f"--host={args.host}",
+        f"--port={args.port}",
     ]
+    if args.reload:
+        cmd.append("--reload")
 
-    # Add port if specified, Gradio has its own default port (7860)
-    if args.gradio_port:
-        cmd.extend(["--port", str(args.gradio_port)])
-    if hasattr(args, 'debug') and args.debug:
-        cmd.append("--debug")
-    if hasattr(args, 'share') and args.share:
-        cmd.append("--share")
+    # Pass any unknown arguments to the main application
+    cmd.extend(unknown_args)
 
+    logger.info(f"Starting application: {' '.join(cmd)}")
+
+    # Set PYTHONPATH to include the project root
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
 
     try:
+<<<<<<< HEAD
         logger.info(f"Running Gradio UI command: {' '.join(cmd)}")
         process = subprocess.Popen(cmd, env=env)
         processes.append(process)
@@ -938,6 +942,15 @@ def main() -> int:
 
     return run_application(args)
 
+=======
+        subprocess.run(cmd, check=True, env=env)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Application failed to run: {e}")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        logger.info("Launcher shutting down.")
+        sys.exit(0)
+>>>>>>> origin/feat/modular-architecture
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
