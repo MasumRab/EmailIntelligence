@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Setup script for installing Python linting and formatting tools.
-Run this script to set up code quality tools for the EmailIntelligence project.
+A setup script for installing and configuring Python linting and formatting tools.
+
+This script automates the setup of a consistent code quality environment for the
+EmailIntelligence project. It installs essential packages like Black, Flake8,
+isort, Pylint, and MyPy, and creates the necessary configuration files
+(`.flake8`, `.pylintrc`, `pyproject.toml`) with predefined settings.
+
+Running this script ensures that all developers in the project adhere to the
+same code style and quality standards.
 """
 
 import os
@@ -10,7 +17,14 @@ import sys
 
 
 def install_packages():
-    """Install required packages for code quality."""
+    """
+    Installs the required Python packages for code quality using pip.
+
+    The list of packages includes Black, Flake8, isort, Pylint, and MyPy.
+
+    Returns:
+        True if all packages were installed successfully, False otherwise.
+    """
     packages = ["black", "flake8", "isort", "pylint", "mypy"]
 
     print("Installing code quality packages...")
@@ -25,7 +39,15 @@ def install_packages():
 
 
 def create_config_files():
-    """Create configuration files for linting tools."""
+    """
+    Creates or updates configuration files for the linting and formatting tools.
+
+    This function generates `.flake8` and `.pylintrc` files and appends
+    Black and isort configurations to the `pyproject.toml` file.
+
+    Returns:
+        True if the configuration files were created successfully.
+    """
     # Create .flake8 configuration
     flake8_config = """[flake8]
 max-line-length = 100
@@ -104,7 +126,15 @@ line_length = 100
 
 
 def main():
-    """Main function to set up linting tools."""
+    """
+    The main function to execute the setup process.
+
+    It orchestrates the installation of packages and the creation of
+    configuration files, and provides instructions for using the tools.
+
+    Returns:
+        An exit code (0 for success, 1 for failure).
+    """
     print("Setting up Python linting and formatting tools...")
 
     if not install_packages():

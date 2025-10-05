@@ -9,14 +9,21 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
+<<<<<<< HEAD
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
 
 from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
+=======
+from typing import Any, Dict, List, Optional, Literal
+from functools import partial
+from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+>>>>>>> origin/feature/git-history-analysis-report
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 # File paths - now configurable via environment variable
 import os
 from pathlib import Path
@@ -27,6 +34,14 @@ EMAIL_CONTENT_DIR = DATA_DIR / "email_content"
 EMAILS_FILE = DATA_DIR / "emails.json.gz"
 CATEGORIES_FILE = DATA_DIR / "categories.json.gz"
 USERS_FILE = DATA_DIR / "users.json.gz"
+=======
+# File paths
+DATA_DIR = "backend/data"
+EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
+EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
+CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
+USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+>>>>>>> origin/feature/git-history-analysis-report
 
 # Data types
 DATA_TYPE_EMAILS = 'emails'
@@ -60,7 +75,25 @@ class DatabaseManager:
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
+    This class provides an asynchronous interface for all CRUD (Create, Read,
+    Update, Delete) operations. It handles loading data from files into memory
+    on initialization and saving data back to files when modifications occur.
+    It is designed to be used as a singleton within the application.
+
+    Attributes:
+        emails_file (str): Path to the emails JSON file.
+        categories_file (str): Path to the categories JSON file.
+        users_file (str): Path to the users JSON file.
+        emails_data (List[Dict[str, Any]]): In-memory cache of email records.
+        categories_data (List[Dict[str, Any]]): In-memory cache of category records.
+        users_data (List[Dict[str, Any]]): In-memory cache of user records.
+    """
+
     def __init__(self):
+<<<<<<< HEAD
+=======
+        """Initializes the DatabaseManager, setting up file paths and data caches."""
+>>>>>>> origin/feature/git-history-analysis-report
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -136,7 +169,11 @@ class DatabaseManager:
 
     @log_performance("load_data")
     async def _load_data(self) -> None:
-        """Loads data from JSON files into memory. Creates files if they don't exist."""
+        """
+        Loads data from JSON files into memory.
+
+        If a data file does not exist, it creates an empty one.
+        """
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, 'emails_data'),
             (DATA_TYPE_CATEGORIES, self.categories_file, 'categories_data'),
@@ -194,13 +231,30 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-        """Generates a new unique integer ID."""
+        """
+        Generates a new unique integer ID for a record.
+
+        Args:
+            data_list: The list of records to scan for the current maximum ID.
+
+        Returns:
+            A new unique integer ID.
+        """
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-        """Helper to parse stringified JSON fields in a row."""
+        """
+        Parses fields in a data row that are stored as JSON strings.
+
+        Args:
+            row: The data record (dictionary).
+            fields: A list of field names to parse.
+
+        Returns:
+            The modified data record with parsed fields.
+        """
         if not row:
             return row
         for field in fields:
@@ -349,8 +403,113 @@ class DatabaseManager:
         logger.info(f"Email search completed. Found {len(result_emails)} emails matching '{search_term}'.")
         return result_emails
 
+<<<<<<< HEAD
     async def get_dashboard_stats(self) -> Dict[str, Any]:
         """Get comprehensive dashboard statistics"""
+=======
+    async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update email by messageId, handling separated content."""
+        email_to_update = await self.get_email_by_message_id(message_id, include_content=True)
+        if not email_to_update:
+            logger.warning(f"Email with {FIELD_MESSAGE_ID} {message_id} not found for update.")
+            return None
+
+        original_category_id = email_to_update.get(FIELD_CATEGORY_ID)
+        changed_fields = False
+        for key, value in update_data.items():
+            if key in email_to_update and email_to_update[key] != value:
+                email_to_update[key] = value
+                changed_fields = True
+            elif key not in email_to_update:
+                email_to_update[key] = value
+                changed_fields = True
+
+        if changed_fields:
+            email_to_update[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
+            heavy_data = {field: email_to_update.pop(field) for field in HEAVY_EMAIL_FIELDS if field in email_to_update}
+            email_id = email_to_update[FIELD_ID]
+            content_path = self._get_email_content_path(email_id)
+            try:
+                with gzip.open(content_path, 'wt', encoding='utf-8') as f:
+                    dump_func = partial(json.dump, heavy_data, f, indent=4)
+                    await asyncio.to_thread(dump_func)
+            except IOError as e:
+                logger.error(f"Error updating heavy content for email {email_id}: {e}")
+
+            self.emails_by_id[email_id] = email_to_update
+            self.emails_by_message_id[message_id] = email_to_update
+            idx = next((i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1)
+            if idx != -1:
+                self.emails_data[idx] = email_to_update
+            await self._save_data(DATA_TYPE_EMAILS)
+
+            new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
+            if original_category_id != new_category_id:
+                if original_category_id is not None:
+                    await self._update_category_count(original_category_id, decrement=True)
+                if new_category_id is not None:
+                    await self._update_category_count(new_category_id, increment=True)
+        return self._add_category_details(email_to_update)
+
+    async def get_email_by_message_id(self, message_id: str, include_content: bool = True) -> Optional[Dict[str, Any]]:
+        """Get email by messageId using in-memory index, with option to load heavy content."""
+        if not message_id:
+            return None
+        email_light = self.emails_by_message_id.get(message_id)
+        if not email_light:
+            return None
+        if include_content:
+            email_full = await self._load_and_merge_content(email_light)
+            return self._add_category_details(email_full)
+        else:
+            return self._add_category_details(email_light.copy())
+
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Retrieves all emails with pagination.
+
+        Args:
+            limit: The maximum number of emails to return.
+            offset: The number of emails to skip.
+
+        Returns:
+            A list of email record dictionaries.
+        """
+        return await self.get_emails(limit=limit, offset=offset)
+
+    async def get_emails_by_category(self, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Get emails by category"""
+        return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
+
+    @log_performance("search_emails")
+    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Search emails. Searches subject/sender in-memory, and content on-disk."""
+        if not search_term:
+            return await self.get_emails(limit=limit, offset=0)
+        search_term_lower = search_term.lower()
+        filtered_emails = []
+        logger.info(f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content.")
+        for email_light in self.emails_data:
+            found_in_light = (
+                search_term_lower in email_light.get(FIELD_SUBJECT, '').lower() or
+                search_term_lower in email_light.get(FIELD_SENDER, '').lower() or
+                search_term_lower in email_light.get(FIELD_SENDER_EMAIL, '').lower()
+            )
+            if found_in_light:
+                filtered_emails.append(email_light)
+                continue
+            email_id = email_light.get(FIELD_ID)
+            content_path = self._get_email_content_path(email_id)
+            if os.path.exists(content_path):
+                try:
+                    with gzip.open(content_path, 'rt', encoding='utf-8') as f:
+                        heavy_data = json.load(f)
+                        content = heavy_data.get(FIELD_CONTENT, '')
+                        if isinstance(content, str) and search_term_lower in content.lower():
+                            filtered_emails.append(email_light)
+                except (IOError, json.JSONDecodeError) as e:
+                    logger.error(f"Could not search content for email {email_id}: {e}")
+>>>>>>> origin/feature/git-history-analysis-report
         try:
             total_emails = len(self.emails_data)
             auto_labeled = sum(1 for email in self.emails_data if email.get('category'))
@@ -431,7 +590,17 @@ class DatabaseManager:
 _db_manager_instance = None
 
 async def get_db() -> DatabaseManager:
-    """Dependency injection for database. Returns a singleton instance."""
+    """
+    Provides the singleton instance of the DatabaseManager.
+
+    This function is used for dependency injection in FastAPI routes. It ensures
+    that only one instance of the DatabaseManager is used throughout the
+
+    application's lifecycle.
+
+    Returns:
+        The singleton DatabaseManager instance.
+    """
     global _db_manager_instance
     if _db_manager_instance is None:
         # This should ideally not be reached if startup event is properly set
