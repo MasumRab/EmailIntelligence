@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from .database import DatabaseManager
-    from ..python_nlp.protocols import DatabaseProtocol
 
 # from .utils.async_utils import _execute_async_command # Commented out
 from ..python_nlp.nlp_engine import NLPEngine  # Changed import alias
@@ -70,14 +69,22 @@ class AdvancedAIEngine:
         except Exception as e:
             logger.error(f"AI Engine initialization failed: {e}")
 
+<<<<<<< Updated upstream
     async def _build_category_lookup(self, db: "DatabaseProtocol") -> None:
+=======
+    async def _build_category_lookup(self, db) -> None:
+>>>>>>> Stashed changes
         """Builds a normalized lookup map for categories."""
         all_db_categories = await db.get_all_categories()
         self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
         logger.info("Built category lookup map.")
 
     async def _match_category_id(
+<<<<<<< Updated upstream
         self, ai_categories: List[str], db: "DatabaseProtocol"
+=======
+        self, ai_categories: List[str], db
+>>>>>>> Stashed changes
     ) -> Optional[int]:
         """Matches AI suggested categories to DB categories using a lookup map."""
         if not ai_categories:
