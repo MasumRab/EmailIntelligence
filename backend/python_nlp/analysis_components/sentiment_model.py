@@ -1,156 +1,142 @@
+"""
+Component for analyzing the sentiment of an email.
+
+This module provides the `SentimentModel` class, which uses a hierarchical
+approach to determine sentiment. It prioritizes a pre-trained machine
+learning model, falls back to TextBlob for lexical analysis, and finally uses
+a keyword-based approach if other methods are unavailable.
+"""
+
 import logging
 from typing import Any, Dict, Optional
 
-# Try to import optional dependencies
 try:
     from textblob import TextBlob
-
-    # nltk.download('punkt') # Required for TextBlob
-    # nltk.download('stopwords') # Required for keyword extraction in NLPEngine
     HAS_NLTK = True
 except ImportError:
-    TextBlob = None  # Ensure TextBlob name exists even if import fails
+    TextBlob = None
     HAS_NLTK = False
 
 logger = logging.getLogger(__name__)
 
 
 class SentimentModel:
+    """
+    Analyzes email text to determine its sentiment.
+
+    This class orchestrates the sentiment analysis process, using a
+    multi-layered approach for robustness.
+
+    Attributes:
+        model: A pre-trained scikit-learn model for sentiment classification.
+        has_nltk: A boolean indicating if NLTK and TextBlob are installed.
+        logger: A logger for recording events and errors.
+    """
     def __init__(self, sentiment_model: Optional[Any], has_nltk_installed: bool):
+        """
+        Initializes the SentimentModel.
+
+        Args:
+            sentiment_model: A pre-trained scikit-learn compatible model for
+                             sentiment classification.
+            has_nltk_installed: A boolean indicating if NLTK is available.
+        """
         self.model = sentiment_model
         self.has_nltk = has_nltk_installed
         self.logger = logging.getLogger(__name__)
 
     def _analyze_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
-        Analyze sentiment using the loaded sklearn model.
+        Analyzes sentiment using the loaded scikit-learn model.
+
+        Args:
+            text: The text to be analyzed.
+
+        Returns:
+            A dictionary with the predicted sentiment and confidence, or None
+            if the model is not available or fails.
         """
         if not self.model:
             return None
-
         try:
             prediction = self.model.predict([text])[0]
             probabilities = self.model.predict_proba([text])[0]
-            confidence = max(probabilities)
-
-            polarity = 0.0
-            if prediction == "positive":
-                polarity = confidence
-            elif prediction == "negative":
-                polarity = -confidence
-
-            return {
-                "sentiment": str(prediction),
-                "polarity": polarity,
-                "subjectivity": 0.5,  # Default subjectivity, model might not provide this
-                "confidence": float(confidence),
-                "method_used": "model_sentiment",
-            }
+            confidence = float(max(probabilities))
+            polarity = confidence if prediction == "positive" else -confidence if prediction == "negative" else 0.0
+            return {"sentiment": str(prediction), "polarity": polarity, "subjectivity": 0.5, "confidence": confidence, "method_used": "model_sentiment"}
         except Exception as e:
             self.logger.error(f"Error using sentiment model: {e}. Trying fallback.")
             return None
 
     def _analyze_textblob(self, text: str) -> Optional[Dict[str, Any]]:
         """
-        Analyze sentiment using TextBlob as a fallback method.
-        """
-        if not self.has_nltk:  # TextBlob relies on NLTK
-            self.logger.warning("TextBlob analysis skipped: NLTK not available.")
-            return None
+        Analyzes sentiment using TextBlob as a fallback.
 
+        Args:
+            text: The text to be analyzed.
+
+        Returns:
+            A dictionary with the sentiment analysis, or None if TextBlob
+            is not available or fails.
+        """
+        if not self.has_nltk or not TextBlob:
+            self.logger.warning("TextBlob analysis skipped: NLTK or TextBlob not available.")
+            return None
         try:
             blob = TextBlob(text)
-            polarity = blob.sentiment.polarity
-            subjectivity = blob.sentiment.subjectivity
-
+            polarity, subjectivity = blob.sentiment
             if polarity > 0.1:
-                sentiment_label = "positive"
-                confidence = min(polarity + 0.5, 1.0)
+                sentiment, confidence = "positive", min(polarity + 0.5, 1.0)
             elif polarity < -0.1:
-                sentiment_label = "negative"
-                confidence = min(abs(polarity) + 0.5, 1.0)
+                sentiment, confidence = "negative", min(abs(polarity) + 0.5, 1.0)
             else:
-                sentiment_label = "neutral"
-                confidence = 0.7  # Default confidence for TextBlob neutral
-
-            return {
-                "sentiment": sentiment_label,
-                "polarity": polarity,
-                "subjectivity": subjectivity,
-                "confidence": confidence,
-                "method_used": "fallback_textblob_sentiment",
-            }
+                sentiment, confidence = "neutral", 0.7
+            return {"sentiment": sentiment, "polarity": polarity, "subjectivity": subjectivity, "confidence": confidence, "method_used": "fallback_textblob_sentiment"}
         except Exception as e:
-            self.logger.error(f"Error during TextBlob sentiment analysis: {e}")
+            self.logger.error(f"Error during TextBlob analysis: {e}")
             return None
 
     def _analyze_keyword(self, text: str) -> Dict[str, Any]:
         """
-        Analyze sentiment using keyword matching as a final fallback method.
+        Analyzes sentiment using keyword matching as a final fallback.
+
+        Args:
+            text: The text to be analyzed.
+
+        Returns:
+            A dictionary with the sentiment analysis based on keywords.
         """
         text_lower = text.lower()
+        positive_words = ["good", "great", "excellent", "thank", "happy", "love"]
+        negative_words = ["bad", "terrible", "problem", "issue", "error", "hate"]
+        pos_count = sum(1 for word in positive_words if word in text_lower)
+        neg_count = sum(1 for word in negative_words if word in text_lower)
 
-        positive_words = [
-            "good",
-            "great",
-            "excellent",
-            "thank",
-            "please",
-            "welcome",
-            "happy",
-            "love",
-        ]
-        negative_words = [
-            "bad",
-            "terrible",
-            "problem",
-            "issue",
-            "error",
-            "failed",
-            "hate",
-            "angry",
-        ]
-
-        positive_count = sum(1 for word in positive_words if word in text_lower)
-        negative_count = sum(1 for word in negative_words if word in text_lower)
-
-        if positive_count > negative_count:
-            sentiment_label = "positive"
-            polarity = 0.5
-            confidence = 0.6
-        elif negative_count > positive_count:
-            sentiment_label = "negative"
-            polarity = -0.5
-            confidence = 0.6
+        if pos_count > neg_count:
+            return {"sentiment": "positive", "polarity": 0.5, "subjectivity": 0.5, "confidence": 0.6, "method_used": "fallback_keyword_sentiment"}
+        elif neg_count > pos_count:
+            return {"sentiment": "negative", "polarity": -0.5, "subjectivity": 0.5, "confidence": 0.6, "method_used": "fallback_keyword_sentiment"}
         else:
-            sentiment_label = "neutral"
-            polarity = 0.0
-            confidence = 0.5  # Lower confidence for keyword-based neutral
-
-        return {
-            "sentiment": sentiment_label,
-            "polarity": polarity,
-            "subjectivity": 0.5,  # Default subjectivity for keyword method
-            "confidence": confidence,
-            "method_used": "fallback_keyword_sentiment",
-        }
+            return {"sentiment": "neutral", "polarity": 0.0, "subjectivity": 0.5, "confidence": 0.5, "method_used": "fallback_keyword_sentiment"}
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """
-        Perform sentiment analysis using available methods in order of preference.
+        Performs sentiment analysis using the best available method.
+
+        It attempts to use the ML model first, then TextBlob, and finally
+        a keyword-based approach as a fallback.
+
+        Args:
+            text: The email text to analyze.
+
+        Returns:
+            A dictionary containing the detailed sentiment analysis.
         """
-        # Try model-based analysis first
-        analysis_result = self._analyze_model(text)
-        if analysis_result:
+        if result := self._analyze_model(text):
             self.logger.info("Sentiment analysis performed using ML model.")
-            return analysis_result
-
-        # Try TextBlob analysis if model fails or not available
-        analysis_result = self._analyze_textblob(text)
-        if analysis_result:
+            return result
+        if result := self._analyze_textblob(text):
             self.logger.info("Sentiment analysis performed using TextBlob.")
-            return analysis_result
-
-        # Use keyword matching as final fallback
+            return result
         self.logger.info("Sentiment analysis performed using keyword matching.")
         return self._analyze_keyword(text)

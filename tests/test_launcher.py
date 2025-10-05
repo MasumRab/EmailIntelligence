@@ -9,7 +9,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
+<<<<<<< HEAD
 from launch import ROOT_DIR, main, start_gradio_ui
+=======
+from launch import ROOT_DIR, start_gradio_ui
+>>>>>>> origin/feature/git-history-analysis-report
 
 
 # Test case 1: npm executable is not found
@@ -18,17 +22,28 @@ from launch import ROOT_DIR, main, start_gradio_ui
 @patch("shutil.which", return_value=None)
 @patch("subprocess.check_call")  # Mock node version check
 @patch("launch.logger")
+<<<<<<< HEAD
 def test_start_frontend_npm_not_found(
+=======
+def test_start_gradio_ui_npm_not_found(
+>>>>>>> origin/feature/git-history-analysis-report
     mock_logger, mock_check_call, mock_which, mock_exists
 ):
     """
     Verifies that start_gradio_ui exits gracefully if npm is not installed.
     """
+<<<<<<< HEAD
     # The function expects 'port' for VITE_API_URL, which was missing before
     args = argparse.Namespace(host="127.0.0.1", port=8000, gradio_port=7860, debug=False, share=False)
     result = start_gradio_ui(args, sys.executable)
 
     # This assertion is expected to fail with the buggy code
+=======
+    args = argparse.Namespace(host="127.0.0.1", port=8000, gradio_port=7860, debug=False, share=False)
+    python_executable = sys.executable
+    result = start_gradio_ui(args, python_executable)
+
+>>>>>>> origin/feature/git-history-analysis-report
     assert result is None, "Function should return None when npm is not found"
     client_dir = ROOT_DIR / "client"
     expected_error = (
@@ -51,21 +66,33 @@ def test_start_frontend_npm_not_found(
     ),
 )
 @patch("launch.logger")
+<<<<<<< HEAD
 def test_start_frontend_npm_install_fails(
+=======
+def test_start_gradio_ui_npm_install_fails(
+>>>>>>> origin/feature/git-history-analysis-report
     mock_logger, mock_run, mock_check_call, mock_which, mock_exists
 ):
     """
     Verifies that start_gradio_ui exits gracefully if 'npm install' fails.
     """
+<<<<<<< HEAD
     # The function expects 'port' for VITE_API_URL, which was missing before
     args = argparse.Namespace(host="127.0.0.1", port=8000, gradio_port=7860, debug=False, share=False)
     result = start_gradio_ui(args, sys.executable)
 
     # This assertion is expected to fail with the buggy code
+=======
+    args = argparse.Namespace(host="127.0.0.1", port=8000, gradio_port=7860, debug=False, share=False)
+    python_executable = sys.executable
+    result = start_gradio_ui(args, python_executable)
+
+>>>>>>> origin/feature/git-history-analysis-report
     assert result is None, "Function should return None when npm install fails"
     client_dir = ROOT_DIR / "client"
     mock_logger.error.assert_any_call(
         f"Failed to install frontend dependencies in {client_dir}."
+<<<<<<< HEAD
     )
 
 @patch('launch.os.environ', {"LAUNCHER_REEXEC_GUARD": "0"})
@@ -110,3 +137,6 @@ def test_python_interpreter_discovery_avoids_substring_match(
     # and then exit with status 1.
     assert mock_logger.error.call_count > 0
     mock_exit.assert_called_once_with(1)
+=======
+    )
+>>>>>>> origin/feature/git-history-analysis-report
