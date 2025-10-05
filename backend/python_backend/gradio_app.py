@@ -6,6 +6,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import seaborn as sns
 
+# For safe sandboxed code execution
+from RestrictedPython import compile_restricted_exec
+from RestrictedPython import safe_globals
+import io
+import contextlib
+
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -155,10 +161,17 @@ print(df.head())
 
             def run_custom_code(code):
                 try:
-                    # Safe exec in a restricted environment
-                    exec_globals = {"pd": pd, "np": np, "plt": plt, "sns": sns}
-                    exec(code, exec_globals)
-                    return "Code executed successfully."
+                    # RestrictedPython: safely compile and exec user code
+                    exec_globals = safe_globals.copy()
+                    # Allow common DS packages
+                    exec_globals.update({"pd": pd, "np": np, "plt": plt, "sns": sns})
+                    # Capture stdout
+                    output = io.StringIO()
+                    byte_code = compile_restricted_exec(code)
+                    with contextlib.redirect_stdout(output):
+                        exec(byte_code, exec_globals)
+                    result = output.getvalue()
+                    return result if result.strip() else "Code executed successfully (no output)."
                 except Exception as e:
                     return f"Error: {str(e)}"
 
