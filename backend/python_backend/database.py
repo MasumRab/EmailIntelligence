@@ -27,6 +27,7 @@ EMAIL_CONTENT_DIR = DATA_DIR / "email_content"
 EMAILS_FILE = DATA_DIR / "emails.json.gz"
 CATEGORIES_FILE = DATA_DIR / "categories.json.gz"
 USERS_FILE = DATA_DIR / "users.json.gz"
+SETTINGS_FILE = DATA_DIR / "settings.json"
 
 # Data types
 DATA_TYPE_EMAILS = 'emails'
@@ -115,7 +116,7 @@ class DatabaseManager:
             self._build_indexes()
             self._initialized = True
 
-    @log_performance("build_indexes")
+    @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
         logger.info("Building in-memory indexes...")
@@ -134,7 +135,7 @@ class DatabaseManager:
                  self._dirty_data.add(DATA_TYPE_CATEGORIES)
         logger.info("In-memory indexes built successfully.")
 
-    @log_performance("load_data")
+    @log_performance(operation="load_data")
     async def _load_data(self) -> None:
         """Loads data from JSON files into memory. Creates files if they don't exist."""
         for data_type, file_path, data_list_attr in [
@@ -156,7 +157,7 @@ class DatabaseManager:
                 logger.error(f"Error loading data from {file_path}: {e}. Initializing with empty list.")
                 setattr(self, data_list_attr, [])
 
-    @log_performance("save_data_to_file")
+    @log_performance(operation="save_data_to_file")
     async def _save_data_to_file(self, data_type: Literal['emails', 'categories', 'users']) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -292,6 +293,25 @@ class DatabaseManager:
         else:
             return self._add_category_details(email_light.copy())
 
+    async def get_email_by_message_id(self, message_id: str, include_content: bool = True) -> Optional[Dict[str, Any]]:
+        """Get email by message_id using in-memory index."""
+        email_light = self.emails_by_message_id.get(message_id)
+        if not email_light:
+            return None
+        if include_content:
+            email_full = await self._load_and_merge_content(email_light)
+            return self._add_category_details(email_full)
+        else:
+            return self._add_category_details(email_light.copy())
+
+    async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update email by its message_id."""
+        email_to_update = self.emails_by_message_id.get(message_id)
+        if not email_to_update:
+            logger.warning(f"Email with messageId {message_id} not found for update.")
+            return None
+        return await self.update_email(email_to_update['id'], update_data)
+
     async def get_all_categories(self) -> List[Dict[str, Any]]:
         """Get all categories with their counts from cache."""
         for cat_id, count in self.category_counts.items():
@@ -332,6 +352,48 @@ class DatabaseManager:
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
+    @log_performance(operation="search_emails")
+    async def search_emails(self, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Search emails by a term in subject or sender."""
+        search_term_lower = search_term.lower()
+        results = [
+            email for email in self.emails_data
+            if search_term_lower in email.get(FIELD_SUBJECT, '').lower() or
+               search_term_lower in email.get(FIELD_SENDER, '').lower() or
+               search_term_lower in email.get(FIELD_SENDER_EMAIL, '').lower()
+        ]
+        try:
+            results = sorted(results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, '')), reverse=True)
+        except TypeError:
+            logger.warning(f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'.")
+            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ''), reverse=True)
+
+        paginated_results = results[offset : offset + limit]
+        detailed_results = [self._add_category_details(email) for email in paginated_results]
+        logger.info(f"Email search for '{search_term}' completed. Found {len(detailed_results)} emails.")
+        return detailed_results
+
+    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Search emails within a specific category."""
+        search_term_lower = search_term.lower()
+        category_emails = [e for e in self.emails_data if e.get(FIELD_CATEGORY_ID) == category_id]
+        results = [
+            email for email in category_emails
+            if search_term_lower in email.get(FIELD_SUBJECT, '').lower() or
+               search_term_lower in email.get(FIELD_SENDER, '').lower() or
+               search_term_lower in email.get(FIELD_SENDER_EMAIL, '').lower()
+        ]
+        try:
+            results = sorted(results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, '')), reverse=True)
+        except TypeError:
+            logger.warning(f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'.")
+            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ''), reverse=True)
+
+        paginated_results = results[offset : offset + limit]
+        detailed_results = [self._add_category_details(email) for email in paginated_results]
+        logger.info(f"Email search for '{search_term}' in category {category_id} completed. Found {len(detailed_results)} emails.")
+        return detailed_results
+
     async def get_emails(self, limit: int = 50, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
         filtered_emails = self.emails_data
@@ -346,7 +408,7 @@ class DatabaseManager:
             filtered_emails = sorted(filtered_emails, key=lambda e: e.get(FIELD_CREATED_AT, ''), reverse=True)
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
-        logger.info(f"Email search completed. Found {len(result_emails)} emails matching '{search_term}'.")
+        logger.info(f"Email retrieval completed. Found {len(result_emails)} emails.")
         return result_emails
 
     async def get_dashboard_stats(self) -> Dict[str, Any]:
