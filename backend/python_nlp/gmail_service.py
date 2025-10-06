@@ -14,7 +14,7 @@ import sys
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-<<<<<<< HEAD
+
 # To avoid circular imports with type hints
 if TYPE_CHECKING:
     from ..python_backend.ai_engine import AdvancedAIEngine
@@ -23,10 +23,10 @@ if TYPE_CHECKING:
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
-=======
+
 from ..python_backend.ai_engine import AdvancedAIEngine
 from ..python_backend.database import DatabaseManager
->>>>>>> origin/feature/git-history-analysis-report
+
 from .ai_training import ModelConfig
 from .data_strategy import DataCollectionStrategy
 from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
@@ -54,21 +54,21 @@ class GmailAIService:
     def __init__(
         self,
         rate_config: Optional[RateLimitConfig] = None,
-<<<<<<< HEAD
+
         advanced_ai_engine: Optional["AIEngineProtocol"] = None,  # Using protocol
         db_manager: Optional["DatabaseProtocol"] = None,  # Using protocol
     ):  # Added db_manager
-=======
+
         advanced_ai_engine: Optional[AdvancedAIEngine] = None,
         db_manager: Optional[DatabaseManager] = None,
     ):
         """Initializes the GmailAIService."""
->>>>>>> origin/feature/git-history-analysis-report
+
         self.collector = GmailDataCollector(rate_config)
         self.metadata_extractor = GmailMetadataExtractor()
         self.data_strategy = DataCollectionStrategy()
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
-<<<<<<< HEAD
+
 
         if advanced_ai_engine:
             self.advanced_ai_engine = advanced_ai_engine
@@ -86,10 +86,10 @@ class GmailAIService:
             self.db_manager = None
 
         # Path definitions for scripts (like smart_retrieval.py) might still be relevant
-=======
+
         self.advanced_ai_engine = advanced_ai_engine or AdvancedAIEngine()
         self.db_manager = db_manager or DatabaseManager()
->>>>>>> origin/feature/git-history-analysis-report
+
         self.nlp_path = os.path.dirname(__file__)
         self.retrieval_script = os.path.join(self.nlp_path, "smart_retrieval.py")
         self.stats = {
@@ -189,7 +189,7 @@ class GmailAIService:
     async def _perform_ai_analysis(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Performs AI analysis on a single email."""
         if not self.advanced_ai_engine:
-<<<<<<< HEAD
+
             self.logger.error("AI engine not available for AI analysis.")
             return self._get_basic_fallback_analysis_structure("AI engine not configured")
 
@@ -217,11 +217,11 @@ class GmailAIService:
                 )
                 return self._get_basic_fallback_analysis_structure("Unexpected AI result type")
 
-=======
+
             return None
         try:
             analysis_result = await self.advanced_ai_engine.analyze_email(email_data["subject"], email_data["content"], db=self.db_manager)
->>>>>>> origin/feature/git-history-analysis-report
+
             self.stats["ai_analyses_completed"] += 1
             return analysis_result.to_dict() if hasattr(analysis_result, "to_dict") else analysis_result
         except Exception as e:

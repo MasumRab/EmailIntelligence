@@ -6,13 +6,8 @@ training the various AI models used in the Email Intelligence application.
 It provides a standardized way to specify model parameters and data paths.
 """
 
-<<<<<<< HEAD
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
-=======
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
->>>>>>> origin/feature/git-history-analysis-report
+from typing import Any, Dict, Optional
 
 
 @dataclass

@@ -14,6 +14,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import json
 import seaborn as sns
+import requests
+from typing import Dict, Any, List
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -185,6 +187,153 @@ print(df.head())
                 fn=run_custom_code,
                 inputs=code_input,
                 outputs=code_output
+            )
+
+        with gr.TabItem("Model Management"):
+            gr.Markdown("### AI Model Management")
+            with gr.Row():
+                with gr.Column():
+                    model_list = gr.Dataframe(
+                        headers=["Name", "Status", "Size (MB)", "Load Time (s)"],
+                        label="Available Models",
+                        interactive=False
+                    )
+                    refresh_models_btn = gr.Button("Refresh Models")
+                    
+                    with gr.Row():
+                        model_selector = gr.Dropdown([], label="Select Model")
+                        load_model_btn = gr.Button("Load Model")
+                        unload_model_btn = gr.Button("Unload Model")
+                    
+                    model_status_output = gr.Textbox(label="Status", interactive=False)
+                    
+            def refresh_models():
+                models = get_models()
+                data = []
+                names = []
+                for model in models:
+                    data.append([
+                        model["name"],
+                        model["status"],
+                        model["size_mb"],
+                        model["load_time"] if model["load_time"] else "N/A"
+                    ])
+                    names.append(model["name"])
+                return data, names
+                
+            def load_selected_model(model_name):
+                if not model_name:
+                    return "Please select a model first"
+                return load_model(model_name)
+                
+            refresh_models_btn.click(
+                fn=refresh_models,
+                inputs=[],
+                outputs=[model_list, model_selector]
+            )
+            
+            load_model_btn.click(
+                fn=load_selected_model,
+                inputs=model_selector,
+                outputs=model_status_output
+            )
+
+        with gr.TabItem("Workflow Management"):
+            gr.Markdown("### Workflow Management")
+            with gr.Row():
+                with gr.Column():
+                    workflow_list = gr.List(label="Available Workflows", interactive=False)
+                    refresh_workflows_btn = gr.Button("Refresh Workflows")
+                    
+                    with gr.Row():
+                        workflow_name = gr.Textbox(label="Workflow Name")
+                        workflow_description = gr.Textbox(label="Description", lines=2)
+                    
+                    create_workflow_btn = gr.Button("Create New Workflow")
+                    workflow_status_output = gr.Textbox(label="Status", interactive=False)
+                    
+            def refresh_workflows():
+                workflows = list_workflows()
+                return workflows
+                
+            def create_new_workflow(name, description):
+                if not name:
+                    return "Please enter a workflow name"
+                return create_workflow(name, description)
+            
+            refresh_workflows_btn.click(
+                fn=refresh_workflows,
+                inputs=[],
+                outputs=workflow_list
+            )
+            
+            create_workflow_btn.click(
+                fn=create_new_workflow,
+                inputs=[workflow_name, workflow_description],
+                outputs=workflow_status_output
+            )
+
+        with gr.TabItem("Performance Monitoring"):
+            gr.Markdown("### System Performance Dashboard")
+            with gr.Row():
+                with gr.Column():
+                    system_stats = gr.JSON(label="Current System Stats")
+                    refresh_stats_btn = gr.Button("Refresh Stats")
+                    
+                    with gr.Row():
+                        minutes_input = gr.Number(label="Minutes to analyze", value=5)
+                        get_metrics_btn = gr.Button("Get Performance Metrics")
+                    
+                    metrics_output = gr.Dataframe(
+                        headers=["Timestamp", "Value", "Unit", "Source"],
+                        label="Recent Performance Metrics",
+                        interactive=False
+                    )
+                    
+                    error_rate_output = gr.Number(label="Error Rate (%)")
+                    
+            def refresh_system_stats():
+                stats = get_system_stats()
+                return stats
+                
+            def get_recent_metrics(minutes):
+                metrics = get_performance_metrics(int(minutes))
+                data = []
+                for metric in metrics:
+                    data.append([
+                        metric["timestamp"],
+                        metric["value"],
+                        metric["unit"],
+                        metric["source"]
+                    ])
+                return data
+                
+            def get_error_rate(minutes):
+                try:
+                    response = requests.get(f"http://127.0.0.1:8000/api/enhanced/performance/error-rate?minutes={int(minutes)}")
+                    if response.status_code == 200:
+                        rate = response.json()
+                        return rate * 100  # Convert to percentage
+                    return 0
+                except Exception:
+                    return 0
+            
+            refresh_stats_btn.click(
+                fn=refresh_system_stats,
+                inputs=[],
+                outputs=system_stats
+            )
+            
+            get_metrics_btn.click(
+                fn=get_recent_metrics,
+                inputs=minutes_input,
+                outputs=metrics_output
+            )
+            
+            get_metrics_btn.click(
+                fn=get_error_rate,
+                inputs=minutes_input,
+                outputs=error_rate_output
             )
 
 # To launch this app, you can run this file directly.
