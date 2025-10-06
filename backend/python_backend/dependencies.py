@@ -1,6 +1,7 @@
 """
 Dependency injectors for the FastAPI application.
 """
+import logging
 from typing import TYPE_CHECKING, Optional
 
 from fastapi import Depends
@@ -9,6 +10,8 @@ from fastapi import Depends
 if TYPE_CHECKING:
     from .ai_engine import AdvancedAIEngine
     from .model_manager import ModelManager
+    from .workflow_engine import WorkflowEngine
+    from .plugin_manager import PluginManager
     from ..python_nlp.gmail_service import GmailAIService
     from ..python_nlp.smart_filters import SmartFilterManager
     from .database import DatabaseManager
@@ -22,7 +25,9 @@ from .workflow_engine import WorkflowEngine
 from .plugin_manager import PluginManager
 from .database import DatabaseManager, get_db
 
-# Module-level variables to store instances (better than global variables in functions)
+logger = logging.getLogger(__name__)
+
+# Module-level variables to store instances
 _model_manager_instance: Optional[ModelManager] = None
 _ai_engine_instance: Optional[AdvancedAIEngine] = None
 _filter_manager_instance: Optional[SmartFilterManager] = None
@@ -51,7 +56,7 @@ async def initialize_services():
 
     if _workflow_engine_instance is None:
         _workflow_engine_instance = WorkflowEngine()
-        _workflow_engine_instance.discover_workflows(
+        await _workflow_engine_instance.discover_workflows(
             ai_engine=_ai_engine_instance,
             filter_manager=_filter_manager_instance,
             db=db
@@ -76,20 +81,18 @@ async def initialize_services():
 
 
 def get_model_manager() -> "ModelManager":
-    """Dependency injector for ModelManager. Returns a singleton instance."""
+    """Dependency injector for ModelManager."""
     global _model_manager_instance
     if _model_manager_instance is None:
-        # This should not happen if initialize_services is called at startup
         _model_manager_instance = ModelManager()
         _model_manager_instance.discover_models()
     return _model_manager_instance
 
 
 def get_ai_engine() -> "AdvancedAIEngine":
-    """Dependency injector for AdvancedAIEngine. Returns a singleton instance."""
+    """Dependency injector for AdvancedAIEngine."""
     global _ai_engine_instance
     if _ai_engine_instance is None:
-        # This should not happen if initialize_services is called at startup
         model_manager = get_model_manager()
         _ai_engine_instance = AdvancedAIEngine(model_manager=model_manager)
         _ai_engine_instance.initialize()
@@ -97,36 +100,30 @@ def get_ai_engine() -> "AdvancedAIEngine":
 
 
 def get_workflow_engine() -> "WorkflowEngine":
-    """Dependency injector for WorkflowEngine. Returns a singleton instance."""
+    """Dependency injector for WorkflowEngine."""
     global _workflow_engine_instance
     if _workflow_engine_instance is None:
-        # This should not happen if initialize_services is called at startup
-        # Re-creating dependencies here is not ideal, but serves as a fallback.
-        db = get_db()
-        ai_engine = get_ai_engine()
-        filter_manager = get_filter_manager()
+        # This path should ideally not be taken in production if startup events work correctly.
+        logger.warning("WorkflowEngine is being initialized on-the-fly. This should only happen in specific testing scenarios.")
         _workflow_engine_instance = WorkflowEngine()
-        _workflow_engine_instance.discover_workflows(ai_engine, filter_manager, db)
+        # Cannot reliably call async discover_workflows here.
+        # The primary initialization MUST happen at startup.
     return _workflow_engine_instance
 
 
 def get_plugin_manager() -> "PluginManager":
-    """Dependency injector for PluginManager. Returns a singleton instance."""
+    """Dependency injector for PluginManager."""
     global _plugin_manager_instance
     if _plugin_manager_instance is None:
-        # This should not happen if initialize_services is called at startup
         _plugin_manager_instance = PluginManager()
-        # Note: In this fallback case, plugins are loaded without access to other managers.
-        # This is a limitation of on-the-fly initialization.
         _plugin_manager_instance.discover_and_load_plugins()
     return _plugin_manager_instance
 
 
 def get_filter_manager() -> "SmartFilterManager":
-    """Dependency injector for SmartFilterManager. Returns a singleton instance."""
+    """Dependency injector for SmartFilterManager."""
     global _filter_manager_instance
     if _filter_manager_instance is None:
-        # This should not happen if initialize_services is called at startup
         _filter_manager_instance = SmartFilterManager()
     return _filter_manager_instance
 
@@ -134,13 +131,9 @@ def get_filter_manager() -> "SmartFilterManager":
 def get_gmail_service(
     db: DatabaseManager = Depends(get_db),
 ) -> "GmailAIService":
-    """
-    Dependency injector for GmailAIService. Returns a singleton instance.
-    This service depends on other services which are also injected.
-    """
+    """Dependency injector for GmailAIService."""
     global _gmail_service_instance
     if _gmail_service_instance is None:
-        # This should not happen if initialize_services is called at startup
         ai_engine = get_ai_engine()
         _gmail_service_instance = GmailAIService(
             db_manager=db, advanced_ai_engine=ai_engine

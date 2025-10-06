@@ -84,7 +84,7 @@ class WorkflowEngine:
         logger.info(f"Registering workflow: {workflow.name}")
         self._workflows[workflow.name] = workflow
 
-    def discover_workflows(
+    async def discover_workflows(
         self,
         ai_engine: "AdvancedAIEngine",
         filter_manager: "SmartFilterManager",
@@ -112,7 +112,7 @@ class WorkflowEngine:
                 try:
                     with open(file_path, 'r') as f:
                         config = json.load(f)
-                        self.create_and_register_workflow_from_config(config, from_file=True)
+                        await self.create_and_register_workflow_from_config(config, from_file=True)
                 except Exception as e:
                     logger.error(f"Failed to load workflow from '{filename}': {e}")
 
@@ -136,7 +136,10 @@ class WorkflowEngine:
         if workflow_name in self._workflows and not from_file:
             raise ValueError(f"A workflow with name '{workflow_name}' already exists.")
 
-        # Save the configuration to a file if it's a new creation
+        # Create the workflow instance first to ensure it's valid
+        file_workflow = FileBasedWorkflow(self._ai_engine, self._filter_manager, self._db, config)
+
+        # Save the configuration to a file if it's a new creation from the API
         if not from_file:
             file_path = WORKFLOWS_DIR / f"{workflow_name}.json"
             if os.path.exists(file_path):
@@ -148,10 +151,8 @@ class WorkflowEngine:
             except IOError as e:
                 raise IOError(f"Failed to save workflow file: {e}")
 
-        # Create and register the workflow instance
-        file_workflow = FileBasedWorkflow(self._ai_engine, self._filter_manager, self._db, config)
+        # Now, register the workflow instance, making it immediately available.
         self.register_workflow(file_workflow)
-
 
     def set_active_workflow(self, workflow_name: str, persist: bool = True):
         """Sets the currently active workflow and optionally persists the setting."""
