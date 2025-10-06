@@ -41,17 +41,24 @@ def mock_filter_manager():
     filter_mock.apply_filters_to_email_data = AsyncMock()
     return filter_mock
 
+@pytest.fixture(scope="session")
+def mock_workflow_engine():
+    """A session-scoped mock for the WorkflowEngine."""
+    workflow_mock = MagicMock()
+    workflow_mock.run_workflow = AsyncMock()
+    return workflow_mock
+
 @pytest.fixture
-def client(mock_db_manager, mock_ai_engine, mock_filter_manager):
+def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_engine):
     """
     Provides a TestClient with all external services mocked.
     This fixture resets mocks for each test and handles dependency overrides.
     """
     from backend.python_backend.database import get_db
-    from backend.python_backend.dependencies import get_ai_engine, get_filter_manager
+    from backend.python_backend.dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
 
     # Reset all mocks before each test to ensure isolation
-    for manager_mock in [mock_db_manager, mock_ai_engine, mock_filter_manager]:
+    for manager_mock in [mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_engine]:
         # Reset the main mock object
         manager_mock.reset_mock()
         # Reset all mock attributes on the manager mock
@@ -65,11 +72,12 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager):
     app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
+    app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
 
     # The log_performance decorator is not injected via Depends, so we must patch it
     # in each module where it's used.
     decorator_path = "backend.python_backend.performance_monitor.log_performance"
-    with patch(decorator_path, lambda name: (lambda func: func)):
+    with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
         yield TestClient(app)
 
     # Clean up dependency overrides after the test yields
