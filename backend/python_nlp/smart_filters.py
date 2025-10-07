@@ -8,12 +8,16 @@ includes logic for generating filters based on email patterns.
 
 import json
 import logging
+import os
 import re
 import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
+
+# Project root directory
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 
 @dataclass
@@ -86,8 +90,12 @@ class SmartFilterManager:
     of email filters, using a SQLite database for persistence.
     """
 
-    def __init__(self, db_path: str = "smart_filters.db"):
+    def __init__(self, db_path: str = None):
         """Initializes the SmartFilterManager."""
+        if db_path is None:
+            db_path = os.path.join(ROOT_DIR, "smart_filters.db")
+        elif not os.path.isabs(db_path):
+            db_path = os.path.join(ROOT_DIR, db_path)
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None
