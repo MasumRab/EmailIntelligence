@@ -15,6 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 @dataclass
 class PerformanceMetric:
     """Represents a single performance metric"""
@@ -209,6 +210,27 @@ class PerformanceMonitor:
                 "cpu_usage": cpu_metrics[-1].value if cpu_metrics else 0.0,
                 "memory_usage": memory_metrics[-1].value if memory_metrics else 0.0,
                 "disk_usage": disk_metrics[-1].value if disk_metrics else 0.0
+=======
+def log_performance(_func=None, *, operation: str = ""):
+    """
+    A decorator to log the performance of both sync and async functions.
+    Can be used as @log_performance or @log_performance(operation="custom_name").
+    """
+    def decorator(func):
+        op_name = operation or func.__name__
+
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": op_name,
+                "duration_seconds": duration,
+>>>>>>> origin/feat/modular-ai-platform
             }
             
     def get_error_rate(self, minutes: int = 5) -> float:
@@ -235,6 +257,32 @@ class PerformanceMonitor:
 performance_monitor = PerformanceMonitor()
 
 
+<<<<<<< HEAD
 def get_performance_monitor() -> PerformanceMonitor:
     """Get the global performance monitor instance"""
     return performance_monitor
+=======
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": op_name,
+                "duration_seconds": duration,
+            }
+
+            try:
+                with open(LOG_FILE, 'a') as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
+
+            return result
+
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
+
+    if _func is None:
+        return decorator
+    else:
+        return decorator(_func)
+>>>>>>> origin/feat/modular-ai-platform

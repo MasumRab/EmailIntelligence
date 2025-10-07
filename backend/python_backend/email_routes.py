@@ -7,9 +7,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_filter_manager
+from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
+from .workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError
-from .models import EmailResponse  # Changed from .main to .models
+from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
 from .utils import handle_pydantic_validation, create_log_data
@@ -19,7 +20,7 @@ router = APIRouter()
 
 
 @router.get("/api/emails", response_model=List[EmailResponse])
-@log_performance("get_emails")
+@log_performance(operation="get_emails")
 async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
@@ -104,7 +105,7 @@ async def get_emails(
 
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("get_email")
+@log_performance(operation="get_email")
 async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
     """
     Retrieves a specific email by its unique ID.
@@ -157,16 +158,16 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 
-@router.post("/api/emails", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("create_email")
+@router.post("/api/emails", response_model=EmailResponse)
+@log_performance(operation="create_email")
 async def create_email(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
     db: DatabaseManager = Depends(get_db),
-    ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
-    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+    workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
+<<<<<<< HEAD
     """
     Creates a new email, performs AI analysis, and applies smart filters.
 
@@ -203,6 +204,15 @@ async def create_email(
         )
 
         created_email_dict = await db.create_email(email_data)
+=======
+    """Create new email with AI analysis using the active workflow."""
+    try:
+        # Run the active workflow to process the email data
+        processed_data = await workflow_engine.run_workflow(email.model_dump())
+
+        # Create the email in the database with the processed data
+        created_email_dict = await db.create_email(processed_data)
+>>>>>>> origin/feat/modular-ai-platform
 
         try:
             return EmailResponse(**created_email_dict)
@@ -216,6 +226,7 @@ async def create_email(
 <<<<<<< HEAD
             raise # Re-raise for FastAPI to handle
     except Exception as db_err:
+<<<<<<< HEAD
 =======
             raise  # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
@@ -227,21 +238,30 @@ async def create_email(
             "error_detail": str(db_err),
             "pgcode": None,
         }
+=======
+        log_data = create_log_data(
+            message="Database operation failed while creating email",
+            request_url=request.url,
+            error_type=type(db_err).__name__,
+            error_detail=str(db_err),
+            pgcode=None,
+        )
+>>>>>>> origin/feat/modular-ai-platform
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
-        log_data = {
-            "message": "Unhandled error in create_email",
-            "endpoint": str(request.url),
-            "error_type": type(e).__name__,
-            "error_detail": str(e),
-        }
+        log_data = create_log_data(
+            message="Unhandled error in create_email",
+            request_url=request.url,
+            error_type=type(e).__name__,
+            error_detail=str(e),
+        )
         logger.error(json.dumps(log_data))
         raise AIAnalysisError(detail="Failed to create email due to an unexpected error.")
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("update_email")
+@log_performance(operation="update_email")
 async def update_email(
     request: Request,
     email_id: int,
