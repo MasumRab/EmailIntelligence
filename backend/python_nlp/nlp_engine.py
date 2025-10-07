@@ -16,35 +16,36 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.python_nlp.text_utils import clean_text
-
-from .analysis_components.intent_model import IntentModel
-from .analysis_components.sentiment_model import SentimentModel
-from .analysis_components.topic_model import TopicModel
-from .analysis_components.urgency_model import UrgencyModel
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
 # Try to import optional dependencies
 try:
     import joblib
     import nltk
     from textblob import TextBlob
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
+    HAS_TRANSFORMERS = True
 except ImportError:
     HAS_NLTK = False
     HAS_SKLEARN_AND_JOBLIB = False
+    HAS_TRANSFORMERS = False
     print(
-        "Warning: NLTK, scikit-learn or joblib not available. "
+        "Warning: NLTK, scikit-learn, joblib or transformers not available. "
         "Model loading and/or advanced NLP features will be disabled.",
         file=sys.stderr,
     )
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+
+def clean_text(text: str) -> str:
+    """Basic text cleaning utility."""
+    return text.lower().strip()
+
 
 # Define paths for pre-trained models
 # MODEL_DIR = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__)) # Moved to __init__
@@ -105,11 +106,11 @@ class NLPEngine:
         """Initialize the NLP engine and load required models."""
 
         # Define model paths dynamically using env var at instantiation time
-        model_dir = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__))
-        self.sentiment_model_path = os.path.join(model_dir, "sentiment_model.pkl")
-        self.topic_model_path = os.path.join(model_dir, "topic_model.pkl")
-        self.intent_model_path = os.path.join(model_dir, "intent_model.pkl")
-        self.urgency_model_path = os.path.join(model_dir, "urgency_model.pkl")
+        model_dir = os.getenv("NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models"))
+        self.sentiment_model_path = os.path.join(model_dir, "sentiment")
+        self.topic_model_path = os.path.join(model_dir, "topic")
+        self.intent_model_path = os.path.join(model_dir, "intent")
+        self.urgency_model_path = os.path.join(model_dir, "urgency")
         self.compiled_patterns = {}
 
         # Initialize stop words if NLTK is available
@@ -131,17 +132,11 @@ class NLPEngine:
 
         # Load models if dependencies are available
         # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
-        _sentiment_model_obj = None
-        _topic_model_obj = None
-        _intent_model_obj = None
-        _urgency_model_obj = None
 
         if HAS_SKLEARN_AND_JOBLIB:
             logger.info("Attempting to load NLP models...")
-            _sentiment_model_obj = self._load_model(self.sentiment_model_path)
-            _topic_model_obj = self._load_model(self.topic_model_path)
-            _intent_model_obj = self._load_model(self.intent_model_path)
-            _urgency_model_obj = self._load_model(self.urgency_model_path)
+            self.sentiment_model = self._load_model(self.sentiment_model_path)
+            self.topic_model = self._load_model(self.topic_model_path)
         else:
             logger.warning(
                 "Scikit-learn or joblib not available. "
