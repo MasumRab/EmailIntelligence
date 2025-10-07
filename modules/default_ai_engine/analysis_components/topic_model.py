@@ -25,6 +25,7 @@ class TopicModel:
         model: The pre-trained scikit-learn model for topic classification.
         logger: A logger for recording events and errors.
     """
+
     def __init__(self, topic_model: Optional[Any]):
         """
         Initializes the TopicModel.
@@ -53,7 +54,11 @@ class TopicModel:
             prediction = self.model.predict([text])[0]
             probabilities = self.model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            return {"topic": str(prediction), "confidence": confidence, "method_used": "model_topic"}
+            return {
+                "topic": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_topic",
+            }
         except Exception as e:
             self.logger.error(f"Error using topic model: {e}. Trying fallback.")
             return None
@@ -76,12 +81,19 @@ class TopicModel:
             "Travel & Leisure": ["travel", "flight", "hotel", "booking"],
         }
         text_lower = text.lower()
-        topic_scores = {topic: sum(1 for keyword in keywords if keyword in text_lower) for topic, keywords in topics.items()}
+        topic_scores = {
+            topic: sum(1 for keyword in keywords if keyword in text_lower)
+            for topic, keywords in topics.items()
+        }
 
         if any(topic_scores.values()):
             best_topic = max(topic_scores, key=topic_scores.get)
             confidence = min(topic_scores[best_topic] / 5.0, 0.9)
-            return {"topic": best_topic, "confidence": max(0.1, confidence), "method_used": "fallback_keyword_topic"}
+            return {
+                "topic": best_topic,
+                "confidence": max(0.1, confidence),
+                "method_used": "fallback_keyword_topic",
+            }
         else:
             return {"topic": "General", "confidence": 0.5, "method_used": "fallback_keyword_topic"}
 

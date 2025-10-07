@@ -1,11 +1,14 @@
 import logging
-from fastapi import FastAPI
+
 import gradio as gr
+from fastapi import FastAPI
 
 from src.core.ai_engine import set_active_ai_engine
+
 from .engine import DefaultAIEngine
 
 logger = logging.getLogger(__name__)
+
 
 def register(app: FastAPI, gradio_app: gr.Blocks):
     """
