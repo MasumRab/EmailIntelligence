@@ -46,6 +46,73 @@ PYTHON_MAX_VERSION = (3, 12)
 VENV_DIR = "venv"
 
 
+# --- Python Version Checking ---
+def check_python_version():
+    """Check if the current Python version is compatible and re-execute if necessary."""
+    current_major, current_minor = sys.version_info[:2]
+    current_version = (current_major, current_minor)
+    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
+        logger.info(
+            f"Current Python is {current_major}.{current_minor}. "
+            f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
+        )
+
+        candidate_interpreters = []
+        if platform.system() == "Windows":
+            candidate_interpreters = [
+                ["py", "-3.12"],  # Python Launcher for Windows
+                ["py", "-3.11"],  # Python Launcher for Windows
+                ["python3.12"],
+                ["python3.11"],
+                ["python"],  # General python, check version
+            ]
+        else:  # Linux/macOS
+            candidate_interpreters = [
+                ["python3.12"],
+                ["python3.11"],
+                ["python3"],  # General python3, check version
+            ]
+
+        for exe_name in candidate_interpreters:
+            try:
+                result = subprocess.run(
+                    exe_name + ["--version"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                # Python version can be in stdout or stderr
+                version_output = result.stdout.strip() + result.stderr.strip()
+
+                # Check if version is in supported range
+                compatible = False
+                for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
+                    for minor in range(PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0,
+                                     PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100):
+                        if f"Python {major}.{minor}" in version_output:
+                            logger.info(
+                                f"Found compatible Python {major}.{minor} interpreter: {exe_name} (version output: {version_output})"
+                            )
+                            # Re-execute with the found interpreter
+                            os.execv(exe_name[0], exe_name + sys.argv)
+                            compatible = True
+                            break
+                    if compatible:
+                        break
+
+                if compatible:
+                    break
+                else:
+                    logger.debug(
+                        f"Candidate {exe_name} is not in supported Python version range. Output: {version_output}"
+                    )
+            except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+                continue
+
+        logger.error("No compatible Python interpreter found. Please install Python 3.12 or 3.11.")
+        sys.exit(1)
+
+
 # --- Signal Handling ---
 def _handle_sigint(signum, frame):
     """
@@ -269,6 +336,41 @@ def start_server_ts():
         ["npm", "run", "dev"],
         cwd=ROOT_DIR / "server"
     )
+    processes.append(process)
+    return process
+
+
+def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
+    venv_python = venv_path / "Scripts" / "python.exe" if platform.system() == "Windows" else venv_path / "bin" / "python"
+
+    # Use uvicorn to run the FastAPI app directly
+    cmd = [str(venv_python), "-m", "uvicorn", "backend.python_backend.main:app", "--host", host, "--port", str(port)]
+    if debug:
+        cmd.append("--reload")
+
+    logger.info(f"Starting Python backend on {host}:{port}")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    processes.append(process)
+    return process
+
+
+def start_gradio_ui(venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False):
+    """Start the Gradio UI."""
+    venv_python = venv_path / "Scripts" / "python.exe" if platform.system() == "Windows" else venv_path / "bin" / "python"
+    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
+
+    cmd = [str(venv_python), str(gradio_path)]
+    if share:
+        cmd.append("--share")  # Enable public sharing
+    if port:
+        # Gradio doesn't take port as a command line param directly,
+        # we'd need to modify the app to accept it
+        logger.info(f"Starting Gradio UI (on default or next available port)")
+    else:
+        logger.info("Starting Gradio UI on default port")
+
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     processes.append(process)
     return process
 
