@@ -28,7 +28,7 @@ load_dotenv()
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
-GMAIL_TOKEN_PATH =".\\jsons"
+GMAIL_TOKEN_PATH = ".\\jsons"
 
 # Path for token.json, configurable via environment variable
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
@@ -773,6 +773,8 @@ Key steps:
 Raises:
     Various exceptions related to authentication or email collection
 """
+
+
 async def main():
     """Example usage of Gmail data collector"""
     # Note: The main function would need to be async if _authenticate might run an async flow,

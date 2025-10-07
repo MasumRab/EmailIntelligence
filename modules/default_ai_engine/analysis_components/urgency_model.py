@@ -25,6 +25,7 @@ class UrgencyModel:
         model: The pre-trained scikit-learn model for urgency classification.
         logger: A logger for recording events and errors.
     """
+
     def __init__(self, urgency_model: Optional[Any]):
         """
         Initializes the UrgencyModel.
@@ -53,7 +54,11 @@ class UrgencyModel:
             prediction = self.model.predict([text])[0]
             probabilities = self.model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            return {"urgency": str(prediction), "confidence": confidence, "method_used": "model_urgency"}
+            return {
+                "urgency": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_urgency",
+            }
         except Exception as e:
             self.logger.error(f"Error using urgency model: {e}. Trying fallback.")
             return None
@@ -70,7 +75,11 @@ class UrgencyModel:
         """
         text_lower = text.lower()
         if re.search(r"\b(emergency|urgent|asap|immediately|critical)\b", text_lower):
-            return {"urgency": "critical", "confidence": 0.9, "method_used": "fallback_regex_urgency"}
+            return {
+                "urgency": "critical",
+                "confidence": 0.9,
+                "method_used": "fallback_regex_urgency",
+            }
         elif re.search(r"\b(soon|quickly|priority|important|deadline)\b", text_lower):
             return {"urgency": "high", "confidence": 0.8, "method_used": "fallback_regex_urgency"}
         elif re.search(r"\b(next week|upcoming|scheduled)\b", text_lower):

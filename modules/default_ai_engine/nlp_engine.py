@@ -18,25 +18,32 @@ from .analysis_components.sentiment_model import SentimentModel
 from .analysis_components.topic_model import TopicModel
 from .analysis_components.urgency_model import UrgencyModel
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 try:
     import joblib
     import nltk
     from textblob import TextBlob
+
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
 except ImportError:
     HAS_NLTK = False
     HAS_SKLEARN_AND_JOBLIB = False
-    print("Warning: NLTK, scikit-learn or joblib not available. Advanced NLP features will be disabled.", file=sys.stderr)
+    print(
+        "Warning: NLTK, scikit-learn or joblib not available. Advanced NLP features will be disabled.",
+        file=sys.stderr,
+    )
 
 
 class NLPEngine:
     """
     Orchestrates NLP tasks for email analysis.
     """
+
     CATEGORY_PATTERNS = {
         "Work & Business": [
             r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|colleague|office|work|business|professional|corporate|company|organization)\b",
@@ -79,7 +86,9 @@ class NLPEngine:
             _intent_model_obj = self.intent_model
             _urgency_model_obj = self.urgency_model
 
-        self.sentiment_analyzer = SentimentModel(sentiment_model=_sentiment_model_obj, has_nltk_installed=HAS_NLTK)
+        self.sentiment_analyzer = SentimentModel(
+            sentiment_model=_sentiment_model_obj, has_nltk_installed=HAS_NLTK
+        )
         self.topic_analyzer = TopicModel(topic_model=_topic_model_obj)
         self.intent_analyzer = IntentModel(intent_model=_intent_model_obj)
         self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
@@ -126,50 +135,90 @@ class NLPEngine:
         text_lower = text.lower()
         if not self.compiled_patterns:
             self.initialize_patterns()
-        category_scores = {category: sum(len(p.findall(text_lower)) for p in patterns) for category, patterns in self.compiled_patterns.items()}
+        category_scores = {
+            category: sum(len(p.findall(text_lower)) for p in patterns)
+            for category, patterns in self.compiled_patterns.items()
+        }
         if not any(category_scores.values()):
             return ["General"]
         return sorted(category_scores, key=category_scores.get, reverse=True)[:3]
 
     def _calculate_confidence(self, analysis_results: List[Dict[str, Any]]) -> float:
-        if not analysis_results: return 0.5
-        return min(sum(r.get("confidence", 0.0) for r in analysis_results) / len(analysis_results), 0.95)
+        if not analysis_results:
+            return 0.5
+        return min(
+            sum(r.get("confidence", 0.0) for r in analysis_results) / len(analysis_results), 0.95
+        )
 
     def _generate_reasoning(self, sentiment, topic, intent, urgency) -> str:
         parts = []
-        if sentiment and sentiment.get("sentiment") != "neutral": parts.append(f"Sentiment is {sentiment['sentiment']}")
-        if topic and topic.get("topic") != "General": parts.append(f"Topic is {topic['topic']}")
-        if intent and intent.get("intent") != "informational": parts.append(f"Intent is {intent['intent']}")
-        if urgency and urgency.get("urgency") != "low": parts.append(f"Urgency is {urgency['urgency']}")
+        if sentiment and sentiment.get("sentiment") != "neutral":
+            parts.append(f"Sentiment is {sentiment['sentiment']}")
+        if topic and topic.get("topic") != "General":
+            parts.append(f"Topic is {topic['topic']}")
+        if intent and intent.get("intent") != "informational":
+            parts.append(f"Intent is {intent['intent']}")
+        if urgency and urgency.get("urgency") != "low":
+            parts.append(f"Urgency is {urgency['urgency']}")
         return ". ".join(parts) + "." if parts else "No significant insights."
 
     def _suggest_labels(self, categories: List[str], urgency: str) -> List[str]:
         labels = categories.copy()
-        if urgency in ["high", "critical"]: labels.append(f"{urgency.title()} Priority")
+        if urgency in ["high", "critical"]:
+            labels.append(f"{urgency.title()} Priority")
         return list(set(labels))[:6]
 
     def _detect_risk_factors(self, text: str) -> List[str]:
         flags = []
-        if re.search(r"\b(free|winner|prize|lottery)\b", text, re.IGNORECASE): flags.append("potential_spam")
-        if re.search(r"\b(confidential|password|ssn)\b", text, re.IGNORECASE): flags.append("sensitive_data")
+        if re.search(r"\b(free|winner|prize|lottery)\b", text, re.IGNORECASE):
+            flags.append("potential_spam")
+        if re.search(r"\b(confidential|password|ssn)\b", text, re.IGNORECASE):
+            flags.append("sensitive_data")
         return flags
 
     def _validate_analysis(self, results: Dict[str, Any]) -> Dict[str, Any]:
         confidence = self._calculate_confidence(list(results.values()))
         is_reliable = confidence > 0.7
-        return {"reliable": is_reliable, "feedback": "High confidence." if is_reliable else "Moderate confidence."}
+        return {
+            "reliable": is_reliable,
+            "feedback": "High confidence." if is_reliable else "Moderate confidence.",
+        }
 
     def _get_fallback_analysis(self, error_msg: str) -> Dict[str, Any]:
-        return {"reasoning": f"Fallback due to error: {error_msg}", "risk_flags": ["analysis_failed"], "topic": "General", "sentiment": "neutral", "intent": "informational", "urgency": "low", "confidence": 0.5, "categories": ["General"], "keywords": [], "suggested_labels": ["General"]}
+        return {
+            "reasoning": f"Fallback due to error: {error_msg}",
+            "risk_flags": ["analysis_failed"],
+            "topic": "General",
+            "sentiment": "neutral",
+            "intent": "informational",
+            "urgency": "low",
+            "confidence": 0.5,
+            "categories": ["General"],
+            "keywords": [],
+            "suggested_labels": ["General"],
+        }
 
     def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
         text = f"{subject} {content}".lower()
-        sentiment = "positive" if "thank" in text else "negative" if "problem" in text else "neutral"
+        sentiment = (
+            "positive" if "thank" in text else "negative" if "problem" in text else "neutral"
+        )
         urgency = "high" if "urgent" in text else "low"
         topic = "work_business" if "meeting" in text else "general_communication"
         categories = [topic]
         confidence_value = 0.6
-        return {"topic": topic, "sentiment": sentiment, "intent": "informational", "urgency": urgency, "confidence": confidence_value, "categories": categories, "keywords": [], "reasoning": "Basic keyword matching.", "suggested_labels": categories, "risk_flags": []}
+        return {
+            "topic": topic,
+            "sentiment": sentiment,
+            "intent": "informational",
+            "urgency": urgency,
+            "confidence": confidence_value,
+            "categories": categories,
+            "keywords": [],
+            "reasoning": "Basic keyword matching.",
+            "suggested_labels": categories,
+            "risk_flags": [],
+        }
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         try:
@@ -184,12 +233,16 @@ class NLPEngine:
             risk_flags = self._detect_risk_factors(cleaned_text)
             keywords = self._extract_keywords(cleaned_text)
             categories = self._categorize_content(cleaned_text)
-            return self._build_final_analysis_response(sentiment, topic, intent, urgency, categories, keywords, risk_flags)
+            return self._build_final_analysis_response(
+                sentiment, topic, intent, urgency, categories, keywords, risk_flags
+            )
         except Exception as e:
             logger.exception(f"NLP analysis failed: {e}")
             return self._get_fallback_analysis(str(e))
 
-    def _build_final_analysis_response(self, sentiment, topic, intent, urgency, categories, keywords, risk_flags) -> Dict[str, Any]:
+    def _build_final_analysis_response(
+        self, sentiment, topic, intent, urgency, categories, keywords, risk_flags
+    ) -> Dict[str, Any]:
         """
         Helper function to consolidate analysis results and build the final response dictionary.
 
@@ -209,17 +262,30 @@ class NLPEngine:
         confidence = self._calculate_confidence(analysis_results)
         reasoning = self._generate_reasoning(sentiment, topic, intent, urgency)
         suggested_labels = self._suggest_labels(categories, urgency.get("urgency", "low"))
-        validation = self._validate_analysis({"sentiment": sentiment, "topic": topic, "intent": intent, "urgency": urgency})
+        validation = self._validate_analysis(
+            {"sentiment": sentiment, "topic": topic, "intent": intent, "urgency": urgency}
+        )
 
         return {
             "topic": topic.get("topic", "General") if topic else "General",
             "sentiment": sentiment.get("sentiment", "neutral") if sentiment else "neutral",
             "intent": intent.get("intent", "informational") if intent else "informational",
             "urgency": urgency.get("urgency", "low") if urgency else "low",
-            "confidence": confidence, "categories": categories, "keywords": keywords, "reasoning": reasoning,
-            "suggested_labels": suggested_labels, "risk_flags": risk_flags, "validation": validation,
-            "details": {"sentiment_analysis": sentiment, "topic_analysis": topic, "intent_analysis": intent, "urgency_analysis": urgency},
+            "confidence": confidence,
+            "categories": categories,
+            "keywords": keywords,
+            "reasoning": reasoning,
+            "suggested_labels": suggested_labels,
+            "risk_flags": risk_flags,
+            "validation": validation,
+            "details": {
+                "sentiment_analysis": sentiment,
+                "topic_analysis": topic,
+                "intent_analysis": intent,
+                "urgency_analysis": urgency,
+            },
         }
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NLP Engine for Email Analysis")

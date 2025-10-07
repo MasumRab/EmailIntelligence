@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from server.python_backend.main import app
 from server.python_backend.database import get_db
 
+
 @pytest.fixture
 def mock_db_manager():
     """
@@ -24,6 +25,7 @@ def mock_db_manager():
     mock.get_dashboard_stats = AsyncMock()
     mock.get_recent_emails = AsyncMock()
     return mock
+
 
 @pytest.fixture
 def client(mock_db_manager: AsyncMock):

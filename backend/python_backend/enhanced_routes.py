@@ -1,6 +1,7 @@
 """
 API routes for enhanced features: model management, workflows, and performance monitoring
 """
+
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from pydantic import BaseModel
@@ -36,7 +37,7 @@ async def get_models():
             status=model.status.value,
             load_time=model.load_time,
             performance_metrics=model.performance_metrics,
-            last_used=model.last_used
+            last_used=model.last_used,
         )
         for model in models
     ]
@@ -89,7 +90,7 @@ async def get_workflow(workflow_filename: str):
     workflow = workflow_manager.load_workflow(workflow_filename)
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    
+
     return WorkflowResponse(
         name=workflow.name,
         description=workflow.description,
@@ -98,7 +99,7 @@ async def get_workflow(workflow_filename: str):
         version=workflow.version,
         nodes=workflow.nodes,
         connections=workflow.connections,
-        config=workflow.config
+        config=workflow.config,
     )
 
 
@@ -110,15 +111,15 @@ async def create_workflow(request: WorkflowCreateRequest):
     workflow.add_node("email_input", "input_1", 0, 0)
     workflow.add_node("nlp_processor", "processor_1", 200, 0)
     workflow.add_node("email_output", "output_1", 400, 0)
-    
+
     # Connect the nodes
     workflow.add_connection("input_1", "output", "processor_1", "input")
     workflow.add_connection("processor_1", "output", "output_1", "input")
-    
+
     success = workflow_manager.save_workflow(workflow)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to save workflow")
-    
+
     return {"message": "Workflow created successfully", "workflow_name": workflow.name}
 
 
@@ -136,10 +137,7 @@ async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
     metrics = performance_monitor.get_recent_metrics(minutes, source_filter)
     return [
         PerformanceMetricResponse(
-            timestamp=metric.timestamp,
-            value=metric.value,
-            unit=metric.unit,
-            source=metric.source
+            timestamp=metric.timestamp, value=metric.value, unit=metric.unit, source=metric.source
         )
         for metric in metrics
     ]
@@ -164,9 +162,9 @@ async def get_plugins():
     all_plugins = plugin_manager.get_all_plugins()
     ui_plugins = plugin_manager.get_all_ui_plugins()
     processing_nodes = plugin_manager.get_all_processing_nodes()
-    
+
     return {
         "regular_plugins": list(all_plugins.keys()),
         "ui_plugins": list(ui_plugins.keys()),
-        "processing_nodes": list(processing_nodes.keys())
+        "processing_nodes": list(processing_nodes.keys()),
     }

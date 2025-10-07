@@ -6,6 +6,7 @@ from .routes import router as category_router
 
 logger = logging.getLogger(__name__)
 
+
 def register(app: FastAPI, gradio_app: gr.Blocks):
     """
     Registers the categories module with the main application.

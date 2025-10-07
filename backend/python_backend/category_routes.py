@@ -32,17 +32,6 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
     """
     try:
         categories = await db.get_all_categories()
-<<<<<<< HEAD
-        return await handle_pydantic_validation(categories, CategoryResponse, "get_categories")
-    except Exception as db_err:
-        log_data = create_log_data(
-            message="Database operation failed while fetching categories",
-            request_url=request.url,
-            error_type=type(db_err).__name__,
-            error_detail=str(db_err),
-            pgcode=None,
-        )
-=======
         try:
             return [CategoryResponse(**cat) for cat in categories]
         except Exception as e_outer:
@@ -53,15 +42,14 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
             if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
             raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
-        log_data = {
-            "message": "Database operation failed while fetching categories",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
->>>>>>> origin/feature/git-history-analysis-report
+    except Exception as db_err:
+        log_data = create_log_data(
+            message="Database operation failed while fetching categories",
+            request_url=request.url,
+            error_type=type(db_err).__name__,
+            error_detail=str(db_err),
+            pgcode=None,
+        )
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:

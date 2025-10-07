@@ -1,6 +1,7 @@
 """
 API routes for performance monitoring.
 """
+
 import logging
 import json
 from fastapi import APIRouter, HTTPException
@@ -11,6 +12,7 @@ router = APIRouter()
 
 LOG_FILE = "performance_metrics_log.jsonl"
 
+
 @router.get("/api/performance", response_model=List[Dict[str, Any]])
 async def get_performance_metrics():
     """
@@ -18,7 +20,7 @@ async def get_performance_metrics():
     """
     try:
         metrics = []
-        with open(LOG_FILE, 'r') as f:
+        with open(LOG_FILE, "r") as f:
             for line in f:
                 if line.strip():
                     metrics.append(json.loads(line))

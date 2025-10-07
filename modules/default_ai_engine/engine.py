@@ -10,6 +10,7 @@ from .nlp_engine import NLPEngine
 
 logger = logging.getLogger(__name__)
 
+
 class DefaultAIEngine(BaseAIEngine):
     """
     The default AI engine implementation, based on the original NLPEngine.
@@ -34,7 +35,7 @@ class DefaultAIEngine(BaseAIEngine):
     async def _build_category_lookup(self, db: "DatabaseManager") -> None:
         """Builds a normalized lookup map for categories from the database."""
         all_db_categories = await db.get_all_categories()
-        self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
+        self.category_lookup_map = {cat["name"].lower(): cat for cat in all_db_categories}
         logger.info("Built category lookup map for the default AI engine.")
 
     async def _match_category_id(
@@ -54,7 +55,7 @@ class DefaultAIEngine(BaseAIEngine):
             ai_cat_lower = ai_cat_str.lower()
             if ai_cat_lower in self.category_lookup_map:
                 matched_cat = self.category_lookup_map[ai_cat_lower]
-                return matched_cat['id']
+                return matched_cat["id"]
         return None
 
     async def analyze_email(
@@ -73,10 +74,9 @@ class DefaultAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"An error occurred during AI analysis: {e}", exc_info=True)
             # Return a fallback result in case of error
-            return AIAnalysisResult({
-                "reasoning": f"AI analysis error: {e}",
-                "risk_flags": ["ai_analysis_failed"]
-            })
+            return AIAnalysisResult(
+                {"reasoning": f"AI analysis error: {e}", "risk_flags": ["ai_analysis_failed"]}
+            )
 
     def health_check(self) -> Dict[str, Any]:
         """Performs a health check on the underlying NLP engine."""

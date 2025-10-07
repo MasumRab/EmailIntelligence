@@ -9,10 +9,12 @@ logger = logging.getLogger(__name__)
 
 LOG_FILE = "performance_metrics_log.jsonl"
 
+
 def log_performance(operation: str):
     """
     A decorator to log the performance of both sync and async functions.
     """
+
     def decorator(func):
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
@@ -28,7 +30,7 @@ def log_performance(operation: str):
             }
 
             try:
-                with open(LOG_FILE, 'a') as f:
+                with open(LOG_FILE, "a") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except IOError as e:
                 logger.error(f"Failed to write performance log: {e}")
@@ -49,7 +51,7 @@ def log_performance(operation: str):
             }
 
             try:
-                with open(LOG_FILE, 'a') as f:
+                with open(LOG_FILE, "a") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except IOError as e:
                 logger.error(f"Failed to write performance log: {e}")
@@ -60,4 +62,5 @@ def log_performance(operation: str):
             return async_wrapper
         else:
             return sync_wrapper
+
     return decorator

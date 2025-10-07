@@ -6,6 +6,7 @@ import asyncio
 from backend.python_backend.main import app
 from backend.python_backend.dependencies import initialize_services, _workflow_engine_instance
 
+
 # Create a single mock for each manager, scoped to the entire test session.
 @pytest.fixture(scope="session")
 def mock_db_manager():
@@ -23,6 +24,7 @@ def mock_db_manager():
     db_mock.get_recent_emails = AsyncMock()
     return db_mock
 
+
 @pytest.fixture(scope="session")
 def mock_ai_engine():
     """A session-scoped mock for the AdvancedAIEngine."""
@@ -30,12 +32,14 @@ def mock_ai_engine():
     ai_mock.analyze_email = AsyncMock()
     return ai_mock
 
+
 @pytest.fixture(scope="session")
 def mock_filter_manager():
     """A session-scoped mock for the SmartFilterManager."""
     filter_mock = MagicMock()
     filter_mock.apply_filters_to_email_data = AsyncMock()
     return filter_mock
+
 
 @pytest.fixture(scope="session")
 def mock_workflow_engine():
@@ -45,6 +49,7 @@ def mock_workflow_engine():
     workflow_mock.create_and_register_workflow_from_config = AsyncMock()
     return workflow_mock
 
+
 @pytest.fixture
 def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_engine):
     """
@@ -52,10 +57,19 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
     This fixture resets mocks for each test and handles dependency overrides.
     """
     from backend.python_backend.database import get_db
-    from backend.python_backend.dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
+    from backend.python_backend.dependencies import (
+        get_ai_engine,
+        get_filter_manager,
+        get_workflow_engine,
+    )
 
     # Reset all mocks
-    for manager_mock in [mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_engine]:
+    for manager_mock in [
+        mock_db_manager,
+        mock_ai_engine,
+        mock_filter_manager,
+        mock_workflow_engine,
+    ]:
         manager_mock.reset_mock()
         for attr_name in dir(manager_mock):
             attr = getattr(manager_mock, attr_name)
@@ -84,7 +98,11 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     This is for testing the workflow and plugin discovery process.
     """
     from backend.python_backend.database import get_db
-    from backend.python_backend.dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
+    from backend.python_backend.dependencies import (
+        get_ai_engine,
+        get_filter_manager,
+        get_workflow_engine,
+    )
 
     # We are NOT mocking get_workflow_engine here.
 
