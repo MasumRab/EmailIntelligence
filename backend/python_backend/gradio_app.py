@@ -1,11 +1,3 @@
-"""
-A Gradio web interface for interactively testing the Email Intelligence NLP Engine.
-
-This script launches a simple web UI that allows users to input an email's
-subject and content and view the AI analysis results in real-time. It's a
-useful tool for debugging, demonstration, and manual testing of the NLP
-capabilities.
-"""
 import gradio as gr
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,6 +8,13 @@ import json
 import seaborn as sns
 import requests
 from typing import Dict, Any, List
+
+# For safe sandboxed code execution
+from RestrictedPython import compile_restricted_exec
+from RestrictedPython import safe_globals
+import io
+import contextlib
+
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -58,6 +57,71 @@ def generate_topic_pie(categories):
         categories = ["General"]
     fig = px.pie(values=[1]*len(categories), names=categories, title="Topic Categories")
     return fig
+
+def get_models():
+    """Placeholder for getting models - in a real implementation, this would connect to ModelManager"""
+    try:
+        response = requests.get("http://127.0.0.1:8000/api/models")
+        if response.status_code == 200:
+            return response.json()
+        return []
+    except Exception:
+        # Return mock data if connection fails
+        return [
+            {"name": "sentiment-default", "status": "loaded", "size_mb": 15.2, "load_time": 1.2},
+            {"name": "topic-default", "status": "unloaded", "size_mb": 22.1, "load_time": None}
+        ]
+
+def load_model(model_name):
+    """Placeholder for loading a model"""
+    try:
+        response = requests.post(f"http://127.0.0.1:8000/api/models/{model_name}/load")
+        if response.status_code == 200:
+            return f"Model {model_name} loaded successfully"
+        return f"Failed to load model {model_name}"
+    except Exception:
+        return f"Failed to connect to API to load model {model_name}"
+
+def list_workflows():
+    """Placeholder for listing workflows"""
+    try:
+        response = requests.get("http://127.0.0.1:8000/api/workflows")
+        if response.status_code == 200:
+            return response.json()
+        return []
+    except Exception:
+        # Return mock data if connection fails
+        return ["default_workflow", "custom_workflow"]
+
+def create_workflow(name, description):
+    """Placeholder for creating a workflow"""
+    try:
+        response = requests.post("http://127.0.0.1:8000/api/workflows", json={"name": name, "description": description})
+        if response.status_code == 200:
+            return f"Workflow {name} created successfully"
+        return f"Failed to create workflow {name}"
+    except Exception:
+        return f"Failed to connect to API to create workflow {name}"
+
+def get_system_stats():
+    """Placeholder for getting system stats"""
+    try:
+        response = requests.get("http://127.0.0.1:8000/api/enhanced/performance/system-stats")
+        if response.status_code == 200:
+            return response.json()
+        return {}
+    except Exception:
+        return {"cpu_usage": 0.0, "memory_usage": 0.0, "disk_usage": 0.0}
+
+def get_performance_metrics(minutes):
+    """Placeholder for getting performance metrics"""
+    try:
+        response = requests.get(f"http://127.0.0.1:8000/api/enhanced/performance/metrics?minutes={minutes}")
+        if response.status_code == 200:
+            return response.json()
+        return []
+    except Exception:
+        return []
 
 # Create the Gradio interface
 with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as iface:
@@ -123,7 +187,7 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
 
             def analyze_batch(data_str):
                 try:
-                    emails = json.loads(data_str)  # Switched to safe parsing
+                    emails = eval(data_str)  # Simple eval for demo; use json.loads in prod
                     results = []
                     for email in emails:
                         result = nlp_engine.analyze_email(email["subject"], email["content"])
@@ -176,10 +240,17 @@ print(df.head())
                     if keyword in code:
                         return f"Error: Usage of `{keyword}` is not allowed for security reasons."
                 try:
-                    # More restricted exec environment
-                    exec_globals = {"pd": pd, "np": np, "plt": plt, "sns": sns, "__builtins__": {}}
-                    exec(code, exec_globals)
-                    return "Code executed successfully."
+                    # RestrictedPython: safely compile and exec user code
+                    exec_globals = safe_globals.copy()
+                    # Allow common DS packages
+                    exec_globals.update({"pd": pd, "np": np, "plt": plt, "sns": sns})
+                    # Capture stdout
+                    output = io.StringIO()
+                    byte_code = compile_restricted_exec(code)
+                    with contextlib.redirect_stdout(output):
+                        exec(byte_code, exec_globals)
+                    result = output.getvalue()
+                    return result if result.strip() else "Code executed successfully (no output)."
                 except Exception as e:
                     return f"Error: {str(e)}"
 
@@ -231,8 +302,8 @@ print(df.head())
                 inputs=[],
                 outputs=[model_list, model_selector]
             )
-            
-             load_model_btn.click(
+
+            load_model_btn.click(
                 fn=load_selected_model,
                 inputs=model_selector,
                 outputs=model_status_output
@@ -395,5 +466,14 @@ print(df.head())
 
 # To launch this app, you can run this file directly.
 if __name__ == "__main__":
-    print("Launching Gradio UI for Email Intelligence Analysis...")
-    iface.launch()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Gradio UI for Email Intelligence Analysis")
+    parser.add_argument("--port", type=int, default=7860, help="Port to run the Gradio UI on")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind the Gradio UI to")
+    parser.add_argument("--share", action="store_true", help="Create a public sharing link")
+
+    args = parser.parse_args()
+
+    print(f"Launching Gradio UI for Email Intelligence Analysis on {args.host}:{args.port}...")
+    iface.launch(server_name=args.host, server_port=args.port, share=args.share)

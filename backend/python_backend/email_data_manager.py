@@ -177,7 +177,7 @@ class EmailDataManager:
         """Get all emails with pagination"""
         return await self.get_emails(limit=limit, offset=offset)
 
-    @log_performance("search_emails")
+    @log_performance(operation="search_emails")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
