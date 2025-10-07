@@ -77,26 +77,74 @@ async def run_training(job_id: str, model_config: ModelConfig):
         model_config: Configuration for the model
     """
     try:
-        # Simulate training process
         import time
         import random
+        from sklearn.model_selection import train_test_split
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.metrics import accuracy_score
+        import pandas as pd
+        import os
 
-        steps = 10
-        for i in range(steps):
-            time.sleep(1)  # Simulate work
-            progress = (i + 1) / steps
-            training_jobs[job_id]["progress"] = progress
-            training_jobs[job_id]["message"] = f"Training step {i+1}/{steps}"
+        # Update progress
+        training_jobs[job_id]["progress"] = 0.1
+        training_jobs[job_id]["message"] = "Loading training data..."
 
-        # Random success/failure for demo
-        if random.random() > 0.1:  # 90% success rate
-            training_jobs[job_id]["status"] = "completed"
-            training_jobs[job_id]["message"] = "Training completed successfully"
-        else:
-            training_jobs[job_id]["status"] = "failed"
-            training_jobs[job_id]["message"] = "Training failed due to error"
+        # Load training data (dummy for now, in real scenario load from model_config.training_data_path)
+        # For demo, create sample data
+        sample_data = [
+            ("I love this product", "positive"),
+            ("This is amazing", "positive"),
+            ("Great service", "positive"),
+            ("I hate this", "negative"),
+            ("This is terrible", "negative"),
+            ("Worst experience ever", "negative"),
+            ("It's okay", "neutral"),
+            ("Not bad", "neutral"),
+        ] * 50  # Multiply for more data
 
-        logger.info(f"Training job {job_id} finished with status {training_jobs[job_id]['status']}")
+        df = pd.DataFrame(sample_data, columns=['text', 'sentiment'])
+
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(df['text'], df['sentiment'], test_size=0.2, random_state=42)
+
+        training_jobs[job_id]["progress"] = 0.3
+        training_jobs[job_id]["message"] = "Vectorizing text..."
+
+        # Vectorize text
+        vectorizer = TfidfVectorizer(max_features=1000)
+        X_train_vec = vectorizer.fit_transform(X_train)
+        X_test_vec = vectorizer.transform(X_test)
+
+        training_jobs[job_id]["progress"] = 0.5
+        training_jobs[job_id]["message"] = "Training model..."
+
+        # Train model
+        model = LogisticRegression(random_state=42)
+        model.fit(X_train_vec, y_train)
+
+        training_jobs[job_id]["progress"] = 0.8
+        training_jobs[job_id]["message"] = "Evaluating model..."
+
+        # Evaluate
+        y_pred = model.predict(X_test_vec)
+        accuracy = accuracy_score(y_test, y_pred)
+
+        training_jobs[job_id]["progress"] = 0.9
+        training_jobs[job_id]["message"] = "Saving model..."
+
+        # Save model (in real scenario, save to configured path)
+        import joblib
+        model_path = f"models/{model_config.model_name}_{job_id}.pkl"
+        os.makedirs("models", exist_ok=True)
+        joblib.dump((model, vectorizer), model_path)
+
+        training_jobs[job_id]["status"] = "completed"
+        training_jobs[job_id]["message"] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
+        training_jobs[job_id]["accuracy"] = accuracy
+        training_jobs[job_id]["model_path"] = model_path
+
+        logger.info(f"Training job {job_id} completed with accuracy {accuracy}")
 
     except Exception as e:
         training_jobs[job_id]["status"] = "failed"
