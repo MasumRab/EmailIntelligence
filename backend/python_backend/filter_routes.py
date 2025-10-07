@@ -27,9 +27,7 @@ async def get_filters(
 ):
     """Get all active email filters"""
     try:
-        # Corrected to use the available synchronous method from SmartFilterManager
         filters = filter_manager.get_active_filters_sorted()
-        # EmailFilter objects are dataclasses and FastAPI can serialize them.
         return {"filters": filters}
     except Exception as e:
         log_data = {
@@ -60,7 +58,6 @@ async def create_filter(
             actions=filter_request_model.actions.model_dump(),
             priority=filter_request_model.priority,
         )
-        # FastAPI will handle dataclass serialization to JSON
         return new_filter_object
     except Exception as e:
         log_data = {

@@ -22,34 +22,47 @@ router = APIRouter()
 @router.post("/api/gmail/sync")
 @log_performance("sync_gmail")
 async def sync_gmail(
-    req: Request,  # Renamed to req to avoid conflict with request model
-    request_model: GmailSyncRequest,  # Renamed model
+    req: Request,
+    request_model: GmailSyncRequest,
     background_tasks: BackgroundTasks,
     gmail_service: GmailAIService = Depends(get_gmail_service),
 ):
-    """Sync emails from Gmail with AI analysis"""
+    """
+    Triggers a synchronization process to fetch emails from Gmail.
+
+    This endpoint initiates a background task to fetch emails based on the
+    provided criteria, perform AI analysis, and store them in the database.
+
+    Args:
+        req: The incoming request object.
+        request_model: The request body containing sync parameters like max emails
+                       and query filters.
+        background_tasks: FastAPI's background task runner.
+
+    Returns:
+        A confirmation response indicating the sync process has started.
+
+    Raises:
+        HTTPException: If there is a Google API error or another unexpected failure.
+    """
     try:
-        # Call the NLP service's sync_gmail_emails method directly
-        # Note: sync_gmail_emails does not use `strategies` or
-        # `time_budget_minutes` from GmailSyncRequest.
         nlp_result = await gmail_service.sync_gmail_emails(
             max_emails=request_model.maxEmails,
             query_filter=request_model.queryFilter,
             include_ai_analysis=request_model.includeAIAnalysis,
         )
 
-        # Adapt NLP result to BackendGS expected format
         if nlp_result.get("success"):
             result = {
                 "success": True,
                 "processedCount": nlp_result.get("processed_count", 0),
-                "emailsCreated": nlp_result.get("processed_count", 0),  # Approximation
+                "emailsCreated": nlp_result.get("processed_count", 0),
                 "errorsCount": 0,
                 "batchInfo": {
                     "batchId": nlp_result.get("batch_info", {}).get(
                         "batch_id", f"batch_{int(datetime.now().timestamp())}"
                     ),
-                    "queryFilter": request_model.queryFilter,  # Use the original request's query_filter
+                    "queryFilter": request_model.queryFilter,
                     "timestamp": nlp_result.get("batch_info", {}).get(
                         "timestamp", datetime.now().isoformat()
                     ),
@@ -77,7 +90,7 @@ async def sync_gmail(
         error_details_dict = {}
         try:
             error_details_dict = json.loads(gmail_err.content.decode())
-        except Exception:  # Broad except for decoding issues
+        except Exception:
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
         error_content = error_details_dict.get("error", {})
@@ -142,7 +155,7 @@ async def smart_retrieval(
         error_details_dict = {}
         try:
             error_details_dict = json.loads(gmail_err.content.decode())
-        except Exception:  # Broad except for decoding issues
+        except Exception:
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
         error_content = error_details_dict.get("error", {})
