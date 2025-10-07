@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+
 def test_create_and_get_categories(client: TestClient):
     """
     Tests creating a new category and then retrieving it to ensure the
@@ -9,7 +10,7 @@ def test_create_and_get_categories(client: TestClient):
     new_category_data = {
         "name": "Test Category",
         "description": "A category for testing purposes.",
-        "color": "#FF0000"
+        "color": "#FF0000",
     }
     response = client.post("/modules/categories/api/categories", json=new_category_data)
     assert response.status_code == 200
