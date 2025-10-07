@@ -1,7 +1,6 @@
 import json
 import logging
 
-import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 # Corrected import path for SmartFilterManager
@@ -20,7 +19,7 @@ router = APIRouter()
 
 
 @router.get("/api/filters")
-@log_performance("get_filters")
+@log_performance(operation="get_filters")
 async def get_filters(
     request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
 ):
@@ -40,7 +39,7 @@ async def get_filters(
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-@log_performance("create_filter")
+@log_performance(operation="create_filter")
 async def create_filter(
     request: Request,
     filter_request_model: FilterRequest,
@@ -70,7 +69,7 @@ async def create_filter(
 
 
 @router.post("/api/filters/generate-intelligent")
-@log_performance("generate_intelligent_filters")
+@log_performance(operation="generate_intelligent_filters")
 async def generate_intelligent_filters(
     request: Request,
     db: DatabaseManager = Depends(get_db),
@@ -85,13 +84,13 @@ async def generate_intelligent_filters(
         created_filters = filter_manager.create_intelligent_filters(emails)
 
         return {"created_filters": len(created_filters), "filters": created_filters}
-    except psycopg2.Error as db_err:
+    except Exception as db_err:
         log_data = {
             "message": "DB operation failed during intelligent filter generation",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            "pgcode": None,
         }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
@@ -107,7 +106,7 @@ async def generate_intelligent_filters(
 
 
 @router.post("/api/filters/prune")
-@log_performance("prune_filters")
+@log_performance(operation="prune_filters")
 async def prune_filters(
     request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
 ):

@@ -22,7 +22,7 @@ Currently, it supports:
 
 2.  **Navigate to the Python backend directory:**
     ```bash
-    cd server/python_backend
+    cd backend/python_backend
     ```
 
 3.  **Run the Gradio app:**
