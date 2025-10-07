@@ -1,4 +1,4 @@
-# Email Intelligence - Scientific Branch
+# Email Intelligence
 
 This is a streamlined version of the Email Intelligence application, focusing on core functionalities for local scientific and development use. It features a simplified environment setup, a full-stack architecture with a Python backend and a React frontend, and local file-based data storage. The application leverages AI and NLP to automatically analyze, categorize, and manage emails.
 
@@ -81,6 +81,24 @@ python launch.py --stage test
 ```
 
 This will execute the default test suite, which includes both unit and integration tests.
+
+## Development Workflow
+
+The `main` branch serves as the primary integration branch for stable releases. Currently, feature, bug, feat, and fix branches are merged into `main` as they are completed and tested.
+
+In the future, the `scientific` and `sqlite` branches will be integrated into `main` to consolidate advanced AI features and database optimizations.
+
+This approach maintains a stable `main` branch while allowing parallel development on specialized branches.
+
+## Continuous Integration
+
+The project uses GitHub Actions for continuous integration on the `main` and `scientific` branches. The CI pipeline includes:
+
+*   **Automated Testing**: Runs the full test suite using pytest with coverage reporting.
+*   **Code Quality Checks**: Performs linting with Flake8, code formatting checks with Black and isort, and type checking with mypy.
+*   **Dependabot Auto-Merge**: Automatically merges Dependabot pull requests after successful CI checks.
+
+CI runs on every push and pull request to the specified branches, ensuring code quality and preventing regressions.
 
 ## Code Quality and Linting
 
