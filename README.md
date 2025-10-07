@@ -15,7 +15,7 @@ This README provides a unified guide to setting up and running all components us
 
 ## Prerequisites
 
-- **Python:** Version 3.12.x
+- **Python:** Version 3.11-3.13
 - **Node.js:** Version 18.x or higher (with `npm`)
 - **Git:** For cloning the repository
 
@@ -32,6 +32,16 @@ git clone <your-repo-url>
 cd <repository-name>
 python3 launch.py --setup
 ```
+
+**Alternative: Using Poetry**
+
+If you prefer Poetry for Python dependency management:
+
+```bash
+python3 launch.py --use-poetry --setup
+```
+
+**Note:** The setup installs CPU-only PyTorch for lightweight deployment. If you need GPU support, modify the PyTorch installation manually.
 
 ### 2. Running the Application
 
@@ -136,3 +146,31 @@ Use `python3 launch.py --help` to see all available options.
 -   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
 -   **Data Storage:** This version uses local file-based storage, primarily located in `backend/python_backend/data/`. SQLite databases (`.db` files) are created in the project root.
 -   **Node-based Workflows:** The new node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
+
+## Troubleshooting
+
+### Package Installation Issues
+
+If you encounter issues with Python package installation:
+
+1. **PyTorch Installation Fails:**
+   - The setup installs CPU-only PyTorch for lightweight deployment
+   - If you need GPU support, manually install PyTorch with CUDA after setup
+
+2. **Missing Packages After Setup:**
+   - Run `python launch.py --setup` again to verify and reinstall missing packages
+   - Check the logs for specific error messages
+
+3. **Using Poetry Instead of uv:**
+   - Run `python launch.py --use-poetry --setup` for Poetry-based installation
+   - Ensure Poetry is available in your PATH
+
+4. **Uvicorn Not Found:**
+   - Uvicorn should be installed automatically
+   - If missing, run: `pip install uvicorn[standard]` in the venv
+
+### Common Errors
+
+- **"ModuleNotFoundError"**: Run setup again or check venv activation
+- **Permission Errors**: Avoid running as administrator; use regular user account
+- **Port Conflicts**: Services will use next available ports if defaults are taken
