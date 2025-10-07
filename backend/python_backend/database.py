@@ -9,6 +9,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Literal
 from functools import partial
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
@@ -17,11 +18,12 @@ from .performance_monitor import log_performance
 logger = logging.getLogger(__name__)
 
 # File paths
-DATA_DIR = "backend/data"
+DATA_DIR = Path("backend/data")
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
 
 # Data types
 DATA_TYPE_EMAILS = 'emails'
@@ -126,7 +128,7 @@ class DatabaseManager:
             self._build_indexes()
             self._initialized = True
 
-    @log_performance("build_indexes")
+    @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
         logger.info("Building in-memory indexes...")

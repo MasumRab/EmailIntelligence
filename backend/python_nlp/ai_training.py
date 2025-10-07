@@ -3,11 +3,7 @@ AI Training module stub
 This module contains configuration and training utilities for AI models.
 """
 
-<<<<<<< HEAD
 from dataclasses import dataclass, field
-=======
-from dataclasses import dataclass
->>>>>>> origin/feat/modular-ai-platform
 from typing import Any, Dict, Optional
 
 
