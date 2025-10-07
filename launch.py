@@ -30,14 +30,64 @@ logging.basicConfig(
 )
 logger = logging.getLogger("launcher")
 
+
+# --- Input Validation ---
+def validate_port(port: int) -> int:
+    """Validate port number is within valid range."""
+    if not 1 <= port <= 65535:
+        raise ValueError(f"Invalid port: {port}. Port must be between 1 and 65535.")
+    return port
+
+
+def validate_host(host: str) -> str:
+    """Validate host name/address format."""
+    import re
+    if not re.match(r'^[a-zA-Z0-9.-]+
+
 # --- Global state ---
-processes = []
 ROOT_DIR = Path(__file__).resolve().parent
 
+
+class ProcessManager:
+    """Manages child processes for the application."""
+    
+    def __init__(self):
+        self.processes = []
+        
+    def add_process(self, process):
+        """Add a process to be managed."""
+        self.processes.append(process)
+    
+    def cleanup(self):
+        """Explicitly cleanup all managed processes."""
+        logger.info("Performing explicit resource cleanup...")
+        for p in self.processes:
+            if p.poll() is None:
+                logger.info(f"Terminating process {p.pid}...")
+                p.terminate()
+                try:
+                    p.wait(timeout=15)  # Wait up to 15 seconds for graceful shutdown
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"Process {p.pid} did not terminate gracefully, killing it...")
+                    p.kill()
+        logger.info("Resource cleanup completed.")
+        
+    def shutdown(self):
+        """Terminate all managed processes gracefully."""
+        logger.info("Received SIGINT/SIGTERM, shutting down...")
+        self.cleanup()
+        logger.info("All services shut down.")
+        
+process_manager = ProcessManager()
+
 # --- Constants ---
-PYTHON_MIN_VERSION = (3, 12)
-PYTHON_MAX_VERSION = (3, 12)
+PYTHON_MIN_VERSION = (3, 10)
+PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
+
+# Dependency configuration
+TORCH_VERSION = "torch>=2.4.0"
+TORCH_CPU_URL = "https://download.pytorch.org/whl/cpu"
 
 
 # --- Signal Handling ---
@@ -45,23 +95,13 @@ def _handle_sigint(signum, frame):
     """
     Handles SIGINT and SIGTERM signals for graceful shutdown.
 
-    Terminates all child processes tracked in the global `processes` list.
+    Terminates all child processes tracked in the process manager.
 
     Args:
         signum: The signal number.
         frame: The current stack frame.
     """
-    logger.info("Received SIGINT/SIGTERM, shutting down...")
-    for p in processes:
-        if p.poll() is None:
-            logger.info(f"Terminating process {p.pid}...")
-            p.terminate()
-            try:
-                p.wait(timeout=15)  # Wait up to 15 seconds for graceful shutdown
-            except subprocess.TimeoutExpired:
-                logger.warning(f"Process {p.pid} did not terminate gracefully, killing it...")
-                p.kill()
-    logger.info("All services shut down.")
+    process_manager.shutdown()
     sys.exit(0)
 
 
@@ -73,7 +113,14 @@ signal.signal(signal.SIGTERM, _handle_sigint)
 
 
 def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False) -> bool:
-    """Run a command and log its output."""
+    """Run a command and log its output.
+    
+    SECURITY NOTE: Use shell=False whenever possible to prevent shell injection.
+    The shell parameter is maintained for backward compatibility but should be used cautiously.
+    """
+    if shell:
+        logger.warning(f"Using shell=True for command: {' '.join(cmd)}. This may be a security risk.")
+    
     logger.info(f"{description}...")
     try:
         proc = subprocess.run(cmd, cwd=cwd or ROOT_DIR, shell=shell, capture_output=True, text=True, check=True)
@@ -85,6 +132,7 @@ def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, sh
         return True
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed: {description}")
+        logger.error(f"Command failed: {' '.join(cmd) if isinstance(cmd, list) else str(cmd)}")
         logger.error(f"stdout:\n{e.stdout}")
         logger.error(f"stderr:\n{e.stderr}")
         return False
@@ -105,13 +153,10 @@ def check_python_version():
 
 
 
-def get_venv_python_path() -> Path:
+def get_venv_python_path(venv_path: Path = None) -> Path:
     """Get the path to the Python executable in the virtual environment."""
-    venv_path = ROOT_DIR / VENV_DIR
-    if platform.system() == "Windows":
-        return venv_path / "Scripts" / "python.exe"
-    else:
-        return venv_path / "bin" / "python"
+    venv_path = venv_path or (ROOT_DIR / VENV_DIR)
+    return get_venv_executable(venv_path, "python")
 
 
 def get_python_executable() -> str:
@@ -135,78 +180,61 @@ def create_venv(venv_path: Path, recreate: bool = False):
         logger.info(f"Virtual environment already exists at {venv_path}")
 
 
-def install_uv(venv_path: Path):
-    """Install uv package manager in the virtual environment."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+def _install_package_manager(venv_path: Path, package_manager: str) -> bool:
+    """Install a package manager in the virtual environment."""
+    venv_python = get_venv_executable(venv_path, "python")
     if not venv_python.exists():
         logger.error(f"Python executable not found at {venv_python}")
-        sys.exit(1)
+        return False
 
-    logger.info("Installing uv package manager...")
+    logger.info(f"Installing {package_manager} package manager...")
     result = subprocess.run(
-        [str(venv_python), "-m", "pip", "install", "uv"],
+        [str(venv_python), "-m", "pip", "install", package_manager],
         cwd=ROOT_DIR,
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
-        logger.error(f"Failed to install uv: {result.stderr}")
+        logger.error(f"Failed to install {package_manager}: {result.stderr}")
+        return False
+    logger.info(f"{package_manager} installed successfully.")
+    return True
+
+
+def _install_pytorch(venv_python: Path):
+    """Install PyTorch with CPU support, with fallback options."""
+    # SECURITY NOTE: Using hardcoded PyTorch URL - ensure this source is trusted
+    logger.info("Installing CPU-only PyTorch...")
+    pytorch_cmd = [str(venv_python), "-m", "pip", "install", TORCH_VERSION, "--index-url", TORCH_CPU_URL]
+    if not run_command(pytorch_cmd, "Install PyTorch CPU"):
+        logger.warning("PyTorch installation failed, attempting fallback...")
+        # Try without index URL
+        fallback_cmd = [str(venv_python), "-m", "pip", "install", TORCH_VERSION]
+        if not run_command(fallback_cmd, "Install PyTorch fallback"):
+            logger.error("PyTorch installation completely failed, ML features may not work")
+
+
+def install_uv(venv_path: Path):
+    """Install uv package manager in the virtual environment."""
+    if not _install_package_manager(venv_path, "uv"):
         sys.exit(1)
-    logger.info("uv installed successfully.")
 
 
 def install_poetry(venv_path: Path):
     """Install Poetry in the virtual environment."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
-    if not venv_python.exists():
-        logger.error(f"Python executable not found at {venv_python}")
+    if not _install_package_manager(venv_path, "poetry"):
         sys.exit(1)
-
-    logger.info("Installing Poetry...")
-    result = subprocess.run(
-        [str(venv_python), "-m", "pip", "install", "poetry"],
-        cwd=ROOT_DIR,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        logger.error(f"Failed to install Poetry: {result.stderr}")
-        sys.exit(1)
-    logger.info("Poetry installed successfully.")
 
 
 def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
     """Install project dependencies using uv or Poetry."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+    venv_python = get_venv_executable(venv_path, "python")
 
     if use_poetry:
-        venv_poetry = (
-            venv_path / "Scripts" / "poetry.exe"
-            if platform.system() == "Windows"
-            else venv_path / "bin" / "poetry"
-        )
+        venv_poetry = get_venv_executable(venv_path, "poetry")
 
         # Install CPU-only PyTorch first for Poetry
-        logger.info("Installing CPU-only PyTorch...")
-        pytorch_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0", "--index-url", "https://download.pytorch.org/whl/cpu"]
-        if not run_command(pytorch_cmd, "Install PyTorch CPU"):
-            logger.warning("PyTorch installation failed, attempting fallback...")
-            # Try without index URL
-            fallback_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0"]
-            if not run_command(fallback_cmd, "Install PyTorch fallback"):
-                logger.error("PyTorch installation completely failed, ML features may not work")
+        _install_pytorch(venv_python)
 
         cmd = [str(venv_poetry), "install" if not update else "update"]
         if not update:
@@ -251,20 +279,9 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
             logger.info("All critical packages verified successfully.")
     else:
         # Install CPU-only PyTorch first for uv
-        logger.info("Installing CPU-only PyTorch...")
-        pytorch_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0", "--index-url", "https://download.pytorch.org/whl/cpu"]
-        if not run_command(pytorch_cmd, "Install PyTorch CPU"):
-            logger.warning("PyTorch installation failed, attempting fallback...")
-            # Try without index URL
-            fallback_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0"]
-            if not run_command(fallback_cmd, "Install PyTorch fallback"):
-                logger.error("PyTorch installation completely failed, ML features may not work")
+        _install_pytorch(venv_python)
 
-        venv_uv = (
-            venv_path / "Scripts" / "uv.exe"
-            if platform.system() == "Windows"
-            else venv_path / "bin" / "uv"
-        )
+        venv_uv = get_venv_executable(venv_path, "uv")
 
         cmd = [str(venv_uv), "sync"]
         if update:
@@ -311,11 +328,7 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
 
 def download_nltk_data(venv_path: Path):
     """Download required NLTK data."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+    venv_python = get_venv_executable(venv_path, "python")
 
     nltk_download_script = """
 import nltk
@@ -390,11 +403,7 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
         logger.error("Cannot start backend without uvicorn. Please run 'python launch.py --setup' first.")
         return None
 
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+    venv_python = get_venv_executable(venv_path, "python")
 
     # Use uvicorn to run the FastAPI app directly
     cmd = [
@@ -412,7 +421,7 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
 
     logger.info(f"Starting Python backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    processes.append(process)
+    process_manager.add_process(process)
     return process
 
 
@@ -422,11 +431,7 @@ def start_gradio_ui(
     venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
 ):
     """Start the Gradio UI."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+    venv_python = get_venv_executable(venv_path, "python")
     gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
 
     cmd = [str(venv_python), str(gradio_path)]
@@ -441,7 +446,7 @@ def start_gradio_ui(
 
     logger.info("Starting Gradio UI...")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    processes.append(process)
+    process_manager.add_process(process)
     return process
 
 
@@ -467,7 +472,7 @@ def start_client():
 
     # Start the React frontend
     process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "client")
-    processes.append(process)
+    process_manager.add_process(process)
     return process
 
 
@@ -493,25 +498,57 @@ def start_server_ts():
 
     # Start the TypeScript backend
     process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "server")
-    processes.append(process)
+    process_manager.add_process(process)
     return process
 
 
 def wait_for_processes():
     """Wait for all processes to complete."""
     try:
-        while True:
+        while process_manager.processes:
             time.sleep(1)
             # Check if any process has terminated unexpectedly
-            for i, process in enumerate(processes[:]):
+            for process in process_manager.processes[:]:
                 if process.poll() is not None:
                     logger.warning(
                         f"Process {process.pid} terminated with code {process.returncode}"
                     )
-                    processes.remove(process)
+                    process_manager.processes.remove(process)
     except KeyboardInterrupt:
         logger.info("Received interrupt signal, shutting down...")
-        _handle_sigint(None, None)
+        process_manager.shutdown()
+
+
+def _handle_setup_mode(args, venv_path: Path) -> None:
+    """Handle the setup mode functionality."""
+    if not args.no_venv:
+        create_venv(venv_path, args.force_recreate_venv)
+        if args.use_poetry:
+            install_poetry(venv_path)
+        else:
+            install_uv(venv_path)
+        setup_dependencies(venv_path, args.update_deps, args.use_poetry)
+
+    if not args.no_download_nltk:
+        download_nltk_data(venv_path)
+
+    logger.info("Setup completed successfully.")
+
+
+def _start_selected_services(args, venv_path: Path, host: str) -> None:
+    """Start selected services based on command-line arguments."""
+    # Start services
+    if not args.no_backend:
+        start_backend(venv_path, host, args.port, args.debug)
+        time.sleep(5)  # Brief pause to let backend start
+
+    if not args.no_ui:
+        start_gradio_ui(venv_path, host, args.gradio_port, args.debug, args.share)
+
+    if not args.no_client:
+        # Note: The client and server-ts might require additional parameters or configuration
+        start_client()
+        start_server_ts()
 
 
 def main():
@@ -554,9 +591,9 @@ def main():
     )
     parser.add_argument("--host", default="127.0.0.1", help="Host address for servers.")
     parser.add_argument(
-        "--listen", action="store_true", help="Listen on 0.0.0.0 (overrides --host)."
+        "--listen", action="store_true", help="Listen on 0.0.0.0 (overrides --host). SECURITY WARNING: This makes services accessible from external networks."
     )
-    parser.add_argument("--share", action="store_true", help="Create a public Gradio sharing link.")
+    parser.add_argument("--share", action="store_true", help="Create a public Gradio sharing link. SECURITY WARNING: This exposes your application to the internet and should be used carefully.")
     parser.add_argument(
         "--debug", action="store_true", help="Enable debug/reload mode for services."
     )
@@ -586,18 +623,7 @@ def main():
 
     # Setup mode
     if args.setup or args.update_deps:
-        if not args.no_venv:
-            create_venv(venv_path, args.force_recreate_venv)
-            if args.use_poetry:
-                install_poetry(venv_path)
-            else:
-                install_uv(venv_path)
-            setup_dependencies(venv_path, args.update_deps, args.use_poetry)
-
-        if not args.no_download_nltk:
-            download_nltk_data(venv_path)
-
-        logger.info("Setup completed successfully.")
+        _handle_setup_mode(args, venv_path)
         return
 
     # If not in setup mode, ensure venv exists (unless --no-venv is specified)
@@ -607,22 +633,9 @@ def main():
         )
         sys.exit(1)
 
-    # Start services
-    if not args.no_backend:
-        start_backend(venv_path, host, args.port, args.debug)
-        time.sleep(5)  # Brief pause to let backend start
-
-    if not args.no_ui:
-        start_gradio_ui(venv_path, host, args.gradio_port, args.debug, args.share)
-
-    if not args.no_client:
-        # Note: The client and server-ts might require additional parameters or configuration
-        start_client()
-        start_server_ts()
-
+    _start_selected_services(args, venv_path, host)
     logger.info("All selected services started. Press Ctrl+C to shut down.")
     wait_for_processes()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
