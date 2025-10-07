@@ -222,7 +222,7 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
 
         # Verify critical packages are installed
         logger.info("Verifying critical package installations...")
-        critical_packages = ["uvicorn", "fastapi", "numpy", "transformers"]
+        critical_packages = ["uvicorn", "fastapi", "numpy", "transformers", "nltk", "psutil", "gradio"]
         missing_packages = []
         for package in critical_packages:
             try:
@@ -280,7 +280,7 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
 
         # Verify critical packages are installed
         logger.info("Verifying critical package installations...")
-        critical_packages = ["uvicorn", "fastapi", "numpy", "transformers"]
+        critical_packages = ["uvicorn", "fastapi", "numpy", "transformers", "nltk", "psutil", "gradio"]
         missing_packages = []
         for package in critical_packages:
             try:

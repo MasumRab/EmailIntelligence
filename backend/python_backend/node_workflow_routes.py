@@ -8,10 +8,10 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 
-from ..dependencies import get_db
-from ..ai_engine import AdvancedAIEngine
-from ..model_manager import model_manager
-from ..workflow_engine import WorkflowEngine  # Original workflow engine
+from .dependencies import get_db
+from .ai_engine import AdvancedAIEngine
+from .model_manager import model_manager
+from .workflow_engine import WorkflowEngine  # Original workflow engine
 from ..python_nlp.smart_filters import SmartFilterManager
 
 # Import the new node-based workflow components
