@@ -26,8 +26,13 @@ class DataType(Enum):
 
 class NodePort:
     """Defines an input or output port for a node."""
-    
-    def __init__(self, name: str, data_type: DataType, required: bool = True, description: str = ""):
+
+    def __init__(
+            self,
+            name: str,
+            data_type: DataType,
+            required: bool = True,
+            description: str = ""):
         self.name = name
         self.data_type = data_type
         self.required = required
@@ -39,8 +44,8 @@ class NodePort:
 
 class Connection:
     """Represents a connection between two nodes."""
-    
-    def __init__(self, source_node_id: str, source_port: str, 
+
+    def __init__(self, source_node_id: str, source_port: str,
                  target_node_id: str, target_port: str):
         self.source_node_id = source_node_id
         self.source_port = source_port
@@ -54,7 +59,7 @@ class Connection:
 
 class ExecutionContext:
     """Maintains execution context during workflow execution."""
-    
+
     def __init__(self):
         self.node_outputs: Dict[str, Dict[str, Any]] = {}
         self.shared_state: Dict[str, Any] = {}
@@ -86,7 +91,7 @@ class ExecutionContext:
 
 class BaseNode(ABC):
     """Abstract base class for all nodes in the workflow system."""
-    
+
     def __init__(self, node_id: str = None, name: str = None, description: str = ""):
         self.node_id = node_id or str(uuid.uuid4())
         self.name = name or self.__class__.__name__
@@ -102,10 +107,10 @@ class BaseNode(ABC):
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
         """
         Execute the node's primary function.
-        
+
         Args:
             context: The execution context containing shared state and node outputs
-            
+
         Returns:
             Dictionary containing the node's output values
         """
@@ -114,20 +119,20 @@ class BaseNode(ABC):
     def validate_inputs(self) -> Dict[str, List[str]]:
         """
         Validate that all required inputs are present and correct type.
-        
+
         Returns:
             Dictionary with 'valid' flag and list of errors if any
         """
         errors = []
-        
+
         # Check required inputs
         for port in self.input_ports:
             if port.required and port.name not in self.inputs:
                 errors.append(f"Required input '{port.name}' is missing")
-        
+
         # Type validation would go here if we implement it
         # For now, we rely on run-time type checking
-        
+
         return {
             "valid": len(errors) == 0,
             "errors": errors
@@ -150,20 +155,20 @@ class BaseNode(ABC):
             "type": self.__class__.__name__,
             "input_ports": [
                 {
-                    "name": port.name, 
+                    "name": port.name,
                     "type": port.data_type.value,
                     "required": port.required,
                     "description": port.description
-                } 
+                }
                 for port in self.input_ports
             ],
             "output_ports": [
                 {
-                    "name": port.name, 
+                    "name": port.name,
                     "type": port.data_type.value,
                     "required": port.required,  # All outputs are required by definition
                     "description": port.description
-                } 
+                }
                 for port in self.output_ports
             ]
         }
@@ -178,7 +183,7 @@ class BaseNode(ABC):
 
 class Workflow:
     """Represents a complete workflow of connected nodes."""
-    
+
     def __init__(self, workflow_id: str = None, name: str = "", description: str = ""):
         self.workflow_id = workflow_id or str(uuid.uuid4())
         self.name = name
@@ -209,19 +214,25 @@ class Workflow:
             raise ValueError(f"Source node {connection.source_node_id} does not exist in workflow")
         if connection.target_node_id not in self.nodes:
             raise ValueError(f"Target node {connection.target_node_id} does not exist in workflow")
-        
+
         # Validate the ports exist on the respective nodes
         source_node = self.nodes[connection.source_node_id]
         target_node = self.nodes[connection.target_node_id]
-        
+
         source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
         if not source_port_exists:
-            raise ValueError(f"Source port {connection.source_port} does not exist on node {connection.source_node_id}")
-        
+            raise ValueError(
+                f"Source port {
+                    connection.source_port} does not exist on node {
+                    connection.source_node_id}")
+
         target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
         if not target_port_exists:
-            raise ValueError(f"Target port {connection.target_port} does not exist on node {connection.target_node_id}")
-        
+            raise ValueError(
+                f"Target port {
+                    connection.target_port} does not exist on node {
+                    connection.target_node_id}")
+
         self.connections.append(connection)
 
     def get_connections_for_node(self, node_id: str) -> List[Connection]:
@@ -251,15 +262,15 @@ class Workflow:
         """Calculate the execution order of nodes using topological sort."""
         # Build adjacency list of dependencies
         dependencies = {node_id: [] for node_id in self.nodes.keys()}
-        
+
         for conn in self.connections:
             dependencies[conn.target_node_id].append(conn.source_node_id)
-        
+
         # Topological sort using DFS
         result = []
         visited = set()
         temp_visited = set()
-        
+
         def visit(node_id):
             if node_id in temp_visited:
                 raise ValueError("Workflow has circular dependencies")
@@ -270,12 +281,13 @@ class Workflow:
                 temp_visited.remove(node_id)
                 visited.add(node_id)
                 result.append(node_id)
-        
+
         for node_id in self.nodes.keys():
             if node_id not in visited:
                 visit(node_id)
-        
+
         return result
 
     def __repr__(self):
-        return f"Workflow(name={self.name}, nodes={len(self.nodes)}, connections={len(self.connections)})"
+        return f"Workflow(name={self.name}, nodes={len(self.nodes)
+                                                   }, connections={len(self.connections)})"

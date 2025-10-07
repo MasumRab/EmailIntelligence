@@ -6,7 +6,7 @@ by the Gradio UI to allow users to build node-based workflows.
 """
 from typing import Dict, List, Any
 from backend.node_engine.email_nodes import (
-    EmailSourceNode, PreprocessingNode, AIAnalysisNode, 
+    EmailSourceNode, PreprocessingNode, AIAnalysisNode,
     FilterNode, ActionNode
 )
 from backend.node_engine.node_base import NodePort, DataType
@@ -14,11 +14,11 @@ from backend.node_engine.node_base import NodePort, DataType
 
 class NodeLibrary:
     """Library of available nodes for the workflow builder UI."""
-    
+
     def __init__(self):
         self._nodes = {}
         self._register_default_nodes()
-    
+
     def _register_default_nodes(self):
         """Register the default email processing nodes."""
         # Register EmailSourceNode
@@ -37,13 +37,13 @@ class NodeLibrary:
                 },
                 {
                     "name": "status",
-                    "type": "JSON", 
+                    "type": "JSON",
                     "required": True,
                     "description": "Status information about the operation"
                 }
             ]
         }
-        
+
         # Register PreprocessingNode
         self._nodes["PreprocessingNode"] = {
             "class": PreprocessingNode,
@@ -73,7 +73,7 @@ class NodeLibrary:
                 }
             ]
         }
-        
+
         # Register AIAnalysisNode
         self._nodes["AIAnalysisNode"] = {
             "class": AIAnalysisNode,
@@ -103,7 +103,7 @@ class NodeLibrary:
                 }
             ]
         }
-        
+
         # Register FilterNode
         self._nodes["FilterNode"] = {
             "class": FilterNode,
@@ -145,7 +145,7 @@ class NodeLibrary:
                 }
             ]
         }
-        
+
         # Register ActionNode
         self._nodes["ActionNode"] = {
             "class": ActionNode,
@@ -181,18 +181,18 @@ class NodeLibrary:
                 }
             ]
         }
-    
+
     def get_node_types(self) -> List[str]:
         """Get a list of all available node types."""
         return list(self._nodes.keys())
-    
+
     def get_node_info(self, node_type: str) -> Dict[str, Any]:
         """Get detailed information about a specific node type."""
         if node_type not in self._nodes:
             raise ValueError(f"Node type '{node_type}' not found")
-        
+
         return self._nodes[node_type]
-    
+
     def get_nodes_by_category(self) -> Dict[str, List[Dict[str, Any]]]:
         """Get all nodes grouped by category."""
         categories = {}
@@ -205,9 +205,9 @@ class NodeLibrary:
                 "name": node_info["name"],
                 "description": node_info["description"]
             })
-        
+
         return categories
-    
+
     def get_all_node_info(self) -> List[Dict[str, Any]]:
         """Get information about all available nodes."""
         result = []
@@ -220,14 +220,19 @@ class NodeLibrary:
                 "input_ports": node_info["input_ports"],
                 "output_ports": node_info["output_ports"]
             })
-        
+
         return result
-    
-    def create_node(self, node_type: str, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+
+    def create_node(self,
+                    node_type: str,
+                    config: Dict[str,
+                                 Any] = None,
+                    node_id: str = None,
+                    name: str = None):
         """Create an instance of a node."""
         if node_type not in self._nodes:
             raise ValueError(f"Node type '{node_type}' not found")
-        
+
         node_class = self._nodes[node_type]["class"]
         return node_class(config=config, node_id=node_id, name=name)
 
