@@ -185,12 +185,28 @@ def install_poetry(venv_path: Path):
 
 def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
     """Install project dependencies using uv or Poetry."""
+    venv_python = (
+        venv_path / "Scripts" / "python.exe"
+        if platform.system() == "Windows"
+        else venv_path / "bin" / "python"
+    )
+
     if use_poetry:
         venv_poetry = (
             venv_path / "Scripts" / "poetry.exe"
             if platform.system() == "Windows"
             else venv_path / "bin" / "poetry"
         )
+
+        # Install CPU-only PyTorch first for Poetry
+        logger.info("Installing CPU-only PyTorch...")
+        pytorch_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0", "--index-url", "https://download.pytorch.org/whl/cpu"]
+        if not run_command(pytorch_cmd, "Install PyTorch CPU"):
+            logger.warning("PyTorch installation failed, attempting fallback...")
+            # Try without index URL
+            fallback_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0"]
+            if not run_command(fallback_cmd, "Install PyTorch fallback"):
+                logger.error("PyTorch installation completely failed, ML features may not work")
 
         cmd = [str(venv_poetry), "install" if not update else "update"]
         if not update:
@@ -203,6 +219,16 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
             sys.exit(1)
         logger.info("Dependencies installed successfully with Poetry.")
     else:
+        # Install CPU-only PyTorch first for uv
+        logger.info("Installing CPU-only PyTorch...")
+        pytorch_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0", "--index-url", "https://download.pytorch.org/whl/cpu"]
+        if not run_command(pytorch_cmd, "Install PyTorch CPU"):
+            logger.warning("PyTorch installation failed, attempting fallback...")
+            # Try without index URL
+            fallback_cmd = [str(venv_python), "-m", "pip", "install", "torch>=2.4.0"]
+            if not run_command(fallback_cmd, "Install PyTorch fallback"):
+                logger.error("PyTorch installation completely failed, ML features may not work")
+
         venv_uv = (
             venv_path / "Scripts" / "uv.exe"
             if platform.system() == "Windows"
