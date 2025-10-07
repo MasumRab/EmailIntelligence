@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,14 +14,13 @@ mock_db_manager_cat.create_category = AsyncMock()
 # update_category is not used by the current category_routes.py, but good to have if it were
 mock_db_manager_cat.update_category = AsyncMock()
 
-# Mock PerformanceMonitor
-mock_performance_monitor_cat_instance = MagicMock()
-
 
 @pytest.fixture(scope="module", autouse=True)
 def mock_cat_dependencies():
-    # No module-level instances to mock in category_routes since performance_monitor is commented out
-    yield
+    with patch("backend.python_backend.category_routes.log_performance") as mock_log_performance:
+        # Make the decorator do nothing, just return the original function
+        mock_log_performance.side_effect = lambda name: (lambda func: func)
+        yield
 
 
 @pytest.fixture
@@ -52,9 +51,9 @@ def test_get_all_categories_db_error(client_cat):
     )  # Simulate generic exception
 
     response = client_cat.get("/api/categories")
-    assert response.status_code == 500
+    assert response.status_code == 503
     assert response.json() == {
-        "detail": "Failed to fetch categories"
+        "detail": "Failed to fetch categories due to an unexpected error."
     }  # Match error detail in route
 
 
@@ -77,8 +76,8 @@ def test_create_category_db_error(client_cat):
     mock_db_manager_cat.create_category.side_effect = Exception("DB Create Error")
 
     response = client_cat.post("/api/categories", json=new_category_data)
-    assert response.status_code == 500
-    assert response.json() == {"detail": "Failed to create category"}
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Failed to create category due to an unexpected error."}
 
 
 # Note: category_routes.py does not currently have PUT /api/categories/{id}

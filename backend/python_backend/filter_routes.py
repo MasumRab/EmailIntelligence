@@ -11,23 +11,23 @@ from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for r
 )
 
 from .database import DatabaseManager, get_db
+from .dependencies import get_filter_manager
+from .exceptions import AIAnalysisError, DatabaseError
+from .performance_monitor import log_performance
 from .models import FilterRequest  # Models are imported from .models
-# from .performance_monitor import PerformanceMonitor # Removed
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-filter_manager = SmartFilterManager()  # Initialize filter manager
-# performance_monitor = PerformanceMonitor() # Removed
 
 
 @router.get("/api/filters")
-# @performance_monitor.track # Removed
-async def get_filters(request: Request):
+@log_performance("get_filters")
+async def get_filters(
+    request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
+):
     """Get all active email filters"""
     try:
-        # Corrected to use the available synchronous method from SmartFilterManager
         filters = filter_manager.get_active_filters_sorted()
-        # EmailFilter objects are dataclasses and FastAPI can serialize them.
         return {"filters": filters}
     except Exception as e:
         log_data = {
@@ -37,12 +37,16 @@ async def get_filters(request: Request):
             "error_detail": str(e),
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to fetch filters")
+        raise AIAnalysisError(detail="Failed to fetch filters")
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-# @performance_monitor.track # Removed
-async def create_filter(request: Request, filter_request_model: FilterRequest):
+@log_performance("create_filter")
+async def create_filter(
+    request: Request,
+    filter_request_model: FilterRequest,
+    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+):
     """Create new email filter"""
     try:
         description = filter_request_model.description or ""
@@ -54,7 +58,6 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
             actions=filter_request_model.actions.model_dump(),
             priority=filter_request_model.priority,
         )
-        # FastAPI will handle dataclass serialization to JSON
         return new_filter_object
     except Exception as e:
         log_data = {
@@ -64,19 +67,23 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
             "error_detail": str(e),
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to create filter")
+        raise AIAnalysisError(detail="Failed to create filter")
 
 
 @router.post("/api/filters/generate-intelligent")
-# @performance_monitor.track # Removed
-async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
+@log_performance("generate_intelligent_filters")
+async def generate_intelligent_filters(
+    request: Request,
+    db: DatabaseManager = Depends(get_db),
+    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+):
     """Generate intelligent filters based on email patterns."""
     try:
         emails = await db.get_recent_emails(limit=1000)
 
         # Assuming filter_manager.create_intelligent_filters exists and
         # returns a list of filter objects/dicts.
-        created_filters = await filter_manager.create_intelligent_filters(emails)
+        created_filters = filter_manager.create_intelligent_filters(emails)
 
         return {"created_filters": len(created_filters), "filters": created_filters}
     except psycopg2.Error as db_err:
@@ -88,33 +95,35 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=503, detail="Database service unavailable.")
+        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": "Unhandled error in generate_intelligent_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to generate filters")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise AIAnalysisError(detail="Failed to generate filters")
 
 
 @router.post("/api/filters/prune")
-# @performance_monitor.track # Removed
-async def prune_filters(request: Request):
+@log_performance("prune_filters")
+async def prune_filters(
+    request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
+):
     """Prune ineffective filters"""
     try:
         # Assuming filter_manager.prune_ineffective_filters exists
         # This method was not in original smart_filters.py, assuming added.
-        results = await filter_manager.prune_ineffective_filters()
+        results = filter_manager.prune_ineffective_filters()
         return results
     except Exception as e:
         log_data = {
             "message": "Unhandled error in prune_filters",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to prune filters")
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))
+        raise AIAnalysisError(detail="Failed to prune filters")

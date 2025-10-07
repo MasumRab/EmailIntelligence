@@ -11,39 +11,37 @@ from backend.python_nlp.smart_filters import EmailFilter
 mock_filter_manager_instance = MagicMock()
 mock_filter_manager_instance.get_active_filters_sorted = MagicMock()
 mock_filter_manager_instance.add_custom_filter = MagicMock()
-mock_filter_manager_instance.create_intelligent_filters = AsyncMock()
-mock_filter_manager_instance.prune_ineffective_filters = AsyncMock()
+mock_filter_manager_instance.create_intelligent_filters = MagicMock()
+mock_filter_manager_instance.prune_ineffective_filters = MagicMock()
 
 # Mock DatabaseManager
 mock_db_manager_filter = MagicMock()
 mock_db_manager_filter.get_recent_emails = AsyncMock()
 
 
-@pytest.fixture(scope="module", autouse=True)
-def mock_filter_dependencies():
-    with patch(
-        "backend.python_backend.filter_routes.filter_manager",
-        mock_filter_manager_instance,
-    ):
-        yield
-
-
 @pytest.fixture
 def client_filter():
+    """
+    Provides a TestClient with all external services mocked for filter routes.
+    """
+    from backend.python_backend.database import get_db
+    from backend.python_backend.dependencies import get_filter_manager
+
     # Reset mocks before each test
     mock_filter_manager_instance.reset_mock()
-    mock_filter_manager_instance.get_active_filters_sorted.reset_mock()
-    mock_filter_manager_instance.add_custom_filter.reset_mock()
-    mock_filter_manager_instance.create_intelligent_filters.reset_mock()
-    mock_filter_manager_instance.prune_ineffective_filters.reset_mock()
     mock_db_manager_filter.reset_mock()
 
-    from backend.python_backend.database import get_db
-
+    # Set up the dependency overrides
     app.dependency_overrides[get_db] = lambda: mock_db_manager_filter
-    client = TestClient(app)
-    yield client
-    del app.dependency_overrides[get_db]
+    app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager_instance
+
+    # Patch performance_monitor directly as it's not injected
+    with patch("backend.python_backend.filter_routes.log_performance") as mock_log_performance:
+        mock_log_performance.side_effect = lambda name: (lambda func: func)
+        yield TestClient(app)
+
+    # Clean up overrides after the test
+    app.dependency_overrides.clear()
 
 
 def test_get_filters(client_filter):
