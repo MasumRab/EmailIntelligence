@@ -54,22 +54,13 @@ class FilterPerformance:
 
 
 class SmartFilterManager:
-    """Intelligent email filter management with performance optimization"""
+    """Intelligent email filter management with performance optimization
 
-<<<<<<< HEAD
     This class handles the creation, storage, application, and optimization
     of email filters, using a SQLite database for persistence.
     """
 
-<<<<<<< HEAD
     def __init__(self, db_path: str = DEFAULT_DB_PATH):
-=======
-    def __init__(self, db_path: str = "smart_filters.db"):
-        """Initializes the SmartFilterManager."""
->>>>>>> origin/feature/git-history-analysis-report
-=======
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
->>>>>>> origin/feat/modular-ai-platform
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None  # For persistent in-memory connection
