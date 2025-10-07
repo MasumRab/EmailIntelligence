@@ -449,6 +449,8 @@ class NLPEngine:
         sentiment = "positive" if "thank" in text else "negative" if "problem" in text else "neutral"
         urgency = "high" if "urgent" in text else "low"
         topic = "work_business" if "meeting" in text else "general_communication"
+        categories = [topic]
+        confidence_value = 0.6
         return {
             "topic": topic,
             "sentiment": sentiment,
@@ -557,20 +559,6 @@ class NLPEngine:
         keywords,
         risk_analysis_flags,
     ) -> Dict[str, Any]:
-        """Helper function to consolidate analysis results and build the final response dictionary."""
-
-        Args:
-            sentiment: Sentiment analysis result.
-            topic: Topic analysis result.
-            intent: Intent analysis result.
-            urgency: Urgency analysis result.
-            categories: List of identified categories.
-            keywords: List of extracted keywords.
-            risk_flags: List of identified risk flags.
-
-        Returns:
-            A dictionary containing the final, aggregated analysis.
-        """
         analysis_results = [res for res in [sentiment, topic, intent, urgency] if res]
         confidence = self._calculate_confidence(analysis_results)
         reasoning = self._generate_reasoning(sentiment, topic, intent, urgency)
@@ -599,7 +587,6 @@ class NLPEngine:
 
 
 def main():
-    """Provides a command-line interface for the NLP engine."""
     parser = argparse.ArgumentParser(description="NLP Engine for Email Analysis")
     parser.add_argument("--subject", type=str, default="", help="Email subject")
     parser.add_argument("--content", type=str, default="", help="Email content")
@@ -615,13 +602,6 @@ def main():
 
 
 def _perform_health_check(engine: NLPEngine, output_format: str):
-    """
-    Performs a health check on the NLPEngine and its models.
-
-    Args:
-        engine: An instance of the NLPEngine.
-        output_format: The desired output format ('json' or 'text').
-    """
     models_available = []
     if engine.sentiment_model: models_available.append("sentiment")
     if engine.topic_model: models_available.append("topic")
@@ -642,15 +622,6 @@ def _perform_health_check(engine: NLPEngine, output_format: str):
 
 
 def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, output_format: str):
-    """
-    Performs email analysis via the CLI.
-
-    Args:
-        engine: An instance of the NLPEngine.
-        subject: The email subject.
-        content: The email content.
-        output_format: The desired output format.
-    """
     result = engine.analyze_email(subject, content)
     if output_format == "json":
         print(json.dumps(result))
@@ -659,17 +630,6 @@ def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, o
 
 
 def _handle_backward_compatible_cli_invocation(engine: NLPEngine, args: argparse.Namespace, argv: List[str]) -> bool:
-    """
-    Handles backward-compatible CLI calls with positional arguments.
-
-    Args:
-        engine: An instance of the NLPEngine.
-        args: Parsed command-line arguments.
-        argv: The list of command-line arguments.
-
-    Returns:
-        True if the old-style invocation was handled, False otherwise.
-    """
     known_flags = ["--analyze-email", "--health-check", "--subject", "--content", "--output-format"]
     if any(flag in argv for flag in known_flags) or len(argv) < 2:
         return False
