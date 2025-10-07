@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import os
 
 from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
 from backend.python_nlp.nlp_engine import NLPEngine  # NLPEngine is used by AdvancedAIEngine
@@ -16,9 +17,10 @@ def ai_engine_instance():
     mock_db_manager_for_ai_engine.get_all_categories.reset_mock()
     mock_db_manager_for_ai_engine.get_all_categories.side_effect = None
 
-    # We need to mock NLPEngine that AdvancedAIEngine instantiates,
-    # or mock its analyze_email method.
-    with patch.object(NLPEngine, "analyze_email") as mock_nlp_analyze:
+    # Mock Gmail credentials to avoid auth issues in tests
+    mock_creds = '{"type": "service_account", "project_id": "test"}'
+    with patch.dict(os.environ, {'GMAIL_CREDENTIALS_JSON': mock_creds}), \
+         patch.object(NLPEngine, "analyze_email") as mock_nlp_analyze:
         # Configure the mock for NLPEngine().analyze_email
         mock_nlp_analyze.return_value = {
             "topic": "some_topic",  # Raw topic from NLPEngine

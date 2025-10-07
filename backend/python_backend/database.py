@@ -52,25 +52,8 @@ FIELD_CATEGORY_NAME = 'categoryName'
 FIELD_CATEGORY_COLOR = 'categoryColor'
 
 class DatabaseManager:
-    """Optimized async database manager with in-memory caching, write-behind,
-    and hybrid on-demand content loading."""
-
-    This class provides an asynchronous interface for all CRUD (Create, Read,
-    Update, Delete) operations. It handles loading data from files into memory
-    on initialization and saving data back to files when modifications occur.
-    It is designed to be used as a singleton within the application.
-
-    Attributes:
-        emails_file (str): Path to the emails JSON file.
-        categories_file (str): Path to the categories JSON file.
-        users_file (str): Path to the users JSON file.
-        emails_data (List[Dict[str, Any]]): In-memory cache of email records.
-        categories_data (List[Dict[str, Any]]): In-memory cache of category records.
-        users_data (List[Dict[str, Any]]): In-memory cache of user records.
-    """
 
     def __init__(self):
-        """Initializes the DatabaseManager, setting up file paths and data caches."""
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -98,11 +81,9 @@ class DatabaseManager:
             logger.info(f"Created email content directory: {self.email_content_dir}")
 
     def _get_email_content_path(self, email_id: int) -> str:
-        """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
-        """Loads heavy content for a given light email record and merges them."""
         full_email = email_light.copy()
         email_id = full_email.get(FIELD_ID)
         if not email_id:
@@ -119,7 +100,7 @@ class DatabaseManager:
         return full_email
 
     async def _ensure_initialized(self) -> None:
-        """Ensure data is loaded and indexes are built."""
+
         if not self._initialized:
             await self._load_data()
             self._build_indexes()
@@ -127,7 +108,6 @@ class DatabaseManager:
 
     @log_performance("build_indexes")
     def _build_indexes(self) -> None:
-        """Builds or rebuilds all in-memory indexes from the loaded data."""
         logger.info("Building in-memory indexes...")
         self.emails_by_id = {email[FIELD_ID]: email for email in self.emails_data}
         self.emails_by_message_id = {email[FIELD_MESSAGE_ID]: email for email in self.emails_data if FIELD_MESSAGE_ID in email}
@@ -146,11 +126,6 @@ class DatabaseManager:
 
     @log_performance("load_data")
     async def _load_data(self) -> None:
-        """
-        Loads data from JSON files into memory.
-
-        If a data file does not exist, it creates an empty one.
-        """
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, 'emails_data'),
             (DATA_TYPE_CATEGORIES, self.categories_file, 'categories_data'),
@@ -172,7 +147,6 @@ class DatabaseManager:
 
     @log_performance("save_data_to_file")
     async def _save_data_to_file(self, data_type: Literal['emails', 'categories', 'users']) -> None:
-        """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
         if data_type == DATA_TYPE_EMAILS:
             file_path, data_to_save = self.emails_file, self.emails_data
@@ -196,11 +170,9 @@ class DatabaseManager:
             logger.error(f"Error saving data to {file_path}: {e}")
 
     async def _save_data(self, data_type: Literal['emails', 'categories', 'users']) -> None:
-        """Marks data as dirty for write-behind saving."""
         self._dirty_data.add(data_type)
 
     async def shutdown(self) -> None:
-        """Saves all dirty data to files before shutting down."""
         logger.info("DatabaseManager shutting down. Saving dirty data...")
         for data_type in list(self._dirty_data):
             await self._save_data_to_file(data_type)
@@ -208,30 +180,11 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-        """
-        Generates a new unique integer ID for a record.
-
-        Args:
-            data_list: The list of records to scan for the current maximum ID.
-
-        Returns:
-            A new unique integer ID.
-        """
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-        """
-        Parses fields in a data row that are stored as JSON strings.
-
-        Args:
-            row: The data record (dictionary).
-            fields: A list of field names to parse.
-
-        Returns:
-            The modified data record with parsed fields.
-        """
         if not row:
             return row
         for field in fields:
@@ -247,7 +200,6 @@ class DatabaseManager:
         return row
         
     def _add_category_details(self, email: Dict[str, Any]) -> Dict[str, Any]:
-        """Add category name and color to an email using cached category data."""
         if not email:
             return email
         category_id = email.get(FIELD_CATEGORY_ID)
@@ -259,7 +211,6 @@ class DatabaseManager:
         return self._parse_json_fields(email, [FIELD_ANALYSIS_METADATA])
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Create a new email record, separating heavy and light content."""
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
@@ -312,7 +263,6 @@ class DatabaseManager:
         return self._add_category_details(light_email_record)
 
     async def get_email_by_id(self, email_id: int, include_content: bool = True) -> Optional[Dict[str, Any]]:
-        """Get email by ID using in-memory index, with option to load heavy content."""
         email_light = self.emails_by_id.get(email_id)
         if not email_light:
             return None
@@ -324,14 +274,13 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
-        """Get all categories with their counts from cache."""
+
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
         return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ''))
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Create a new category and update indexes."""
         category_name_lower = category_data.get(FIELD_NAME, '').lower()
         if category_name_lower in self.categories_by_name:
             logger.warning(f"Category with name '{category_data.get(FIELD_NAME)}' already exists. Returning existing.")
@@ -353,7 +302,6 @@ class DatabaseManager:
         return category_record
 
     async def _update_category_count(self, category_id: int, increment: bool = False, decrement: bool = False) -> None:
-        """Incrementally update category email count in the cache."""
         if category_id not in self.category_counts:
             logger.warning(f"Attempted to update count for non-existent category ID: {category_id}")
             return
@@ -364,7 +312,6 @@ class DatabaseManager:
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
     async def get_emails(self, limit: int = 50, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None) -> List[Dict[str, Any]]:
-        """Get emails with pagination and filtering."""
         filtered_emails = self.emails_data
         if category_id is not None:
             filtered_emails = [e for e in filtered_emails if e.get(FIELD_CATEGORY_ID) == category_id]
@@ -380,7 +327,6 @@ class DatabaseManager:
         return result_emails
 
     async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Update email by messageId, handling separated content."""
         email_to_update = await self.get_email_by_message_id(message_id, include_content=True)
         if not email_to_update:
             logger.warning(f"Email with {FIELD_MESSAGE_ID} {message_id} not found for update.")
@@ -424,7 +370,6 @@ class DatabaseManager:
         return self._add_category_details(email_to_update)
 
     async def get_email_by_message_id(self, message_id: str, include_content: bool = True) -> Optional[Dict[str, Any]]:
-        """Get email by messageId using in-memory index, with option to load heavy content."""
         if not message_id:
             return None
         email_light = self.emails_by_message_id.get(message_id)
@@ -437,25 +382,13 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """
-        Retrieves all emails with pagination.
-
-        Args:
-            limit: The maximum number of emails to return.
-            offset: The number of emails to skip.
-
-        Returns:
-            A list of email record dictionaries.
-        """
         return await self.get_emails(limit=limit, offset=offset)
 
     async def get_emails_by_category(self, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """Get emails by category"""
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
     @log_performance("search_emails")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
         search_term_lower = search_term.lower()
@@ -491,7 +424,6 @@ class DatabaseManager:
         return result_emails
 
     async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Update email by its internal ID, handling separated content."""
         email_to_update = await self.get_email_by_id(email_id, include_content=True)
         if not email_to_update:
             logger.warning(f"Email with {FIELD_ID} {email_id} not found for update.")
@@ -540,17 +472,6 @@ class DatabaseManager:
 _db_manager_instance = None
 
 async def get_db() -> DatabaseManager:
-    """
-    Provides the singleton instance of the DatabaseManager.
-
-    This function is used for dependency injection in FastAPI routes. It ensures
-    that only one instance of the DatabaseManager is used throughout the
-
-    application's lifecycle.
-
-    Returns:
-        The singleton DatabaseManager instance.
-    """
     global _db_manager_instance
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
