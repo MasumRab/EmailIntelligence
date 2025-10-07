@@ -1,12 +1,16 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 
+
 @pytest.fixture
 def mock_performance_monitor():
     """Fixture to mock the performance monitor used in dashboard routes."""
-    with patch("server.python_backend.dashboard_routes.performance_monitor", new_callable=AsyncMock) as mock_pm:
+    with patch(
+        "server.python_backend.dashboard_routes.performance_monitor", new_callable=AsyncMock
+    ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm
+
 
 def test_get_dashboard_stats_success(client, mock_db_manager: AsyncMock, mock_performance_monitor):
     """Test successful retrieval of dashboard stats."""
@@ -28,6 +32,7 @@ def test_get_dashboard_stats_success(client, mock_db_manager: AsyncMock, mock_pe
     assert response_data["weekly_growth"]["emails"] == 75
     mock_db_manager.get_dashboard_stats.assert_called_once()
 
+
 def test_get_dashboard_stats_db_error(client, mock_db_manager: AsyncMock, mock_performance_monitor):
     """Test database error when fetching dashboard stats."""
     mock_db_manager.get_dashboard_stats.side_effect = Exception("DB Error")
@@ -37,6 +42,7 @@ def test_get_dashboard_stats_db_error(client, mock_db_manager: AsyncMock, mock_p
     assert response.status_code == 500
     assert "Failed to fetch dashboard stats" in response.json()["detail"]
     mock_db_manager.get_dashboard_stats.assert_called_once()
+
 
 def test_get_performance_overview_success(client, mock_performance_monitor: AsyncMock):
     """Test successful retrieval of performance overview."""
@@ -56,9 +62,12 @@ def test_get_performance_overview_success(client, mock_performance_monitor: Asyn
     assert response.json()["overallStatus"] == {"status": "healthy"}
     mock_performance_monitor.get_real_time_dashboard.assert_called_once()
 
+
 def test_get_performance_overview_error(client, mock_performance_monitor: AsyncMock):
     """Test error when fetching performance overview."""
-    mock_performance_monitor.get_real_time_dashboard.side_effect = Exception("Performance monitor error")
+    mock_performance_monitor.get_real_time_dashboard.side_effect = Exception(
+        "Performance monitor error"
+    )
 
     response = client.get("/api/performance/overview")
 

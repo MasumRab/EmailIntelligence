@@ -4,6 +4,7 @@ Plugin Manager for the Email Intelligence Platform
 This module provides a system for discovering, loading, and managing
 external plugins.
 """
+
 import logging
 import os
 import importlib.util
@@ -11,10 +12,12 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+
 class PluginManager:
     """
     Manages the discovery and loading of plugins.
     """
+
     def __init__(self, plugin_folder: str = "plugins/"):
         self.plugin_folder = plugin_folder
         self.loaded_plugins = []
@@ -26,7 +29,9 @@ class PluginManager:
         """
         logger.info(f"Discovering plugins in '{self.plugin_folder}'...")
         if not os.path.exists(self.plugin_folder):
-            logger.warning(f"Plugin folder '{self.plugin_folder}' not found. Skipping plugin loading.")
+            logger.warning(
+                f"Plugin folder '{self.plugin_folder}' not found. Skipping plugin loading."
+            )
             return
 
         for item in os.listdir(self.plugin_folder):

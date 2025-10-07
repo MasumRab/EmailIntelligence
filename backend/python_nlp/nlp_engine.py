@@ -61,6 +61,7 @@ class NLPEngine:
     This class provides methods for analyzing email content using various NLP techniques,
     including sentiment analysis, topic identification, intent detection, and urgency assessment.
     """
+
     CATEGORY_PATTERNS = {
         "Work & Business": [
             r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
@@ -127,8 +128,6 @@ class NLPEngine:
         self.topic_model = None
         self.intent_model = None
         self.urgency_model = None
-
-
 
         # Load models if dependencies are available
         # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
@@ -275,7 +274,16 @@ class NLPEngine:
         Analyze sentiment using keyword matching as a final fallback method.
         """
         text_lower = text.lower()
-        positive_words = ["good", "great", "excellent", "thank", "please", "welcome", "happy", "love"]
+        positive_words = [
+            "good",
+            "great",
+            "excellent",
+            "thank",
+            "please",
+            "welcome",
+            "happy",
+            "love",
+        ]
         negative_words = ["bad", "terrible", "problem", "issue", "error", "failed", "hate", "angry"]
 
         positive_count = sum(1 for word in positive_words if word in text_lower)
@@ -664,7 +672,9 @@ class NLPEngine:
         text_lower = text.lower()
 
         if not self.compiled_patterns:
-            logger.warning("Regex patterns not compiled. Call initialize_patterns() first. Falling back to on-the-fly compilation.")
+            logger.warning(
+                "Regex patterns not compiled. Call initialize_patterns() first. Falling back to on-the-fly compilation."
+            )
             self.initialize_patterns()
 
         category_scores = {}
@@ -677,7 +687,9 @@ class NLPEngine:
             return ["General"]
 
         # Sort categories by score (descending) and return top 3
-        sorted_categories = sorted(category_scores.keys(), key=lambda cat: category_scores[cat], reverse=True)
+        sorted_categories = sorted(
+            category_scores.keys(), key=lambda cat: category_scores[cat], reverse=True
+        )
         return sorted_categories[:3]
 
     def _calculate_confidence(self, analysis_results: List[Dict[str, Any]]) -> float:
@@ -962,7 +974,9 @@ class NLPEngine:
             for name, func in analyses:
                 logger.info(f"Analyzing {name}...")
                 result = func(cleaned_text)
-                logger.info(f"{name.capitalize()} analysis completed. Method: {result.get('method_used', 'unknown')}")
+                logger.info(
+                    f"{name.capitalize()} analysis completed. Method: {result.get('method_used', 'unknown')}"
+                )
                 results[name] = result
 
             # This method is regex-based, no model to load for it currently per its implementation

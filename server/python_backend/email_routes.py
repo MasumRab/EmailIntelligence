@@ -105,12 +105,14 @@ async def create_email(
         filter_results = await filter_manager.apply_filters_to_email_data(email.model_dump())
 
         email_data = email.model_dump()
-        email_data.update({
-            "confidence": int(ai_analysis.confidence * 100),
-            "categoryId": ai_analysis.category_id,
-            "labels": ai_analysis.suggested_labels,
-            "analysisMetadata": ai_analysis.to_dict(),
-        })
+        email_data.update(
+            {
+                "confidence": int(ai_analysis.confidence * 100),
+                "categoryId": ai_analysis.category_id,
+                "labels": ai_analysis.suggested_labels,
+                "analysisMetadata": ai_analysis.to_dict(),
+            }
+        )
 
         created_email_dict = await db.create_email(email_data)
 
