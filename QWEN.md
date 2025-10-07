@@ -6,8 +6,9 @@ The Email Intelligence Platform is a comprehensive email analysis application th
 
 1. **Python Backend (FastAPI)**: Primary REST API for core application logic, data processing, and AI/NLP tasks
 2. **Gradio UI**: Interactive interface for scientific development, model testing, and data visualization
-3. **TypeScript Backend (Node.js)**: Secondary backend for specific API routes
-4. **React Frontend (Vite)**: Main user-facing web application
+3. **Node-Based Workflow Engine**: Sophisticated workflow system with dependency management and visual editor
+4. **TypeScript Backend (Node.js)**: Secondary backend for specific API routes
+5. **React Frontend (Vite)**: Main user-facing web application
 
 The project is designed with a modular architecture that supports plugins, workflow management, and performance monitoring. It uses local file-based storage (JSON/GZipped files) and SQLite for data persistence.
 
@@ -17,9 +18,11 @@ The project is designed with a modular architecture that supports plugins, workf
 - **Smart Categorization**: AI-driven suggestions and application of categories to emails
 - **Intelligent Filtering**: System for creating and managing smart filters to automate workflows
 - **Model Management**: Dynamic loading and management of AI models
+- **Node-Based Workflows**: Visual workflow system with drag-and-drop interface (inspired by ComfyUI)
 - **Workflow Engine**: Configurable workflows for email processing
 - **Performance Monitoring**: Real-time performance tracking and metrics
 - **Plugin System**: Extensible architecture with plugin support
+- **Enterprise Security**: Multi-layer security with authentication, authorization, and audit logging
 
 ## Project Structure
 
@@ -36,12 +39,17 @@ The project is designed with a modular architecture that supports plugins, workf
 │   │   ├── category_routes.py  # Category management routes
 │   │   ├── database.py         # Database management
 │   │   ├── email_routes.py     # Email processing routes
+│   │   ├── enhanced_routes.py  # Enhanced feature routes
 │   │   ├── gradio_app.py       # Gradio UI application
 │   │   ├── main.py             # FastAPI main application
 │   │   ├── model_manager.py    # AI model management
 │   │   ├── models.py           # Pydantic models
 │   │   ├── performance_monitor.py # Performance monitoring
+│   │   ├── plugin_manager.py   # Plugin management
 │   │   ├── workflow_engine.py  # Workflow processing engine
+│   │   ├── workflow_manager.py # Workflow persistence
+│   │   ├── workflow_editor_ui.py # Node-based workflow editor UI
+│   │   ├── advanced_workflow_routes.py # Advanced workflow API routes
 │   │   └── ...                 # Other backend modules
 │   └── python_nlp/             # NLP-specific modules
 │       ├── analysis_components/ # NLP analysis components
@@ -60,6 +68,10 @@ The project is designed with a modular architecture that supports plugins, workf
 ├── modules/                    # Reusable modules
 ├── plugins/                    # Plugin implementations
 ├── src/                        # Source code
+│   └── core/                   # Core platform components
+│       ├── advanced_workflow_engine.py # Advanced node-based workflow engine
+│       ├── security.py         # Security framework
+│       └── workflow_engine.py  # Basic workflow engine
 ├── tests/                      # Test files
 ├── .github/                    # GitHub configurations
 ├── .config/                    # Configuration files
@@ -76,6 +88,7 @@ The project is designed with a modular architecture that supports plugins, workf
 ├── setup_linting.py            # Linting setup script
 ├── setup_python.sh             # Python setup shell script
 ├── SETUP.md                    # Manual setup guide
+├── QWEN.md                     # Current file
 ├── README.md                   # Project documentation
 └── ...
 ```
@@ -164,21 +177,6 @@ This installs and configures:
 - Pylint (for code analysis)
 - MyPy (for type checking)
 
-## Development Conventions
-
-1. **Python Dependencies**: Managed through `pyproject.toml` using the `uv` package manager
-2. **TypeScript/JavaScript Dependencies**: Managed through npm in `client/` and `server/` directories
-3. **Testing**: Uses pytest for Python with coverage reporting
-4. **Code Quality**: Uses Black, isort, and Pylint for Python formatting and linting
-5. **Data Storage**: Local file-based storage primarily in `backend/python_backend/data/`
-6. **Modular Architecture**: Services are organized in a modular, extensible architecture
-
-The project follows a component-based architecture with:
-- Dependency injection for service management
-- Plugin architecture for extensibility
-- Workflow engine for configurable email processing
-- Performance monitoring for real-time metrics
-
 ## Key Technologies
 
 - **Backend**: FastAPI, Python 3.12
@@ -186,7 +184,36 @@ The project follows a component-based architecture with:
 - **Database**: JSON files, SQLite, with potential for PostgreSQL
 - **AI/NLP**: Transformers, PyTorch, NLTK, scikit-learn
 - **UI**: Gradio for scientific interface, React for user interface
+- **Workflow Engine**: Node-based processing inspired by ComfyUI
 - **Deployment**: Multi-stage setup through unified launcher
+
+## New Node-Based Workflow System
+
+The platform has been enhanced with a sophisticated node-based workflow system:
+
+### Core Components:
+- **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
+- **src/core/security.py**: Enterprise-grade security framework
+- **backend/python_backend/workflow_editor_ui.py**: Visual workflow editor UI
+- **backend/python_backend/advanced_workflow_routes.py**: API endpoints for workflow management
+
+### Key Features:
+- **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
+- **Security Framework**: Multi-layer security with authentication, authorization, and audit logging
+- **Extensibility**: Plugin system for adding new node types
+- **Performance Monitoring**: Built-in metrics collection and monitoring
+- **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
+
+### API Endpoints:
+- `POST /api/workflows/advanced/workflows` - Create new workflows
+- `GET /api/workflows/advanced/workflows` - List available workflows
+- `GET /api/workflows/advanced/workflows/{id}` - Get specific workflow
+- `PUT /api/workflows/advanced/workflows/{id}` - Update workflow
+- `DELETE /api/workflows/advanced/workflows/{id}` - Delete workflow
+- `POST /api/workflows/advanced/workflows/{id}/execute` - Execute workflow
+- `GET /api/workflows/advanced/nodes` - List available node types
+- `GET /api/workflows/advanced/execution/status` - Get execution status
+- `POST /api/workflows/advanced/execution/cancel/{id}` - Cancel execution
 
 ## Special Components
 
@@ -194,4 +221,5 @@ The project follows a component-based architecture with:
 - **Workflow Engine**: Manages configurable email processing workflows
 - **Performance Monitor**: Tracks system performance metrics
 - **Plugin Manager**: Enables extensible functionality
+- **Security Manager**: Provides enterprise-grade security
 - **Smart Filters**: Provides advanced email filtering capabilities
