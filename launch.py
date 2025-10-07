@@ -57,7 +57,7 @@ def _handle_sigint(signum, frame):
             logger.info(f"Terminating process {p.pid}...")
             p.terminate()
             try:
-                p.wait(timeout=5)  # Wait up to 5 seconds for graceful shutdown
+                p.wait(timeout=15)  # Wait up to 15 seconds for graceful shutdown
             except subprocess.TimeoutExpired:
                 logger.warning(f"Process {p.pid} did not terminate gracefully, killing it...")
                 p.kill()
@@ -79,7 +79,6 @@ def check_python_version():
             f"Required: >={'.'.join(map(str, PYTHON_MIN_VERSION))}, "
             f"<={'.'.join(map(str, PYTHON_MAX_VERSION))}"
         )
-<<<<<<< HEAD
         sys.exit(1)
     logger.info(f"Python version {sys.version} is compatible.")
 
@@ -803,7 +802,7 @@ def main() -> int:
     # Start services
     if not args.no_backend:
         start_backend(venv_path, host, args.port, args.debug)
-        time.sleep(2)  # Brief pause to let backend start
+        time.sleep(5)  # Brief pause to let backend start
 
     if not args.no_ui:
         start_gradio_ui(venv_path, host, args.gradio_port, args.debug, args.share)
