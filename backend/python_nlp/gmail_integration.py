@@ -28,21 +28,12 @@ load_dotenv()
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/feat/modular-ai-platform
 
 # Define the project's root directory and default path for the email cache
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CACHE_PATH = PROJECT_ROOT / "email_cache.db"
 
 # Path for token.json, configurable via environment variable
-<<<<<<< HEAD
-=======
->>>>>>> origin/feature/git-history-analysis-report
-=======
->>>>>>> origin/feat/modular-ai-platform
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
 
 # Credentials content will be loaded from GMAIL_CREDENTIALS_JSON environment variable
@@ -127,22 +118,13 @@ class RateLimiter:
 
 
 class EmailCache:
-    """SQLite-based cache for email metadata and content"""
+    """SQLite-based cache for email metadata and content
 
-<<<<<<< HEAD
     This helps to reduce redundant API calls by storing previously fetched
     email data and synchronization states.
     """
 
-<<<<<<< HEAD
     def __init__(self, cache_path: str = DEFAULT_CACHE_PATH):
-=======
-    def __init__(self, cache_path: str = "email_cache.db"):
-        """Initializes the EmailCache."""
->>>>>>> origin/feature/git-history-analysis-report
-=======
-    def __init__(self, cache_path: str = DEFAULT_CACHE_PATH):
->>>>>>> origin/feat/modular-ai-platform
         self.cache_path = cache_path
         self.conn = sqlite3.connect(cache_path, check_same_thread=False)
         self._init_cache()
