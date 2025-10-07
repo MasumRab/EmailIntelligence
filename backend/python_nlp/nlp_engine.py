@@ -16,7 +16,6 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-
 from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.intent_model import IntentModel
@@ -835,6 +834,7 @@ class NLPEngine:
                 "reliable": False,
                 "feedback": "Analysis failed, using fallback method",
             },
+            # "action_items": [], # Removed
         }
 
     def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
@@ -919,7 +919,15 @@ class NLPEngine:
                 "reliable": False,
                 "feedback": "Basic analysis - NLTK/models not available or failed",
             },
+            # "action_items": [], # Removed
         }
+
+    def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
+        """
+        Analyze text for action items using ActionItemExtractor.
+        """
+        logger.info("Action item analysis skipped (feature removed).")
+        return []
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         """
@@ -971,6 +979,14 @@ class NLPEngine:
             categories = self._categorize_content(cleaned_text)  # Regex-based
             logger.info(f"Content categorization completed. Categories: {categories}")
 
+            logger.info("Analyzing action items...")
+            action_items = self._analyze_action_items(
+                full_text
+            )  # Use full_text for action items for broader context before cleaning for other models
+            logger.info(
+                f"Action item analysis completed. Found {len(action_items)} potential actions."
+            )
+
             logger.info("Building final analysis response...")
             response = self._build_final_analysis_response(
                 results["sentiment"],
@@ -980,6 +996,7 @@ class NLPEngine:
                 categories,
                 keywords,
                 risk_analysis_flags,
+                # action_items, # Removed - _analyze_action_items now returns empty list, but param removed from build
             )
             logger.info("Final analysis response built successfully.")
             return response
@@ -998,6 +1015,7 @@ class NLPEngine:
         categories,
         keywords,
         risk_analysis_flags,
+        # action_items, # Removed param
     ) -> Dict[str, Any]:
         """Helper function to consolidate analysis results and build the final response dictionary."""
 
@@ -1060,6 +1078,7 @@ class NLPEngine:
                 "intent_analysis": intent_analysis,
                 "urgency_analysis": urgency_analysis,
             },
+            # "action_items": action_items, # Removed
         }
 
 

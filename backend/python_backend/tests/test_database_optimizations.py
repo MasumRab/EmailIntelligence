@@ -1,12 +1,13 @@
 import asyncio
-import os
-import json
 import gzip
+import json
+import os
+from unittest.mock import AsyncMock, mock_open, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, patch, mock_open
 
-from backend.python_backend.database import DatabaseManager, HEAVY_EMAIL_FIELDS
+from backend.python_backend.database import HEAVY_EMAIL_FIELDS, DatabaseManager
 from backend.python_backend.performance_monitor import LOG_FILE
 
 # Mark all tests in this file as asyncio
@@ -15,7 +16,9 @@ pytestmark = pytest.mark.asyncio
 @pytest_asyncio.fixture
 async def fresh_db():
     """Fixture to provide a fresh, isolated DatabaseManager instance for each test."""
-    temp_data_dir = "backend/python_backend/tests/temp_data"
+    import os
+    from pathlib import Path
+    temp_data_dir = os.getenv("TEMP_DATA_DIR", "backend/python_backend/tests/temp_data")
     content_dir = os.path.join(temp_data_dir, "email_content")
     if not os.path.exists(content_dir):
         os.makedirs(content_dir)

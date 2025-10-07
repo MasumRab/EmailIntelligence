@@ -85,3 +85,6 @@ config/*.local.*
 
 # Ignore the jsons folder which may contain local data/secrets
 jsons/
+ 
+# Ignore local LLM guideline overrides so developers can keep ephemeral configs
+config/llm_guidelines.local.json

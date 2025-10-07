@@ -4,24 +4,29 @@ JSON file storage implementation.
 """
 
 import asyncio
+import gzip
 import json
 import logging
 import os
-import gzip
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Literal
 from functools import partial
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from typing import Any, Dict, List, Literal, Optional
+
+from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
-# File paths
-DATA_DIR = "backend/data"
-EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
-EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
-CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
-USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+# File paths - now configurable via environment variable
+import os
+from pathlib import Path
+
+# Use a more general default that works across different deployment scenarios
+DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
+EMAIL_CONTENT_DIR = DATA_DIR / "email_content"
+EMAILS_FILE = DATA_DIR / "emails.json.gz"
+CATEGORIES_FILE = DATA_DIR / "categories.json.gz"
+USERS_FILE = DATA_DIR / "users.json.gz"
 
 # Data types
 DATA_TYPE_EMAILS = 'emails'
@@ -491,13 +496,23 @@ class DatabaseManager:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
 
-# Singleton instance
+# Module-level variable to store the database manager instance
+# This is initialized via FastAPI startup event
 _db_manager_instance = None
 
 async def get_db() -> DatabaseManager:
     """Dependency injection for database. Returns a singleton instance."""
     global _db_manager_instance
     if _db_manager_instance is None:
+        # This should ideally not be reached if startup event is properly set
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
     return _db_manager_instance
+
+
+async def initialize_db():
+    """Initialize the database manager. Should be called during application startup."""
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        _db_manager_instance = DatabaseManager()
+        await _db_manager_instance._ensure_initialized()
