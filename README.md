@@ -1,26 +1,4 @@
-<<<<<<< HEAD
 # Email Intelligence - Unified Development Environment
-
-Welcome to the Email Intelligence project! This repository contains a complete ecosystem for building, testing, and running a sophisticated email analysis application. It includes a Python backend for core logic and AI, a Gradio interface for scientific development, a TypeScript backend for handling certain API routes, and a React-based web client.
-
-This README provides a unified guide to setting up and running all components using the central `launch.py` script.
-
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Project Architecture](#project-architecture)
-- [Directory Structure](#directory-structure)
-- [Launcher Usage](#launcher-usage)
-- [Development Notes](#development-notes)
-
-## Prerequisites
-
-- **Python:** Version 3.12.x
-- **Node.js:** Version 18.x or higher (with `npm`)
-- **Git:** For cloning the repository
-=======
-# Email Intelligence
 
 This is a streamlined version of the Email Intelligence application, focusing on core functionalities for local scientific and development use. It features a simplified environment setup, a full-stack architecture with a Python backend and a React frontend, and local file-based data storage. The application leverages AI and NLP to automatically analyze, categorize, and manage emails.
 
@@ -49,97 +27,9 @@ The repository is organized into the following main directories:
 *   **Python:** Version 3.11.x or 3.12.x is required.
 *   **Node.js:** A recent LTS version (e.g., 18.x or 20.x) is recommended.
 *   **Git:** For cloning the repository.
->>>>>>> origin/main
 
 ## Getting Started
 
-<<<<<<< HEAD
-A single script, `launch.py`, manages the entire development environment, from installing dependencies to running services.
-
-### 1. First-Time Setup
-
-Clone the repository and run the setup command. This will create a Python virtual environment, install all Python and Node.js dependencies, and download necessary machine learning model data.
-
-```bash
-git clone <your-repo-url>
-cd <repository-name>
-python3 launch.py --setup
-```
-
-### 2. Running the Application
-
-After the one-time setup, use the same script to launch all services:
-
-```bash
-python3 launch.py
-```
-
-This command will start:
-- **Python FastAPI Backend** on `http://127.0.0.1:8000`
-- **Gradio UI** on `http://127.0.0.1:7860` (or the next available port)
-- **Node.js TypeScript Backend** (port managed by `npm`)
-- **React Frontend** on `http://127.0.0.1:5173` (or the next available port)
-
-Press `Ctrl+C` in the terminal to gracefully shut down all running services.
-
-## Project Architecture
-
-The application is composed of four main, interconnected services:
-
-1.  **Python Backend (FastAPI):**
-    -   Located in `backend/python_backend/`.
-    -   Serves the primary REST API for core application logic, data processing, and AI/NLP tasks.
-    -   Manages data storage (JSON files and SQLite databases).
-
-2.  **Gradio UI:**
-    -   Located in `backend/python_backend/gradio_app.py`.
-    -   Provides a rich, interactive interface for scientific development, model testing, and data visualization. Intended for developers and data scientists.
-
-3.  **TypeScript Backend (Node.js):**
-    -   Located in `server/`.
-    -   A secondary backend that handles specific API routes, demonstrating a polyglot microservice architecture.
-
-4.  **React Frontend (Vite):**
-    -   Located in `client/`.
-    -   The main user-facing web application for end-users to interact with the Email Intelligence service.
-
-## Directory Structure
-
-```
-.
-├── backend/
-│   ├── python_backend/   # Main Python FastAPI application and Gradio UI
-│   └── python_nlp/       # NLP-specific modules and utilities
-├── client/               # React/Vite frontend application
-├── server/               # TypeScript/Node.js backend application
-├── shared/               # Code/types shared between services
-│
-├── launch.py             # 🚀 Unified script to set up, manage, and run the project
-├── pyproject.toml        # Python dependency definitions (for uv)
-├── package.json          # Node.js workspace configuration
-│
-└── ...
-```
-
-## Launcher Usage
-
-The `launch.py` script is the single entry point for all development tasks.
-
-### Environment Management
-
--   **Force a clean setup:** Delete and recreate the environment from scratch.
-    ```bash
-    python3 launch.py --setup --force-recreate-venv
-    ```
--   **Update all dependencies:**
-    ```bash
-    python3 launch.py --setup --update-deps
-    ```
-
-### Running Specific Services
-
-You can run any combination of services by using the `--no-<service>` flags.
-=======
 1.  **Clone the Repository:**
     ```bash
     git clone <your_repo_url>
@@ -166,7 +56,6 @@ You can run any combination of services by using the `--no-<service>` flags.
     *   Install Node.js dependencies for the client application by running `npm install` in the `client/` directory.
     *   Start the Python backend server (FastAPI/Uvicorn), which by default runs on `http://127.0.0.1:8000`.
     *   Start the Vite development server for the frontend, which by default runs on `http://127.0.0.1:5173`.
->>>>>>> origin/main
 
 -   **Run only the Python backend and Gradio UI:**
     ```bash
@@ -181,16 +70,6 @@ You can run any combination of services by using the `--no-<service>` flags.
     python3 launch.py --no-client --no-server-ts --no-ui
     ```
 
-<<<<<<< HEAD
-Use `python3 launch.py --help` to see all available options.
-
-## Development Notes
-
--   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
--   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
--   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
--   **Data Storage:** This version uses local file-based storage, primarily located in `backend/python_backend/data/`. SQLite databases (`.db` files) are created in the project root.
-=======
 ## Data Storage
 
 This version uses local file-based storage for simplicity:
@@ -246,4 +125,3 @@ python setup_linting.py
 ## Stopping the Application
 
 To stop both the backend and frontend servers, press `Ctrl+C` in the terminal window where `launch.py` is running. The launcher script is designed to shut down all started processes gracefully.
->>>>>>> origin/main

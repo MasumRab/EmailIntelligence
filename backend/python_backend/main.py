@@ -31,6 +31,12 @@ from . import (
 from .ai_engine import AdvancedAIEngine
 from .exceptions import BaseAppException
 
+# Import new components
+from .model_manager import model_manager
+from .workflow_manager import workflow_manager
+from .performance_monitor import performance_monitor
+from ..plugins.plugin_manager import plugin_manager
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,10 +56,25 @@ from .database import get_db
 async def startup_event():
     """On startup, initialize all services."""
     logger.info("Application startup event received.")
-    from .dependencies import initialize_services
+    
+    # Initialize database first
     from .database import initialize_db
-    await initialize_db()  # Initialize database first
-    await initialize_services()  # Then initialize other services
+    await initialize_db()
+    
+    # Initialize new components
+    logger.info("Initializing model manager...")
+    model_manager.load_available_models()
+    
+    logger.info("Initializing workflow manager...")
+    # Nothing specific needed for workflow manager initialization
+    
+    logger.info("Initializing plugin manager...")
+    plugin_manager.load_plugins()
+    plugin_manager.initialize_all_plugins()
+    
+    # Initialize other services
+    from .dependencies import initialize_services
+    await initialize_services()
 
 
 @app.on_event("shutdown")
@@ -105,6 +126,10 @@ app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
 # app.include_router(action_routes.router) # Removed
 # app.include_router(dashboard_routes.router) # Removed
+
+# Include enhanced feature routers
+from .enhanced_routes import router as enhanced_router
+app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 
 # Request/Response Models previously defined here are now in .models
