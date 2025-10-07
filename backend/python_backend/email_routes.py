@@ -50,8 +50,7 @@ async def get_emails(
             emails = await db.get_emails_by_category(category_id)
         else:
             emails = await db.get_all_emails()
-<<<<<<< HEAD
-        
+
         return await handle_pydantic_validation(emails, EmailResponse, "get_emails")
     except Exception as db_err:
         log_data = create_log_data(
@@ -70,25 +69,8 @@ async def get_emails(
             error_type=type(e).__name__,
             error_detail=str(e),
         )
-=======
-        try:
-            return [EmailResponse(**email) for email in emails]
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during get_emails Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
-    except Exception as db_err:
-        log_data = {
-            "message": "Database operation failed while fetching emails",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-        }
         logger.error(json.dumps(log_data))
+        raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
@@ -97,9 +79,8 @@ async def get_emails(
             "error_type": type(e).__name__,
             "error_detail": str(e),
         }
->>>>>>> origin/feature/git-history-analysis-report
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to fetch emails")
+        raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
 
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse

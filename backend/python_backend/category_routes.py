@@ -20,10 +20,6 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
     """Get all categories"""
     try:
         categories = await db.get_all_categories()
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/feat/modular-ai-platform
         return await handle_pydantic_validation(categories, CategoryResponse, "get_categories")
     except Exception as db_err:
         log_data = create_log_data(
@@ -33,36 +29,8 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
             error_detail=str(db_err),
             pgcode=None,
         )
-<<<<<<< HEAD
-=======
-        try:
-            return [CategoryResponse(**cat) for cat in categories]
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during get_categories Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
-    except Exception as db_err:
-        log_data = {
-            "message": "Database operation failed while fetching categories",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-        }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
-    except Exception as e:
-        log_data = create_log_data(
-            message="Unhandled error in get_categories",
-            request_url=request.url,
-            error_type=type(e).__name__,
-            error_detail=str(e),
-        )
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to fetch categories due to an unexpected error.")
 
 
 @router.post("/api/categories", response_model=CategoryResponse)  # Changed to CategoryResponse
@@ -72,10 +40,6 @@ async def create_category(
 ):
     """Create new category"""
     try:
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/feat/modular-ai-platform
         created_category_dict = await db.create_category(
             category.model_dump()
         )  # db.create_category returns a dict
@@ -90,34 +54,5 @@ async def create_category(
             error_detail=str(db_err),
             pgcode=None,
         )
-<<<<<<< HEAD
-=======
-        created_category_dict = await db.create_category(category.model_dump())
-        try:
-            return CategoryResponse(**created_category_dict)
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during create_category Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
-    except Exception as db_err:
-        log_data = {
-            "message": "Database operation failed while creating category",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-        }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
-    except Exception as e:
-        log_data = create_log_data(
-            message="Unhandled error in create_category",
-            request_url=request.url,
-            error_type=type(e).__name__,
-            error_detail=str(e),
-        )
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category due to an unexpected error.")
