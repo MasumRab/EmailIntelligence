@@ -4,15 +4,17 @@ Node implementations for the Email Intelligence Platform.
 This module contains specific node implementations for email processing
 functionality, following the node-based architecture.
 """
-
+from backend.node_engine.workflow_engine import workflow_engine
 import asyncio
-from datetime import datetime
 from typing import Any, Dict, List
+from datetime import datetime
 
-from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
-
-
+from backend.node_engine.node_base import (
+    BaseNode, NodePort, DataType, ExecutionContext
+)
 # Temporarily using a simplified NLP engine to avoid merge conflicts in original file
+
+
 class NLPEngine:
     """Simplified NLP Engine for testing purposes."""
 
@@ -22,22 +24,21 @@ class NLPEngine:
         text = f"{subject} {content}".lower()
 
         # Simple sentiment analysis
-        sentiment = (
-            "positive"
-            if any(w in text for w in ["good", "great", "excellent", "thank"])
-            else "negative" if any(w in text for w in ["bad", "terrible", "problem"]) else "neutral"
-        )
+        sentiment = "positive" if any(
+            w in text for w in [
+                "good",
+                "great",
+                "excellent",
+                "thank"]) else "negative" if any(
+            w in text for w in [
+                "bad",
+                "terrible",
+                "problem"]) else "neutral"
 
         # Simple topic analysis
-        topic = (
-            "work_business"
-            if any(w in text for w in ["meeting", "project", "work"])
-            else (
-                "personal"
-                if any(w in text for w in ["family", "friend", "personal"])
-                else "general"
-            )
-        )
+        topic = "work_business" if any(w in text for w in ["meeting", "project", "work"]) else \
+            "personal" if any(w in text for w in ["family", "friend", "personal"]) else \
+            "general"
 
         # Return a basic analysis structure
         return {
@@ -55,33 +56,30 @@ class NLPEngine:
                 "method": "basic",
                 "score": 0.7,
                 "reliable": True,
-                "feedback": "Analysis completed",
+                "feedback": "Analysis completed"
             },
             "details": {
                 "sentiment_analysis": {"sentiment": sentiment, "confidence": 0.7},
                 "topic_analysis": {"topic": topic, "confidence": 0.7},
                 "intent_analysis": {"intent": "informational", "confidence": 0.7},
                 "urgency_analysis": {"urgency": "medium", "confidence": 0.7},
-            },
+            }
         }
-
-
 # Temporarily using simplified classes to avoid merge conflicts in original files
+
+
 class AdvancedAIEngine:
     """Simplified AI Engine for testing purposes."""
-
     pass
 
 
 class AIAnalysisResult:
     """Simplified AI Analysis Result for testing purposes."""
-
     pass
 
 
 class GmailAIService:
     """Simplified Gmail Service for testing purposes."""
-
     pass
 
 
@@ -95,15 +93,10 @@ class EmailSourceNode(BaseNode):
         self.config = config or {}
         self.input_ports = []
         self.output_ports = [
-            NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of retrieved emails"
-            ),
-            NodePort(
-                "status",
-                DataType.JSON,
-                required=True,
-                description="Status information about the operation",
-            ),
+            NodePort("emails", DataType.EMAIL_LIST, required=True,
+                     description="List of retrieved emails"),
+            NodePort("status", DataType.JSON, required=True,
+                     description="Status information about the operation")
         ]
 
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
@@ -118,8 +111,8 @@ class EmailSourceNode(BaseNode):
                 "status": {
                     "success": True,
                     "count": len(emails),
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
 
             return result
@@ -130,8 +123,8 @@ class EmailSourceNode(BaseNode):
                 "status": {
                     "success": False,
                     "error": str(e),
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
 
     async def _fetch_emails(self) -> List[Dict[str, Any]]:
@@ -149,7 +142,7 @@ class EmailSourceNode(BaseNode):
                 "from": "sender@example.com",
                 "to": ["recipient@example.com"],
                 "timestamp": datetime.now().isoformat(),
-                "labels": ["inbox"],
+                "labels": ["inbox"]
             }
         ]
 
@@ -163,23 +156,14 @@ class PreprocessingNode(BaseNode):
         super().__init__(node_id, name or "Email Preprocessor", "Preprocesses email data")
         self.config = config or {}
         self.input_ports = [
-            NodePort(
-                "emails",
-                DataType.EMAIL_LIST,
-                required=True,
-                description="List of emails to preprocess",
-            )
+            NodePort("emails", DataType.EMAIL_LIST, required=True,
+                     description="List of emails to preprocess")
         ]
         self.output_ports = [
-            NodePort(
-                "processed_emails",
-                DataType.EMAIL_LIST,
-                required=True,
-                description="List of preprocessed emails",
-            ),
-            NodePort(
-                "stats", DataType.JSON, required=True, description="Statistics about preprocessing"
-            ),
+            NodePort("processed_emails", DataType.EMAIL_LIST, required=True,
+                     description="List of preprocessed emails"),
+            NodePort("stats", DataType.JSON, required=True,
+                     description="Statistics about preprocessing")
         ]
 
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
@@ -193,8 +177,8 @@ class PreprocessingNode(BaseNode):
                     "stats": {
                         "processed_count": 0,
                         "errors": 0,
-                        "timestamp": datetime.now().isoformat(),
-                    },
+                        "timestamp": datetime.now().isoformat()
+                    }
                 }
 
             processed_emails = []
@@ -213,8 +197,8 @@ class PreprocessingNode(BaseNode):
                 "stats": {
                     "processed_count": len(processed_emails),
                     "errors": errors,
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
 
             return result
@@ -225,8 +209,8 @@ class PreprocessingNode(BaseNode):
                 "stats": {
                     "processed_count": 0,
                     "errors": "Error during preprocessing",
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
 
     async def _process_email(self, email: Dict[str, Any]) -> Dict[str, Any]:
@@ -261,23 +245,14 @@ class AIAnalysisNode(BaseNode):
         self.config = config or {}
         self.nlp_engine = NLPEngine()
         self.input_ports = [
-            NodePort(
-                "emails",
-                DataType.EMAIL_LIST,
-                required=True,
-                description="List of emails to analyze",
-            )
+            NodePort("emails", DataType.EMAIL_LIST, required=True,
+                     description="List of emails to analyze")
         ]
         self.output_ports = [
-            NodePort(
-                "analysis_results",
-                DataType.JSON,
-                required=True,
-                description="AI analysis results for each email",
-            ),
-            NodePort(
-                "summary", DataType.JSON, required=True, description="Summary of the analysis"
-            ),
+            NodePort("analysis_results", DataType.JSON, required=True,
+                     description="AI analysis results for each email"),
+            NodePort("summary", DataType.JSON, required=True,
+                     description="Summary of the analysis")
         ]
 
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
@@ -288,7 +263,10 @@ class AIAnalysisNode(BaseNode):
             if not input_emails:
                 return {
                     "analysis_results": [],
-                    "summary": {"analyzed_count": 0, "timestamp": datetime.now().isoformat()},
+                    "summary": {
+                        "analyzed_count": 0,
+                        "timestamp": datetime.now().isoformat()
+                    }
                 }
 
             results = []
@@ -299,11 +277,20 @@ class AIAnalysisNode(BaseNode):
 
                 # Analyze the email using the NLP engine
                 analysis = self.nlp_engine.analyze_email(subject, content)
-                results.append({"email_id": email.get("id"), "analysis": analysis})
+                results.append({
+                    "email_id": email.get("id"),
+                    "analysis": analysis
+                })
 
-            summary = {"analyzed_count": len(results), "timestamp": datetime.now().isoformat()}
+            summary = {
+                "analyzed_count": len(results),
+                "timestamp": datetime.now().isoformat()
+            }
 
-            return {"analysis_results": results, "summary": summary}
+            return {
+                "analysis_results": results,
+                "summary": summary
+            }
         except Exception as e:
             context.add_error(self.node_id, f"AI analysis failed: {str(e)}")
             return {
@@ -311,8 +298,8 @@ class AIAnalysisNode(BaseNode):
                 "summary": {
                     "analyzed_count": 0,
                     "error": str(e),
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
 
 
@@ -325,30 +312,18 @@ class FilterNode(BaseNode):
         super().__init__(node_id, name or "Email Filter", "Filters emails based on criteria")
         self.config = config or {}
         self.input_ports = [
-            NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of emails to filter"
-            ),
-            NodePort(
-                "criteria",
-                DataType.JSON,
-                required=False,
-                description="Filtering criteria (optional override)",
-            ),
+            NodePort("emails", DataType.EMAIL_LIST, required=True,
+                     description="List of emails to filter"),
+            NodePort("criteria", DataType.JSON, required=False,
+                     description="Filtering criteria (optional override)")
         ]
         self.output_ports = [
-            NodePort(
-                "filtered_emails",
-                DataType.EMAIL_LIST,
-                required=True,
-                description="Filtered email list",
-            ),
-            NodePort(
-                "discarded_emails",
-                DataType.EMAIL_LIST,
-                required=True,
-                description="Emails that didn't match criteria",
-            ),
-            NodePort("stats", DataType.JSON, required=True, description="Filtering statistics"),
+            NodePort("filtered_emails", DataType.EMAIL_LIST, required=True,
+                     description="Filtered email list"),
+            NodePort("discarded_emails", DataType.EMAIL_LIST, required=True,
+                     description="Emails that didn't match criteria"),
+            NodePort("stats", DataType.JSON, required=True,
+                     description="Filtering statistics")
         ]
 
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
@@ -364,8 +339,8 @@ class FilterNode(BaseNode):
                     "stats": {
                         "filtered_count": 0,
                         "discarded_count": 0,
-                        "timestamp": datetime.now().isoformat(),
-                    },
+                        "timestamp": datetime.now().isoformat()
+                    }
                 }
 
             filtered_emails = []
@@ -383,8 +358,8 @@ class FilterNode(BaseNode):
                 "stats": {
                     "filtered_count": len(filtered_emails),
                     "discarded_count": len(discarded_emails),
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
         except Exception as e:
             context.add_error(self.node_id, f"Filtering failed: {str(e)}")
@@ -395,8 +370,8 @@ class FilterNode(BaseNode):
                     "filtered_count": 0,
                     "discarded_count": 0,
                     "error": str(e),
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
 
     def _matches_criteria(self, email: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
@@ -439,26 +414,16 @@ class ActionNode(BaseNode):
         super().__init__(node_id, name or "Action Executor", "Executes actions on emails")
         self.config = config or {}
         self.input_ports = [
-            NodePort(
-                "emails",
-                DataType.EMAIL_LIST,
-                required=True,
-                description="List of emails to act upon",
-            ),
-            NodePort(
-                "actions", DataType.JSON, required=True, description="Actions to perform on emails"
-            ),
+            NodePort("emails", DataType.EMAIL_LIST, required=True,
+                     description="List of emails to act upon"),
+            NodePort("actions", DataType.JSON, required=True,
+                     description="Actions to perform on emails")
         ]
         self.output_ports = [
-            NodePort(
-                "results",
-                DataType.JSON,
-                required=True,
-                description="Results of the actions performed",
-            ),
-            NodePort(
-                "status", DataType.JSON, required=True, description="Status of action execution"
-            ),
+            NodePort("results", DataType.JSON, required=True,
+                     description="Results of the actions performed"),
+            NodePort("status", DataType.JSON, required=True,
+                     description="Status of action execution")
         ]
 
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
@@ -473,8 +438,8 @@ class ActionNode(BaseNode):
                     "status": {
                         "success": True,
                         "processed_count": 0,
-                        "timestamp": datetime.now().isoformat(),
-                    },
+                        "timestamp": datetime.now().isoformat()
+                    }
                 }
 
             results = []
@@ -488,8 +453,8 @@ class ActionNode(BaseNode):
                 "status": {
                     "success": True,
                     "processed_count": len(input_emails),
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
         except Exception as e:
             context.add_error(self.node_id, f"Action execution failed: {str(e)}")
@@ -498,26 +463,28 @@ class ActionNode(BaseNode):
                 "status": {
                     "success": False,
                     "error": str(e),
-                    "timestamp": datetime.now().isoformat(),
-                },
+                    "timestamp": datetime.now().isoformat()
+                }
             }
 
-    async def _execute_actions_on_email(
-        self, email: Dict[str, Any], actions: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    async def _execute_actions_on_email(self, email: Dict[str, Any], actions: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Execute actions on a single email."""
         # Simulate action execution
         # In a real implementation, this would interact with email APIs
         await asyncio.sleep(0.05)  # Simulate processing time
 
-        result = {"email_id": email.get("id"), "actions_performed": [], "success": True}
+        result = {
+            "email_id": email.get("id"),
+            "actions_performed": [],
+            "success": True
+        }
 
         for action in actions:
             action_type = action.get("type", "unknown")
             action_result = {
                 "type": action_type,
                 "status": "completed",
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now().isoformat()
             }
 
             # Simulate different types of actions
@@ -539,7 +506,6 @@ class ActionNode(BaseNode):
 
 
 # Register the node types with the global workflow engine
-from backend.node_engine.workflow_engine import workflow_engine
 
 workflow_engine.register_node_type(EmailSourceNode)
 workflow_engine.register_node_type(PreprocessingNode)
