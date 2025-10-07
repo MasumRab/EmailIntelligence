@@ -18,5 +18,11 @@ transformers
 torch
 accelerate
 sentencepiece
-pytest
-pytest-asyncio
+pandas
+numpy
+matplotlib
+seaborn
+scipy
+jupyter
+ipykernel
+ipywidgets
