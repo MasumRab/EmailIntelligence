@@ -42,12 +42,12 @@ import time
 import venv
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+from enum import Enum, auto
 
 try:
     from importlib.metadata import version, PackageNotFoundError
 except ImportError:
     from importlib_metadata import version, PackageNotFoundError
-from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
@@ -57,6 +57,48 @@ logger = logging.getLogger("launcher")
 
 # Global list to keep track of subprocesses
 processes = []
+
+
+class VenvStatus(Enum):
+    """Represents the status of the virtual environment."""
+    OK = auto()
+    MISSING = auto()
+    CORRUPTED = auto()
+    INCOMPATIBLE = auto()
+
+
+def _get_venv_status() -> Tuple[VenvStatus, Optional[str]]:
+    """Checks the status of the virtual environment."""
+    if not is_venv_available():
+        return VenvStatus.MISSING, None
+
+    venv_python_exe_path = ""
+    if os.name == "nt":
+        venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
+    else:
+        venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "bin" / "python")
+
+    if not Path(venv_python_exe_path).exists():
+        return VenvStatus.CORRUPTED, None
+
+    try:
+        result = subprocess.run(
+            [venv_python_exe_path, "--version"],
+            capture_output=True, text=True, check=False, timeout=5
+        )
+        version_output = result.stdout.strip() + result.stderr.strip()
+        if version_output.startswith("Python "):
+            parts = version_output.split(" ")[1].split(".")
+            if len(parts) >= 2:
+                venv_major, venv_minor = int(parts[0]), int(parts[1])
+                venv_version = (venv_major, venv_minor)
+                if not (PYTHON_MIN_VERSION <= venv_version <= PYTHON_MAX_VERSION):
+                    return VenvStatus.INCOMPATIBLE, venv_python_exe_path
+                return VenvStatus.OK, venv_python_exe_path
+    except (subprocess.TimeoutExpired, ValueError, IndexError) as e:
+        logger.warning(f"Could not determine venv Python version: {e}")
+
+    return VenvStatus.CORRUPTED, None
 
 
 def _handle_sigint(signum, frame):
@@ -103,13 +145,19 @@ def check_python_version() -> bool:
     return True
 
 
+def get_venv_python_path() -> Path:
+    """Get the path to the venv python executable."""
+    venv_path = ROOT_DIR / VENV_DIR
+    if os.name == "nt":  # Windows
+        return venv_path / "Scripts" / "python.exe"
+    else:  # Unix-based systems
+        return venv_path / "bin" / "python"
+
 def is_venv_available() -> bool:
     """Check if a virtual environment is available."""
     venv_path = ROOT_DIR / VENV_DIR
-    if os.name == "nt":  # Windows
-        return venv_path.exists() and (venv_path / "Scripts" / "python.exe").exists()
-    else:  # Unix-based systems
-        return venv_path.exists() and (venv_path / "bin" / "python").exists()
+    python_path = get_venv_python_path()
+    return venv_path.exists() and python_path.exists()
 
 
 def create_venv() -> bool:
@@ -131,12 +179,21 @@ def create_venv() -> bool:
 def get_python_executable() -> str:
     """Get the Python executable path."""
     if is_venv_available():
-        if os.name == "nt":  # Windows
-            return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
-        else:  # Unix-based systems
-            return str(ROOT_DIR / VENV_DIR / "bin" / "python")
+        return str(get_venv_python_path())
     return sys.executable
 
+
+def run_command_with_logging(cmd: List[str], description: str) -> bool:
+    """Run a subprocess command with logging."""
+    logger.info(f"Running: {description}")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed: {description}")
+        logger.error(f"stdout:\n{e.stdout}")
+        logger.error(f"stderr:\n{e.stderr}")
+        return False
 
 def install_requirements_from_file(requirements_file_path_str: str, update: bool = False) -> bool:
     """Install or update requirements from a file.
@@ -154,20 +211,64 @@ def install_requirements_from_file(requirements_file_path_str: str, update: bool
         cmd.append("--upgrade")
     cmd.extend(["-r", str(requirements_path)])
 
-    logger.info(
-        f"{'Updating' if update else 'Installing'} dependencies from {requirements_path.name}..."
-    )
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install dependencies from {requirements_path.name}.")
-        logger.error(f"pip stdout:\n{e.stdout}")
-        logger.error(f"pip stderr:\n{e.stderr}")
-        return False
+    desc = f"{'Updating' if update else 'Installing'} dependencies from {requirements_path.name}"
+    return run_command_with_logging(cmd, desc)
 
 
 install_dependencies = install_requirements_from_file
+
+
+# Original functions are now fully replaced.
+# The aliasing and del operations for _standalone versions are no longer needed.
+
+
+def check_torch_cuda() -> bool:
+    """Check if PyTorch with CUDA is available."""
+    python = get_python_executable()
+
+    try:
+        result = subprocess.run(
+            [python, "-c", "import torch; print(torch.cuda.is_available())"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        is_available = result.stdout.strip() == "True"
+        logger.info(f"PyTorch CUDA is {'available' if is_available else 'not available'}")
+        return is_available
+    except subprocess.CalledProcessError:
+        logger.warning("Failed to check PyTorch CUDA availability")
+        return False
+
+
+def reinstall_torch() -> bool:
+    """Reinstall PyTorch with CUDA support."""
+    python = get_python_executable()
+
+    # Uninstall existing PyTorch
+    logger.info("Uninstalling existing PyTorch...")
+    subprocess.run([python, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"])
+
+    # Install PyTorch with CUDA support
+    logger.info("Installing PyTorch with CUDA support...")
+    cmd = [
+        python,
+        "-m",
+        "pip",
+        "install",
+        "torch",
+        "torchvision",
+        "torchaudio",
+        "--index-url",
+        "https://download.pytorch.org/whl/cu118",
+    ]
+
+    try:
+        subprocess.check_call(cmd)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to reinstall PyTorch: {e}")
+        return False
 
 
 def download_nltk_data() -> bool:
@@ -211,253 +312,81 @@ def _get_primary_requirements_file() -> str:
         return REQUIREMENTS_FILE
 
 
+def _recreate_venv() -> bool:
+    """Deletes and recreates the virtual environment. Returns True on success."""
+    logger.info(f"Deleting and recreating virtual environment at './{VENV_DIR}'.")
+    try:
+        shutil.rmtree(ROOT_DIR / VENV_DIR)
+        logger.info(f"Successfully deleted existing virtual environment './{VENV_DIR}'.")
+    except OSError as e:
+        logger.error(f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart.")
+        return False
+
+    if not create_venv():
+        logger.error("Failed to recreate virtual environment. Exiting.")
+        return False
+    return True
+
+
 def prepare_environment(args: argparse.Namespace) -> bool:
     """Prepare the environment for running the application."""
     if not args.skip_python_version_check and not check_python_version():
-        logger.error(
-            "Initial Python version check failed. This should have been handled by interpreter discovery."
-        )
         return False
 
-    if not args.no_venv:
-        venv_recreated_this_run = False
-        venv_needs_initial_setup = False
+    if args.no_venv:
+        if not args.no_download_nltk and not download_nltk_data():
+            return False
+        return True
 
-        if is_venv_available():
-            logger.info(
-                f"Virtual environment found at '{ROOT_DIR / VENV_DIR}'. Checking Python version..."
-            )
+    venv_needs_initial_setup = False
+    status, _ = _get_venv_status()
 
-            venv_python_exe_path = ""
-            if os.name == "nt":
-                venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
-            else:
-                venv_python_exe_path = str(ROOT_DIR / VENV_DIR / "bin" / "python")
+    if status == VenvStatus.MISSING:
+        logger.info(f"Virtual environment not found at './{VENV_DIR}'. Creating...")
+        if not create_venv():
+            return False
+        venv_needs_initial_setup = True
+    elif status in (VenvStatus.CORRUPTED, VenvStatus.INCOMPATIBLE):
+        issue = "corrupted" if status == VenvStatus.CORRUPTED else "incompatible"
+        logger.warning(f"The existing virtual environment at './{VENV_DIR}' is {issue}.")
 
-            if not Path(venv_python_exe_path).exists():
-                logger.warning(
-                    f"Venv python executable not found at {venv_python_exe_path}. Assuming incompatible or corrupted venv."
-                )
-                try:
-                    # Check for --force-recreate-venv flag or CI environment variable
-                    if args.force_recreate_venv or os.environ.get("CI"):
-                        response = "yes"
-                        logger.warning(
-                            "CI environment or --force-recreate-venv flag detected, automatically recreating corrupted venv."
-                        )
-                    else:
-                        response = (
-                            input(
-                                f"WARNING: Could not find Python executable in the existing virtual environment at './{VENV_DIR}'. "
-                                f"It might be corrupted. Do you want to delete and recreate it with Python 3.11.x? (yes/no): "
-                            )
-                            .strip()
-                            .lower()
-                        )
-                except EOFError:
-                    response = "no"
-                    logger.warning(
-                        "Non-interactive session, defaulting to not recreating corrupted venv."
-                    )
-
-                if response == "yes":
-                    logger.info(
-                        f"User approved. Deleting and recreating virtual environment at './{VENV_DIR}'."
-                    )
-                    try:
-                        shutil.rmtree(ROOT_DIR / VENV_DIR)
-                        logger.info(
-                            f"Successfully deleted existing virtual environment './{VENV_DIR}'."
-                        )
-                    except OSError as e:
-                        logger.error(
-                            f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart."
-                        )
-                        return False
-
-                    if not create_venv():
-                        logger.error("Failed to recreate virtual environment. Exiting.")
-                        return False
-                    venv_recreated_this_run = True
-                    venv_needs_initial_setup = True
-                else:
-                    logger.warning(
-                        f"User declined or non-interactive. Proceeding with the potentially corrupted virtual environment in './{VENV_DIR}'. "
-                        "This may cause errors."
-                    )
-
-            else:
-                try:
-                    result = subprocess.run(
-                        [venv_python_exe_path, "--version"],
-                        capture_output=True,
-                        text=True,
-                        check=False,
-                        timeout=5,
-                    )
-                    version_output = result.stdout.strip() + result.stderr.strip()
-
-                    if version_output.startswith("Python "):
-                        parts = version_output.split(" ")[1].split(".")
-                        if len(parts) >= 2:
-                            venv_major = int(parts[0])
-                            venv_minor = int(parts[1])
-
-                            target_major, target_minor = PYTHON_MIN_VERSION
-                            if not (venv_major == target_major and venv_minor == target_minor):
-                                logger.warning(
-                                    f"WARNING: The existing virtual environment at './{VENV_DIR}' was created with Python {venv_major}.{venv_minor}. "
-                                    f"This project requires Python {target_major}.{target_minor}."
-                                )
-                                try:
-                                    # Check for --force-recreate-venv flag or CI environment variable
-                                    if args.force_recreate_venv or os.environ.get("CI"):
-                                        response = "yes"
-                                        logger.warning(
-                                            "CI environment or --force-recreate-venv flag detected, automatically recreating incompatible venv."
-                                        )
-                                    else:
-                                        response = (
-                                            input(
-                                                "Do you want to delete and recreate the virtual environment with "
-                                                f"Python {target_major}.{target_minor}? (yes/no): "
-                                            )
-                                            .strip()
-                                            .lower()
-                                        )
-                                except EOFError:
-                                    response = "no"
-                                    logger.warning(
-                                        "Non-interactive session, defaulting to not recreating incompatible venv."
-                                    )
-
-                                if response == "yes":
-                                    logger.info(
-                                        f"User approved. Deleting and recreating virtual environment at './{VENV_DIR}'."
-                                    )
-                                    try:
-                                        shutil.rmtree(ROOT_DIR / VENV_DIR)
-                                        logger.info(
-                                            f"Successfully deleted existing virtual environment './{VENV_DIR}'."
-                                        )
-                                    except OSError as e:
-                                        logger.error(
-                                            f"Failed to delete virtual environment './{VENV_DIR}': {e}. Please delete it manually and restart."
-                                        )
-                                        return False
-
-                                    if not create_venv():
-                                        logger.error(
-                                            "Failed to recreate virtual environment. Exiting."
-                                        )
-                                        return False
-                                    venv_recreated_this_run = True
-                                    venv_needs_initial_setup = True
-                                else:
-                                    logger.warning(
-                                        f"User declined or non-interactive. Proceeding with the existing, "
-                                        f"potentially incompatible virtual environment (Python {venv_major}.{venv_minor}) in './{VENV_DIR}'."
-                                    )
-                                    print(
-                                        f"WARNING: You chose to proceed with an incompatible Python version ({venv_major}.{venv_minor}) "
-                                        f"in the virtual environment './{VENV_DIR}'. This may cause errors or unexpected behavior. "
-                                        f"It is strongly recommended to use a Python {target_major}.{target_minor} environment."
-                                    )
-                            else:
-                                logger.info(
-                                    f"Existing virtual environment at './{VENV_DIR}' uses compatible Python {venv_major}.{venv_minor}."
-                                )
-                        else:
-                            logger.warning(
-                                f"Could not parse Python version from venv output: '{version_output}'. Assuming incompatibility and proceeding with caution."
-                            )
-                    else:
-                        logger.warning(
-                            f"Unrecognized version output from venv Python: '{version_output}'. Assuming incompatibility and proceeding with caution."
-                        )
-
-                except subprocess.TimeoutExpired:
-                    logger.warning(
-                        f"Timeout checking version of venv Python at '{venv_python_exe_path}'. Proceeding with caution."
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"Error checking version of venv Python at '{venv_python_exe_path}': {e}. Proceeding with caution."
-                    )
-
+        response = ""
+        if args.force_recreate_venv or os.environ.get("CI"):
+            response = "yes"
+            logger.warning(f"CI environment or --force-recreate-venv flag detected, automatically recreating {issue} venv.")
         else:
-            logger.info(f"Virtual environment not found at './{VENV_DIR}'. Creating...")
-            if not create_venv():
-                logger.error("Failed to create virtual environment. Exiting.")
+            try:
+                prompt_message = (
+                    f"Do you want to delete and recreate the {issue} virtual environment? (yes/no): "
+                )
+                response = input(prompt_message).strip().lower()
+            except EOFError:
+                response = "no"
+                logger.warning("Non-interactive session, defaulting to not recreating venv.")
+
+        if response == "yes":
+            if not _recreate_venv():
                 return False
             venv_needs_initial_setup = True
-
-        if venv_needs_initial_setup:
-            primary_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Installing base dependencies from {Path(primary_req_file).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
-            )
-            if not install_dependencies(primary_req_file, update=False):
-                logger.error(
-                    f"Failed to install base dependencies from {Path(primary_req_file).name}. Exiting."
-                )
-                return False
-        elif args.update_deps:
-            primary_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Updating base dependencies from {Path(primary_req_file).name} in existing venv as per --update-deps..."
-            )
-            if not install_dependencies(primary_req_file, update=True):
-                logger.error(
-                    f"Failed to update base dependencies from {Path(primary_req_file).name}. Exiting."
-                )
-                return False
         else:
-            # Even if not updating, ensure all dependencies from the primary requirements file are installed.
-            primary_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Ensuring dependencies from {Path(primary_req_file).name} are installed..."
-            )
-            if not install_dependencies(primary_req_file, update=False):
-                logger.error(
-                    f"Failed to install dependencies from {Path(primary_req_file).name}. Exiting."
-                )
+            logger.warning(f"Proceeding with the existing, potentially {issue} virtual environment.")
+
+    # Install/update dependencies
+    if venv_needs_initial_setup or args.update_deps:
+        primary_req_file = _get_primary_requirements_file()
+        update_flag = args.update_deps and not venv_needs_initial_setup
+
+        logger.info(f"{'Updating' if update_flag else 'Installing'} base dependencies from {primary_req_file}...")
+        if not install_dependencies(primary_req_file, update=update_flag):
+            return False
+
+        stage_req_file = f"requirements-{args.stage}.txt"
+        if (ROOT_DIR / stage_req_file).exists():
+            logger.info(f"{'Updating' if update_flag else 'Installing'} stage-specific dependencies from {stage_req_file}...")
+            if not install_dependencies(stage_req_file, update=update_flag):
                 return False
-
-        stage_requirements_file_path_str = None
-        if args.stage == "dev":
-            dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
-            if dev_req_path_obj.exists():
-                stage_requirements_file_path_str = "requirements-dev.txt"
-        elif args.stage == "test":
-            test_req_path_obj = ROOT_DIR / "requirements-test.txt"
-            if test_req_path_obj.exists():
-                stage_requirements_file_path_str = "requirements-test.txt"
-
-        if stage_requirements_file_path_str:
-            install_stage_deps_update_flag = args.update_deps
-            if venv_needs_initial_setup:
-                install_stage_deps_update_flag = False
-                logger.info(
-                    f"Installing stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
-                )
-            elif args.update_deps:
-                logger.info(
-                    f"Updating stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} as per --update-deps..."
-                )
-            else:
-                logger.info(
-                    f"Ensuring stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} are installed..."
-                )
-
-            if not install_dependencies(
-                stage_requirements_file_path_str,
-                update=install_stage_deps_update_flag,
-            ):
-                logger.error(
-                    f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
-                )
-                return False
+    else:
+        logger.info("Virtual environment is OK. Skipping dependency installation unless --update-deps is used.")
 
     if not args.no_download_nltk:
         if not download_nltk_data():
@@ -518,51 +447,9 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
     logger.info("Starting Gradio UI...")
 
     gradio_script_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
-
-    try:
-        subprocess.check_call(
-            ["node", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        logger.error("Node.js is not installed or not found in PATH. Cannot start frontend.")
+    if not gradio_script_path.exists():
+        logger.error(f"Gradio UI script not found at: {gradio_script_path}")
         return None
-
-    client_dir = ROOT_DIR / "client"
-    client_pkg_json = client_dir / "package.json"
-
-    if client_pkg_json.exists():
-        npm_executable_path = shutil.which("npm")
-        if npm_executable_path is None:
-            logger.error(
-                f"The 'npm' command was not found in your system's PATH. "
-                f"Please ensure Node.js and npm are correctly installed and that the npm installation directory is added to your PATH environment variable. "
-                f"Attempted to find 'npm' for the client in: {client_dir}"
-            )
-            return None
-        else:
-            logger.info(f"Found 'npm' executable at: {npm_executable_path}")
-
-        logger.info(f"Found package.json in {client_dir}. Running npm install...")
-        try:
-            install_result = subprocess.run(
-                ["npm", "install"],
-                cwd=client_dir,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if install_result.returncode != 0:
-                logger.error(f"Failed to install frontend dependencies in {client_dir}.")
-                logger.error(f"npm stdout:\n{install_result.stdout}")
-                logger.error(f"npm stderr:\n{install_result.stderr}")
-                return None
-            else:
-                logger.info(f"Frontend dependencies installed successfully in {client_dir}.")
-        except Exception as e:
-            logger.error(f"Error running npm install in {client_dir}: {e}")
-            return None
-    else:
-        logger.warning(f"No package.json found in {client_dir}. Skipping npm install for frontend.")
 
     cmd = [
         python_executable,
@@ -582,14 +469,13 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
         cmd.append("--share")
 
     env = os.environ.copy()
-    env["VITE_API_URL"] = f"http://{args.host}:{args.port}"
-    env["NODE_ENV"] = "development"
+    env["PYTHONPATH"] = str(ROOT_DIR)
 
     try:
-        logger.info(f"Running frontend command: {' '.join(cmd)} in {str(ROOT_DIR / 'client')}")
-        process = subprocess.Popen(cmd, cwd=str(ROOT_DIR / "client"), env=env)
+        logger.info(f"Running Gradio UI command: {' '.join(cmd)}")
+        process = subprocess.Popen(cmd, env=env)
         processes.append(process)
-        logger.info(f"Frontend server started with PID {process.pid}.")
+        logger.info(f"Gradio UI started with PID {process.pid}.")
         return process
     except Exception as e:
         logger.error(f"Failed to start Gradio UI: {e}")
@@ -598,9 +484,10 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
 
 def run_application(args: argparse.Namespace) -> int:
     """Run the application with the specified arguments."""
+    from dotenv import load_dotenv
     python_executable = get_python_executable()
     backend_process = None
-    frontend_process = None
+    gradio_process = None
 
     if args.env_file:
         env_file_path = ROOT_DIR / args.env_file
@@ -618,20 +505,16 @@ def run_application(args: argparse.Namespace) -> int:
         else:
             logger.error("Failed to start backend server in API only mode.")
             return 1
-    elif args.frontend_only:
-        logger.info("Running in Frontend only mode.")
-        if not args.api_url:
-            logger.warning(
-                "Frontend only mode: VITE_API_URL might not be correctly set if backend is not running or --api-url is not provided."
-            )
-        frontend_process = start_gradio_ui(args, python_executable)
-        if frontend_process:
-            frontend_process.wait()
+    elif args.ui_only:
+        logger.info("Running in UI only mode.")
+        gradio_process = start_gradio_ui(args, python_executable)
+        if gradio_process:
+            gradio_process.wait()
         else:
             logger.error("Failed to start Gradio UI in UI only mode.")
             return 1
     elif args.stage == "dev" or not args.stage:
-        logger.info("Running in local development mode (backend and frontend).")
+        logger.info("Running in local development mode (backend and Gradio UI).")
         unexpected_exit = False
         backend_process = start_backend(args, python_executable)
         gradio_process = start_gradio_ui(args, python_executable)
@@ -640,8 +523,8 @@ def run_application(args: argparse.Namespace) -> int:
             logger.info(f"Backend accessible at http://{args.host}:{args.port}")
         else:
             logger.error("Backend server failed to start.")
-            if frontend_process and frontend_process.poll() is None:
-                frontend_process.terminate()
+            if gradio_process and gradio_process.poll() is None:
+                gradio_process.terminate()
             return 1
 
         if gradio_process:
@@ -673,14 +556,12 @@ def run_application(args: argparse.Namespace) -> int:
                         break
                     time.sleep(1)
             except KeyboardInterrupt:
-                logger.info(
-                    "KeyboardInterrupt in run_application. Signal handler should take over."
-                )
+                logger.info("KeyboardInterrupt in run_application. Signal handler should take over.")
                 pass
             except Exception as e:
                 logger.error(f"An unexpected error occurred in run_application main loop: {e}")
             finally:
-                for p in [backend_process, frontend_process]:
+                for p in [backend_process, gradio_process]:
                     if p and p.poll() is None:
                         p.terminate()
                         try:
@@ -690,23 +571,10 @@ def run_application(args: argparse.Namespace) -> int:
             if unexpected_exit:
                 logger.error("One or more services exited unexpectedly.")
                 return 1
-
-        elif backend_process:
-            logger.info("Only backend process is running. Waiting for it to complete.")
-            backend_process.wait()
-            if backend_process.returncode != 0:
-                logger.error(f"Backend process exited with code: {backend_process.returncode}")
-                return 1
-
     elif args.stage == "test":
         logger.info("Running application in 'test' stage (executing tests)...")
-        logger.info(
-            f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided."
-        )
         from deployment.test_stages import test_stages
-
         test_run_success = True
-
         if hasattr(test_stages, "run_unit_tests"):
             logger.info("Running unit tests (default for --stage test)...")
             if not test_stages.run_unit_tests(args.coverage, args.debug):
@@ -714,17 +582,13 @@ def run_application(args: argparse.Namespace) -> int:
                 logger.error("Unit tests failed.")
         else:
             logger.warning("test_stages.run_unit_tests not found, cannot run unit tests.")
-
         if hasattr(test_stages, "run_integration_tests"):
             logger.info("Running integration tests (default for --stage test)...")
             if not test_stages.run_integration_tests(args.coverage, args.debug):
                 test_run_success = False
                 logger.error("Integration tests failed.")
         else:
-            logger.warning(
-                "test_stages.run_integration_tests not found, cannot run integration tests."
-            )
-
+            logger.warning("test_stages.run_integration_tests not found, cannot run integration tests.")
         logger.info(f"Default test suite execution finished. Success: {test_run_success}")
         return 0 if test_run_success else 1
 
@@ -770,7 +634,6 @@ def _print_system_info():
         )
         if torch_version_proc.returncode == 0:
             print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
-            # check_torch_cuda() # This function was removed
         else:
             print("PyTorch Version: Not installed or importable with current Python executable.")
             logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
@@ -797,6 +660,136 @@ def _print_system_info():
 
     print("\n--- End of System Information ---")
 
+
+def find_compatible_python_interpreter() -> Optional[str]:
+    """Find a compatible Python interpreter if current is not."""
+    current_major, current_minor = sys.version_info[:2]
+    target_major, target_minor = PYTHON_MIN_VERSION
+
+    current_version = (current_major, current_minor)
+    if PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION:
+        return None  # Current is compatible
+
+    logger.info(
+        f"Current Python is {current_major}.{current_minor}. "
+        f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
+    )
+
+    candidate_interpreters = []
+    if platform.system() == "Windows":
+        candidate_interpreters = [
+            ["py", "-3.12"],
+            ["py", "-3.11"],
+            ["python3.12"],
+            ["python3.11"],
+            ["python"],
+        ]
+    else:
+        candidate_interpreters = [
+            ["python3.12"],
+            ["python3.11"],
+            ["python3"],
+        ]
+
+    for candidate_parts in candidate_interpreters:
+        exe_name = candidate_parts[0]
+        version_check_args = candidate_parts[1:]
+
+        potential_path = shutil.which(exe_name)
+        if potential_path:
+            cmd_to_check = [potential_path] + version_check_args + ["--version"]
+            try:
+                env = os.environ.copy()
+                result = subprocess.run(
+                    cmd_to_check,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=env,
+                    timeout=5,
+                )
+
+                version_output = result.stdout.strip() + result.stderr.strip()
+
+                for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
+                    for minor in range(PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0,
+                                     PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100):
+                        if f"Python {major}.{minor}" in version_output:
+                            logger.info(
+                                f"Found compatible Python {major}.{minor} interpreter: {potential_path}"
+                            )
+                            return potential_path
+                logger.debug(
+                    f"Candidate {potential_path} not compatible. Output: {version_output}"
+                )
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Timeout checking {potential_path}")
+            except Exception as e:
+                logger.warning(f"Error checking {potential_path}: {e}")
+
+    return None
+
+def re_execute_with_compatible_python(interpreter_path: str) -> None:
+    """Re-execute the launcher with the given interpreter."""
+    logger.info(f"Re-executing launcher with interpreter: {interpreter_path}")
+    new_env = os.environ.copy()
+    new_env["LAUNCHER_REEXEC_GUARD"] = "1"
+
+    script_path = str(Path(__file__).resolve())
+    args_for_exec = [interpreter_path, script_path] + sys.argv[1:]
+    os.execve(interpreter_path, args_for_exec, new_env)
+
+def setup_logging(args) -> None:
+    """Setup logging based on args."""
+    numeric_level = getattr(logging, args.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f"Invalid log level: {args.loglevel}")
+
+    logging.basicConfig(
+        level=numeric_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
+    )
+    logger.setLevel(numeric_level)
+    logger.info(f"Launcher log level set to: {args.loglevel}")
+
+def load_default_env() -> None:
+    """Load default .env file if exists."""
+    from dotenv import load_dotenv
+    default_env_file = ROOT_DIR / ".env"
+    if default_env_file.exists():
+        logger.info(f"Loading environment variables from default .env file: {default_env_file}")
+        load_dotenv(dotenv_path=default_env_file, override=True)
+
+def handle_specific_tests(args) -> int:
+    """Handle specific test flags and return exit code."""
+    logger.info("Specific test flags detected. Running requested tests...")
+    from deployment.test_stages import test_stages
+
+    test_run_success = True
+
+    if args.unit:
+        logger.info("Running unit tests...")
+        test_run_success &= test_stages.run_unit_tests(args.coverage, args.debug)
+
+    if args.integration:
+        logger.info("Running integration tests...")
+        test_run_success &= test_stages.run_integration_tests(args.coverage, args.debug)
+
+    if args.e2e:
+        logger.info("Running e2e tests...")
+        test_run_success &= test_stages.run_e2e_tests(True, args.debug)
+
+    if args.performance:
+        logger.info("Running performance tests...")
+        test_run_success &= test_stages.run_performance_tests(60, 10, args.debug)
+
+    if args.security:
+        logger.info("Running security tests...")
+        test_run_success &= test_stages.run_security_tests(f"http://{args.host}:{args.port}", args.debug)
+
+    logger.info(f"Test execution finished. Success: {test_run_success}")
+    return 0 if test_run_success else 1
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
@@ -827,6 +820,7 @@ def parse_arguments() -> argparse.Namespace:
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data"
     )
     parser.add_argument("--skip-prepare", action="store_true", help="Skip preparation steps")
+    parser.add_argument("--setup", action="store_true", help="Only run environment setup and exit.")
 
     # Application stage
     parser.add_argument(
@@ -855,7 +849,6 @@ def parse_arguments() -> argparse.Namespace:
         default=None,
         help="Specify the port for the Gradio UI (default: 7860 or next available)",
     )
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend")
     parser.add_argument(
         "--api-only",
         action="store_true",
@@ -881,14 +874,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--performance", action="store_true", help="Run performance tests")
     parser.add_argument("--security", action="store_true", help="Run security tests")
 
-    # Advanced options
-    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
-    parser.add_argument(
-        "--force-cpu",
-        action="store_true",
-        help="Force CPU mode even if GPU is available",
-    )
-    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode")
     parser.add_argument("--system-info", action="store_true", help="Print system information")
 
     # Networking options
@@ -898,18 +883,6 @@ def parse_arguments() -> argparse.Namespace:
         help="Make the backend server listen on 0.0.0.0",
     )
 
-    # UI and Execution options
-    parser.add_argument(
-        "--theme",
-        type=str,
-        default="system",
-        help="UI theme (e.g., light, dark, system). For future use.",
-    )
-    parser.add_argument(
-        "--allow-code",
-        action="store_true",
-        help="Allow execution of custom code from extensions (for future use).",
-    )
     parser.add_argument(
         "--loglevel",
         type=str,
@@ -922,186 +895,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--env-file", type=str, help="Specify a custom .env file")
 
     return parser.parse_args()
-
-
-def main() -> int:
-    """Main entry point."""
-    if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
-        current_major, current_minor = sys.version_info[:2]
-        target_major, target_minor = PYTHON_MIN_VERSION
-
-        current_version = (current_major, current_minor)
-        if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-            logger.info(
-                f"Current Python is {current_major}.{current_minor}. "
-                f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
-            )
-
-            candidate_interpreters = []
-            if platform.system() == "Windows":
-                candidate_interpreters = [
-                    ["py", "-3.12"],
-                    ["py", "-3.11"],
-                    ["python3.12"],
-                    ["python3.11"],
-                    ["python"],
-                ]
-            else:
-                candidate_interpreters = [
-                    ["python3.12"],
-                    ["python3.11"],
-                    ["python3"],
-                ]
-
-            found_interpreter_path = None
-            for candidate_parts in candidate_interpreters:
-                exe_name = candidate_parts[0]
-                version_check_args = candidate_parts[1:]
-
-                potential_path = shutil.which(exe_name)
-                if potential_path:
-                    cmd_to_check = [potential_path] + version_check_args + ["--version"]
-                    try:
-                        env = os.environ.copy()
-                        result = subprocess.run(
-                            cmd_to_check,
-                            capture_output=True,
-                            text=True,
-                            check=False,
-                            env=env,
-                            timeout=5,
-                        )
-
-                        version_output = result.stdout.strip() + result.stderr.strip()
-
-                        version_str = ""
-                        if "Python " in version_output:
-                            version_part = version_output.split("Python ")[1]
-                            version_str = version_part.split(" ")[0]
-
-                        if version_str:
-                            try:
-                                version_tuple = tuple(map(int, version_str.split(".")[:2]))
-                                if PYTHON_MIN_VERSION <= version_tuple <= PYTHON_MAX_VERSION:
-                                    logger.info(
-                                        f"Found compatible Python {version_tuple[0]}.{version_tuple[1]} interpreter: {potential_path} (version output: {version_output})"
-                                    )
-                                    found_interpreter_path = potential_path
-                                    break
-                                else:
-                                    logger.debug(
-                                        f"Candidate {potential_path} (from {exe_name}) is not in supported Python version range. Parsed version: {version_tuple}"
-                                    )
-                            except (ValueError, IndexError):
-                                logger.debug(
-                                    f"Could not parse version from string: '{version_str}' for candidate {potential_path}"
-                                )
-                        else:
-                            logger.debug(
-                                f"Could not extract version string from output: '{version_output}' for candidate {potential_path}"
-                            )
-                    except subprocess.TimeoutExpired:
-                        logger.warning(
-                            f"Timeout checking version of interpreter candidate: {potential_path} (from {exe_name})"
-                        )
-                    except Exception as e:
-                        logger.warning(
-                            f"Error checking version of interpreter candidate: {potential_path} (from {exe_name}): {e}"
-                        )
-
-            if found_interpreter_path:
-                logger.info(f"Re-executing launcher with interpreter: {found_interpreter_path}")
-                new_env = os.environ.copy()
-                new_env["LAUNCHER_REEXEC_GUARD"] = "1"
-
-                try:
-                    script_path = str(Path(__file__).resolve())
-                    args_for_exec = [found_interpreter_path, script_path] + sys.argv[1:]
-                    os.execve(found_interpreter_path, args_for_exec, new_env)
-                except Exception as e:
-                    logger.error(f"Failed to re-execute with {found_interpreter_path}: {e}")
-                    sys.exit(1)
-            else:
-                logger.error(
-                    f"Python {target_major}.{target_minor} is required, but a compatible version was not found "
-                    f"on your system after searching common paths (candidates: {[c[0] for c in candidate_interpreters]}). "
-                    f"Please install Python {target_major}.{target_minor}, ensure it's in your PATH, "
-                    f"or run {Path(__file__).name} using a Python {target_major}.{target_minor} interpreter directly."
-                )
-                sys.exit(1)
-
-    elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
-        logger.info(
-            f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor} "
-            f"(Guard was set). Skipping further Python version discovery."
-        )
-
-    _setup_signal_handlers()
-    args = parse_arguments()
-
-    numeric_level = getattr(logging, args.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError(f"Invalid log level: {args.loglevel}")
-
-    logging.basicConfig(
-        level=numeric_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        force=True,
-    )
-    logger.setLevel(numeric_level)
-    logger.info(f"Launcher log level set to: {args.loglevel}")
-
-    default_env_file = ROOT_DIR / ".env"
-    if default_env_file.exists():
-        logger.info(f"Loading environment variables from default .env file: {default_env_file}")
-        load_dotenv(dotenv_path=default_env_file, override=True)
-
-    if args.system_info:
-        _print_system_info()
-        return 0
-
-    if args.unit or args.integration or args.e2e or args.performance or args.security:
-        logger.info("Specific test flags detected. Running requested tests...")
-        from deployment.test_stages import test_stages
-
-        test_run_success = True
-
-        if args.unit:
-            logger.info("Running unit tests...")
-            test_run_success = (
-                test_stages.run_unit_tests(args.coverage, args.debug) and test_run_success
-            )
-
-        if args.integration:
-            logger.info("Running integration tests...")
-            test_run_success = (
-                test_stages.run_integration_tests(args.coverage, args.debug) and test_run_success
-            )
-
-        if args.e2e:
-            logger.info("Running e2e tests...")
-            test_run_success = test_stages.run_e2e_tests(True, args.debug) and test_run_success
-
-        if args.performance:
-            logger.info("Running performance tests...")
-            test_run_success = (
-                test_stages.run_performance_tests(60, 10, args.debug) and test_run_success
-            )
-
-        if args.security:
-            logger.info("Running security tests...")
-            test_run_success = (
-                test_stages.run_security_tests(f"http://{args.host}:{args.port}", args.debug)
-                and test_run_success
-            )
-
-        logger.info(f"Test execution finished. Success: {test_run_success}")
-        return 0 if test_run_success else 1
-
-    if not args.skip_prepare and not prepare_environment(args):
-        return 1
-
-    return run_application(args)
 
 
 if __name__ == "__main__":

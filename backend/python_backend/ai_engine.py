@@ -1,52 +1,27 @@
 """
-AI Engine Adapter for Python Backend.
-
-This module provides a bridge between the FastAPI backend and the AI/NLP
-services. It encapsulates the logic for analyzing email content, matching
-categories, and managing the AI model's lifecycle.
+AI Engine Adapter for Python Backend
+Bridges FastAPI backend with existing AI/NLP services
 """
 import logging
+
+# import sys # No longer needed for subprocess
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from ..python_nlp.nlp_engine import NLPEngine
-
 if TYPE_CHECKING:
     from .database import DatabaseManager
 
+# from .utils.async_utils import _execute_async_command # Commented out
+from ..python_nlp.nlp_engine import NLPEngine  # Changed import alias
 
 logger = logging.getLogger(__name__)
 
 
 class AIAnalysisResult:
-    """
-    A wrapper for the results of an AI analysis of an email.
-
-    This class standardizes the structure of the analysis data returned by the
-    AI engine.
-
-    Attributes:
-        topic (str): The identified topic of the email.
-        sentiment (str): The sentiment of the email (e.g., positive, neutral, negative).
-        intent (str): The perceived intent of the email (e.g., informational, marketing).
-        urgency (str): The urgency level of the email (e.g., low, medium, high).
-        confidence (float): The confidence score of the analysis.
-        categories (List[str]): A list of suggested categories for the email.
-        keywords (List[str]): A list of extracted keywords from the email.
-        reasoning (str): An explanation of how the analysis was derived.
-        suggested_labels (List[str]): A list of suggested labels to apply to the email.
-        risk_flags (List[str]): A list of identified risk factors.
-        category_id (Optional[int]): The ID of the matched database category, if any.
-    """
+    """AI analysis result wrapper"""
 
     def __init__(self, data: Dict[str, Any]):
-        """
-        Initializes the AIAnalysisResult object.
-
-        Args:
-            data (Dict[str, Any]): A dictionary containing the AI analysis data.
-        """
         self.topic = data.get("topic", "unknown")
         self.sentiment = data.get("sentiment", "neutral")
         self.intent = data.get("intent", "unknown")
@@ -58,14 +33,9 @@ class AIAnalysisResult:
         self.suggested_labels = data.get("suggested_labels", [])
         self.risk_flags = data.get("risk_flags", [])
         self.category_id = data.get("category_id")
+        # self.action_items = data.get("action_items", []) # Removed
 
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Converts the AIAnalysisResult object to a dictionary.
-
-        Returns:
-            Dict[str, Any]: A dictionary representation of the analysis result.
-        """
         return {
             "topic": self.topic,
             "sentiment": self.sentiment,
@@ -78,18 +48,12 @@ class AIAnalysisResult:
             "suggested_labels": self.suggested_labels,
             "risk_flags": self.risk_flags,
             "category_id": self.category_id,
+            # "action_items": self.action_items, # Removed
         }
 
 
 class AdvancedAIEngine:
     """Optimized Advanced AI engine with async support and caching."""
-
-    This class integrates with an NLP engine to perform analysis and includes
-    methods for health checks, cleanup, and fallback mechanisms.
-
-    Attributes:
-        nlp_engine (NLPEngine): An instance of the NLP engine for text analysis.
-    """
 
     def __init__(self):
         self.nlp_engine = NLPEngine()
@@ -139,59 +103,40 @@ class AdvancedAIEngine:
     async def analyze_email(
         self, subject: str, content: str, db: Optional["DatabaseManager"] = None
     ) -> AIAnalysisResult:
-        """
-        Analyzes the content of an email to extract insights.
-
-        This method uses the integrated NLP engine to analyze the email's subject
-        and content. If a database manager is provided, it also attempts to
-        match the analysis results to a predefined category.
-
-        Args:
-            subject (str): The subject of the email.
-            content (str): The body content of the email.
-            db (Optional[DatabaseManager]): An optional database manager for category matching.
-
-        Returns:
-            AIAnalysisResult: An object containing the analysis results.
-        """
+        """Analyze email content with AI and optional DB category matching."""
         log_subject = subject[:50] + "..." if len(subject) > 50 else subject
         logger.info(f"Initiating AI analysis for email subject: '{log_subject}'")
         try:
             analysis_data = self.nlp_engine.analyze_email(subject, content)
 
+            # if "action_items" not in analysis_data: # Removed
+                # analysis_data["action_items"] = [] # Removed
+
+            # Only attempt to match categories if the AI returns a non-empty list.
             ai_categories = analysis_data.get("categories")
             if db and ai_categories:
                 matched_category_id = await self._match_category_id(ai_categories, db)
                 if matched_category_id:
                     analysis_data["category_id"] = matched_category_id
 
+            # Ensure category_id is present in the final result, even if it's None.
             if "category_id" not in analysis_data:
                 analysis_data["category_id"] = None
 
-            logger.info(
+            log_msg = (
                 f"Successfully received analysis from NLPEngine. "
                 f"Category ID: {analysis_data.get('category_id')}"
             )
+            logger.info(log_msg)
             return AIAnalysisResult(analysis_data)
         except Exception as e:
-            logger.error(
-                f"An unexpected error occurred during AI analysis: {e}", exc_info=True
-            )
-            return self._get_fallback_analysis(
-                subject, content, f"AI analysis error: {str(e)}"
-            )
+            logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
+            return self._get_fallback_analysis(subject, content, f"AI analysis error: {str(e)}")
+
+
 
     def health_check(self) -> Dict[str, Any]:
-        """
-        Performs a health check of the AI engine and its components.
-
-        This method checks the availability of the underlying NLP models and
-        dependencies like NLTK and scikit-learn.
-
-        Returns:
-            Dict[str, Any]: A dictionary containing the health status, including
-                            available models and dependencies.
-        """
+        """Check AI engine health by inspecting the NLPEngine instance."""
         try:
             models_available = []
             if self.nlp_engine.sentiment_model:
@@ -213,6 +158,8 @@ class AdvancedAIEngine:
                 ]
             )
 
+            # Accessing HAS_NLTK and HAS_SKLEARN_AND_JOBLIB from nlp_engine instance
+            # These are class attributes in NLPEngine, so they are accessible via instance.
             nltk_available = self.nlp_engine.HAS_NLTK
             sklearn_available = self.nlp_engine.HAS_SKLEARN_AND_JOBLIB
 
@@ -220,7 +167,7 @@ class AdvancedAIEngine:
             if not all_models_loaded:
                 status = "degraded"
             if not nltk_available or not sklearn_available:
-                status = "degraded"
+                status = "degraded"  # Or "unhealthy" depending on severity
 
             return {
                 "status": status,
@@ -230,23 +177,18 @@ class AdvancedAIEngine:
                 "timestamp": datetime.now().isoformat(),
             }
         except Exception as e:
-            logger.error(
-                f"AI health check failed during direct inspection: {e}", exc_info=True
-            )
+            logger.error(f"AI health check failed during direct inspection: {e}", exc_info=True)
             return {
                 "status": "unhealthy",
                 "error": str(e),
                 "timestamp": datetime.now().isoformat(),
             }
 
-    def cleanup(self):
-        """
-        Cleans up resources used by the AI engine.
-
-        This method should be called on application shutdown to remove any
-        temporary files that were created.
-        """
+    def cleanup(self):  # Changed to synchronous (was async but did sync operations)
+        """Cleanup AI engine resources"""
         try:
+            # Cleanup any temporary files or resources
+            # Path might need adjustment
             current_dir = os.path.dirname(__file__)
             training_file_path = os.path.join(
                 current_dir, "..", "python_nlp", "temp_training_data.json"
@@ -260,10 +202,8 @@ class AdvancedAIEngine:
                         os.remove(temp_file)
                         logger.info(f"Removed temp file during cleanup: {temp_file}")
                     except OSError as e:
-                        logger.error(
-                            f"Error removing temp file {temp_file} "
-                            f"during cleanup: {e}"
-                        )
+                        err_msg = f"Error removing temp file {temp_file} " f"during cleanup: {e}"
+                        logger.error(err_msg)
 
             logger.info("AI Engine cleanup completed")
         except Exception as e:
@@ -273,19 +213,8 @@ class AdvancedAIEngine:
         self, subject: str, content: str, error_context: Optional[str] = None
     ) -> AIAnalysisResult:
         """
-        Provides a basic fallback analysis if the primary analysis fails.
-
-        This method is used as a safeguard to ensure that some level of analysis
-        is always returned, even when the primary NLP engine encounters an error.
-
-        Args:
-            subject (str): The subject of the email.
-            content (str): The body content of the email.
-            error_context (Optional[str]): A string describing the error that
-                                           triggered the fallback.
-
-        Returns:
-            AIAnalysisResult: A basic analysis result object.
+        Provides a basic fallback analysis if the primary NLPEngine script fails or returns an error.
+        This uses the in-memory NLPEngine instance.
         """
         reason = "Fallback analysis due to AI service error"
         if error_context:
@@ -294,13 +223,19 @@ class AdvancedAIEngine:
         logger.warning(f"{reason}. Subject: {subject[:50]}...")
 
         try:
+            # Use the _get_simple_fallback_analysis from the NLPEngine instance
+            # This method provides: topic, sentiment, intent (default), urgency,
+            # confidence (default), categories, keywords (empty), reasoning.
             fallback_data = self.nlp_engine._get_simple_fallback_analysis(
                 subject, content
-            )
+            )  # Use self.nlp_engine
 
+            # Override reasoning if a specific error context was provided
             if error_context:
                 fallback_data["reasoning"] = reason
 
+            # Adapt the result to AIAnalysisResult structure.
+            # Most fields should align or have sensible defaults from _get_simple_fallback_analysis.
             return AIAnalysisResult(
                 {
                     "topic": fallback_data.get("topic", "general_communication"),
@@ -310,22 +245,15 @@ class AdvancedAIEngine:
                     "confidence": fallback_data.get("confidence", 0.3),
                     "categories": fallback_data.get("categories", ["general"]),
                     "keywords": fallback_data.get("keywords", []),
-                    "reasoning": fallback_data.get(
-                        "reasoning", "Fallback: AI service unavailable"
-                    ),
-                    "suggested_labels": fallback_data.get(
-                        "suggested_labels", ["general"]
-                    ),
-                    "risk_flags": fallback_data.get(
-                        "risk_flags", ["ai_analysis_failed"]
-                    ),
+                    "reasoning": fallback_data.get("reasoning", "Fallback: AI service unavailable"),
+                    "suggested_labels": fallback_data.get("suggested_labels", ["general"]),
+                    "risk_flags": fallback_data.get("risk_flags", ["ai_analysis_failed"]),
                     "category_id": None,
+                    # "action_items": [], # Removed
                 }
             )
         except Exception as e:
-            logger.error(
-                f"Error generating fallback analysis itself: {e}", exc_info=True
-            )
+            logger.error(f"Error generating fallback analysis itself: {e}", exc_info=True)
             return AIAnalysisResult(
                 {
                     "topic": "unknown",
@@ -339,5 +267,6 @@ class AdvancedAIEngine:
                     "suggested_labels": ["general"],
                     "risk_flags": ["ai_analysis_critically_failed"],
                     "category_id": None,
+                    # "action_items": [], # Removed
                 }
             )
