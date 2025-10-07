@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 @router.get("/api/categories", response_model=List[CategoryResponse])
-@log_performance("get_categories")
+@log_performance(operation="get_categories")
 async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
     """
     Retrieves all categories from the database.
@@ -76,7 +76,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
 
 
 @router.post("/api/categories", response_model=CategoryResponse)  # Changed to CategoryResponse
-@log_performance("create_category")
+@log_performance(operation="create_category")
 async def create_category(
     request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
 ):
