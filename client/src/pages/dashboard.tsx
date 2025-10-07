@@ -1,8 +1,9 @@
+/**
+ * @file This file contains the main Dashboard component, which serves as the
+ *       primary user interface for the email client application.
+ */
 import { useQuery } from "@tanstack/react-query";
 import { Sidebar } from "@/components/sidebar";
-// import { StatsCards } from "@/components/stats-cards"; // Removed
-// import { CategoryOverview } from "@/components/category-overview"; // Removed
-// import { RecentActivity } from "@/components/recent-activity"; // Removed
 import { EmailList } from "@/components/email-list";
 import { AIAnalysisPanel } from "@/components/ai-analysis-panel";
 import { Button } from "@/components/ui/button";
@@ -10,21 +11,25 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-// Filtered lucide-react imports: Brain, Zap, BarChart3, Bell, Settings removed
 import { Search, FolderSync } from "lucide-react";
 import { useState } from "react";
 import type { Category, EmailWithCategory } from "@shared/schema";
 
+/**
+ * The main dashboard component for the application.
+ *
+ * This component orchestrates the entire user interface, including the sidebar,
+ * email list, and AI analysis panel. It manages state for the search query,
+ * synchronization status, and the currently selected email. It also handles
+ * data fetching for emails and categories using React Query.
+ *
+ * @returns {JSX.Element} The rendered dashboard page.
+ */
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [syncLoading, setSyncLoading] = useState(false);
-  // const [batchProcessing, setBatchProcessing] = useState(false); // Removed
   const [selectedEmail, setSelectedEmail] = useState<EmailWithCategory | null>(null);
   const { toast } = useToast();
-
-  // const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({ // Removed
-  //   queryKey: ["/api/dashboard/stats"], // Removed
-  // }); // Removed
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -34,10 +39,10 @@ export default function Dashboard() {
     queryKey: ["/api/emails", searchQuery ? { search: searchQuery } : {}],
   });
 
-  // const { data: activities = [] } = useQuery<Activity[]>({ // Removed
-  //   queryKey: ["/api/activities"], // Removed
-  // }); // Removed
-
+  /**
+   * Handles the synchronization of emails with the Gmail server.
+   * @async
+   */
   const handleSync = async () => {
     setSyncLoading(true);
     try {
@@ -67,43 +72,14 @@ export default function Dashboard() {
     }
   };
 
+  /**
+   * Handles the form submission for searching emails.
+   * @param {React.FormEvent} e - The form event.
+   */
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // The query will automatically trigger refetch due to dependency
+    // The query will automatically trigger refetch due to dependency in useQuery
   };
-
-  // const handleBatchAnalysis = async () => { // Removed
-  //   setBatchProcessing(true); // Removed
-  //   try { // Removed
-  //     const emailIds = emails.slice(0, 5).map(email => email.id); // Process first 5 emails // Removed
-  //     const response = await fetch('/api/ai/batch-analyze', { // Removed
-  //       method: 'POST', // Removed
-  //       headers: { // Removed
-  //         'Content-Type': 'application/json', // Removed
-  //       }, // Removed
-  //       body: JSON.stringify({ emailIds }), // Removed
-  //     }); // Removed
-      
-  //     if (response.ok) { // Removed
-  //       const result = await response.json(); // Removed
-  //       toast({ // Removed
-  //         title: "Batch Analysis Complete", // Removed
-  //         description: `${result.summary.successful}/${result.summary.total} emails analyzed successfully`, // Removed
-  //       }); // Removed
-  //       refetchEmails(); // Removed
-  //     } else { // Removed
-  //       throw new Error('Batch analysis failed'); // Removed
-  //     } // Removed
-  //   } catch (error) { // Removed
-  //     toast({ // Removed
-  //       title: "Batch Analysis Failed", // Removed
-  //       description: "Unable to perform batch analysis", // Removed
-  //       variant: "destructive", // Removed
-  //     }); // Removed
-  //   } finally { // Removed
-  //     setBatchProcessing(false); // Removed
-  //   } // Removed
-  // }; // Removed
 
   return (
     <div className="flex h-screen overflow-hidden bg-gmail-bg">
@@ -135,9 +111,6 @@ export default function Dashboard() {
                 Gmail Connected
               </Badge>
               
-              {/* Notification */}
-              {/* Removed Bell Icon Button */}
-
               {/* Profile */}
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -160,24 +133,14 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Stats Cards */}
-          {/* <StatsCards stats={stats} loading={statsLoading} /> */} {/* Removed */}
-
-          {/* AI Control Panel */}
-          {/* Entire AI Control Panel Card removed as its content became empty */}
-
-          {/* Main Dashboard Grid - Placeholders for CategoryOverview and RecentActivity removed */}
-          {/* This section can be repurposed or filled with other components if needed */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
             <div className="lg:col-span-2">
-              {/* This space was for CategoryOverview */}
               <Card>
                 <CardHeader><CardTitle>Data Overview</CardTitle></CardHeader>
                 <CardContent><p>Placeholder for future data visualizations.</p></CardContent>
               </Card>
             </div>
             <div>
-              {/* This space was for RecentActivity */}
               <Card>
                 <CardHeader><CardTitle>Quick Links</CardTitle></CardHeader>
                 <CardContent><p>Placeholder for future quick links or actions.</p></CardContent>
@@ -209,7 +172,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              <div className="flex-grow overflow-auto"> {/* Added for scrollability if list is long */}
+              <div className="flex-grow overflow-auto">
                 <EmailList
                   emails={emails}
                   loading={emailsLoading}

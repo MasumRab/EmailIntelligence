@@ -1,3 +1,11 @@
+/**
+ * @file The main entry point for the Express server.
+ *
+ * This file is responsible for initializing the Express application, setting up
+ * middleware, registering API routes, and starting the server. It also handles
+ * database initialization and environment-specific configurations for development
+ * and production.
+ */
 import dotenv from "dotenv";
 // Load environment variables from .env file
 dotenv.config();
@@ -14,6 +22,17 @@ app.use(express.urlencoded({ extended: false }));
 // Initialize database on startup
 initializeDatabase().catch(console.error);
 
+/**
+ * Middleware for logging API requests.
+ *
+ * This middleware captures the start time of a request and logs the method,
+ * path, status code, and duration upon completion. It also captures and logs
+ * the JSON response body for API endpoints.
+ *
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The next middleware function.
+ */
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -46,6 +65,14 @@ app.use((req, res, next) => {
 
 import { errorHandler } from "./utils/errorHandler";
 
+/**
+ * Main server setup and startup function.
+ *
+ * This async IIFE (Immediately Invoked Function Expression) orchestrates the
+ * server startup process. It registers all API routes, sets up the global
+ * error handler, configures Vite for development or serves static files for
+ * production, and finally starts the server on the specified port.
+ */
 (async () => {
   const server = await registerRoutes(app);
 
