@@ -163,12 +163,15 @@ class NLPEngine:
 
         # Initialize UrgencyModel (previously UrgencyAnalyzer)
         # self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
+<<<<<<< HEAD
 =======
         self.sentiment_analyzer = SentimentModel(sentiment_model=_sentiment_model_obj, has_nltk_installed=HAS_NLTK)
         self.topic_analyzer = TopicModel(topic_model=_topic_model_obj)
         self.intent_analyzer = IntentModel(intent_model=_intent_model_obj)
         self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+>>>>>>> origin/feat/modular-ai-platform
 
     def initialize_patterns(self):
         """Pre-compiles regex patterns for categorization."""
@@ -309,6 +312,7 @@ class NLPEngine:
     def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         Perform sentiment analysis using available methods in order of preference.
 =======
         Performs sentiment analysis using the sentiment component.
@@ -319,6 +323,9 @@ class NLPEngine:
         Returns:
             A dictionary containing the sentiment analysis results.
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+        Perform sentiment analysis using available methods in order of preference.
+>>>>>>> origin/feat/modular-ai-platform
         """
         analysis_result = self._analyze_sentiment_model(text)
         if analysis_result:
@@ -384,6 +391,7 @@ class NLPEngine:
     def _analyze_topic(self, text: str) -> Dict[str, Any]:
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         Identify the main topic of the email using available methods.
         It first tries the ML model and then falls back to keyword matching.
 =======
@@ -395,6 +403,10 @@ class NLPEngine:
         Returns:
             A dictionary containing the topic analysis results.
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+        Identify the main topic of the email using available methods.
+        It first tries the ML model and then falls back to keyword matching.
+>>>>>>> origin/feat/modular-ai-platform
         """
         # Try model-based analysis first
         analysis_result = self._analyze_topic_model(text)
@@ -467,6 +479,7 @@ class NLPEngine:
     def _analyze_intent(self, text: str) -> Dict[str, Any]:
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         Determine the intent of the email using available methods.
 =======
         Determines the email's intent using the intent component.
@@ -477,6 +490,9 @@ class NLPEngine:
         Returns:
             A dictionary containing the intent analysis results.
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+        Determine the intent of the email using available methods.
+>>>>>>> origin/feat/modular-ai-platform
         """
         analysis_result = self._analyze_intent_model(text)
         if analysis_result:
@@ -540,6 +556,7 @@ class NLPEngine:
     def _analyze_urgency(self, text: str) -> Dict[str, Any]:
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         Assess the urgency level of the email using available methods.
 =======
         Assesses the urgency level using the urgency component.
@@ -550,6 +567,9 @@ class NLPEngine:
         Returns:
             A dictionary containing the urgency analysis results.
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+        Assess the urgency level of the email using available methods.
+>>>>>>> origin/feat/modular-ai-platform
         """
         analysis_result = self._analyze_urgency_model(text)
         if analysis_result:
@@ -795,6 +815,7 @@ class NLPEngine:
                 ("intent", self._analyze_intent),
                 ("urgency", self._analyze_urgency),
             ]
+<<<<<<< HEAD
 =======
             sentiment = self._analyze_sentiment(cleaned_text)
             topic = self._analyze_topic(cleaned_text)
@@ -804,6 +825,8 @@ class NLPEngine:
             keywords = self._extract_keywords(cleaned_text)
             categories = self._categorize_content(cleaned_text)
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+>>>>>>> origin/feat/modular-ai-platform
 
             results = {}
             for name, func in analyses:
