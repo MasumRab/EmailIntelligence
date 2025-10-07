@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 """
 Development server runner for the FastAPI backend.
@@ -9,6 +10,8 @@ automatically when code changes are detected.
 """
 import uvicorn
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+>>>>>>> origin/feat/modular-ai-platform
 import os
 import sys
 from pathlib import Path

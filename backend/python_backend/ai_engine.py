@@ -1,16 +1,11 @@
 """
-AI Engine Adapter for Python Backend.
-
-This module provides a bridge between the FastAPI backend and the AI/NLP
-services. It encapsulates the logic for analyzing email content, matching
-categories, and managing the AI model's lifecycle.
+AI Engine Adapter for Python Backend
+Bridges FastAPI backend with existing AI/NLP services
 """
 import logging
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
-
-from ..python_nlp.nlp_engine import NLPEngine
 
 if TYPE_CHECKING:
     from .database import DatabaseManager
@@ -21,33 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 class AIAnalysisResult:
-    """
-    A wrapper for the results of an AI analysis of an email.
-
-    This class standardizes the structure of the analysis data returned by the
-    AI engine.
-
-    Attributes:
-        topic (str): The identified topic of the email.
-        sentiment (str): The sentiment of the email (e.g., positive, neutral, negative).
-        intent (str): The perceived intent of the email (e.g., informational, marketing).
-        urgency (str): The urgency level of the email (e.g., low, medium, high).
-        confidence (float): The confidence score of the analysis.
-        categories (List[str]): A list of suggested categories for the email.
-        keywords (List[str]): A list of extracted keywords from the email.
-        reasoning (str): An explanation of how the analysis was derived.
-        suggested_labels (List[str]): A list of suggested labels to apply to the email.
-        risk_flags (List[str]): A list of identified risk factors.
-        category_id (Optional[int]): The ID of the matched database category, if any.
-    """
+    """AI analysis result wrapper"""
 
     def __init__(self, data: Dict[str, Any]):
-        """
-        Initializes the AIAnalysisResult object.
-
-        Args:
-            data (Dict[str, Any]): A dictionary containing the AI analysis data.
-        """
         self.topic = data.get("topic", "unknown")
         self.sentiment = data.get("sentiment", "neutral")
         self.intent = data.get("intent", "unknown")
@@ -61,12 +32,6 @@ class AIAnalysisResult:
         self.category_id = data.get("category_id")
 
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Converts the AIAnalysisResult object to a dictionary.
-
-        Returns:
-            Dict[str, Any]: A dictionary representation of the analysis result.
-        """
         return {
             "topic": self.topic,
             "sentiment": self.sentiment,
@@ -175,6 +140,7 @@ class AdvancedAIEngine:
             return AIAnalysisResult(analysis_data)
 
         except Exception as e:
+            logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
             return AIAnalysisResult({
                 "reasoning": f"Critical failure in AI engine: {e}"
             })

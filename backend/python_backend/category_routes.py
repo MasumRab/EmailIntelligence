@@ -17,22 +17,13 @@ router = APIRouter()
 @router.get("/api/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories")
 async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
-    """
-    Retrieves all categories from the database.
-
-    Args:
-        request (Request): The incoming request object.
-        db (DatabaseManager): The database manager dependency.
-
-    Returns:
-        List[CategoryResponse]: A list of all categories.
-
-    Raises:
-        HTTPException: If there is a database error or any other failure.
-    """
+    """Get all categories"""
     try:
         categories = await db.get_all_categories()
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/feat/modular-ai-platform
         return await handle_pydantic_validation(categories, CategoryResponse, "get_categories")
     except Exception as db_err:
         log_data = create_log_data(
@@ -42,6 +33,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
             error_detail=str(db_err),
             pgcode=None,
         )
+<<<<<<< HEAD
 =======
         try:
             return [CategoryResponse(**cat) for cat in categories]
@@ -62,6 +54,8 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+>>>>>>> origin/feat/modular-ai-platform
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
@@ -80,22 +74,12 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
 async def create_category(
     request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
 ):
-    """
-    Creates a new category in the database.
-
-    Args:
-        request (Request): The incoming request object.
-        category (CategoryCreate): The category data for creation.
-        db (DatabaseManager): The database manager dependency.
-
-    Returns:
-        CategoryResponse: The newly created category.
-
-    Raises:
-        HTTPException: If there is a database error or any other failure.
-    """
+    """Create new category"""
     try:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/feat/modular-ai-platform
         created_category_dict = await db.create_category(
             category.model_dump()
         )  # db.create_category returns a dict
@@ -110,6 +94,7 @@ async def create_category(
             error_detail=str(db_err),
             pgcode=None,
         )
+<<<<<<< HEAD
 =======
         created_category_dict = await db.create_category(category.model_dump())
         try:
@@ -131,6 +116,8 @@ async def create_category(
             "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
 >>>>>>> origin/feature/git-history-analysis-report
+=======
+>>>>>>> origin/feat/modular-ai-platform
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
