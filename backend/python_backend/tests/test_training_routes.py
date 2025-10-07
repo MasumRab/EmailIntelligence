@@ -70,7 +70,14 @@ async def test_run_training():
         mock_jobs.__setitem__ = MagicMock()
         mock_jobs.__getitem__ = MagicMock(return_value={"status": "running"})
 
-        await run_training("test_job", config)
+        # Mock sklearn and joblib to avoid actual training in tests
+        with patch('backend.python_backend.training_routes.LogisticRegression'), \
+             patch('backend.python_backend.training_routes.TfidfVectorizer'), \
+             patch('backend.python_backend.training_routes.joblib.dump'):
 
-        # Check that status was updated
-        assert mock_jobs.__setitem__.call_count > 0
+            await run_training("test_job", config)
+
+            # Check that status was updated to completed
+            calls = mock_jobs.__setitem__.call_args_list
+            status_updates = [call for call in calls if call[0][1].get('status') == 'completed']
+            assert len(status_updates) > 0
