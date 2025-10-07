@@ -62,45 +62,29 @@ mock_ai_engine.analyze_email = AsyncMock()
 mock_filter_manager = MagicMock()
 mock_filter_manager.apply_filters_to_email_data = AsyncMock()
 
-# Mock PerformanceMonitor as a decorator and instance
-# The decorator @performance_monitor.track won't be easily mockable without deeper changes.
-# For unit tests, we often test the handler functions directly without decorator effects,
-# or ensure the decorator mock doesn't break things.
-# If PerformanceMonitor is instantiated, mock its methods if called.
-mock_performance_monitor_instance = MagicMock()
-
-
-@pytest.fixture(scope="module", autouse=True)
-def mock_dependencies():
-    # Patch the locations where these are imported and used in email_routes.py
-    # The paths for patching depend on how email_routes.py imports them.
-    # Assuming:
-    # from .database import get_db (FastAPI dependency) -> We'll override this in TestClient
-    # ai_engine = AdvancedAIEngine() (module-level instance)
-    # filter_manager = SmartFilterManager() (module-level instance)
-    # performance_monitor = PerformanceMonitor() (module-level instance)
-
-    patches = [
-        patch("backend.python_backend.email_routes.ai_engine", mock_ai_engine),
-        patch("backend.python_backend.email_routes.filter_manager", mock_filter_manager),
-        # performance_monitor is commented out in email_routes.py, so no need to mock it
-    ]
-    for p in patches:
-        p.start()
-    yield
-    for p in patches:
-        p.stop()
-
-
 # Fixture for TestClient with dependency overrides
 @pytest.fixture
 def client():
-    from backend.python_backend.database import (  # Import here to ensure it's the one FastAPI uses
-        get_db,
-    )
+    """
+    Provides a TestClient with all external services mocked.
+    """
+    from backend.python_backend.database import get_db
+    from backend.python_backend.dependencies import get_ai_engine, get_filter_manager
 
+    # Set up the dependency overrides for the FastAPI app
     app.dependency_overrides[get_db] = lambda: mock_db_manager
-    return TestClient(app)
+    app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
+    app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
+
+    # The log_performance decorator is not injected via Depends, so we patch it directly
+    # where it is imported and used in the routes file.
+    with patch("backend.python_backend.email_routes.log_performance") as mock_log_performance:
+        # Make the decorator do nothing, just return the original function
+        mock_log_performance.side_effect = lambda name: (lambda func: func)
+        yield TestClient(app)
+
+    # Clean up dependency overrides after the test session
+    app.dependency_overrides.clear()
 
 
 def test_get_all_emails(client):
