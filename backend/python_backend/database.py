@@ -9,9 +9,10 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Literal
 from functools import partial
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from typing import Any, Dict, List, Literal, Optional
+
+from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,10 @@ class DatabaseManager:
     and hybrid on-demand content loading."""
 
     def __init__(self):
+<<<<<<< HEAD
         """Initializes the DatabaseManager, setting up file paths and data caches."""
+=======
+>>>>>>> origin/feat/modular-ai-platform
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -138,11 +142,7 @@ class DatabaseManager:
 
     @log_performance(operation="load_data")
     async def _load_data(self) -> None:
-        """
-        Loads data from JSON files into memory.
-
-        If a data file does not exist, it creates an empty one.
-        """
+        """Loads data from JSON files into memory. Creates files if they don't exist."""
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, 'emails_data'),
             (DATA_TYPE_CATEGORIES, self.categories_file, 'categories_data'),
@@ -200,30 +200,13 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-        """
-        Generates a new unique integer ID for a record.
-
-        Args:
-            data_list: The list of records to scan for the current maximum ID.
-
-        Returns:
-            A new unique integer ID.
-        """
+        """Generates a new unique integer ID."""
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-        """
-        Parses fields in a data row that are stored as JSON strings.
-
-        Args:
-            row: The data record (dictionary).
-            fields: A list of field names to parse.
-
-        Returns:
-            The modified data record with parsed fields.
-        """
+        """Helper to parse stringified JSON fields in a row."""
         if not row:
             return row
         for field in fields:
@@ -515,17 +498,7 @@ class DatabaseManager:
 _db_manager_instance = None
 
 async def get_db() -> DatabaseManager:
-    """
-    Provides the singleton instance of the DatabaseManager.
-
-    This function is used for dependency injection in FastAPI routes. It ensures
-    that only one instance of the DatabaseManager is used throughout the
-
-    application's lifecycle.
-
-    Returns:
-        The singleton DatabaseManager instance.
-    """
+    """Dependency injection for database. Returns a singleton instance."""
     global _db_manager_instance
     if _db_manager_instance is None:
         # This should ideally not be reached if startup event is properly set

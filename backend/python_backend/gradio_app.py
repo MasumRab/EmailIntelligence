@@ -1,21 +1,19 @@
-"""
-A Gradio web interface for interactively testing the Email Intelligence NLP Engine.
-
-This script launches a simple web UI that allows users to input an email's
-subject and content and view the AI analysis results in real-time. It's a
-useful tool for debugging, demonstration, and manual testing of the NLP
-capabilities.
-"""
 import gradio as gr
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+<<<<<<< HEAD
 import json
 import seaborn as sns
+<<<<<<< HEAD
 import requests
 from typing import Dict, Any, List
+=======
+=======
+import seaborn as sns
+>>>>>>> origin/feat/modular-ai-platform
 
 # For safe sandboxed code execution
 from RestrictedPython import compile_restricted_exec
@@ -23,6 +21,10 @@ from RestrictedPython import safe_globals
 import io
 import contextlib
 
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
+>>>>>>> origin/feat/modular-ai-platform
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -195,7 +197,7 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
 
             def analyze_batch(data_str):
                 try:
-                    emails = json.loads(data_str)  # Switched to safe parsing
+                    emails = eval(data_str)  # Simple eval for demo; use json.loads in prod
                     results = []
                     for email in emails:
                         result = nlp_engine.analyze_email(email["subject"], email["content"])
