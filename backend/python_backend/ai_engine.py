@@ -82,14 +82,6 @@ class AIAnalysisResult:
 
 
 class AdvancedAIEngine:
-    """Optimized Advanced AI engine with async support and caching."""
-
-    This class integrates with an NLP engine to perform analysis and includes
-    methods for health checks, cleanup, and fallback mechanisms.
-
-    Attributes:
-        nlp_engine (NLPEngine): An instance of the NLP engine for text analysis.
-    """
 
     def __init__(self):
         self.nlp_engine = NLPEngine()
@@ -97,7 +89,6 @@ class AdvancedAIEngine:
         self.category_lookup_map: Dict[str, Dict[str, Any]] = {}
 
     def initialize(self):
-        """Initialize AI engine and pre-compile patterns."""
         try:
             self.nlp_engine.initialize_patterns() # Pre-compile regex
             self.health_check()
@@ -106,7 +97,6 @@ class AdvancedAIEngine:
             logger.error(f"AI Engine initialization failed: {e}")
 
     async def _build_category_lookup(self, db: "DatabaseManager") -> None:
-        """Builds a normalized lookup map for categories."""
         all_db_categories = await db.get_all_categories()
         self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
         logger.info("Built category lookup map.")
@@ -114,7 +104,6 @@ class AdvancedAIEngine:
     async def _match_category_id(
         self, ai_categories: List[str], db: "DatabaseManager"
     ) -> Optional[int]:
-        """Matches AI suggested categories to DB categories using a lookup map."""
         if not ai_categories:
             return None
 
@@ -139,21 +128,6 @@ class AdvancedAIEngine:
     async def analyze_email(
         self, subject: str, content: str, db: Optional["DatabaseManager"] = None
     ) -> AIAnalysisResult:
-        """
-        Analyzes the content of an email to extract insights.
-
-        This method uses the integrated NLP engine to analyze the email's subject
-        and content. If a database manager is provided, it also attempts to
-        match the analysis results to a predefined category.
-
-        Args:
-            subject (str): The subject of the email.
-            content (str): The body content of the email.
-            db (Optional[DatabaseManager]): An optional database manager for category matching.
-
-        Returns:
-            AIAnalysisResult: An object containing the analysis results.
-        """
         log_subject = subject[:50] + "..." if len(subject) > 50 else subject
         logger.info(f"Initiating AI analysis for email subject: '{log_subject}'")
         try:
@@ -182,16 +156,6 @@ class AdvancedAIEngine:
             )
 
     def health_check(self) -> Dict[str, Any]:
-        """
-        Performs a health check of the AI engine and its components.
-
-        This method checks the availability of the underlying NLP models and
-        dependencies like NLTK and scikit-learn.
-
-        Returns:
-            Dict[str, Any]: A dictionary containing the health status, including
-                            available models and dependencies.
-        """
         try:
             models_available = []
             if self.nlp_engine.sentiment_model:
@@ -240,12 +204,6 @@ class AdvancedAIEngine:
             }
 
     def cleanup(self):
-        """
-        Cleans up resources used by the AI engine.
-
-        This method should be called on application shutdown to remove any
-        temporary files that were created.
-        """
         try:
             current_dir = os.path.dirname(__file__)
             training_file_path = os.path.join(
@@ -272,21 +230,6 @@ class AdvancedAIEngine:
     def _get_fallback_analysis(
         self, subject: str, content: str, error_context: Optional[str] = None
     ) -> AIAnalysisResult:
-        """
-        Provides a basic fallback analysis if the primary analysis fails.
-
-        This method is used as a safeguard to ensure that some level of analysis
-        is always returned, even when the primary NLP engine encounters an error.
-
-        Args:
-            subject (str): The subject of the email.
-            content (str): The body content of the email.
-            error_context (Optional[str]): A string describing the error that
-                                           triggered the fallback.
-
-        Returns:
-            AIAnalysisResult: A basic analysis result object.
-        """
         reason = "Fallback analysis due to AI service error"
         if error_context:
             reason += f": {error_context}"
