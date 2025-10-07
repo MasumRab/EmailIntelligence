@@ -1,65 +1,95 @@
-/**
- * @file Defines the API routes for email management.
- *
- * This file creates an Express router for handling all CRUD (Create, Read, Update, Delete)
- * operations related to emails. It uses the `emailService` to interact with the
- * data layer and supports filtering by category and search terms.
- */
 import express from "express";
-import { emailService } from "./services/emailService";
-import { asyncHandler } from "./utils/asyncHandler";
+import { storage } from "./storage";
+import { insertEmailSchema } from "@shared/schema";
+import { z } from "zod";
 
 const router = express.Router();
 
-/**
- * @route GET /api/emails/
- * @description Retrieves a list of emails, with optional filtering by category or search query.
- * @param {string} [req.query.category] - The category to filter emails by.
- * @param {string} [req.query.search] - The search term to filter emails by.
- * @returns {Array<object>} A list of email objects that match the criteria.
- */
-router.get("/", asyncHandler(async (req, res) => {
-  const { category, search } = req.query;
-  const emails = await emailService.getEmails(category as string, search as string);
-  res.json(emails);
-}));
+// Handler for GET /api/emails
+export const getEmailsHandler = async (req, res) => {
+  try {
+    const { category, search } = req.query;
 
-/**
- * @route GET /api/emails/:id
- * @description Retrieves a single email by its ID.
- * @param {object} req.params - The route parameters.
- * @param {string} req.params.id - The ID of the email to retrieve.
- * @returns {object} The email object if found, otherwise null.
- */
-router.get("/:id", asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
-  const email = await emailService.getEmailById(id);
-  res.json(email);
-}));
+    let emails;
+    if (search && typeof search === 'string') {
+      console.time("storage.searchEmails");
+      emails = await storage.searchEmails(search);
+      console.timeEnd("storage.searchEmails");
+    } else if (category && typeof category === 'string') {
+      const categoryId = parseInt(category);
+      console.time("storage.getEmailsByCategory");
+      emails = await storage.getEmailsByCategory(categoryId);
+      console.timeEnd("storage.getEmailsByCategory");
+    } else {
+      console.time("storage.getAllEmails");
+      emails = await storage.getAllEmails();
+      console.timeEnd("storage.getAllEmails");
+    }
 
-/**
- * @route POST /api/emails/
- * @description Creates a new email.
- * @param {object} req.body - The request body containing the new email's data.
- * @returns {object} The newly created email object.
- */
-router.post("/", asyncHandler(async (req, res) => {
-  const email = await emailService.createEmail(req.body);
-  res.status(201).json(email);
-}));
+    res.json(emails);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch emails" });
+  }
+};
 
-/**
- * @route PUT /api/emails/:id
- * @description Updates an existing email.
- * @param {object} req.params - The route parameters.
- * @param {string} req.params.id - The ID of the email to update.
- * @param {object} req.body - The request body containing the updated email data.
- * @returns {object} The updated email object.
- */
-router.put("/:id", asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
-  const email = await emailService.updateEmail(id, req.body);
-  res.json(email);
-}));
+// Handler for GET /api/emails/:id
+export const getEmailByIdHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    console.time("storage.getEmailById");
+    const email = await storage.getEmailById(id);
+    console.timeEnd("storage.getEmailById");
+
+    if (!email) {
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    res.json(email);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch email" });
+  }
+};
+
+// Handler for POST /api/emails
+export const createEmailHandler = async (req, res) => {
+  try {
+    const emailData = insertEmailSchema.parse(req.body);
+    console.time("storage.createEmail");
+    const email = await storage.createEmail(emailData);
+    console.timeEnd("storage.createEmail");
+    res.status(201).json(email);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: "Invalid email data", errors: error.errors });
+    } else {
+      res.status(500).json({ message: "Failed to create email" });
+    }
+  }
+};
+
+// Handler for PUT /api/emails/:id
+export const updateEmailHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updateData = req.body;
+    console.time("storage.updateEmail");
+    const email = await storage.updateEmail(id, updateData);
+    console.timeEnd("storage.updateEmail");
+
+    if (!email) {
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    res.json(email);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update email" });
+  }
+};
+
+// Emails
+router.get("/", getEmailsHandler);
+router.get("/:id", getEmailByIdHandler);
+router.post("/", createEmailHandler);
+router.put("/:id", updateEmailHandler);
 
 export default router;

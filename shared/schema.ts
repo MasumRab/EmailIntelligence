@@ -1,135 +1,151 @@
-/**
- * @file Defines the shared data schemas and types using Zod.
- *
- * This file contains the Zod schemas that are used for data validation and
- * type inference across both the frontend and backend of the application.
- * It ensures data consistency and provides a single source of truth for the
- * data structures.
- */
-import { z } from 'zod';
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sql } from 'drizzle-orm';
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
-/**
- * @const categorySchema
- * @description The Zod schema for an email category.
- */
-export const categorySchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  description: z.string().optional(),
-  color: z.string().optional(),
-  count: z.number().optional(),
+export const users = sqliteTable("users", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
 });
 
-/**
- * @const emailSchema
- * @description The Zod schema for an email.
- */
-export const emailSchema = z.object({
-  id: z.number(),
-  sender: z.string(),
-  senderEmail: z.string().email(),
-  subject: z.string(),
-  content: z.string(),
-  time: z.string(), // or z.date() if you parse it
-  messageId: z.string().optional(),
-  threadId: z.string().optional(),
-  preview: z.string(),
-  category: z.string().optional(),
-  categoryId: z.number().optional(),
-  labels: z.array(z.string()),
-  confidence: z.number(),
-  isImportant: z.boolean(),
-  isStarred: z.boolean(),
-  isUnread: z.boolean(),
-  hasAttachments: z.boolean(),
-  attachmentCount: z.number(),
-  sizeEstimate: z.number(),
-  aiAnalysis: z.record(z.string(), z.any()).optional(),
-  filterResults: z.record(z.string(), z.any()).optional(),
+export const categories = sqliteTable("categories", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").notNull(),
+  count: integer("count").default(0),
 });
 
-/**
- * @const insertEmailSchema
- * @description The Zod schema for creating a new email (omits the 'id' field).
- */
-export const insertEmailSchema = emailSchema.omit({ id: true });
+export const emails = sqliteTable("emails", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  
+  // Core identifiers
+  messageId: text("message_id").unique(),
+  threadId: text("thread_id"),
+  historyId: text("history_id"),
+  
+  // Basic email properties
+  sender: text("sender").notNull(),
+  senderEmail: text("sender_email").notNull(),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  contentHtml: text("content_html"),
+  preview: text("preview").notNull(),
+  snippet: text("snippet"),
+  
+  // Recipients
+  toAddresses: text("to_addresses"), // Changed from .array()
+  ccAddresses: text("cc_addresses"), // Changed from .array()
+  bccAddresses: text("bcc_addresses"), // Changed from .array()
+  replyTo: text("reply_to"),
+  
+  // Timestamps
+  time: text("time").notNull(),
+  internalDate: text("internal_date"),
+  
+  // Gmail-specific properties
+  labelIds: text("label_ids"), // Changed from .array()
+  labels: text("labels"), // Changed from .array()
+  category: text("category"), // primary, social, promotions, updates, forums
+  
+  // Message state
+  isUnread: integer("is_unread", { mode: 'boolean' }).default(true),
+  isStarred: integer("is_starred", { mode: 'boolean' }).default(false),
+  isImportant: integer("is_important", { mode: 'boolean' }).default(false),
+  isDraft: integer("is_draft", { mode: 'boolean' }).default(false),
+  isSent: integer("is_sent", { mode: 'boolean' }).default(false),
+  isSpam: integer("is_spam", { mode: 'boolean' }).default(false),
+  isTrash: integer("is_trash", { mode: 'boolean' }).default(false),
+  isChat: integer("is_chat", { mode: 'boolean' }).default(false),
+  
+  // Content properties
+  hasAttachments: integer("has_attachments", { mode: 'boolean' }).default(false),
+  attachmentCount: integer("attachment_count").default(0),
+  sizeEstimate: integer("size_estimate"),
+  
+  // Security and authentication
+  spfStatus: text("spf_status"), // pass, fail, neutral, etc.
+  dkimStatus: text("dkim_status"),
+  dmarcStatus: text("dmarc_status"),
+  isEncrypted: integer("is_encrypted", { mode: 'boolean' }).default(false),
+  isSigned: integer("is_signed", { mode: 'boolean' }).default(false),
+  
+  // Priority and handling
+  priority: text("priority").default("normal"), // low, normal, high
+  isAutoReply: integer("is_auto_reply", { mode: 'boolean' }).default(false),
+  mailingList: text("mailing_list"),
+  
+  // Thread and conversation
+  inReplyTo: text("in_reply_to"),
+  references: text("references"), // Changed from .array()
+  isFirstInThread: integer("is_first_in_thread", { mode: 'boolean' }).default(true),
+  
+  // AI analysis results
+  categoryId: integer("category_id").references(() => categories.id),
+  confidence: integer("confidence").default(95),
+  analysisMetadata: text("analysis_metadata"), // JSON string for additional metadata
+  
+  // Legacy compatibility
+  isRead: integer("is_read", { mode: 'boolean' }).default(false), // Computed from isUnread
 
-/**
- * @const updateEmailSchema
- * @description The Zod schema for updating an email (all fields are optional).
- */
-export const updateEmailSchema = emailSchema.partial();
-
-/**
- * @const emailWithCategorySchema
- * @description The Zod schema for an email that includes its category data.
- */
-export const emailWithCategorySchema = emailSchema.extend({
-  categoryData: categorySchema.optional(),
+  // Timestamps for record creation and updates
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
-/**
- * @const dashboardStatsSchema
- * @description The Zod schema for the dashboard statistics.
- */
-export const dashboardStatsSchema = z.object({
-  totalEmails: z.number(),
-  unreadEmails: z.number(),
-  importantEmails: z.number(),
-  categorizedEmails: z.number(),
-  categories: z.array(categorySchema),
+export const activities = sqliteTable("activities", {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  type: text("type").notNull(), // 'label', 'category', 'sync', 'review'
+  description: text("description").notNull(),
+  details: text("details"),
+  timestamp: text("timestamp").notNull(),
+  icon: text("icon").notNull(),
+  iconBg: text("icon_bg").notNull(),
 });
 
-/**
- * @const activitySchema
- * @description The Zod schema for a user or system activity.
- */
-export const activitySchema = z.object({
-  id: z.number(),
-  type: z.string(),
-  description: z.string(),
-  timestamp: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
 });
 
-/**
- * @type Category
- * @description The TypeScript type for an email category, inferred from the Zod schema.
- */
-export type Category = z.infer<typeof categorySchema>;
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+});
 
-/**
- * @type Email
- * @description The TypeScript type for an email, inferred from the Zod schema.
- */
-export type Email = z.infer<typeof emailSchema>;
+export const insertEmailSchema = createInsertSchema(emails).omit({
+  id: true,
+});
 
-/**
- * @type InsertEmail
- * @description The TypeScript type for creating a new email, inferred from the Zod schema.
- */
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Category = typeof categories.$inferSelect;
+
 export type InsertEmail = z.infer<typeof insertEmailSchema>;
+export type Email = typeof emails.$inferSelect;
 
-/**
- * @type UpdateEmail
- * @description The TypeScript type for updating an email, inferred from the Zod schema.
- */
-export type UpdateEmail = z.infer<typeof updateEmailSchema>;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type Activity = typeof activities.$inferSelect;
 
-/**
- * @type EmailWithCategory
- * @description The TypeScript type for an email with its category data, inferred from the Zod schema.
- */
-export type EmailWithCategory = z.infer<typeof emailWithCategorySchema>;
+export type EmailWithCategory = Email & {
+  categoryData?: Category; // Renamed from 'category' to avoid collision
+};
 
-/**
- * @type DashboardStats
- * @description The TypeScript type for the dashboard statistics, inferred from the Zod schema.
- */
-export type DashboardStats = z.infer<typeof dashboardStatsSchema>;
-
-/**
- * @type Activity
- * @description The TypeScript type for a user or system activity, inferred from the Zod schema.
- */
-export type Activity = z.infer<typeof activitySchema>;
+export type DashboardStats = {
+  totalEmails: number;
+  autoLabeled: number;
+  categories: number;
+  timeSaved: string;
+  weeklyGrowth: {
+    totalEmails: number;
+    autoLabeled: number;
+    categories: number;
+    timeSaved: number;
+  };
+};

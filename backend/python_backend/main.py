@@ -10,32 +10,27 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 
 # Updated import to use NLP GmailAIService directly
-# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
-# Instead, dependencies are managed via dependency injection in the routes
+from server.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from ..python_nlp.smart_filters import SmartFilterManager
+from server.python_nlp.smart_filters import SmartFilterManager
+
 from . import (
+    action_routes,
     category_routes,
+    dashboard_routes,
     email_routes,
     filter_routes,
     gmail_routes,
-    workflow_routes,
-    model_routes,
-    performance_routes,
 )
 from .ai_engine import AdvancedAIEngine
-from .exceptions import BaseAppException
 
-# Import new components
-from .model_manager import model_manager
-from .workflow_manager import workflow_manager
-from .performance_monitor import performance_monitor
-from ..plugins.plugin_manager import plugin_manager
+# Import our Python modules
+from .performance_monitor import PerformanceMonitor
+from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -48,48 +43,15 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# Import the get_db function to access the database manager
-from .database import get_db
-
-
 @app.on_event("startup")
 async def startup_event():
-    """On startup, initialize all services."""
-    logger.info("Application startup event received.")
-    
-    # Initialize database first
-    from .database import initialize_db
-    await initialize_db()
-    
-    # Initialize new components
-    logger.info("Initializing model manager...")
-    model_manager.load_available_models()
-    
-    logger.info("Initializing workflow manager...")
-    # Nothing specific needed for workflow manager initialization
-    
-    logger.info("Initializing plugin manager...")
-    plugin_manager.load_plugins()
-    plugin_manager.initialize_all_plugins()
-    
-    # Initialize other services
-    from .dependencies import initialize_services
-    await initialize_services()
-
+    """Application startup: connect to the database."""
+    await db_manager.connect()
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """On shutdown, save any pending data."""
-    logger.info("Application shutdown event received.")
-    db = await get_db()
-    await db.shutdown()
-
-@app.exception_handler(BaseAppException)
-async def app_exception_handler(request: Request, exc: BaseAppException):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail},
-    )
+    """Application shutdown: disconnect from the database."""
+    await db_manager.close()
 
 # Configure CORS
 app.add_middleware(
@@ -110,27 +72,26 @@ app.add_middleware(
 # Other shared request/response models like EmailResponse, CategoryResponse etc. are also in models.py.
 
 # Set up metrics if in production or staging environment
-# if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
-    # from .metrics import setup_metrics # Removed
-    # setup_metrics(app) # Removed
+if os.getenv("NODE_ENV") in ["production", "staging"]:
+    from .metrics import setup_metrics
 
-# Services are now managed by the dependency injection system.
+    setup_metrics(app)
+
+# Initialize services
+# Services are now initialized within their respective route files
+# or kept here if they are used by multiple route files or for general app setup.
+gmail_service = GmailAIService()  # Used by gmail_routes
+filter_manager = SmartFilterManager()  # Used by filter_routes
+ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
+performance_monitor = PerformanceMonitor()  # Used by all routes via @performance_monitor.track
 
 # Include routers in the app
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
-app.include_router(workflow_routes.router)
-app.include_router(model_routes.router)
-app.include_router(performance_routes.router)
-# app.include_router(action_routes.router) # Removed
-# app.include_router(dashboard_routes.router) # Removed
-
-# Include enhanced feature routers
-from .enhanced_routes import router as enhanced_router
-app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
-
+app.include_router(action_routes.router)
+app.include_router(dashboard_routes.router)
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
@@ -142,6 +103,7 @@ async def health_check(request: Request):
     """System health check"""
     try:
         # Perform any necessary checks, e.g., DB connectivity if desired
+        # await db.execute_query("SELECT 1") # Example DB check
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),

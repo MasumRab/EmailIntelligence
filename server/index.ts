@@ -11,6 +11,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
+import session from 'express-session';
+import MemoryStoreFactory from 'memorystore';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDatabase } from "./init-db";
@@ -18,6 +20,18 @@ import { initializeDatabase } from "./init-db";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Session middleware setup
+const MemoryStore = MemoryStoreFactory(session);
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'a-default-secret-key', // It's better to use an environment variable for the secret
+    store: new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+    }),
+    resave: false,
+    saveUninitialized: true, // Set to true if you want to store sessions for anonymous users
+    cookie: { secure: app.get('env') === 'production' } // Use secure cookies in production
+}));
 
 // Initialize database on startup
 initializeDatabase().catch(console.error);
