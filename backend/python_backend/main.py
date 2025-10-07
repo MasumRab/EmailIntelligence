@@ -19,11 +19,14 @@ from fastapi.staticfiles import StaticFiles
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from ..python_nlp.smart_filters import SmartFilterManager
-from . import (  # action_routes, # Removed; dashboard_routes, # Removed
+from . import (
     category_routes,
     email_routes,
     filter_routes,
     gmail_routes,
+    workflow_routes,
+    model_routes,
+    performance_routes,
 )
 from .ai_engine import AdvancedAIEngine
 from .exceptions import BaseAppException
@@ -118,6 +121,9 @@ app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
+app.include_router(workflow_routes.router)
+app.include_router(model_routes.router)
+app.include_router(performance_routes.router)
 # app.include_router(action_routes.router) # Removed
 # app.include_router(dashboard_routes.router) # Removed
 

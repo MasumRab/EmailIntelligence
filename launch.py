@@ -24,6 +24,12 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
+# Import dotenv for environment file loading
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None  # Will be loaded later if needed
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -171,14 +177,11 @@ print("NLTK data download completed.")
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
     venv_python = venv_path / "Scripts" / "python.exe" if platform.system() == "Windows" else venv_path / "bin" / "python"
-    backend_path = ROOT_DIR / "backend" / "python_backend" / "main.py"
 
-    cmd = [str(venv_python), str(backend_path)]
+    # Use uvicorn to run the FastAPI app directly
+    cmd = [str(venv_python), "-m", "uvicorn", "backend.python_backend.main:app", "--host", host, "--port", str(port)]
     if debug:
-        cmd.extend(["--reload", "--host", host, "--port", str(port)])
-    else:
-        # For production, we might want to use uvicorn directly
-        cmd = [str(venv_python), "-m", "uvicorn", "backend.python_backend.main:app", "--host", host, "--port", str(port)]
+        cmd.append("--reload")
 
     logger.info(f"Starting Python backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
