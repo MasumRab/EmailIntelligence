@@ -17,16 +17,31 @@ router = APIRouter()
 @router.get("/api/categories", response_model=List[CategoryResponse])
 @log_performance("get_categories")
 async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
-    """Get all categories"""
+    """
+    Retrieves all categories from the database.
+
+    Args:
+        request (Request): The incoming request object.
+        db (DatabaseManager): The database manager dependency.
+
+    Returns:
+        List[CategoryResponse]: A list of all categories.
+
+    Raises:
+        HTTPException: If there is a database error or any other failure.
+    """
     try:
         categories = await db.get_all_categories()
         try:
             return [CategoryResponse(**cat) for cat in categories]
         except Exception as e_outer:
-            logger.error(f"Outer exception during get_categories Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
-            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+            logger.error(
+                "Outer exception during get_categories Pydantic validation: "
+                f"{type(e_outer)} - {repr(e_outer)}"
+            )
+            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise # Re-raise for FastAPI to handle
+            raise  # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed while fetching categories",
@@ -53,20 +68,32 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
 async def create_category(
     request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
 ):
-    """Create new category"""
+    """
+    Creates a new category in the database.
+
+    Args:
+        request (Request): The incoming request object.
+        category (CategoryCreate): The category data for creation.
+        db (DatabaseManager): The database manager dependency.
+
+    Returns:
+        CategoryResponse: The newly created category.
+
+    Raises:
+        HTTPException: If there is a database error or any other failure.
+    """
     try:
-        created_category_dict = await db.create_category(
-            category.model_dump()
-        )  # db.create_category returns a dict
+        created_category_dict = await db.create_category(category.model_dump())
         try:
-            return CategoryResponse(
-                **created_category_dict
-            )  # Ensure it returns CategoryResponse
+            return CategoryResponse(**created_category_dict)
         except Exception as e_outer:
-            logger.error(f"Outer exception during create_category Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
-            if hasattr(e_outer, 'errors'): # For pydantic.ValidationError
+            logger.error(
+                "Outer exception during create_category Pydantic validation: "
+                f"{type(e_outer)} - {repr(e_outer)}"
+            )
+            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise # Re-raise for FastAPI to handle
+            raise  # Re-raise for FastAPI to handle
     except psycopg2.Error as db_err:
         log_data = {
             "message": "Database operation failed while creating category",

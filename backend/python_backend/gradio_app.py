@@ -1,3 +1,11 @@
+"""
+A Gradio web interface for interactively testing the Email Intelligence NLP Engine.
+
+This script launches a simple web UI that allows users to input an email's
+subject and content and view the AI analysis results in real-time. It's a
+useful tool for debugging, demonstration, and manual testing of the NLP
+capabilities.
+"""
 import gradio as gr
 import pandas as pd
 import numpy as np

@@ -1,3 +1,7 @@
+/**
+ * @file This file contains the AIAnalysisPanel component, which provides a UI for
+ *       analyzing an email using AI, viewing the results, and taking action.
+ */
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +21,10 @@ import {
 } from "lucide-react";
 import type { EmailWithCategory } from "@shared/schema";
 
+/**
+ * @interface AIAnalysis
+ * @description Defines the structure for the AI analysis result object.
+ */
 interface AIAnalysis {
   topic: string;
   sentiment: 'positive' | 'negative' | 'neutral';
@@ -36,17 +44,36 @@ interface AIAnalysis {
   };
 }
 
+/**
+ * @interface AIAnalysisPanelProps
+ * @description Defines the props for the AIAnalysisPanel component.
+ * @property {EmailWithCategory} email - The email object to be analyzed.
+ * @property {function} [onCategoryUpdate] - Optional callback to execute when the category is updated.
+ */
 interface AIAnalysisPanelProps {
   email: EmailWithCategory;
   onCategoryUpdate?: (email: EmailWithCategory) => void;
 }
 
+/**
+ * A React component that provides a panel for AI analysis of an email.
+ *
+ * This component allows users to trigger an AI analysis, view the results,
+ * apply the suggested categorization, and provide feedback on the analysis.
+ *
+ * @param {AIAnalysisPanelProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered AI analysis panel.
+ */
 export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProps) {
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
 
+  /**
+   * Triggers the AI analysis for the current email.
+   * @async
+   */
   const analyzeEmail = async () => {
     setIsAnalyzing(true);
     try {
@@ -84,6 +111,10 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
     }
   };
 
+  /**
+   * Applies the AI-suggested categorization to the email.
+   * @async
+   */
   const applyCategorization = async () => {
     if (!analysis) return;
 
@@ -128,6 +159,11 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
     }
   };
 
+  /**
+   * Submits user feedback on the accuracy of the AI analysis.
+   * @param {'correct' | 'incorrect'} feedback - The user's feedback.
+   * @async
+   */
   const provideFeedback = async (feedback: 'correct' | 'incorrect') => {
     try {
       const response = await fetch('/api/ai/validate', {
@@ -156,6 +192,11 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
     }
   };
 
+  /**
+   * Returns the appropriate color classes based on the sentiment.
+   * @param {string} sentiment - The sentiment string.
+   * @returns {string} The Tailwind CSS color classes.
+   */
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return 'text-green-600 bg-green-50';
@@ -164,6 +205,11 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
     }
   };
 
+  /**
+   * Returns the appropriate color classes based on the urgency level.
+   * @param {string} urgency - The urgency string.
+   * @returns {string} The Tailwind CSS color classes.
+   */
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case 'critical': return 'text-red-600 bg-red-50';
@@ -173,6 +219,11 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
     }
   };
 
+  /**
+   * Returns the appropriate color class based on the confidence score.
+   * @param {number} confidence - The confidence score (0-1).
+   * @returns {string} The Tailwind CSS color class.
+   */
   const getConfidenceColor = (confidence: number) => {
     if (confidence > 0.8) return 'text-green-600';
     if (confidence > 0.6) return 'text-yellow-600';
