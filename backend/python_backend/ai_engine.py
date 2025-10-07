@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from .database import DatabaseManager
+    from ..python_nlp.protocols import DatabaseProtocol
 
 # from .utils.async_utils import _execute_async_command # Commented out
 from ..python_nlp.nlp_engine import NLPEngine  # Changed import alias
@@ -69,14 +70,14 @@ class AdvancedAIEngine:
         except Exception as e:
             logger.error(f"AI Engine initialization failed: {e}")
 
-    async def _build_category_lookup(self, db: "DatabaseManager") -> None:
+    async def _build_category_lookup(self, db: "DatabaseProtocol") -> None:
         """Builds a normalized lookup map for categories."""
         all_db_categories = await db.get_all_categories()
         self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
         logger.info("Built category lookup map.")
 
     async def _match_category_id(
-        self, ai_categories: List[str], db: "DatabaseManager"
+        self, ai_categories: List[str], db: "DatabaseProtocol"
     ) -> Optional[int]:
         """Matches AI suggested categories to DB categories using a lookup map."""
         if not ai_categories:
@@ -101,7 +102,7 @@ class AdvancedAIEngine:
         return None
 
     async def analyze_email(
-        self, subject: str, content: str, db: Optional["DatabaseManager"] = None
+        self, subject: str, content: str, db: Optional["DatabaseProtocol"] = None
     ) -> AIAnalysisResult:
         """Analyze email content with AI and optional DB category matching."""
         log_subject = subject[:50] + "..." if len(subject) > 50 else subject

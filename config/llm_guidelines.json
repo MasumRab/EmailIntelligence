@@ -1,0 +1,9 @@
+{
+    "model": "gpt-4o",
+    "temperature": 0.2,
+    "max_tokens": 1024,
+    "system_instructions": "Base LLM guidelines. Branch-specific files may override these settings.",
+    "safety": {
+        "filter_sensitive": true
+    }
+}
