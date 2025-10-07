@@ -40,6 +40,8 @@ dependencies = [
     "google-auth>=2.40.3",
     "google-auth-oauthlib>=1.2.2",
 
+    # Security
+    "bleach>=6.0.0",
 ]
 
 [dependency-groups]

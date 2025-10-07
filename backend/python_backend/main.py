@@ -127,12 +127,21 @@ app.include_router(training_routes.router)
 from .enhanced_routes import router as enhanced_router
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
-# Include advanced workflow routes
+# Include advanced workflow routes (will use node-based system)
 from .advanced_workflow_routes import router as advanced_workflow_router
 app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
 
-from src.core.advanced_workflow_engine import get_workflow_manager
-workflow_manager_instance = get_workflow_manager()
+# Include node-based workflow routes
+from .node_workflow_routes import router as node_workflow_router
+app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
+
+# Initialize workflow manager instance (using the node-based workflow manager)
+try:
+    from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+    workflow_manager_instance = node_workflow_manager
+except ImportError:
+    # Fallback if node engine is not available
+    workflow_manager_instance = None
 
 
 # Request/Response Models previously defined here are now in .models

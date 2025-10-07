@@ -13,6 +13,14 @@ import hashlib
 from dataclasses import dataclass
 from enum import Enum
 
+# Import bleach for proper HTML sanitization
+try:
+    import bleach
+except ImportError:
+    bleach = None
+    import warnings
+    warnings.warn("bleach library not found. Install it using 'pip install bleach' for proper HTML sanitization.")
+
 
 class SecurityLevel(Enum):
     """Security levels for nodes and workflows."""
@@ -91,14 +99,28 @@ class InputSanitizer:
     
     @staticmethod
     def sanitize_string(value: str) -> str:
-        """Sanitize a string input."""
+        """Sanitize a string input using proper HTML sanitization."""
         if not isinstance(value, str):
             raise ValueError("Expected string input")
         
-        # Remove potentially dangerous characters/patterns
-        # This is a basic implementation - in production, use more robust methods
-        sanitized = value.replace('<script', '').replace('javascript:', '')
-        sanitized = sanitized.replace('onerror', '').replace('onload', '')
+        # If bleach is available, use it for proper HTML sanitization
+        if bleach is not None:
+            # Allow only safe HTML tags and attributes
+            allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+            allowed_attributes = {
+                'a': ['href', 'title'],
+                'img': ['src', 'alt', 'title'],
+                '*': ['class', 'id']
+            }
+            # Clean HTML and strip malicious content
+            sanitized = bleach.clean(value, tags=allowed_tags, attributes=allowed_attributes, strip=True)
+        else:
+            # Fallback to basic implementation if bleach is not available
+            # Remove potentially dangerous characters/patterns
+            sanitized = value.replace('<script', '&lt;script').replace('javascript:', 'javascript&#58;')
+            sanitized = sanitized.replace('onerror', 'onerror&#58;').replace('onload', 'onload&#58;')
+            sanitized = sanitized.replace('<iframe', '&lt;iframe').replace('<object', '&lt;object')
+            sanitized = sanitized.replace('<embed', '&lt;embed').replace('<form', '&lt;form')
         
         return sanitized
     
