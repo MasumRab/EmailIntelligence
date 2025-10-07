@@ -1,9 +1,13 @@
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 import pytest
 from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 
-from server.python_backend.main import app
-from server.python_backend.database import get_db
+from src.main import create_app
+from src.core.database import get_db
 
 
 @pytest.fixture
@@ -33,6 +37,7 @@ def client(mock_db_manager: AsyncMock):
     Provides a TestClient with the database dependency overridden.
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
+    app = create_app()
     app.dependency_overrides[get_db] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
