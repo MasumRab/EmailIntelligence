@@ -1,51 +1,61 @@
-/**
- * @file Defines the API routes for category management.
- *
- * This file creates an Express router for handling all CRUD (Create, Read, Update, Delete)
- * operations related to email categories. It uses the `categoryService` to interact
- * with the data layer.
- */
 import express from "express";
-import { categoryService } from "./services/categoryService";
-import { asyncHandler } from "./utils/asyncHandler";
+import { storage } from "./storage";
+import { insertCategorySchema } from "@shared/schema";
+import { z } from "zod";
 
 const router = express.Router();
 
-/**
- * @route GET /api/categories/
- * @description Retrieves all email categories.
- * @returns {Array<object>} A list of all category objects.
- */
-router.get("/", asyncHandler(async (_req, res) => {
-  const categories = await categoryService.getAllCategories();
-  res.json(categories);
-}));
+// Handler for GET /api/categories
+export const getAllCategoriesHandler = async (_req, res) => {
+  try {
+    console.time("storage.getAllCategories");
+    const categories = await storage.getAllCategories();
+    console.timeEnd("storage.getAllCategories");
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch categories" });
+  }
+};
 
-/**
- * @route POST /api/categories/
- * @description Creates a new email category.
- * @param {object} req.body - The request body.
- * @param {string} req.body.name - The name of the new category.
- * @param {string} [req.body.color] - The color of the new category.
- * @returns {object} The newly created category object.
- */
-router.post("/", asyncHandler(async (req, res) => {
-  const category = await categoryService.createCategory(req.body);
-  res.status(201).json(category);
-}));
+// Handler for POST /api/categories
+export const createCategoryHandler = async (req, res) => {
+  try {
+    const categoryData = insertCategorySchema.parse(req.body);
+    console.time("storage.createCategory");
+    const category = await storage.createCategory(categoryData);
+    console.timeEnd("storage.createCategory");
+    res.status(201).json(category);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: "Invalid category data", errors: error.errors });
+    } else {
+      res.status(500).json({ message: "Failed to create category" });
+    }
+  }
+};
 
-/**
- * @route PUT /api/categories/:id
- * @description Updates an existing email category.
- * @param {object} req.params - The route parameters.
- * @param {string} req.params.id - The ID of the category to update.
- * @param {object} req.body - The request body containing the updated category data.
- * @returns {object} The updated category object.
- */
-router.put("/:id", asyncHandler(async (req, res) => {
-  const id = parseInt(req.params.id);
-  const category = await categoryService.updateCategory(id, req.body);
-  res.json(category);
-}));
+// Handler for PUT /api/categories/:id
+export const updateCategoryHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updateData = req.body;
+    console.time("storage.updateCategory");
+    const category = await storage.updateCategory(id, updateData);
+    console.timeEnd("storage.updateCategory");
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    res.json(category);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update category" });
+  }
+};
+
+// Categories
+router.get("/", getAllCategoriesHandler);
+router.post("/", createCategoryHandler);
+router.put("/:id", updateCategoryHandler);
 
 export default router;
