@@ -81,13 +81,12 @@ async def get_emails(
             if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
             raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
+    except Exception as db_err:
         log_data = {
             "message": "Database operation failed while fetching emails",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
         }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
@@ -213,13 +212,8 @@ async def create_email(
             )
             if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
-<<<<<<< HEAD
-            raise # Re-raise for FastAPI to handle
-    except Exception as db_err:
-=======
             raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
->>>>>>> origin/feature/git-history-analysis-report
+    except Exception as db_err:
         log_data = {
             "message": "Database operation failed while creating email",
             "endpoint": str(request.url),
