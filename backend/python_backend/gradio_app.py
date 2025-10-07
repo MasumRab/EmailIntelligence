@@ -4,16 +4,10 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-<<<<<<< HEAD
 import json
 import seaborn as sns
-<<<<<<< HEAD
 import requests
 from typing import Dict, Any, List
-=======
-=======
-import seaborn as sns
->>>>>>> origin/feat/modular-ai-platform
 
 # For safe sandboxed code execution
 from RestrictedPython import compile_restricted_exec
@@ -21,10 +15,6 @@ from RestrictedPython import safe_globals
 import io
 import contextlib
 
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
->>>>>>> origin/feat/modular-ai-platform
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -312,11 +302,68 @@ print(df.head())
                 inputs=[],
                 outputs=[model_list, model_selector]
             )
-            
+
             load_model_btn.click(
                 fn=load_selected_model,
                 inputs=model_selector,
                 outputs=model_status_output
+            )
+
+        with gr.TabItem("Model Training"):
+            gr.Markdown("### AI Model Training")
+            with gr.Row():
+                with gr.Column():
+                    model_name_input = gr.Textbox(label="Model Name", placeholder="e.g., sentiment_classifier")
+                    model_type_input = gr.Dropdown(["classification", "ner", "sentiment"], label="Model Type", value="classification")
+                    training_data_input = gr.Textbox(label="Training Data Path", placeholder="path/to/training/data.json")
+                    parameters_input = gr.JSON(label="Hyperparameters", value={"epochs": 10, "batch_size": 32})
+                    start_training_btn = gr.Button("Start Training", variant="primary")
+                    training_status = gr.Textbox(label="Training Status", interactive=False)
+
+                with gr.Column():
+                    job_id_input = gr.Textbox(label="Job ID", placeholder="Enter job ID to check status")
+                    check_status_btn = gr.Button("Check Status")
+                    job_status_output = gr.JSON(label="Job Status")
+
+            def start_training_job(name, model_type, data_path, params):
+                try:
+                    config = {
+                        "model_name": name,
+                        "model_type": model_type,
+                        "training_data_path": data_path,
+                        "parameters": params
+                    }
+                    response = requests.post("http://127.0.0.1:8000/api/training/start", json=config)
+                    if response.status_code == 200:
+                        result = response.json()
+                        return f"Training started. Job ID: {result['job_id']}"
+                    else:
+                        return f"Error: {response.text}"
+                except Exception as e:
+                    return f"Failed to start training: {str(e)}"
+
+            def check_training_status(job_id):
+                if not job_id:
+                    return {"error": "Please enter a job ID"}
+                try:
+                    response = requests.get(f"http://127.0.0.1:8000/api/training/status/{job_id}")
+                    if response.status_code == 200:
+                        return response.json()
+                    else:
+                        return {"error": f"Status {response.status_code}: {response.text}"}
+                except Exception as e:
+                    return {"error": str(e)}
+
+            start_training_btn.click(
+                fn=start_training_job,
+                inputs=[model_name_input, model_type_input, training_data_input, parameters_input],
+                outputs=training_status
+            )
+
+            check_status_btn.click(
+                fn=check_training_status,
+                inputs=job_id_input,
+                outputs=job_status_output
             )
 
         with gr.TabItem("Workflow Management"):
@@ -419,5 +466,14 @@ print(df.head())
 
 # To launch this app, you can run this file directly.
 if __name__ == "__main__":
-    print("Launching Gradio UI for Email Intelligence Analysis...")
-    iface.launch()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Gradio UI for Email Intelligence Analysis")
+    parser.add_argument("--port", type=int, default=7860, help="Port to run the Gradio UI on")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind the Gradio UI to")
+    parser.add_argument("--share", action="store_true", help="Create a public sharing link")
+
+    args = parser.parse_args()
+
+    print(f"Launching Gradio UI for Email Intelligence Analysis on {args.host}:{args.port}...")
+    iface.launch(server_name=args.host, server_port=args.port, share=args.share)
