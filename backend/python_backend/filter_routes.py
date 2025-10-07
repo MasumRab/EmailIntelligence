@@ -9,12 +9,11 @@ from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for r
     EmailFilter,
     SmartFilterManager,
 )
-
 from .database import DatabaseManager, get_db
 from .dependencies import get_filter_manager
 from .exceptions import AIAnalysisError, DatabaseError
-from .performance_monitor import log_performance
 from .models import FilterRequest  # Models are imported from .models
+from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

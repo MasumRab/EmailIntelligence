@@ -6,9 +6,10 @@ Data validation and serialization models
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from .constants import DEFAULT_CATEGORY_COLOR
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from .constants import DEFAULT_CATEGORY_COLOR
 
 
 # Enums

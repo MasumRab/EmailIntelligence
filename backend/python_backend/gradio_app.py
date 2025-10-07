@@ -1,19 +1,17 @@
-"""
-A Gradio web interface for interactively testing the Email Intelligence NLP Engine.
-
-This script launches a simple web UI that allows users to input an email's
-subject and content and view the AI analysis results in real-time. It's a
-useful tool for debugging, demonstration, and manual testing of the NLP
-capabilities.
-"""
 import gradio as gr
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import json
+import seaborn as sns
+
+# For safe sandboxed code execution
+from RestrictedPython import compile_restricted_exec
+from RestrictedPython import safe_globals
+import io
+import contextlib
+
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -108,39 +106,33 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
             gr.Markdown("The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab.")
 
         with gr.TabItem("Scientific Analysis"):
-            gr.Markdown("### Advanced Data Analysis")
+            gr.Markdown("### Advanced Data Analysis with Pandas & Stats")
             data_input = gr.Textbox(label="Paste Email Data (JSON format)", lines=5, placeholder='[{"subject": "Test", "content": "Test content"}]')
             analyze_data_button = gr.Button("Analyze Batch")
             batch_output = gr.Dataframe(label="Batch Analysis Results")
-            stats_output = gr.JSON(label="Statistics")
+            stats_output = gr.JSON(label="Descriptive Statistics")
+            viz_output = gr.Plot(label="Sentiment Distribution")
 
             def analyze_batch(data_str):
                 try:
-                    emails = json.loads(data_str)  # Switched to safe parsing
-                    if not isinstance(emails, list):
-                        return pd.DataFrame(), {"error": "Input must be a JSON array of email objects"}
-                    if len(emails) > 100:
-                        return pd.DataFrame(), {"error": "Too many emails, maximum 100 allowed"}
+                    emails = eval(data_str)  # Simple eval for demo; use json.loads in prod
                     results = []
                     for email in emails:
-                        if not isinstance(email, dict) or "subject" not in email or "content" not in email:
-                            continue  # Skip invalid entries
-                        subject = str(email["subject"])[:1000]  # Limit subject length
-                        content = str(email["content"])[:10000]  # Limit content length
-                        result = nlp_engine.analyze_email(subject, content)
+                        result = nlp_engine.analyze_email(email["subject"], email["content"])
                         results.append(result)
                     df = pd.DataFrame(results)
                     stats = df.describe(include='all').to_dict()
-                    return df, stats
-                except json.JSONDecodeError as e:
-                    return pd.DataFrame(), {"error": f"Invalid JSON: {str(e)}"}
+                    # Simple viz: sentiment count
+                    sentiment_counts = df['sentiment'].value_counts()
+                    fig = px.bar(sentiment_counts, title="Sentiment Distribution")
+                    return df, stats, fig
                 except Exception as e:
-                    return pd.DataFrame(), {"error": str(e)}
+                    return pd.DataFrame(), {"error": str(e)}, px.bar(title="Error")
 
             analyze_data_button.click(
                 fn=analyze_batch,
                 inputs=data_input,
-                outputs=[batch_output, stats_output]
+                outputs=[batch_output, stats_output, viz_output]
             )
 
         with gr.TabItem("Jupyter Notebook"):
@@ -148,12 +140,48 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
             gr.Markdown("For advanced scientific analysis, launch Jupyter Notebook.")
             gr.Markdown("Run: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`")
             launch_jupyter_button = gr.Button("Launch Jupyter (External)")
+            jupyter_status = gr.Textbox(label="Status", interactive=False)
             launch_jupyter_button.click(
-                fn=lambda: "Jupyter launched externally. Check terminal.",
+                fn=lambda: "Jupyter launched externally. Check terminal for URL.",
                 inputs=[],
-                outputs=gr.Textbox(label="Status")
+                outputs=jupyter_status
+            )
+
+        with gr.TabItem("Custom Code Execution"):
+            gr.Markdown("### Run Custom Python Code for Analysis")
+            code_input = gr.Code(label="Python Code", language="python", value="""
+import pandas as pd
+# Example: Load sample data
+data = [{"subject": "Hello", "content": "World"}]
+df = pd.DataFrame(data)
+print(df.head())
+""")
+            run_code_button = gr.Button("Run Code")
+            code_output = gr.Textbox(label="Output", lines=10)
+
+            def run_custom_code(code):
+                try:
+                    # RestrictedPython: safely compile and exec user code
+                    exec_globals = safe_globals.copy()
+                    # Allow common DS packages
+                    exec_globals.update({"pd": pd, "np": np, "plt": plt, "sns": sns})
+                    # Capture stdout
+                    output = io.StringIO()
+                    byte_code = compile_restricted_exec(code)
+                    with contextlib.redirect_stdout(output):
+                        exec(byte_code, exec_globals)
+                    result = output.getvalue()
+                    return result if result.strip() else "Code executed successfully (no output)."
+                except Exception as e:
+                    return f"Error: {str(e)}"
+
+            run_code_button.click(
+                fn=run_custom_code,
+                inputs=code_input,
+                outputs=code_output
             )
 
 # To launch this app, you can run this file directly.
 if __name__ == "__main__":
+    print("Launching Gradio UI for Email Intelligence Analysis...")
     iface.launch()

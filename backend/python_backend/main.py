@@ -10,25 +10,23 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from .exceptions import BaseAppException
 
 # Updated import to use NLP GmailAIService directly
-from ..python_nlp.gmail_service import GmailAIService
+# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
+# Instead, dependencies are managed via dependency injection in the routes
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from ..python_nlp.smart_filters import SmartFilterManager
-
-from . import (
-    # action_routes, # Removed
+from . import (  # action_routes, # Removed; dashboard_routes, # Removed
     category_routes,
-    # dashboard_routes, # Removed
     email_routes,
     filter_routes,
     gmail_routes,
 )
 from .ai_engine import AdvancedAIEngine
+from .exceptions import BaseAppException
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +41,17 @@ app = FastAPI(
 
 # Import the get_db function to access the database manager
 from .database import get_db
+
+
+@app.on_event("startup")
+async def startup_event():
+    """On startup, initialize all services."""
+    logger.info("Application startup event received.")
+    from .dependencies import initialize_services
+    from .database import initialize_db
+    await initialize_db()  # Initialize database first
+    await initialize_services()  # Then initialize other services
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
