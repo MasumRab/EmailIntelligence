@@ -41,8 +41,8 @@ processes = []
 ROOT_DIR = Path(__file__).resolve().parent
 
 # --- Constants ---
-PYTHON_MIN_VERSION = (3, 12)
-PYTHON_MAX_VERSION = (3, 12)
+PYTHON_MIN_VERSION = (3, 11)
+PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 
 
@@ -195,11 +195,12 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
         str(venv_python),
         "-m",
         "uvicorn",
-        "backend.python_backend.main:app",
+        "src.main:create_app",
         "--host",
         host,
         "--port",
         str(port),
+        "--factory",
     ]
     if debug:
         cmd.append("--reload")
@@ -210,30 +211,6 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     return process
 
 
-def start_gradio_ui(
-    venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
-):
-    """Start the Gradio UI."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
-    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
-
-    cmd = [str(venv_python), str(gradio_path)]
-    if share:
-        cmd.append("--share")  # Enable public sharing
-    if port:
-        # Gradio doesn't take port as a command line param directly,
-        # we'd need to modify the app to accept it
-        logger.info(f"Starting Gradio UI (on default or next available port)")
-    else:
-        logger.info("Starting Gradio UI on default port")
-
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    processes.append(process)
-    return process
 
 
 def start_client():
@@ -271,11 +248,11 @@ def start_server_ts():
         sys.exit(1)
 
     # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "server" / "node_modules"
+    node_modules_path = ROOT_DIR / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
         result = subprocess.run(
-            ["npm", "install"], cwd=ROOT_DIR / "server", capture_output=True, text=True
+            ["npm", "install"], cwd=ROOT_DIR, capture_output=True, text=True
         )
         if result.returncode != 0:
             logger.error(f"Failed to install TypeScript server dependencies: {result.stderr}")
@@ -283,7 +260,7 @@ def start_server_ts():
         logger.info("TypeScript server dependencies installed.")
 
     # Start the TypeScript backend
-    process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "server")
+    process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR)
     processes.append(process)
     return process
 
@@ -327,24 +304,22 @@ def main():
     parser.add_argument(
         "--no-backend", action="store_true", help="Do not start the Python backend."
     )
-    parser.add_argument("--no-ui", action="store_true", help="Do not start the Gradio UI.")
     parser.add_argument(
         "--no-client", action="store_true", help="Do not start the Node.js frontend."
+    )
+    parser.add_argument(
+        "--no-server-ts", action="store_true", help="Do not start the TypeScript backend server."
     )
 
     # Configuration
     parser.add_argument(
         "--stage", choices=["dev", "test"], default="dev", help="Application stage."
     )
-    parser.add_argument("--port", type=int, default=8000, help="Port for the Python backend.")
-    parser.add_argument(
-        "--gradio-port", type=int, help="Port for the Gradio UI (defaults to 7860)."
-    )
+    parser.add_argument("--port", type=int, default=7860, help="Port for the Python backend.")
     parser.add_argument("--host", default="127.0.0.1", help="Host address for servers.")
     parser.add_argument(
         "--listen", action="store_true", help="Listen on 0.0.0.0 (overrides --host)."
     )
-    parser.add_argument("--share", action="store_true", help="Create a public Gradio sharing link.")
     parser.add_argument(
         "--debug", action="store_true", help="Enable debug/reload mode for services."
     )
@@ -398,12 +373,10 @@ def main():
         start_backend(venv_path, host, args.port, args.debug)
         time.sleep(2)  # Brief pause to let backend start
 
-    if not args.no_ui:
-        start_gradio_ui(venv_path, host, args.gradio_port, args.debug, args.share)
-
     if not args.no_client:
-        # Note: The client and server-ts might require additional parameters or configuration
         start_client()
+
+    if not args.no_server_ts:
         start_server_ts()
 
     logger.info("All selected services started. Press Ctrl+C to shut down.")

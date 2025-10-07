@@ -83,22 +83,6 @@ async def create_category(
         HTTPException: If there is a database error or any other failure.
     """
     try:
-<<<<<<< HEAD
-        created_category_dict = await db.create_category(
-            category.model_dump()
-        )  # db.create_category returns a dict
-        # Use the utility function to handle Pydantic validation
-        validated_categories = await handle_pydantic_validation([created_category_dict], CategoryResponse, "create_category")
-        return validated_categories[0]  # Return the single validated category
-    except Exception as db_err:
-        log_data = create_log_data(
-            message="Database operation failed while creating category",
-            request_url=request.url,
-            error_type=type(db_err).__name__,
-            error_detail=str(db_err),
-            pgcode=None,
-        )
-=======
         created_category_dict = await db.create_category(category.model_dump())
         try:
             return CategoryResponse(**created_category_dict)
@@ -110,15 +94,14 @@ async def create_category(
             if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
             raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
-        log_data = {
-            "message": "Database operation failed while creating category",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
->>>>>>> origin/feature/git-history-analysis-report
+    except Exception as db_err:
+        log_data = create_log_data(
+            message="Database operation failed while creating category",
+            request_url=request.url,
+            error_type=type(db_err).__name__,
+            error_detail=str(db_err),
+            pgcode=None,
+        )
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
