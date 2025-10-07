@@ -43,12 +43,12 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
 
 @router.post("/api/categories", response_model=CategoryResponse)
 @performance_monitor.track
-async def create_category(request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)):
+async def create_category(
+    request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
+):
     """Create new category"""
     try:
-        created_category_dict = await db.create_category(
-            category.model_dump()
-        )
+        created_category_dict = await db.create_category(category.model_dump())
         if created_category_dict is None:
             raise HTTPException(status_code=500, detail="Failed to create category")
         return CategoryResponse(**created_category_dict)

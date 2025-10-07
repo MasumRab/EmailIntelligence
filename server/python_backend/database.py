@@ -16,6 +16,7 @@ import aiosqlite
 
 logger = logging.getLogger(__name__)
 
+
 class DatabaseManager:
     """Async database manager for email data using aiosqlite."""
 
@@ -161,7 +162,9 @@ class DatabaseManager:
             await cur.execute(create_categories_table)
             await cur.execute(create_emails_table)
             await cur.execute(create_activities_table)
-            await cur.execute("CREATE INDEX IF NOT EXISTS idx_emails_category_id ON emails (category_id);")
+            await cur.execute(
+                "CREATE INDEX IF NOT EXISTS idx_emails_category_id ON emails (category_id);"
+            )
             await cur.execute('CREATE INDEX IF NOT EXISTS idx_emails_time ON emails ("time");')
         await self._db.commit()
         logger.info("Database tables and indexes initialized/verified for SQLite.")
@@ -175,7 +178,9 @@ class DatabaseManager:
                 try:
                     row_dict[field] = json.loads(row_dict[field])
                 except json.JSONDecodeError:
-                    logger.warning(f"Failed to parse JSON for field {field} in row {row_dict.get('id')}")
+                    logger.warning(
+                        f"Failed to parse JSON for field {field} in row {row_dict.get('id')}"
+                    )
                     row_dict[field] = {} if field in ("analysisMetadata", "metadata") else []
         return row_dict
 
@@ -200,7 +205,7 @@ class DatabaseManager:
         set_clauses = []
         params = []
         for key, value in updates.items():
-            column_name = ''.join(['_'+i.lower() if i.isupper() else i for i in key]).lstrip('_')
+            column_name = "".join(["_" + i.lower() if i.isupper() else i for i in key]).lstrip("_")
             set_clauses.append(f"{column_name} = ?")
             params.append(value)
 
@@ -209,7 +214,7 @@ class DatabaseManager:
 
         set_clauses.append("updated_at = datetime('now')")
 
-        placeholders = ','.join('?' for _ in email_ids)
+        placeholders = ",".join("?" for _ in email_ids)
         query = f"UPDATE emails SET {', '.join(set_clauses)} WHERE id IN ({placeholders})"
 
         params.extend(email_ids)
@@ -234,7 +239,18 @@ class DatabaseManager:
         async with self.get_cursor() as cur:
             await cur.execute(query, (email_id,))
             row = await cur.fetchone()
-        return self._parse_json_fields(row, ["labels", "analysisMetadata", "to_addresses", "cc_addresses", "bcc_addresses", "label_ids", "references"])
+        return self._parse_json_fields(
+            row,
+            [
+                "labels",
+                "analysisMetadata",
+                "to_addresses",
+                "cc_addresses",
+                "bcc_addresses",
+                "label_ids",
+                "references",
+            ],
+        )
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
         """Get all categories with their counts."""
@@ -253,7 +269,12 @@ class DatabaseManager:
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         query = "INSERT INTO categories (name, description, color, count) VALUES (?, ?, ?, ?)"
-        params = (category_data["name"], category_data.get("description"), category_data.get("color", "#6366f1"), 0)
+        params = (
+            category_data["name"],
+            category_data.get("description"),
+            category_data.get("color", "#6366f1"),
+            0,
+        )
         try:
             async with self.get_cursor() as cur:
                 await cur.execute(query, params)
@@ -276,7 +297,9 @@ class DatabaseManager:
     async def _flush_email_cache(self, force: bool = False):
         """Write emails from the cache to the database if conditions are met or if forced."""
         now = asyncio.get_event_loop().time()
-        should_flush = force or self._email_write_cache.qsize() >= 10 or (now - self._last_write_time) > 5
+        should_flush = (
+            force or self._email_write_cache.qsize() >= 10 or (now - self._last_write_time) > 5
+        )
 
         if not should_flush or self._email_write_cache.empty():
             return
@@ -308,22 +331,50 @@ class DatabaseManager:
 
             params_list = [
                 (
-                    email.get("message_id"), email.get("thread_id"), email.get("subject"),
-                    email.get("sender"), email.get("sender_email"), email.get("content"),
-                    email.get("snippet"), json.dumps(email.get("labels", [])), email.get("time"),
-                    not email.get("is_read", False), email.get("category_id"), email.get("confidence", 0),
-                    json.dumps(email.get("analysis_metadata", {})), email.get("history_id"),
-                    email.get("content_html"), email.get("preview"), json.dumps(email.get("to_addresses", [])),
-                    json.dumps(email.get("cc_addresses", [])), json.dumps(email.get("bcc_addresses", [])),
-                    email.get("reply_to"), email.get("internal_date"), json.dumps(email.get("label_ids", [])),
-                    email.get("category"), email.get("is_starred", False), email.get("is_important", False),
-                    email.get("is_draft", False), email.get("is_sent", False), email.get("is_spam", False),
-                    email.get("is_trash", False), email.get("is_chat", False), email.get("has_attachments", False),
-                    email.get("attachment_count", 0), email.get("size_estimate"), email.get("spf_status"),
-                    email.get("dkim_status"), email.get("dmarc_status"), email.get("is_encrypted", False),
-                    email.get("is_signed", False), email.get("priority", "normal"),
-                    email.get("is_auto_reply", False), email.get("mailing_list"), email.get("in_reply_to"),
-                    json.dumps(email.get("references", [])), email.get("is_first_in_thread", True)
+                    email.get("message_id"),
+                    email.get("thread_id"),
+                    email.get("subject"),
+                    email.get("sender"),
+                    email.get("sender_email"),
+                    email.get("content"),
+                    email.get("snippet"),
+                    json.dumps(email.get("labels", [])),
+                    email.get("time"),
+                    not email.get("is_read", False),
+                    email.get("category_id"),
+                    email.get("confidence", 0),
+                    json.dumps(email.get("analysis_metadata", {})),
+                    email.get("history_id"),
+                    email.get("content_html"),
+                    email.get("preview"),
+                    json.dumps(email.get("to_addresses", [])),
+                    json.dumps(email.get("cc_addresses", [])),
+                    json.dumps(email.get("bcc_addresses", [])),
+                    email.get("reply_to"),
+                    email.get("internal_date"),
+                    json.dumps(email.get("label_ids", [])),
+                    email.get("category"),
+                    email.get("is_starred", False),
+                    email.get("is_important", False),
+                    email.get("is_draft", False),
+                    email.get("is_sent", False),
+                    email.get("is_spam", False),
+                    email.get("is_trash", False),
+                    email.get("is_chat", False),
+                    email.get("has_attachments", False),
+                    email.get("attachment_count", 0),
+                    email.get("size_estimate"),
+                    email.get("spf_status"),
+                    email.get("dkim_status"),
+                    email.get("dmarc_status"),
+                    email.get("is_encrypted", False),
+                    email.get("is_signed", False),
+                    email.get("priority", "normal"),
+                    email.get("is_auto_reply", False),
+                    email.get("mailing_list"),
+                    email.get("in_reply_to"),
+                    json.dumps(email.get("references", [])),
+                    email.get("is_first_in_thread", True),
                 )
                 for email in emails_to_write
             ]
@@ -336,14 +387,24 @@ class DatabaseManager:
                 logger.info(f"Flushed {len(emails_to_write)} emails to the database.")
                 self._last_write_time = now
 
-                category_ids = {email.get("category_id") for email in emails_to_write if email.get("category_id")}
+                category_ids = {
+                    email.get("category_id")
+                    for email in emails_to_write
+                    if email.get("category_id")
+                }
                 for category_id in category_ids:
                     await self._update_category_count(category_id, increment=True)
 
             except aiosqlite.Error as e:
                 logger.error(f"Failed to flush email cache: {e}")
 
-    async def get_emails(self, limit: int = 50, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        category_id: Optional[int] = None,
+        is_unread: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
         await self._flush_email_cache(force=True)
         params = []
         base_query = "SELECT e.*, c.name as categoryName, c.color as categoryColor FROM emails e LEFT JOIN categories c ON e.category_id = c.id"
@@ -365,10 +426,20 @@ class DatabaseManager:
             await cur.execute(base_query, tuple(params))
             rows = await cur.fetchall()
 
-        json_fields = ["labels", "analysisMetadata", "to_addresses", "cc_addresses", "bcc_addresses", "label_ids", "references"]
+        json_fields = [
+            "labels",
+            "analysisMetadata",
+            "to_addresses",
+            "cc_addresses",
+            "bcc_addresses",
+            "label_ids",
+            "references",
+        ]
         return [self._parse_json_fields(row, json_fields) for row in rows]
 
-    async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def update_email(
+        self, email_id: int, update_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         original_email = await self.get_email_by_id(email_id)
         if not original_email:
             return None
@@ -379,7 +450,7 @@ class DatabaseManager:
         for key, value in update_data.items():
             if key == "id":
                 continue
-            column_name = ''.join(['_'+i.lower() if i.isupper() else i for i in key]).lstrip('_')
+            column_name = "".join(["_" + i.lower() if i.isupper() else i for i in key]).lstrip("_")
             if isinstance(value, (dict, list)):
                 value = json.dumps(value)
             set_clauses.append(f"{column_name} = ?")
@@ -410,7 +481,7 @@ class DatabaseManager:
             backups = sorted(
                 [os.path.join(self._backup_dir, f) for f in os.listdir(self._backup_dir)],
                 key=os.path.getmtime,
-                reverse=True
+                reverse=True,
             )
             if len(backups) > keep:
                 for old_backup in backups[keep:]:
@@ -438,7 +509,9 @@ class DatabaseManager:
             except Exception as e:
                 logger.error(f"Failed to create database backup: {e}")
 
+
 db_manager = DatabaseManager()
+
 
 async def get_db() -> DatabaseManager:
     return db_manager

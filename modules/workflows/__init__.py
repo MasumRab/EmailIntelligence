@@ -6,6 +6,7 @@ from .ui import create_workflow_ui
 
 logger = logging.getLogger(__name__)
 
+
 def register(app: FastAPI, gradio_app: gr.Blocks):
     """
     Registers the workflows module with the main application.

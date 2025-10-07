@@ -9,8 +9,4 @@ custom processing nodes and extended functionality.
 # Import plugin classes to make them available at package level
 from .base_plugin import BasePlugin, UIComponentPlugin, ProcessingNode
 
-__all__ = [
-    "BasePlugin",
-    "UIComponentPlugin", 
-    "ProcessingNode"
-]
+__all__ = ["BasePlugin", "UIComponentPlugin", "ProcessingNode"]

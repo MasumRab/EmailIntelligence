@@ -6,6 +6,7 @@ subject and content and view the AI analysis results in real-time. It's a
 useful tool for debugging, demonstration, and manual testing of the NLP
 capabilities.
 """
+
 import gradio as gr
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +21,7 @@ from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
 nlp_engine = NLPEngine()
+
 
 def analyze_email_interface(subject, content):
     """
@@ -36,6 +38,7 @@ def analyze_email_interface(subject, content):
         return analysis_result
     return {"error": "Failed to analyze email."}
 
+
 def generate_sentiment_chart(sentiment):
     """Generate a simple bar chart for sentiment."""
     if sentiment == "positive":
@@ -44,20 +47,24 @@ def generate_sentiment_chart(sentiment):
         value = -1
     else:
         value = 0
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=value,
-        title={'text': "Sentiment Gauge"},
-        gauge={'axis': {'range': [-1, 1]}, 'bar': {'color': "darkblue"}}
-    ))
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=value,
+            title={"text": "Sentiment Gauge"},
+            gauge={"axis": {"range": [-1, 1]}, "bar": {"color": "darkblue"}},
+        )
+    )
     return fig
+
 
 def generate_topic_pie(categories):
     """Generate a pie chart for categories."""
     if not categories:
         categories = ["General"]
-    fig = px.pie(values=[1]*len(categories), names=categories, title="Topic Categories")
+    fig = px.pie(values=[1] * len(categories), names=categories, title="Topic Categories")
     return fig
+
 
 # Create the Gradio interface
 with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as iface:
@@ -72,8 +79,12 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
         with gr.TabItem("Single Email Analysis"):
             with gr.Row():
                 with gr.Column(scale=2):
-                    email_subject = gr.Textbox(label="Email Subject", placeholder="Enter email subject...")
-                    email_content = gr.Textbox(label="Email Content", lines=10, placeholder="Enter email content...")
+                    email_subject = gr.Textbox(
+                        label="Email Subject", placeholder="Enter email subject..."
+                    )
+                    email_content = gr.Textbox(
+                        label="Email Content", lines=10, placeholder="Enter email content..."
+                    )
                     analyze_button = gr.Button("Analyze Email", variant="primary")
                 with gr.Column(scale=1):
                     gr.Markdown("### Analysis Results")
@@ -86,7 +97,15 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
             def update_outputs(subject, content):
                 result = analyze_email_interface(subject, content)
                 if "error" in result:
-                    return gr.update(), gr.update(), result.get("error", "An error occurred."), [], result, gr.update(), gr.update()
+                    return (
+                        gr.update(),
+                        gr.update(),
+                        result.get("error", "An error occurred."),
+                        [],
+                        result,
+                        gr.update(),
+                        gr.update(),
+                    )
 
                 topic = result.get("topic", "N/A")
                 sentiment = result.get("sentiment", "N/A")
@@ -99,23 +118,45 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
                 sentiment_chart_fig = generate_sentiment_chart(sentiment)
                 topic_chart_fig = generate_topic_pie(categories)
 
-                return topic, sentiment, reasoning, highlighted_keywords, result, sentiment_chart_fig, topic_chart_fig
+                return (
+                    topic,
+                    sentiment,
+                    reasoning,
+                    highlighted_keywords,
+                    result,
+                    sentiment_chart_fig,
+                    topic_chart_fig,
+                )
 
             analyze_button.click(
                 fn=update_outputs,
                 inputs=[email_subject, email_content],
-                outputs=[topic_output, sentiment_output, reasoning_output, keywords_output, analysis_output, sentiment_chart, topic_chart]
+                outputs=[
+                    topic_output,
+                    sentiment_output,
+                    reasoning_output,
+                    keywords_output,
+                    analysis_output,
+                    sentiment_chart,
+                    topic_chart,
+                ],
             )
 
         with gr.TabItem("Visualization"):
             gr.Markdown("### Data Visualization")
             sentiment_chart
             topic_chart
-            gr.Markdown("The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab.")
+            gr.Markdown(
+                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
+            )
 
         with gr.TabItem("Scientific Analysis"):
             gr.Markdown("### Advanced Data Analysis with Pandas & Stats")
-            data_input = gr.Textbox(label="Paste Email Data (JSON format)", lines=5, placeholder='[{"subject": "Test", "content": "Test content"}]')
+            data_input = gr.Textbox(
+                label="Paste Email Data (JSON format)",
+                lines=5,
+                placeholder='[{"subject": "Test", "content": "Test content"}]',
+            )
             analyze_data_button = gr.Button("Analyze Batch")
             batch_output = gr.Dataframe(label="Batch Analysis Results")
             stats_output = gr.JSON(label="Descriptive Statistics")
@@ -129,9 +170,9 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
                         result = nlp_engine.analyze_email(email["subject"], email["content"])
                         results.append(result)
                     df = pd.DataFrame(results)
-                    stats = df.describe(include='all').to_dict()
+                    stats = df.describe(include="all").to_dict()
                     # Simple viz: sentiment count
-                    sentiment_counts = df['sentiment'].value_counts()
+                    sentiment_counts = df["sentiment"].value_counts()
                     fig = px.bar(sentiment_counts, title="Sentiment Distribution")
                     return df, stats, fig
                 except Exception as e:
@@ -140,37 +181,59 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
             analyze_data_button.click(
                 fn=analyze_batch,
                 inputs=data_input,
-                outputs=[batch_output, stats_output, viz_output]
+                outputs=[batch_output, stats_output, viz_output],
             )
 
         with gr.TabItem("Jupyter Notebook"):
             gr.Markdown("### Interactive Jupyter Analysis")
             gr.Markdown("For advanced scientific analysis, launch Jupyter Notebook.")
-            gr.Markdown("Run: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`")
+            gr.Markdown(
+                "Run: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`"
+            )
             launch_jupyter_button = gr.Button("Launch Jupyter (External)")
             jupyter_status = gr.Textbox(label="Status", interactive=False)
             launch_jupyter_button.click(
                 fn=lambda: "Jupyter launched externally. Check terminal for URL.",
                 inputs=[],
-                outputs=jupyter_status
+                outputs=jupyter_status,
             )
 
         with gr.TabItem("Custom Code Execution"):
             gr.Markdown("### Run Custom Python Code for Analysis")
-            code_input = gr.Code(label="Python Code", language="python", value="""
+            code_input = gr.Code(
+                label="Python Code",
+                language="python",
+                value="""
 import pandas as pd
 # Example: Load sample data
 data = [{"subject": "Hello", "content": "World"}]
 df = pd.DataFrame(data)
 print(df.head())
-""")
+""",
+            )
             run_code_button = gr.Button("Run Code")
             code_output = gr.Textbox(label="Output", lines=10)
 
             def run_custom_code(code):
                 forbidden_keywords = [
-                    "import os", "import sys", "import subprocess", "import socket", "import shutil",
-                    "exec(", "eval(", "__import__", "open(", "input(", "os.", "sys.", "subprocess.", "shutil.", "__builtins__", "globals(", "locals(", "breakpoint("
+                    "import os",
+                    "import sys",
+                    "import subprocess",
+                    "import socket",
+                    "import shutil",
+                    "exec(",
+                    "eval(",
+                    "__import__",
+                    "open(",
+                    "input(",
+                    "os.",
+                    "sys.",
+                    "subprocess.",
+                    "shutil.",
+                    "__builtins__",
+                    "globals(",
+                    "locals(",
+                    "breakpoint(",
                 ]
                 for keyword in forbidden_keywords:
                     if keyword in code:
@@ -183,11 +246,7 @@ print(df.head())
                 except Exception as e:
                     return f"Error: {str(e)}"
 
-            run_code_button.click(
-                fn=run_custom_code,
-                inputs=code_input,
-                outputs=code_output
-            )
+            run_code_button.click(fn=run_custom_code, inputs=code_input, outputs=code_output)
 
         with gr.TabItem("Model Management"):
             gr.Markdown("### AI Model Management")
@@ -196,46 +255,44 @@ print(df.head())
                     model_list = gr.Dataframe(
                         headers=["Name", "Status", "Size (MB)", "Load Time (s)"],
                         label="Available Models",
-                        interactive=False
+                        interactive=False,
                     )
                     refresh_models_btn = gr.Button("Refresh Models")
-                    
+
                     with gr.Row():
                         model_selector = gr.Dropdown([], label="Select Model")
                         load_model_btn = gr.Button("Load Model")
                         unload_model_btn = gr.Button("Unload Model")
-                    
+
                     model_status_output = gr.Textbox(label="Status", interactive=False)
-                    
+
             def refresh_models():
                 models = get_models()
                 data = []
                 names = []
                 for model in models:
-                    data.append([
-                        model["name"],
-                        model["status"],
-                        model["size_mb"],
-                        model["load_time"] if model["load_time"] else "N/A"
-                    ])
+                    data.append(
+                        [
+                            model["name"],
+                            model["status"],
+                            model["size_mb"],
+                            model["load_time"] if model["load_time"] else "N/A",
+                        ]
+                    )
                     names.append(model["name"])
                 return data, names
-                
+
             def load_selected_model(model_name):
                 if not model_name:
                     return "Please select a model first"
                 return load_model(model_name)
-                
+
             refresh_models_btn.click(
-                fn=refresh_models,
-                inputs=[],
-                outputs=[model_list, model_selector]
+                fn=refresh_models, inputs=[], outputs=[model_list, model_selector]
             )
-            
+
             load_model_btn.click(
-                fn=load_selected_model,
-                inputs=model_selector,
-                outputs=model_status_output
+                fn=load_selected_model, inputs=model_selector, outputs=model_status_output
             )
 
         with gr.TabItem("Workflow Management"):
@@ -244,33 +301,29 @@ print(df.head())
                 with gr.Column():
                     workflow_list = gr.List(label="Available Workflows", interactive=False)
                     refresh_workflows_btn = gr.Button("Refresh Workflows")
-                    
+
                     with gr.Row():
                         workflow_name = gr.Textbox(label="Workflow Name")
                         workflow_description = gr.Textbox(label="Description", lines=2)
-                    
+
                     create_workflow_btn = gr.Button("Create New Workflow")
                     workflow_status_output = gr.Textbox(label="Status", interactive=False)
-                    
+
             def refresh_workflows():
                 workflows = list_workflows()
                 return workflows
-                
+
             def create_new_workflow(name, description):
                 if not name:
                     return "Please enter a workflow name"
                 return create_workflow(name, description)
-            
-            refresh_workflows_btn.click(
-                fn=refresh_workflows,
-                inputs=[],
-                outputs=workflow_list
-            )
-            
+
+            refresh_workflows_btn.click(fn=refresh_workflows, inputs=[], outputs=workflow_list)
+
             create_workflow_btn.click(
                 fn=create_new_workflow,
                 inputs=[workflow_name, workflow_description],
-                outputs=workflow_status_output
+                outputs=workflow_status_output,
             )
 
         with gr.TabItem("Performance Monitoring"):
@@ -279,61 +332,52 @@ print(df.head())
                 with gr.Column():
                     system_stats = gr.JSON(label="Current System Stats")
                     refresh_stats_btn = gr.Button("Refresh Stats")
-                    
+
                     with gr.Row():
                         minutes_input = gr.Number(label="Minutes to analyze", value=5)
                         get_metrics_btn = gr.Button("Get Performance Metrics")
-                    
+
                     metrics_output = gr.Dataframe(
                         headers=["Timestamp", "Value", "Unit", "Source"],
                         label="Recent Performance Metrics",
-                        interactive=False
+                        interactive=False,
                     )
-                    
+
                     error_rate_output = gr.Number(label="Error Rate (%)")
-                    
+
             def refresh_system_stats():
                 stats = get_system_stats()
                 return stats
-                
+
             def get_recent_metrics(minutes):
                 metrics = get_performance_metrics(int(minutes))
                 data = []
                 for metric in metrics:
-                    data.append([
-                        metric["timestamp"],
-                        metric["value"],
-                        metric["unit"],
-                        metric["source"]
-                    ])
+                    data.append(
+                        [metric["timestamp"], metric["value"], metric["unit"], metric["source"]]
+                    )
                 return data
-                
+
             def get_error_rate(minutes):
                 try:
-                    response = requests.get(f"http://127.0.0.1:8000/api/enhanced/performance/error-rate?minutes={int(minutes)}")
+                    response = requests.get(
+                        f"http://127.0.0.1:8000/api/enhanced/performance/error-rate?minutes={int(minutes)}"
+                    )
                     if response.status_code == 200:
                         rate = response.json()
                         return rate * 100  # Convert to percentage
                     return 0
                 except Exception:
                     return 0
-            
-            refresh_stats_btn.click(
-                fn=refresh_system_stats,
-                inputs=[],
-                outputs=system_stats
-            )
-            
+
+            refresh_stats_btn.click(fn=refresh_system_stats, inputs=[], outputs=system_stats)
+
             get_metrics_btn.click(
-                fn=get_recent_metrics,
-                inputs=minutes_input,
-                outputs=metrics_output
+                fn=get_recent_metrics, inputs=minutes_input, outputs=metrics_output
             )
-            
+
             get_metrics_btn.click(
-                fn=get_error_rate,
-                inputs=minutes_input,
-                outputs=error_rate_output
+                fn=get_error_rate, inputs=minutes_input, outputs=error_rate_output
             )
 
 # To launch this app, you can run this file directly.

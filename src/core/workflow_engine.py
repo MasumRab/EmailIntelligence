@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Callable
 
 logger = logging.getLogger(__name__)
 
+
 class Node:
     """
     Represents a single node in a processing workflow.
@@ -11,7 +12,10 @@ class Node:
     analyzing its sentiment, or applying a category. Nodes define their
     required inputs and the outputs they produce.
     """
-    def __init__(self, node_id: str, name: str, operation: Callable, inputs: List[str], outputs: List[str]):
+
+    def __init__(
+        self, node_id: str, name: str, operation: Callable, inputs: List[str], outputs: List[str]
+    ):
         self.node_id = node_id
         self.name = name
         self.operation = operation
@@ -40,14 +44,17 @@ class Node:
             logger.error(f"Error executing node '{self.name}' ({self.node_id}): {e}", exc_info=True)
             raise
 
+
 class Workflow:
     """
     Represents a processing workflow as a directed acyclic graph (DAG) of nodes.
     """
+
     def __init__(self, name: str, nodes: Dict[str, Node], connections: Dict[str, str]):
         self.name = name
         self.nodes = nodes
         self.connections = connections  # Maps an input of a node to an output of another
+
 
 class WorkflowRunner:
     """
@@ -57,6 +64,7 @@ class WorkflowRunner:
     need to perform a topological sort of the nodes and manage the execution
     context, passing data between nodes as defined by the workflow's connections.
     """
+
     def __init__(self, workflow: Workflow):
         self.workflow = workflow
         self.execution_context = {}

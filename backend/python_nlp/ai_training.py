@@ -21,6 +21,7 @@ class ModelConfig:
         parameters: A dictionary of hyperparameters for the model.
         training_data_path: The file path to the training data.
     """
+
     model_name: str = "default"
     model_type: str = "classification"
     parameters: Dict[str, Any] = field(default_factory=dict)

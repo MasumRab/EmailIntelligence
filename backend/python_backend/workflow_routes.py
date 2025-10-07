@@ -1,6 +1,7 @@
 """
 API routes for managing workflows.
 """
+
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -12,10 +13,14 @@ from .workflow_engine import WorkflowEngine
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+
 class WorkflowCreate(BaseModel):
     name: str = Field(..., description="The unique name for the workflow.")
     description: str = ""
-    models: Dict[str, str] = Field(..., description="A dictionary mapping model types to model names.")
+    models: Dict[str, str] = Field(
+        ..., description="A dictionary mapping model types to model names."
+    )
+
 
 @router.post("/api/workflows", response_model=dict)
 async def create_workflow(
@@ -31,7 +36,10 @@ async def create_workflow(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to create workflow: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An unexpected error occurred while creating the workflow.")
+        raise HTTPException(
+            status_code=500, detail="An unexpected error occurred while creating the workflow."
+        )
+
 
 @router.get("/api/workflows", response_model=list[str])
 async def list_workflows(
@@ -39,6 +47,7 @@ async def list_workflows(
 ):
     """Lists the names of all registered workflows."""
     return workflow_engine.list_workflows()
+
 
 @router.get("/api/workflows/active", response_model=str)
 async def get_active_workflow(
@@ -48,6 +57,7 @@ async def get_active_workflow(
     if not workflow_engine.active_workflow:
         raise HTTPException(status_code=404, detail="No active workflow set.")
     return workflow_engine.active_workflow.name
+
 
 @router.put("/api/workflows/active/{workflow_name}", response_model=dict)
 async def set_active_workflow(
