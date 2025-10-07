@@ -1,3 +1,7 @@
+/**
+ * @file This file contains the Sidebar component, which serves as the main
+ *       navigation panel for the application.
+ */
 import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
@@ -12,10 +16,25 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { Category } from "@shared/schema";
 
+/**
+ * @interface SidebarProps
+ * @description Defines the props for the Sidebar component.
+ * @property {Category[]} categories - An array of category objects to be displayed.
+ */
 interface SidebarProps {
   categories: Category[];
 }
 
+/**
+ * A React component that renders the main navigation sidebar.
+ *
+ * This component displays navigation links for standard email folders,
+ * AI-generated categories, and application settings. It highlights the
+ * active route based on the current location.
+ *
+ * @param {SidebarProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered sidebar navigation panel.
+ */
 export function Sidebar({ categories }: SidebarProps) {
   const [location] = useLocation();
 
@@ -32,6 +51,11 @@ export function Sidebar({ categories }: SidebarProps) {
     { href: "/ai-training", icon: Brain, label: "AI Training" },
   ];
 
+  /**
+   * Returns the appropriate color class for a category badge.
+   * @param {string} [color] - The hex color code for the category.
+   * @returns {string} The Tailwind CSS background color class.
+   */
   const getCategoryColor = (color?: string) => {
     switch (color) {
       case "#34A853": return "bg-green-500";
