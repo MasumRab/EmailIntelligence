@@ -4,21 +4,17 @@ Workflow Manager for the Email Intelligence Platform.
 This module provides functionality for managing, storing, and retrieving
 node-based workflows.
 """
-
 import json
-import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional, Any
+import logging
 
+from backend.node_engine.node_base import Workflow, Connection
 from backend.node_engine.email_nodes import (
-    ActionNode,
-    AIAnalysisNode,
-    EmailSourceNode,
-    FilterNode,
-    PreprocessingNode,
+    EmailSourceNode, PreprocessingNode, AIAnalysisNode,
+    FilterNode, ActionNode
 )
-from backend.node_engine.node_base import Connection, Workflow
 
 
 class WorkflowManager:
@@ -45,7 +41,7 @@ class WorkflowManager:
         filename = f"{workflow.workflow_id}.json"
         filepath = os.path.join(self.workflows_dir, filename)
 
-        with open(filepath, "w", encoding="utf-8") as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(workflow_data, f, indent=2, default=str)
 
         self.logger.info(f"Workflow {workflow.name} saved to {filepath}")
@@ -69,7 +65,7 @@ class WorkflowManager:
             return None
 
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 workflow_data = json.load(f)
 
             workflow = self._dict_to_workflow(workflow_data)
@@ -89,23 +85,21 @@ class WorkflowManager:
         workflows = []
 
         for filename in os.listdir(self.workflows_dir):
-            if filename.endswith(".json"):
+            if filename.endswith('.json'):
                 filepath = os.path.join(self.workflows_dir, filename)
                 try:
-                    with open(filepath, "r", encoding="utf-8") as f:
+                    with open(filepath, 'r', encoding='utf-8') as f:
                         workflow_data = json.load(f)
 
-                    workflows.append(
-                        {
-                            "id": workflow_data.get("workflow_id"),
-                            "name": workflow_data.get("name", "Unnamed"),
-                            "description": workflow_data.get("description", ""),
-                            "created_at": workflow_data.get("metadata", {}).get("created_at"),
-                            "modified_at": workflow_data.get("metadata", {}).get("modified_at"),
-                            "node_count": len(workflow_data.get("nodes", [])),
-                            "connection_count": len(workflow_data.get("connections", [])),
-                        }
-                    )
+                    workflows.append({
+                        "id": workflow_data.get("workflow_id"),
+                        "name": workflow_data.get("name", "Unnamed"),
+                        "description": workflow_data.get("description", ""),
+                        "created_at": workflow_data.get("metadata", {}).get("created_at"),
+                        "modified_at": workflow_data.get("metadata", {}).get("modified_at"),
+                        "node_count": len(workflow_data.get("nodes", [])),
+                        "connection_count": len(workflow_data.get("connections", []))
+                    })
                 except Exception as e:
                     self.logger.error(f"Error reading workflow {filename}: {str(e)}")
 
@@ -148,7 +142,7 @@ class WorkflowManager:
                     "type": node.__class__.__name__,
                     "name": node.name,
                     "description": node.description,
-                    "config": getattr(node, "config", {}),
+                    "config": getattr(node, 'config', {})
                 }
                 for node in workflow.nodes.values()
             ],
@@ -157,15 +151,15 @@ class WorkflowManager:
                     "source_node_id": conn.source_node_id,
                     "source_port": conn.source_port,
                     "target_node_id": conn.target_node_id,
-                    "target_port": conn.target_port,
+                    "target_port": conn.target_port
                 }
                 for conn in workflow.connections
             ],
             "metadata": {
                 "created_at": datetime.now().isoformat(),
                 "modified_at": datetime.now().isoformat(),
-                "version": "1.0",
-            },
+                "version": "1.0"
+            }
         }
 
     def _dict_to_workflow(self, workflow_data: Dict[str, Any]) -> Workflow:
@@ -173,7 +167,7 @@ class WorkflowManager:
         workflow = Workflow(
             workflow_id=workflow_data["workflow_id"],
             name=workflow_data.get("name", "Unnamed"),
-            description=workflow_data.get("description", ""),
+            description=workflow_data.get("description", "")
         )
 
         # Create node instances from the data
@@ -186,8 +180,7 @@ class WorkflowManager:
 
             # Create node instance based on type
             node = self._create_node_from_type(
-                node_type, node_config, node_id, node_data.get("name")
-            )
+                node_type, node_config, node_id, node_data.get("name"))
             workflow.add_node(node)
 
         # Create connections
@@ -196,22 +189,21 @@ class WorkflowManager:
                 source_node_id=conn_data["source_node_id"],
                 source_port=conn_data["source_port"],
                 target_node_id=conn_data["target_node_id"],
-                target_port=conn_data["target_port"],
+                target_port=conn_data["target_port"]
             )
             workflow.add_connection(connection)
 
         return workflow
 
-    def _create_node_from_type(
-        self, node_type: str, config: Dict[str, Any], node_id: str, name: str = None
-    ):
+    def _create_node_from_type(self, node_type: str, config: Dict[str, Any],
+                               node_id: str, name: str = None):
         """Create a node instance from its type string."""
         node_classes = {
             "EmailSourceNode": EmailSourceNode,
             "PreprocessingNode": PreprocessingNode,
             "AIAnalysisNode": AIAnalysisNode,
             "FilterNode": FilterNode,
-            "ActionNode": ActionNode,
+            "ActionNode": ActionNode
         }
 
         if node_type not in node_classes:
@@ -229,22 +221,19 @@ class WorkflowManager:
         """
         workflow = Workflow(
             name="Email Processing Pipeline",
-            description="A sample workflow that processes emails through multiple stages",
+            description="A sample workflow that processes emails through multiple stages"
         )
 
         # Create nodes
         source_node = EmailSourceNode(name="Email Source", config={"provider": "gmail"})
         preprocessing_node = PreprocessingNode(name="Email Preprocessor")
         analysis_node = AIAnalysisNode(name="AI Analyzer")
-        filter_node = FilterNode(
-            name="Email Filter",
-            config={
-                "criteria": {
-                    "required_keywords": ["important", "urgent"],
-                    "excluded_senders": ["noreply@spam.com"],
-                }
-            },
-        )
+        filter_node = FilterNode(name="Email Filter", config={
+            "criteria": {
+                "required_keywords": ["important", "urgent"],
+                "excluded_senders": ["noreply@spam.com"]
+            }
+        })
         action_node = ActionNode(name="Action Executor")
 
         # Add nodes to workflow
@@ -255,52 +244,42 @@ class WorkflowManager:
         workflow.add_node(action_node)
 
         # Create connections
-        workflow.add_connection(
-            Connection(
-                source_node_id=source_node.node_id,
-                source_port="emails",
-                target_node_id=preprocessing_node.node_id,
-                target_port="emails",
-            )
-        )
+        workflow.add_connection(Connection(
+            source_node_id=source_node.node_id,
+            source_port="emails",
+            target_node_id=preprocessing_node.node_id,
+            target_port="emails"
+        ))
 
-        workflow.add_connection(
-            Connection(
-                source_node_id=preprocessing_node.node_id,
-                source_port="processed_emails",
-                target_node_id=analysis_node.node_id,
-                target_port="emails",
-            )
-        )
+        workflow.add_connection(Connection(
+            source_node_id=preprocessing_node.node_id,
+            source_port="processed_emails",
+            target_node_id=analysis_node.node_id,
+            target_port="emails"
+        ))
 
-        workflow.add_connection(
-            Connection(
-                source_node_id=analysis_node.node_id,
-                source_port="analysis_results",
-                target_node_id=filter_node.node_id,
-                target_port="emails",
-            )
-        )
+        workflow.add_connection(Connection(
+            source_node_id=analysis_node.node_id,
+            source_port="analysis_results",
+            target_node_id=filter_node.node_id,
+            target_port="emails"
+        ))
 
-        workflow.add_connection(
-            Connection(
-                source_node_id=filter_node.node_id,
-                source_port="filtered_emails",
-                target_node_id=action_node.node_id,
-                target_port="emails",
-            )
-        )
+        workflow.add_connection(Connection(
+            source_node_id=filter_node.node_id,
+            source_port="filtered_emails",
+            target_node_id=action_node.node_id,
+            target_port="emails"
+        ))
 
         # Also connect actions input separately (this is just for demo)
         # In a real workflow, actions would come from another source
-        workflow.add_connection(
-            Connection(
-                source_node_id=analysis_node.node_id,
-                source_port="summary",
-                target_node_id=action_node.node_id,
-                target_port="actions",
-            )
-        )
+        workflow.add_connection(Connection(
+            source_node_id=analysis_node.node_id,
+            source_port="summary",
+            target_node_id=action_node.node_id,
+            target_port="actions"
+        ))
 
         return workflow
 
