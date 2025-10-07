@@ -1,205 +1,120 @@
-# Email Intelligence Platform - Development Context
+# EmailIntelligence Project Context
 
 ## Project Overview
 
-The Email Intelligence Platform is a state-of-the-art, modular AI processing platform for email analysis, inspired by leading AI frameworks like automatic1111's stable-diffusion-webui, Stability-AI/StableSwarmUI, and comfyanonymous/ComfyUI. The platform features a node-based processing system, extensible plugin architecture, and comprehensive UI for both developers and end-users.
+EmailIntelligence is an AI-powered email management application that provides intelligent analysis, categorization, and filtering for Gmail emails. The project combines Python NLP models with a modern React frontend, utilizing a simplified environment setup with local file-based data storage for scientific and development purposes.
 
-This is a multi-service application built with Python (FastAPI) for the backend, Gradio for the developer interface, Node.js/TypeScript for secondary services, and React/Vite for the frontend. The platform implements a modular architecture with plugin support and node-based processing workflows.
+### Key Features
+- Gmail integration with OAuth
+- AI-powered email analysis (sentiment, intent, topic, urgency)
+- Smart filtering and categorization
+- Performance metrics and analytics
+- Dashboard with email insights
+
+## Architecture
+
+- **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, and Vite build system
+- **Backend**: Python with FastAPI for API endpoints and Gradio for UI
+- **AI Engine**: Python-based NLP models for sentiment, intent, topic, and urgency analysis
+- **Database**: SQLite for local storage and caching, with JSON files for main application data
 
 ## Project Structure
 
 ```
-.
-├── backend/                     # Python backend services
-│   ├── python_backend/          # Main FastAPI application and Gradio UI
-│   ├── python_nlp/              # NLP-specific modules and utilities
-│   └── plugins/                 # Extensible plugin system for custom processing nodes
-├── client/                      # React/Vite frontend application
-├── server/                      # TypeScript/Node.js backend application
-├── shared/                      # Code/types shared between services
-├── workflows/                   # Node-based processing pipeline definitions
-├── models/                      # AI model management and caching system
-├── data/                        # Data storage (JSON files, SQLite databases)
-├── launch.py                    # 🚀 Unified script to set up, manage, and run the project
-├── docker-compose.yml          # Container orchestration for production deployment
-├── pyproject.toml              # Python dependency definitions (for uv)
-├── package.json                # Node.js workspace configuration
-└── ...
+EmailIntelligence/
+├── backend/
+│   ├── python_backend/     # Python backend services (FastAPI)
+│   ├── python_nlp/         # Python NLP models and analysis
+│   └── tests/              # Backend tests
+├── client/                 # React frontend application
+├── server/                 # Alternative server directory (python_backend and python_nlp)
+├── shared/                 # Shared TypeScript schemas
+├── extensions/             # Extensible plugin system
+├── models/                 # ML models
+├── mock_models/            # Mock models for testing
+├── docs/                   # Documentation
+├── jsons/                  # JSON data files
+├── .venv/                  # Python virtual environment
+├── venv/                   # Alternative Python virtual environment
+├── requirements.txt        # Python dependencies
+├── package.json            # Node.js dependencies
+├── pyproject.toml          # Python project configuration
+├── launch.py               # Main launcher script
+├── launch.sh               # Linux/Mac launcher script
+└── README.md               # Project documentation
 ```
 
-## Technologies & Dependencies
+## Technologies Used
 
-### Python Backend
-- **Framework**: FastAPI for the main API
-- **UI**: Gradio for the scientific development interface
-- **NLP/AI**: NLTK, TextBlob, Transformers, PyTorch, Scikit-learn
-- **Data Processing**: Pandas, NumPy, Matplotlib, Plotly
-- **Authentication**: Google API Python Client, Google Auth libraries
-- **Database**: SQLite and PostgreSQL support
+- **Frontend**: React 18, TypeScript, TailwindCSS, Radix UI, Vite
+- **Backend**: Python (3.11+), FastAPI, Uvicorn, Gradio
+- **AI/ML**: PyTorch, Transformers, Scikit-learn, NLTK, Hugging Face models
+- **Database**: SQLite, JSON files for local storage
+- **Build Tools**: Vite, esbuild
 
-### Frontend
-- **Framework**: React with Vite
-- **TypeScript**: For the Node.js backend
-- **UI Components**: Standard web technologies
+## Setup and Running
 
-## Running the Application
+The project includes a comprehensive launcher script that automates the setup process:
 
-### Prerequisites
-- **Python**: Version 3.12.x
-- **Node.js**: Version 18.x or higher (with `npm`)
-- **Git**: For cloning the repository
-- **Docker**: (Optional) For containerized deployment
+1. **Requirements**: Python 3.11.x and Node.js LTS
+2. **Automatic Setup**: The `launch.py` script handles:
+   - Virtual environment creation
+   - Dependency installation
+   - NLTK data downloads
+   - Frontend dependency installation
+   - Starting both backend (FastAPI) and frontend (Vite)
 
-### Setup & Execution
-1. **First-time setup**:
-   ```bash
-   python3 launch.py --setup
-   ```
+### Launch Options
+- `python launch.py` - Standard development mode (both backend and frontend)
+- `python launch.py --api-only` - Backend API server only
+- `python launch.py --ui-only` - Frontend UI only
+- `python launch.py --stage test` - Run tests
+- Additional options for debugging, port configuration, and environment setup
 
-2. **Run all services**:
-   ```bash
-   python3 launch.py
-   ```
+## Data Storage
 
-This starts:
-- Python FastAPI Backend on `http://127.0.0.1:8000`
-- Gradio UI on `http://127.0.0.1:7860` (node-based workflow editor)
-- Node.js TypeScript Backend
-- React Frontend on `http://127.0.0.1:5173`
+This version uses local file-based storage:
+- **Main Application Data**: JSON files in `server/python_backend/data/`
+- **Smart Filter Rules**: SQLite database in `smart_filters.db`
+- **Email Cache**: SQLite database in `email_cache.db`
 
-### Launcher Options
-- `--setup --force-recreate-venv`: Clean setup
-- `--setup --update-deps`: Update dependencies
-- `--no-client --no-server-ts`: Run only Python backend and Gradio UI
-- `--no-backend --no-ui --no-server-ts`: Run only React client
-- `--help`: All available options
+## Development Notes
 
-## Project Architecture
+- Python code follows PEP 8 style guidelines
+- TypeScript is used for all frontend code
+- Tests are required for both Python and TypeScript components
+- The project includes both unit and integration testing capabilities
+- Environment variables can be managed via .env files
 
-### 1. Python Backend (FastAPI)
-- Located in `backend/python_backend/`
-- Serves the primary REST API with plugin architecture for extending functionality
-- Implements node-based processing workflows for email analysis
-- Manages data storage (JSON files and SQLite databases)
+## Key Dependencies
 
-### 2. Gradio UI
-- Located in `backend/python_backend/gradio_app.py`
-- Features drag-and-drop node-based workflow editor inspired by ComfyUI
-- Provides real-time processing visualization and monitoring
-- Intended for developers, data scientists, and advanced users
+Python dependencies include:
+- FastAPI for web framework
+- PyTorch and Transformers for AI/ML
+- NLTK for natural language processing
+- Gradio for UI prototyping
+- Scikit-learn for machine learning
 
-### 3. TypeScript Backend (Node.js)
-- Located in `server/`
-- Handles specific API routes and service integrations
-- Demonstrates a polyglot microservice architecture
+Node.js dependencies are minimal, focusing on the build tools needed for the React frontend.
 
-### 4. React Frontend (Vite)
-- Located in `client/`
-- Main user-facing web application with intuitive email processing workflows
-- Includes audit trails and performance metrics for AI processing operations
+## Working with the Codebase
 
-## Plugin System
+- Backend Python code is in `backend/python_backend/` and `backend/python_nlp/`
+- Frontend React code would be in `client/src/` (not in current directory listing)
+- Shared TypeScript schemas are in `shared/` for cross-project use
+- Extensions support is available in the `extensions/` directory
+- Testing is done with pytest for Python and vitest for TypeScript
 
-The platform supports a modular plugin architecture:
-- Plugins can be added to the `backend/plugins/` directory
-- New processing nodes follow standardized interfaces
-- Processing pipelines built using a node-based system similar to ComfyUI
+## Environment Management
 
-Base plugin interfaces are defined in `backend/plugins/base_plugin.py`:
-- `BasePlugin`: Abstract base class for all plugins
-- `ProcessingNode`: Base class for processing nodes in the workflow system
+The project uses a Python virtual environment managed by the launch scripts. The virtual environment is created in the project root or in a dedicated `venv` directory. Dependencies are managed through `requirements.txt` and `pyproject.toml`.
 
-## Development Conventions
+## Troubleshooting
 
-### Python
-- Uses Python 3.12+
-- Formatting with Black (line length 100)
-- Import sorting with isort (Black profile)
-- Type checking with MyPy
-- Linting with Flake8 and Pylint
+Common issues:
+- Ensure Python 3.11.x is installed and accessible
+- Make sure the virtual environment is properly activated
+- NLTK data files need to be downloaded during initial setup
+- Port conflicts may occur if services are already running
 
-### Code Organization
-- Clear separation of concerns between services
-- Dependency injection for loose coupling
-- Standardized interfaces for extensibility
-- Proper error handling with custom exceptions
-
-### Git Workflow
-- Dependencies managed via `pyproject.toml` and `package.json`
-- Virtual environment managed automatically by `launch.py`
-- Environment variables for configuration (e.g., `GMAIL_CREDENTIALS_JSON`)
-
-## Key Features
-
-1. **Modular Architecture**: Plugin system allows extending functionality without modifying core code
-2. **Node-based Workflows**: Visual workflow editor for building complex email processing pipelines
-3. **AI/NLP Processing**: Advanced email analysis with sentiment, topic modeling, and categorization
-4. **Multi-Service Architecture**: FastAPI, Gradio, React, and TypeScript services working together
-5. **Gmail Integration**: Full integration with Gmail API for email processing
-6. **Model Management**: Caching mechanism for AI models with fallback capabilities
-
-## Operational Limits & Configuration
-
-### Gmail API Integration Limits
-- **Rate Limiting**: 
-  - Daily queries: 1,000,000,000 (effectively unlimited for most use cases)
-  - Queries per 100 seconds: 250
-  - Queries per second: 5 (practical limit to avoid bursts)
-  - Maximum concurrent requests: 10
-  - Initial backoff: 1.0 second
-  - Maximum backoff: 60.0 seconds
-  - Backoff multiplier: 2.0
-
-### Data Processing Limits
-- **Email Retrieval**:
-  - Messages per request: 100 (maximum batch size from Gmail API)
-  - Default pagination limit: 50 emails per page across search and retrieval functions
-  - Strategy limits: Daily sync (1000), Weekly bulk (5000), Historical import (10000)
-
-### Model Management
-- **Registered Models**:
-  - Sentiment model: 15.2 MB
-  - Topic model: 22.1 MB  
-  - Intent model: 18.7 MB
-  - Urgency model: 12.5 MB
-- **Model Manager**: Handles dynamic loading/unloading with thread-safe operations
-
-### Data Storage
-- **Database Connections**: SQLite-based with file locking for concurrent access
-- **Caching**: SQLite-based email cache with content hashing
-- **Synchronization**: Incremental sync with pagination tokens
-
-## Current Operational Configuration
-
-The Email Intelligence Platform currently has well-defined operational limits especially for Gmail API integration. The configuration is primarily handled through:
-- Environment variables for credentials and paths
-- Rate limiting configuration in `gmail_integration.py`
-- Default pagination limits in database operations
-- Model management with size tracking and loading states
-
-### Recommended Updates to Operational Limits
-
-1. **Add Environment Variable Controls**: Operational limits should be configurable via environment variables for easier deployment in different environments
-2. **Memory Usage Limits**: Add configuration for maximum memory usage by the model manager to prevent out-of-memory issues
-3. **Processing Timeouts**: Add configurable timeout values for long-running operations
-4. **Batch Processing Limits**: Add configurable limits for bulk email processing operations
-5. **Model Loading Limits**: Add maximum models that can be loaded simultaneously based on system memory
-
-## Configuration
-
-- Environment variables in `.env` files (not committed)
-- Gmail credentials via `GMAIL_CREDENTIALS_JSON` environment variable
-- Configuration files in the `config/` directory
-- Model download and caching system
-
-## Testing
-
-- Python tests in `backend/python_backend/tests/` and `backend/python_nlp/tests/`
-- Use pytest for test execution
-- Code coverage with pytest-cov
-
-## Deployment
-
-- Docker Compose configuration available in `docker-compose.yml`
-- Production-ready configuration with PostgreSQL database
-- Environment variable-based configuration for security
+Use `python launch.py --system-info` to diagnose environment issues.

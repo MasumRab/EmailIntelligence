@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.backend
+      target: development # Explicitly set for clarity, even if it's the default
+    ports:
+      - "8000:8000"
+    environment:
+      # - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/emailintelligence # Commented out for SQLite
+      - NODE_ENV=development
+      - DEBUG=True
+      # Any other dev-specific backend environment variables
+    command: python -m uvicorn server.python_backend.main:app --host 0.0.0.0 --port 8000 --reload
+    # Volumes are inherited from the base docker-compose.yml
+    # depends_on is inherited from the base docker-compose.yml
+
+  frontend:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - ../client:/app
+      - ../shared:/app/shared # If frontend needs access to shared
+    ports:
+      - "5173:5173"
+    command: bash -c "npm install && npm run dev"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - NODE_ENV=development
+
+# postgres service and postgres_data volume are inherited from the base docker-compose.yml
+# networks are inherited from the base docker-compose.yml
