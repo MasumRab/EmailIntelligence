@@ -223,6 +223,7 @@ def prepare_environment(args: argparse.Namespace) -> bool:
         if not args.no_download_nltk:
             if not download_nltk_data(python_executable):
                 return False
+<<<<<<< HEAD
     else:
         python_executable = sys.executable
         # If not using venv, still need to handle NLTK download
@@ -234,11 +235,169 @@ def prepare_environment(args: argparse.Namespace) -> bool:
     # 2. Install Node.js dependencies
     if not args.no_client:
         if not install_nodejs_dependencies("client", args.update_deps):
+=======
+            venv_needs_initial_setup = True
+
+        if venv_needs_initial_setup:
+            primary_req_file = _get_primary_requirements_file()
+            logger.info(
+                f"Installing base dependencies from {Path(primary_req_file).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
+            )
+            if not install_dependencies(primary_req_file, update=False):
+                logger.error(
+                    f"Failed to install base dependencies from {Path(primary_req_file).name}. Exiting."
+                )
+                return False
+        elif args.update_deps:
+            primary_req_file = _get_primary_requirements_file()
+            logger.info(
+                f"Updating base dependencies from {Path(primary_req_file).name} in existing venv as per --update-deps..."
+            )
+            if not install_dependencies(primary_req_file, update=True):
+                logger.error(
+                    f"Failed to update base dependencies from {Path(primary_req_file).name}. Exiting."
+                )
+                return False
+        else:
+            chosen_req_file = _get_primary_requirements_file()
+            logger.info(
+                f"Compatible virtual environment found (or user chose to proceed with existing). Primary requirements file: {Path(chosen_req_file).name}. Skipping base dependency installation unless --update-deps is used."
+            )
+
+        stage_requirements_file_path_str = None
+        if args.stage == "dev":
+            dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
+            if dev_req_path_obj.exists():
+                stage_requirements_file_path_str = "requirements-dev.txt"
+        elif args.stage == "test":
+            test_req_path_obj = ROOT_DIR / "requirements-test.txt"
+            if test_req_path_obj.exists():
+                stage_requirements_file_path_str = "requirements-test.txt"
+
+        if stage_requirements_file_path_str:
+            install_stage_deps_update_flag = args.update_deps
+            if venv_needs_initial_setup:
+                install_stage_deps_update_flag = False
+                logger.info(
+                    f"Installing stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
+                )
+            elif args.update_deps:
+                logger.info(
+                    f"Updating stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} as per --update-deps..."
+                )
+            else:
+                logger.info(
+                    f"Skipping stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} unless missing or --update-deps is used."
+                )
+
+            if venv_needs_initial_setup or args.update_deps:
+                if not install_dependencies(
+                    stage_requirements_file_path_str,
+                    update=install_stage_deps_update_flag,
+                ):
+                    logger.error(
+                        f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
+                    )
+                    return False
+
+    if not args.no_download_nltk:
+        if not download_nltk_data():
+>>>>>>> origin/main
             return False
 
     return True
 
 
+<<<<<<< HEAD
+=======
+def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[subprocess.Popen]:
+    """Starts the backend server."""
+    actual_host = "0.0.0.0" if args.listen else args.host
+    logger.info(f"Starting backend server on {actual_host}:{args.port}...")
+
+    cmd = [
+        python_executable,
+        "-m",
+        "uvicorn",
+        "backend.python_backend.main:app",
+        "--host",
+        actual_host,
+        "--port",
+        str(args.port),
+    ]
+
+    if args.debug:
+        cmd.append("--log-level=debug")
+        cmd.append("--reload")
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+    env["NODE_ENV"] = "development" if args.stage == "dev" else args.stage
+    env["DEBUG"] = str(args.debug)
+
+    try:
+        log_cmd = cmd[:]
+        if args.listen:
+            log_cmd[log_cmd.index(actual_host)] = f"{args.host} (via --listen on 0.0.0.0)"
+        logger.info(f"Running backend command: {' '.join(log_cmd)}")
+        process = subprocess.Popen(cmd, env=env)
+        processes.append(process)
+        logger.info(f"Backend server started with PID {process.pid} on {actual_host}:{args.port}.")
+        return process
+    except FileNotFoundError:
+        logger.error(
+            f"Error: Python executable not found at {python_executable} or uvicorn not installed in the venv."
+        )
+        logger.error(
+            "Please ensure your virtual environment is active and has 'uvicorn' and other backend dependencies installed."
+        )
+        return None
+    except Exception as e:
+        logger.error(f"Failed to start backend server: {e}")
+        return None
+
+
+def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optional[subprocess.Popen]:
+    """Starts the Gradio UI server."""
+    logger.info("Starting Gradio UI...")
+
+    gradio_script_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
+    if not gradio_script_path.exists():
+        logger.error(f"Gradio UI script not found at: {gradio_script_path}")
+        return None
+
+    cmd = [
+        python_executable,
+        str(gradio_script_path),
+        "--host",
+        args.host,
+    ]
+
+    # Add port if specified, Gradio has its own default port (7860)
+    if args.gradio_port:
+        cmd.extend(["--port", str(args.gradio_port)])
+
+    if args.debug:
+        cmd.append("--debug")
+
+    if args.share:
+        cmd.append("--share")
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+
+    try:
+        logger.info(f"Running Gradio UI command: {' '.join(cmd)}")
+        process = subprocess.Popen(cmd, env=env)
+        processes.append(process)
+        logger.info(f"Gradio UI started with PID {process.pid}.")
+        return process
+    except Exception as e:
+        logger.error(f"Failed to start Gradio UI: {e}")
+        return None
+
+
+>>>>>>> origin/main
 def run_application(args: argparse.Namespace) -> int:
     """Run the selected application components."""
     python_executable = get_python_executable()
@@ -255,6 +414,7 @@ def run_application(args: argparse.Namespace) -> int:
             cmd.append("--reload")
         services_started.append(start_service(cmd, "Python Backend"))
 
+<<<<<<< HEAD
     # Start Gradio UI
     if not args.no_ui:
         cmd = [python_executable, "backend/python_backend/gradio_app.py", "--host", args.host]
@@ -263,6 +423,29 @@ def run_application(args: argparse.Namespace) -> int:
         if args.share:
             cmd.append("--share")
         services_started.append(start_service(cmd, "Gradio UI"))
+=======
+    if args.api_only:
+        logger.info("Running in API only mode.")
+        backend_process = start_backend(args, python_executable)
+        if backend_process:
+            backend_process.wait()
+        else:
+            logger.error("Failed to start backend server in API only mode.")
+            return 1
+    elif args.ui_only:
+        logger.info("Running in UI only mode.")
+        gradio_process = start_gradio_ui(args, python_executable)
+        if gradio_process:
+            gradio_process.wait()
+        else:
+            logger.error("Failed to start Gradio UI in UI only mode.")
+            return 1
+    elif args.stage == "dev" or not args.stage:
+        logger.info("Running in local development mode (backend and Gradio UI).")
+        unexpected_exit = False
+        backend_process = start_backend(args, python_executable)
+        gradio_process = start_gradio_ui(args, python_executable)
+>>>>>>> origin/main
 
     # Start Node.js Frontend (Vite)
     if not args.no_client:
@@ -357,6 +540,7 @@ def main() -> int:
     """Main entry point."""
     # Ensure launcher is running with a compatible Python
     if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
+<<<<<<< HEAD
         current_version = sys.version_info[:2]
         if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
             interpreter = find_compatible_python_interpreter()
@@ -365,6 +549,23 @@ def main() -> int:
             else:
                 logger.error(f"Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} is required but not found.")
                 return 1
+=======
+        interpreter = find_compatible_python_interpreter()
+        if interpreter:
+            re_execute_with_compatible_python(interpreter)
+        else:
+            target_major, target_minor = PYTHON_MIN_VERSION
+            logger.error(
+                f"Python {target_major}.{target_minor} is required, but not found. "
+                "Please install it or run with a compatible interpreter."
+            )
+            sys.exit(1)
+
+    elif os.environ.get("LAUNCHER_REEXEC_GUARD") == "1":
+        logger.info(
+            f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor}"
+        )
+>>>>>>> origin/main
 
     _setup_signal_handlers()
     args = parse_arguments()

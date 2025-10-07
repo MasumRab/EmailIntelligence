@@ -4,8 +4,19 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+<<<<<<< HEAD
 import json
 import seaborn as sns
+=======
+import seaborn as sns
+
+# For safe sandboxed code execution
+from RestrictedPython import compile_restricted_exec
+from RestrictedPython import safe_globals
+import io
+import contextlib
+
+>>>>>>> origin/main
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -113,7 +124,7 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
 
             def analyze_batch(data_str):
                 try:
-                    emails = json.loads(data_str)  # Switched to safe parsing
+                    emails = eval(data_str)  # Simple eval for demo; use json.loads in prod
                     results = []
                     for email in emails:
                         result = nlp_engine.analyze_email(email["subject"], email["content"])
@@ -159,10 +170,17 @@ print(df.head())
 
             def run_custom_code(code):
                 try:
-                    # Safe exec in a restricted environment
-                    exec_globals = {"pd": pd, "np": np, "plt": plt, "sns": sns}
-                    exec(code, exec_globals)
-                    return "Code executed successfully."
+                    # RestrictedPython: safely compile and exec user code
+                    exec_globals = safe_globals.copy()
+                    # Allow common DS packages
+                    exec_globals.update({"pd": pd, "np": np, "plt": plt, "sns": sns})
+                    # Capture stdout
+                    output = io.StringIO()
+                    byte_code = compile_restricted_exec(code)
+                    with contextlib.redirect_stdout(output):
+                        exec(byte_code, exec_globals)
+                    result = output.getvalue()
+                    return result if result.strip() else "Code executed successfully (no output)."
                 except Exception as e:
                     return f"Error: {str(e)}"
 
