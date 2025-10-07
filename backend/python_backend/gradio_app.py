@@ -109,13 +109,23 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
             def analyze_batch(data_str):
                 try:
                     emails = json.loads(data_str)  # Switched to safe parsing
+                    if not isinstance(emails, list):
+                        return pd.DataFrame(), {"error": "Input must be a JSON array of email objects"}
+                    if len(emails) > 100:
+                        return pd.DataFrame(), {"error": "Too many emails, maximum 100 allowed"}
                     results = []
                     for email in emails:
-                        result = nlp_engine.analyze_email(email["subject"], email["content"])
+                        if not isinstance(email, dict) or "subject" not in email or "content" not in email:
+                            continue  # Skip invalid entries
+                        subject = str(email["subject"])[:1000]  # Limit subject length
+                        content = str(email["content"])[:10000]  # Limit content length
+                        result = nlp_engine.analyze_email(subject, content)
                         results.append(result)
                     df = pd.DataFrame(results)
                     stats = df.describe(include='all').to_dict()
                     return df, stats
+                except json.JSONDecodeError as e:
+                    return pd.DataFrame(), {"error": f"Invalid JSON: {str(e)}"}
                 except Exception as e:
                     return pd.DataFrame(), {"error": str(e)}
 
@@ -138,5 +148,4 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
 
 # To launch this app, you can run this file directly.
 if __name__ == "__main__":
-    print("Launching Gradio UI for Email Intelligence Analysis...")
     iface.launch()
