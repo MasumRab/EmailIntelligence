@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @router.post("/api/gmail/sync")
-@log_performance("sync_gmail")
+@log_performance(operation="sync_gmail")
 async def sync_gmail(
     req: Request,
     request_model: GmailSyncRequest,
@@ -136,7 +136,7 @@ async def sync_gmail(
 
 
 @router.post("/api/gmail/smart-retrieval")
-@log_performance("smart_retrieval")
+@log_performance(operation="smart_retrieval")
 async def smart_retrieval(
     req: Request,
     request_model: SmartRetrievalRequest,
@@ -201,7 +201,7 @@ async def smart_retrieval(
 
 
 @router.get("/api/gmail/strategies")
-@log_performance("get_retrieval_strategies")
+@log_performance(operation="get_retrieval_strategies")
 async def get_retrieval_strategies(
     request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
 ):
@@ -221,7 +221,7 @@ async def get_retrieval_strategies(
 
 
 @router.get("/api/gmail/performance")
-@log_performance("get_gmail_performance")
+@log_performance(operation="get_gmail_performance")
 async def get_gmail_performance(
     request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
 ):

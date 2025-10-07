@@ -150,7 +150,7 @@ python launch.py --system-info
 ## Directory Structure
 
 - `deployment/`: Contains scripts and modules used by `launch.py` for specific tasks like extension management (`extensions_manager.py`), model management (`models_manager.py`), and test execution (`test_stages.py`).
-- `extensions/`: Contains installed extensions.
+- `backend/extensions/`: Contains installed extensions.
 - `models/`: Contains downloaded models.
 - `venv/`: Contains the Python virtual environment created by `launch.py` (unless `--no-venv` is used).
 
@@ -162,7 +162,7 @@ You can create a new extension template using the `--create-extension` argument:
 python launch.py --create-extension my_extension
 ```
 
-This will create a new extension template in the `extensions/my_extension` directory with the following structure:
+This will create a new extension template in the `backend/extensions/my_extension` directory with the following structure:
 
 - `my_extension.py`: The main extension module
 - `metadata.json`: Extension metadata

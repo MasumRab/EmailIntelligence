@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+<<<<<<< HEAD
+import json
+import seaborn as sns
+=======
 import seaborn as sns
 
 # For safe sandboxed code execution
@@ -12,6 +16,7 @@ from RestrictedPython import safe_globals
 import io
 import contextlib
 
+>>>>>>> origin/main
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
@@ -60,6 +65,10 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
     gr.Markdown("## Email Intelligence Analysis UI (Scientific Branch)")
     gr.Markdown("Analyze emails with AI and visualize results for research purposes.")
 
+    # Define charts for cross-tab updates
+    sentiment_chart = gr.Plot(label="Sentiment Gauge")
+    topic_chart = gr.Plot(label="Topic Pie Chart")
+
     with gr.Tabs():
         with gr.TabItem("Single Email Analysis"):
             with gr.Row():
@@ -101,8 +110,8 @@ with gr.Blocks(title="Email Intelligence Analysis", theme=gr.themes.Soft()) as i
 
         with gr.TabItem("Visualization"):
             gr.Markdown("### Data Visualization")
-            sentiment_chart = gr.Plot(label="Sentiment Gauge")
-            topic_chart = gr.Plot(label="Topic Pie Chart")
+            sentiment_chart
+            topic_chart
             gr.Markdown("The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab.")
 
         with gr.TabItem("Scientific Analysis"):

@@ -9,11 +9,14 @@ logger = logging.getLogger(__name__)
 
 LOG_FILE = "performance_metrics_log.jsonl"
 
-def log_performance(operation: str):
+def log_performance(_func=None, *, operation: str = ""):
     """
     A decorator to log the performance of both sync and async functions.
+    Can be used as @log_performance or @log_performance(operation="custom_name").
     """
     def decorator(func):
+        op_name = operation or func.__name__
+
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             start_time = time.perf_counter()
@@ -23,7 +26,7 @@ def log_performance(operation: str):
 
             log_entry = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": operation,
+                "operation": op_name,
                 "duration_seconds": duration,
             }
 
@@ -44,7 +47,7 @@ def log_performance(operation: str):
 
             log_entry = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": operation,
+                "operation": op_name,
                 "duration_seconds": duration,
             }
 
@@ -60,4 +63,8 @@ def log_performance(operation: str):
             return async_wrapper
         else:
             return sync_wrapper
-    return decorator
+
+    if _func is None:
+        return decorator
+    else:
+        return decorator(_func)
