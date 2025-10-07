@@ -9,6 +9,7 @@ import sys
 sys.path.insert(0, os.path.abspath("."))
 
 
+
 def test_input_sanitizer():
     """Test the updated InputSanitizer class."""
     try:
