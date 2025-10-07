@@ -2,61 +2,67 @@ import json
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from googleapiclient.errors import HttpError as GoogleApiHttpError
 
 # Corrected import path for GmailAIService
 from ..python_nlp.gmail_service import GmailAIService
 
-from .ai_engine import AdvancedAIEngine  # Import AdvancedAIEngine
-from .database import DatabaseManager  # Import DatabaseManager
+from .ai_engine import AdvancedAIEngine
+from .database import DatabaseManager, get_db
+from .dependencies import get_gmail_service
+from .exceptions import GmailServiceError
+from .performance_monitor import log_performance
 from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
-# from .performance_monitor import PerformanceMonitor # Removed
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-# Instantiate services with necessary dependencies
-# This assumes DatabaseManager() and AdvancedAIEngine() can be
-# instantiated simply here. If complex setup, use FastAPI Depends or factory.
-db_manager_for_gmail_service = DatabaseManager()
-ai_engine_for_gmail_service = AdvancedAIEngine()
-gmail_service = GmailAIService(
-    db_manager=db_manager_for_gmail_service,
-    advanced_ai_engine=ai_engine_for_gmail_service,
-)
-# performance_monitor = PerformanceMonitor() # Removed
 
 
 @router.post("/api/gmail/sync")
-# @performance_monitor.track # Removed
+@log_performance("sync_gmail")
 async def sync_gmail(
-    req: Request,  # Renamed to req to avoid conflict with request model
-    request_model: GmailSyncRequest,  # Renamed model
+    req: Request,
+    request_model: GmailSyncRequest,
     background_tasks: BackgroundTasks,
+    gmail_service: GmailAIService = Depends(get_gmail_service),
 ):
-    """Sync emails from Gmail with AI analysis"""
+    """
+    Triggers a synchronization process to fetch emails from Gmail.
+
+    This endpoint initiates a background task to fetch emails based on the
+    provided criteria, perform AI analysis, and store them in the database.
+
+    Args:
+        req: The incoming request object.
+        request_model: The request body containing sync parameters like max emails
+                       and query filters.
+        background_tasks: FastAPI's background task runner.
+
+    Returns:
+        A confirmation response indicating the sync process has started.
+
+    Raises:
+        HTTPException: If there is a Google API error or another unexpected failure.
+    """
     try:
-        # Call the NLP service's sync_gmail_emails method directly
-        # Note: sync_gmail_emails does not use `strategies` or
-        # `time_budget_minutes` from GmailSyncRequest.
         nlp_result = await gmail_service.sync_gmail_emails(
             max_emails=request_model.maxEmails,
             query_filter=request_model.queryFilter,
             include_ai_analysis=request_model.includeAIAnalysis,
         )
 
-        # Adapt NLP result to BackendGS expected format
         if nlp_result.get("success"):
             result = {
                 "success": True,
                 "processedCount": nlp_result.get("processed_count", 0),
-                "emailsCreated": nlp_result.get("processed_count", 0),  # Approximation
+                "emailsCreated": nlp_result.get("processed_count", 0),
                 "errorsCount": 0,
                 "batchInfo": {
                     "batchId": nlp_result.get("batch_info", {}).get(
                         "batch_id", f"batch_{int(datetime.now().timestamp())}"
                     ),
-                    "queryFilter": request_model.queryFilter,  # Use the original request's query_filter
+                    "queryFilter": request_model.queryFilter,
                     "timestamp": nlp_result.get("batch_info", {}).get(
                         "timestamp", datetime.now().isoformat()
                     ),
@@ -79,15 +85,12 @@ async def sync_gmail(
                 "error": nlp_result.get("error", "Unknown NLP error"),
             }
 
-        # Background performance monitoring
-        # background_tasks.add_task(performance_monitor.record_sync_performance, result) # Removed
-
         return result
     except GoogleApiHttpError as gmail_err:
         error_details_dict = {}
         try:
             error_details_dict = json.loads(gmail_err.content.decode())
-        except Exception:  # Broad except for decoding issues
+        except Exception:
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
         error_content = error_details_dict.get("error", {})
@@ -119,7 +122,7 @@ async def sync_gmail(
             status_code = 502
             detail = "Gmail API returned an unexpected error. Try again."
 
-        raise HTTPException(status_code=status_code, detail=detail)
+        raise GmailServiceError(detail=detail, status_code=status_code)
     except Exception as e:
         log_data = {
             "message": "Unhandled error in sync_gmail",
@@ -128,15 +131,18 @@ async def sync_gmail(
                     "error_detail": str(e),
                 }
         logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(
-            status_code=500,
+        raise GmailServiceError(
             detail=f"Gmail sync failed due to an unexpected error: {str(e)}",
         )
 
 
 @router.post("/api/gmail/smart-retrieval")
-# @performance_monitor.track # Removed
-async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  # Renamed params
+@log_performance("smart_retrieval")
+async def smart_retrieval(
+    req: Request,
+    request_model: SmartRetrievalRequest,
+    gmail_service: GmailAIService = Depends(get_gmail_service),
+):  # Renamed params
     """Execute smart Gmail retrieval with multiple strategies"""
     try:
         result = await gmail_service.execute_smart_retrieval(
@@ -149,7 +155,7 @@ async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  
         error_details_dict = {}
         try:
             error_details_dict = json.loads(gmail_err.content.decode())
-        except Exception:  # Broad except for decoding issues
+        except Exception:
             error_details_dict = {"message": "Failed to decode Gmail error content."}
 
         error_content = error_details_dict.get("error", {})
@@ -181,7 +187,7 @@ async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  
             status_code = 502
             detail = "Gmail API returned an unexpected error for smart retrieval."
 
-        raise HTTPException(status_code=status_code, detail=detail)
+        raise GmailServiceError(detail=detail, status_code=status_code)
     except Exception as e:
         log_data = {
             "message": "Unhandled error in smart_retrieval",
@@ -190,15 +196,16 @@ async def smart_retrieval(req: Request, request_model: SmartRetrievalRequest):  
                     "error_detail": str(e),
                 }
         logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(
-            status_code=500,
+        raise GmailServiceError(
             detail=f"Smart retrieval failed due to an unexpected error: {str(e)}",
         )
 
 
 @router.get("/api/gmail/strategies")
-# @performance_monitor.track # Removed
-async def get_retrieval_strategies(request: Request):
+@log_performance("get_retrieval_strategies")
+async def get_retrieval_strategies(
+    request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
+):
     """Get available Gmail retrieval strategies"""
     try:
         strategies = await gmail_service.get_retrieval_strategies()
@@ -211,12 +218,14 @@ async def get_retrieval_strategies(request: Request):
                     "error_detail": str(e),
                 }
         logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(status_code=500, detail="Failed to fetch strategies")
+        raise GmailServiceError(detail="Failed to fetch strategies")
 
 
 @router.get("/api/gmail/performance")
-# @performance_monitor.track # Removed
-async def get_gmail_performance(request: Request):
+@log_performance("get_gmail_performance")
+async def get_gmail_performance(
+    request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
+):
     """Get Gmail API performance metrics"""
     try:
         metrics = await gmail_service.get_performance_metrics()
@@ -229,6 +238,4 @@ async def get_gmail_performance(request: Request):
                     "error_detail": str(e),
                 }
         logger.error(json.dumps(log_data)) # Added logger call
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch performance metrics"
-        )
+        raise GmailServiceError(detail="Failed to fetch performance metrics")

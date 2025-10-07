@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from .exceptions import BaseAppException
 
 # Updated import to use NLP GmailAIService directly
 from ..python_nlp.gmail_service import GmailAIService
@@ -29,9 +30,6 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 
-# Import our Python modules
-# from .performance_monitor import PerformanceMonitor # Removed
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,6 +40,23 @@ app = FastAPI(
     description="Advanced email management with AI categorization and smart filtering",
     version="2.0.0",
 )
+
+# Import the get_db function to access the database manager
+from .database import get_db
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """On shutdown, save any pending data."""
+    logger.info("Application shutdown event received.")
+    db = await get_db()
+    await db.shutdown()
+
+@app.exception_handler(BaseAppException)
+async def app_exception_handler(request: Request, exc: BaseAppException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
 
 # Configure CORS
 app.add_middleware(
@@ -66,13 +81,7 @@ app.add_middleware(
     # from .metrics import setup_metrics # Removed
     # setup_metrics(app) # Removed
 
-# Initialize services
-# Services are now initialized within their respective route files
-# or kept here if they are used by multiple route files or for general app setup.
-gmail_service = GmailAIService()  # Used by gmail_routes
-filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine()  # Used by email_routes
-# performance_monitor = PerformanceMonitor() # Removed
+# Services are now managed by the dependency injection system.
 
 # Include routers in the app
 app.include_router(email_routes.router)
