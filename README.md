@@ -51,7 +51,7 @@ Press `Ctrl+C` in the terminal to gracefully shut down all running services.
 
 ## Project Architecture
 
-The application is composed of four main, interconnected services:
+The application is composed of five main, interconnected services:
 
 1.  **Python Backend (FastAPI):**
     -   Located in `backend/python_backend/`.
@@ -62,11 +62,16 @@ The application is composed of four main, interconnected services:
     -   Located in `backend/python_backend/gradio_app.py`.
     -   Provides a rich, interactive interface for scientific development, model testing, and data visualization. Intended for developers and data scientists.
 
-3.  **TypeScript Backend (Node.js):**
+3.  **Node-Based Workflow Engine:**
+    -   Located in `src/core/advanced_workflow_engine.py`.
+    -   Implements a sophisticated, extensible workflow system inspired by ComfyUI, automatic1111, and Stability-AI frameworks.
+    -   Features node-based processing architecture with dependency management, plugin extensibility, and enterprise-grade security.
+
+4.  **TypeScript Backend (Node.js):**
     -   Located in `server/`.
     -   A secondary backend that handles specific API routes, demonstrating a polyglot microservice architecture.
 
-4.  **React Frontend (Vite):**
+5.  **React Frontend (Vite):**
     -   Located in `client/`.
     -   The main user-facing web application for end-users to interact with the Email Intelligence service.
 
