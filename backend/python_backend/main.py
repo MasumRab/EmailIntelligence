@@ -13,9 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-# Updated import to use NLP GmailAIService directly
-# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
-# Instead, dependencies are managed via dependency injection in the routes
+from ..plugins.plugin_manager import plugin_manager
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from ..python_nlp.smart_filters import SmartFilterManager
@@ -31,9 +29,13 @@ from .exceptions import BaseAppException
 
 # Import new components
 from .model_manager import model_manager
-from .workflow_manager import workflow_manager
 from .performance_monitor import performance_monitor
-from ..plugins.plugin_manager import plugin_manager
+from .workflow_manager import workflow_manager
+
+# Updated import to use NLP GmailAIService directly
+# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
+# Instead, dependencies are managed via dependency injection in the routes
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,24 +56,26 @@ from .database import get_db
 async def startup_event():
     """On startup, initialize all services."""
     logger.info("Application startup event received.")
-    
+
     # Initialize database first
     from .database import initialize_db
+
     await initialize_db()
-    
+
     # Initialize new components
     logger.info("Initializing model manager...")
-    model_manager.load_available_models()
-    
+    model_manager.discover_models()
+
     logger.info("Initializing workflow manager...")
     # Nothing specific needed for workflow manager initialization
-    
+
     logger.info("Initializing plugin manager...")
     plugin_manager.load_plugins()
     plugin_manager.initialize_all_plugins()
-    
+
     # Initialize other services
     from .dependencies import initialize_services
+
     await initialize_services()
 
 
@@ -82,12 +86,14 @@ async def shutdown_event():
     db = await get_db()
     await db.shutdown()
 
+
 @app.exception_handler(BaseAppException)
 async def app_exception_handler(request: Request, exc: BaseAppException):
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
     )
+
 
 # Configure CORS
 app.add_middleware(
@@ -109,8 +115,8 @@ app.add_middleware(
 
 # Set up metrics if in production or staging environment
 # if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
-    # from .metrics import setup_metrics # Removed
-    # setup_metrics(app) # Removed
+# from .metrics import setup_metrics # Removed
+# setup_metrics(app) # Removed
 
 # Services are now managed by the dependency injection system.
 
@@ -125,19 +131,23 @@ app.include_router(training_routes.router)
 
 # Include enhanced feature routers
 from .enhanced_routes import router as enhanced_router
+
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 # Include advanced workflow routes (will use node-based system)
 from .advanced_workflow_routes import router as advanced_workflow_router
+
 app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
 
 # Include node-based workflow routes
 from .node_workflow_routes import router as node_workflow_router
+
 app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
 
 # Initialize workflow manager instance (using the node-based workflow manager)
 try:
     from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+
     workflow_manager_instance = node_workflow_manager
 except ImportError:
     # Fallback if node engine is not available

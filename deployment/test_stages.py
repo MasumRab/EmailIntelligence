@@ -1,6 +1,7 @@
 """
 Test stages for the EmailIntelligence application.
 """
+
 import subprocess
 import sys
 from pathlib import Path
@@ -8,6 +9,7 @@ from pathlib import Path
 # Assuming the script is at /app/deployment/test_stages.py
 # ROOT_DIR will be /app
 ROOT_DIR = Path(__file__).resolve().parent.parent
+
 
 def get_python_executable() -> str:
     """Get the Python executable path from the venv."""
@@ -54,6 +56,7 @@ def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
 
 class TestStages:
     """Container for test stage functions."""
+
     def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
         """Runs unit tests."""
         print("\n--- Running Unit Tests ---")
@@ -88,14 +91,17 @@ class TestStages:
         print("No security tests configured. Skipping.")
         return True
 
+
 # This is the object the launcher will import and use.
 test_stages = TestStages()
 import logging
 
 logger = logging.getLogger(__name__)
 
+
 class TestStages:
     """A class to encapsulate test stage runners."""
+
     def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
         """Placeholder for running unit tests."""
         logger.info("Placeholder: Running unit tests...")
@@ -120,6 +126,7 @@ class TestStages:
         """Placeholder for running security tests."""
         logger.info("Placeholder: Running security tests...")
         return True
+
 
 # The launch script expects to import this specific object.
 test_stages = TestStages()

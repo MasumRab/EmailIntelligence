@@ -19,6 +19,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from backend.python_nlp.text_utils import clean_text
+
 from .analysis_components.intent_model import IntentModel
 from .analysis_components.sentiment_model import SentimentModel
 from .analysis_components.topic_model import TopicModel

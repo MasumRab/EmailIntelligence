@@ -12,7 +12,7 @@ from .exceptions import AIAnalysisError, DatabaseError
 from .models import EmailResponse  # Changed from .main to .models
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
-from .utils import handle_pydantic_validation, create_log_data
+from .utils import create_log_data, handle_pydantic_validation
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -168,9 +168,7 @@ async def create_email(
     try:
         ai_analysis = await ai_engine.analyze_email(email.subject, email.content, db=db)
 
-        filter_results = await filter_manager.apply_filters_to_email_data(
-            email.model_dump()
-        )
+        filter_results = await filter_manager.apply_filters_to_email_data(email.model_dump())
 
         email_data = email.model_dump()
         email_data.update(
