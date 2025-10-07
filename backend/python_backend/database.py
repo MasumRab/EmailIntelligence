@@ -9,39 +9,19 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-<<<<<<< HEAD
-from functools import partial
-from typing import Any, Dict, List, Literal, Optional
-
-from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
-=======
 from typing import Any, Dict, List, Optional, Literal
 from functools import partial
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
->>>>>>> origin/feature/git-history-analysis-report
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
-# File paths - now configurable via environment variable
-import os
-from pathlib import Path
-
-# Use a more general default that works across different deployment scenarios
-DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
-EMAIL_CONTENT_DIR = DATA_DIR / "email_content"
-EMAILS_FILE = DATA_DIR / "emails.json.gz"
-CATEGORIES_FILE = DATA_DIR / "categories.json.gz"
-USERS_FILE = DATA_DIR / "users.json.gz"
-=======
 # File paths
 DATA_DIR = "backend/data"
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
->>>>>>> origin/feature/git-history-analysis-report
 
 # Data types
 DATA_TYPE_EMAILS = 'emails'
@@ -72,8 +52,9 @@ FIELD_CATEGORY_NAME = 'categoryName'
 FIELD_CATEGORY_COLOR = 'categoryColor'
 
 class DatabaseManager:
-    """Optimized async database manager with in-memory caching, write-behind,
-    and hybrid on-demand content loading."""
+    """
+    Optimized async database manager with in-memory caching, write-behind,
+    and hybrid on-demand content loading.
 
     This class provides an asynchronous interface for all CRUD (Create, Read,
     Update, Delete) operations. It handles loading data from files into memory
@@ -90,10 +71,7 @@ class DatabaseManager:
     """
 
     def __init__(self):
-<<<<<<< HEAD
-=======
         """Initializes the DatabaseManager, setting up file paths and data caches."""
->>>>>>> origin/feature/git-history-analysis-report
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -403,10 +381,6 @@ class DatabaseManager:
         logger.info(f"Email search completed. Found {len(result_emails)} emails matching '{search_term}'.")
         return result_emails
 
-<<<<<<< HEAD
-    async def get_dashboard_stats(self) -> Dict[str, Any]:
-        """Get comprehensive dashboard statistics"""
-=======
     async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update email by messageId, handling separated content."""
         email_to_update = await self.get_email_by_message_id(message_id, include_content=True)
@@ -509,7 +483,6 @@ class DatabaseManager:
                             filtered_emails.append(email_light)
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
->>>>>>> origin/feature/git-history-analysis-report
         try:
             total_emails = len(self.emails_data)
             auto_labeled = sum(1 for email in self.emails_data if email.get('category'))
