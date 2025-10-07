@@ -127,6 +127,13 @@ app.include_router(training_routes.router)
 from .enhanced_routes import router as enhanced_router
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
+# Include advanced workflow routes
+from .advanced_workflow_routes import router as advanced_workflow_router
+app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
+
+from src.core.advanced_workflow_engine import get_workflow_manager
+workflow_manager_instance = get_workflow_manager()
+
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
