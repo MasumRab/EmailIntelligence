@@ -70,6 +70,8 @@ signal.signal(signal.SIGINT, _handle_sigint)
 signal.signal(signal.SIGTERM, _handle_sigint)
 
 
+
+
 def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
@@ -99,6 +101,8 @@ def check_python_version():
         )
         sys.exit(1)
     logger.info(f"Python version {sys.version} is compatible.")
+
+
 
 
 def get_venv_python_path() -> Path:
@@ -155,29 +159,66 @@ def install_uv(venv_path: Path):
     logger.info("uv installed successfully.")
 
 
-def setup_dependencies(venv_path: Path, update: bool = False):
-    """Install project dependencies using uv."""
+def install_poetry(venv_path: Path):
+    """Install Poetry in the virtual environment."""
     venv_python = (
         venv_path / "Scripts" / "python.exe"
         if platform.system() == "Windows"
         else venv_path / "bin" / "python"
     )
-    venv_uv = (
-        venv_path / "Scripts" / "uv.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "uv"
-    )
-
-    cmd = [str(venv_uv), "sync"]
-    if update:
-        cmd.extend(["--upgrade"])
-
-    logger.info("Installing project dependencies...")
-    result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
-    if result.returncode != 0:
-        logger.error(f"Failed to install dependencies: {result.stderr}")
+    if not venv_python.exists():
+        logger.error(f"Python executable not found at {venv_python}")
         sys.exit(1)
-    logger.info("Dependencies installed successfully.")
+
+    logger.info("Installing Poetry...")
+    result = subprocess.run(
+        [str(venv_python), "-m", "pip", "install", "poetry"],
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        logger.error(f"Failed to install Poetry: {result.stderr}")
+        sys.exit(1)
+    logger.info("Poetry installed successfully.")
+
+
+def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
+    """Install project dependencies using uv or Poetry."""
+    if use_poetry:
+        venv_poetry = (
+            venv_path / "Scripts" / "poetry.exe"
+            if platform.system() == "Windows"
+            else venv_path / "bin" / "poetry"
+        )
+
+        cmd = [str(venv_poetry), "install" if not update else "update"]
+        if not update:
+            cmd.extend(["--with", "dev"])
+
+        logger.info("Installing project dependencies with Poetry...")
+        result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"Failed to install dependencies with Poetry: {result.stderr}")
+            sys.exit(1)
+        logger.info("Dependencies installed successfully with Poetry.")
+    else:
+        venv_uv = (
+            venv_path / "Scripts" / "uv.exe"
+            if platform.system() == "Windows"
+            else venv_path / "bin" / "uv"
+        )
+
+        cmd = [str(venv_uv), "sync"]
+        if update:
+            cmd.extend(["--upgrade"])
+
+        logger.info("Installing project dependencies with uv...")
+        result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"Failed to install dependencies with uv: {result.stderr}")
+            sys.exit(1)
+        logger.info("Dependencies installed successfully with uv.")
 
 
 def download_nltk_data(venv_path: Path):
@@ -211,6 +252,24 @@ print("NLTK data download completed.")
         logger.info("NLTK data downloaded successfully.")
 
 
+def check_uvicorn_installed(venv_path: Path) -> bool:
+    """Check if uvicorn is installed in the virtual environment."""
+    venv_python = get_venv_python_path()
+    try:
+        result = subprocess.run([str(venv_python), "-c", "import uvicorn"], capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info("uvicorn is available in the virtual environment.")
+            return True
+        else:
+            logger.error("uvicorn is not installed in the virtual environment.")
+            return False
+    except FileNotFoundError:
+        logger.error("Virtual environment Python not found.")
+        return False
+
+
+
+
 def check_node_npm_installed() -> bool:
     """Check if Node.js and npm are installed and available."""
     if not shutil.which("node"):
@@ -239,6 +298,10 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
 
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
+    if not check_uvicorn_installed(venv_path):
+        logger.error("Cannot start backend without uvicorn.")
+        return None
+
     venv_python = (
         venv_path / "Scripts" / "python.exe"
         if platform.system() == "Windows"
@@ -265,6 +328,8 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     return process
 
 
+
+
 def start_gradio_ui(
     venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
 ):
@@ -282,7 +347,7 @@ def start_gradio_ui(
     if port:
         # Gradio doesn't take port as a command line param directly,
         # we'd need to modify the app to accept it
-        logger.info(f"Starting Gradio UI (on default or next available port)")
+        logger.info("Starting Gradio UI (on default or next available port)")
     else:
         logger.info("Starting Gradio UI on default port")
 
@@ -378,6 +443,9 @@ def main():
     parser.add_argument(
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
     )
+    parser.add_argument(
+        "--use-poetry", action="store_true", help="Use Poetry instead of uv for dependency management."
+    )
 
     # Service selection
     parser.add_argument(
@@ -432,8 +500,11 @@ def main():
     if args.setup or args.update_deps:
         if not args.no_venv:
             create_venv(venv_path, args.force_recreate_venv)
-            install_uv(venv_path)
-            setup_dependencies(venv_path, args.update_deps)
+            if args.use_poetry:
+                install_poetry(venv_path)
+            else:
+                install_uv(venv_path)
+            setup_dependencies(venv_path, args.update_deps, args.use_poetry)
 
         if not args.no_download_nltk:
             download_nltk_data(venv_path)
