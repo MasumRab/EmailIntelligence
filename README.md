@@ -58,14 +58,15 @@ The application is composed of five main, interconnected services:
     -   Serves the primary REST API for core application logic, data processing, and AI/NLP tasks.
     -   Manages data storage (JSON files and SQLite databases).
 
-2.  **Gradio UI:**
+2.  **Node Engine (Node-based Workflows):**
+    -   Located in `backend/node_engine/`.
+    -   Provides a modular, extensible node-based workflow system for email processing.
+    -   Features specialized nodes for email sourcing, preprocessing, AI analysis, filtering, and action execution.
+    -   Includes security and scalability features with audit logging and resource management.
+
+3.  **Gradio UI:**
     -   Located in `backend/python_backend/gradio_app.py`.
     -   Provides a rich, interactive interface for scientific development, model testing, and data visualization. Intended for developers and data scientists.
-
-3.  **Node-Based Workflow Engine:**
-    -   Located in `src/core/advanced_workflow_engine.py`.
-    -   Implements a sophisticated, extensible workflow system inspired by ComfyUI, automatic1111, and Stability-AI frameworks.
-    -   Features node-based processing architecture with dependency management, plugin extensibility, and enterprise-grade security.
 
 4.  **TypeScript Backend (Node.js):**
     -   Located in `server/`.
@@ -80,6 +81,7 @@ The application is composed of five main, interconnected services:
 ```
 .
 ├── backend/
+│   ├── node_engine/      # Node-based workflow engine and specialized email nodes
 │   ├── python_backend/   # Main Python FastAPI application and Gradio UI
 │   └── python_nlp/       # NLP-specific modules and utilities
 ├── client/               # React/Vite frontend application
@@ -133,3 +135,4 @@ Use `python3 launch.py --help` to see all available options.
 -   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
 -   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
 -   **Data Storage:** This version uses local file-based storage, primarily located in `backend/python_backend/data/`. SQLite databases (`.db` files) are created in the project root.
+-   **Node-based Workflows:** The new node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
