@@ -15,11 +15,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 load_dotenv()
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-TOKEN_JSON_PATH = os.getenv('GMAIL_TOKEN_PATH', 'token.json')
-CREDENTIALS_PATH = 'credentials.json'
-GMAIL_CREDENTIALS_ENV_VAR = 'GMAIL_CREDENTIALS_JSON'
-
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
 CREDENTIALS_PATH = "credentials.json"
@@ -53,12 +48,8 @@ class SyncCheckpoint:
 
 class SmartGmailRetriever:
 
-<<<<<<< HEAD
     def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
-=======
-    def __init__(self, checkpoint_db_path: str = "sync_checkpoints.db"):
         """Initializes the SmartGmailRetriever."""
->>>>>>> origin/feature/git-history-analysis-report
         self.logger = logging.getLogger(__name__)
         self.checkpoint_db_path = checkpoint_db_path
         self.gmail_service = None

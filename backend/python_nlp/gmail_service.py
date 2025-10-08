@@ -57,10 +57,6 @@ class GmailAIService:
 
         advanced_ai_engine: Optional["AIEngineProtocol"] = None,  # Using protocol
         db_manager: Optional["DatabaseProtocol"] = None,  # Using protocol
-    ):  # Added db_manager
-
-        advanced_ai_engine: Optional[AdvancedAIEngine] = None,
-        db_manager: Optional[DatabaseManager] = None,
     ):
         """Initializes the GmailAIService."""
 
@@ -217,13 +213,8 @@ class GmailAIService:
                 )
                 return self._get_basic_fallback_analysis_structure("Unexpected AI result type")
 
-
-            return None
-        try:
-            analysis_result = await self.advanced_ai_engine.analyze_email(email_data["subject"], email_data["content"], db=self.db_manager)
-
             self.stats["ai_analyses_completed"] += 1
-            return analysis_result.to_dict() if hasattr(analysis_result, "to_dict") else analysis_result
+            return analysis_dict
         except Exception as e:
             self.logger.error(f"AI analysis failed for email: {e}", exc_info=True)
             return None
