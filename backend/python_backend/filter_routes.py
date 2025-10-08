@@ -4,11 +4,11 @@ import aiosqlite
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from server.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .database import DatabaseManager, get_db
 from .models import FilterRequest
-from .performance_monitor import PerformanceMonitor
+from .performance_monitor import PerformanceMonitor, log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -17,7 +17,7 @@ performance_monitor = PerformanceMonitor()
 
 
 @router.get("/api/filters")
-@performance_monitor.track
+@log_performance
 async def get_filters(request: Request):
     """Get all active email filters"""
     try:
@@ -35,7 +35,7 @@ async def get_filters(request: Request):
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-@performance_monitor.track
+@log_performance
 async def create_filter(request: Request, filter_request_model: FilterRequest):
     """Create new email filter"""
     try:
@@ -60,7 +60,7 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
 
 
 @router.post("/api/filters/generate-intelligent")
-@performance_monitor.track
+@log_performance
 async def generate_intelligent_filters(request: Request, db: DatabaseManager = Depends(get_db)):
     """Generate intelligent filters based on email patterns."""
     try:
@@ -88,7 +88,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
 
 
 @router.post("/api/filters/prune")
-@performance_monitor.track
+@log_performance
 async def prune_filters(request: Request):
     """Prune ineffective filters"""
     try:

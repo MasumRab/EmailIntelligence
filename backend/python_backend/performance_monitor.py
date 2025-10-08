@@ -6,16 +6,18 @@ model usage, memory consumption, and error rates.
 """
 import time
 import threading
+import asyncio
+import json
 import psutil
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
+from functools import wraps
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
 @dataclass
 class PerformanceMetric:
     """Represents a single performance metric"""
@@ -210,7 +212,8 @@ class PerformanceMonitor:
                 "cpu_usage": cpu_metrics[-1].value if cpu_metrics else 0.0,
                 "memory_usage": memory_metrics[-1].value if memory_metrics else 0.0,
                 "disk_usage": disk_metrics[-1].value if disk_metrics else 0.0
-=======
+            }
+
 def log_performance(_func=None, *, operation: str = ""):
     """
     A decorator to log the performance of both sync and async functions.
@@ -230,38 +233,23 @@ def log_performance(_func=None, *, operation: str = ""):
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
->>>>>>> origin/feat/modular-ai-platform
             }
-            
-    def get_error_rate(self, minutes: int = 5) -> float:
-        """Get the error rate in the last specified minutes"""
-        with self._lock:
-            cutoff_time = time.time() - (minutes * 60)
-            recent_events = [
-                event for event in self._events
-                if event.start_time >= cutoff_time
-            ]
-            
-            if not recent_events:
-                return 0.0
-                
-            failed_events = [event for event in recent_events if not event.success]
-            return len(failed_events) / len(recent_events)
-            
-    def stop_monitoring(self):
-        """Stop the system resource monitoring"""
-        self._system_monitoring = False
 
+            try:
+                with open(LOG_FILE, 'a') as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
-# Global performance monitor instance
-performance_monitor = PerformanceMonitor()
+            return result
 
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = await func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
 
-<<<<<<< HEAD
-def get_performance_monitor() -> PerformanceMonitor:
-    """Get the global performance monitor instance"""
-    return performance_monitor
-=======
             log_entry = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "operation": op_name,
@@ -285,4 +273,8 @@ def get_performance_monitor() -> PerformanceMonitor:
         return decorator
     else:
         return decorator(_func)
->>>>>>> origin/feat/modular-ai-platform
+
+
+def get_performance_monitor() -> PerformanceMonitor:
+    """Get the global performance monitor instance"""
+    return performance_monitor
