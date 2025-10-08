@@ -1,19 +1,27 @@
 """
 Test module for security and scalability features of the node-based workflow system.
 """
+
 import asyncio
 from datetime import datetime
-from backend.node_engine.node_base import Workflow, Connection
+
+from backend.node_engine.email_nodes import (
+    ActionNode,
+    AIAnalysisNode,
+    EmailSourceNode,
+    FilterNode,
+    PreprocessingNode,
+)
+from backend.node_engine.node_base import Connection, Workflow
+from backend.node_engine.security_manager import (
+    ResourceLimits,
+    SecurityLevel,
+    audit_logger,
+    resource_manager,
+    security_manager,
+)
 from backend.node_engine.workflow_engine import workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager
-from backend.node_engine.email_nodes import (
-    EmailSourceNode, PreprocessingNode, AIAnalysisNode,
-    FilterNode, ActionNode
-)
-from backend.node_engine.security_manager import (
-    security_manager, audit_logger, resource_manager,
-    SecurityLevel, ResourceLimits
-)
 
 
 async def test_security_features():
@@ -31,12 +39,14 @@ async def test_security_features():
     workflow.add_node(preprocessing_node)
 
     # Connect nodes
-    workflow.add_connection(Connection(
-        source_node_id=source_node.node_id,
-        source_port="emails",
-        target_node_id=preprocessing_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=source_node.node_id,
+            source_port="emails",
+            target_node_id=preprocessing_node.node_id,
+            target_port="emails",
+        )
+    )
 
     # Test that trusted nodes can execute
     print(f"EmailSourceNode trusted: {security_manager.is_trusted_node('EmailSourceNode')}")
@@ -46,7 +56,7 @@ async def test_security_features():
     try:
         context = await workflow_engine.execute_workflow(workflow, user_id="test_user_123")
         print(f"Workflow executed with security: {context.metadata.get('status')}")
-        success = context.metadata.get('status') == 'completed'
+        success = context.metadata.get("status") == "completed"
     except Exception as e:
         print(f"Workflow execution failed: {e}")
         success = False
@@ -78,8 +88,11 @@ async def test_resource_limits():
 
     results = await asyncio.gather(*execution_tasks, return_exceptions=True)
 
-    completed_count = sum(1 for r in results if not isinstance(
-        r, Exception) and r.metadata.get('status') == 'completed')
+    completed_count = sum(
+        1
+        for r in results
+        if not isinstance(r, Exception) and r.metadata.get("status") == "completed"
+    )
     print(f"Completed workflows: {completed_count}/3")
 
     return completed_count > 0  # At least one should complete
@@ -119,8 +132,8 @@ async def test_input_sanitization():
     print(f"Sanitized output: {safe_output}")
 
     # Check that dangerous parts were removed
-    has_script = '<script' in safe_output.lower()
-    has_onerror = 'onerror' in safe_output.lower()
+    has_script = "<script" in safe_output.lower()
+    has_onerror = "onerror" in safe_output.lower()
 
     if not has_script and not has_onerror:
         print("Input sanitization working correctly")
@@ -144,12 +157,14 @@ async def test_scalability():
         wf.add_node(source)
         wf.add_node(processor)
 
-        wf.add_connection(Connection(
-            source_node_id=source.node_id,
-            source_port="emails",
-            target_node_id=processor.node_id,
-            target_port="emails"
-        ))
+        wf.add_connection(
+            Connection(
+                source_node_id=source.node_id,
+                source_port="emails",
+                target_node_id=processor.node_id,
+                target_port="emails",
+            )
+        )
 
         workflows.append(wf)
 
@@ -166,9 +181,10 @@ async def test_scalability():
     execution_time = (end_time - start_time).total_seconds()
 
     completed_count = sum(
-        1 for r in results if not isinstance(
-            r, Exception) and getattr(
-            r, 'metadata', {}).get('status') == 'completed')
+        1
+        for r in results
+        if not isinstance(r, Exception) and getattr(r, "metadata", {}).get("status") == "completed"
+    )
 
     print(f"Executed {len(workflows)} workflows concurrently")
     print(f"Completed: {completed_count}/{len(workflows)}")

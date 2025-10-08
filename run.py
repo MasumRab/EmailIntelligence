@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 """
 Development server runner for the FastAPI backend.
 
@@ -8,11 +5,7 @@ This script starts the Uvicorn server with hot-reloading enabled, making it
 suitable for development purposes. It ensures that the application reloads
 automatically when code changes are detected.
 """
-import uvicorn
 
->>>>>>> origin/feature/git-history-analysis-report
-=======
->>>>>>> origin/feat/modular-ai-platform
 import os
 import sys
 from pathlib import Path

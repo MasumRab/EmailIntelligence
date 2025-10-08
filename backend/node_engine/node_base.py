@@ -4,15 +4,17 @@ Base classes for the node-based workflow system.
 This module defines the foundational classes for creating and managing
 node-based workflows in the Email Intelligence Platform.
 """
+
+import logging
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional
-import logging
 
 
 class DataType(Enum):
     """Enum for supported data types in node connections."""
+
     EMAIL = "email"
     EMAIL_LIST = "email_list"
     TEXT = "text"
@@ -28,11 +30,8 @@ class NodePort:
     """Defines an input or output port for a node."""
 
     def __init__(
-            self,
-            name: str,
-            data_type: DataType,
-            required: bool = True,
-            description: str = ""):
+        self, name: str, data_type: DataType, required: bool = True, description: str = ""
+    ):
         self.name = name
         self.data_type = data_type
         self.required = required
@@ -45,16 +44,19 @@ class NodePort:
 class Connection:
     """Represents a connection between two nodes."""
 
-    def __init__(self, source_node_id: str, source_port: str,
-                 target_node_id: str, target_port: str):
+    def __init__(
+        self, source_node_id: str, source_port: str, target_node_id: str, target_port: str
+    ):
         self.source_node_id = source_node_id
         self.source_port = source_port
         self.target_node_id = target_node_id
         self.target_port = target_port
 
     def __repr__(self):
-        return (f"Connection({self.source_node_id}.{self.source_port} -> "
-                f"{self.target_node_id}.{self.target_port})")
+        return (
+            f"Connection({self.source_node_id}.{self.source_port} -> "
+            f"{self.target_node_id}.{self.target_port})"
+        )
 
 
 class ExecutionContext:
@@ -84,7 +86,7 @@ class ExecutionContext:
             "node_id": node_id,
             "error": error,
             "timestamp": str(self.metadata.get("start_time")),
-            "details": details or {}
+            "details": details or {},
         }
         self.errors.append(error_info)
 
@@ -133,10 +135,7 @@ class BaseNode(ABC):
         # Type validation would go here if we implement it
         # For now, we rely on run-time type checking
 
-        return {
-            "valid": len(errors) == 0,
-            "errors": errors
-        }
+        return {"valid": len(errors) == 0, "errors": errors}
 
     def set_input(self, port_name: str, value: Any):
         """Set an input value for the node."""
@@ -158,7 +157,7 @@ class BaseNode(ABC):
                     "name": port.name,
                     "type": port.data_type.value,
                     "required": port.required,
-                    "description": port.description
+                    "description": port.description,
                 }
                 for port in self.input_ports
             ],
@@ -167,10 +166,10 @@ class BaseNode(ABC):
                     "name": port.name,
                     "type": port.data_type.value,
                     "required": port.required,  # All outputs are required by definition
-                    "description": port.description
+                    "description": port.description,
                 }
                 for port in self.output_ports
-            ]
+            ],
         }
 
     def set_parent_workflow(self, workflow_id: str):
@@ -203,7 +202,8 @@ class Workflow:
             del self.nodes[node_id]
             # Remove any connections to/from this node
             self.connections = [
-                conn for conn in self.connections
+                conn
+                for conn in self.connections
                 if conn.source_node_id != node_id and conn.target_node_id != node_id
             ]
 
@@ -224,21 +224,24 @@ class Workflow:
             raise ValueError(
                 f"Source port {
                     connection.source_port} does not exist on node {
-                    connection.source_node_id}")
+                    connection.source_node_id}"
+            )
 
         target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
         if not target_port_exists:
             raise ValueError(
                 f"Target port {
                     connection.target_port} does not exist on node {
-                    connection.target_node_id}")
+                    connection.target_node_id}"
+            )
 
         self.connections.append(connection)
 
     def get_connections_for_node(self, node_id: str) -> List[Connection]:
         """Get all connections involving a specific node."""
         return [
-            conn for conn in self.connections
+            conn
+            for conn in self.connections
             if conn.source_node_id == node_id or conn.target_node_id == node_id
         ]
 
