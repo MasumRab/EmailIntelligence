@@ -92,12 +92,8 @@ class SmartFilterManager:
     of email filters, using a SQLite database for persistence.
     """
 
-<<<<<<< HEAD
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-=======
     def __init__(self, db_path: str = "smart_filters.db"):
         """Initializes the SmartFilterManager."""
->>>>>>> origin/feature/git-history-analysis-report
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None

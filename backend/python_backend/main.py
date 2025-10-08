@@ -13,10 +13,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # Updated import to use NLP GmailAIService directly
-from server.python_nlp.gmail_service import GmailAIService
+from backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from server.python_nlp.smart_filters import SmartFilterManager
+from backend.python_nlp.smart_filters import SmartFilterManager
 
 from . import (
     action_routes,

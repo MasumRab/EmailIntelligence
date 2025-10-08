@@ -7,7 +7,7 @@ from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
-from .database import db_manager, DatabaseManager
+from .database import DatabaseManager
 from .main import app
 from .models import (
     ActivityCreate,
@@ -30,7 +30,6 @@ __version__ = "2.0.0"
 __all__ = [
     "app",
     "DatabaseManager",
-    "db_manager",
     "EmailCreate",
     "EmailUpdate",
     "EmailResponse",

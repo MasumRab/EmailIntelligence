@@ -162,22 +162,8 @@ async def create_email(
             )
             if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
-<<<<<<< HEAD
-            raise # Re-raise for FastAPI to handle
-    except Exception as db_err:
-<<<<<<< HEAD
-=======
             raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
->>>>>>> origin/feature/git-history-analysis-report
-        log_data = {
-            "message": "Database operation failed while creating email",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": None,
-        }
-=======
+    except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while creating email",
             request_url=request.url,
