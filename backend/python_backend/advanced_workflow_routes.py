@@ -14,7 +14,7 @@ from pydantic import BaseModel
 # Use the new node-based workflow system instead of non-existent src.core module
 from backend.node_engine.node_base import Connection
 from backend.node_engine.node_base import Workflow as AdvancedWorkflow
-from backend.node_engine.workflow_manager import workflow_manager as get_workflow_manager
+from backend.node_engine.workflow_manager import workflow_manager
 
 from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
@@ -42,25 +42,12 @@ class WorkflowExecutionResult:
 # Try to import security features from the new node-based system
 try:
     from backend.node_engine.security_manager import SecurityLevel
-    from backend.node_engine.security_manager import security_manager as get_security_manager
 
     SecurityContext = None  # Use None as there isn't a direct equivalent yet
     security_available = True
 except ImportError:
     security_available = False
     SecurityContext = None
-
-
-# Security dependency
-async def get_security_context(request: Request) -> Optional[SecurityContext]:
-    """Extract and validate security context from request"""
-    if not security_available:
-        return None
-
-    security_manager = get_security_manager()
-    # For now, return a simple placeholder since the exact interface might differ
-    # In the new system, we'll just return a simple indicator that security is available
-    return SecurityContext if SecurityContext is not None else None
 
 
 router = APIRouter()
@@ -101,8 +88,6 @@ class ExecuteWorkflowResponse(BaseModel):
 @router.post("/advanced/workflows", response_model=AdvancedWorkflowResponse)
 async def create_advanced_workflow(request: AdvancedWorkflowCreateRequest):
     """Create a new advanced node-based workflow."""
-    workflow_manager = get_workflow_manager()
-
     try:
         # Create workflow using the new node engine
         workflow = AdvancedWorkflow(name=request.name, description=request.description)
@@ -231,7 +216,6 @@ async def delete_advanced_workflow(workflow_id: str):
 async def execute_advanced_workflow(
     workflow_id: str,
     request: ExecuteWorkflowRequest,
-    security_context: SecurityContext = Depends(get_security_context),
 ):
     """Execute an advanced workflow with provided inputs."""
     # Use the new node engine's workflow execution system
@@ -272,7 +256,6 @@ async def execute_advanced_workflow(
 @router.get("/advanced/nodes", response_model=List[str])
 async def get_available_nodes():
     """Get list of available node types."""
-    workflow_manager = get_workflow_manager()
     return workflow_manager.get_registered_node_types()
 
 
