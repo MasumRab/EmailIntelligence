@@ -4,22 +4,24 @@ Comprehensive Integration Test for the Node-Based Email Intelligence Platform.
 This test validates the complete architecture including core functionality,
 security features, scalability, and workflow management.
 """
+
 import asyncio
 import os
 import shutil
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
-from backend.node_engine.node_base import Workflow, Connection
+from backend.node_engine.email_nodes import (
+    ActionNode,
+    AIAnalysisNode,
+    EmailSourceNode,
+    FilterNode,
+    PreprocessingNode,
+)
+from backend.node_engine.node_base import Connection, Workflow
+from backend.node_engine.security_manager import audit_logger, resource_manager, security_manager
 from backend.node_engine.workflow_engine import workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager
-from backend.node_engine.email_nodes import (
-    EmailSourceNode, PreprocessingNode, AIAnalysisNode,
-    FilterNode, ActionNode
-)
-from backend.node_engine.security_manager import (
-    security_manager, audit_logger, resource_manager
-)
 
 
 async def test_complete_email_workflow():
@@ -29,35 +31,27 @@ async def test_complete_email_workflow():
     # Create a comprehensive workflow
     workflow = Workflow(
         name="Complete Email Processing Pipeline",
-        description="Full pipeline: source → preprocess → analyze → filter → act"
+        description="Full pipeline: source → preprocess → analyze → filter → act",
     )
 
     # Create all nodes
     source_node = EmailSourceNode(
-        name="Gmail Source",
-        config={"provider": "gmail", "max_emails": 10}
+        name="Gmail Source", config={"provider": "gmail", "max_emails": 10}
     )
     preprocessing_node = PreprocessingNode(
-        name="Email Preprocessor",
-        config={"remove_html": True, "normalize_text": True}
+        name="Email Preprocessor", config={"remove_html": True, "normalize_text": True}
     )
-    analysis_node = AIAnalysisNode(
-        name="AI Analyzer",
-        config={"model": "default"}
-    )
+    analysis_node = AIAnalysisNode(name="AI Analyzer", config={"model": "default"})
     filter_node = FilterNode(
         name="Priority Filter",
         config={
             "criteria": {
                 "required_keywords": ["urgent", "important", "asap"],
-                "excluded_senders": ["noreply@spam.com"]
+                "excluded_senders": ["noreply@spam.com"],
             }
-        }
+        },
     )
-    action_node = ActionNode(
-        name="Action Executor",
-        config={"auto_respond": True}
-    )
+    action_node = ActionNode(name="Action Executor", config={"auto_respond": True})
 
     # Add nodes to workflow
     workflow.add_node(source_node)
@@ -68,57 +62,67 @@ async def test_complete_email_workflow():
 
     # Create connections following the processing flow
     # source -> preprocessing
-    workflow.add_connection(Connection(
-        source_node_id=source_node.node_id,
-        source_port="emails",
-        target_node_id=preprocessing_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=source_node.node_id,
+            source_port="emails",
+            target_node_id=preprocessing_node.node_id,
+            target_port="emails",
+        )
+    )
 
     # preprocessing -> analysis
-    workflow.add_connection(Connection(
-        source_node_id=preprocessing_node.node_id,
-        source_port="processed_emails",
-        target_node_id=analysis_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=preprocessing_node.node_id,
+            source_port="processed_emails",
+            target_node_id=analysis_node.node_id,
+            target_port="emails",
+        )
+    )
 
     # analysis -> filter
-    workflow.add_connection(Connection(
-        source_node_id=analysis_node.node_id,
-        source_port="analysis_results",
-        target_node_id=filter_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=analysis_node.node_id,
+            source_port="analysis_results",
+            target_node_id=filter_node.node_id,
+            target_port="emails",
+        )
+    )
 
     # filter -> action
-    workflow.add_connection(Connection(
-        source_node_id=filter_node.node_id,
-        source_port="filtered_emails",
-        target_node_id=action_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=filter_node.node_id,
+            source_port="filtered_emails",
+            target_node_id=action_node.node_id,
+            target_port="emails",
+        )
+    )
 
     # Also connect analysis results to action as "actions" (for demo purposes)
-    workflow.add_connection(Connection(
-        source_node_id=analysis_node.node_id,
-        source_port="summary",
-        target_node_id=action_node.node_id,
-        target_port="actions"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=analysis_node.node_id,
+            source_port="summary",
+            target_node_id=action_node.node_id,
+            target_port="actions",
+        )
+    )
 
-    print(f"Created workflow with {len(workflow.nodes)} nodes and {
-          len(workflow.connections)} connections")
+    print(
+        f"Created workflow with {len(workflow.nodes)} nodes and {
+          len(workflow.connections)} connections"
+    )
 
     # Execute with security context
     try:
         context = await workflow_engine.execute_workflow(
-            workflow,
-            initial_inputs={"max_emails": 5},
-            user_id="integration_tester"
+            workflow, initial_inputs={"max_emails": 5}, user_id="integration_tester"
         )
 
-        success = context.metadata.get('status') == 'completed'
+        success = context.metadata.get("status") == "completed"
         print(f"Complete workflow execution: {context.metadata.get('status')}")
         print(f"Execution path: {context.execution_path}")
         print(f"Execution time: {context.metadata.get('execution_duration', 0):.2f}s")
@@ -164,8 +168,10 @@ async def test_workflow_persistence_and_reuse():
 
     # Execute the loaded workflow
     try:
-        context = await workflow_engine.execute_workflow(loaded_workflow, user_id="persistence_tester")
-        success = context.metadata.get('status') == 'completed'
+        context = await workflow_engine.execute_workflow(
+            loaded_workflow, user_id="persistence_tester"
+        )
+        success = context.metadata.get("status") == "completed"
         print(f"Loaded workflow execution: {context.metadata.get('status')}")
         return success
     except Exception as e:
@@ -193,17 +199,19 @@ async def test_security_enforcement():
     workflow.add_node(source_node)
     workflow.add_node(proc_node)
 
-    workflow.add_connection(Connection(
-        source_node_id=source_node.node_id,
-        source_port="emails",
-        target_node_id=proc_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=source_node.node_id,
+            source_port="emails",
+            target_node_id=proc_node.node_id,
+            target_port="emails",
+        )
+    )
 
     # Test execution with user context
     try:
         context = await workflow_engine.execute_workflow(workflow, user_id="security_test_user")
-        success = context.metadata.get('status') == 'completed'
+        success = context.metadata.get("status") == "completed"
         print(f"Security enforcement test: {context.metadata.get('status')}")
 
         # Check that audit logs were created
@@ -231,12 +239,14 @@ async def test_concurrent_workflows():
         wf.add_node(source)
         wf.add_node(proc)
 
-        wf.add_connection(Connection(
-            source_node_id=source.node_id,
-            source_port="emails",
-            target_node_id=proc.node_id,
-            target_port="emails"
-        ))
+        wf.add_connection(
+            Connection(
+                source_node_id=source.node_id,
+                source_port="emails",
+                target_node_id=proc.node_id,
+                target_port="emails",
+            )
+        )
 
         workflows.append(wf)
 
@@ -261,7 +271,7 @@ async def test_concurrent_workflows():
         if isinstance(result, Exception):
             print(f"Workflow failed with exception: {result}")
             errors += 1
-        elif result and result.metadata.get('status') == 'completed':
+        elif result and result.metadata.get("status") == "completed":
             successful += 1
         else:
             errors += 1
@@ -292,7 +302,7 @@ async def test_resource_management():
     for i, wf in enumerate(workflows):
         try:
             result = await workflow_engine.execute_workflow(wf, user_id=f"resource_user_{i}")
-            execution_results.append(result.metadata.get('status') == 'completed')
+            execution_results.append(result.metadata.get("status") == "completed")
         except Exception as e:
             print(f"Resource test workflow {i} failed: {e}")
             execution_results.append(False)
@@ -353,8 +363,9 @@ async def cleanup_test_artifacts():
     workflow_dir = "data/workflows"
     if os.path.exists(workflow_dir):
         for file in os.listdir(workflow_dir):
-            if file.startswith("test_") or "temp" in file or len(
-                    file) > 20:  # Heuristic for test files
+            if (
+                file.startswith("test_") or "temp" in file or len(file) > 20
+            ):  # Heuristic for test files
                 try:
                     os.remove(os.path.join(workflow_dir, file))
                     print(f"Removed test file: {file}")
@@ -370,7 +381,9 @@ if __name__ == "__main__":
         asyncio.run(cleanup_test_artifacts())
 
         if result:
-            print("\nSUCCESS: All integration tests passed! The node-based email intelligence platform is working correctly.")
+            print(
+                "\nSUCCESS: All integration tests passed! The node-based email intelligence platform is working correctly."
+            )
         else:
             print("\nFAILURE: Some integration tests failed. Please check the implementation.")
     except Exception as e:

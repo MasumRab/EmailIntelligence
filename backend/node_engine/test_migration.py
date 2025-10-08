@@ -1,12 +1,14 @@
 """
 Test module for workflow migration utilities.
 """
+
 import asyncio
+
 from backend.node_engine.migration_utils import (
-    migrate_legacy_workflow,
-    get_migration_report,
+    WorkflowMigrationManager,
     generate_migration_plan,
-    WorkflowMigrationManager
+    get_migration_report,
+    migrate_legacy_workflow,
 )
 
 
@@ -18,10 +20,7 @@ def test_migration_utilities():
     legacy_config = {
         "name": "Sample Legacy Workflow",
         "description": "A sample workflow for testing migration",
-        "models": {
-            "sentiment": "sentiment-default",
-            "topic": "topic-default"
-        }
+        "models": {"sentiment": "sentiment-default", "topic": "topic-default"},
     }
 
     print(f"Legacy config: {legacy_config}")
@@ -51,7 +50,8 @@ def test_migration_utilities():
         # Print connection information
         for conn in node_workflow.connections:
             print(
-                f"  - Connection: {conn.source_node_id}:{conn.source_port} -> {conn.target_node_id}:{conn.target_port}")
+                f"  - Connection: {conn.source_node_id}:{conn.source_port} -> {conn.target_node_id}:{conn.target_port}"
+            )
 
         print("[PASS] Migration test passed!")
         return True
@@ -71,10 +71,7 @@ def test_migration_manager():
     legacy_config = {
         "name": "Manager Test Workflow",
         "description": "Testing migration manager",
-        "models": {
-            "sentiment": "test-sentiment",
-            "topic": "test-topic"
-        }
+        "models": {"sentiment": "test-sentiment", "topic": "test-topic"},
     }
 
     try:

@@ -3,15 +3,20 @@ Test module for the node-based workflow system.
 
 This module contains tests to verify that the node system works as expected.
 """
+
 import asyncio
 import json
+
+from backend.node_engine.email_nodes import (
+    ActionNode,
+    AIAnalysisNode,
+    EmailSourceNode,
+    FilterNode,
+    PreprocessingNode,
+)
 from backend.node_engine.node_base import Workflow
 from backend.node_engine.workflow_engine import workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager
-from backend.node_engine.email_nodes import (
-    EmailSourceNode, PreprocessingNode, AIAnalysisNode,
-    FilterNode, ActionNode
-)
 
 
 async def test_basic_workflow():
@@ -31,19 +36,23 @@ async def test_basic_workflow():
     workflow.add_node(analysis_node)
 
     # Connect nodes
-    workflow.add_connection(Connection(
-        source_node_id=source_node.node_id,
-        source_port="emails",
-        target_node_id=preprocessing_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=source_node.node_id,
+            source_port="emails",
+            target_node_id=preprocessing_node.node_id,
+            target_port="emails",
+        )
+    )
 
-    workflow.add_connection(Connection(
-        source_node_id=preprocessing_node.node_id,
-        source_port="processed_emails",
-        target_node_id=analysis_node.node_id,
-        target_port="emails"
-    ))
+    workflow.add_connection(
+        Connection(
+            source_node_id=preprocessing_node.node_id,
+            source_port="processed_emails",
+            target_node_id=analysis_node.node_id,
+            target_port="emails",
+        )
+    )
 
     # Execute workflow
     context = await workflow_engine.execute_workflow(workflow)
@@ -52,7 +61,7 @@ async def test_basic_workflow():
     print(f"Execution path: {context.execution_path}")
     print(f"Errors: {len(context.errors)}")
 
-    return context.metadata.get('status') == 'completed'
+    return context.metadata.get("status") == "completed"
 
 
 async def test_sample_workflow():
@@ -72,7 +81,7 @@ async def test_sample_workflow():
     print(f"Execution path: {context.execution_path}")
     print(f"Errors: {len(context.errors)}")
 
-    return context.metadata.get('status') == 'completed'
+    return context.metadata.get("status") == "completed"
 
 
 async def test_workflow_persistence():
@@ -95,7 +104,7 @@ async def test_workflow_persistence():
         context = await workflow_engine.execute_workflow(loaded_workflow)
         print(f"Loaded workflow executed with status: {context.metadata.get('status')}")
 
-        return context.metadata.get('status') == 'completed'
+        return context.metadata.get("status") == "completed"
     else:
         print("Failed to load workflow")
         return False
@@ -111,7 +120,7 @@ async def test_node_types():
         "PreprocessingNode",
         "AIAnalysisNode",
         "FilterNode",
-        "ActionNode"
+        "ActionNode",
     ]
 
     print(f"Registered node types: {registered_types}")
