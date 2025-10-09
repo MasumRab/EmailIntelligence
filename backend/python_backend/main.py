@@ -169,7 +169,7 @@ async def health_check(request: Request):
             "timestamp": datetime.now().isoformat(),
             "version": "2.0.0",
         }
-    except Exception as e:  # This generic exception is fine for health check's own error
+    except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
         logger.error(  # Simple log for health check itself
             json.dumps(
                 {
