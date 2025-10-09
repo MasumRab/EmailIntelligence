@@ -4,6 +4,7 @@ Security Framework for Email Intelligence Platform
 Implements enterprise-grade security features for the node-based workflow system,
 including access controls, data sanitization, execution sandboxing, and audit logging.
 """
+
 import asyncio
 import hashlib
 import hmac
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class SecurityLevel(Enum):
     """Security levels for different operations and data access"""
+
     PUBLIC = "public"
     INTERNAL = "internal"
     CONFIDENTIAL = "confidential"
@@ -30,6 +32,7 @@ class SecurityLevel(Enum):
 
 class Permission(Enum):
     """Permission types for fine-grained access control"""
+
     READ = "read"
     WRITE = "write"
     EXECUTE = "execute"
@@ -39,6 +42,7 @@ class Permission(Enum):
 @dataclass
 class SecurityContext:
     """Holds security information for an execution context"""
+
     user_id: str
     permissions: List[Permission]
     security_level: SecurityLevel
@@ -52,7 +56,7 @@ class SecurityContext:
 
 class SecurityValidator:
     """Validates security requirements for operations"""
-    
+
     @staticmethod
     def validate_access(context: SecurityContext, resource: str, permission: Permission) -> bool:
         """
@@ -60,38 +64,38 @@ class SecurityValidator:
         """
         if permission not in context.permissions:
             return False
-        
+
         # Check if resource is in allowed resources
         if context.allowed_resources and resource not in context.allowed_resources:
             return False
-        
+
         # Check expiration
         if time.time() > context.expires_at:
             return False
-        
+
         return True
-    
+
     @staticmethod
     def validate_data_access(context: SecurityContext, data: Dict[str, Any]) -> bool:
         """
         Validate if the security context can access the provided data
         """
         # Check for sensitive fields in the data
-        sensitive_fields = ['password', 'token', 'key', 'secret', 'auth']
-        
+        sensitive_fields = ["password", "token", "key", "secret", "auth"]
+
         for key in data.keys():
             if any(sensitive in key.lower() for sensitive in sensitive_fields):
                 # For sensitive data, check for elevated permissions
                 if Permission.ADMIN not in context.permissions:
                     logger.warning(f"Access denied to sensitive field: {key}")
                     return False
-        
+
         return True
 
 
 class DataSanitizer:
     """Sanitizes data to prevent injection and other security issues"""
-    
+
     @staticmethod
     def sanitize_input(data: Any) -> Any:
         """
@@ -99,18 +103,20 @@ class DataSanitizer:
         """
         if isinstance(data, str):
             # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace('<script', '&lt;script').replace('javascript:', 'javascript-')
+            sanitized = data.replace("<script", "&lt;script").replace("javascript:", "javascript-")
             return sanitized
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
-                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(value)
+                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(
+                    value
+                )
             return sanitized_dict
         elif isinstance(data, list):
             return [DataSanitizer.sanitize_input(item) for item in data]
         else:
             return data
-    
+
     @staticmethod
     def sanitize_output(data: Any) -> Any:
         """
@@ -118,14 +124,18 @@ class DataSanitizer:
         """
         if isinstance(data, str):
             # Remove potential secrets from strings
-            sanitized = data.replace('password:', 'password: [REDACTED]').replace('token:', 'token: [REDACTED]')
+            sanitized = data.replace("password:", "password: [REDACTED]").replace(
+                "token:", "token: [REDACTED]"
+            )
             return sanitized
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
                 # Redact sensitive fields
-                if any(sensitive in key.lower() for sensitive in ['password', 'token', 'key', 'secret']):
-                    sanitized_dict[key] = '[REDACTED]'
+                if any(
+                    sensitive in key.lower() for sensitive in ["password", "token", "key", "secret"]
+                ):
+                    sanitized_dict[key] = "[REDACTED]"
                 else:
                     sanitized_dict[key] = DataSanitizer.sanitize_output(value)
             return sanitized_dict
@@ -137,12 +147,18 @@ class DataSanitizer:
 
 class AuditLogger:
     """Logs security-related events for audit purposes"""
-    
+
     def __init__(self):
         self.logger = logging.getLogger("security.audit")
-    
-    def log_access_attempt(self, context: SecurityContext, resource: str, 
-                          permission: Permission, success: bool, details: str = ""):
+
+    def log_access_attempt(
+        self,
+        context: SecurityContext,
+        resource: str,
+        permission: Permission,
+        success: bool,
+        details: str = "",
+    ):
         """Log an access attempt to a resource"""
         log_entry = {
             "timestamp": time.time(),
@@ -152,12 +168,17 @@ class AuditLogger:
             "permission": permission.value,
             "success": success,
             "ip_address": context.ip_address,
-            "details": details
+            "details": details,
         }
         self.logger.info(f"ACCESS_ATTEMPT: {json.dumps(log_entry)}")
-    
-    def log_execution(self, context: SecurityContext, node_type: str, 
-                     inputs: Dict[str, Any], outputs: Dict[str, Any]):
+
+    def log_execution(
+        self,
+        context: SecurityContext,
+        node_type: str,
+        inputs: Dict[str, Any],
+        outputs: Dict[str, Any],
+    ):
         """Log a node execution for audit purposes"""
         log_entry = {
             "timestamp": time.time(),
@@ -166,10 +187,10 @@ class AuditLogger:
             "node_type": node_type,
             "execution_id": str(uuid4()),
             "ip_address": context.ip_address,
-            "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown"
+            "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
         }
         self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
-    
+
     def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
         """Log a security violation"""
         log_entry = {
@@ -178,18 +199,18 @@ class AuditLogger:
             "session_token": context.session_token,
             "violation_type": violation_type,
             "details": details,
-            "ip_address": context.ip_address
+            "ip_address": context.ip_address,
         }
         self.logger.warning(f"SECURITY_VIOLATION: {json.dumps(log_entry)}")
 
 
 class ExecutionSandbox:
     """Provides a secure execution environment for nodes"""
-    
+
     def __init__(self, context: SecurityContext):
         self.context = context
         self.audit_logger = AuditLogger()
-    
+
     async def execute_with_security(self, execute_func, *args, **kwargs):
         """
         Execute a function with security checks and monitoring
@@ -197,38 +218,36 @@ class ExecutionSandbox:
         # Log the execution attempt
         self.audit_logger.log_execution(
             context=self.context,
-            node_type=execute_func.__name__ if hasattr(execute_func, '__name__') else 'unknown',
+            node_type=execute_func.__name__ if hasattr(execute_func, "__name__") else "unknown",
             inputs=kwargs,
-            outputs={}
+            outputs={},
         )
-        
+
         # Perform security checks
         if time.time() > self.context.expires_at:
             self.audit_logger.log_security_violation(
                 self.context,
                 "EXPIRED_SESSION",
-                f"Attempted execution with expired session (expired at {self.context.expires_at})"
+                f"Attempted execution with expired session (expired at {self.context.expires_at})",
             )
             raise PermissionError("Session has expired")
-        
+
         # Sanitize inputs
         sanitized_args = [DataSanitizer.sanitize_input(arg) for arg in args]
         sanitized_kwargs = {k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()}
-        
+
         try:
             # Execute the function in a controlled environment
             result = await execute_func(*sanitized_args, **sanitized_kwargs)
-            
+
             # Sanitize outputs
             sanitized_result = DataSanitizer.sanitize_output(result)
-            
+
             return sanitized_result
-            
+
         except Exception as e:
             self.audit_logger.log_security_violation(
-                self.context,
-                "EXECUTION_ERROR",
-                f"Error during execution: {str(e)}"
+                self.context, "EXECUTION_ERROR", f"Error during execution: {str(e)}"
             )
             raise
 
@@ -237,14 +256,14 @@ class SecurityManager:
     """
     Centralized security manager for the Email Intelligence Platform
     """
-    
+
     def __init__(self):
         self.validator = SecurityValidator()
         self.sanitizer = DataSanitizer()
         self.audit_logger = AuditLogger()
         self.active_sessions: Dict[str, SecurityContext] = {}
         self.secret_key = secrets.token_urlsafe(32)  # In production, load from secure storage
-    
+
     def create_session(
         self,
         user_id: str,
@@ -253,11 +272,11 @@ class SecurityManager:
         allowed_resources: Optional[List[str]] = None,
         duration_hours: float = 8.0,
         ip_address: Optional[str] = None,
-        origin: Optional[str] = None
+        origin: Optional[str] = None,
     ) -> SecurityContext:
         """Create a new security session"""
         session_token = secrets.token_urlsafe(32)
-        
+
         context = SecurityContext(
             user_id=user_id,
             permissions=permissions,
@@ -267,98 +286,95 @@ class SecurityManager:
             expires_at=time.time() + (duration_hours * 3600),
             allowed_resources=allowed_resources or [],
             ip_address=ip_address,
-            origin=origin
+            origin=origin,
         )
-        
+
         self.active_sessions[session_token] = context
         return context
-    
+
     def validate_session(self, session_token: str) -> Optional[SecurityContext]:
         """Validate a session token and return the context"""
         if session_token not in self.active_sessions:
             return None
-        
+
         context = self.active_sessions[session_token]
-        
+
         if time.time() > context.expires_at:
             # Clean up expired session
             del self.active_sessions[session_token]
             return None
-        
+
         return context
-    
+
     def generate_signed_token(self, data: Dict[str, Any]) -> str:
         """Generate a signed token for secure data transmission"""
-        json_data = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        json_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
         signature = hmac.new(
-            self.secret_key.encode(),
-            json_data.encode(),
-            hashlib.sha256
+            self.secret_key.encode(), json_data.encode(), hashlib.sha256
         ).hexdigest()
         return f"{json_data}.{signature}"
-    
+
     def verify_signed_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Verify a signed token and return the data"""
-        if '.' not in token:
+        if "." not in token:
             return None
-        
+
         try:
-            json_part, signature_part = token.rsplit('.', 1)
+            json_part, signature_part = token.rsplit(".", 1)
             expected_signature = hmac.new(
-                self.secret_key.encode(),
-                json_part.encode(),
-                hashlib.sha256
+                self.secret_key.encode(), json_part.encode(), hashlib.sha256
             ).hexdigest()
-            
+
             if not hmac.compare_digest(expected_signature, signature_part):
                 return None
-            
+
             return json.loads(json_part)
         except (json.JSONDecodeError, ValueError):
             return None
-    
+
     def cleanup_expired_sessions(self):
         """Remove expired sessions from memory"""
         current_time = time.time()
         expired_tokens = [
-            token for token, context in self.active_sessions.items()
+            token
+            for token, context in self.active_sessions.items()
             if current_time > context.expires_at
         ]
-        
+
         for token in expired_tokens:
             del self.active_sessions[token]
-        
+
         if expired_tokens:
             logger.info(f"Cleaned up {len(expired_tokens)} expired sessions")
-    
+
     async def secure_execute_node(
-        self,
-        session_token: str,
-        node_type: str,
-        inputs: Dict[str, Any],
-        execute_func
+        self, session_token: str, node_type: str, inputs: Dict[str, Any], execute_func
     ) -> Dict[str, Any]:
         """Securely execute a node with full security checks"""
         context = self.validate_session(session_token)
         if not context:
             raise PermissionError("Invalid or expired session")
-        
+
         # Validate access to execute this node type
         if not self.validator.validate_access(context, node_type, Permission.EXECUTE):
             self.audit_logger.log_access_attempt(
-                context, node_type, Permission.EXECUTE, False,
-                "Insufficient permissions to execute node"
+                context,
+                node_type,
+                Permission.EXECUTE,
+                False,
+                "Insufficient permissions to execute node",
             )
             raise PermissionError(f"Insufficient permissions to execute {node_type}")
-        
+
         # Validate data access
         if not self.validator.validate_data_access(context, inputs):
             self.audit_logger.log_security_violation(
-                context, "DATA_ACCESS_VIOLATION",
-                f"Attempted to access sensitive data through {node_type}"
+                context,
+                "DATA_ACCESS_VIOLATION",
+                f"Attempted to access sensitive data through {node_type}",
             )
             raise PermissionError("Attempted to access sensitive data")
-        
+
         # Create sandbox and execute
         sandbox = ExecutionSandbox(context)
         return await sandbox.execute_with_security(execute_func, **inputs)
@@ -379,5 +395,5 @@ def create_default_security_context() -> SecurityContext:
         user_id="system",
         permissions=[Permission.READ, Permission.WRITE, Permission.EXECUTE],
         security_level=SecurityLevel.INTERNAL,
-        allowed_resources=["*"]
+        allowed_resources=["*"],
     )

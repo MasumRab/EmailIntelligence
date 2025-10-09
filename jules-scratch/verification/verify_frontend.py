@@ -1,4 +1,5 @@
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import expect, sync_playwright
+
 
 def run_verification():
     with sync_playwright() as p:
@@ -11,6 +12,7 @@ def run_verification():
 
         # Capture failed network requests
         failed_requests = []
+
         def handle_response(response):
             if not response.ok:
                 failed_requests.append(f"URL: {response.url}, Status: {response.status}")
@@ -23,7 +25,7 @@ def run_verification():
 
             # Since the page isn't loading fully, we can't wait for a specific element.
             # Instead, we'll just wait for a short period to allow network requests to be made.
-            page.wait_for_timeout(5000) # Wait 5 seconds
+            page.wait_for_timeout(5000)  # Wait 5 seconds
 
             # Take a screenshot of whatever has loaded.
             screenshot_path = "jules-scratch/verification/verification.png"
@@ -43,6 +45,7 @@ def run_verification():
                 for req in failed_requests:
                     print(req)
             browser.close()
+
 
 if __name__ == "__main__":
     run_verification()

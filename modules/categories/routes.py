@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 # Updated imports to use the new core framework components
 from src.core.database import DatabaseManager, get_db
 from src.core.exceptions import DatabaseError
-from src.core.performance_monitor import log_performance
 from src.core.models import CategoryCreate, CategoryResponse
+from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
