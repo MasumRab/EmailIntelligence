@@ -3,8 +3,13 @@ Test for the updated InputSanitizer with proper HTML sanitization.
 """
 import sys
 import os
+from pathlib import Path
+
 # Add the project root to the path so we can import backend modules
-sys.path.insert(0, os.path.abspath('.'))
+# Use __file__ to determine the script's location and calculate the project root dynamically
+script_dir = Path(__file__).resolve().parent
+project_root = script_dir.parent.parent  # Go up to main project directory from backend/node_engine/
+sys.path.insert(0, str(project_root))
 
 
 def test_input_sanitizer():
