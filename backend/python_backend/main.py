@@ -20,6 +20,7 @@ from backend.python_nlp.smart_filters import SmartFilterManager
 
 from . import (
     action_routes,
+    ai_routes,
     category_routes,
     dashboard_routes,
     email_routes,
@@ -95,6 +96,7 @@ app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
 app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
+app.include_router(ai_routes.router)
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models

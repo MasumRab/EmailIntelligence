@@ -3,22 +3,23 @@ version: '3.8'
 services:
   backend:
     build:
-      context: .. # Assuming context is the parent directory of 'deployment'
+      context: ../
       dockerfile: deployment/Dockerfile.backend
-      target: development # Default target stage
-    depends_on: # Keep depends_on key, but remove postgres
-      # postgres: # Removed as backend will use SQLite
-      #   condition: service_healthy # Removed
-    environment:
-      # - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/emailintelligence # Commented out for SQLite
-      # Other common environment variables can be added here
+    ports:
+      - "8000:8000"
     volumes:
-      - ../server:/app/server
-      - ../shared:/app/shared
+      - ./backend:/app/backend
+      - ./models:/app/models
+    environment:
+      - PORT=8000
+      - NLP_MODEL_DIR=/app/models
+    # Add other environment variables as needed
 
-volumes:
-  # postgres_data: # Removed as the postgres service is removed
-
-networks:
-  default:
-    driver: bridge
+  frontend:
+    build:
+      context: ../
+      dockerfile: deployment/Dockerfile.frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
