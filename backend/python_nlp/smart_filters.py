@@ -41,6 +41,7 @@ class EmailFilter:
         false_positive_rate: The calculated false positive rate for the filter.
         performance_metrics: A dictionary of detailed performance metrics.
     """
+
     filter_id: str
     name: str
     description: str
@@ -72,6 +73,7 @@ class FilterPerformance:
         false_positives: The count of false positive matches.
         false_negatives: The count of false negative matches.
     """
+
     filter_id: str
     accuracy: float
     precision: float
@@ -183,8 +185,18 @@ class SmartFilterManager:
     def _load_filter_templates(self) -> Dict[str, Dict[str, Any]]:
         """Loads a set of predefined filter templates."""
         return {
-            "high_priority_work": {"criteria": {"subject_keywords": ["urgent", "important"]}, "actions": {"mark_important": True}, "priority": 9, "description": "High priority work"},
-            "financial_documents": {"criteria": {"subject_keywords": ["invoice", "statement"]}, "actions": {"add_label": "Finance"}, "priority": 7, "description": "Financial documents"},
+            "high_priority_work": {
+                "criteria": {"subject_keywords": ["urgent", "important"]},
+                "actions": {"mark_important": True},
+                "priority": 9,
+                "description": "High priority work",
+            },
+            "financial_documents": {
+                "criteria": {"subject_keywords": ["invoice", "statement"]},
+                "actions": {"add_label": "Finance"},
+                "priority": 7,
+                "description": "Financial documents",
+            },
         }
 
     def _load_pruning_criteria(self) -> Dict[str, Any]:
@@ -258,13 +270,33 @@ class SmartFilterManager:
 
     def _create_filter_from_template(self, name: str, template: Dict[str, Any]) -> EmailFilter:
         """Creates an EmailFilter object from a template."""
-        return EmailFilter(f"template_{name}", name, template["description"], template["criteria"], template["actions"], template["priority"], 0.0, datetime.now(), datetime.now(), 0, 0.0, {})
+        return EmailFilter(
+            f"template_{name}",
+            name,
+            template["description"],
+            template["criteria"],
+            template["actions"],
+            template["priority"],
+            0.0,
+            datetime.now(),
+            datetime.now(),
+            0,
+            0.0,
+            {},
+        )
 
     def _create_custom_filters(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
         """Creates custom filters based on frequently observed patterns."""
         return []  # Simplified
 
-    def add_custom_filter(self, name: str, description: str, criteria: Dict[str, Any], actions: Dict[str, Any], priority: int) -> EmailFilter:
+    def add_custom_filter(
+        self,
+        name: str,
+        description: str,
+        criteria: Dict[str, Any],
+        actions: Dict[str, Any],
+        priority: int,
+    ) -> EmailFilter:
         """
         Adds a new user-defined filter to the system.
 
@@ -279,7 +311,20 @@ class SmartFilterManager:
             The newly created `EmailFilter` object.
         """
         filter_id = f"custom_{name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        new_filter = EmailFilter(filter_id, name, description, criteria, actions, priority, 0.0, datetime.now(), datetime.now(), 0, 0.0, {})
+        new_filter = EmailFilter(
+            filter_id,
+            name,
+            description,
+            criteria,
+            actions,
+            priority,
+            0.0,
+            datetime.now(),
+            datetime.now(),
+            0,
+            0.0,
+            {},
+        )
         self._save_filter(new_filter)
         self.logger.info(f"Custom filter '{name}' added with ID: {filter_id}")
         return new_filter
@@ -300,29 +345,61 @@ class SmartFilterManager:
     def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
-        if "from_patterns" in criteria and not any(re.search(p, email.get("senderEmail", ""), re.IGNORECASE) for p in criteria["from_patterns"]):
+        if "from_patterns" in criteria and not any(
+            re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
+            for p in criteria["from_patterns"]
+        ):
             return False
-        if "subject_keywords" in criteria and not any(k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]):
+        if "subject_keywords" in criteria and not any(
+            k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
+        ):
             return False
         return True
 
     def _save_filter(self, filter_obj: EmailFilter):
         """Saves a filter to the database."""
-        query = "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        query = (
+            "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        )
         params = (
-            filter_obj.filter_id, filter_obj.name, filter_obj.description,
-            json.dumps(filter_obj.criteria), json.dumps(filter_obj.actions),
-            filter_obj.priority, filter_obj.effectiveness_score,
-            filter_obj.created_date.isoformat(), filter_obj.last_used.isoformat(),
-            filter_obj.usage_count, filter_obj.false_positive_rate,
-            json.dumps(filter_obj.performance_metrics), True
+            filter_obj.filter_id,
+            filter_obj.name,
+            filter_obj.description,
+            json.dumps(filter_obj.criteria),
+            json.dumps(filter_obj.actions),
+            filter_obj.priority,
+            filter_obj.effectiveness_score,
+            filter_obj.created_date.isoformat(),
+            filter_obj.last_used.isoformat(),
+            filter_obj.usage_count,
+            filter_obj.false_positive_rate,
+            json.dumps(filter_obj.performance_metrics),
+            True,
         )
         self._db_execute(query, params)
 
     def get_active_filters_sorted(self) -> List[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
-        rows = self._db_fetchall("SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC")
-        return [EmailFilter(row["filter_id"], row["name"], row["description"], json.loads(row["criteria"]), json.loads(row["actions"]), row["priority"], row["effectiveness_score"], datetime.fromisoformat(row["created_date"]), datetime.fromisoformat(row["last_used"]), row["usage_count"], row["false_positive_rate"], json.loads(row["performance_metrics"])) for row in rows]
+        rows = self._db_fetchall(
+            "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
+        )
+        return [
+            EmailFilter(
+                row["filter_id"],
+                row["name"],
+                row["description"],
+                json.loads(row["criteria"]),
+                json.loads(row["actions"]),
+                row["priority"],
+                row["effectiveness_score"],
+                datetime.fromisoformat(row["created_date"]),
+                datetime.fromisoformat(row["last_used"]),
+                row["usage_count"],
+                row["false_positive_rate"],
+                json.loads(row["performance_metrics"]),
+            )
+            for row in rows
+        ]
 
     def apply_filters_to_email_data(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -348,7 +425,9 @@ def main():
     filters = manager.create_intelligent_filters(sample_emails)
     print(f"Created {len(filters)} filters.")
     if filters:
-        print(f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}")
+        print(
+            f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}"
+        )
 
 
 if __name__ == "__main__":
