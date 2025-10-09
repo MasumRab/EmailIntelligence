@@ -1,9 +1,12 @@
-import gradio as gr
 import json
 import logging
+
+import gradio as gr
+
 from src.core.workflow_engine import Node, Workflow, WorkflowRunner
 
 logger = logging.getLogger(__name__)
+
 
 # --- Example Node Operations ---
 # In a real application, these would be discovered from modules.
@@ -11,18 +14,27 @@ def add(a, b):
     """A simple function to add two numbers."""
     return a + b
 
+
 def uppercase(text):
     """A simple function to convert text to uppercase."""
     return text.upper()
+
 
 # A registry of available node types for this proof-of-concept.
 # This allows the UI to instantiate the correct Node objects.
 AVAILABLE_NODES = {
     "add": Node(node_id="add", name="Add", operation=add, inputs=["a", "b"], outputs=["result"]),
-    "uppercase": Node(node_id="uppercase", name="Uppercase", operation=uppercase, inputs=["text"], outputs=["uppercased_text"]),
+    "uppercase": Node(
+        node_id="uppercase",
+        name="Uppercase",
+        operation=uppercase,
+        inputs=["text"],
+        outputs=["uppercased_text"],
+    ),
 }
 
 # --- Gradio UI ---
+
 
 def run_workflow_from_json(workflow_json: str, initial_context_json: str) -> dict:
     """
@@ -51,7 +63,7 @@ def run_workflow_from_json(workflow_json: str, initial_context_json: str) -> dic
         workflow = Workflow(
             name=workflow_data.get("name", "My Workflow"),
             nodes=nodes,
-            connections=workflow_data.get("connections", {})
+            connections=workflow_data.get("connections", {}),
         )
 
         # Run the workflow
@@ -81,14 +93,11 @@ def create_workflow_ui():
                 # Provide a default example workflow for users
                 default_workflow = {
                     "name": "Simple Text and Math Workflow",
-                    "nodes": [
-                        {"id": "node1", "type": "uppercase"},
-                        {"id": "node2", "type": "add"}
-                    ],
+                    "nodes": [{"id": "node1", "type": "uppercase"}, {"id": "node2", "type": "add"}],
                     "connections": {
                         # This part is not yet used by the simple runner,
                         # but is included to show the intended structure.
-                    }
+                    },
                 }
                 workflow_input = gr.Code(
                     value=json.dumps(default_workflow, indent=2),
@@ -97,11 +106,7 @@ def create_workflow_ui():
                 )
 
                 gr.Markdown("### Initial Context (JSON)")
-                default_context = {
-                    "text": "hello world",
-                    "a": 10,
-                    "b": 5
-                }
+                default_context = {"text": "hello world", "a": 10, "b": 5}
                 context_input = gr.Code(
                     value=json.dumps(default_context, indent=2),
                     language="json",

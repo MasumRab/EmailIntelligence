@@ -1,6 +1,7 @@
 """
 Category-specific data management functionality
 """
+
 import asyncio
 import gzip
 import json
@@ -18,18 +19,18 @@ DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
 CATEGORIES_FILE = DATA_DIR / "categories.json.gz"
 
 # Data types
-DATA_TYPE_CATEGORIES = 'categories'
+DATA_TYPE_CATEGORIES = "categories"
 
 # Field names
-FIELD_ID = 'id'
-FIELD_NAME = 'name'
-FIELD_COUNT = 'count'
-FIELD_COLOR = 'color'
+FIELD_ID = "id"
+FIELD_NAME = "name"
+FIELD_COUNT = "count"
+FIELD_COLOR = "color"
 
 
 class CategoryDataManager:
     """Manages category-specific data operations"""
-    
+
     def __init__(self, categories_file=CATEGORIES_FILE):
         self.categories_file = categories_file
 
@@ -58,15 +59,17 @@ class CategoryDataManager:
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
-        return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ''))
+        return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ""))
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
         logger = logging.getLogger(__name__)
-        
-        category_name_lower = category_data.get(FIELD_NAME, '').lower()
+
+        category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
-            logger.warning(f"Category with name '{category_data.get(FIELD_NAME)}' already exists. Returning existing.")
+            logger.warning(
+                f"Category with name '{category_data.get(FIELD_NAME)}' already exists. Returning existing."
+            )
             return self.categories_by_name[category_name_lower]
 
         new_id = self._generate_id(self.categories_data)
@@ -84,10 +87,12 @@ class CategoryDataManager:
         await self._save_data(DATA_TYPE_CATEGORIES)
         return category_record
 
-    async def _update_category_count(self, category_id: int, increment: bool = False, decrement: bool = False) -> None:
+    async def _update_category_count(
+        self, category_id: int, increment: bool = False, decrement: bool = False
+    ) -> None:
         """Incrementally update category email count in the cache."""
         logger = logging.getLogger(__name__)
-        
+
         if category_id not in self.category_counts:
             logger.warning(f"Attempted to update count for non-existent category ID: {category_id}")
             return
