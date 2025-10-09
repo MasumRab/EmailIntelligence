@@ -1,6 +1,8 @@
 """
 Test for the updated InputSanitizer with proper HTML sanitization.
 """
+
+import os
 import sys
 import os
 from pathlib import Path
@@ -27,28 +29,28 @@ def test_input_sanitizer():
         print(f"Test 1 - Safe: {'<script' not in result1 and 'alert' not in result1}\n")
 
         # Test 2: Javascript protocol
-        test_input2 = 'Click here: <a href="javascript:alert(\'XSS\')">Link</a>'
+        test_input2 = "Click here: <a href=\"javascript:alert('XSS')\">Link</a>"
         result2 = InputSanitizer.sanitize_string(test_input2)
         print(f"Test 2 - Input: {test_input2}")
         print(f"Test 2 - Output: {result2}")
         print(f"Test 2 - Safe: {'javascript:' not in result2}\n")
 
         # Test 3: Onclick event
-        test_input3 = '<div onclick="alert(\'XSS\')">Click me</div>'
+        test_input3 = "<div onclick=\"alert('XSS')\">Click me</div>"
         result3 = InputSanitizer.sanitize_string(test_input3)
         print(f"Test 3 - Input: {test_input3}")
         print(f"Test 3 - Output: {result3}")
         print(f"Test 3 - Safe: {'onclick' not in result3}\n")
 
         # Test 4: Safe HTML that should be preserved
-        test_input4 = '<p>This is a <strong>safe</strong> paragraph with <em>formatting</em>.</p>'
+        test_input4 = "<p>This is a <strong>safe</strong> paragraph with <em>formatting</em>.</p>"
         result4 = InputSanitizer.sanitize_string(test_input4)
         print(f"Test 4 - Input: {test_input4}")
         print(f"Test 4 - Output: {result4}")
         print(f"Test 4 - Safe HTML preserved: {len(result4) > 10 and '<p>' in result4}\n")
 
         # Test 5: Dangerous iframe tag
-        test_input5 = '<iframe src="javascript:alert(\'XSS\')"></iframe>'
+        test_input5 = "<iframe src=\"javascript:alert('XSS')\"></iframe>"
         result5 = InputSanitizer.sanitize_string(test_input5)
         print(f"Test 5 - Input: {test_input5}")
         print(f"Test 5 - Output: {result5}")

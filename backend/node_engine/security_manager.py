@@ -4,14 +4,15 @@ Security and Resource Management for the Node-Based Email Intelligence Platform.
 This module implements security measures and resource management for the node-based
 workflow system.
 """
+
 import asyncio
-import logging
-from typing import Dict, Any, Callable, Optional
-from datetime import datetime, timedelta
-import json
 import hashlib
+import json
+import logging
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Callable, Dict, Optional
 
 # Import bleach for proper HTML sanitization
 try:
@@ -19,12 +20,15 @@ try:
 except ImportError:
     bleach = None
     import warnings
+
     warnings.warn(
-        "bleach library not found. Install it using 'pip install bleach' for proper HTML sanitization.")
+        "bleach library not found. Install it using 'pip install bleach' for proper HTML sanitization."
+    )
 
 
 class SecurityLevel(Enum):
     """Security levels for nodes and workflows."""
+
     UNTRUSTED = "untrusted"
     LIMITED = "limited"
     TRUSTED = "trusted"
@@ -34,6 +38,7 @@ class SecurityLevel(Enum):
 @dataclass
 class ResourceLimits:
     """Resource limits for node execution."""
+
     max_memory_mb: int = 100
     max_execution_time_seconds: int = 30
     max_api_calls: int = 10
@@ -65,7 +70,8 @@ class SecurityManager:
             # Check for potentially unsafe configurations
             if config.get("code", "") or config.get("script", ""):
                 self.logger.warning(
-                    f"Untrusted node {node_type} has code configuration - access denied")
+                    f"Untrusted node {node_type} has code configuration - access denied"
+                )
                 return False
 
         return True
@@ -108,30 +114,42 @@ class InputSanitizer:
         # If bleach is available, use it for proper HTML sanitization
         if bleach is not None:
             # Allow only safe HTML tags and attributes
-            allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'ol',
-                            'ul', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+            allowed_tags = [
+                "p",
+                "br",
+                "strong",
+                "em",
+                "u",
+                "ol",
+                "ul",
+                "li",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+            ]
             allowed_attributes = {
-                'a': ['href', 'title'],
-                'img': ['src', 'alt', 'title'],
-                '*': ['class', 'id']
+                "a": ["href", "title"],
+                "img": ["src", "alt", "title"],
+                "*": ["class", "id"],
             }
             # Clean HTML and strip malicious content
             sanitized = bleach.clean(
-                value,
-                tags=allowed_tags,
-                attributes=allowed_attributes,
-                strip=True)
+                value, tags=allowed_tags, attributes=allowed_attributes, strip=True
+            )
         else:
             # Fallback to basic implementation if bleach is not available
             # Remove potentially dangerous characters/patterns
-            sanitized = value.replace(
-                '<script', '&lt;script').replace(
-                'javascript:', 'javascript&#58;')
-            sanitized = sanitized.replace(
-                'onerror', 'onerror&#58;').replace(
-                'onload', 'onload&#58;')
-            sanitized = sanitized.replace('<iframe', '&lt;iframe').replace('<object', '&lt;object')
-            sanitized = sanitized.replace('<embed', '&lt;embed').replace('<form', '&lt;form')
+            sanitized = value.replace("<script", "&lt;script").replace(
+                "javascript:", "javascript&#58;"
+            )
+            sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
+                "onload", "onload&#58;"
+            )
+            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
+            sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
 
         return sanitized
 
@@ -195,8 +213,10 @@ class ExecutionSandbox:
         for port_name, expected_type in expected_types.items():
             if port_name in inputs:
                 if not isinstance(inputs[port_name], expected_type):
-                    self.logger.error(f"Input validation failed: {port_name} expected {
-                                      expected_type}, got {type(inputs[port_name])}")
+                    self.logger.error(
+                        f"Input validation failed: {port_name} expected {
+                                      expected_type}, got {type(inputs[port_name])}"
+                    )
                     return False
         return True
 
@@ -210,12 +230,14 @@ class AuditLogger:
 
         # Create logs directory if it doesn't exist
         import os
+
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
         # Create file handler
         from logging.handlers import RotatingFileHandler
+
         handler = RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
 
@@ -225,19 +247,19 @@ class AuditLogger:
 
     def log_workflow_end(self, workflow_id: str, status: str, duration: float, user_id: str = None):
         """Log workflow execution end."""
-        self.logger.info(f"WORKFLOW_END: id={workflow_id}, status={
-                         status}, duration={duration}s, user={user_id}")
+        self.logger.info(
+            f"WORKFLOW_END: id={workflow_id}, status={
+                         status}, duration={duration}s, user={user_id}"
+        )
 
     def log_node_execution(
-            self,
-            workflow_id: str,
-            node_id: str,
-            node_name: str,
-            status: str,
-            duration: float):
+        self, workflow_id: str, node_id: str, node_name: str, status: str, duration: float
+    ):
         """Log node execution."""
-        self.logger.info(f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={
-                         node_name}, status={status}, duration={duration}s")
+        self.logger.info(
+            f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={
+                         node_name}, status={status}, duration={duration}s"
+        )
 
     def log_security_event(self, event_type: str, details: Dict[str, Any]):
         """Log security-related events."""
@@ -264,11 +286,13 @@ class ResourceManager:
         self.current_workflows += 1
         self._resource_usage[workflow_id] = {
             "acquired_at": datetime.now(),
-            "limits": required_resources
+            "limits": required_resources,
         }
 
-        self.logger.info(f"Resources acquired for workflow {workflow_id}. Current: {
-                         self.current_workflows}/{self.max_concurrent_workflows}")
+        self.logger.info(
+            f"Resources acquired for workflow {workflow_id}. Current: {
+                         self.current_workflows}/{self.max_concurrent_workflows}"
+        )
         return True
 
     def release_resources(self, workflow_id: str):
@@ -279,8 +303,10 @@ class ResourceManager:
         if self.current_workflows > 0:
             self.current_workflows -= 1
 
-        self.logger.info(f"Resources released for workflow {workflow_id}. Current: {
-                         self.current_workflows}/{self.max_concurrent_workflows}")
+        self.logger.info(
+            f"Resources released for workflow {workflow_id}. Current: {
+                         self.current_workflows}/{self.max_concurrent_workflows}"
+        )
 
     async def get_next_queued_workflow(self) -> Optional[str]:
         """Get the next workflow from the queue."""
@@ -301,5 +327,6 @@ for node_type in [
     "PreprocessingNode",
     "AIAnalysisNode",
     "FilterNode",
-        "ActionNode"]:
+    "ActionNode",
+]:
     security_manager.register_trusted_node_type(node_type)

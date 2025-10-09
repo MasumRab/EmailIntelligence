@@ -2,8 +2,10 @@
 Tests for training routes.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from backend.python_backend.training_routes import run_training
 
 
@@ -13,10 +15,10 @@ def test_start_training(client):
         "model_name": "test_model",
         "model_type": "classification",
         "training_data_path": "/path/to/data",
-        "parameters": {"epochs": 5}
+        "parameters": {"epochs": 5},
     }
 
-    with patch('backend.python_backend.training_routes.BackgroundTasks') as mock_bg:
+    with patch("backend.python_backend.training_routes.BackgroundTasks") as mock_bg:
         response = client.post("/api/training/start", json=config)
         assert response.status_code == 200
         data = response.json()
@@ -31,10 +33,10 @@ def test_get_training_status(client):
         "model_name": "test_model",
         "model_type": "classification",
         "training_data_path": "/path/to/data",
-        "parameters": {"epochs": 5}
+        "parameters": {"epochs": 5},
     }
 
-    with patch('backend.python_backend.training_routes.BackgroundTasks'):
+    with patch("backend.python_backend.training_routes.BackgroundTasks"):
         start_response = client.post("/api/training/start", json=config)
         job_id = start_response.json()["job_id"]
 
@@ -62,22 +64,24 @@ async def test_run_training():
         model_name="test",
         model_type="classification",
         training_data_path="dummy",
-        parameters={"epochs": 1}
+        parameters={"epochs": 1},
     )
 
     # Mock the training_jobs dict
-    with patch('backend.python_backend.training_routes.training_jobs') as mock_jobs:
+    with patch("backend.python_backend.training_routes.training_jobs") as mock_jobs:
         mock_jobs.__setitem__ = MagicMock()
         mock_jobs.__getitem__ = MagicMock(return_value={"status": "running"})
 
         # Mock sklearn and joblib to avoid actual training in tests
-        with patch('backend.python_backend.training_routes.LogisticRegression'), \
-             patch('backend.python_backend.training_routes.TfidfVectorizer'), \
-             patch('backend.python_backend.training_routes.joblib.dump'):
+        with (
+            patch("backend.python_backend.training_routes.LogisticRegression"),
+            patch("backend.python_backend.training_routes.TfidfVectorizer"),
+            patch("backend.python_backend.training_routes.joblib.dump"),
+        ):
 
             await run_training("test_job", config)
 
             # Check that status was updated to completed
             calls = mock_jobs.__setitem__.call_args_list
-            status_updates = [call for call in calls if call[0][1].get('status') == 'completed']
+            status_updates = [call for call in calls if call[0][1].get("status") == "completed"]
             assert len(status_updates) > 0
