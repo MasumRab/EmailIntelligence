@@ -4,6 +4,7 @@ Performance Monitoring Dashboard for Email Intelligence Platform
 Implements real-time performance monitoring with visualizations for processing times,
 model usage, memory consumption, and error rates.
 """
+
 import time
 import threading
 import asyncio
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PerformanceMetric:
     """Represents a single performance metric"""
+
     timestamp: float
     value: float
     unit: str
@@ -30,6 +32,7 @@ class PerformanceMetric:
 @dataclass
 class ProcessingEvent:
     """Represents a processing event in the system"""
+
     event_type: str  # 'model_load', 'model_unload', 'workflow_execute', etc.
     model_name: Optional[str]
     workflow_name: Optional[str]
@@ -41,104 +44,118 @@ class ProcessingEvent:
 
 class PerformanceMonitor:
     """Monitors and tracks performance metrics across the system"""
-    
+
     def __init__(self):
         self._metrics: List[PerformanceMetric] = []
         self._events: List[ProcessingEvent] = []
         self._model_performance: Dict[str, List[PerformanceMetric]] = {}
         self._lock = threading.Lock()
-        
+
         # Monitor system resources
         self._system_monitoring = True
-        self._monitoring_thread = threading.Thread(target=self._monitor_system_resources, daemon=True)
+        self._monitoring_thread = threading.Thread(
+            target=self._monitor_system_resources, daemon=True
+        )
         self._monitoring_thread.start()
-        
+
     def _monitor_system_resources(self):
         """Monitor system resources in a background thread"""
         while self._system_monitoring:
             with self._lock:
                 timestamp = time.time()
-                
+
                 # CPU usage
                 cpu_percent = psutil.cpu_percent(interval=1)
-                self._metrics.append(PerformanceMetric(
-                    timestamp=timestamp,
-                    value=cpu_percent,
-                    unit="%",
-                    source="cpu_usage"
-                ))
-                
+                self._metrics.append(
+                    PerformanceMetric(
+                        timestamp=timestamp, value=cpu_percent, unit="%", source="cpu_usage"
+                    )
+                )
+
                 # Memory usage
                 memory = psutil.virtual_memory()
-                self._metrics.append(PerformanceMetric(
-                    timestamp=timestamp,
-                    value=memory.percent,
-                    unit="%",
-                    source="memory_usage"
-                ))
-                
+                self._metrics.append(
+                    PerformanceMetric(
+                        timestamp=timestamp, value=memory.percent, unit="%", source="memory_usage"
+                    )
+                )
+
                 # Disk usage
-                disk = psutil.disk_usage('/')
+                disk = psutil.disk_usage("/")
                 disk_percent = (disk.used / disk.total) * 100
-                self._metrics.append(PerformanceMetric(
-                    timestamp=timestamp,
-                    value=disk_percent,
-                    unit="%",
-                    source="disk_usage"
-                ))
-                
+                self._metrics.append(
+                    PerformanceMetric(
+                        timestamp=timestamp, value=disk_percent, unit="%", source="disk_usage"
+                    )
+                )
+
             time.sleep(5)  # Monitor every 5 seconds
-            
-    def record_model_performance(self, model_name: str, execution_time: float, 
-                                success: bool = True) -> None:
+
+    def record_model_performance(
+        self, model_name: str, execution_time: float, success: bool = True
+    ) -> None:
         """Record performance metric for a model execution"""
         with self._lock:
             timestamp = time.time()
-            
+
             # Execution time metric
-            self._metrics.append(PerformanceMetric(
-                timestamp=timestamp,
-                value=execution_time,
-                unit="seconds",
-                source=f"model_{model_name}_execution_time"
-            ))
-            
+            self._metrics.append(
+                PerformanceMetric(
+                    timestamp=timestamp,
+                    value=execution_time,
+                    unit="seconds",
+                    source=f"model_{model_name}_execution_time",
+                )
+            )
+
             # Add to model-specific metrics
             if model_name not in self._model_performance:
                 self._model_performance[model_name] = []
-            self._model_performance[model_name].append(PerformanceMetric(
-                timestamp=timestamp,
-                value=execution_time,
-                unit="seconds",
-                source="execution_time"
-            ))
-            
+            self._model_performance[model_name].append(
+                PerformanceMetric(
+                    timestamp=timestamp,
+                    value=execution_time,
+                    unit="seconds",
+                    source="execution_time",
+                )
+            )
+
             # Success/failure rate
             success_value = 1.0 if success else 0.0
-            self._metrics.append(PerformanceMetric(
-                timestamp=timestamp,
-                value=success_value,
-                unit="boolean",
-                source=f"model_{model_name}_success"
-            ))
-            
-    def record_workflow_execution(self, workflow_name: str, execution_time: float, 
-                                 success: bool = True) -> None:
+            self._metrics.append(
+                PerformanceMetric(
+                    timestamp=timestamp,
+                    value=success_value,
+                    unit="boolean",
+                    source=f"model_{model_name}_success",
+                )
+            )
+
+    def record_workflow_execution(
+        self, workflow_name: str, execution_time: float, success: bool = True
+    ) -> None:
         """Record performance metric for a workflow execution"""
         with self._lock:
             timestamp = time.time()
-            
+
             # Execution time metric
-            self._metrics.append(PerformanceMetric(
-                timestamp=timestamp,
-                value=execution_time,
-                unit="seconds",
-                source=f"workflow_{workflow_name}_execution_time"
-            ))
-            
-    def record_event(self, event_type: str, model_name: Optional[str] = None, 
-                    workflow_name: Optional[str] = None, 
-                    success: bool = True, details: Optional[Dict[str, Any]] = None) -> str:
+            self._metrics.append(
+                PerformanceMetric(
+                    timestamp=timestamp,
+                    value=execution_time,
+                    unit="seconds",
+                    source=f"workflow_{workflow_name}_execution_time",
+                )
+            )
+
+    def record_event(
+        self,
+        event_type: str,
+        model_name: Optional[str] = None,
+        workflow_name: Optional[str] = None,
+        success: bool = True,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Record a processing event in the system"""
         with self._lock:
             event = ProcessingEvent(
@@ -148,12 +165,12 @@ class PerformanceMonitor:
                 start_time=time.time(),
                 end_time=None,
                 success=success,
-                details=details or {}
+                details=details or {},
             )
             event_id = f"event_{len(self._events)}_{int(event.start_time)}"
             self._events.append(event)
             return event_id
-            
+
     def complete_event(self, event_id: str, success: bool = True) -> None:
         """Complete a processing event"""
         with self._lock:
@@ -163,43 +180,47 @@ class PerformanceMonitor:
                     event.end_time = time.time()
                     event.success = success
                     break
-                    
-    def get_recent_metrics(self, minutes: int = 5, source_filter: Optional[str] = None) -> List[PerformanceMetric]:
+
+    def get_recent_metrics(
+        self, minutes: int = 5, source_filter: Optional[str] = None
+    ) -> List[PerformanceMetric]:
         """Get metrics from the last specified minutes"""
         with self._lock:
             cutoff_time = time.time() - (minutes * 60)
             filtered_metrics = [
-                metric for metric in self._metrics 
-                if metric.timestamp >= cutoff_time and 
-                (source_filter is None or source_filter in metric.source)
+                metric
+                for metric in self._metrics
+                if metric.timestamp >= cutoff_time
+                and (source_filter is None or source_filter in metric.source)
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
-            
+
     def get_model_performance(self, model_name: str, minutes: int = 5) -> List[PerformanceMetric]:
         """Get performance metrics for a specific model"""
         with self._lock:
             if model_name not in self._model_performance:
                 return []
-                
+
             cutoff_time = time.time() - (minutes * 60)
             filtered_metrics = [
-                metric for metric in self._model_performance[model_name]
+                metric
+                for metric in self._model_performance[model_name]
                 if metric.timestamp >= cutoff_time
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
-            
+
     def get_avg_model_performance(self, model_name: str, minutes: int = 5) -> Optional[float]:
         """Get average performance for a model in the last specified minutes"""
         metrics = self.get_model_performance(model_name, minutes)
         if not metrics:
             return None
-            
+
         execution_times = [m.value for m in metrics if m.source == "execution_time"]
         if not execution_times:
             return None
-            
+
         return sum(execution_times) / len(execution_times)
-        
+
     def get_system_stats(self) -> Dict[str, float]:
         """Get current system stats"""
         with self._lock:
@@ -207,18 +228,20 @@ class PerformanceMonitor:
             cpu_metrics = [m for m in self._metrics if m.source == "cpu_usage"]
             memory_metrics = [m for m in self._metrics if m.source == "memory_usage"]
             disk_metrics = [m for m in self._metrics if m.source == "disk_usage"]
-            
+
             return {
                 "cpu_usage": cpu_metrics[-1].value if cpu_metrics else 0.0,
                 "memory_usage": memory_metrics[-1].value if memory_metrics else 0.0,
-                "disk_usage": disk_metrics[-1].value if disk_metrics else 0.0
+                "disk_usage": disk_metrics[-1].value if disk_metrics else 0.0,
             }
+
 
 def log_performance(_func=None, *, operation: str = ""):
     """
     A decorator to log the performance of both sync and async functions.
     Can be used as @log_performance or @log_performance(operation="custom_name").
     """
+
     def decorator(func):
         op_name = operation or func.__name__
 
@@ -236,7 +259,7 @@ def log_performance(_func=None, *, operation: str = ""):
             }
 
             try:
-                with open(LOG_FILE, 'a') as f:
+                with open(LOG_FILE, "a") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except IOError as e:
                 logger.error(f"Failed to write performance log: {e}")
@@ -257,7 +280,7 @@ def log_performance(_func=None, *, operation: str = ""):
             }
 
             try:
-                with open(LOG_FILE, 'a') as f:
+                with open(LOG_FILE, "a") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except IOError as e:
                 logger.error(f"Failed to write performance log: {e}")
