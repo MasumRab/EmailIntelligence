@@ -7,94 +7,73 @@ This directory contains configurations and scripts related to deploying the Emai
 ## Overview
 
 The deployment strategy for EmailIntelligence supports various environments:
--   **Local Development:** Using local Node.js, Python, and optionally Docker for services like PostgreSQL.
--   **Dockerized Local Environment:** Running the entire application stack (frontend, Node.js backend, Python backend, PostgreSQL) in Docker containers locally.
+-   **Local Development:** Using local Python and Node.js (for the frontend) and optionally Docker for other services.
+-   **Dockerized Local Environment:** Running the entire application stack (frontend, Python backend) in Docker containers locally.
 -   **Staging Environment:** A Dockerized environment configured for staging/testing.
 -   **Production Environment:** A Dockerized environment configured for production deployment.
 
 ## Key Files and Directories
 
--   **`Dockerfile.frontend`**: Dockerfile for building the frontend application.
 -   **`Dockerfile.backend`**: Dockerfile for building the Python FastAPI backend application.
+-   **`Dockerfile.frontend`**: Dockerfile for building the React frontend application.
 -   **`docker-compose.yml`**: Base Docker Compose file for services.
 -   **`docker-compose.dev.yml`**: Docker Compose overrides for local development.
--   **`docker-compose.stag.yml`**: Docker Compose overrides for staging.
 -   **`docker-compose.prod.yml`**: Docker Compose overrides for production.
+-   **`deploy.py`**: Python script for managing deployments across different environments.
 -   **`nginx/`**: Nginx configurations for reverse proxy, SSL termination, etc.
-    -   `nginx/default.conf`: Base Nginx configuration (often for development).
-    -   `nginx/production.conf`: Nginx configuration for production.
-    -   `nginx/staging.conf`: Nginx configuration for staging.
-    -   Other common Nginx config snippets (`common_*.conf`).
 -   **`monitoring/`**: Configurations for monitoring tools (e.g., Prometheus, Grafana).
-    -   `monitoring/prometheus.yml`: Prometheus configuration.
-    -   `monitoring/grafana/provisioning/`: Grafana provisioning for dashboards and datasources.
--   **`deploy.py`**: Python script for managing deployments across different environments (local, Docker, staging, production). This script often wraps Docker Compose commands and other deployment tasks. (This file is not present in the current file listing but is a common pattern).
--   **`migrate.py`**: Python script for handling database migrations, typically using Drizzle ORM. (This file is not present but often part of such a setup).
 -   **`setup_env.py`**: Python script to help set up `.env` files with default configurations.
--   **`run_tests.py`**: Python script for running automated tests, potentially across different parts of the application or in specific environments.
--   **`TESTING_GUIDE.md`**: Detailed guide on testing procedures and strategies.
--   **`TEST_CASES*.md`**: Documents detailing various test cases for different parts of the application.
+-   **`run_tests.py`**: Python script for running automated tests.
 
 ## Deployment Environments
 
 ### 1. Local Development (Non-Dockerized)
 
 -   Run frontend and backend servers directly on the host machine.
--   Requires local installation of Node.js, Python, and PostgreSQL (or connection to a remote instance).
+-   Requires local installation of Node.js and Python.
 -   Typically managed via `launch.py --stage dev` as described in the main [README.md](../../README.md) and [Launcher Guide](../../docs/launcher_guide.md).
 
 ### 2. Dockerized Local Environment
 
 -   Uses Docker Compose to run all services in containers.
 -   Simplifies dependency management and environment consistency.
--   Often managed by `python deployment/deploy.py local up` (if `deploy.py` exists and is configured for this).
--   Alternatively, direct `docker-compose -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml up` can be used.
+-   Managed by `python deployment/deploy.py dev <command>`.
 
 ### 3. Staging Environment
 
 -   A pre-production environment that mirrors production as closely as possible.
 -   Deployed using Docker Compose with staging-specific configurations (`docker-compose.stag.yml`).
 -   Typically involves building production-like Docker images.
--   Managed by `python deployment/deploy.py stag up` (or similar `deploy.py` command).
+-   Managed by `python deployment/deploy.py stag <command>`.
 
 ### 4. Production Environment
 
 -   Live environment for end-users.
 -   Deployed using Docker Compose with production-hardened configurations (`docker-compose.prod.yml`).
 -   Involves building optimized Docker images, secure configurations, and robust monitoring.
--   Managed by `python deployment/deploy.py prod up` (or similar `deploy.py` command).
+-   Managed by `python deployment/deploy.py prod <command>`.
 
-## General Deployment Workflow (using `deploy.py` if available)
+## General Deployment Workflow (using `deploy.py`)
 
-While a `deploy.py` script is not explicitly listed in the current file structure, a typical workflow using such a script (or manual Docker Compose commands) would be:
+Use the `deployment/deploy.py` script to manage your Docker deployments. It supports `dev`, `stag`, and `prod` environments.
 
 1.  **Build Images:**
     ```bash
     python deployment/deploy.py <environment> build
     # Example: python deployment/deploy.py prod build
-    # Or manually: docker-compose -f ... build
     ```
-2.  **Apply Database Migrations (if applicable):**
-    ```bash
-    python deployment/deploy.py <environment> migrate
-    # Example: python deployment/deploy.py prod migrate
-    # This would typically run `npm run db:push` or similar inside the appropriate container.
-    ```
-3.  **Start Services:**
+2.  **Start Services:**
     ```bash
     python deployment/deploy.py <environment> up
-    # Example: python deployment/deploy.py prod up -d (for detached mode)
-    # Or manually: docker-compose -f ... up -d
+    # Example: python deployment/deploy.py dev up -d
+    ```
+3.  **Stop Services:**
+    ```bash
+    python deployment/deploy.py <environment> down
     ```
 4.  **View Logs:**
     ```bash
     python deployment/deploy.py <environment> logs
-    # Or manually: docker-compose -f ... logs -f
-    ```
-5.  **Stop Services:**
-    ```bash
-    python deployment/deploy.py <environment> down
-    # Or manually: docker-compose -f ... down
     ```
 
 ## Configuration Management

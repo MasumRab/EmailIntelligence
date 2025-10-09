@@ -130,21 +130,54 @@ class ActivityResponse(ActivityBase):
 
 
 # AI Analysis Models
+class AIAnalysisRequest(BaseModel):
+    subject: str
+    content: str
+
+
 class AIAnalysisResponse(BaseModel):
     topic: str
     sentiment: SentimentType
     intent: str
     urgency: EmailPriority
+    isImportant: bool = False
     confidence: float = Field(ge=0.0, le=1.0)
     categories: List[str]
     keywords: List[str]
     reasoning: str
     suggestedLabels: List[str] = Field(alias="suggested_labels")
     riskFlags: List[str] = Field(alias="risk_flags")
+    actionItems: List[ActionItem] = Field(default_factory=list)
     categoryId: Optional[int] = None
 
     class Config:
         allow_population_by_field_name = True
+
+
+class AICategorizeRequest(BaseModel):
+    emailId: int
+    autoAnalyze: bool
+    categoryId: Optional[int] = None
+    confidence: Optional[int] = None
+
+
+class AICategorizeResponse(BaseModel):
+    success: bool
+    email: Optional[EmailResponse] = None
+    analysis: Optional[AIAnalysisResponse] = None
+    categoryAssigned: Optional[str] = None
+    message: Optional[str] = None
+
+
+class AIValidateRequest(BaseModel):
+    emailId: int
+    userFeedback: str
+    correctCategory: Optional[str] = None
+
+
+class AIValidateResponse(BaseModel):
+    success: bool
+    message: str
 
 
 # Models moved from main.py for Action Item Extraction

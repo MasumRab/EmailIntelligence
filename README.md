@@ -1,6 +1,6 @@
 # EmailIntelligence
 
-EmailIntelligence is a full-stack application that provides intelligent email analysis and management capabilities. It combines a Node.js/TypeScript backend, a Python FastAPI backend for AI/NLP tasks, and a React frontend to deliver a comprehensive email intelligence solution.
+EmailIntelligence is a full-stack application that provides intelligent email analysis and management capabilities. It combines a Python FastAPI backend for AI/NLP tasks and a React frontend to deliver a comprehensive email intelligence solution.
 
 ## Table of Contents
 
@@ -35,17 +35,53 @@ The project uses a modular architecture with a unified launcher system, comprehe
 
 ## Project Structure
 
-The project is organized into the following main components:
+The project is now consolidated into a single, unified backend architecture. The legacy Node.js backend has been removed.
 
-- **client/** - React frontend application. See [Client Development Guide](docs/client_development.md) for more details.
-- **server/** - Backend services, including Node.js/TypeScript and Python FastAPI components. See [Server Development Guide](docs/server_development.md) for more details.
-  - **server/python_nlp/** - Python NLP and AI components
-  - **server/python_backend/** - Python FastAPI backend
-- **deployment/** - Deployment configurations and scripts. See [Deployment Guide](docs/deployment_guide.md) for details.
-- **extensions/** - Extension system for adding custom functionality. See [Extensions Guide](docs/extensions_guide.md) for details.
-- **docs/** - Detailed documentation.
-- **tests/** - Test suite for the application.
-- **launch.py**, **launch.bat**, **launch.sh** - Unified launcher scripts. See [Launcher Guide](docs/launcher_guide.md).
+### High-Level Architecture
+
+```
+EmailIntelligence/
+|
+├── client/              (React Frontend)
+|
+├── backend/
+|   ├── python_backend/
+|   |   ├── main.py      (Main FastAPI Application)
+|   |   ├── gradio_app.py  (✨ Comprehensive Gradio UI)
+|   |   ├── api/         (API Routes)
+|   |   └── ...
+|   └── python_nlp/
+|       └── ... (Core NLP Models)
+|
+└── launch.py            (Main Application Launcher)
+```
+
+### Gradio UI Implementation
+
+The Gradio UI acts as a full-featured client to the FastAPI backend.
+
+```
+Gradio UI (gradio_app.py)
+==========================
+|
+├── 📈 Dashboard Tab
+|   └── Calls GET /api/dashboard/stats ──> Displays key metrics & charts
+|
+├── 📥 Inbox Tab
+|   ├── Calls GET /api/emails ─────> Displays searchable email list
+|   └── Calls GET /api/categories ─> Populates category filter dropdown
+|
+├── 📧 Gmail Tab
+|   └── Calls POST /api/gmail/sync ──> Triggers Gmail synchronization
+|
+├── 🔬 AI Lab Tab (Advanced Tools)
+|   ├── Analysis Sub-Tab ──────────> Calls POST /api/ai/analyze
+|   └── Model Management Sub-Tab ────> Calls GET/POST /api/models/*
+|
+└── ⚙️ System Status Tab
+    ├── Calls GET /health ───────────> Displays system health
+    └── Calls GET /api/gmail/performance -> Displays performance metrics
+```
 
 ## Prerequisites
 
@@ -80,7 +116,7 @@ npm install
 This command should be run in the project's root directory (where `package.json` is located).
 
 **Step 3: Database Setup**
-The application now uses SQLite. The database file (e.g., `sqlite.db`) will typically be created in the `server` directory when the application starts or when database operations are first performed. Ensure the `server` directory is writable.
+The application now uses SQLite. The database file (e.g., `sqlite.db`) will typically be created in the `backend` directory when the application starts or when database operations are first performed. Ensure the `backend` directory is writable.
 
 **Step 4: Run the Application using the Launcher**
 ```bash
@@ -95,9 +131,9 @@ This command will:
 - Set up the Python virtual environment and install Python dependencies.
 - Download necessary NLTK data.
 - Create placeholder AI model files if actual models are not found (see [AI Models Setup](#ai-models-setup) for crucial next steps).
-- Start the Python FastAPI AI server (default: port 8000) and the Node.js backend/frontend development server (default: port 5000).
+- Start the Python FastAPI AI server (default: port 8000) and the React frontend development server (default: port 5173).
 
-The application will typically be available at http://localhost:5000.
+The application will typically be available at http://localhost:5173.
 
 **Important Next Steps:**
 - **AI Models:** The Quick Start will get the application running, but AI features require trained models. Please see the [AI Models Setup](#ai-models-setup) section below for critical information.
@@ -136,21 +172,21 @@ Refer to the [Launcher Guide](docs/launcher_guide.md) for more advanced launcher
 
 ### AI Models Setup
 
-The application's AI features (sentiment analysis, topic classification, etc.) rely on trained machine learning models (`.pkl` files located in `server/python_nlp/`).
+The application's AI features (sentiment analysis, topic classification, etc.) rely on trained machine learning models (`.pkl` files located in `backend/python_nlp/`).
 
 **1. Placeholder Models:**
 When you first run `launch.py --stage dev`, it will create empty placeholder files for these models if they are missing (e.g., `intent_model.pkl`, `sentiment_model.pkl`, `topic_model.pkl`, `urgency_model.pkl`). These placeholders **will not** provide any actual AI functionality and will likely cause errors if the AI features are invoked.
 
 **2. Training Actual Models:**
-To enable AI features, you **must** replace these placeholders with actual trained models. The script `server/python_nlp/ai_training.py` provides the framework for training these models.
+To enable AI features, you **must** replace these placeholders with actual trained models. The script `backend/python_nlp/ai_training.py` provides the framework for training these models.
 
 **Challenges and Guidance:**
 -   **Training Data:** The `ai_training.py` script currently **does not include training data or direct guidance on acquiring it.** You will need to prepare your own labeled datasets (e.g., CSV files of emails with corresponding topics, sentiments, etc.) to train effective models. This is a non-trivial task and requires data that is representative of what you want to analyze.
--   **Customization Required:** You will likely need to modify `server/python_nlp/ai_training.py` or create wrapper scripts to:
+-   **Customization Required:** You will likely need to modify `backend/python_nlp/ai_training.py` or create wrapper scripts to:
     *   Load your specific datasets.
     *   Configure the `ModelConfig` for each model type (topic, sentiment, intent, urgency) you intend to use.
     *   Train each model using the provided training classes.
-    *   Save the trained models using the **exact filenames** expected by the application (e.g., `server/python_nlp/topic_model.pkl`, `server/python_nlp/sentiment_model.pkl`, etc.). The example `main()` in `ai_training.py` saves to a generic name like `model_<ID>.pkl`, which will need to be adjusted to the specific model names loaded by `server/python_nlp/nlp_engine.py`.
+    *   Save the trained models using the **exact filenames** expected by the application (e.g., `backend/python_nlp/topic_model.pkl`, `backend/python_nlp/sentiment_model.pkl`, etc.). The example `main()` in `ai_training.py` saves to a generic name like `model_<ID>.pkl`, which will need to be adjusted to the specific model names loaded by `backend/python_nlp/nlp_engine.py`.
 
 **Recommendation:**
 Developing or sourcing appropriate training data and adapting the `ai_training.py` script is a significant development task. For a quicker setup to explore non-AI features, you can proceed without fully trained models, but be aware that AI-dependent functionalities will not work.
@@ -159,11 +195,7 @@ Developing or sourcing appropriate training data and adapting the `ai_training.p
 
 ### Database Setup
 
-The application uses an SQLite database. The database file (e.g., `sqlite.db`) is typically located in the `server` directory. No special setup is usually required beyond ensuring the application has write permissions to create/manage this file.
-If Drizzle ORM is used for schema management (e.g., by the Node.js part, potentially for a shared schema now targeting SQLite), the following command can apply schema changes:
-```bash
-npm run db:push
-```
+The application uses an SQLite database. The database file (e.g., `sqlite.db`) is typically located in the `backend` directory. No special setup is usually required beyond ensuring the application has write permissions to create/manage this file.
 
 ## Configuration
 
@@ -173,9 +205,8 @@ This section details important environment variables used by the application. Th
 *   **`GMAIL_CREDENTIALS_JSON`**: JSON content of OAuth 2.0 Client ID credentials for Gmail API.
 *   **`credentials.json` (File Alternative)**: Alternative to `GMAIL_CREDENTIALS_JSON`, placed in project root. Ensure this file is in `.gitignore` if used.
 *   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `token.json`). Ensure this file is in `.gitignore`.
-*   **`NLP_MODEL_DIR`**: Directory for trained NLP models (default: `server/python_nlp/`).
+*   **`NLP_MODEL_DIR`**: Directory for trained NLP models (default: `backend/python_nlp/`).
 *   **`PORT`**: Port for the Python FastAPI server (default: `8000`).
-*   **`NODE_PORT`**: Port for the Node.js server (default: `5000`, though often managed by Vite in dev).
 
 Consult the respective guides in `docs/` for component-specific configurations.
 
@@ -185,7 +216,7 @@ When deploying or running this application, please consider the following:
 *   **API Authentication:** Implement proper API security for sensitive operations. (Note: Current state might have basic or no auth for some dev routes).
 *   **Secret Management:** Securely manage `GMAIL_CREDENTIALS_JSON` (or `credentials.json`) and `token.json`. Use environment variables or a secret manager. Do not commit secrets to Git.
 *   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
-*   **CORS Policy:** Restrict CORS policy in `server/python_backend/main.py` for production.
+*   **CORS Policy:** Restrict CORS policy in `backend/python_backend/main.py` for production.
 *   **Input Validation:** Validate and sanitize all user-supplied and external data.
 
 ## Gmail API Integration Setup
@@ -213,14 +244,14 @@ launch.bat --stage dev
 ```
 This typically starts:
 - Python FastAPI AI Server (default: port 8000)
-- Node.js Backend and Frontend Development Server (default: port 5000, served by Vite)
+- React Frontend Development Server (default: port 5173, served by Vite)
 
 For other modes (e.g., API-only, frontend-only) and advanced options, see the [Launcher Guide](docs/launcher_guide.md).
 For information on running in Docker, staging, or production environments, see the [Deployment Guide](docs/deployment_guide.md).
 
 ### Running the Gradio Scientific UI
 
-For scientific exploration, direct AI model interaction, or testing specific UI components, a Gradio-based interface is available. This is a Python-only, non-Dockerized deployment that runs independently of the main FastAPI backend and Node.js frontend.
+For scientific exploration, direct AI model interaction, or testing specific UI components, a Gradio-based interface is available. This is a Python-only, non-Dockerized deployment that runs independently of the main FastAPI backend and React frontend.
 
 To launch the Gradio UI, use the `--gradio-ui` flag with the launcher script:
 
@@ -242,30 +273,60 @@ This will start the Gradio interface, typically accessible at the specified host
 ## AI System Overview
 
 The AI and NLP capabilities are primarily based on:
-*   Locally trained classification models (e.g., Naive Bayes, Logistic Regression using `scikit-learn` or similar, saved as `.pkl` files) located in `server/python_nlp/`. The training framework for these is in `server/python_nlp/ai_training.py`.
+*   Locally trained classification models (e.g., Naive Bayes, Logistic Regression using `scikit-learn` or similar, saved as `.pkl` files) located in `backend/python_nlp/`. The training framework for these is in `backend/python_nlp/ai_training.py`.
 *   Rule-based systems and heuristics can also be part of the NLP pipeline.
 The system does not use external Large Language Models (LLMs) by default for its core classification tasks but includes a `PromptEngineer` class in `ai_training.py` which suggests capabilities for LLM interaction if developed further.
 
 ## Building for Production
 
-To build the frontend and Node.js backend for production:
+To build the frontend for production:
 ```bash
 npm run build
 ```
-This command typically uses Vite to build the client and esbuild for the server, placing outputs in a `dist/` directory.
+This command typically uses Vite to build the client, placing outputs in a `dist/` directory.
 
 The Python server needs to be run separately in a production environment, typically using a WSGI/ASGI server like Gunicorn or Uvicorn.
 
 For comprehensive information on building and deploying for production, including Docker builds and different environment strategies, please refer to the [Deployment Guide](docs/deployment_guide.md).
 
+## Deployment with Docker
+
+The project includes Dockerfiles and a `deploy.py` script to simplify building and deploying the application using Docker Compose.
+
+### Prerequisites
+- Docker and Docker Compose installed.
+
+### Usage
+Use the `deployment/deploy.py` script to manage your Docker deployments. It supports `dev` and `prod` environments.
+
+**Build Images:**
+```bash
+python deployment/deploy.py <environment> build
+# Example: python deployment/deploy.py prod build
+```
+
+**Start Services:**
+```bash
+python deployment/deploy.py <environment> up
+# Example: python deployment/deploy.py dev up -d
+```
+
+**Stop Services:**
+```bash
+python deployment/deploy.py <environment> down
+```
+
+**View Logs:**
+```bash
+python deployment/deploy.py <environment> logs
+```
+
+For more details, refer to `deployment/README.md`.
+
 ## Database
 
-The application now uses an SQLite database (e.g., `sqlite.db` in the `server` directory).
-- If `DATABASE_URL` is used, it should be set for SQLite (e.g., `sqlite:sqlite.db`). Otherwise, the application defaults to a local file path.
-- Schema migrations/synchronization for the Node.js part (if Drizzle ORM is still used and configured for SQLite) are handled by Drizzle ORM:
-  - `npm run db:push`: Applies schema changes to the database.
-  - `npm run db:generate`: Generates new migration files if you change Drizzle schema definitions (typically in `shared/schema.ts` or similar).
-  (Or via `python deployment/deploy.py <env> migrate` for Dockerized environments as part of a deployment workflow, assuming this part is adapted for SQLite).
+The application now uses an SQLite database (e.g., `sqlite.db` in the `backend` directory).
+- If `DATABASE_URL` is used, it should be set for SQLite (e.g., `sqlite:backend/sqlite.db`). Otherwise, the application defaults to a local file path.
 
 ## Extension System
 

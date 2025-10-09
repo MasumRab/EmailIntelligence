@@ -15,6 +15,7 @@ import re
 import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from .analysis_components.importance_model import ImportanceModel
 
 # Try to import optional dependencies
 try:
@@ -131,6 +132,7 @@ class NLPEngine:
         self.topic_model = None
         self.intent_model = None
         self.urgency_model = None
+        self.importance_model = ImportanceModel()
 
         # Load models if dependencies are available
         # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
@@ -599,6 +601,12 @@ class NLPEngine:
         logger.info("Urgency analysis performed using regex matching as fallback.")
         return self._analyze_urgency_regex(text)
 
+    def _analyze_importance(self, text: str) -> Dict[str, Any]:
+        """
+        Assess the importance of the email.
+        """
+        return self.importance_model.analyze(text)
+
     def _extract_keywords(self, text: str) -> List[str]:
         """
         Extract important keywords from text.
@@ -935,8 +943,38 @@ class NLPEngine:
         """
         Analyze text for action items using ActionItemExtractor.
         """
-        logger.info("Action item analysis skipped (feature removed).")
         return []
+
+    def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
+        """
+        Analyzes text for action items using a regex-based approach.
+        """
+        action_items = []
+        text_lower = text.lower()
+
+        # Simple regex patterns for action items
+        patterns = [
+            r"(please|kindly)\s+(.+?)(?:by|on|before)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:,\s*\d{4})?|tomorrow|today|next\s+\w+|\d+\s*days?)",
+            r"(need to|must|should)\s+(.+?)(?:by|on|before)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:,\s*\d{4})?|tomorrow|today|next\s+\w+|\d+\s*days?)",
+            r"(follow up on|check on|look into)\s+(.+?)(?:by|on|before)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:,\s*\d{4})?|tomorrow|today|next\s+\w+|\d+\s*days?)",
+            r"(send|submit|prepare|draft)\s+(.+?)(?:by|on|before)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:,\s*\d{4})?|tomorrow|today|next\s+\w+|\d+\s*days?)",
+        ]
+
+        for pattern in patterns:
+            for match in re.finditer(pattern, text_lower):
+                action_phrase = match.group(0)
+                verb = match.group(1) if len(match.groups()) > 1 else None
+                obj = match.group(2) if len(match.groups()) > 2 else None
+                due_date_text = match.group(3) if len(match.groups()) > 3 else None
+                
+                action_items.append({
+                    "action_phrase": action_phrase,
+                    "verb": verb,
+                    "object": obj.strip() if obj else None,
+                    "raw_due_date_text": due_date_text.strip() if due_date_text else None,
+                    "context": text_lower[max(0, match.start()-50):min(len(text_lower), match.end()+50)].strip()
+                })
+        return action_items
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
         """
@@ -959,12 +997,12 @@ class NLPEngine:
             cleaned_text = self._preprocess_text(full_text)
             logger.info("Email text preprocessed successfully.")
 
-            # Multi-model analysis
             analyses = [
                 ("sentiment", self._analyze_sentiment),
                 ("topic", self._analyze_topic),
                 ("intent", self._analyze_intent),
                 ("urgency", self._analyze_urgency),
+                ("importance", self._analyze_importance),
             ]
 
             results = {}
@@ -1004,10 +1042,11 @@ class NLPEngine:
                 results["topic"],
                 results["intent"],
                 results["urgency"],
+                results["importance"],
                 categories,
                 keywords,
                 risk_analysis_flags,
-                # action_items, # Removed - _analyze_action_items now returns empty list, but param removed from build
+                action_items,
             )
             logger.info("Final analysis response built successfully.")
             return response
@@ -1023,10 +1062,11 @@ class NLPEngine:
         topic_analysis,
         intent_analysis,
         urgency_analysis,
+        importance_analysis,
         categories,
         keywords,
         risk_analysis_flags,
-        # action_items, # Removed param
+        action_items,
     ) -> Dict[str, Any]:
         """Helper function to consolidate analysis results and build the final response dictionary."""
 
@@ -1037,6 +1077,7 @@ class NLPEngine:
                 topic_analysis,
                 intent_analysis,
                 urgency_analysis,
+                importance_analysis,
             ]
             if r and "confidence" in r
         ]
@@ -1068,6 +1109,7 @@ class NLPEngine:
             intent_analysis.get("intent", "informational") if intent_analysis else "informational"
         )
         final_urgency = urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
+        final_is_important = importance_analysis.get("is_important", False) if importance_analysis else False
 
         suggested_labels = self._suggest_labels(categories, final_urgency)
 
@@ -1076,6 +1118,7 @@ class NLPEngine:
             "sentiment": final_sentiment,
             "intent": final_intent,
             "urgency": final_urgency,
+            "isImportant": final_is_important,
             "confidence": overall_confidence,
             "categories": categories,
             "keywords": keywords,
@@ -1083,13 +1126,14 @@ class NLPEngine:
             "suggested_labels": suggested_labels,
             "risk_flags": risk_analysis_flags,
             "validation": validation,
+            "actionItems": action_items,
             "details": {
                 "sentiment_analysis": sentiment_analysis,
                 "topic_analysis": topic_analysis,
                 "intent_analysis": intent_analysis,
                 "urgency_analysis": urgency_analysis,
+                "importance_analysis": importance_analysis,
             },
-            # "action_items": action_items, # Removed
         }
 
 

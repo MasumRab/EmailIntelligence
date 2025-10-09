@@ -1,5 +1,7 @@
 # Python Backend README
 
+This directory contains the main and only Python backend for the EmailIntelligence application. It is a FastAPI application that handles all backend logic, including API endpoints, AI/NLP services, and database interactions.
+
 This directory contains the Python backend services for the application.
 
 ## Gradio Interface
