@@ -37,7 +37,7 @@ ROOT_DIR = Path(__file__).resolve().parent
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
 PYTHON_MAX_VERSION = (3, 12)
-VENV_DIR = "venv"
+VENV_DIR = ".venv"
 
 
 # --- Signal Handling ---
