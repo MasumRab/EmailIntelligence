@@ -181,7 +181,9 @@ async def create_email(
             error_detail=str(e),
         )
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to create email due to an unexpected error.")
+        raise HTTPException(
+            status_code=500, detail="Failed to create email due to an unexpected error."
+        )
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse

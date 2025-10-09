@@ -106,7 +106,9 @@ class NLPEngine:
         """Initialize the NLP engine and load required models."""
 
         # Define model paths dynamically using env var at instantiation time
-        model_dir = os.getenv("NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models"))
+        model_dir = os.getenv(
+            "NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models")
+        )
         self.sentiment_model_path = os.path.join(model_dir, "sentiment")
         self.topic_model_path = os.path.join(model_dir, "topic")
         self.intent_model_path = os.path.join(model_dir, "intent")
