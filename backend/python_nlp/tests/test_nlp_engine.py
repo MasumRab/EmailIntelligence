@@ -1,12 +1,14 @@
-import pytest
-from unittest.mock import patch, MagicMock
-import sys
 import os
+import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Ensure the root directory is in the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 
 from backend.python_nlp.nlp_engine import NLPEngine
+
 
 @pytest.fixture
 def nlp_engine_with_mocks():
@@ -15,15 +17,39 @@ def nlp_engine_with_mocks():
     This allows testing the orchestration logic of NLPEngine's analyze_email method.
     """
     # Patch all external dependencies and methods that perform heavy lifting or I/O
-    with patch('backend.python_nlp.nlp_engine.joblib.load', MagicMock(return_value=MagicMock())), \
-         patch('backend.python_nlp.nlp_engine.HAS_NLTK', True), \
-         patch('backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB', True), \
-         patch('backend.python_nlp.nlp_engine.NLPEngine._analyze_sentiment', MagicMock(return_value={'sentiment': 'neutral', 'confidence': 0.9, 'method_used': 'mock'})) as mock_sentiment, \
-         patch('backend.python_nlp.nlp_engine.NLPEngine._analyze_topic', MagicMock(return_value={'topic': 'general', 'confidence': 0.9, 'method_used': 'mock'})) as mock_topic, \
-         patch('backend.python_nlp.nlp_engine.NLPEngine._analyze_intent', MagicMock(return_value={'intent': 'informational', 'confidence': 0.9, 'method_used': 'mock'})) as mock_intent, \
-         patch('backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency', MagicMock(return_value={'urgency': 'low', 'confidence': 0.9, 'method_used': 'mock'})) as mock_urgency, \
-         patch('backend.python_nlp.nlp_engine.NLPEngine._extract_keywords', MagicMock(return_value=["mock_keyword"])) as mock_keywords, \
-         patch('backend.python_nlp.nlp_engine.NLPEngine._categorize_content', MagicMock(return_value=["Mock Category"])) as mock_categorize:
+    with (
+        patch("backend.python_nlp.nlp_engine.joblib.load", MagicMock(return_value=MagicMock())),
+        patch("backend.python_nlp.nlp_engine.HAS_NLTK", True),
+        patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True),
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._analyze_sentiment",
+            MagicMock(
+                return_value={"sentiment": "neutral", "confidence": 0.9, "method_used": "mock"}
+            ),
+        ) as mock_sentiment,
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._analyze_topic",
+            MagicMock(return_value={"topic": "general", "confidence": 0.9, "method_used": "mock"}),
+        ) as mock_topic,
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._analyze_intent",
+            MagicMock(
+                return_value={"intent": "informational", "confidence": 0.9, "method_used": "mock"}
+            ),
+        ) as mock_intent,
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency",
+            MagicMock(return_value={"urgency": "low", "confidence": 0.9, "method_used": "mock"}),
+        ) as mock_urgency,
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._extract_keywords",
+            MagicMock(return_value=["mock_keyword"]),
+        ) as mock_keywords,
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._categorize_content",
+            MagicMock(return_value=["Mock Category"]),
+        ) as mock_categorize,
+    ):
 
         # Instantiate the engine within the patch context
         engine = NLPEngine()
@@ -37,6 +63,7 @@ def nlp_engine_with_mocks():
         engine._categorize_content = mock_categorize
 
         yield engine
+
 
 def test_analyze_email_orchestration(nlp_engine_with_mocks):
     """
@@ -58,9 +85,18 @@ def test_analyze_email_orchestration(nlp_engine_with_mocks):
     # Verify the structure of the final response
     assert isinstance(result, dict)
     expected_keys = [
-        "topic", "sentiment", "intent", "urgency", "confidence",
-        "categories", "keywords", "reasoning", "suggested_labels",
-        "risk_flags", "validation", "details"
+        "topic",
+        "sentiment",
+        "intent",
+        "urgency",
+        "confidence",
+        "categories",
+        "keywords",
+        "reasoning",
+        "suggested_labels",
+        "risk_flags",
+        "validation",
+        "details",
     ]
     for key in expected_keys:
         assert key in result, f"Expected key '{key}' not found in analysis result."
@@ -75,16 +111,23 @@ def test_analyze_email_orchestration(nlp_engine_with_mocks):
     assert result["keywords"] == ["mock_keyword"]
     assert result["categories"] == ["Mock Category"]
 
+
 def test_sentiment_analysis_fallback_logic():
     """
     Test the internal fallback logic of the _analyze_sentiment method directly.
     """
-    with patch('backend.python_nlp.nlp_engine.HAS_NLTK', True):
+    with patch("backend.python_nlp.nlp_engine.HAS_NLTK", True):
         engine = NLPEngine()
         # Mock the internal analysis methods to control the fallback flow
-        with patch.object(engine, '_analyze_sentiment_model', return_value=None) as mock_model, \
-             patch.object(engine, '_analyze_sentiment_textblob', return_value=None) as mock_textblob, \
-             patch.object(engine, '_analyze_sentiment_keyword', return_value={'method_used': 'fallback_keyword_sentiment'}) as mock_keyword:
+        with (
+            patch.object(engine, "_analyze_sentiment_model", return_value=None) as mock_model,
+            patch.object(engine, "_analyze_sentiment_textblob", return_value=None) as mock_textblob,
+            patch.object(
+                engine,
+                "_analyze_sentiment_keyword",
+                return_value={"method_used": "fallback_keyword_sentiment"},
+            ) as mock_keyword,
+        ):
 
             result = engine._analyze_sentiment("A test sentence.")
 
@@ -94,33 +137,50 @@ def test_sentiment_analysis_fallback_logic():
             mock_keyword.assert_called_once()
 
             # Assert that the final result is from the last fallback
-            assert result['method_used'] == 'fallback_keyword_sentiment'
+            assert result["method_used"] == "fallback_keyword_sentiment"
+
 
 @patch("backend.python_nlp.nlp_engine.NLPEngine._load_model", return_value=None)
 def test_analyze_email_success_path(mock_load_model):
     """
     Test the successful, standard analysis flow of the analyze_email method.
     """
-    with patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True), \
-         patch("backend.python_nlp.nlp_engine.HAS_NLTK", True), \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._categorize_content", return_value=["Work & Business"]), \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._extract_keywords", return_value=["project", "deadline"]), \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_sentiment") as mock_sentiment, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic") as mock_topic, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent") as mock_intent, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency") as mock_urgency:
+    with (
+        patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True),
+        patch("backend.python_nlp.nlp_engine.HAS_NLTK", True),
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._categorize_content",
+            return_value=["Work & Business"],
+        ),
+        patch(
+            "backend.python_nlp.nlp_engine.NLPEngine._extract_keywords",
+            return_value=["project", "deadline"],
+        ),
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_sentiment") as mock_sentiment,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic") as mock_topic,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent") as mock_intent,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency") as mock_urgency,
+    ):
 
         mock_sentiment.return_value = {
-            "sentiment": "positive", "confidence": 0.9, "method_used": "model_sentiment"
+            "sentiment": "positive",
+            "confidence": 0.9,
+            "method_used": "model_sentiment",
         }
         mock_topic.return_value = {
-            "topic": "work_business", "confidence": 0.85, "method_used": "model_topic"
+            "topic": "work_business",
+            "confidence": 0.85,
+            "method_used": "model_topic",
         }
         mock_intent.return_value = {
-            "intent": "follow_up", "confidence": 0.95, "method_used": "model_intent"
+            "intent": "follow_up",
+            "confidence": 0.95,
+            "method_used": "model_intent",
         }
         mock_urgency.return_value = {
-            "urgency": "high", "confidence": 0.7, "method_used": "model_urgency"
+            "urgency": "high",
+            "confidence": 0.7,
+            "method_used": "model_urgency",
         }
 
         engine = NLPEngine()
@@ -137,14 +197,19 @@ def test_analyze_email_success_path(mock_load_model):
         assert "high" in result["reasoning"].lower()
         assert "High Priority" in result["suggested_labels"]
 
+
 @patch("backend.python_nlp.nlp_engine.NLPEngine._load_model", return_value=None)
 def test_analyze_email_full_fallback_on_exception(mock_load_model):
     """
     Test that a generic exception during analysis triggers the full fallback.
     """
-    with patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True), \
-         patch("backend.python_nlp.nlp_engine.HAS_NLTK", True), \
-         patch.object(NLPEngine, "_preprocess_text", side_effect=Exception("Unexpected error")) as mock_preprocess:
+    with (
+        patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True),
+        patch("backend.python_nlp.nlp_engine.HAS_NLTK", True),
+        patch.object(
+            NLPEngine, "_preprocess_text", side_effect=Exception("Unexpected error")
+        ) as mock_preprocess,
+    ):
         engine = NLPEngine()
         result = engine.analyze_email("Test", "Test")
 
@@ -155,10 +220,13 @@ def test_analyze_email_full_fallback_on_exception(mock_load_model):
         assert "Unexpected error" in result["reasoning"]
         assert result["validation"]["method"] == "fallback"
 
+
 def test_analyze_topic_model_path():
     """Test _analyze_topic uses the model path when available."""
-    with patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_model") as mock_model, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_keyword") as mock_fallback:
+    with (
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_model") as mock_model,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_keyword") as mock_fallback,
+    ):
         mock_model.return_value = {"topic": "model_topic", "confidence": 0.9}
         engine = NLPEngine()
         result = engine._analyze_topic("some text")
@@ -166,10 +234,13 @@ def test_analyze_topic_model_path():
         mock_fallback.assert_not_called()
         assert result["topic"] == "model_topic"
 
+
 def test_analyze_topic_fallback_path():
     """Test _analyze_topic uses the fallback path when the model is unavailable."""
-    with patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_model") as mock_model, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_keyword") as mock_fallback:
+    with (
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_model") as mock_model,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_keyword") as mock_fallback,
+    ):
         mock_model.return_value = None
         mock_fallback.return_value = {"topic": "fallback_topic", "confidence": 0.5}
         engine = NLPEngine()
@@ -178,10 +249,13 @@ def test_analyze_topic_fallback_path():
         mock_fallback.assert_called_once_with("some text")
         assert result["topic"] == "fallback_topic"
 
+
 def test_analyze_intent_model_path():
     """Test _analyze_intent uses the model path when available."""
-    with patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_model") as mock_model, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_regex") as mock_fallback:
+    with (
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_model") as mock_model,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_regex") as mock_fallback,
+    ):
         mock_model.return_value = {"intent": "model_intent", "confidence": 0.9}
         engine = NLPEngine()
         result = engine._analyze_intent("some text")
@@ -189,10 +263,13 @@ def test_analyze_intent_model_path():
         mock_fallback.assert_not_called()
         assert result["intent"] == "model_intent"
 
+
 def test_analyze_intent_fallback_path():
     """Test _analyze_intent uses the fallback path when the model is unavailable."""
-    with patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_model") as mock_model, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_regex") as mock_fallback:
+    with (
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_model") as mock_model,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_regex") as mock_fallback,
+    ):
         mock_model.return_value = None
         mock_fallback.return_value = {"intent": "fallback_intent", "confidence": 0.5}
         engine = NLPEngine()
@@ -201,10 +278,13 @@ def test_analyze_intent_fallback_path():
         mock_fallback.assert_called_once_with("some text")
         assert result["intent"] == "fallback_intent"
 
+
 def test_analyze_urgency_model_path():
     """Test _analyze_urgency uses the model path when available."""
-    with patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_model") as mock_model, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_regex") as mock_fallback:
+    with (
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_model") as mock_model,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_regex") as mock_fallback,
+    ):
         mock_model.return_value = {"urgency": "model_urgency", "confidence": 0.9}
         engine = NLPEngine()
         result = engine._analyze_urgency("some text")
@@ -212,10 +292,13 @@ def test_analyze_urgency_model_path():
         mock_fallback.assert_not_called()
         assert result["urgency"] == "model_urgency"
 
+
 def test_analyze_urgency_fallback_path():
     """Test _analyze_urgency uses the fallback path when the model is unavailable."""
-    with patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_model") as mock_model, \
-         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_regex") as mock_fallback:
+    with (
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_model") as mock_model,
+        patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_regex") as mock_fallback,
+    ):
         mock_model.return_value = None
         mock_fallback.return_value = {"urgency": "fallback_urgency", "confidence": 0.5}
         engine = NLPEngine()

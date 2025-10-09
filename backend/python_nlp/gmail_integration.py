@@ -11,9 +11,9 @@ import os
 import sqlite3
 import time
 from collections import deque
-from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
@@ -352,8 +352,7 @@ class GmailDataCollector:
                 flow = InstalledAppFlow.from_client_config(credentials_info, SCOPES)
             except json.JSONDecodeError:
                 self.logger.error(
-                    "Invalid JSON content in %s. "
-                    "Please ensure it's a valid JSON string.",
+                    "Invalid JSON content in %s. " "Please ensure it's a valid JSON string.",
                     GMAIL_CREDENTIALS_ENV_VAR,
                 )
                 return
@@ -667,9 +666,7 @@ class GmailDataCollector:
                 ).isoformat(),
             }
         except Exception as e:
-            self.logger.error(
-                "Error parsing message payload for %s: %s", message.get("id"), e
-            )
+            self.logger.error("Error parsing message payload for %s: %s", message.get("id"), e)
             return None
 
     def _extract_email_address(self, sender_header: str) -> str:
@@ -769,7 +766,7 @@ class GmailDataCollector:
         strategy = strategies[strategy_name]
 
         self.logger.info("Executing collection strategy: %s", strategy_name)
-        self.logger.info("Description: %s", strategy['description'])
+        self.logger.info("Description: %s", strategy["description"])
 
         return await self.collect_emails_incremental(
             query_filter=strategy["query"], max_emails=strategy["max_emails"]
@@ -793,6 +790,8 @@ Key steps:
 Raises:
     Various exceptions related to authentication or email collection
 """
+
+
 async def main():
     """Example usage of Gmail data collector"""
     # Note: The main function would need to be async if _authenticate might run an async flow,
