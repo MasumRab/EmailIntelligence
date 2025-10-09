@@ -4,31 +4,39 @@ Workflow Engine for the Email Intelligence Platform
 This module provides a system for defining, discovering, and executing
 standardized email processing workflows.
 """
+
+import json
 import logging
 import os
-import json
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
 
 # Forward-referencing for type hints
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List
+
 if TYPE_CHECKING:
-    from .ai_engine import AdvancedAIEngine
     from ..python_nlp.smart_filters import SmartFilterManager
+    from .ai_engine import AdvancedAIEngine
     from .database import DatabaseManager
 
 # Import the settings file path
-from .database import SETTINGS_FILE, DATA_DIR
+from .database import DATA_DIR, SETTINGS_FILE
 
 logger = logging.getLogger(__name__)
 
 WORKFLOWS_DIR = DATA_DIR / "workflows"
 
+
 class BaseWorkflow(ABC):
     """
     Abstract base class for all email processing workflows.
     """
-    def __init__(self, ai_engine: "AdvancedAIEngine", filter_manager: "SmartFilterManager", db: "DatabaseManager"):
+
+    def __init__(
+        self,
+        ai_engine: "AdvancedAIEngine",
+        filter_manager: "SmartFilterManager",
+        db: "DatabaseManager",
+    ):
         self._ai_engine = ai_engine
         self._filter_manager = filter_manager
         self._db = db
@@ -42,10 +50,12 @@ class BaseWorkflow(ABC):
     async def execute(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         pass
 
+
 class WorkflowEngine:
     """
     Manages the registration and execution of workflows.
     """
+
     def __init__(self):
         self._workflows: Dict[str, BaseWorkflow] = {}
         self.active_workflow: BaseWorkflow = None
@@ -59,7 +69,7 @@ class WorkflowEngine:
         """Loads settings from the JSON file."""
         if os.path.exists(self.settings_file):
             try:
-                with open(self.settings_file, 'r') as f:
+                with open(self.settings_file, "r") as f:
                     return json.load(f)
             except (IOError, json.JSONDecodeError) as e:
                 logger.error(f"Failed to load settings file: {e}")
@@ -67,11 +77,9 @@ class WorkflowEngine:
 
     def _save_settings(self):
         """Saves the current settings to the JSON file."""
-        settings = {
-            "active_workflow": self.active_workflow.name if self.active_workflow else None
-        }
+        settings = {"active_workflow": self.active_workflow.name if self.active_workflow else None}
         try:
-            with open(self.settings_file, 'w') as f:
+            with open(self.settings_file, "w") as f:
                 json.dump(settings, f, indent=4)
             logger.info(f"Saved settings to {self.settings_file}")
         except IOError as e:
@@ -88,7 +96,7 @@ class WorkflowEngine:
         self,
         ai_engine: "AdvancedAIEngine",
         filter_manager: "SmartFilterManager",
-        db: "DatabaseManager"
+        db: "DatabaseManager",
     ):
         """Discovers code-based, file-based, and plugin-based workflows."""
         logger.info("Discovering workflows...")
@@ -110,7 +118,7 @@ class WorkflowEngine:
             if filename.endswith(".json"):
                 file_path = os.path.join(WORKFLOWS_DIR, filename)
                 try:
-                    with open(file_path, 'r') as f:
+                    with open(file_path, "r") as f:
                         config = json.load(f)
                         await self.create_and_register_workflow_from_config(config, from_file=True)
                 except Exception as e:
@@ -127,7 +135,9 @@ class WorkflowEngine:
 
         logger.info(f"Workflows discovered. Active workflow: '{self.active_workflow.name}'")
 
-    async def create_and_register_workflow_from_config(self, config: Dict[str, Any], from_file: bool = False):
+    async def create_and_register_workflow_from_config(
+        self, config: Dict[str, Any], from_file: bool = False
+    ):
         """Creates, saves, and registers a new workflow from a config dictionary."""
         workflow_name = config.get("name")
         if not workflow_name:
@@ -145,7 +155,7 @@ class WorkflowEngine:
             if os.path.exists(file_path):
                 raise ValueError(f"Workflow file '{file_path}' already exists.")
             try:
-                with open(file_path, 'w') as f:
+                with open(file_path, "w") as f:
                     json.dump(config, f, indent=4)
                 logger.info(f"Saved new workflow configuration to '{file_path}'.")
             except IOError as e:
@@ -173,9 +183,16 @@ class WorkflowEngine:
             raise RuntimeError("No active workflow is set.")
         return await self.active_workflow.execute(email_data)
 
+
 class DefaultWorkflow(BaseWorkflow):
     """The default workflow that uses a hardcoded set of models."""
-    def __init__(self, ai_engine: "AdvancedAIEngine", filter_manager: "SmartFilterManager", db: "DatabaseManager"):
+
+    def __init__(
+        self,
+        ai_engine: "AdvancedAIEngine",
+        filter_manager: "SmartFilterManager",
+        db: "DatabaseManager",
+    ):
         super().__init__(ai_engine, filter_manager, db)
         self.models = {"sentiment": "sentiment-default", "topic": "topic-default"}
 
@@ -190,19 +207,29 @@ class DefaultWorkflow(BaseWorkflow):
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()
-        processed_data.update({
-            "confidence": int(ai_analysis.confidence * 100),
-            "categoryId": ai_analysis.category_id,
-            "labels": ai_analysis.suggested_labels,
-            "analysisMetadata": ai_analysis.to_dict(),
-            "filterResults": filter_results,
-            "workflow_status": "processed_by_default_workflow"
-        })
+        processed_data.update(
+            {
+                "confidence": int(ai_analysis.confidence * 100),
+                "categoryId": ai_analysis.category_id,
+                "labels": ai_analysis.suggested_labels,
+                "analysisMetadata": ai_analysis.to_dict(),
+                "filterResults": filter_results,
+                "workflow_status": "processed_by_default_workflow",
+            }
+        )
         return processed_data
+
 
 class FileBasedWorkflow(BaseWorkflow):
     """A generic workflow configured by a JSON file."""
-    def __init__(self, ai_engine: "AdvancedAIEngine", filter_manager: "SmartFilterManager", db: "DatabaseManager", config: Dict[str, Any]):
+
+    def __init__(
+        self,
+        ai_engine: "AdvancedAIEngine",
+        filter_manager: "SmartFilterManager",
+        db: "DatabaseManager",
+        config: Dict[str, Any],
+    ):
         super().__init__(ai_engine, filter_manager, db)
         self._name = config.get("name", "unnamed_file_workflow")
         self.models = config.get("models", {})
@@ -213,18 +240,22 @@ class FileBasedWorkflow(BaseWorkflow):
         return self._name
 
     async def execute(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
-        logger.info(f"Executing file-based workflow '{self.name}' for email: {email_data.get('subject')}")
+        logger.info(
+            f"Executing file-based workflow '{self.name}' for email: {email_data.get('subject')}"
+        )
         ai_analysis = await self._ai_engine.analyze_email(
             email_data["subject"], email_data["content"], models_to_use=self.models, db=self._db
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()
-        processed_data.update({
-            "confidence": int(ai_analysis.confidence * 100),
-            "categoryId": ai_analysis.category_id,
-            "labels": ai_analysis.suggested_labels,
-            "analysisMetadata": ai_analysis.to_dict(),
-            "filterResults": filter_results,
-            "workflow_status": f"processed_by_{self.name}"
-        })
+        processed_data.update(
+            {
+                "confidence": int(ai_analysis.confidence * 100),
+                "categoryId": ai_analysis.category_id,
+                "labels": ai_analysis.suggested_labels,
+                "analysisMetadata": ai_analysis.to_dict(),
+                "filterResults": filter_results,
+                "workflow_status": f"processed_by_{self.name}",
+            }
+        )
         return processed_data

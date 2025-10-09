@@ -96,9 +96,7 @@ def test_sync_gmail_api_error(client_gmail):
 def test_smart_retrieval(client_gmail):
     """Test the smart retrieval endpoint."""
     mock_retrieval_result = {"success": True, "totalEmails": 50}
-    mock_gmail_service_instance.execute_smart_retrieval.return_value = (
-        mock_retrieval_result
-    )
+    mock_gmail_service_instance.execute_smart_retrieval.return_value = mock_retrieval_result
 
     request_payload = {
         "strategies": ["strat1"],
@@ -129,9 +127,7 @@ def test_get_retrieval_strategies(client_gmail):
             "date_range_days": 1,
         }
     ]
-    mock_gmail_service_instance.get_retrieval_strategies.return_value = (
-        mock_strategies_data
-    )
+    mock_gmail_service_instance.get_retrieval_strategies.return_value = mock_strategies_data
 
     response = client_gmail.get("/api/gmail/strategies")
     assert response.status_code == 200
@@ -146,9 +142,7 @@ def test_get_gmail_performance(client_gmail):
         "daily_stats": [],
         "strategy_performance": [],
     }
-    mock_gmail_service_instance.get_performance_metrics.return_value = (
-        mock_performance_data
-    )
+    mock_gmail_service_instance.get_performance_metrics.return_value = mock_performance_data
 
     response = client_gmail.get("/api/gmail/performance")
     assert response.status_code == 200

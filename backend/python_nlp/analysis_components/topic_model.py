@@ -1,13 +1,16 @@
 """
 A simple, placeholder topic analysis model.
 """
+
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
+
 class TopicModel:
     """A basic topic model for demonstration purposes."""
+
     def __init__(self):
         logger.info("TopicModel instance created.")
 
@@ -26,6 +29,6 @@ class TopicModel:
 
         return {
             "topic": topic,
-            "confidence": 0.5, # Placeholder confidence
-            "method_used": "simple_keyword_topic"
+            "confidence": 0.5,  # Placeholder confidence
+            "method_used": "simple_keyword_topic",
         }

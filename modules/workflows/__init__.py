@@ -1,10 +1,12 @@
 import logging
-from fastapi import FastAPI
+
 import gradio as gr
+from fastapi import FastAPI
 
 from .ui import create_workflow_ui
 
 logger = logging.getLogger(__name__)
+
 
 def register(app: FastAPI, gradio_app: gr.Blocks):
     """

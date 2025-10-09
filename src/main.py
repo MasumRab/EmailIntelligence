@@ -1,8 +1,10 @@
 import argparse
 import logging
-import uvicorn
+
 import gradio as gr
+import uvicorn
 from fastapi import FastAPI
+
 from .core.module_manager import ModuleManager
 
 # Configure logging
@@ -11,6 +13,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
 
 def create_app():
     """
@@ -40,17 +43,14 @@ def create_app():
     logger.info("Application creation complete. FastAPI and Gradio are integrated.")
     return app
 
+
 def main():
     """
     Main entry point to run the server.
     """
     parser = argparse.ArgumentParser(description="Run the Email Intelligence Platform.")
-    parser.add_argument(
-        "--host", type=str, default="127.0.0.1", help="Host to run the server on."
-    )
-    parser.add_argument(
-        "--port", type=int, default=7860, help="Port to run the server on."
-    )
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to run the server on.")
+    parser.add_argument("--port", type=int, default=7860, help="Port to run the server on.")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
     args = parser.parse_args()
 
@@ -63,6 +63,7 @@ def main():
         reload=args.reload,
         factory=True,
     )
+
 
 if __name__ == "__main__":
     main()

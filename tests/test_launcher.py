@@ -8,44 +8,43 @@ including environment setup, dependency management, and service startup.
 import argparse
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
+
 import pytest
 
 from launch import (
+    PYTHON_MAX_VERSION,
+    PYTHON_MIN_VERSION,
+    ROOT_DIR,
     check_python_version,
     create_venv,
-    install_uv,
-    setup_dependencies,
     download_nltk_data,
-    start_backend,
-    start_gradio_ui,
-    start_client,
-    start_server_ts,
+    install_uv,
     main,
-    ROOT_DIR,
-    PYTHON_MIN_VERSION,
-    PYTHON_MAX_VERSION,
-    processes
+    processes,
+    setup_dependencies,
+    start_backend,
+    start_client,
+    start_gradio_ui,
+    start_server_ts,
 )
 
 
 class TestPythonVersionCheck:
     """Test Python version compatibility checking."""
 
-    @patch('launch.sys.version', '3.12.0')
-    @patch('launch.sys.version_info', (3, 12, 0))
+    @patch("launch.sys.version", "3.12.0")
+    @patch("launch.sys.version_info", (3, 12, 0))
     def test_compatible_version(self, mock_version_info, mock_version):
         """Test that compatible Python versions pass."""
-        with patch('launch.logger') as mock_logger:
+        with patch("launch.logger") as mock_logger:
             check_python_version()
-            mock_logger.info.assert_called_with(
-                "Python version 3.12.0 is compatible."
-            )
+            mock_logger.info.assert_called_with("Python version 3.12.0 is compatible.")
 
-    @patch('launch.sys.version_info', (3, 8, 0))
+    @patch("launch.sys.version_info", (3, 8, 0))
     def test_incompatible_version(self, mock_version_info):
         """Test that incompatible Python versions exit."""
-        with patch('launch.sys.exit') as mock_exit:
+        with patch("launch.sys.exit") as mock_exit:
             check_python_version()
             mock_exit.assert_called_once_with(1)
 
@@ -53,37 +52,35 @@ class TestPythonVersionCheck:
 class TestVirtualEnvironment:
     """Test virtual environment creation and management."""
 
-    @patch('launch.venv.create')
-    @patch('launch.Path.exists', return_value=False)
+    @patch("launch.venv.create")
+    @patch("launch.Path.exists", return_value=False)
     def test_create_venv_success(self, mock_exists, mock_venv_create):
         """Test successful venv creation."""
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.logger') as mock_logger:
+        with patch("launch.logger") as mock_logger:
             create_venv(venv_path)
             mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
-            mock_logger.info.assert_called_with(
-                f"Creating virtual environment at {venv_path}"
-            )
+            mock_logger.info.assert_called_with(f"Creating virtual environment at {venv_path}")
 
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.Path.exists", return_value=True)
     def test_create_venv_already_exists(self, mock_exists):
         """Test when venv already exists."""
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.logger') as mock_logger:
+        with patch("launch.logger") as mock_logger:
             create_venv(venv_path)
             mock_logger.info.assert_called_with(
                 f"Virtual environment already exists at {venv_path}"
             )
 
-    @patch('launch.shutil.rmtree')
-    @patch('launch.venv.create')
-    @patch('launch.Path.exists')
+    @patch("launch.shutil.rmtree")
+    @patch("launch.venv.create")
+    @patch("launch.Path.exists")
     def test_create_venv_recreate(self, mock_exists, mock_venv_create, mock_rmtree):
         """Test venv recreation when forced."""
         # Mock exists to return True initially, then False after rmtree
         mock_exists.side_effect = [True, False]
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.logger') as mock_logger:
+        with patch("launch.logger") as mock_logger:
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
             mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
@@ -92,37 +89,37 @@ class TestVirtualEnvironment:
 class TestDependencyManagement:
     """Test dependency installation and management."""
 
-    @patch('launch.subprocess.run')
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.subprocess.run")
+    @patch("launch.Path.exists", return_value=True)
     def test_install_uv_success(self, mock_exists, mock_run):
         """Test successful uv installation."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.logger') as mock_logger:
+        with patch("launch.logger") as mock_logger:
             install_uv(venv_path)
             mock_run.assert_called_once()
             mock_logger.info.assert_any_call("Installing uv package manager...")
 
-    @patch('launch.subprocess.run')
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.subprocess.run")
+    @patch("launch.Path.exists", return_value=True)
     def test_setup_dependencies_success(self, mock_exists, mock_run):
         """Test successful dependency setup."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.logger') as mock_logger:
+        with patch("launch.logger") as mock_logger:
             setup_dependencies(venv_path)
             mock_logger.info.assert_any_call("Installing project dependencies...")
 
-    @patch('launch.subprocess.run')
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.subprocess.run")
+    @patch("launch.Path.exists", return_value=True)
     def test_download_nltk_success(self, mock_exists, mock_run):
         """Test successful NLTK data download."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.logger') as mock_logger:
+        with patch("launch.logger") as mock_logger:
             download_nltk_data(venv_path)
             mock_logger.info.assert_called_with("NLTK data downloaded successfully.")
 
@@ -130,43 +127,43 @@ class TestDependencyManagement:
 class TestServiceStartup:
     """Test service startup functions."""
 
-    @patch('launch.subprocess.Popen')
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.subprocess.Popen")
+    @patch("launch.Path.exists", return_value=True)
     def test_start_backend_success(self, mock_exists, mock_popen):
         """Test successful backend startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.processes', []):
+        with patch("launch.processes", []):
             result = start_backend(venv_path, "127.0.0.1", 8000)
             assert result == mock_process
             assert mock_process in processes
 
-    @patch('launch.subprocess.Popen')
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.subprocess.Popen")
+    @patch("launch.Path.exists", return_value=True)
     def test_start_gradio_ui_success(self, mock_exists, mock_popen):
         """Test successful Gradio UI startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
         venv_path = ROOT_DIR / "venv"
-        with patch('launch.processes', []):
+        with patch("launch.processes", []):
             result = start_gradio_ui(venv_path, "127.0.0.1")
             assert result == mock_process
             assert mock_process in processes
 
-    @patch('launch.subprocess.Popen')
-    @patch('launch.subprocess.run')
-    @patch('launch.shutil.which', return_value="/usr/bin/npm")
-    @patch('launch.Path.exists', return_value=False)
+    @patch("launch.subprocess.Popen")
+    @patch("launch.subprocess.run")
+    @patch("launch.shutil.which", return_value="/usr/bin/npm")
+    @patch("launch.Path.exists", return_value=False)
     def test_start_client_install_deps(self, mock_exists, mock_which, mock_run, mock_popen):
         """Test client startup with dependency installation."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        with patch('launch.processes', []):
+        with patch("launch.processes", []):
             result = start_client()
             assert result == mock_process
             assert mock_process in processes
@@ -175,17 +172,17 @@ class TestServiceStartup:
                 ["npm", "install"], cwd=ROOT_DIR / "client", capture_output=True, text=True
             )
 
-    @patch('launch.subprocess.Popen')
-    @patch('launch.subprocess.run')
-    @patch('launch.shutil.which', return_value="/usr/bin/npm")
-    @patch('launch.Path.exists', return_value=False)
+    @patch("launch.subprocess.Popen")
+    @patch("launch.subprocess.run")
+    @patch("launch.shutil.which", return_value="/usr/bin/npm")
+    @patch("launch.Path.exists", return_value=False)
     def test_start_server_ts_install_deps(self, mock_exists, mock_which, mock_run, mock_popen):
         """Test TypeScript server startup with dependency installation."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        with patch('launch.processes', []):
+        with patch("launch.processes", []):
             result = start_server_ts()
             assert result == mock_process
             assert mock_process in processes
@@ -197,8 +194,8 @@ class TestServiceStartup:
 class TestMainFunction:
     """Test the main launcher function and argument parsing."""
 
-    @patch('launch.check_python_version')
-    @patch('launch.parse_arguments')
+    @patch("launch.check_python_version")
+    @patch("launch.parse_arguments")
     def test_main_setup_mode(self, mock_parse, mock_check_version):
         """Test main function in setup mode."""
         # Mock setup arguments
@@ -211,11 +208,11 @@ class TestMainFunction:
         mock_args.env_file = None
         mock_parse.return_value = mock_args
 
-        with patch('launch.create_venv') as mock_create_venv:
-            with patch('launch.install_uv') as mock_install_uv:
-                with patch('launch.setup_dependencies') as mock_setup_deps:
-                    with patch('launch.download_nltk_data') as mock_download_nltk:
-                        with patch('launch.logger') as mock_logger:
+        with patch("launch.create_venv") as mock_create_venv:
+            with patch("launch.install_uv") as mock_install_uv:
+                with patch("launch.setup_dependencies") as mock_setup_deps:
+                    with patch("launch.download_nltk_data") as mock_download_nltk:
+                        with patch("launch.logger") as mock_logger:
                             main()
                             mock_create_venv.assert_called_once()
                             mock_install_uv.assert_called_once()
@@ -223,9 +220,9 @@ class TestMainFunction:
                             mock_download_nltk.assert_called_once()
                             mock_logger.info.assert_called_with("Setup completed successfully.")
 
-    @patch('launch.check_python_version')
-    @patch('launch.parse_arguments')
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.check_python_version")
+    @patch("launch.parse_arguments")
+    @patch("launch.Path.exists", return_value=True)
     def test_main_launch_mode(self, mock_exists, mock_parse, mock_check_version):
         """Test main function in launch mode."""
         # Mock launch arguments
@@ -244,13 +241,13 @@ class TestMainFunction:
         mock_args.env_file = None
         mock_parse.return_value = mock_args
 
-        with patch('launch.start_backend') as mock_start_backend:
-            with patch('launch.start_gradio_ui') as mock_start_ui:
-                with patch('launch.start_client') as mock_start_client:
-                    with patch('launch.start_server_ts') as mock_start_server:
-                        with patch('launch.time.sleep'):
-                            with patch('launch.wait_for_processes'):
-                                with patch('launch.logger') as mock_logger:
+        with patch("launch.start_backend") as mock_start_backend:
+            with patch("launch.start_gradio_ui") as mock_start_ui:
+                with patch("launch.start_client") as mock_start_client:
+                    with patch("launch.start_server_ts") as mock_start_server:
+                        with patch("launch.time.sleep"):
+                            with patch("launch.wait_for_processes"):
+                                with patch("launch.logger") as mock_logger:
                                     main()
                                     mock_start_backend.assert_called_once()
                                     mock_start_ui.assert_called_once()
@@ -261,20 +258,19 @@ class TestMainFunction:
 class TestErrorHandling:
     """Test error handling scenarios."""
 
-    @patch('launch.subprocess.run')
+    @patch("launch.subprocess.run")
     def test_run_command_failure(self, mock_run):
         """Test command execution failure handling."""
         from launch import run_command
+
         mock_run.return_value = MagicMock(
-            returncode=1,
-            stdout="error output",
-            stderr="error details"
+            returncode=1, stdout="error output", stderr="error details"
         )
 
         result = run_command(["failing", "command"], "Test command")
         assert result is False
 
-    @patch('launch.shutil.which', return_value=None)
+    @patch("launch.shutil.which", return_value=None)
     def test_node_not_found(self, mock_which):
         """Test handling when Node.js is not installed."""
         from launch import check_node_npm_installed
@@ -282,9 +278,10 @@ class TestErrorHandling:
         result = check_node_npm_installed()
         assert result is False
 
-    @patch('launch.shutil.which')
+    @patch("launch.shutil.which")
     def test_npm_not_found(self, mock_which):
         """Test handling when npm is not installed."""
+
         # Mock shutil.which to return node but not npm
         def which_side_effect(cmd):
             if cmd == "node":
@@ -304,9 +301,9 @@ class TestErrorHandling:
 class TestLauncherIntegration:
     """Integration tests for complete launcher workflows."""
 
-    @patch('launch.subprocess.run')
-    @patch('launch.shutil.which', return_value="/usr/bin/npm")
-    @patch('launch.Path.exists', return_value=True)
+    @patch("launch.subprocess.run")
+    @patch("launch.shutil.which", return_value="/usr/bin/npm")
+    @patch("launch.Path.exists", return_value=True)
     def test_full_setup_workflow(self, mock_exists, mock_which, mock_run):
         """Test complete setup workflow."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
@@ -320,13 +317,13 @@ class TestLauncherIntegration:
         """Test version compatibility for different Python versions."""
         test_cases = [
             ((3, 11, 0), False),  # Too old
-            ((3, 12, 0), True),   # Compatible
-            ((3, 12, 5), True),   # Compatible
+            ((3, 12, 0), True),  # Compatible
+            ((3, 12, 5), True),  # Compatible
             ((3, 13, 0), False),  # Too new
         ]
 
         for version_tuple, should_pass in test_cases:
-            with patch('launch.sys.version_info', version_tuple):
+            with patch("launch.sys.version_info", version_tuple):
                 if should_pass:
                     # Should not raise SystemExit
                     try:

@@ -4,18 +4,21 @@ Model Manager for the Email Intelligence Platform
 This module provides a centralized system for discovering, loading, unloading,
 and managing AI models.
 """
+
+import importlib
+import json
 import logging
 import os
-import json
-import importlib
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
+
 
 class ModelManager:
     """
     Manages the lifecycle of AI models.
     """
+
     def __init__(self, model_directory: str = "models/"):
         self.model_directory = model_directory
         self._models: Dict[str, Any] = {}  # Registry for model instances
@@ -28,18 +31,22 @@ class ModelManager:
         logger.info(f"Discovering models from: {self.model_directory}")
         self._model_metadata = {}
         if not os.path.exists(self.model_directory):
-            logger.warning(f"Model directory '{self.model_directory}' not found. No models will be loaded.")
+            logger.warning(
+                f"Model directory '{self.model_directory}' not found. No models will be loaded."
+            )
             return
 
         for filename in os.listdir(self.model_directory):
             if filename.endswith(".json"):
                 file_path = os.path.join(self.model_directory, filename)
                 try:
-                    with open(file_path, 'r') as f:
+                    with open(file_path, "r") as f:
                         meta = json.load(f)
                         model_name = meta.get("name")
                         if not model_name:
-                            logger.warning(f"Skipping config file '{filename}' as it's missing a 'name' field.")
+                            logger.warning(
+                                f"Skipping config file '{filename}' as it's missing a 'name' field."
+                            )
                             continue
 
                         meta["status"] = "unloaded"
@@ -78,7 +85,9 @@ class ModelManager:
         class_name = meta.get("class")
 
         if not module_name or not class_name:
-            raise ValueError(f"Model '{model_name}' config is missing 'module' or 'class' information.")
+            raise ValueError(
+                f"Model '{model_name}' config is missing 'module' or 'class' information."
+            )
 
         logger.info(f"Loading model '{model_name}' from module '{module_name}'...")
         try:
