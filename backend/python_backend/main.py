@@ -134,6 +134,11 @@ from .enhanced_routes import router as enhanced_router
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
+# Include workflow routes (legacy and node-based)
+from .workflow_routes import router as workflow_router
+
+app.include_router(workflow_router, prefix="", tags=["workflows"])
+
 # Include advanced workflow routes (will use node-based system)
 from .advanced_workflow_routes import router as advanced_workflow_router
 
