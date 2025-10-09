@@ -525,7 +525,7 @@ def main():
         # Note: The client and server-ts might require additional parameters or configuration
         start_client()
 
-    start_server_ts()
+
 
     logger.info("All selected services started. Press Ctrl+C to shut down.")
     wait_for_processes()
