@@ -8,7 +8,7 @@ from .database import DatabaseManager, get_db
 from .exceptions import DatabaseError
 from .models import CategoryCreate, CategoryResponse  # Added CategoryResponse, changed from .main
 from .performance_monitor import log_performance
-from .utils import handle_pydantic_validation, create_log_data
+from .utils import create_log_data, handle_pydantic_validation
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -44,7 +44,9 @@ async def create_category(
             category.model_dump()
         )  # db.create_category returns a dict
         # Use the utility function to handle Pydantic validation
-        validated_categories = await handle_pydantic_validation([created_category_dict], CategoryResponse, "create_category")
+        validated_categories = await handle_pydantic_validation(
+            [created_category_dict], CategoryResponse, "create_category"
+        )
         return validated_categories[0]  # Return the single validated category
     except Exception as db_err:
         log_data = create_log_data(

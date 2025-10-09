@@ -5,6 +5,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 class ModuleManager:
     def __init__(self, app, gradio_app):
         self.app = app
@@ -38,9 +39,7 @@ class ModuleManager:
             # The module name for importlib should be `modules.module_name`
             # to reflect the package structure.
             module_import_name = f"modules.{module_name}"
-            spec = importlib.util.spec_from_file_location(
-                module_import_name, init_file
-            )
+            spec = importlib.util.spec_from_file_location(module_import_name, init_file)
             if spec and spec.loader:
                 module = importlib.util.module_from_spec(spec)
                 sys.modules[module_import_name] = module

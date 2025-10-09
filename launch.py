@@ -42,7 +42,9 @@ def validate_port(port: int) -> int:
 def validate_host(host: str) -> str:
     """Validate host name/address format."""
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+
+    if not re.match(r'^[a-zA-Z0-9.-]+', host):
+        raise ValueError(f"Invalid host: {host}")
+    return host
 
 # --- Global state ---
 ROOT_DIR = Path(__file__).resolve().parent
@@ -110,8 +112,6 @@ signal.signal(signal.SIGINT, _handle_sigint)
 signal.signal(signal.SIGTERM, _handle_sigint)
 
 
-
-
 def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False) -> bool:
     """Run a command and log its output.
     
@@ -149,8 +149,6 @@ def check_python_version():
         )
         sys.exit(1)
     logger.info(f"Python version {sys.version} is compatible.")
-
-
 
 
 def get_venv_python_path(venv_path: Path = None) -> Path:
@@ -250,14 +248,24 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
 
         # Verify critical packages are installed
         logger.info("Verifying critical package installations...")
-        critical_packages = ["uvicorn", "fastapi", "numpy", "transformers", "nltk", "psutil", "gradio"]
+        critical_packages = [
+            "uvicorn",
+            "fastapi",
+            "numpy",
+            "transformers",
+            "nltk",
+            "psutil",
+            "gradio",
+        ]
         missing_packages = []
         for package in critical_packages:
             try:
                 venv_python = get_venv_python_path()
                 check_result = subprocess.run(
                     [str(venv_python), "-c", f"import {package}"],
-                    capture_output=True, text=True, timeout=10
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
                 )
                 if check_result.returncode != 0:
                     missing_packages.append(package)
@@ -297,14 +305,24 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
 
         # Verify critical packages are installed
         logger.info("Verifying critical package installations...")
-        critical_packages = ["uvicorn", "fastapi", "numpy", "transformers", "nltk", "psutil", "gradio"]
+        critical_packages = [
+            "uvicorn",
+            "fastapi",
+            "numpy",
+            "transformers",
+            "nltk",
+            "psutil",
+            "gradio",
+        ]
         missing_packages = []
         for package in critical_packages:
             try:
                 venv_python = get_venv_python_path()
                 check_result = subprocess.run(
                     [str(venv_python), "-c", f"import {package}"],
-                    capture_output=True, text=True, timeout=10
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
                 )
                 if check_result.returncode != 0:
                     missing_packages.append(package)
@@ -357,7 +375,9 @@ def check_uvicorn_installed(venv_path: Path) -> bool:
     """Check if uvicorn is installed in the virtual environment."""
     venv_python = get_venv_python_path()
     try:
-        result = subprocess.run([str(venv_python), "-c", "import uvicorn"], capture_output=True, text=True)
+        result = subprocess.run(
+            [str(venv_python), "-c", "import uvicorn"], capture_output=True, text=True
+        )
         if result.returncode == 0:
             logger.info("uvicorn is available in the virtual environment.")
             return True
@@ -367,8 +387,6 @@ def check_uvicorn_installed(venv_path: Path) -> bool:
     except FileNotFoundError:
         logger.error("Virtual environment Python not found.")
         return False
-
-
 
 
 def check_node_npm_installed() -> bool:
@@ -400,7 +418,9 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
     if not check_uvicorn_installed(venv_path):
-        logger.error("Cannot start backend without uvicorn. Please run 'python launch.py --setup' first.")
+        logger.error(
+            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
+        )
         return None
 
     venv_python = get_venv_executable(venv_path, "python")
@@ -423,8 +443,6 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
     return process
-
-
 
 
 def start_gradio_ui(
@@ -569,7 +587,9 @@ def main():
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
     )
     parser.add_argument(
-        "--use-poetry", action="store_true", help="Use Poetry instead of uv for dependency management."
+        "--use-poetry",
+        action="store_true",
+        help="Use Poetry instead of uv for dependency management.",
     )
 
     # Service selection
@@ -609,6 +629,7 @@ def main():
         env_path = Path(args.env_file)
         if env_path.exists():
             from dotenv import load_dotenv
+
             load_dotenv(env_path)
             logger.info(f"Loaded environment variables from {env_path}")
         else:
@@ -639,3 +660,4 @@ def main():
 
 
 if __name__ == "__main__":
+    main()

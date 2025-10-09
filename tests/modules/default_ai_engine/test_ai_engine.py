@@ -1,5 +1,6 @@
-from src.core.ai_engine import get_active_ai_engine
 from modules.default_ai_engine.engine import DefaultAIEngine
+from src.core.ai_engine import get_active_ai_engine
+
 
 def test_default_ai_engine_is_active(client):  # client fixture to ensure app is initialized
     """

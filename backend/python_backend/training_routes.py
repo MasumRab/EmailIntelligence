@@ -5,7 +5,7 @@ This module provides API endpoints for training AI models used in email analysis
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
@@ -33,6 +33,7 @@ async def start_training(model_config: ModelConfig, background_tasks: Background
         Dict with job_id and status
     """
     import uuid
+
     job_id = str(uuid.uuid4())
 
     # Store job info
@@ -40,7 +41,7 @@ async def start_training(model_config: ModelConfig, background_tasks: Background
         "status": "running",
         "model_config": model_config,
         "progress": 0.0,
-        "message": "Training started"
+        "message": "Training started",
     }
 
     # Add background task for training
@@ -77,14 +78,15 @@ async def run_training(job_id: str, model_config: ModelConfig):
         model_config: Configuration for the model
     """
     try:
-        import time
+        import os
         import random
-        from sklearn.model_selection import train_test_split
+        import time
+
+        import pandas as pd
         from sklearn.feature_extraction.text import TfidfVectorizer
         from sklearn.linear_model import LogisticRegression
         from sklearn.metrics import accuracy_score
-        import pandas as pd
-        import os
+        from sklearn.model_selection import train_test_split
 
         # Update progress
         training_jobs[job_id]["progress"] = 0.1
@@ -103,10 +105,12 @@ async def run_training(job_id: str, model_config: ModelConfig):
             ("Not bad", "neutral"),
         ] * 50  # Multiply for more data
 
-        df = pd.DataFrame(sample_data, columns=['text', 'sentiment'])
+        df = pd.DataFrame(sample_data, columns=["text", "sentiment"])
 
         # Split data
-        X_train, X_test, y_train, y_test = train_test_split(df['text'], df['sentiment'], test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(
+            df["text"], df["sentiment"], test_size=0.2, random_state=42
+        )
 
         training_jobs[job_id]["progress"] = 0.3
         training_jobs[job_id]["message"] = "Vectorizing text..."
@@ -135,12 +139,15 @@ async def run_training(job_id: str, model_config: ModelConfig):
 
         # Save model (in real scenario, save to configured path)
         import joblib
+
         model_path = f"models/{model_config.model_name}_{job_id}.pkl"
         os.makedirs("models", exist_ok=True)
         joblib.dump((model, vectorizer), model_path)
 
         training_jobs[job_id]["status"] = "completed"
-        training_jobs[job_id]["message"] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
+        training_jobs[job_id][
+            "message"
+        ] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
         training_jobs[job_id]["accuracy"] = accuracy
         training_jobs[job_id]["model_path"] = model_path
 
