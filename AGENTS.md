@@ -4,13 +4,13 @@
 
 ### Python Backend
 - **Test all**: `pytest`
-- **Test single file**: `pytest backend/python_backend/tests/test_file.py`
-- **Test single function**: `pytest backend/python_backend/tests/test_file.py::TestClass::test_function`
+- **Test single file**: `pytest tests/test_file.py`
+- **Test single function**: `pytest tests/test_file.py::TestClass::test_function`
 - **Format**: `black .`
 - **Lint**: `flake8 .`
 - **Import sort**: `isort .`
 - **Type check**: `mypy .`
-- **Code quality**: `pylint backend`
+- **Code quality**: `pylint src modules`
 
 ### Dependency Management
 - **uv (default)**: `python launch.py --setup` - Uses uv for fast, reliable installs
@@ -47,12 +47,12 @@
 
 ### Architecture Overview
 - **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, Vite build system
-- **Backend**: Python with FastAPI for API endpoints and Gradio for UI
+- **Backend**: Modular Python with FastAPI for API endpoints and Gradio for UI, core in src/, modules in modules/
 - **AI Engine**: Python-based NLP models for sentiment, intent, topic, and urgency analysis
 - **Database**: SQLite for local storage and caching, JSON files for main application data
 
 ### Key Patterns to Follow
-- Modular structure: separate directories for backend, frontend, and NLP components
+- Modular structure: core backend in src/, modular extensions in modules/, frontend in client/
 - Local file-based storage: JSON files for main data, SQLite for smart filters and cache
 - Launcher script (launch.py) handles environment setup and application startup
 - Both unit and integration testing required for Python and TypeScript components

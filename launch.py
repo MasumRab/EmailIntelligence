@@ -48,6 +48,7 @@ def validate_host(host: str) -> str:
 
 # --- Global state ---
 ROOT_DIR = Path(__file__).resolve().parent
+processes: List[subprocess.Popen] = []
 
 
 class ProcessManager:
@@ -434,11 +435,15 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     venv_python = get_venv_executable(venv_path, "python")
 
     # Use uvicorn to run the FastAPI app directly
+    import os
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+
     cmd = [
         str(venv_python),
         "-m",
         "uvicorn",
-        "backend.python_backend.main:app",
+        "src.main:create_app",
         "--host",
         host,
         "--port",
@@ -448,7 +453,7 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
         cmd.append("--reload")
 
     logger.info(f"Starting Python backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
     return process
 

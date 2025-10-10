@@ -12,13 +12,13 @@ def test_create_and_get_categories(client: TestClient):
         "description": "A category for testing purposes.",
         "color": "#FF0000",
     }
-    response = client.post("/modules/categories/api/categories", json=new_category_data)
+    response = client.post("/api/categories/categories", json=new_category_data)
     assert response.status_code == 200
     created_category = response.json()
     assert created_category["name"] == new_category_data["name"]
 
     # 2. Get all categories and verify the new one is present
-    response = client.get("/modules/categories/api/categories")
+    response = client.get("/api/categories/categories")
     assert response.status_code == 200
     categories = response.json()
     assert isinstance(categories, list)
