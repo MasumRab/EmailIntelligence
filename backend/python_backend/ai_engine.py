@@ -82,7 +82,8 @@ class AIAnalysisResult:
 
 
 class AdvancedAIEngine:
-    """Optimized Advanced AI engine with async support and caching."""
+    """
+    Optimized Advanced AI engine with async support and caching.
 
     This class integrates with an NLP engine to perform analysis and includes
     methods for health checks, cleanup, and fallback mechanisms.

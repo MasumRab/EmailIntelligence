@@ -34,8 +34,7 @@ class TestSentimentModel(unittest.TestCase):
 
         # Mock TextBlob
         mock_textblob_instance = MagicMock()
-        mock_textblob_instance.sentiment.polarity = 0.8
-        mock_textblob_instance.sentiment.subjectivity = 0.5
+        mock_textblob_instance.sentiment = (0.8, 0.5)  # Set sentiment as a tuple
 
         with patch(
             "backend.python_nlp.analysis_components.sentiment_model.TextBlob",
@@ -66,8 +65,7 @@ class TestSentimentModel(unittest.TestCase):
 
     def test_analyze_no_model_fallback_to_textblob(self):
         mock_textblob_instance = MagicMock()
-        mock_textblob_instance.sentiment.polarity = -0.7
-        mock_textblob_instance.sentiment.subjectivity = 0.4
+        mock_textblob_instance.sentiment = (-0.7, 0.4)  # Set sentiment as a tuple
 
         with patch(
             "backend.python_nlp.analysis_components.sentiment_model.TextBlob",

@@ -449,6 +449,8 @@ class NLPEngine:
         sentiment = "positive" if "thank" in text else "negative" if "problem" in text else "neutral"
         urgency = "high" if "urgent" in text else "low"
         topic = "work_business" if "meeting" in text else "general_communication"
+        confidence_value = 0.4  # Default low confidence for basic fallback
+        categories = [topic]  # Use the determined topic as the category
         return {
             "topic": topic,
             "sentiment": sentiment,
@@ -557,16 +559,17 @@ class NLPEngine:
         keywords,
         risk_analysis_flags,
     ) -> Dict[str, Any]:
-        """Helper function to consolidate analysis results and build the final response dictionary."""
+        """
+        Helper function to consolidate analysis results and build the final response dictionary.
 
         Args:
-            sentiment: Sentiment analysis result.
-            topic: Topic analysis result.
-            intent: Intent analysis result.
-            urgency: Urgency analysis result.
+            sentiment_analysis: Sentiment analysis result.
+            topic_analysis: Topic analysis result.
+            intent_analysis: Intent analysis result.
+            urgency_analysis: Urgency analysis result.
             categories: List of identified categories.
             keywords: List of extracted keywords.
-            risk_flags: List of identified risk flags.
+            risk_analysis_flags: List of identified risk flags.
 
         Returns:
             A dictionary containing the final, aggregated analysis.

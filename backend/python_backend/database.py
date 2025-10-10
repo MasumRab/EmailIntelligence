@@ -53,7 +53,7 @@ FIELD_CATEGORY_COLOR = 'categoryColor'
 
 class DatabaseManager:
     """Optimized async database manager with in-memory caching, write-behind,
-    and hybrid on-demand content loading."""
+    and hybrid on-demand content loading.
 
     This class provides an asynchronous interface for all CRUD (Create, Read,
     Update, Delete) operations. It handles loading data from files into memory
