@@ -83,9 +83,9 @@ class ProcessManager:
 process_manager = ProcessManager()
 
 # --- Constants ---
-PYTHON_MIN_VERSION = (3, 10)
-PYTHON_MAX_VERSION = (3, 13)
-VENV_DIR = "venv"
+PYTHON_MIN_VERSION = (3, 12)
+PYTHON_MAX_VERSION = (3, 12)
+VENV_DIR = ".venv"
 
 # Dependency configuration
 TORCH_VERSION = "torch>=2.4.0"
@@ -149,6 +149,14 @@ def check_python_version():
         )
         sys.exit(1)
     logger.info(f"Python version {sys.version} is compatible.")
+
+
+def get_venv_executable(venv_path: Path, executable: str) -> Path:
+    """Get the path to a specific executable in the virtual environment."""
+    if platform.system() == "Windows":
+        return venv_path / "Scripts" / f"{executable}.exe"
+    else:
+        return venv_path / "bin" / executable
 
 
 def get_venv_python_path(venv_path: Path = None) -> Path:
