@@ -89,17 +89,28 @@ class SmartFilterManager:
         if conn is not self.conn:
             conn.close()
 
-    def _db_execute(self, query: str, params: tuple = ()):
-        """Execute a query (INSERT, UPDATE, DELETE)."""
-        conn = self._get_db_connection()
-        try:
-            conn.execute(query, params)
-            conn.commit()
-        except sqlite3.Error as e:
-            self.logger.error(f"Database error: {e} with query: {query[:100]}")
-            # Optionally re-raise or handle
-        finally:
-            self._close_db_connection(conn)
+    def _db_execute(self, query: str, params: tuple = (), retries: int = 3):
+        """Execute a query (INSERT, UPDATE, DELETE) with retry logic for robustness."""
+        for attempt in range(retries):
+            conn = self._get_db_connection()
+            try:
+                conn.execute(query, params)
+                conn.commit()
+                return
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < retries - 1:
+                    self.logger.warning(f"Database locked, retrying ({attempt + 1}/{retries}): {e}")
+                    import time
+                    time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    self.logger.error(f"Database error after {retries} attempts: {e} with query: {query[:100]}")
+                    raise
+            except sqlite3.Error as e:
+                self.logger.error(f"Database error: {e} with query: {query[:100]}")
+                raise
+            finally:
+                self._close_db_connection(conn)
 
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Execute a query and fetch one row."""
