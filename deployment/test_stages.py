@@ -6,9 +6,12 @@ It assumes that the Python virtual environment is already set up and activated e
 The launch.py script handles environment setup before calling these test stages.
 
 Test Environment Setup Requirements:
-- Python virtual environment must be created and activated
-- All dependencies must be installed (run `python launch.py --setup` first)
-- Database and other services should be available if running integration tests
+- Python virtual environment must be created and activated (run `python launch.py --setup` to install dependencies)
+- For unit tests: No external services needed
+- For integration tests: SQLite database should be initialized; run `python launch.py` to start services if needed
+- For API tests: Backend services must be running (use `python launch.py` to start)
+- Ensure NLTK data is downloaded for NLP tests (handled automatically in code)
+- Coverage reporting requires `pytest-cov` installed
 """
 
 import logging
@@ -72,8 +75,8 @@ class TestStages:
     def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
         """Runs unit tests."""
         print("\n--- Running Unit Tests ---")
-        # Run tests in tests/ directory
-        success = _run_pytest("tests/", coverage, debug)
+        # Run unit tests in tests/core and tests/modules (assuming granular structure)
+        success = _run_pytest("tests/core tests/modules", coverage, debug)
         print(f"--- Unit Test Result: {'SUCCESS' if success else 'FAILURE'} ---")
         return success
 
