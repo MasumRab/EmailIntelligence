@@ -1,6 +1,7 @@
 """
 Dependency injectors for the FastAPI application.
 """
+
 import logging
 from typing import TYPE_CHECKING, Optional
 
@@ -20,10 +21,10 @@ if TYPE_CHECKING:
 from ..python_nlp.gmail_service import GmailAIService
 from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
-from .model_manager import ModelManager
-from .workflow_engine import WorkflowEngine
-from .plugin_manager import PluginManager
 from .database import DatabaseManager, get_db
+from .model_manager import ModelManager
+from .plugin_manager import PluginManager
+from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ _gmail_service_instance: Optional[GmailAIService] = None
 async def initialize_services():
     """Initialize all singleton services. This should be called on application startup."""
     global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
-    
+
     db = await get_db()
 
     # Initialize core managers first
@@ -50,16 +51,14 @@ async def initialize_services():
     if _ai_engine_instance is None:
         _ai_engine_instance = AdvancedAIEngine(model_manager=_model_manager_instance)
         _ai_engine_instance.initialize()
-    
+
     if _filter_manager_instance is None:
         _filter_manager_instance = SmartFilterManager()
 
     if _workflow_engine_instance is None:
         _workflow_engine_instance = WorkflowEngine()
         await _workflow_engine_instance.discover_workflows(
-            ai_engine=_ai_engine_instance,
-            filter_manager=_filter_manager_instance,
-            db=db
+            ai_engine=_ai_engine_instance, filter_manager=_filter_manager_instance, db=db
         )
 
     # Initialize Plugin Manager, which may need other managers
@@ -70,9 +69,9 @@ async def initialize_services():
             workflow_engine=_workflow_engine_instance,
             ai_engine=_ai_engine_instance,
             filter_manager=_filter_manager_instance,
-            db=db
+            db=db,
         )
-    
+
     # Initialize services that depend on the core managers
     if _gmail_service_instance is None:
         _gmail_service_instance = GmailAIService(
@@ -104,7 +103,9 @@ def get_workflow_engine() -> "WorkflowEngine":
     global _workflow_engine_instance
     if _workflow_engine_instance is None:
         # This path should ideally not be taken in production if startup events work correctly.
-        logger.warning("WorkflowEngine is being initialized on-the-fly. This should only happen in specific testing scenarios.")
+        logger.warning(
+            "WorkflowEngine is being initialized on-the-fly. This should only happen in specific testing scenarios."
+        )
         _workflow_engine_instance = WorkflowEngine()
         # Cannot reliably call async discover_workflows here.
         # The primary initialization MUST happen at startup.
@@ -135,7 +136,5 @@ def get_gmail_service(
     global _gmail_service_instance
     if _gmail_service_instance is None:
         ai_engine = get_ai_engine()
-        _gmail_service_instance = GmailAIService(
-            db_manager=db, advanced_ai_engine=ai_engine
-        )
+        _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance

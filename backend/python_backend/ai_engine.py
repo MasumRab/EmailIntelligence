@@ -1,16 +1,12 @@
 """
-AI Engine Adapter for Python Backend.
-
-This module provides a bridge between the FastAPI backend and the AI/NLP
-services. It encapsulates the logic for analyzing email content, matching
-categories, and managing the AI model's lifecycle.
+AI Engine Adapter for Python Backend
+Bridges FastAPI backend with existing AI/NLP services
 """
+
 import logging
 import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
-
-from ..python_nlp.nlp_engine import NLPEngine
 
 if TYPE_CHECKING:
     from .database import DatabaseManager
@@ -21,33 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class AIAnalysisResult:
-    """
-    A wrapper for the results of an AI analysis of an email.
-
-    This class standardizes the structure of the analysis data returned by the
-    AI engine.
-
-    Attributes:
-        topic (str): The identified topic of the email.
-        sentiment (str): The sentiment of the email (e.g., positive, neutral, negative).
-        intent (str): The perceived intent of the email (e.g., informational, marketing).
-        urgency (str): The urgency level of the email (e.g., low, medium, high).
-        confidence (float): The confidence score of the analysis.
-        categories (List[str]): A list of suggested categories for the email.
-        keywords (List[str]): A list of extracted keywords from the email.
-        reasoning (str): An explanation of how the analysis was derived.
-        suggested_labels (List[str]): A list of suggested labels to apply to the email.
-        risk_flags (List[str]): A list of identified risk factors.
-        category_id (Optional[int]): The ID of the matched database category, if any.
-    """
+    """AI analysis result wrapper"""
 
     def __init__(self, data: Dict[str, Any]):
-        """
-        Initializes the AIAnalysisResult object.
-
-        Args:
-            data (Dict[str, Any]): A dictionary containing the AI analysis data.
-        """
         self.topic = data.get("topic", "unknown")
         self.sentiment = data.get("sentiment", "neutral")
         self.intent = data.get("intent", "unknown")
@@ -61,12 +33,6 @@ class AIAnalysisResult:
         self.category_id = data.get("category_id")
 
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Converts the AIAnalysisResult object to a dictionary.
-
-        Returns:
-            Dict[str, Any]: A dictionary representation of the analysis result.
-        """
         return {
             "topic": self.topic,
             "sentiment": self.sentiment,
@@ -100,12 +66,10 @@ class AdvancedAIEngine:
     async def _build_category_lookup(self, db) -> None:
         """Builds a normalized lookup map for categories."""
         all_db_categories = await db.get_all_categories()
-        self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
+        self.category_lookup_map = {cat["name"].lower(): cat for cat in all_db_categories}
         logger.info("Built category lookup map.")
 
-    async def _match_category_id(
-        self, ai_categories: List[str], db
-    ) -> Optional[int]:
+    async def _match_category_id(self, ai_categories: List[str], db) -> Optional[int]:
         """Matches AI suggested categories to DB categories using a lookup map."""
         if not ai_categories:
             return None
@@ -120,14 +84,20 @@ class AdvancedAIEngine:
             ai_cat_lower = ai_cat_str.lower()
             if ai_cat_lower in self.category_lookup_map:
                 matched_cat = self.category_lookup_map[ai_cat_lower]
-                logger.info(f"Matched AI category '{ai_cat_str}' to DB category '{matched_cat['name']}' (ID: {matched_cat['id']})")
-                return matched_cat['id']
+                logger.info(
+                    f"Matched AI category '{ai_cat_str}' to DB category '{matched_cat['name']}' (ID: {matched_cat['id']})"
+                )
+                return matched_cat["id"]
 
         logger.info(f"No direct match for AI categories: {ai_categories} against DB categories.")
         return None
 
     async def analyze_email(
-        self, subject: str, content: str, models_to_use: Dict[str, str], db: Optional["DatabaseManager"] = None
+        self,
+        subject: str,
+        content: str,
+        models_to_use: Dict[str, str],
+        db: Optional["DatabaseManager"] = None,
     ) -> AIAnalysisResult:
         """Analyze email content with AI using a dynamic set of models specified by the workflow."""
         log_subject = subject[:50] + "..." if len(subject) > 50 else subject
@@ -139,7 +109,9 @@ class AdvancedAIEngine:
             topic_model_name = models_to_use.get("topic")
 
             if not sentiment_model_name or not topic_model_name:
-                raise ValueError("Workflow configuration must specify 'sentiment' and 'topic' models.")
+                raise ValueError(
+                    "Workflow configuration must specify 'sentiment' and 'topic' models."
+                )
 
             sentiment_model = self.model_manager.get_model(sentiment_model_name)
             topic_model = self.model_manager.get_model(topic_model_name)
@@ -155,11 +127,18 @@ class AdvancedAIEngine:
                 "sentiment": sentiment_result.get("sentiment", "neutral"),
                 "intent": "informational",  # Placeholder
                 "urgency": "low",  # Placeholder
-                "confidence": (sentiment_result.get("confidence", 0.5) + topic_result.get("confidence", 0.5)) / 2,
-                "categories": [topic_result.get("topic", "unknown")], # Use topic as category for now
-                "keywords": [], # Placeholder
+                "confidence": (
+                    sentiment_result.get("confidence", 0.5) + topic_result.get("confidence", 0.5)
+                )
+                / 2,
+                "categories": [
+                    topic_result.get("topic", "unknown")
+                ],  # Use topic as category for now
+                "keywords": [],  # Placeholder
                 "reasoning": f"Sentiment model: {sentiment_model_name} ({sentiment_result.get('method_used')}), Topic model: {topic_model_name} ({topic_result.get('method_used')})",
-                "suggested_labels": [topic_result.get("topic", "unknown").lower().replace(" ", "_")],
+                "suggested_labels": [
+                    topic_result.get("topic", "unknown").lower().replace(" ", "_")
+                ],
                 "risk_flags": [],
             }
 
@@ -175,11 +154,8 @@ class AdvancedAIEngine:
             return AIAnalysisResult(analysis_data)
 
         except Exception as e:
-<<<<<<< HEAD
             logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
-            return AIAnalysisResult({
-                "reasoning": f"Critical failure in AI engine: {e}"
-            })
+            return AIAnalysisResult({"reasoning": f"Critical failure in AI engine: {e}"})
 
     def health_check(self) -> Dict[str, Any]:
         """Check AI engine health by inspecting the ModelManager."""
