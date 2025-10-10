@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
 
 from ..plugins.plugin_manager import plugin_manager
 
@@ -92,6 +93,18 @@ async def app_exception_handler(request: Request, exc: BaseAppException):
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
+    )
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle Pydantic validation errors with detailed 422 responses."""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "message": "Validation error with provided data.",
+        },
     )
 
 
