@@ -41,6 +41,7 @@ ENV/
 token.json
 credentials.json
 apikey.json
+.config/.semgrep/settings.yml
 
 # Build / packaging
 build/
@@ -64,7 +65,6 @@ coverage/
 
 # IDEs / editors
 .vscode/
-.vscode/settings.json
 .idea/
 *.iml
 *.sublime-project
