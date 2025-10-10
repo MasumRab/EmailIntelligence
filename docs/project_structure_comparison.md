@@ -1,6 +1,6 @@
 # Project Structure Comparison
 
-## OLD PROJECT STRUCTURE (Before Node-Based Workflow Implementation)
+## OLD PROJECT STRUCTURE (Monolithic Backend)
 .
 ├── backend/
 │   ├── data/                   # Data storage files
@@ -71,42 +71,45 @@
 ├── README.md                   # Project documentation
 └── ...
 
-## NEW PROJECT STRUCTURE (After Node-Based Workflow Implementation)
+## CURRENT PROJECT STRUCTURE (Modular Architecture)
 .
+├── src/                        # NEW: Core modular backend
+│   ├── core/                   # Core components
+│   │   ├── advanced_workflow_engine.py # Advanced workflow engine
+│   │   ├── ai_engine.py        # AI analysis engine
+│   │   ├── database.py         # Database management
+│   │   ├── exceptions.py       # Custom exceptions
+│   │   ├── models.py           # Pydantic models
+│   │   ├── module_manager.py   # Module registration system
+│   │   ├── performance_monitor.py # Performance monitoring
+│   │   └── workflow_engine.py  # Workflow engine
+│   └── main.py                 # Application entry point
+├── modules/                    # NEW: Modular extensions
+│   ├── categories/             # Category management module
+│   │   ├── __init__.py
+│   │   ├── routes.py           # Category API routes
+│   │   └── tests/              # Module tests
+│   ├── default_ai_engine/      # Default AI engine module
+│   │   ├── __init__.py
+│   │   ├── engine.py           # AI engine implementation
+│   │   └── analysis_components/ # AI analysis components
+│   └── workflows/              # Workflow management module
+│       ├── __init__.py
+│       ├── ui.py               # Workflow UI components
+│       └── tests/              # Workflow tests
 ├── backend/
 │   ├── data/                   # Data storage files
 │   ├── extensions/             # Backend extensions
-│   ├── node_engine/            # NEW: Node-based workflow engine and specialized email nodes
-│   │   ├── __init__.py
-│   │   ├── email_nodes.py      # NEW: Node types (EmailSourceNode, PreprocessingNode, etc.)
-│   │   ├── node_base.py        # NEW: Base classes for nodes and workflows
-│   │   ├── security_manager.py # NEW: Security components for node system
-│   │   ├── test_integration.py # NEW: Integration tests
-│   │   ├── test_nodes.py       # NEW: Node tests
-│   │   ├── test_sanitization.py # NEW: Sanitization tests
-│   │   ├── test_security.py    # NEW: Security tests
-│   │   ├── workflow_engine.py  # NEW: Advanced workflow engine
-│   │   └── workflow_manager.py # NEW: Workflow persistence
+│   ├── node_engine/            # Node-based workflow engine
+│   │   ├── email_nodes.py      # Node types for email processing
+│   │   ├── node_base.py        # Base classes for nodes
+│   │   ├── security_manager.py # Security components
+│   │   ├── workflow_engine.py  # Advanced workflow engine
+│   │   ├── workflow_manager.py # Workflow persistence
+│   │   └── ...                 # Node engine components
 │   ├── plugins/                # Plugin implementations
-│   ├── python_backend/         # Main FastAPI application and Gradio UI
-│   │   ├── notebooks/          # Jupyter notebooks for analysis
-│   │   ├── tests/              # Backend tests
-│   │   ├── ai_engine.py        # AI analysis engine
-│   │   ├── advanced_workflow_routes.py # NEW: API endpoints for advanced workflows
-│   │   ├── category_routes.py  # Category management routes
-│   │   ├── database.py         # Database management
-│   │   ├── email_routes.py     # Email processing routes
-│   │   ├── enhanced_routes.py  # Enhanced feature routes
-│   │   ├── gradio_app.py       # Gradio UI application
-│   │   ├── main.py             # FastAPI main application
-│   │   ├── model_manager.py    # AI model management
-│   │   ├── models.py           # Pydantic models
-│   │   ├── performance_monitor.py # Performance monitoring
-│   │   ├── plugin_manager.py   # Plugin management
-│   │   ├── workflow_editor_ui.py # NEW: Gradio UI for node-based workflow editor
-│   │   ├── workflow_engine.py  # OLD: Basic workflow engine (now coexists with new one)
-│   │   ├── workflow_manager.py # OLD: Basic workflow manager (now coexists with new one)
-│   │   └── ...                 # Other backend modules
+│   ├── python_backend/         # LEGACY: Old monolithic backend (deprecated)
+│   │   ├── ...                 # Legacy components (marked for removal)
 │   └── python_nlp/             # NLP-specific modules
 │       ├── analysis_components/ # NLP analysis components
 │       ├── tests/              # NLP tests
@@ -132,17 +135,10 @@
 │   ├── server_development.md
 │   └── workflow_system_analysis.md # NEW: This analysis report
 ├── models/                     # ML models
-├── modules/                    # Reusable modules
-├── plugins/                    # Plugin implementations
-├── src/                        # Source code
-│   └── core/                   # Core platform components
-│       ├── advanced_workflow_engine.py # NEW: Advanced node-based workflow engine
-│       ├── security.py         # Security framework (enhanced with workflow security)
-│       └── workflow_engine.py  # OLD: Basic workflow engine
 ├── tests/                      # Test files
-│   └── modules/
-│       └── workflows/
-│           └── test_workflows.py # Workflow-specific tests
+│   ├── core/                   # Core component tests
+│   ├── modules/                # Modular component tests
+│   └── conftest.py             # Test configuration
 ├── .github/                    # GitHub configurations
 ├── .config/                    # Configuration files
 ├── .continue/                  # Continue configurations
