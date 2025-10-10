@@ -4,6 +4,7 @@ A simple launcher script for the EmailIntelligence application.
 This script provides a basic entry point for starting the application. It sets
 up logging and handles system signals for graceful shutdown.
 """
+
 import logging
 import signal
 import sys

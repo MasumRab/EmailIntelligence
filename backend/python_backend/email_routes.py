@@ -8,19 +8,19 @@ from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
 from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
-from .workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError
-from .models import EmailResponse
+from .models import EmailResponse  # Changed from .main to .models
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
-from .utils import handle_pydantic_validation, create_log_data
+from .utils import create_log_data, handle_pydantic_validation
+from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/api/emails", response_model=List[EmailResponse])
-@log_performance(operation="get_emails")
+@log_performance("get_emails")
 async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
@@ -51,8 +51,7 @@ async def get_emails(
             emails = await db.get_emails_by_category(category_id)
         else:
             emails = await db.get_all_emails()
-<<<<<<< HEAD
-        
+
         return await handle_pydantic_validation(emails, EmailResponse, "get_emails")
     except Exception as db_err:
         log_data = create_log_data(
@@ -71,26 +70,8 @@ async def get_emails(
             error_type=type(e).__name__,
             error_detail=str(e),
         )
-=======
-        try:
-            return [EmailResponse(**email) for email in emails]
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during get_emails Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
-        log_data = {
-            "message": "Database operation failed while fetching emails",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
         logger.error(json.dumps(log_data))
+        raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
@@ -99,13 +80,12 @@ async def get_emails(
             "error_type": type(e).__name__,
             "error_detail": str(e),
         }
->>>>>>> origin/feature/git-history-analysis-report
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to fetch emails")
+        raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
 
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance(operation="get_email")
+@log_performance("get_email")
 async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
     """
     Retrieves a specific email by its unique ID.
@@ -158,8 +138,8 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 
-@router.post("/api/emails", response_model=EmailResponse)
-@log_performance(operation="create_email")
+@router.post("/api/emails", response_model=EmailResponse)  # Changed to EmailResponse
+@log_performance("create_email")
 async def create_email(
     request: Request,
     email: EmailCreate,
@@ -167,18 +147,18 @@ async def create_email(
     db: DatabaseManager = Depends(get_db),
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
-<<<<<<< HEAD
     """
-    Creates a new email, performs AI analysis, and applies smart filters.
+    Creates a new email by running it through the active workflow.
 
-    The AI analysis and filter application enrich the email data before it's
-    saved to the database.
+    The workflow performs AI analysis, applies smart filters, and enriches the email data
+    before it's saved to the database.
 
     Args:
         request: The incoming request object.
         email: The email data for creation.
         background_tasks: FastAPI's background task runner.
         db: The database manager dependency.
+        workflow_engine: The workflow engine dependency.
 
     Returns:
         The newly created and enriched email object.
@@ -187,32 +167,9 @@ async def create_email(
         HTTPException: If a database error or any other failure occurs.
     """
     try:
-        ai_analysis = await ai_engine.analyze_email(email.subject, email.content, db=db)
+        processed_email_data = await workflow_engine.run_workflow(email.model_dump())
 
-        filter_results = await filter_manager.apply_filters_to_email_data(
-            email.model_dump()
-        )
-
-        email_data = email.model_dump()
-        email_data.update(
-            {
-                "confidence": int(ai_analysis.confidence * 100),
-                "categoryId": ai_analysis.category_id,
-                "labels": ai_analysis.suggested_labels,
-                "analysisMetadata": ai_analysis.to_dict(),
-            }
-        )
-
-        created_email_dict = await db.create_email(email_data)
-=======
-    """Create new email with AI analysis using the active workflow."""
-    try:
-        # Run the active workflow to process the email data
-        processed_data = await workflow_engine.run_workflow(email.model_dump())
-
-        # Create the email in the database with the processed data
-        created_email_dict = await db.create_email(processed_data)
->>>>>>> origin/feat/modular-ai-platform
+        created_email_dict = await db.create_email(processed_email_data)
 
         try:
             return EmailResponse(**created_email_dict)
@@ -223,14 +180,8 @@ async def create_email(
             )
             if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
-<<<<<<< HEAD
-            raise # Re-raise for FastAPI to handle
-    except Exception as db_err:
-<<<<<<< HEAD
-=======
             raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
->>>>>>> origin/feature/git-history-analysis-report
+    except Exception as db_err:
         log_data = {
             "message": "Database operation failed while creating email",
             "endpoint": str(request.url),
@@ -238,30 +189,21 @@ async def create_email(
             "error_detail": str(db_err),
             "pgcode": None,
         }
-=======
-        log_data = create_log_data(
-            message="Database operation failed while creating email",
-            request_url=request.url,
-            error_type=type(db_err).__name__,
-            error_detail=str(db_err),
-            pgcode=None,
-        )
->>>>>>> origin/feat/modular-ai-platform
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
-        log_data = create_log_data(
-            message="Unhandled error in create_email",
-            request_url=request.url,
-            error_type=type(e).__name__,
-            error_detail=str(e),
-        )
+        log_data = {
+            "message": "Unhandled error in create_email",
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
         logger.error(json.dumps(log_data))
         raise AIAnalysisError(detail="Failed to create email due to an unexpected error.")
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance(operation="update_email")
+@log_performance("update_email")
 async def update_email(
     request: Request,
     email_id: int,

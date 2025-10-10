@@ -1,5 +1,6 @@
 import json
 import logging
+import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -27,7 +28,7 @@ async def get_filters(
     try:
         filters = filter_manager.get_active_filters_sorted()
         return {"filters": filters}
-    except Exception as e:
+    except (ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in get_filters",
             "endpoint": str(request.url),
@@ -57,7 +58,7 @@ async def create_filter(
             priority=filter_request_model.priority,
         )
         return new_filter_object
-    except Exception as e:
+    except (ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in create_filter",
             "endpoint": str(request.url),
@@ -94,7 +95,7 @@ async def generate_intelligent_filters(
         }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
-    except Exception as e:
+    except (ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in generate_intelligent_filters",
             "endpoint": str(request.url),
@@ -116,7 +117,7 @@ async def prune_filters(
         # This method was not in original smart_filters.py, assuming added.
         results = filter_manager.prune_ineffective_filters()
         return results
-    except Exception as e:
+    except (sqlite3.Error, ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in prune_filters",
             "endpoint": str(request.url),

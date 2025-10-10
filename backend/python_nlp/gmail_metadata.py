@@ -64,6 +64,7 @@ class GmailMessage:
         mailing_list: The identifier of the mailing list, if any.
         raw_email: The raw, unparsed email content.
     """
+
     message_id: str
     thread_id: str
     subject: str
@@ -120,13 +121,27 @@ class GmailMetadataExtractor:
         """Initializes the GmailMetadataExtractor."""
         self.logger = logging.getLogger(__name__)
         self.system_labels = {
-            "INBOX": "inbox", "SENT": "sent", "DRAFT": "draft", "SPAM": "spam",
-            "TRASH": "trash", "STARRED": "starred", "IMPORTANT": "important",
-            "UNREAD": "unread", "CATEGORY_PERSONAL": "personal", "CATEGORY_SOCIAL": "social",
-            "CATEGORY_PROMOTIONS": "promotions", "CATEGORY_UPDATES": "updates", "CATEGORY_FORUMS": "forums",
+            "INBOX": "inbox",
+            "SENT": "sent",
+            "DRAFT": "draft",
+            "SPAM": "spam",
+            "TRASH": "trash",
+            "STARRED": "starred",
+            "IMPORTANT": "important",
+            "UNREAD": "unread",
+            "CATEGORY_PERSONAL": "personal",
+            "CATEGORY_SOCIAL": "social",
+            "CATEGORY_PROMOTIONS": "promotions",
+            "CATEGORY_UPDATES": "updates",
+            "CATEGORY_FORUMS": "forums",
         }
         self.priority_headers = ["X-Priority", "Priority", "Importance", "X-MSMail-Priority"]
-        self.security_headers = ["Authentication-Results", "Received-SPF", "DKIM-Signature", "ARC-Authentication-Results"]
+        self.security_headers = [
+            "Authentication-Results",
+            "Received-SPF",
+            "DKIM-Signature",
+            "ARC-Authentication-Results",
+        ]
 
     def extract_complete_metadata(self, gmail_message: Dict[str, Any]) -> GmailMessage:
         """
@@ -180,24 +195,53 @@ class GmailMetadataExtractor:
             custom_headers = self._extract_custom_headers(headers)
 
             return GmailMessage(
-                message_id=message_id, thread_id=thread_id, subject=headers.get("Subject", ""),
-                from_address=from_address, to_addresses=to_addresses, cc_addresses=cc_addresses,
-                bcc_addresses=bcc_addresses, reply_to=reply_to, date=headers.get("Date", ""),
-                internal_date=internal_date, body_plain=body_plain, body_html=body_html,
-                snippet=snippet, labels=labels, label_ids=label_ids,
-                importance_markers=importance_markers, thread_info=thread_info,
-                size_estimate=size_estimate, history_id=history_id, is_unread=is_unread,
-                is_starred=is_starred, is_important=is_important, is_draft=is_draft,
-                is_sent=is_sent, is_spam=is_spam, is_trash=is_trash, is_chat=is_chat,
-                attachments=attachments, has_attachments=has_attachments,
-                spf_status=spf_status, dkim_status=dkim_status, dmarc_status=dmarc_status,
-                encryption_info=encryption_info, message_headers=headers,
-                custom_headers=custom_headers, in_reply_to=in_reply_to, references=references,
-                category=category, priority=priority, auto_reply=auto_reply,
-                mailing_list=mailing_list, raw_email=gmail_message.get("raw"),
+                message_id=message_id,
+                thread_id=thread_id,
+                subject=headers.get("Subject", ""),
+                from_address=from_address,
+                to_addresses=to_addresses,
+                cc_addresses=cc_addresses,
+                bcc_addresses=bcc_addresses,
+                reply_to=reply_to,
+                date=headers.get("Date", ""),
+                internal_date=internal_date,
+                body_plain=body_plain,
+                body_html=body_html,
+                snippet=snippet,
+                labels=labels,
+                label_ids=label_ids,
+                importance_markers=importance_markers,
+                thread_info=thread_info,
+                size_estimate=size_estimate,
+                history_id=history_id,
+                is_unread=is_unread,
+                is_starred=is_starred,
+                is_important=is_important,
+                is_draft=is_draft,
+                is_sent=is_sent,
+                is_spam=is_spam,
+                is_trash=is_trash,
+                is_chat=is_chat,
+                attachments=attachments,
+                has_attachments=has_attachments,
+                spf_status=spf_status,
+                dkim_status=dkim_status,
+                dmarc_status=dmarc_status,
+                encryption_info=encryption_info,
+                message_headers=headers,
+                custom_headers=custom_headers,
+                in_reply_to=in_reply_to,
+                references=references,
+                category=category,
+                priority=priority,
+                auto_reply=auto_reply,
+                mailing_list=mailing_list,
+                raw_email=gmail_message.get("raw"),
             )
         except Exception as e:
-            self.logger.error(f"Error extracting metadata from message {gmail_message.get('id', 'unknown')}: {e}")
+            self.logger.error(
+                f"Error extracting metadata from message {gmail_message.get('id', 'unknown')}: {e}"
+            )
             return self._create_minimal_metadata(gmail_message)
 
     def _extract_headers(self, headers_list: List[Dict[str, str]]) -> Dict[str, str]:
@@ -213,7 +257,9 @@ class GmailMetadataExtractor:
             mime_type = part.get("mimeType", "")
             if "data" in (body := part.get("body", {})):
                 try:
-                    decoded = base64.urlsafe_b64decode(body["data"] + "===").decode("utf-8", errors="ignore")
+                    decoded = base64.urlsafe_b64decode(body["data"] + "===").decode(
+                        "utf-8", errors="ignore"
+                    )
                     if mime_type == "text/plain":
                         body_plain.append(decoded)
                     elif mime_type == "text/html":
@@ -232,13 +278,15 @@ class GmailMetadataExtractor:
 
         def process_part(part: Dict[str, Any]):
             if "attachmentId" in (body := part.get("body", {})):
-                attachments.append({
-                    "attachment_id": body["attachmentId"],
-                    "filename": part.get("filename", "unknown"),
-                    "mime_type": part.get("mimeType", "application/octet-stream"),
-                    "size": body.get("size", 0),
-                    "part_id": part.get("partId", ""),
-                })
+                attachments.append(
+                    {
+                        "attachment_id": body["attachmentId"],
+                        "filename": part.get("filename", "unknown"),
+                        "mime_type": part.get("mimeType", "application/octet-stream"),
+                        "size": body.get("size", 0),
+                        "part_id": part.get("partId", ""),
+                    }
+                )
             for subpart in part.get("parts", []):
                 process_part(subpart)
 
@@ -248,15 +296,20 @@ class GmailMetadataExtractor:
     def _extract_category(self, label_ids: List[str]) -> Optional[str]:
         """Extracts the primary Gmail category from a list of label IDs."""
         category_mappings = {
-            "CATEGORY_PERSONAL": "primary", "CATEGORY_SOCIAL": "social",
-            "CATEGORY_PROMOTIONS": "promotions", "CATEGORY_UPDATES": "updates", "CATEGORY_FORUMS": "forums",
+            "CATEGORY_PERSONAL": "primary",
+            "CATEGORY_SOCIAL": "social",
+            "CATEGORY_PROMOTIONS": "promotions",
+            "CATEGORY_UPDATES": "updates",
+            "CATEGORY_FORUMS": "forums",
         }
         for label_id in label_ids:
             if label_id in category_mappings:
                 return category_mappings[label_id]
         return "primary" if "INBOX" in label_ids else None
 
-    def _extract_importance_markers(self, headers: Dict[str, str], label_ids: List[str]) -> Dict[str, Any]:
+    def _extract_importance_markers(
+        self, headers: Dict[str, str], label_ids: List[str]
+    ) -> Dict[str, Any]:
         """Extracts various importance and priority markers."""
         markers = {"is_important": "IMPORTANT" in label_ids, "is_starred": "STARRED" in label_ids}
         for header in self.priority_headers:
@@ -265,7 +318,9 @@ class GmailMetadataExtractor:
                 break
         return markers
 
-    def _extract_thread_info(self, headers: Dict[str, str], gmail_message: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_thread_info(
+        self, headers: Dict[str, str], gmail_message: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Extracts conversation thread-related information."""
         return {
             "thread_id": gmail_message.get("threadId", ""),
@@ -278,15 +333,19 @@ class GmailMetadataExtractor:
         """Extracts a list of Message-IDs from the 'References' header."""
         return re.findall(r"<([^>]+)>", references_header) if references_header else []
 
-    def _extract_security_status(self, headers: Dict[str, str]) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    def _extract_security_status(
+        self, headers: Dict[str, str]
+    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Extracts SPF, DKIM, and DMARC status from authentication headers."""
         auth_results = headers.get("Authentication-Results", "")
         spf = re.search(r"spf=(\w+)", auth_results, re.IGNORECASE)
         dkim = re.search(r"dkim=(\w+)", auth_results, re.IGNORECASE)
         dmarc = re.search(r"dmarc=(\w+)", auth_results, re.IGNORECASE)
-        return (spf.group(1).lower() if spf else None,
-                dkim.group(1).lower() if dkim else None,
-                dmarc.group(1).lower() if dmarc else None)
+        return (
+            spf.group(1).lower() if spf else None,
+            dkim.group(1).lower() if dkim else None,
+            dmarc.group(1).lower() if dmarc else None,
+        )
 
     def _extract_encryption_info(self, headers: Dict[str, str]) -> Dict[str, Any]:
         """Extracts information about message encryption (TLS, S/MIME, etc.)."""
@@ -333,7 +392,11 @@ class GmailMetadataExtractor:
 
     def _extract_email_addresses(self, addresses_header: str) -> List[str]:
         """Extracts multiple email addresses from a header string."""
-        return [self._extract_email_address(addr.strip()) for addr in (addresses_header or "").split(",") if addr]
+        return [
+            self._extract_email_address(addr.strip())
+            for addr in (addresses_header or "").split(",")
+            if addr
+        ]
 
     def _extract_custom_headers(self, headers: Dict[str, str]) -> Dict[str, str]:
         """Extracts custom headers (those starting with 'X-')."""
@@ -343,18 +406,47 @@ class GmailMetadataExtractor:
     def _create_minimal_metadata(self, gmail_message: Dict[str, Any]) -> GmailMessage:
         """Creates a minimally populated GmailMessage object for error cases."""
         return GmailMessage(
-            message_id=gmail_message.get("id", ""), thread_id=gmail_message.get("threadId", ""),
-            subject="", from_address="", to_addresses=[], cc_addresses=[], bcc_addresses=[],
-            reply_to=None, date="", internal_date=gmail_message.get("internalDate", ""),
-            body_plain="", body_html="", snippet=gmail_message.get("snippet", ""),
-            labels=[], label_ids=gmail_message.get("labelIds", []), importance_markers={},
-            thread_info={}, size_estimate=gmail_message.get("sizeEstimate", 0),
-            history_id=gmail_message.get("historyId", ""), is_unread=False, is_starred=False,
-            is_important=False, is_draft=False, is_sent=False, is_spam=False,
-            is_trash=False, is_chat=False, attachments=[], has_attachments=False,
-            spf_status=None, dkim_status=None, dmarc_status=None, encryption_info={},
-            message_headers={}, custom_headers={}, in_reply_to=None, references=[],
-            category=None, priority="normal", auto_reply=False, mailing_list=None,
+            message_id=gmail_message.get("id", ""),
+            thread_id=gmail_message.get("threadId", ""),
+            subject="",
+            from_address="",
+            to_addresses=[],
+            cc_addresses=[],
+            bcc_addresses=[],
+            reply_to=None,
+            date="",
+            internal_date=gmail_message.get("internalDate", ""),
+            body_plain="",
+            body_html="",
+            snippet=gmail_message.get("snippet", ""),
+            labels=[],
+            label_ids=gmail_message.get("labelIds", []),
+            importance_markers={},
+            thread_info={},
+            size_estimate=gmail_message.get("sizeEstimate", 0),
+            history_id=gmail_message.get("historyId", ""),
+            is_unread=False,
+            is_starred=False,
+            is_important=False,
+            is_draft=False,
+            is_sent=False,
+            is_spam=False,
+            is_trash=False,
+            is_chat=False,
+            attachments=[],
+            has_attachments=False,
+            spf_status=None,
+            dkim_status=None,
+            dmarc_status=None,
+            encryption_info={},
+            message_headers={},
+            custom_headers={},
+            in_reply_to=None,
+            references=[],
+            category=None,
+            priority="normal",
+            auto_reply=False,
+            mailing_list=None,
             raw_email=None,
         )
 
@@ -381,11 +473,17 @@ class GmailMetadataExtractor:
             A dictionary formatted for use in a training dataset.
         """
         return {
-            "id": gmail_message.message_id, "subject": gmail_message.subject,
+            "id": gmail_message.message_id,
+            "subject": gmail_message.subject,
             "content": gmail_message.body_plain or gmail_message.snippet,
-            "sender": gmail_message.from_address, "timestamp": gmail_message.date,
-            "labels": gmail_message.labels, "category": gmail_message.category,
-            "metadata": {"size": gmail_message.size_estimate, "has_attachments": gmail_message.has_attachments},
+            "sender": gmail_message.from_address,
+            "timestamp": gmail_message.date,
+            "labels": gmail_message.labels,
+            "category": gmail_message.category,
+            "metadata": {
+                "size": gmail_message.size_estimate,
+                "has_attachments": gmail_message.has_attachments,
+            },
         }
 
 
@@ -393,9 +491,11 @@ def main():
     """Demonstrates the usage of the GmailMetadataExtractor."""
     extractor = GmailMetadataExtractor()
     sample_message = {
-        "id": "msg_123456789", "threadId": "thread_123456789",
+        "id": "msg_123456789",
+        "threadId": "thread_123456789",
         "labelIds": ["INBOX", "IMPORTANT", "CATEGORY_PERSONAL"],
-        "snippet": "This is a sample email message...", "payload": {
+        "snippet": "This is a sample email message...",
+        "payload": {
             "headers": [
                 {"name": "From", "value": "John Doe <john@example.com>"},
                 {"name": "Subject", "value": "Important Project Update"},

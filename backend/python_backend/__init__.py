@@ -8,7 +8,6 @@ from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db
-from .main import app
 from .models import (
     ActivityCreate,
     ActivityResponse,
@@ -28,7 +27,6 @@ from .models import (
 __version__ = "2.0.0"
 
 __all__ = [
-    "app",
     "DatabaseManager",
     "get_db",
     "EmailCreate",
