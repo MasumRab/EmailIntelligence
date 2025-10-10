@@ -702,7 +702,10 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "plotly" },
+<<<<<<< Updated upstream
     { name = "psutil" },
+=======
+>>>>>>> Stashed changes
     { name = "pydantic" },
     { name = "pyngrok" },
     { name = "python-dotenv" },
@@ -751,7 +754,10 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26.0" },
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "plotly", specifier = ">=5.18.0" },
+<<<<<<< Updated upstream
     { name = "psutil", specifier = ">=6.0.0" },
+=======
+>>>>>>> Stashed changes
     { name = "pydantic", specifier = ">=2.11.5" },
     { name = "pyngrok", specifier = ">=0.7.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },

@@ -1,15 +1,14 @@
 # EmailIntelligence Agent Guidelines
 
 ## Build/Lint/Test Commands
-
 ### Python Backend
 - **Test all**: `pytest`
 - **Test single file**: `pytest tests/test_file.py`
 - **Test single function**: `pytest tests/test_file.py::TestClass::test_function`
 - **Format**: `black .`
 - **Lint**: `flake8 .`
-- **Import sort**: `isort .`
 - **Type check**: `mypy .`
+<<<<<<< Updated upstream
 - **Code quality**: `pylint src modules`
 
 ### Dependency Management
@@ -19,30 +18,26 @@
 - **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
 
 ### TypeScript/React Frontend
-- **Build**: `npm run build` (runs tsc && vite build)
-- **Lint**: `npm run lint` (eslint with --ext ts,tsx)
-- **Dev server**: `npm run dev` (vite)
+- **Build**: `npm run build` (from client/)
+- **Lint**: `npm run lint` (from client/)
+- **Dev server**: `npm run dev` (from client/)
 
 ## Code Style Guidelines
-
 ### Python
-- **Line length**: 100 characters max
-- **Formatting**: Black (auto-formats code)
-- **Imports**: isort with black profile, grouped as: stdlib → third-party → local
-- **Naming**: snake_case for functions/variables, CapWords for classes, UPPER_CASE for constants
-- **Types**: Use type hints for all function parameters and return values
-- **Docstrings**: Google-style docstrings for all public functions/classes
-- **Error handling**: Specific exceptions, meaningful error messages, appropriate logging
-- **Linting**: flake8 (ignores E203, W503), pylint (disables C0111, C0103, C0303, etc.)
+- **Line length**: 100 chars max, Black formatting, isort imports (stdlib → third-party → local)
+- **Naming**: snake_case functions/vars, CapWords classes, UPPER_CASE constants
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+- **Error handling**: Specific exceptions, meaningful messages, logging
 
 ### TypeScript/React
-- **Strict mode**: Enabled (noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch)
-- **JSX**: react-jsx transform
-- **Imports**: Path mapping with @/ for client src, @shared/ for shared types
+- **Strict mode**: Enabled (noUnusedLocals, noUnusedParameters)
+- **JSX**: react-jsx transform, @/ for client src, @shared/ for shared types
 - **Components**: Default export functions, PascalCase naming
-- **Styling**: Tailwind CSS for utilities, component-specific styles as needed
-- **API**: Use api client from lib/api.ts for backend communication
+- **Styling**: Tailwind CSS utilities, component-specific styles
+- **API**: Use api client from lib/api.ts
 
+<<<<<<< Updated upstream
 ## Project Architecture & Patterns
 
 ### Architecture Overview
@@ -75,3 +70,10 @@
 - **Commits**: Meaningful messages focusing on "why" not "what"
 - **Security**: Never expose secrets/keys, never log sensitive data
 - **Dependencies**: Check existing usage before adding new libraries
+=======
+## Critical Rules
+- Avoid circular dependencies (AIEngine ↔ DatabaseManager)
+- Never hard-code paths or expose secrets
+- Use dependency injection over global state
+- Check existing dependencies before adding new libraries
+>>>>>>> Stashed changes

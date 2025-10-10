@@ -368,12 +368,25 @@ print(df.head())
                 return load_model(model_name)
 
             refresh_models_btn.click(
+<<<<<<< Updated upstream
                 fn=refresh_models, inputs=[], outputs=[model_list, model_selector]
             )
 
             load_model_btn.click(
                 fn=load_selected_model, inputs=model_selector, outputs=model_status_output
             )
+=======
+                fn=refresh_models,
+                inputs=[],
+                outputs=[model_list, model_selector]
+             )
+
+             load_model_btn.click(
+                 fn=load_selected_model,
+                 inputs=model_selector,
+                 outputs=model_status_output
+             )
+>>>>>>> Stashed changes
 
         with gr.TabItem("Model Training"):
             gr.Markdown("### AI Model Training")
@@ -541,4 +554,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"Launching Gradio UI for Email Intelligence Analysis on {args.host}:{args.port}...")
+<<<<<<< Updated upstream
     iface.launch(server_name=args.host, server_port=args.port, share=args.share)
+=======
+    iface.launch(server_name=args.host, server_port=args.port, share=args.share)
+>>>>>>> Stashed changes
