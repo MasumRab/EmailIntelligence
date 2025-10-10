@@ -1,10 +1,22 @@
 """
 Test stages for the EmailIntelligence application.
+
+This module provides test execution stages that can be run via the launch.py script.
+It assumes that the Python virtual environment is already set up and activated externally.
+The launch.py script handles environment setup before calling these test stages.
+
+Test Environment Setup Requirements:
+- Python virtual environment must be created and activated
+- All dependencies must be installed (run `python launch.py --setup` first)
+- Database and other services should be available if running integration tests
 """
 
+import logging
 import subprocess
 import sys
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Assuming the script is at /app/deployment/test_stages.py
 # ROOT_DIR will be /app
@@ -31,8 +43,8 @@ def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "pytest", test_path]
     if coverage:
-        # Adjusting cov path to be more specific if needed
-        cmd.extend(["--cov=backend", "--cov-report=term-missing"])
+        # Adjusting cov path to be more specific
+        cmd.extend(["--cov=src", "--cov-report=term-missing"])
     if debug:
         cmd.append("-vv")
 
@@ -55,23 +67,23 @@ def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
 
 
 class TestStages:
-    """Container for test stage functions."""
+    """A class to encapsulate test stage runners."""
 
     def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
         """Runs unit tests."""
         print("\n--- Running Unit Tests ---")
-        # Assuming all tests under backend/ are unit/integration for now
-        # and can be run together.
-        success = _run_pytest("backend/", coverage, debug)
+        # Run tests in tests/ directory
+        success = _run_pytest("tests/", coverage, debug)
         print(f"--- Unit Test Result: {'SUCCESS' if success else 'FAILURE'} ---")
         return success
 
     def run_integration_tests(self, coverage: bool, debug: bool) -> bool:
         """Runs integration tests."""
         print("\n--- Running Integration Tests ---")
-        # Currently, no separate integration tests. We can add a marker later.
-        print("No separate integration tests configured. Skipping.")
-        return True
+        # Run integration tests with marker
+        success = _run_pytest("tests/ -m integration", coverage, debug)
+        print(f"--- Integration Test Result: {'SUCCESS' if success else 'FAILURE'} ---")
+        return success
 
     def run_e2e_tests(self, headless: bool, debug: bool) -> bool:
         """Runs end-to-end tests."""
@@ -85,46 +97,10 @@ class TestStages:
         print("No performance tests configured. Skipping.")
         return True
 
-    def run_security_tests(self, api_url: str, debug: bool) -> bool:
+    def run_security_tests(self, target_url: str, debug: bool) -> bool:
         """Runs security tests."""
         print("\n--- Running Security Tests ---")
         print("No security tests configured. Skipping.")
-        return True
-
-
-# This is the object the launcher will import and use.
-test_stages = TestStages()
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-class TestStages:
-    """A class to encapsulate test stage runners."""
-
-    def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
-        """Placeholder for running unit tests."""
-        logger.info("Placeholder: Running unit tests...")
-        return True
-
-    def run_integration_tests(self, coverage: bool, debug: bool) -> bool:
-        """Placeholder for running integration tests."""
-        logger.info("Placeholder: Running integration tests...")
-        return True
-
-    def run_e2e_tests(self, headless: bool, debug: bool) -> bool:
-        """Placeholder for running end-to-end tests."""
-        logger.info("Placeholder: Running end-to-end tests...")
-        return True
-
-    def run_performance_tests(self, duration: int, users: int, debug: bool) -> bool:
-        """Placeholder for running performance tests."""
-        logger.info("Placeholder: Running performance tests...")
-        return True
-
-    def run_security_tests(self, target_url: str, debug: bool) -> bool:
-        """Placeholder for running security tests."""
-        logger.info("Placeholder: Running security tests...")
         return True
 
 
