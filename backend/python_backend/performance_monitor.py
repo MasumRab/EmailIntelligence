@@ -254,6 +254,14 @@ class PerformanceMonitor:
         """Stop the system resource monitoring"""
         self._system_monitoring = False
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Log a performance entry to file"""
+        try:
+            with open(LOG_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_entry) + "\n")
+        except Exception as e:
+            logger.error(f"Failed to write performance log: {e}")
+
 
 # Global performance monitor instance
 performance_monitor = PerformanceMonitor()
@@ -340,55 +348,3 @@ def _create_decorator(func, op_name):
             return result
 
         return sync_wrapper
-
-        @wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
-            try:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
-                logger.error(f"Failed to write performance log: {e}")
-
-            return result
-
-        @wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = await func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
-            try:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
-                logger.error(f"Failed to write performance log: {e}")
-
-            return result
-
-        if asyncio.iscoroutinefunction(func):
-            return async_wrapper
-        else:
-            return sync_wrapper
-
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)

@@ -134,6 +134,11 @@ from .enhanced_routes import router as enhanced_router
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
+# Include workflow routes (legacy and node-based)
+from .workflow_routes import router as workflow_router
+
+app.include_router(workflow_router, prefix="", tags=["workflows"])
+
 # Include advanced workflow routes (will use node-based system)
 from .advanced_workflow_routes import router as advanced_workflow_router
 
@@ -169,7 +174,7 @@ async def health_check(request: Request):
             "timestamp": datetime.now().isoformat(),
             "version": "2.0.0",
         }
-    except Exception as e:  # This generic exception is fine for health check's own error
+    except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
         logger.error(  # Simple log for health check itself
             json.dumps(
                 {
