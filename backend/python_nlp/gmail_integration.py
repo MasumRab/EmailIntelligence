@@ -28,12 +28,15 @@ load_dotenv()
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+<<<<<<< Updated upstream
 
 # Define the project's root directory and default path for the email cache
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CACHE_PATH = PROJECT_ROOT / "email_cache.db"
 
 # Path for token.json, configurable via environment variable
+=======
+>>>>>>> Stashed changes
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
 
 # Credentials content will be loaded from GMAIL_CREDENTIALS_JSON environment variable
@@ -49,6 +52,7 @@ GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 class RateLimitConfig:
     """Configuration for Gmail API rate limiting"""
 
+<<<<<<< Updated upstream
     # Gmail API quotas (per day unless specified)
     queries_per_day: int = 1000000000  # 1 billion quota units per day
     queries_per_100_seconds: int = 250  # 250 quota units per 100 seconds per user
@@ -62,6 +66,28 @@ class RateLimitConfig:
     initial_backoff: float = 1.0  # Initial backoff in seconds
     max_backoff: float = 60.0  # Maximum backoff in seconds
     backoff_multiplier: float = 2.0  # Exponential backoff multiplier
+=======
+    Attributes:
+        queries_per_minute: The total number of quota units allowed per minute (project limit).
+        queries_per_user_minute: The number of quota units per user per minute.
+        queries_per_100_seconds: The number of quota units per 100 seconds.
+        queries_per_second: A practical limit to avoid request bursts.
+        messages_per_request: The maximum number of messages per list request.
+        max_concurrent_requests: The maximum number of concurrent API calls.
+        initial_backoff: The initial backoff duration in seconds for retries.
+        max_backoff: The maximum backoff duration in seconds.
+        backoff_multiplier: The multiplier for exponential backoff.
+    """
+    queries_per_minute: int = 1200000  # 1.2M quota units per minute (project limit)
+    queries_per_user_minute: int = 15000  # 15K quota units per user per minute
+    queries_per_100_seconds: int = 250
+    queries_per_second: int = 5
+    messages_per_request: int = 100
+    max_concurrent_requests: int = 10
+    initial_backoff: float = 1.0
+    max_backoff: float = 60.0
+    backoff_multiplier: float = 2.0
+>>>>>>> Stashed changes
 
 
 @dataclass
@@ -76,18 +102,32 @@ class EmailBatch:
 
 
 class RateLimiter:
+<<<<<<< Updated upstream
     """Token bucket rate limiter for Gmail API"""
+=======
+    """
+    Implements a token bucket rate limiting algorithm for the Gmail API.
+
+    This class helps to avoid exceeding the API's rate limits by controlling
+    the frequency of outgoing requests. It implements both per-second and
+    per-minute rate limiting.
+    """
+>>>>>>> Stashed changes
 
     def __init__(self, config: RateLimitConfig):
         self.config = config
-        self.tokens = config.queries_per_second
-        self.last_update = time.time()
-        self.request_times = deque()
+        self.tokens_per_second = config.queries_per_second
+        self.tokens_per_minute = config.queries_per_minute // 60  # Convert to per-second rate
+        self.last_second_update = time.time()
+        self.last_minute_update = time.time()
+        self.request_times_100s = deque()  # For 100-second window
+        self.request_times_minute = deque()  # For per-minute tracking
 
     async def acquire(self) -> None:
         """Acquire permission to make an API request"""
         current_time = time.time()
 
+<<<<<<< Updated upstream
         # Remove requests older than 100 seconds
         while self.request_times and current_time - self.request_times[0] > 100:
             self.request_times.popleft()
@@ -101,20 +141,50 @@ class RateLimiter:
         # Token bucket for per-second limiting
         time_passed = current_time - self.last_update
         self.tokens = min(
+=======
+        # Check 100-second window limit
+        while self.request_times_100s and current_time - self.request_times_100s[0] > 100:
+            self.request_times_100s.popleft()
+
+        if len(self.request_times_100s) >= self.config.queries_per_100_seconds:
+            sleep_time = 100 - (current_time - self.request_times_100s[0])
+            if sleep_time > 0:
+                await asyncio.sleep(sleep_time)
+
+        # Check per-minute limit
+        while self.request_times_minute and current_time - self.request_times_minute[0] > 60:
+            self.request_times_minute.popleft()
+
+        if len(self.request_times_minute) >= self.config.queries_per_minute:
+            sleep_time = 60 - (current_time - self.request_times_minute[0])
+            if sleep_time > 0:
+                await asyncio.sleep(sleep_time)
+
+        # Update token buckets
+        time_passed = current_time - self.last_second_update
+        self.tokens_per_second = min(
+>>>>>>> Stashed changes
             self.config.queries_per_second,
-            self.tokens + time_passed * (self.config.queries_per_second / 1.0),
+            self.tokens_per_second + time_passed * (self.config.queries_per_second / 1.0),
         )
-        self.last_update = current_time
+        self.last_second_update = current_time
 
-        if self.tokens < 1:
-            sleep_time = (1 - self.tokens) / self.config.queries_per_second
+        # Wait if we don't have enough tokens
+        if self.tokens_per_second < 1:
+            sleep_time = (1 - self.tokens_per_second) / self.config.queries_per_second
             await asyncio.sleep(sleep_time)
-            self.tokens = 0
+            self.tokens_per_second = 0
         else:
-            self.tokens -= 1
+            self.tokens_per_second -= 1
 
+<<<<<<< Updated upstream
         # Record this request
         self.request_times.append(current_time)
+=======
+        # Record the request
+        self.request_times_100s.append(current_time)
+        self.request_times_minute.append(current_time)
+>>>>>>> Stashed changes
 
 
 class EmailCache:
@@ -124,7 +194,12 @@ class EmailCache:
     email data and synchronization states.
     """
 
+<<<<<<< Updated upstream
     def __init__(self, cache_path: str = DEFAULT_CACHE_PATH):
+=======
+    def __init__(self, cache_path: str = "email_cache.db"):
+        """Initializes the EmailCache."""
+>>>>>>> Stashed changes
         self.cache_path = cache_path
         self.conn = sqlite3.connect(cache_path, check_same_thread=False)
         self._init_cache()
