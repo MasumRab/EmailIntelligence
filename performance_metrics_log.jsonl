@@ -971,3 +971,7 @@
 {"timestamp": "2025-10-10T03:41:06.264384+00:00", "operation": "build_indexes", "duration_seconds": 0.0006224000026122667}
 {"timestamp": "2025-10-10T03:41:06.268034+00:00", "operation": "create_category", "duration_seconds": 0.00016239999968092889}
 {"timestamp": "2025-10-10T03:41:06.274754+00:00", "operation": "get_categories", "duration_seconds": 8.089999755611643e-05}
+{"timestamp": "2025-10-10T07:58:37.971902+00:00", "operation": "load_data", "duration_seconds": 0.009263200001441874}
+{"timestamp": "2025-10-10T07:58:37.973527+00:00", "operation": "build_indexes", "duration_seconds": 0.0004609000025084242}
+{"timestamp": "2025-10-10T07:58:37.978039+00:00", "operation": "create_category", "duration_seconds": 0.0009151999984169379}
+{"timestamp": "2025-10-10T07:58:37.982731+00:00", "operation": "get_categories", "duration_seconds": 6.95999915478751e-05}

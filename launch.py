@@ -53,7 +53,23 @@ def validate_host(host: str) -> str:
     return host
 
 # --- Global state ---
-ROOT_DIR = Path(__file__).resolve().parent
+def find_project_root() -> Path:
+    """Find the project root directory by looking for key files."""
+    current = Path(__file__).resolve().parent
+
+    # Check if we're already in project root
+    if (current / "pyproject.toml").exists() and (current / "README.md").exists():
+        return current
+
+    # Search upwards for project markers
+    for parent in current.parents:
+        if (parent / "pyproject.toml").exists() and (parent / "README.md").exists():
+            return parent
+
+    # Fallback to script directory
+    return current
+
+ROOT_DIR = find_project_root()
 processes: List[subprocess.Popen] = []
 
 
@@ -657,6 +673,9 @@ def main():
 
     # Check Python version
     check_python_version()
+
+    # Set PYTHONPATH for proper imports
+    os.environ["PYTHONPATH"] = str(ROOT_DIR)
 
     # Determine venv path
     venv_path = ROOT_DIR / VENV_DIR
