@@ -24,11 +24,19 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
+<<<<<<< Updated upstream
 # Import dotenv for environment file loading
 try:
     from dotenv import load_dotenv
 except ImportError:
     load_dotenv = None  # Will be loaded later if needed
+=======
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
+>>>>>>> Stashed changes
 
 # Configure logging
 logging.basicConfig(
@@ -448,6 +456,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
 
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
+<<<<<<< Updated upstream
     if not check_uvicorn_installed(venv_path):
         logger.error(
             "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
@@ -473,6 +482,14 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     ]
     if debug:
         cmd.append("--reload")
+=======
+    venv_python = venv_path / "Scripts" / "python.exe" if platform.system() == "Windows" else venv_path / "bin" / "python"
+
+    # Always use uvicorn to run the FastAPI app
+    cmd = [str(venv_python), "-m", "uvicorn", "backend.python_backend.main:app", "--host", host, "--port", str(port)]
+    if debug:
+        cmd.append("--reload")  # Enable auto-reload in debug mode
+>>>>>>> Stashed changes
 
     logger.info(f"Starting Python backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
@@ -487,15 +504,24 @@ def start_gradio_ui(
     venv_python = get_venv_executable(venv_path, "python")
     gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
 
-    cmd = [str(venv_python), str(gradio_path)]
+    cmd = [str(venv_python), str(gradio_path), "--host", host]
+    if port:
+        cmd.extend(["--port", str(port)])
+        logger.info(f"Starting Gradio UI on {host}:{port}")
+    else:
+        logger.info(f"Starting Gradio UI on {host}:7860 (default port)")
+
     if share:
         cmd.append("--share")  # Enable public sharing
+<<<<<<< Updated upstream
     if port:
         # Gradio doesn't take port as a command line param directly,
         # we'd need to modify the app to accept it
         logger.info("Starting Gradio UI (on default or next available port)")
     else:
         logger.info("Starting Gradio UI on default port")
+=======
+>>>>>>> Stashed changes
 
     logger.info("Starting Gradio UI...")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
@@ -663,8 +689,14 @@ def main():
     if args.env_file:
         env_path = Path(args.env_file)
         if env_path.exists():
+<<<<<<< Updated upstream
             from dotenv import load_dotenv
 
+=======
+            if not DOTENV_AVAILABLE:
+                logger.error("python-dotenv is not available. Please install it or ensure dependencies are set up correctly.")
+                sys.exit(1)
+>>>>>>> Stashed changes
             load_dotenv(env_path)
             logger.info(f"Loaded environment variables from {env_path}")
         else:
