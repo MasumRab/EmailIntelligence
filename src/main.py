@@ -3,6 +3,7 @@ import logging
 import uvicorn
 import gradio as gr
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from .core.module_manager import ModuleManager
 
 # Configure logging
@@ -23,6 +24,11 @@ def create_app():
         description="A modular and extensible platform for email processing and analysis.",
         version="3.0.0",
     )
+
+    @app.get("/")
+    async def root():
+        """Redirect root to Gradio UI."""
+        return RedirectResponse(url="/ui")
 
     # Create the main Gradio UI as a placeholder
     # Modules will add their own tabs and components to this.
