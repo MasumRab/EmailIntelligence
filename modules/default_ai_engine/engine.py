@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional
 
 # Core framework components
 from src.core.ai_engine import AIAnalysisResult, BaseAIEngine
-from src.core.database import DatabaseManager
 
 # Module-specific components
 from .nlp_engine import NLPEngine
@@ -32,21 +31,15 @@ class DefaultAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"Default AI Engine initialization failed: {e}", exc_info=True)
 
-    async def _build_category_lookup(self, db: "DatabaseManager") -> None:
-        """Builds a normalized lookup map for categories from the database."""
-        all_db_categories = await db.get_all_categories()
-        self.category_lookup_map = {cat["name"].lower(): cat for cat in all_db_categories}
+    def _build_category_lookup(self, categories: List[Dict[str, Any]]) -> None:
+        """Builds a normalized lookup map for categories."""
+        self.category_lookup_map = {cat["name"].lower(): cat for cat in categories}
         logger.info("Built category lookup map for the default AI engine.")
 
-    async def _match_category_id(
-        self, ai_categories: List[str], db: "DatabaseManager"
-    ) -> Optional[int]:
-        """Matches AI-suggested categories to database categories."""
+    def _match_category_id(self, ai_categories: List[str]) -> Optional[int]:
+        """Matches AI-suggested categories to provided categories."""
         if not ai_categories:
             return None
-
-        if not self.category_lookup_map:
-            await self._build_category_lookup(db)
 
         if not self.category_lookup_map:
             return None
@@ -59,15 +52,16 @@ class DefaultAIEngine(BaseAIEngine):
         return None
 
     async def analyze_email(
-        self, subject: str, content: str, db: Optional[DatabaseManager] = None
+        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
     ) -> AIAnalysisResult:
         """Analyzes email content and returns a standardized analysis result."""
         try:
             analysis_data = self.nlp_engine.analyze_email(subject, content)
 
-            if db:
+            if categories:
+                self._build_category_lookup(categories)
                 ai_categories = analysis_data.get("categories", [])
-                matched_category_id = await self._match_category_id(ai_categories, db)
+                matched_category_id = self._match_category_id(ai_categories)
                 analysis_data["category_id"] = matched_category_id
 
             return AIAnalysisResult(analysis_data)
@@ -87,3 +81,9 @@ class DefaultAIEngine(BaseAIEngine):
         """Cleans up resources used by the NLP engine."""
         # The original cleanup logic can be added here if needed.
         logger.info("Default AI Engine cleanup complete.")
+
+    def train_models(self, training_data: Optional[Dict[str, Any]] = None):
+        """Trains or retrains the AI models. Currently not implemented."""
+        logger.warning("AI model training is not yet implemented. Training data provided will be ignored.")
+        # TODO: Implement training logic for sentiment, topic, intent, urgency models
+        # This would require labeled training data and scikit-learn training code

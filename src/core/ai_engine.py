@@ -49,7 +49,7 @@ class BaseAIEngine(ABC):
 
     @abstractmethod
     async def analyze_email(
-        self, subject: str, content: str, db: Optional[Any] = None
+        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
     ) -> AIAnalysisResult:
         """
         Analyzes the content of an email to extract insights.
@@ -57,7 +57,7 @@ class BaseAIEngine(ABC):
         Args:
             subject: The subject of the email.
             content: The body of the email.
-            db: An optional database manager for additional context (e.g., category matching).
+            categories: An optional list of category dictionaries for category matching.
 
         Returns:
             An AIAnalysisResult object containing the analysis.
@@ -79,6 +79,16 @@ class BaseAIEngine(ABC):
         """
         Cleans up any resources used by the AI engine.
         This method is called on application shutdown.
+        """
+        pass
+
+    @abstractmethod
+    def train_models(self, training_data: Optional[Dict[str, Any]] = None):
+        """
+        Trains or retrains the AI models using provided training data.
+
+        Args:
+            training_data: Optional dictionary containing training data for different models.
         """
         pass
 

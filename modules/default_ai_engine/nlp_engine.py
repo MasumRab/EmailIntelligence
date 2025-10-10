@@ -68,10 +68,18 @@ class NLPEngine:
         if HAS_NLTK:
             try:
                 nltk.data.find("corpora/stopwords")
+                self.stop_words = set(nltk.corpus.stopwords.words("english"))
             except LookupError:
                 logger.info("Downloading NLTK 'stopwords' resource...")
-                nltk.download("stopwords", quiet=True)
-            self.stop_words = set(nltk.corpus.stopwords.words("english"))
+                try:
+                    nltk.download("stopwords", quiet=True)
+                    self.stop_words = set(nltk.corpus.stopwords.words("english"))
+                except Exception as e:
+                    logger.error(f"Failed to download NLTK stopwords: {e}. Using empty stopwords set.")
+                    self.stop_words = set()
+            except Exception as e:
+                logger.error(f"Error loading NLTK stopwords: {e}. Using empty stopwords set.")
+                self.stop_words = set()
         else:
             self.stop_words = set()
 
