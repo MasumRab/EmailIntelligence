@@ -24,6 +24,12 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
+# Import dotenv for environment file loading
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None  # Will be loaded later if needed
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
