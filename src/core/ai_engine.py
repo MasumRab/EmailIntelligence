@@ -4,12 +4,14 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class AIAnalysisResult:
     """
     A standardized data structure for the results of an AI email analysis.
     This ensures that all AI engines, regardless of their implementation,
     return data in a consistent format.
     """
+
     def __init__(self, data: Dict[str, Any]):
         self.topic: str = data.get("topic", "unknown")
         self.sentiment: str = data.get("sentiment", "neutral")
@@ -26,6 +28,7 @@ class AIAnalysisResult:
     def to_dict(self) -> Dict[str, Any]:
         """Converts the analysis result to a dictionary."""
         return self.__dict__
+
 
 class BaseAIEngine(ABC):
     """
@@ -79,15 +82,18 @@ class BaseAIEngine(ABC):
         """
         pass
 
+
 # A placeholder for the active AI engine. In a real application, this would
 # be managed by a service locator or dependency injection system.
 _active_ai_engine: Optional[BaseAIEngine] = None
+
 
 def set_active_ai_engine(engine: BaseAIEngine):
     """Sets the active AI engine for the application."""
     global _active_ai_engine
     logger.info(f"Setting active AI engine to: {type(engine).__name__}")
     _active_ai_engine = engine
+
 
 def get_active_ai_engine() -> BaseAIEngine:
     """Gets the currently active AI engine."""

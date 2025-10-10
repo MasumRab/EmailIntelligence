@@ -2,204 +2,224 @@
 
 ## Project Overview
 
-The Email Intelligence Platform is a state-of-the-art, modular AI processing platform for email analysis, inspired by leading AI frameworks like automatic1111's stable-diffusion-webui, Stability-AI/StableSwarmUI, and comfyanonymous/ComfyUI. The platform features a node-based processing system, extensible plugin architecture, and comprehensive UI for both developers and end-users.
+The Email Intelligence Platform is a comprehensive email analysis application that leverages AI and NLP to automatically analyze, categorize, and manage emails. The project follows a microservices architecture with multiple interconnected services:
 
-This is a multi-service application built with Python (FastAPI) for the backend, Gradio for the developer interface, Node.js/TypeScript for secondary services, and React/Vite for the frontend. The platform implements a modular architecture with plugin support and node-based processing workflows.
+1. **Python Backend (FastAPI)**: Primary REST API for core application logic, data processing, and AI/NLP tasks
+2. **Gradio UI**: Interactive interface for scientific development, model testing, and data visualization
+3. **Node-Based Workflow Engine**: Sophisticated workflow system with dependency management and visual editor
+4. **TypeScript Backend (Node.js)**: Secondary backend for specific API routes
+5. **React Frontend (Vite)**: Main user-facing web application
+
+The project is designed with a modular architecture that supports plugins, workflow management, and performance monitoring. It uses local file-based storage (JSON/GZipped files) and SQLite for data persistence.
+
+## Key Features
+
+- **AI-Powered Email Analysis**: Automatic analysis of emails for topic, sentiment, intent, and urgency
+- **Smart Categorization**: AI-driven suggestions and application of categories to emails
+- **Intelligent Filtering**: System for creating and managing smart filters to automate workflows
+- **Model Management**: Dynamic loading and management of AI models
+- **Node-Based Workflows**: Visual workflow system with drag-and-drop interface (inspired by ComfyUI)
+- **Workflow Engine**: Configurable workflows for email processing
+- **Performance Monitoring**: Real-time performance tracking and metrics
+- **Plugin System**: Extensible architecture with plugin support
+- **Enterprise Security**: Multi-layer security with authentication, authorization, and audit logging
 
 ## Project Structure
 
 ```
 .
-├── backend/                     # Python backend services
-│   ├── python_backend/          # Main FastAPI application and Gradio UI
-│   ├── python_nlp/              # NLP-specific modules and utilities
-│   └── plugins/                 # Extensible plugin system for custom processing nodes
-├── client/                      # React/Vite frontend application
-├── server/                      # TypeScript/Node.js backend application
-├── shared/                      # Code/types shared between services
-├── workflows/                   # Node-based processing pipeline definitions
-├── models/                      # AI model management and caching system
-├── data/                        # Data storage (JSON files, SQLite databases)
-├── launch.py                    # 🚀 Unified script to set up, manage, and run the project
-├── docker-compose.yml          # Container orchestration for production deployment
-├── pyproject.toml              # Python dependency definitions (for uv)
-├── package.json                # Node.js workspace configuration
+├── backend/                    # Backend services
+│   ├── data/                   # Data storage files
+│   ├── extensions/             # Backend extensions
+│   ├── plugins/                # Plugin implementations
+│   ├── python_backend/         # Main FastAPI application and Gradio UI
+│   │   ├── notebooks/          # Jupyter notebooks for analysis
+│   │   ├── tests/              # Backend tests
+│   │   ├── ai_engine.py        # AI analysis engine
+│   │   ├── category_routes.py  # Category management routes
+│   │   ├── database.py         # Database management
+│   │   ├── email_routes.py     # Email processing routes
+│   │   ├── enhanced_routes.py  # Enhanced feature routes
+│   │   ├── gradio_app.py       # Gradio UI application
+│   │   ├── main.py             # FastAPI main application
+│   │   ├── model_manager.py    # AI model management
+│   │   ├── models.py           # Pydantic models
+│   │   ├── performance_monitor.py # Performance monitoring
+│   │   ├── plugin_manager.py   # Plugin management
+│   │   ├── workflow_engine.py  # Workflow processing engine
+│   │   ├── workflow_manager.py # Workflow persistence
+│   │   ├── workflow_editor_ui.py # Node-based workflow editor UI
+│   │   ├── advanced_workflow_routes.py # Advanced workflow API routes
+│   │   └── ...                 # Other backend modules
+│   └── python_nlp/             # NLP-specific modules
+│       ├── analysis_components/ # NLP analysis components
+│       ├── tests/              # NLP tests
+│       ├── nlp_engine.py       # Core NLP engine
+│       ├── smart_filters.py    # Smart filtering system
+│       └── ...                 # Other NLP modules
+├── client/                     # React frontend application
+├── server/                     # TypeScript Node.js backend
+├── shared/                     # Shared code between services
+├── config/                     # Configuration files
+├── data/                       # Application data
+├── deployment/                 # Deployment configurations
+├── docs/                       # Documentation
+├── models/                     # ML models
+├── modules/                    # Reusable modules
+├── plugins/                    # Plugin implementations
+├── src/                        # Source code
+│   └── core/                   # Core platform components
+│       ├── advanced_workflow_engine.py # Advanced node-based workflow engine
+│       ├── security.py         # Security framework
+│       └── workflow_engine.py  # Basic workflow engine
+├── tests/                      # Test files
+├── .github/                    # GitHub configurations
+├── .config/                    # Configuration files
+├── .continue/                  # Continue configurations
+├── .openhands/                 # OpenHands configurations
+├── .qwen/                      # Qwen Code configurations
+├── jules-scratch/             # Scratch directory
+├── launch.py                   # Unified launcher script
+├── pyproject.toml              # Python project configuration
+├── package.json                # Node.js project configuration
+├── requirements.txt            # Python dependencies
+├── requirements-dev.txt        # Development dependencies
+├── run.py                      # Development server runner
+├── setup_linting.py            # Linting setup script
+├── setup_python.sh             # Python setup shell script
+├── SETUP.md                    # Manual setup guide
+├── QWEN.md                     # Current file
+├── README.md                   # Project documentation
 └── ...
 ```
 
-## Technologies & Dependencies
-
-### Python Backend
-- **Framework**: FastAPI for the main API
-- **UI**: Gradio for the scientific development interface
-- **NLP/AI**: NLTK, TextBlob, Transformers, PyTorch, Scikit-learn
-- **Data Processing**: Pandas, NumPy, Matplotlib, Plotly
-- **Authentication**: Google API Python Client, Google Auth libraries
-- **Database**: SQLite and PostgreSQL support
-
-### Frontend
-- **Framework**: React with Vite
-- **TypeScript**: For the Node.js backend
-- **UI Components**: Standard web technologies
-
-## Running the Application
+## Building and Running
 
 ### Prerequisites
-- **Python**: Version 3.12.x
-- **Node.js**: Version 18.x or higher (with `npm`)
-- **Git**: For cloning the repository
-- **Docker**: (Optional) For containerized deployment
+- Python 3.12.x
+- Node.js 18.x or higher (with npm)
+- Git for cloning the repository
 
-### Setup & Execution
-1. **First-time setup**:
-   ```bash
-   python3 launch.py --setup
-   ```
+### Setup and Running
 
-2. **Run all services**:
-   ```bash
-   python3 launch.py
-   ```
+The project uses a unified launcher script (`launch.py`) for all operations:
+
+**First-time setup:**
+```bash
+python launch.py --setup
+```
+
+**Running the application:**
+```bash
+python launch.py
+```
 
 This starts:
 - Python FastAPI Backend on `http://127.0.0.1:8000`
-- Gradio UI on `http://127.0.0.1:7860` (node-based workflow editor)
-- Node.js TypeScript Backend
-- React Frontend on `http://127.0.0.1:5173`
+- Gradio UI on `http://127.0.0.1:7860` (or next available port)
+- Node.js TypeScript Backend (port managed by npm)
+- React Frontend on `http://127.0.0.1:5173` (or next available port)
 
-### Launcher Options
-- `--setup --force-recreate-venv`: Clean setup
-- `--setup --update-deps`: Update dependencies
-- `--no-client --no-server-ts`: Run only Python backend and Gradio UI
-- `--no-backend --no-ui --no-server-ts`: Run only React client
-- `--help`: All available options
+**Additional launcher options:**
+- `--no-backend`: Don't start the Python backend
+- `--no-ui`: Don't start the Gradio UI
+- `--no-client`: Don't start the Node.js frontend
+- `--debug`: Enable debug/reload mode
+- `--port`: Set port for Python backend
+- `--gradio-port`: Set port for Gradio UI
 
-## Project Architecture
+### Manual Setup Alternative
 
-### 1. Python Backend (FastAPI)
-- Located in `backend/python_backend/`
-- Serves the primary REST API with plugin architecture for extending functionality
-- Implements node-based processing workflows for email analysis
-- Manages data storage (JSON files and SQLite databases)
+If the automated setup fails, refer to `SETUP.md` for manual setup instructions:
 
-### 2. Gradio UI
-- Located in `backend/python_backend/gradio_app.py`
-- Features drag-and-drop node-based workflow editor inspired by ComfyUI
-- Provides real-time processing visualization and monitoring
-- Intended for developers, data scientists, and advanced users
+**Python environment:**
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -U uv
+uv sync --active --all-extras
+python -c "import nltk; [nltk.download(d, quiet=True) for d in ['punkt', 'stopwords', 'wordnet', 'vader_lexicon', 'averaged_perceptron_tagger', 'brown']]"
+```
 
-### 3. TypeScript Backend (Node.js)
-- Located in `server/`
-- Handles specific API routes and service integrations
-- Demonstrates a polyglot microservice architecture
+**Node.js dependencies:**
+```bash
+npm install --prefix client
+npm install --prefix server
+```
 
-### 4. React Frontend (Vite)
-- Located in `client/`
-- Main user-facing web application with intuitive email processing workflows
-- Includes audit trails and performance metrics for AI processing operations
+**Manual execution:**
+```bash
+# Python backend
+uvicorn backend.python_backend.main:app --host 127.0.0.1 --port 8000 --reload
 
-## Plugin System
+# Gradio UI
+python backend/python_backend/gradio_app.py
 
-The platform supports a modular plugin architecture:
-- Plugins can be added to the `backend/plugins/` directory
-- New processing nodes follow standardized interfaces
-- Processing pipelines built using a node-based system similar to ComfyUI
+# React frontend
+npm run dev --prefix client
 
-Base plugin interfaces are defined in `backend/plugins/base_plugin.py`:
-- `BasePlugin`: Abstract base class for all plugins
-- `ProcessingNode`: Base class for processing nodes in the workflow system
+# TypeScript backend
+npm run dev --prefix server
+```
 
-## Development Conventions
+### Development Tools
 
-### Python
-- Uses Python 3.12+
-- Formatting with Black (line length 100)
-- Import sorting with isort (Black profile)
-- Type checking with MyPy
-- Linting with Flake8 and Pylint
+**Code Quality Setup:**
+Run `setup_linting.py` to install and configure code quality tools:
+```bash
+python setup_linting.py
+```
 
-### Code Organization
-- Clear separation of concerns between services
-- Dependency injection for loose coupling
-- Standardized interfaces for extensibility
-- Proper error handling with custom exceptions
+This installs and configures:
+- Black (for code formatting)
+- Flake8 (for linting)
+- isort (for import sorting)
+- Pylint (for code analysis)
+- MyPy (for type checking)
 
-### Git Workflow
-- Dependencies managed via `pyproject.toml` and `package.json`
-- Virtual environment managed automatically by `launch.py`
-- Environment variables for configuration (e.g., `GMAIL_CREDENTIALS_JSON`)
+## Key Technologies
 
-## Key Features
+- **Backend**: FastAPI, Python 3.12
+- **Frontend**: React, TypeScript, Vite
+- **Database**: JSON files, SQLite, with potential for PostgreSQL
+- **AI/NLP**: Transformers, PyTorch, NLTK, scikit-learn
+- **UI**: Gradio for scientific interface, React for user interface
+- **Workflow Engine**: Node-based processing inspired by ComfyUI
+- **Deployment**: Multi-stage setup through unified launcher
 
-1. **Modular Architecture**: Plugin system allows extending functionality without modifying core code
-2. **Node-based Workflows**: Visual workflow editor for building complex email processing pipelines
-3. **AI/NLP Processing**: Advanced email analysis with sentiment, topic modeling, and categorization
-4. **Multi-Service Architecture**: FastAPI, Gradio, React, and TypeScript services working together
-5. **Gmail Integration**: Full integration with Gmail API for email processing
-6. **Model Management**: Caching mechanism for AI models with fallback capabilities
+## New Node-Based Workflow System
 
-## Operational Limits & Configuration
+The platform has been enhanced with a sophisticated node-based workflow system:
 
-### Gmail API Integration Limits
-- **Rate Limiting**: 
-  - Daily queries: 1,000,000,000 (effectively unlimited for most use cases)
-  - Queries per 100 seconds: 250
-  - Queries per second: 5 (practical limit to avoid bursts)
-  - Maximum concurrent requests: 10
-  - Initial backoff: 1.0 second
-  - Maximum backoff: 60.0 seconds
-  - Backoff multiplier: 2.0
+### Core Components:
+- **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
+- **src/core/security.py**: Enterprise-grade security framework
+- **backend/python_backend/workflow_editor_ui.py**: Visual workflow editor UI
+- **backend/python_backend/advanced_workflow_routes.py**: API endpoints for workflow management
 
-### Data Processing Limits
-- **Email Retrieval**:
-  - Messages per request: 100 (maximum batch size from Gmail API)
-  - Default pagination limit: 50 emails per page across search and retrieval functions
-  - Strategy limits: Daily sync (1000), Weekly bulk (5000), Historical import (10000)
+### Key Features:
+- **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
+- **Security Framework**: Multi-layer security with authentication, authorization, and audit logging
+- **Extensibility**: Plugin system for adding new node types
+- **Performance Monitoring**: Built-in metrics collection and monitoring
+- **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
 
-### Model Management
-- **Registered Models**:
-  - Sentiment model: 15.2 MB
-  - Topic model: 22.1 MB  
-  - Intent model: 18.7 MB
-  - Urgency model: 12.5 MB
-- **Model Manager**: Handles dynamic loading/unloading with thread-safe operations
+### API Endpoints:
+- `POST /api/workflows/advanced/workflows` - Create new workflows
+- `GET /api/workflows/advanced/workflows` - List available workflows
+- `GET /api/workflows/advanced/workflows/{id}` - Get specific workflow
+- `PUT /api/workflows/advanced/workflows/{id}` - Update workflow
+- `DELETE /api/workflows/advanced/workflows/{id}` - Delete workflow
+- `POST /api/workflows/advanced/workflows/{id}/execute` - Execute workflow
+- `GET /api/workflows/advanced/nodes` - List available node types
+- `GET /api/workflows/advanced/execution/status` - Get execution status
+- `POST /api/workflows/advanced/execution/cancel/{id}` - Cancel execution
 
-### Data Storage
-- **Database Connections**: SQLite-based with file locking for concurrent access
-- **Caching**: SQLite-based email cache with content hashing
-- **Synchronization**: Incremental sync with pagination tokens
+## Special Components
 
-## Current Operational Configuration
-
-The Email Intelligence Platform currently has well-defined operational limits especially for Gmail API integration. The configuration is primarily handled through:
-- Environment variables for credentials and paths
-- Rate limiting configuration in `gmail_integration.py`
-- Default pagination limits in database operations
-- Model management with size tracking and loading states
-
-### Recommended Updates to Operational Limits
-
-1. **Add Environment Variable Controls**: Operational limits should be configurable via environment variables for easier deployment in different environments
-2. **Memory Usage Limits**: Add configuration for maximum memory usage by the model manager to prevent out-of-memory issues
-3. **Processing Timeouts**: Add configurable timeout values for long-running operations
-4. **Batch Processing Limits**: Add configurable limits for bulk email processing operations
-5. **Model Loading Limits**: Add maximum models that can be loaded simultaneously based on system memory
-
-## Configuration
-
-- Environment variables in `.env` files (not committed)
-- Gmail credentials via `GMAIL_CREDENTIALS_JSON` environment variable
-- Configuration files in the `config/` directory
-- Model download and caching system
-
-## Testing
-
-- Python tests in `backend/python_backend/tests/` and `backend/python_nlp/tests/`
-- Use pytest for test execution
-- Code coverage with pytest-cov
-
-## Deployment
-
-- Docker Compose configuration available in `docker-compose.yml`
-- Production-ready configuration with PostgreSQL database
-- Environment variable-based configuration for security
+- **Model Manager**: Handles dynamic loading/unloading of AI models
+- **Workflow Engine**: Manages configurable email processing workflows
+- **Performance Monitor**: Tracks system performance metrics
+- **Plugin Manager**: Enables extensible functionality
+- **Security Manager**: Provides enterprise-grade security
+- **Smart Filters**: Provides advanced email filtering capabilities

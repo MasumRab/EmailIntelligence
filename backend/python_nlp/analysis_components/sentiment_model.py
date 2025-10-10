@@ -1,13 +1,15 @@
 """
 A simple, placeholder sentiment analysis model.
 """
+
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
 class SentimentModel:
     """A basic sentiment model for demonstration purposes."""
+
     def __init__(self):
         logger.info("SentimentModel instance created.")
 
@@ -26,6 +28,6 @@ class SentimentModel:
 
         return {
             "sentiment": sentiment,
-            "confidence": 0.5, # Placeholder confidence
-            "method_used": "simple_keyword_sentiment"
+            "confidence": 0.5,  # Placeholder confidence
+            "method_used": "simple_keyword_sentiment",
         }
