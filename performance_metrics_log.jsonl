@@ -998,3 +998,5 @@
 {"timestamp": "2025-10-11T13:49:35.529010+00:00", "operation": "load_data", "duration_seconds": 0.0056542000093031675}
 {"timestamp": "2025-10-11T13:49:35.529010+00:00", "operation": "build_indexes", "duration_seconds": 0.00033409998286515474}
 >>>>>>> b71a8aeb2f1a762b1b3c8d2eb15bbf28d7655870
+{"timestamp": "2025-10-11T14:04:11.914846+00:00", "operation": "load_data", "duration_seconds": 0.05948980001267046}
+{"timestamp": "2025-10-11T14:04:11.917868+00:00", "operation": "build_indexes", "duration_seconds": 0.00044490001164376736}
