@@ -368,25 +368,16 @@ print(df.head())
                 return load_model(model_name)
 
             refresh_models_btn.click(
-<<<<<<< Updated upstream
-                fn=refresh_models, inputs=[], outputs=[model_list, model_selector]
-            )
-
-            load_model_btn.click(
-                fn=load_selected_model, inputs=model_selector, outputs=model_status_output
-            )
-=======
                 fn=refresh_models,
                 inputs=[],
                 outputs=[model_list, model_selector]
-             )
+            )
 
-             load_model_btn.click(
-                 fn=load_selected_model,
-                 inputs=model_selector,
-                 outputs=model_status_output
-             )
->>>>>>> Stashed changes
+            load_model_btn.click(
+                fn=load_selected_model,
+                inputs=model_selector,
+                outputs=model_status_output
+            )
 
         with gr.TabItem("Model Training"):
             gr.Markdown("### AI Model Training")
