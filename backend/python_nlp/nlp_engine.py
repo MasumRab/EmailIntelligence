@@ -149,8 +149,8 @@ class NLPEngine:
         """Pre-compiles regex patterns for categorization."""
         logger.info("Compiling regex patterns for categorization...")
         self.compiled_patterns = {
-            category: [re.compile(p) for p in patterns]
-            for category, patterns in self.CATEGORY_PATTERNS.items()
+            category: [re.compile(p) for p in self.CATEGORY_PATTERNS[category]]
+            for category in self.CATEGORY_PATTERNS
         }
         logger.info("Regex patterns compiled successfully.")
 
@@ -877,7 +877,6 @@ class NLPEngine:
 
 
 def main():
-    """Provides a command-line interface for the NLP engine."""
     parser = argparse.ArgumentParser(description="NLP Engine for Email Analysis")
     parser.add_argument("--subject", type=str, default="", help="Email subject")
     parser.add_argument("--content", type=str, default="", help="Email content")
@@ -895,13 +894,6 @@ def main():
 
 
 def _perform_health_check(engine: NLPEngine, output_format: str):
-    """
-    Performs a health check on the NLPEngine and its models.
-
-    Args:
-        engine: An instance of the NLPEngine.
-        output_format: The desired output format ('json' or 'text').
-    """
     models_available = []
     if engine.sentiment_model:
         models_available.append("sentiment")
@@ -926,15 +918,6 @@ def _perform_health_check(engine: NLPEngine, output_format: str):
 
 
 def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, output_format: str):
-    """
-    Performs email analysis via the CLI.
-
-    Args:
-        engine: An instance of the NLPEngine.
-        subject: The email subject.
-        content: The email content.
-        output_format: The desired output format.
-    """
     result = engine.analyze_email(subject, content)
     if output_format == "json":
         print(json.dumps(result))

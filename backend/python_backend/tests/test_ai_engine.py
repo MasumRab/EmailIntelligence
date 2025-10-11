@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import os
 
 from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
 from backend.python_backend.model_manager import ModelManager
