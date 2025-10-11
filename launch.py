@@ -41,8 +41,8 @@ processes = []
 ROOT_DIR = Path(__file__).resolve().parent
 
 # --- Constants ---
-PYTHON_MIN_VERSION = (3, 12)
-PYTHON_MAX_VERSION = (3, 12)
+PYTHON_MIN_VERSION = (3, 11)
+PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 
 
@@ -215,6 +215,136 @@ def setup_dependencies(venv_path: Path, update: bool = False):
         logger.error(f"Failed to install dependencies: {result.stderr}")
         sys.exit(1)
     logger.info("Dependencies installed successfully.")
+ 
+ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
+    """Install project dependencies using uv or Poetry."""
+    venv_python = get_venv_executable(venv_path, "python")
+
+    if use_poetry:
+        venv_poetry = get_venv_executable(venv_path, "poetry")
+
+        # Install CPU-only PyTorch first for Poetry
+        _install_pytorch(venv_python)
+
+        # Configure Poetry to use the virtual environment
+        env_use_cmd = [str(venv_poetry), "env", "use", str(venv_python)]
+        logger.info("Configuring Poetry to use the virtual environment...")
+        env_use_result = subprocess.run(env_use_cmd, cwd=ROOT_DIR, capture_output=True, text=True)
+        if env_use_result.returncode != 0:
+            logger.error(f"Failed to configure Poetry venv: {env_use_result.stderr}")
+            sys.exit(1)
+
+        cmd = [str(venv_poetry), "install"]
+        if not update:
+            cmd.extend(["--with", "dev"])
+
+        logger.info("Installing project dependencies with Poetry...")
+        result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"Failed to install dependencies with Poetry: {result.stderr}")
+            logger.error(f"stdout: {result.stdout}")
+            sys.exit(1)
+        logger.info("Dependencies installed successfully with Poetry.")
+
+        # Verify critical packages are installed
+        logger.info("Verifying critical package installations...")
+        critical_packages = [
+            "uvicorn",
+            "fastapi",
+            "numpy",
+            "transformers",
+            "nltk",
+            "psutil",
+            "gradio",
+        ]
+        missing_packages = []
+        for package in critical_packages:
+            try:
+                venv_python = get_venv_python_path()
+                check_result = subprocess.run(
+                    [str(venv_python), "-c", f"import {package}"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if check_result.returncode != 0:
+                    missing_packages.append(package)
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                missing_packages.append(package)
+
+        if missing_packages:
+            logger.warning(f"Some packages may not be installed: {missing_packages}")
+            logger.info("Attempting to install missing packages individually...")
+            for package in missing_packages:
+                install_cmd = [str(venv_python), "-m", "pip", "install", package]
+                if package == "uvicorn":
+                    install_cmd = [str(venv_python), "-m", "pip", "install", "uvicorn[standard]"]
+                if run_command(install_cmd, f"Install {package}"):
+                    logger.info(f"Successfully installed {package}")
+                else:
+                    logger.error(f"Failed to install {package}")
+        else:
+            logger.info("All critical packages verified successfully.")
+    else:
+        # Install CPU-only PyTorch first for uv
+        _install_pytorch(venv_python)
+
+        venv_uv = get_venv_executable(venv_path, "uv")
+
+        # Configure uv to use the virtual environment
+        os.environ['UV_PROJECT_ENVIRONMENT'] = str(venv_path)
+
+        cmd = [str(venv_uv), "sync"]
+        if update:
+            cmd.extend(["--upgrade"])
+
+        logger.info("Installing project dependencies with uv...")
+        result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"Failed to install dependencies with uv: {result.stderr}")
+            logger.error(f"stdout: {result.stdout}")
+            sys.exit(1)
+        logger.info("Dependencies installed successfully with uv.")
+
+        # Verify critical packages are installed
+        logger.info("Verifying critical package installations...")
+        critical_packages = [
+            "uvicorn",
+            "fastapi",
+            "numpy",
+            "transformers",
+            "nltk",
+            "psutil",
+            "gradio",
+        ]
+        missing_packages = []
+        for package in critical_packages:
+            try:
+                venv_python = get_venv_python_path()
+                check_result = subprocess.run(
+                    [str(venv_python), "-c", f"import {package}"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if check_result.returncode != 0:
+                    missing_packages.append(package)
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                missing_packages.append(package)
+
+        if missing_packages:
+            logger.warning(f"Some packages may not be installed: {missing_packages}")
+            logger.info("Attempting to install missing packages individually...")
+            for package in missing_packages:
+                install_cmd = [str(venv_python), "-m", "pip", "install", package]
+                if package == "uvicorn":
+                    install_cmd = [str(venv_python), "-m", "pip", "install", "uvicorn[standard]"]
+                if run_command(install_cmd, f"Install {package}"):
+                    logger.info(f"Successfully installed {package}")
+                else:
+                    logger.error(f"Failed to install {package}")
+        else:
+            logger.info("All critical packages verified successfully.")
 
 
 def download_nltk_data(venv_path: Path):
