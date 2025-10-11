@@ -27,6 +27,7 @@ from typing import List, Optional
 # Import dotenv for environment file loading
 try:
     from dotenv import load_dotenv
+
     DOTENV_AVAILABLE = True
 except ImportError:
     load_dotenv = None
@@ -63,7 +64,7 @@ def check_for_merge_conflicts() -> bool:
         "README.md",
         "pyproject.toml",
         "requirements.txt",
-        "requirements-dev.txt"
+        "requirements-dev.txt",
     ]
 
     conflicts_found = False
@@ -71,11 +72,13 @@ def check_for_merge_conflicts() -> bool:
         full_path = ROOT_DIR / file_path
         if full_path.exists():
             try:
-                with open(full_path, 'r', encoding='utf-8') as f:
+                with open(full_path, "r", encoding="utf-8") as f:
                     content = f.read()
                     for marker in conflict_markers:
                         if marker in content:
-                            logger.error(f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}")
+                            logger.error(
+                                f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
+                            )
                             conflicts_found = True
             except Exception as e:
                 logger.warning(f"Could not check {file_path} for conflicts: {e}")
@@ -83,7 +86,7 @@ def check_for_merge_conflicts() -> bool:
     if conflicts_found:
         logger.error("Please resolve all merge conflicts before proceeding.")
         return False
-    
+
     logger.info("No unresolved merge conflicts detected in critical files.")
     return True
 
@@ -132,7 +135,7 @@ def check_required_components() -> bool:
 def validate_environment() -> bool:
     """Run comprehensive environment validation."""
     logger.info("Running environment validation...")
-    
+
     if not check_for_merge_conflicts():
         return False
 
@@ -154,9 +157,11 @@ def validate_port(port: int) -> int:
 def validate_host(host: str) -> str:
     """Validate host name/address format."""
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+
+    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
         raise ValueError(f"Invalid host: {host}")
     return host
+
 
 # --- Global state ---
 def find_project_root() -> Path:
@@ -182,14 +187,14 @@ processes: List[subprocess.Popen] = []
 
 class ProcessManager:
     """Manages child processes for the application."""
-    
+
     def __init__(self):
         self.processes = []
-        
+
     def add_process(self, process):
         """Add a process to be managed."""
         self.processes.append(process)
-    
+
     def cleanup(self):
         """Explicitly cleanup all managed processes."""
         logger.info("Performing explicit resource cleanup...")
@@ -207,7 +212,7 @@ class ProcessManager:
                     except subprocess.TimeoutExpired:
                         logger.error(f"Process {p.pid} could not be killed")
         logger.info("Resource cleanup completed.")
-        
+
     def shutdown(self):
         """Terminate all managed processes gracefully."""
         logger.info("Received SIGINT/SIGTERM, shutting down...")
@@ -247,22 +252,28 @@ signal.signal(signal.SIGINT, _handle_sigint)
 signal.signal(signal.SIGTERM, _handle_sigint)
 
 
-def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False) -> bool:
+def run_command(
+    cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False
+) -> bool:
     """Run a command and log its output.
-    
+
     SECURITY NOTE: Use shell=False whenever possible to prevent shell injection.
     The shell parameter is maintained for backward compatibility but should be used cautiously.
     """
     if shell:
-        logger.warning(f"Using shell=True for command: {' '.join(cmd)}. This may be a security risk.")
-    
+        logger.warning(
+            f"Using shell=True for command: {' '.join(cmd)}. This may be a security risk."
+        )
+
     logger.info(f"{description}...")
     try:
         # Use sys.executable for Python commands to ensure we're using the correct Python
         if cmd[0] == "python":
             cmd[0] = sys.executable
-            
-        proc = subprocess.run(cmd, cwd=cwd or ROOT_DIR, shell=shell, capture_output=True, text=True, check=True)
+
+        proc = subprocess.run(
+            cmd, cwd=cwd or ROOT_DIR, shell=shell, capture_output=True, text=True, check=True
+        )
         # Always log stdout for visibility, especially for debugging setup steps.
         if proc.stdout:
             logger.debug(f"stdout from '{' '.join(cmd)}':\n{proc.stdout}")
@@ -275,7 +286,7 @@ def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, sh
         logger.error(f"stdout:\n{e.stdout}")
         logger.error(f"stderr:\n{e.stderr}")
         return False
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         logger.error(f"Command not found: {cmd[0] if cmd else 'Unknown command'}")
         return False
 
@@ -353,7 +364,15 @@ def _install_pytorch(venv_python: Path):
     """Install PyTorch with CPU support, with fallback options."""
     # SECURITY NOTE: Using hardcoded PyTorch URL - ensure this source is trusted
     logger.info("Installing CPU-only PyTorch...")
-    pytorch_cmd = [str(venv_python), "-m", "pip", "install", TORCH_VERSION, "--index-url", TORCH_CPU_URL]
+    pytorch_cmd = [
+        str(venv_python),
+        "-m",
+        "pip",
+        "install",
+        TORCH_VERSION,
+        "--index-url",
+        TORCH_CPU_URL,
+    ]
     if not run_command(pytorch_cmd, "Install PyTorch CPU"):
         logger.warning("PyTorch installation failed, attempting fallback...")
         # Try without index URL
@@ -577,6 +596,7 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
 
     # Always use uvicorn to run the FastAPI app
     import os
+
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
 
@@ -765,9 +785,15 @@ def main():
     )
     parser.add_argument("--host", default="127.0.0.1", help="Host address for servers.")
     parser.add_argument(
-        "--listen", action="store_true", help="Listen on 0.0.0.0 (overrides --host). SECURITY WARNING: This makes services accessible from external networks."
+        "--listen",
+        action="store_true",
+        help="Listen on 0.0.0.0 (overrides --host). SECURITY WARNING: This makes services accessible from external networks.",
     )
-    parser.add_argument("--share", action="store_true", help="Create a public Gradio sharing link. SECURITY WARNING: This exposes your application to the internet and should be used carefully.")
+    parser.add_argument(
+        "--share",
+        action="store_true",
+        help="Create a public Gradio sharing link. SECURITY WARNING: This exposes your application to the internet and should be used carefully.",
+    )
     parser.add_argument(
         "--debug", action="store_true", help="Enable debug/reload mode for services."
     )
@@ -783,7 +809,9 @@ def main():
         env_path = Path(args.env_file)
         if env_path.exists():
             if not DOTENV_AVAILABLE:
-                logger.error("python-dotenv is not available. Please install it or ensure dependencies are set up correctly.")
+                logger.error(
+                    "python-dotenv is not available. Please install it or ensure dependencies are set up correctly."
+                )
                 sys.exit(1)
             load_dotenv(env_path)
             logger.info(f"Loaded environment variables from {env_path}")
