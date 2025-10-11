@@ -422,7 +422,7 @@ class JSONDataManager:
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         logger.info(
-            f"Email search completed. Found {len(result_emails)} emails matching '{search_term}'."
+            f"Retrieved {len(result_emails)} emails with applied filters."
         )
         return result_emails
 
