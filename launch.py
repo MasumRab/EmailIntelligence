@@ -654,18 +654,25 @@ def start_client():
     node_modules_path = ROOT_DIR / "client" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing Node.js dependencies...")
-        result = subprocess.run(
-            ["npm", "install"], cwd=ROOT_DIR / "client", capture_output=True, text=True
-        )
-        if result.returncode != 0:
-            logger.error(f"Failed to install Node.js dependencies: {result.stderr}")
-            sys.exit(1)
-        logger.info("Node.js dependencies installed.")
+        try:
+            result = subprocess.run(
+                ["npm", "install"], cwd=ROOT_DIR / "client", capture_output=True, text=True, shell=(os.name == "nt")
+            )
+            if result.returncode != 0:
+                logger.error(f"Failed to install Node.js dependencies: {result.stderr}")
+                return None
+            logger.info("Node.js dependencies installed.")
+        except FileNotFoundError:
+            logger.warning("npm not found. Skipping Node.js dependency installation.")
 
     # Start the React frontend
-    process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "client")
-    process_manager.add_process(process)
-    return process
+    try:
+        process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "client", shell=(os.name == "nt"))
+        process_manager.add_process(process)
+        return process
+    except FileNotFoundError:
+        logger.warning("npm not found. Skipping Node.js frontend startup.")
+        return None
 
 
 def start_server_ts():
@@ -673,25 +680,32 @@ def start_server_ts():
     logger.info("Starting TypeScript backend server...")
     # Check if npm is available
     if not shutil.which("npm"):
-        logger.error("npm is not available in PATH. Please install Node.js.")
-        sys.exit(1)
+        logger.warning("npm not found. Skipping TypeScript backend server startup.")
+        return None
 
     # Install Node.js dependencies if node_modules doesn't exist
     node_modules_path = ROOT_DIR / "server" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
-        result = subprocess.run(
-            ["npm", "install"], cwd=ROOT_DIR / "server", capture_output=True, text=True
-        )
-        if result.returncode != 0:
-            logger.error(f"Failed to install TypeScript server dependencies: {result.stderr}")
-            sys.exit(1)
-        logger.info("TypeScript server dependencies installed.")
+        try:
+            result = subprocess.run(
+                ["npm", "install"], cwd=ROOT_DIR / "server", capture_output=True, text=True, shell=(os.name == "nt")
+            )
+            if result.returncode != 0:
+                logger.error(f"Failed to install TypeScript server dependencies: {result.stderr}")
+                return None
+            logger.info("TypeScript server dependencies installed.")
+        except FileNotFoundError:
+            logger.warning("npm not found. Skipping TypeScript server dependency installation.")
 
     # Start the TypeScript backend
-    process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "server")
-    process_manager.add_process(process)
-    return process
+    try:
+        process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "server", shell=(os.name == "nt"))
+        process_manager.add_process(process)
+        return process
+    except FileNotFoundError:
+        logger.warning("npm not found. Skipping TypeScript backend server startup.")
+        return None
 
 
 def wait_for_processes():
