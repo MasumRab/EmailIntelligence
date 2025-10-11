@@ -19,10 +19,8 @@ from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import SmartFilterManager
 
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
-    dashboard_routes,
     email_routes,
     filter_routes,
     gmail_routes,
@@ -31,7 +29,6 @@ from .ai_engine import AdvancedAIEngine
 
 # Import our Python modules
 from .performance_monitor import PerformanceMonitor
-from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,14 +44,17 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
-    """Application startup: connect to the database."""
-    await db_manager.connect()
+    """Application startup: initialize database and services."""
+    from .database import initialize_db
+    from .dependencies import initialize_services
+    await initialize_db()
+    await initialize_services()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
-    await db_manager.close()
+    # Add shutdown logic if needed
 
 
 # Configure CORS
@@ -83,9 +83,6 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 # Initialize services
 # Services are now initialized within their respective route files
 # or kept here if they are used by multiple route files or for general app setup.
-gmail_service = GmailAIService()  # Used by gmail_routes
-filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
 performance_monitor = PerformanceMonitor()  # Used by all routes via @performance_monitor.track
 
 # Include routers in the app
@@ -93,8 +90,8 @@ app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
-app.include_router(action_routes.router)
-app.include_router(dashboard_routes.router)
+
+
 app.include_router(ai_routes.router)
 
 # Request/Response Models previously defined here are now in .models

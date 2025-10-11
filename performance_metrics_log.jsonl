@@ -432,3 +432,9 @@
 {"timestamp": "2025-10-05T04:35:02.639400+00:00", "operation": "create_category", "duration_seconds": 7.02520001141238e-05}
 {"timestamp": "2025-10-05T04:35:02.641450+00:00", "operation": "get_categories", "duration_seconds": 3.524000021570828e-05}
 >>>>>>> origin/feat/modular-architecture
+{"timestamp": "2025-10-11T17:28:25.886854+00:00", "operation": "", "duration_seconds": 0.08604349999222904}
+{"timestamp": "2025-10-11T17:28:25.887982+00:00", "operation": "build_indexes", "duration_seconds": 0.0003816000244114548}
+{"timestamp": "2025-10-11T17:31:14.428565+00:00", "operation": "", "duration_seconds": 0.012226399994688109}
+{"timestamp": "2025-10-11T17:31:14.430564+00:00", "operation": "build_indexes", "duration_seconds": 0.0003539999888744205}
+{"timestamp": "2025-10-11T17:32:38.152133+00:00", "operation": "", "duration_seconds": 0.044300700013991445}
+{"timestamp": "2025-10-11T17:32:38.154184+00:00", "operation": "build_indexes", "duration_seconds": 0.00044150001485832036}

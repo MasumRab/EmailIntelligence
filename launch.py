@@ -45,6 +45,49 @@ PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 
+# Dependency configuration
+TORCH_VERSION = "torch>=2.4.0"
+TORCH_CPU_URL = "https://download.pytorch.org/whl/cpu"
+
+
+def run_command(
+    cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False
+) -> bool:
+    """Run a command and log its output.
+
+    SECURITY NOTE: Use shell=False whenever possible to prevent shell injection.
+    The shell parameter is maintained for backward compatibility but should be used cautiously.
+    """
+    if shell:
+        logger.warning(
+            f"Using shell=True for command: {' '.join(cmd)}. This may be a security risk."
+        )
+
+    logger.info(f"{description}...")
+    try:
+        # Use sys.executable for Python commands to ensure we're using the correct Python
+        if cmd[0] == "python":
+            cmd[0] = sys.executable
+
+        proc = subprocess.run(
+            cmd, cwd=cwd or ROOT_DIR, shell=shell, capture_output=True, text=True, check=True
+        )
+        # Always log stdout for visibility, especially for debugging setup steps.
+        if proc.stdout:
+            logger.debug(f"stdout from '{' '.join(cmd)}':\n{proc.stdout}")
+        if proc.stderr:
+            logger.warning(f"stderr from '{' '.join(cmd)}':\n{proc.stderr}")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed: {description}")
+        logger.error(f"Command failed: {' '.join(cmd) if isinstance(cmd, list) else str(cmd)}")
+        logger.error(f"stdout:\n{e.stdout}")
+        logger.error(f"stderr:\n{e.stderr}")
+        return False
+    except FileNotFoundError:
+        logger.error(f"Command not found: {cmd[0] if cmd else 'Unknown command'}")
+        return False
+
 
 # --- Python Version Checking ---
 def check_python_version():
@@ -112,47 +155,39 @@ def check_python_version():
         sys.exit(1)
 
 
-# --- Signal Handling ---
-def _handle_sigint(signum, frame):
-    """
-    Handles SIGINT and SIGTERM signals for graceful shutdown.
-
-    Terminates all child processes tracked in the global `processes` list.
-
-    Args:
-        signum: The signal number.
-        frame: The current stack frame.
-    """
-    logger.info("Received SIGINT/SIGTERM, shutting down...")
-    for p in processes:
-        if p.poll() is None:
-            logger.info(f"Terminating process {p.pid}...")
-            p.terminate()
-            try:
-                p.wait(timeout=5)  # Wait up to 5 seconds for graceful shutdown
-            except subprocess.TimeoutExpired:
-                logger.warning(f"Process {p.pid} did not terminate gracefully, killing it...")
-                p.kill()
-    logger.info("All services shut down.")
-    sys.exit(0)
+def _install_pytorch(venv_python: Path):
+    """Install PyTorch with CPU support, with fallback options."""
+    # SECURITY NOTE: Using hardcoded PyTorch URL - ensure this source is trusted
+    logger.info("Installing CPU-only PyTorch...")
+    pytorch_cmd = [
+        str(venv_python),
+        "-m",
+        "pip",
+        "install",
+        TORCH_VERSION,
+        "--index-url",
+        TORCH_CPU_URL,
+    ]
+    if not run_command(pytorch_cmd, "Install PyTorch CPU"):
+        logger.warning("PyTorch installation failed, attempting fallback...")
+        # Try without index URL
+        fallback_cmd = [str(venv_python), "-m", "pip", "install", TORCH_VERSION]
+        if not run_command(fallback_cmd, "Install PyTorch fallback"):
+            logger.error("PyTorch installation completely failed, ML features may not work")
 
 
-# Setup signal handlers
-signal.signal(signal.SIGINT, _handle_sigint)
-signal.signal(signal.SIGTERM, _handle_sigint)
+def get_venv_executable(venv_path: Path, executable: str) -> Path:
+    """Get the path to a specific executable in the virtual environment."""
+    if platform.system() == "Windows":
+        return venv_path / "Scripts" / f"{executable}.exe"
+    else:
+        return venv_path / "bin" / executable
 
 
-def check_python_version():
-    """Check if the current Python version is compatible."""
-    current_version = sys.version_info[:2]
-    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        logger.error(
-            f"Python version {current_version} is not compatible. "
-            f"Required: >={'.'.join(map(str, PYTHON_MIN_VERSION))}, "
-            f"<={'.'.join(map(str, PYTHON_MAX_VERSION))}"
-        )
-        sys.exit(1)
-    logger.info(f"Python version {sys.version} is compatible.")
+def get_venv_python_path(venv_path: Path = None) -> Path:
+    """Get the path to the Python executable in the virtual environment."""
+    venv_path = venv_path or (ROOT_DIR / VENV_DIR)
+    return get_venv_executable(venv_path, "python")
 
 
 def create_venv(venv_path: Path, recreate: bool = False):
@@ -168,55 +203,34 @@ def create_venv(venv_path: Path, recreate: bool = False):
         logger.info(f"Virtual environment already exists at {venv_path}")
 
 
-def install_uv(venv_path: Path):
-    """Install uv package manager in the virtual environment."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+def _install_package_manager(venv_path: Path, package_manager: str) -> bool:
+    """Install a package manager in the virtual environment."""
+    venv_python = get_venv_executable(venv_path, "python")
     if not venv_python.exists():
         logger.error(f"Python executable not found at {venv_python}")
-        sys.exit(1)
+        return False
 
-    logger.info("Installing uv package manager...")
+    logger.info(f"Installing {package_manager} package manager...")
     result = subprocess.run(
-        [str(venv_python), "-m", "pip", "install", "uv"],
+        [str(venv_python), "-m", "pip", "install", package_manager],
         cwd=ROOT_DIR,
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
-        logger.error(f"Failed to install uv: {result.stderr}")
+        logger.error(f"Failed to install {package_manager}: {result.stderr}")
+        return False
+    logger.info(f"{package_manager} installed successfully.")
+    return True
+
+
+def install_uv(venv_path: Path):
+    """Install uv package manager in the virtual environment."""
+    if not _install_package_manager(venv_path, "uv"):
         sys.exit(1)
-    logger.info("uv installed successfully.")
 
 
-def setup_dependencies(venv_path: Path, update: bool = False):
-    """Install project dependencies using uv."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
-    venv_uv = (
-        venv_path / "Scripts" / "uv.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "uv"
-    )
-
-    cmd = [str(venv_uv), "sync"]
-    if update:
-        cmd.extend(["--upgrade"])
-
-    logger.info("Installing project dependencies...")
-    result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
-    if result.returncode != 0:
-        logger.error(f"Failed to install dependencies: {result.stderr}")
-        sys.exit(1)
-    logger.info("Dependencies installed successfully.")
- 
- def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
+def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
     """Install project dependencies using uv or Poetry."""
     venv_python = get_venv_executable(venv_path, "python")
 
@@ -453,7 +467,7 @@ def start_client():
         logger.info("Node.js dependencies installed.")
 
     # Start the React frontend
-    process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "client")
+    process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "client", shell=True)
     processes.append(process)
     return process
 

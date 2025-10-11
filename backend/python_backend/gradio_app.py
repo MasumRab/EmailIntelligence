@@ -44,6 +44,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
     with gr.Tabs():
         with gr.TabItem("📈 Dashboard"):
             # ... (Implementation from previous step)
+            gr.Markdown("Dashboard coming soon...")
 
         with gr.TabItem("📥 Inbox"):
             gr.Markdown("## Inbox")
@@ -116,13 +117,13 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
             email_df.select(fn=on_select, outputs=[selected_subject, selected_from, selected_content, selected_analysis, is_important_output])
 
         with gr.TabItem("📧 Gmail"):
-            # ... (Implementation from previous step)
+            gr.Markdown("Gmail integration coming soon...")
 
         with gr.TabItem("🔬 AI Lab"):
             gr.Markdown("## AI Lab: Advanced Tools")
             with gr.Tabs():
                 with gr.TabItem("Single Email Analysis"):
-                    # ... (Implementation from previous step)
+                    gr.Markdown("Single email analysis coming soon...")
 
                 with gr.TabItem("Batch Analysis"):
                     gr.Markdown("### Advanced Data Analysis with Pandas & Stats")
@@ -233,3 +234,6 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     return {"status": "unhealthy", "reason": str(e)}
             
             refresh_health_btn.click(fn=get_system_health, outputs=health_output)
+
+if __name__ == "__main__":
+    iface.launch()
