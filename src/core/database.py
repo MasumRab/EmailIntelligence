@@ -45,6 +45,7 @@ FIELD_COLOR = "color"
 FIELD_COUNT = "count"
 FIELD_TIME = "time"
 FIELD_CONTENT = "content"
+FIELD_SUBJECT = "subject"
 FIELD_SENDER = "sender"
 FIELD_SENDER_EMAIL = "sender_email"
 HEAVY_EMAIL_FIELDS = [FIELD_CONTENT, "content_html"]
