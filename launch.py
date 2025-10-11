@@ -566,15 +566,6 @@ def start_gradio_ui(
 
     if share:
         cmd.append("--share")  # Enable public sharing
-<<<<<<< Updated upstream
-    if port:
-        # Gradio doesn't take port as a command line param directly,
-        # we'd need to modify the app to accept it
-        logger.info("Starting Gradio UI (on default or next available port)")
-    else:
-        logger.info("Starting Gradio UI on default port")
-=======
->>>>>>> Stashed changes
 
     logger.info("Starting Gradio UI...")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
