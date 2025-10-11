@@ -6,6 +6,7 @@ including environment setup, dependency management, and service startup.
 """
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
@@ -21,7 +22,7 @@ from launch import (
     download_nltk_data,
     install_uv,
     main,
-    processes,
+    process_manager,
     setup_dependencies,
     start_backend,
     start_client,
@@ -33,18 +34,18 @@ from launch import (
 class TestPythonVersionCheck:
     """Test Python version compatibility checking."""
 
-    @patch("launch.sys.version", "3.12.0")
-    @patch("launch.sys.version_info", (3, 12, 0))
-    def test_compatible_version(self, mock_version_info, mock_version):
+    def test_compatible_version(self):
         """Test that compatible Python versions pass."""
-        with patch("launch.logger") as mock_logger:
+        with patch("launch.sys.version_info", (3, 12, 0)), \
+             patch("launch.sys.version", "3.12.0"), \
+             patch("launch.logger") as mock_logger:
             check_python_version()
             mock_logger.info.assert_called_with("Python version 3.12.0 is compatible.")
 
-    @patch("launch.sys.version_info", (3, 8, 0))
-    def test_incompatible_version(self, mock_version_info):
+    def test_incompatible_version(self):
         """Test that incompatible Python versions exit."""
-        with patch("launch.sys.exit") as mock_exit:
+        with patch("launch.sys.version_info", (3, 8, 0)), \
+             patch("launch.sys.exit") as mock_exit:
             check_python_version()
             mock_exit.assert_called_once_with(1)
 
@@ -110,7 +111,7 @@ class TestDependencyManagement:
         venv_path = ROOT_DIR / "venv"
         with patch("launch.logger") as mock_logger:
             setup_dependencies(venv_path)
-            mock_logger.info.assert_any_call("Installing project dependencies...")
+            mock_logger.info.assert_any_call("Installing project dependencies with uv...")
 
     @patch("launch.subprocess.run")
     @patch("launch.Path.exists", return_value=True)
@@ -128,30 +129,31 @@ class TestServiceStartup:
     """Test service startup functions."""
 
     @patch("launch.subprocess.Popen")
-    @patch("launch.Path.exists", return_value=True)
-    def test_start_backend_success(self, mock_exists, mock_popen):
+    @patch("launch.check_uvicorn_installed", return_value=True)
+    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
+    def test_start_backend_success(self, mock_get_exec, mock_check_uvicorn, mock_popen):
         """Test successful backend startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.processes", []):
+        with patch("launch.process_manager.processes", []):
             result = start_backend(venv_path, "127.0.0.1", 8000)
             assert result == mock_process
-            assert mock_process in processes
+            assert mock_process in process_manager.processes
 
     @patch("launch.subprocess.Popen")
-    @patch("launch.Path.exists", return_value=True)
-    def test_start_gradio_ui_success(self, mock_exists, mock_popen):
+    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
+    def test_start_gradio_ui_success(self, mock_get_exec, mock_popen):
         """Test successful Gradio UI startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.processes", []):
+        with patch("launch.process_manager.processes", []):
             result = start_gradio_ui(venv_path, "127.0.0.1")
             assert result == mock_process
-            assert mock_process in processes
+            assert mock_process in process_manager.processes
 
     @patch("launch.subprocess.Popen")
     @patch("launch.subprocess.run")
@@ -163,10 +165,10 @@ class TestServiceStartup:
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        with patch("launch.processes", []):
+        with patch("launch.process_manager.processes", []):
             result = start_client()
             assert result == mock_process
-            assert mock_process in processes
+            assert mock_process in process_manager.processes
             # Should install dependencies first
             mock_run.assert_called_once_with(
                 ["npm", "install"], cwd=ROOT_DIR / "client", capture_output=True, text=True
@@ -182,10 +184,10 @@ class TestServiceStartup:
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        with patch("launch.processes", []):
+        with patch("launch.process_manager.processes", []):
             result = start_server_ts()
             assert result == mock_process
-            assert mock_process in processes
+            assert mock_process in process_manager.processes
             mock_run.assert_called_once_with(
                 ["npm", "install"], cwd=ROOT_DIR / "server", capture_output=True, text=True
             )
@@ -195,18 +197,20 @@ class TestMainFunction:
     """Test the main launcher function and argument parsing."""
 
     @patch("launch.check_python_version")
-    @patch("launch.parse_arguments")
-    def test_main_setup_mode(self, mock_parse, mock_check_version):
+    @patch("argparse.ArgumentParser.parse_args")
+    def test_main_setup_mode(self, mock_parse_args, mock_check_version):
         """Test main function in setup mode."""
         # Mock setup arguments
         mock_args = MagicMock()
         mock_args.setup = True
         mock_args.update_deps = False
         mock_args.no_venv = False
+        mock_args.use_poetry = False
         mock_args.force_recreate_venv = False
         mock_args.no_download_nltk = False
+        mock_args.listen = False
         mock_args.env_file = None
-        mock_parse.return_value = mock_args
+        mock_parse_args.return_value = mock_args
 
         with patch("launch.create_venv") as mock_create_venv:
             with patch("launch.install_uv") as mock_install_uv:
@@ -221,13 +225,14 @@ class TestMainFunction:
                             mock_logger.info.assert_called_with("Setup completed successfully.")
 
     @patch("launch.check_python_version")
-    @patch("launch.parse_arguments")
+    @patch("argparse.ArgumentParser.parse_args")
     @patch("launch.Path.exists", return_value=True)
-    def test_main_launch_mode(self, mock_exists, mock_parse, mock_check_version):
+    def test_main_launch_mode(self, mock_exists, mock_parse_args, mock_check_version):
         """Test main function in launch mode."""
         # Mock launch arguments
         mock_args = MagicMock()
         mock_args.setup = False
+        mock_args.update_deps = False
         mock_args.no_venv = False
         mock_args.no_backend = False
         mock_args.no_ui = False
@@ -239,7 +244,7 @@ class TestMainFunction:
         mock_args.share = False
         mock_args.listen = False
         mock_args.env_file = None
-        mock_parse.return_value = mock_args
+        mock_parse_args.return_value = mock_args
 
         with patch("launch.start_backend") as mock_start_backend:
             with patch("launch.start_gradio_ui") as mock_start_ui:
@@ -263,8 +268,8 @@ class TestErrorHandling:
         """Test command execution failure handling."""
         from launch import run_command
 
-        mock_run.return_value = MagicMock(
-            returncode=1, stdout="error output", stderr="error details"
+        mock_run.side_effect = subprocess.CalledProcessError(
+            returncode=1, cmd=["failing", "command"], output="error output", stderr="error details"
         )
 
         result = run_command(["failing", "command"], "Test command")
@@ -316,10 +321,11 @@ class TestLauncherIntegration:
     def test_version_compatibility_matrix(self):
         """Test version compatibility for different Python versions."""
         test_cases = [
-            ((3, 11, 0), False),  # Too old
-            ((3, 12, 0), True),  # Compatible
+            ((3, 9, 0), False),  # Too old
+            (PYTHON_MIN_VERSION, True),  # Compatible
             ((3, 12, 5), True),  # Compatible
-            ((3, 13, 0), False),  # Too new
+            (PYTHON_MAX_VERSION, True),  # Compatible
+            ((3, 14, 0), False),  # Too new
         ]
 
         for version_tuple, should_pass in test_cases:

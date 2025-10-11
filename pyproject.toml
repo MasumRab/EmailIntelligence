@@ -93,3 +93,13 @@ exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.pytest.ini_options]
+testpaths = [
+    "backend/python_backend/tests",
+    "tests",
+]
+norecursedirs = [
+    "backend/node_engine",
+]
+asyncio_mode = "strict"

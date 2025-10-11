@@ -23,6 +23,7 @@ from . import (  # action_routes, # Removed; dashboard_routes, # Removed
     filter_routes,
     gmail_routes,
     training_routes,
+    workflow_routes,
 )
 from .ai_engine import AdvancedAIEngine
 from .exceptions import BaseAppException
@@ -126,6 +127,7 @@ app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
 app.include_router(training_routes.router)
+app.include_router(workflow_routes.router)
 # app.include_router(action_routes.router) # Removed
 # app.include_router(dashboard_routes.router) # Removed
 

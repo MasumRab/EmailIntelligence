@@ -48,7 +48,7 @@
 ### Architecture Overview
 - **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, Vite build system
 - **Backend**: Python with FastAPI for API endpoints and Gradio for UI
-- **AI Engine**: Python-based NLP models for sentiment, intent, topic, and urgency analysis
+- **AI Engine**: Python-based NLP models for sentiment and topic analysis
 - **Database**: SQLite for local storage and caching, JSON files for main application data
 
 ### Key Patterns to Follow

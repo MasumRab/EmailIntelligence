@@ -310,9 +310,10 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 
@@ -333,62 +334,11 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 
         return sync_wrapper
-
-        @wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
-            try:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
-                logger.error(f"Failed to write performance log: {e}")
-
-            return result
-
-        @wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = await func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
-            try:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
-                logger.error(f"Failed to write performance log: {e}")
-
-            return result
-
-        if asyncio.iscoroutinefunction(func):
-            return async_wrapper
-        else:
-            return sync_wrapper
-
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)

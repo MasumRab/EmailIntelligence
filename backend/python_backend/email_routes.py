@@ -7,10 +7,11 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_filter_manager
+from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
 from .exceptions import AIAnalysisError, DatabaseError
-from .models import EmailResponse  # Changed from .main to .models
+from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
+from .workflow_engine import WorkflowEngine
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
 
@@ -137,50 +138,40 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 
-@router.post("/api/emails", response_model=EmailResponse)  # Changed to EmailResponse
+@router.post("/api/emails", response_model=EmailResponse)
 @log_performance("create_email")
 async def create_email(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
     db: DatabaseManager = Depends(get_db),
-    ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
-    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+    workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """
-    Creates a new email, performs AI analysis, and applies smart filters.
+    Creates a new email and processes it through the active workflow.
 
-    The AI analysis and filter application enrich the email data before it's
-    saved to the database.
+    The workflow handles AI analysis, filtering, and other processing steps
+    before the email is saved to the database.
 
     Args:
         request: The incoming request object.
         email: The email data for creation.
         background_tasks: FastAPI's background task runner.
         db: The database manager dependency.
+        workflow_engine: The workflow engine dependency.
 
     Returns:
-        The newly created and enriched email object.
+        The newly created and processed email object.
 
     Raises:
         HTTPException: If a database error or any other failure occurs.
     """
     try:
-        ai_analysis = await ai_engine.analyze_email(email.subject, email.content, db=db)
+        # Process email through the active workflow
+        processed_data = await workflow_engine.run_workflow(email.model_dump())
 
-        filter_results = await filter_manager.apply_filters_to_email_data(email.model_dump())
-
-        email_data = email.model_dump()
-        email_data.update(
-            {
-                "confidence": int(ai_analysis.confidence * 100),
-                "categoryId": ai_analysis.category_id,
-                "labels": ai_analysis.suggested_labels,
-                "analysisMetadata": ai_analysis.to_dict(),
-            }
-        )
-
-        created_email_dict = await db.create_email(email_data)
+        # Create the email in the database with the processed data
+        created_email_dict = await db.create_email(processed_data)
 
         try:
             return EmailResponse(**created_email_dict)
@@ -198,7 +189,6 @@ async def create_email(
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": None,
         }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
