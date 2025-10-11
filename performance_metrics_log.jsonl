@@ -979,3 +979,7 @@
 {"timestamp": "2025-10-10T08:03:35.720714+00:00", "operation": "build_indexes", "duration_seconds": 0.0007523999956902117}
 {"timestamp": "2025-10-10T08:03:35.724756+00:00", "operation": "create_category", "duration_seconds": 0.00018479999562259763}
 {"timestamp": "2025-10-10T08:03:35.729925+00:00", "operation": "get_categories", "duration_seconds": 7.130000449251384e-05}
+{"timestamp": "2025-10-11T13:16:58.404557+00:00", "operation": "load_data", "duration_seconds": 0.012801300006685778}
+{"timestamp": "2025-10-11T13:16:58.413864+00:00", "operation": "build_indexes", "duration_seconds": 0.0005064999859314412}
+{"timestamp": "2025-10-11T13:17:32.688824+00:00", "operation": "load_data", "duration_seconds": 0.007518400001572445}
+{"timestamp": "2025-10-11T13:17:32.688824+00:00", "operation": "build_indexes", "duration_seconds": 0.0003452999808359891}
