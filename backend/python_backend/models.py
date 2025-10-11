@@ -135,6 +135,14 @@ class AIAnalysisRequest(BaseModel):
     content: str
 
 
+class ActionItem(BaseModel):
+    action_phrase: str
+    verb: Optional[str] = None
+    object: Optional[str] = None
+    raw_due_date_text: Optional[str] = None
+    context: str
+
+
 class AIAnalysisResponse(BaseModel):
     topic: str
     sentiment: SentimentType
@@ -184,14 +192,6 @@ class AIValidateResponse(BaseModel):
 class ActionExtractionRequest(BaseModel):
     subject: Optional[str] = None
     content: str
-
-
-class ActionItem(BaseModel):
-    action_phrase: str
-    verb: Optional[str] = None
-    object: Optional[str] = None
-    raw_due_date_text: Optional[str] = None
-    context: str
 
 
 # Gmail Sync Models
