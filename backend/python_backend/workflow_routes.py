@@ -57,6 +57,37 @@ class WorkflowCreate(BaseModel):
     )
 
 
+@router.get("/api/workflows", response_model=List[dict])
+async def list_workflows(
+    workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
+):
+    """Lists all available workflows (both legacy and node-based)."""
+    try:
+        # Get legacy workflows
+        legacy_workflows = workflow_engine.list_workflows() if hasattr(workflow_engine, 'list_workflows') else []
+
+        # Get node-based workflows
+        node_workflows = node_workflow_manager.list_workflows() if hasattr(node_workflow_manager, 'list_workflows') else []
+
+        # Combine and deduplicate
+        all_workflows = []
+        seen = set()
+        for wf in legacy_workflows + node_workflows:
+            wf_name = wf.get('name') if isinstance(wf, dict) else str(wf)
+            if wf_name not in seen:
+                seen.add(wf_name)
+                all_workflows.append({
+                    "name": wf_name,
+                    "type": "legacy" if wf in legacy_workflows else "node_based",
+                    "description": wf.get('description', '') if isinstance(wf, dict) else ''
+                })
+
+        return all_workflows
+    except Exception as e:
+        logger.error(f"Error listing workflows: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list workflows")
+
+
 @router.post("/api/workflows", response_model=dict)
 async def create_workflow(
     workflow_data: WorkflowCreate,
@@ -131,30 +162,7 @@ async def create_workflow(
         )
 
 
-@router.get("/api/workflows", response_model=list[str])
-async def list_workflows(
-    workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
-):
-    """Lists the names of all registered workflows (both legacy and node-based)."""
-    # Get legacy workflows
-    legacy_workflows = workflow_engine.list_workflows()
 
-    # Get node-based workflows
-    node_workflows_data = node_workflow_manager.list_workflows()
-    node_workflows = [wf.get("id", "") for wf in node_workflows_data if wf.get("id")]
-
-    # Combine both lists
-    all_workflows = legacy_workflows + node_workflows
-
-    # Remove duplicates while preserving order
-    seen = set()
-    unique_workflows = []
-    for wf in all_workflows:
-        if wf not in seen:
-            seen.add(wf)
-            unique_workflows.append(wf)
-
-    return unique_workflows
 
 
 @router.get("/api/workflows/active", response_model=dict)

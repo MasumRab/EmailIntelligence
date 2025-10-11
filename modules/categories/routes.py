@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/api/categories", response_model=List[CategoryResponse])
+@router.get("/categories", response_model=List[CategoryResponse])
 @log_performance("get_categories")
 async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
     """
@@ -28,7 +28,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
         raise HTTPException(status_code=500, detail="Failed to retrieve categories.")
 
 
-@router.post("/api/categories", response_model=CategoryResponse)
+@router.post("/categories", response_model=CategoryResponse)
 @log_performance("create_category")
 async def create_category(
     request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)

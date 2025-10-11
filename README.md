@@ -61,37 +61,79 @@ Press `Ctrl+C` in the terminal to gracefully shut down all running services.
 
 ## Project Architecture
 
-The application is composed of five main, interconnected services:
+The application follows a modular architecture composed of interconnected services:
 
-1.  **Python Backend (FastAPI):**
-    -   Located in `backend/python_backend/`.
+1.  **Modular Python Backend (FastAPI + Gradio):**
+    -   Core located in `src/`, with modular components in `modules/`.
     -   Serves the primary REST API for core application logic, data processing, and AI/NLP tasks.
+    -   Integrated Gradio UI for scientific development, model testing, and data visualization.
+    -   Modular design allows easy extension with new features via modules.
     -   Manages data storage (JSON files and SQLite databases).
 
-    -   Located in `backend/python_backend/gradio_app.py`.
-    -   Provides a rich, interactive interface for scientific development, model testing, and data visualization. Intended for developers and data scientists.
-
-3.  **Node-Based Workflow Engine:**
-    -   Located in `src/core/advanced_workflow_engine.py`.
+2.  **Node-Based Workflow Engine:**
+    -   Located in `src/core/advanced_workflow_engine.py` and `backend/node_engine/`.
     -   Implements a sophisticated, extensible workflow system inspired by ComfyUI, automatic1111, and Stability-AI frameworks.
     -   Features node-based processing architecture with dependency management, plugin extensibility, and enterprise-grade security.
 
-4.  **TypeScript Backend (Node.js):**
+3.  **TypeScript Backend (Node.js):**
     -   Located in `server/`.
     -   A secondary backend that handles specific API routes, demonstrating a polyglot microservice architecture.
 
-5.  **React Frontend (Vite):**
+4.  **React Frontend (Vite):**
     -   Located in `client/`.
     -   The main user-facing web application for end-users to interact with the Email Intelligence service.
+
+## Gradio UI Structure
+
+The Gradio interface provides an interactive web UI for the Email Intelligence Platform:
+
+```
+Email Intelligence Platform (Gradio UI)
+├── 📊 Dashboard
+│   ├── Overview & Metrics
+│   ├── System Status
+│   └── Recent Activity Feed
+├── 📧 Email Analysis
+│   ├── Single Email Processor
+│   ├── Batch Email Analysis
+│   ├── Results Visualization
+│   └── Export Options
+├── 🏷️ Categories
+│   ├── Category Management
+│   ├── Category Statistics
+│   ├── Bulk Category Operations
+│   └── Category-Based Filtering
+├── ⚙️ Workflows
+│   ├── Node-Based Workflow Builder
+│   ├── Workflow Template Library
+│   ├── Workflow Execution Monitor
+│   └── Workflow Performance Analytics
+├── 🤖 AI Engine
+│   ├── Model Selection & Configuration
+│   ├── Training Data Management
+│   ├── Model Performance Metrics
+│   └── Custom Model Upload
+└── 🔧 Settings
+    ├── System Configuration
+    ├── Data Management Tools
+    ├── API Key Management
+    └── User Preferences
+```
 
 ## Directory Structure
 
 ```
 .
+├── src/                  # Core modular Python backend (FastAPI + Gradio)
+│   ├── core/             # Core components (AI engine, database, workflows, etc.)
+│   └── main.py           # Application entry point
+├── modules/              # Modular extensions
+│   ├── categories/       # Category management module
+│   ├── default_ai_engine/# Default AI engine module
+│   └── workflows/        # Workflow management module
 ├── backend/
 │   ├── node_engine/      # Node-based workflow engine and specialized email nodes
-│   ├── python_backend/   # Main Python FastAPI application and Gradio UI
-│   └── python_nlp/       # NLP-specific modules and utilities
+│   └── python_nlp/       # NLP-specific modules and utilities (legacy)
 ├── client/               # React/Vite frontend application
 ├── server/               # TypeScript/Node.js backend application
 ├── shared/               # Code/types shared between services
@@ -101,6 +143,81 @@ The application is composed of five main, interconnected services:
 ├── package.json          # Node.js workspace configuration
 │
 └── ...
+```
+
+## Project Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Email Intelligence Platform                       │
+│                                                                             │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐         │
+│  │   React Client  │    │  TypeScript     │    │   Modular Python │         │
+│  │   (Vite)        │◄──►│  Backend        │◄──►│   Backend        │         │
+│  │                 │    │  (Node.js)      │    │   (FastAPI)      │         │
+│  │ • User Interface│    │ • API Routes    │    │ • Core API       │         │
+│  │ • Dashboard     │    │ • Middleware    │    │ • AI Engine      │         │
+│  │ • Email Upload  │    │ • Auth          │    │ • Database       │         │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘         │
+│         │                   │                       │                       │
+│         └───────────────────┼───────────────────────┘                       │
+│                             │                                               │
+│                    ┌────────▼────────┐                                       │
+│                    │   Gradio UI     │                                       │
+│                    │   Interface     │                                       │
+│                    │                 │                                       │
+│                    │ • Interactive   │                                       │
+│                    │ • Data Viz      │                                       │
+│                    │ • Model Testing │                                       │
+│                    └─────────────────┘                                       │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │                          Module System                                 │ │
+│  │                                                                       │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │ │
+│  │  │ Categories  │  │ AI Engine   │  │ Workflows   │  │  Custom     │   │ │
+│  │  │ Module      │  │ Module      │  │ Module     │  │  Modules    │   │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘   │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │                        Data Flow                                        │ │
+│  │                                                                       │ │
+│  │  Email Input → Preprocessing → AI Analysis → Categorization → Output  │ │
+│  │                                                                       │ │
+│  │  ↳ JSON Storage    ↳ SQLite Cache    ↳ Workflow Engine    ↳ API       │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Data Flow Architecture
+
+```
+Email Processing Pipeline
+─────────────────────────
+
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  Input      │ -> │Preprocessing│ -> │ AI Analysis │ -> │Categorization│
+│  • Raw      │    │ • Clean     │    │ • Sentiment │    │ • Tags      │
+│    Emails   │    │ • Tokenize  │    │ • Intent    │    │ • Priority  │
+│  • Files    │    │ • Normalize │    │ • Urgency   │    │ • Custom    │
+│  • API      │    │             │    │ • Topic     │    │             │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                   │                   │
+       ▼                   ▼                   ▼                   ▼
+
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  Storage    │    │   Cache     │    │  Workflow   │    │   Output    │
+│  • JSON     │    │ • SQLite    │    │  • Nodes    │    │ • API       │
+│    Files    │    │ • Fast      │    │  • Chains   │    │ • UI        │
+│  • Database │    │   Access    │    │  • Custom   │    │ • Export    │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+
+Key Components:
+• Modular AI Engine: Pluggable analysis models
+• Node-Based Workflows: Composable processing pipelines
+• Real-time Processing: Streaming and batch capabilities
+• Extensible Architecture: Easy addition of new modules
 ```
 
 ## Launcher Usage
@@ -139,12 +256,13 @@ Use `python3 launch.py --help` to see all available options.
 
 ## Development Notes
 
--   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
+-   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./.venv` directory. You do not need to activate it manually.
 -   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
--   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
--   **Data Storage:** This version uses local file-based storage, primarily located in `backend/python_backend/data/`. SQLite databases (`.db` files) are created in the project root.
--   **Node-based Workflows:** The new node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
-<<<<<<< HEAD
+-   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./.venv` directory.
+-   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root.
+-   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
+-   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
+
 
 ## Troubleshooting
 
@@ -166,38 +284,10 @@ If you encounter issues with Python package installation:
 
 4. **Uvicorn Not Found:**
    - Uvicorn should be installed automatically
-   - If missing, run: `pip install uvicorn[standard]` in the venv
+    - If missing, run: `pip install uvicorn[standard]` in the .venv
 
 ### Common Errors
 
-- **"ModuleNotFoundError"**: Run setup again or check venv activation
-- **Permission Errors**: Avoid running as administrator; use regular user account
-- **Port Conflicts**: Services will use next available ports if defaults are taken
-
-## Troubleshooting
-
-### Package Installation Issues
-
-If you encounter issues with Python package installation:
-
-1. **PyTorch Installation Fails:**
-   - The setup installs CPU-only PyTorch for lightweight deployment
-   - If you need GPU support, manually install PyTorch with CUDA after setup
-
-2. **Missing Packages After Setup:**
-   - Run `python launch.py --setup` again to verify and reinstall missing packages
-   - Check the logs for specific error messages
-
-3. **Using Poetry Instead of uv:**
-   - Run `python launch.py --use-poetry --setup` for Poetry-based installation
-   - Ensure Poetry is available in your PATH
-
-4. **Uvicorn Not Found:**
-   - Uvicorn should be installed automatically
-   - If missing, run: `pip install uvicorn[standard]` in the venv
-
-### Common Errors
-
-- **"ModuleNotFoundError"**: Run setup again or check venv activation
+- **"ModuleNotFoundError"**: Run setup again or check .venv activation
 - **Permission Errors**: Avoid running as administrator; use regular user account
 - **Port Conflicts**: Services will use next available ports if defaults are taken
