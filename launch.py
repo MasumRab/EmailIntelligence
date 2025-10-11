@@ -16,6 +16,7 @@ import logging
 import os
 import platform
 import shutil
+import atexit
 import signal
 import subprocess
 import sys
@@ -221,6 +222,7 @@ class ProcessManager:
 
 
 process_manager = ProcessManager()
+atexit.register(process_manager.cleanup)
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 11)
