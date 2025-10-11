@@ -368,15 +368,11 @@ print(df.head())
                 return load_model(model_name)
 
             refresh_models_btn.click(
-                fn=refresh_models,
-                inputs=[],
-                outputs=[model_list, model_selector]
+                fn=refresh_models, inputs=[], outputs=[model_list, model_selector]
             )
 
             load_model_btn.click(
-                fn=load_selected_model,
-                inputs=model_selector,
-                outputs=model_status_output
+                fn=load_selected_model, inputs=model_selector, outputs=model_status_output
             )
 
         with gr.TabItem("Model Training"):
@@ -545,8 +541,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"Launching Gradio UI for Email Intelligence Analysis on {args.host}:{args.port}...")
-<<<<<<< Updated upstream
     iface.launch(server_name=args.host, server_port=args.port, share=args.share)
-=======
-    iface.launch(server_name=args.host, server_port=args.port, share=args.share)
->>>>>>> Stashed changes
