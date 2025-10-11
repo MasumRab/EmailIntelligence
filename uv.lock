@@ -703,7 +703,10 @@ dependencies = [
     { name = "pandas" },
     { name = "plotly" },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     { name = "psutil" },
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     { name = "pydantic" },
@@ -756,7 +759,10 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "plotly", specifier = ">=5.18.0" },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     { name = "psutil", specifier = ">=6.0.0" },
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     { name = "pydantic", specifier = ">=2.11.5" },
