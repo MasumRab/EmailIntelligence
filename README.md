@@ -277,7 +277,12 @@ The AI and NLP capabilities are primarily based on:
 *   Rule-based systems and heuristics can also be part of the NLP pipeline.
 The system does not use external Large Language Models (LLMs) by default for its core classification tasks but includes a `PromptEngineer` class in `ai_training.py` which suggests capabilities for LLM interaction if developed further.
 
-## Building for Production
+-   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
+-   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
+-   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
+-   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root.
+-   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
+-   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
 
 To build the frontend for production:
 ```bash
@@ -299,11 +304,17 @@ The project includes Dockerfiles and a `deploy.py` script to simplify building a
 ### Usage
 Use the `deployment/deploy.py` script to manage your Docker deployments. It supports `dev` and `prod` environments.
 
+<<<<<<< HEAD
 **Build Images:**
 ```bash
 python deployment/deploy.py <environment> build
 # Example: python deployment/deploy.py prod build
 ```
+=======
+4. **Uvicorn Not Found:**
+   - Uvicorn should be installed automatically
+    - If missing, run: `pip install uvicorn[standard]` in the venv
+>>>>>>> 184666c (Change virtual environment directory from .venv to venv for consistency)
 
 **Start Services:**
 ```bash
@@ -311,10 +322,16 @@ python deployment/deploy.py <environment> up
 # Example: python deployment/deploy.py dev up -d
 ```
 
+<<<<<<< HEAD
 **Stop Services:**
 ```bash
 python deployment/deploy.py <environment> down
 ```
+=======
+- **"ModuleNotFoundError"**: Run setup again or check venv activation
+- **Permission Errors**: Avoid running as administrator; use regular user account
+- **Port Conflicts**: Services will use next available ports if defaults are taken
+>>>>>>> 184666c (Change virtual environment directory from .venv to venv for consistency)
 
 **View Logs:**
 ```bash
