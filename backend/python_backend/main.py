@@ -114,7 +114,6 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5000",
         "http://localhost:5173",
-        "https://*.replit.dev",
     ],
     allow_credentials=True,
     allow_methods=["*"],
