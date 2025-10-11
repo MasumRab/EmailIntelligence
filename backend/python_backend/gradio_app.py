@@ -17,7 +17,7 @@ import json
 import seaborn as sns
 import requests
 from typing import Dict, Any, List
-
+import ast
 # Define a base URL for the API
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -207,18 +207,13 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                         code_output = gr.Textbox(label="Output", lines=10)
 
                         def run_custom_code(code):
-                            # This is a sandboxed execution and should be used with caution.
-                            # In a real production app, this would need extreme security measures.
+                            # Code execution is now strictly limited.
+                            # Only allows evaluation of safe Python literals.
                             try:
-                                from io import StringIO
-                                import sys
-                                old_stdout = sys.stdout
-                                sys.stdout = captured_output = StringIO()
-                                exec(code, {'pd': pd, 'np': np, 'plt': plt, 'sns': sns})
-                                sys.stdout = old_stdout
-                                return captured_output.getvalue()
+                                result = ast.literal_eval(code)
+                                return str(result)
                             except Exception as e:
-                                return str(e)
+                                return f"Error: {str(e)}"
 
                         run_code_button.click(fn=run_custom_code, inputs=code_input, outputs=code_output)
 
