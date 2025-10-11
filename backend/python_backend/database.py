@@ -75,7 +75,6 @@ class DatabaseManager:
     """
 
     def __init__(self):
-        """Initializes the DatabaseManager, setting up file paths and data caches."""
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -103,11 +102,9 @@ class DatabaseManager:
             logger.info(f"Created email content directory: {self.email_content_dir}")
 
     def _get_email_content_path(self, email_id: int) -> str:
-        """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
-        """Loads heavy content for a given light email record and merges them."""
         full_email = email_light.copy()
         email_id = full_email.get(FIELD_ID)
         if not email_id:
@@ -124,7 +121,7 @@ class DatabaseManager:
         return full_email
 
     async def _ensure_initialized(self) -> None:
-        """Ensure data is loaded and indexes are built."""
+
         if not self._initialized:
             await self._load_data()
             self._build_indexes()
@@ -132,7 +129,6 @@ class DatabaseManager:
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
-        """Builds or rebuilds all in-memory indexes from the loaded data."""
         logger.info("Building in-memory indexes...")
         self.emails_by_id = {email[FIELD_ID]: email for email in self.emails_data}
         self.emails_by_message_id = {
@@ -158,11 +154,6 @@ class DatabaseManager:
 
     @log_performance("load_data")
     async def _load_data(self) -> None:
-        """
-        Loads data from JSON files into memory.
-
-        If a data file does not exist, it creates an empty one.
-        """
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, "emails_data"),
             (DATA_TYPE_CATEGORIES, self.categories_file, "categories_data"),
@@ -214,7 +205,6 @@ class DatabaseManager:
         self._dirty_data.add(data_type)
 
     async def shutdown(self) -> None:
-        """Saves all dirty data to files before shutting down."""
         logger.info("DatabaseManager shutting down. Saving dirty data...")
         for data_type in list(self._dirty_data):
             await self._save_data_to_file(data_type)
@@ -222,33 +212,14 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-        """
-        Generates a new unique integer ID for a record.
-
-        Args:
-            data_list: The list of records to scan for the current maximum ID.
-
-        Returns:
-            A new unique integer ID.
-        """
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-        """
-        Parses fields in a data row that are stored as JSON strings.
-
-        Args:
-            row: The data record (dictionary).
-            fields: A list of field names to parse.
-
-        Returns:
-            The modified data record with parsed fields.
-        """
         if not row:
             return row
-        for field in fields:
+        for field in row:
             if field in row and isinstance(row[field], str):
                 try:
                     row[field] = json.loads(row[field])
@@ -263,7 +234,6 @@ class DatabaseManager:
         return row
 
     def _add_category_details(self, email: Dict[str, Any]) -> Dict[str, Any]:
-        """Add category name and color to an email using cached category data."""
         if not email:
             return email
         category_id = email.get(FIELD_CATEGORY_ID)
@@ -275,7 +245,6 @@ class DatabaseManager:
         return self._parse_json_fields(email, [FIELD_ANALYSIS_METADATA])
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Create a new email record, separating heavy and light content."""
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
@@ -346,7 +315,7 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
-        """Get all categories with their counts from cache."""
+
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
@@ -492,16 +461,6 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """
-        Retrieves all emails with pagination.
-
-        Args:
-            limit: The maximum number of emails to return.
-            offset: The number of emails to skip.
-
-        Returns:
-            A list of email record dictionaries.
-        """
         return await self.get_emails(limit=limit, offset=offset)
 
     async def get_emails_by_category(
@@ -512,7 +471,6 @@ class DatabaseManager:
 
     @log_performance("search_emails")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
         search_term_lower = search_term.lower()
@@ -630,17 +588,6 @@ _db_manager_instance = None
 
 
 async def get_db() -> DatabaseManager:
-    """
-    Provides the singleton instance of the DatabaseManager.
-
-    This function is used for dependency injection in FastAPI routes. It ensures
-    that only one instance of the DatabaseManager is used throughout the
-
-    application's lifecycle.
-
-    Returns:
-        The singleton DatabaseManager instance.
-    """
     global _db_manager_instance
     if _db_manager_instance is None:
         # This should ideally not be reached if startup event is properly set
