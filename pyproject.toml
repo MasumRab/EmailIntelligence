@@ -15,6 +15,7 @@ dependencies = [
 
     # Gradio UI
     "gradio>=4.0.0",
+    "RestrictedPython>=8.0",
     "pyngrok>=0.7.0",
 
     # NLP and Machine Learning
@@ -82,7 +83,7 @@ exclude = '''
   | \.hg
   | \.mypy_cache
   | \.tox
-  | \.venv
+  | venv
   | _build
   | buck-out
   | build

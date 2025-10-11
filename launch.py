@@ -16,6 +16,7 @@ import logging
 import os
 import platform
 import shutil
+import atexit
 import signal
 import subprocess
 import sys
@@ -221,11 +222,12 @@ class ProcessManager:
 
 
 process_manager = ProcessManager()
+atexit.register(process_manager.cleanup)
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
-VENV_DIR = ".venv"
+VENV_DIR = "venv"
 
 # Dependency configuration
 TORCH_VERSION = "torch>=2.4.0"
@@ -403,6 +405,14 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
         # Install CPU-only PyTorch first for Poetry
         _install_pytorch(venv_python)
 
+        # Configure Poetry to use the virtual environment
+        env_use_cmd = [str(venv_poetry), "env", "use", str(venv_python)]
+        logger.info("Configuring Poetry to use the virtual environment...")
+        env_use_result = subprocess.run(env_use_cmd, cwd=ROOT_DIR, capture_output=True, text=True)
+        if env_use_result.returncode != 0:
+            logger.error(f"Failed to configure Poetry venv: {env_use_result.stderr}")
+            sys.exit(1)
+
         cmd = [str(venv_poetry), "install"]
         if not update:
             cmd.extend(["--with", "dev"])
@@ -459,6 +469,9 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
         _install_pytorch(venv_python)
 
         venv_uv = get_venv_executable(venv_path, "uv")
+
+        # Configure uv to use the virtual environment
+        os.environ['UV_PROJECT_ENVIRONMENT'] = str(venv_path)
 
         cmd = [str(venv_uv), "sync"]
         if update:
@@ -681,6 +694,12 @@ def start_server_ts():
     # Check if npm is available
     if not shutil.which("npm"):
         logger.warning("npm not found. Skipping TypeScript backend server startup.")
+        return None
+
+    # Check if package.json exists
+    pkg_json_path = ROOT_DIR / "server" / "package.json"
+    if not pkg_json_path.exists():
+        logger.debug("No package.json in 'server/', skipping TypeScript backend server startup.")
         return None
 
     # Install Node.js dependencies if node_modules doesn't exist
