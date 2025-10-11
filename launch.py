@@ -24,25 +24,96 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
-<<<<<<< Updated upstream
 # Import dotenv for environment file loading
-try:
-    from dotenv import load_dotenv
-except ImportError:
-    load_dotenv = None  # Will be loaded later if needed
-=======
 try:
     from dotenv import load_dotenv
     DOTENV_AVAILABLE = True
 except ImportError:
+    load_dotenv = None
     DOTENV_AVAILABLE = False
->>>>>>> Stashed changes
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("launcher")
+
+
+# --- Hardening Functions ---
+def check_for_merge_conflicts() -> bool:
+    """Check for unresolved merge conflict markers in critical files."""
+    conflict_markers = ["<<<<<<< ", "=======", ">>>>>>> "]
+    critical_files = [
+        "launch.py",
+        "backend/python_backend/main.py",
+        "modules/default_ai_engine/engine.py",
+        "AGENTS.md",
+        "README.md"
+    ]
+
+    for file_path in critical_files:
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    for marker in conflict_markers:
+                        if marker in content:
+                            logger.error(f"Unresolved merge conflict detected in {file_path}")
+                            return False
+            except Exception as e:
+                logger.warning(f"Could not check {file_path} for conflicts: {e}")
+
+    logger.info("No unresolved merge conflicts detected in critical files.")
+    return True
+
+
+def check_required_components() -> bool:
+    """Check for required components and configurations."""
+    issues = []
+
+    # Check virtual environment
+    if not hasattr(sys, 'real_prefix') and not (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        issues.append("Not running in a virtual environment. Use 'python launch.py --setup' first.")
+
+    # Check key directories
+    required_dirs = ["backend", "modules", "tests", "data"]
+    for dir_name in required_dirs:
+        if not os.path.exists(dir_name):
+            issues.append(f"Required directory '{dir_name}' is missing.")
+
+    # Check key files
+    required_files = ["pyproject.toml", "backend/python_backend/main.py"]
+    for file_name in required_files:
+        if not os.path.exists(file_name):
+            issues.append(f"Required file '{file_name}' is missing.")
+
+    # Check AI models (optional but recommended)
+    model_files = ["modules/default_ai_engine/sentiment_model.pkl"]
+    for model in model_files:
+        if not os.path.exists(model):
+            logger.warning(f"AI model '{model}' not found. AI features may be limited.")
+
+    if issues:
+        for issue in issues:
+            logger.error(issue)
+        return False
+
+    logger.info("All required components are present.")
+    return True
+
+
+def validate_environment() -> bool:
+    """Run comprehensive environment validation."""
+    logger.info("Running environment validation...")
+
+    if not check_for_merge_conflicts():
+        return False
+
+    if not check_required_components():
+        return False
+
+    logger.info("Environment validation passed.")
+    return True
 
 
 # --- Input Validation ---
@@ -456,40 +527,22 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
 
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
-<<<<<<< Updated upstream
     if not check_uvicorn_installed(venv_path):
         logger.error(
             "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
         )
         return None
 
-    venv_python = get_venv_executable(venv_path, "python")
+    venv_python = venv_path / "Scripts" / "python.exe" if platform.system() == "Windows" else venv_path / "bin" / "python"
 
-    # Use uvicorn to run the FastAPI app directly
+    # Always use uvicorn to run the FastAPI app
     import os
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
 
-    cmd = [
-        str(venv_python),
-        "-m",
-        "uvicorn",
-        "src.main:create_app",
-        "--host",
-        host,
-        "--port",
-        str(port),
-    ]
-    if debug:
-        cmd.append("--reload")
-=======
-    venv_python = venv_path / "Scripts" / "python.exe" if platform.system() == "Windows" else venv_path / "bin" / "python"
-
-    # Always use uvicorn to run the FastAPI app
     cmd = [str(venv_python), "-m", "uvicorn", "backend.python_backend.main:app", "--host", host, "--port", str(port)]
     if debug:
         cmd.append("--reload")  # Enable auto-reload in debug mode
->>>>>>> Stashed changes
 
     logger.info(f"Starting Python backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
@@ -635,6 +688,7 @@ def main():
 
     # Setup arguments
     parser.add_argument("--setup", action="store_true", help="Run environment setup and exit.")
+    parser.add_argument("--check", action="store_true", help="Run environment validation checks and exit.")
     parser.add_argument("--update-deps", action="store_true", help="Update all dependencies.")
     parser.add_argument(
         "--no-venv", action="store_true", help="Do not create or use a Python venv."
@@ -689,14 +743,9 @@ def main():
     if args.env_file:
         env_path = Path(args.env_file)
         if env_path.exists():
-<<<<<<< Updated upstream
-            from dotenv import load_dotenv
-
-=======
             if not DOTENV_AVAILABLE:
                 logger.error("python-dotenv is not available. Please install it or ensure dependencies are set up correctly.")
                 sys.exit(1)
->>>>>>> Stashed changes
             load_dotenv(env_path)
             logger.info(f"Loaded environment variables from {env_path}")
         else:
@@ -717,11 +766,25 @@ def main():
         _handle_setup_mode(args, venv_path)
         return
 
+    # Check mode
+    if args.check:
+        if validate_environment():
+            logger.info("All checks passed. Environment is ready.")
+            sys.exit(0)
+        else:
+            logger.error("Environment validation failed.")
+            sys.exit(1)
+
     # If not in setup mode, ensure venv exists (unless --no-venv is specified)
     if not args.no_venv and not venv_path.exists():
         logger.error(
             f"Virtual environment does not exist at {venv_path}. Please run with --setup first."
         )
+        sys.exit(1)
+
+    # Run environment validation unless in setup mode
+    if not validate_environment():
+        logger.error("Environment validation failed. Please resolve issues and try again.")
         sys.exit(1)
 
     _start_selected_services(args, venv_path, host)
