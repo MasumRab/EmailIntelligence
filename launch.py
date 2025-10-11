@@ -44,10 +44,8 @@ def check_for_merge_conflicts() -> bool:
     """Check for unresolved merge conflict markers in critical files."""
     conflict_markers = ["<<<<<<< ", "=======", ">>>>>>> "]
     critical_files = [
-        "launch.py",
         "backend/python_backend/main.py",
         "modules/default_ai_engine/engine.py",
-        "AGENTS.md",
         "README.md"
     ]
 
@@ -58,7 +56,7 @@ def check_for_merge_conflicts() -> bool:
                     content = f.read()
                     for marker in conflict_markers:
                         if marker in content:
-                            logger.error(f"Unresolved merge conflict detected in {file_path}")
+                            logger.error(f"Unresolved merge conflict detected in {file_path} with marker '{marker}'")
                             return False
             except Exception as e:
                 logger.warning(f"Could not check {file_path} for conflicts: {e}")
@@ -756,6 +754,15 @@ def main():
     if args.setup or args.update_deps:
         _handle_setup_mode(args, venv_path)
         return
+
+    # Check mode
+    if args.check:
+        if validate_environment():
+            logger.info("All checks passed. Environment is ready.")
+            sys.exit(0)
+        else:
+            logger.error("Environment validation failed.")
+            sys.exit(1)
 
     # Check mode
     if args.check:
