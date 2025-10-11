@@ -151,6 +151,25 @@ def check_python_version():
     logger.info(f"Python version {sys.version} is compatible.")
 
 
+def get_venv_executable(venv_path: Path, executable_name: str) -> Path:
+    """
+    Get the absolute path to an executable within the virtual environment.
+
+    This function abstracts the difference in venv structure between
+    Windows ('Scripts') and Unix-like systems ('bin').
+
+    Args:
+        venv_path: The path to the virtual environment directory.
+        executable_name: The name of the executable (e.g., 'python', 'pip').
+
+    Returns:
+        The full path to the executable.
+    """
+    if platform.system() == "Windows":
+        return venv_path / "Scripts" / f"{executable_name}.exe"
+    return venv_path / "bin" / executable_name
+
+
 def get_venv_python_path(venv_path: Path = None) -> Path:
     """Get the path to the Python executable in the virtual environment."""
     venv_path = venv_path or (ROOT_DIR / VENV_DIR)
