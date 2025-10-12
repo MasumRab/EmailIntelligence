@@ -64,23 +64,31 @@ async def list_workflows(
     """Lists all available workflows (both legacy and node-based)."""
     try:
         # Get legacy workflows
-        legacy_workflows = workflow_engine.list_workflows() if hasattr(workflow_engine, 'list_workflows') else []
+        legacy_workflows = (
+            workflow_engine.list_workflows() if hasattr(workflow_engine, "list_workflows") else []
+        )
 
         # Get node-based workflows
-        node_workflows = node_workflow_manager.list_workflows() if hasattr(node_workflow_manager, 'list_workflows') else []
+        node_workflows = (
+            node_workflow_manager.list_workflows()
+            if hasattr(node_workflow_manager, "list_workflows")
+            else []
+        )
 
         # Combine and deduplicate
         all_workflows = []
         seen = set()
         for wf in legacy_workflows + node_workflows:
-            wf_name = wf.get('name') if isinstance(wf, dict) else str(wf)
+            wf_name = wf.get("name") if isinstance(wf, dict) else str(wf)
             if wf_name not in seen:
                 seen.add(wf_name)
-                all_workflows.append({
-                    "name": wf_name,
-                    "type": "legacy" if wf in legacy_workflows else "node_based",
-                    "description": wf.get('description', '') if isinstance(wf, dict) else ''
-                })
+                all_workflows.append(
+                    {
+                        "name": wf_name,
+                        "type": "legacy" if wf in legacy_workflows else "node_based",
+                        "description": wf.get("description", "") if isinstance(wf, dict) else "",
+                    }
+                )
 
         return all_workflows
     except Exception as e:
@@ -160,9 +168,6 @@ async def create_workflow(
         raise HTTPException(
             status_code=500, detail="An unexpected error occurred while creating the workflow."
         )
-
-
-
 
 
 @router.get("/api/workflows/active", response_model=dict)
