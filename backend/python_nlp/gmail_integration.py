@@ -5,16 +5,21 @@ Implements smart batching, caching, and rate limit management for email collecti
 import dataclasses
 from typing import List, Optional
 
+
 @dataclasses.dataclass
 class RateLimitConfig:
     """Configuration for rate limiting."""
+
     max_calls: int = 5
     period_seconds: int = 60
+
 
 @dataclasses.dataclass
 class EmailBatch:
     """Represents a batch of emails."""
+
     emails: List[dict]
+
 
 class GmailDataCollector:
     """Collects data from Gmail with rate limiting."""

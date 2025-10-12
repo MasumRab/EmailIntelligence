@@ -50,7 +50,7 @@ class NLPEngine:
             "confidence": 0.7,
             "categories": [topic],
             "keywords": ["sample", "keywords"],
-            "reasoning": f"Basic analysis of subject and content",
+            "reasoning": "Basic analysis of subject and content",
             "suggested_labels": [topic],
             "risk_flags": [],
             "validation": {
