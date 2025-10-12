@@ -6,11 +6,9 @@ workflow system.
 """
 
 import asyncio
-import hashlib
-import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, Optional
 
@@ -318,8 +316,6 @@ class ResourceManager:
 
 # Global instances
 security_manager = SecurityManager()
-audit_logger = AuditLogger()
-resource_manager = ResourceManager()
 
 # Register trusted node types
 for node_type in [
@@ -330,3 +326,6 @@ for node_type in [
     "ActionNode",
 ]:
     security_manager.register_trusted_node_type(node_type)
+
+audit_logger = AuditLogger()
+resource_manager = ResourceManager()

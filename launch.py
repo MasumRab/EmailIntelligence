@@ -12,11 +12,11 @@ Usage:
 """
 
 import argparse
+import atexit
 import logging
 import os
 import platform
 import shutil
-import atexit
 import signal
 import subprocess
 import sys
@@ -471,7 +471,7 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
         venv_uv = get_venv_executable(venv_path, "uv")
 
         # Configure uv to use the virtual environment
-        os.environ['UV_PROJECT_ENVIRONMENT'] = str(venv_path)
+        os.environ["UV_PROJECT_ENVIRONMENT"] = str(venv_path)
 
         cmd = [str(venv_uv), "sync"]
         if update:
@@ -669,7 +669,11 @@ def start_client():
         logger.info("Installing Node.js dependencies...")
         try:
             result = subprocess.run(
-                ["npm", "install"], cwd=ROOT_DIR / "client", capture_output=True, text=True, shell=(os.name == "nt")
+                ["npm", "install"],
+                cwd=ROOT_DIR / "client",
+                capture_output=True,
+                text=True,
+                shell=(os.name == "nt"),
             )
             if result.returncode != 0:
                 logger.error(f"Failed to install Node.js dependencies: {result.stderr}")
@@ -680,7 +684,9 @@ def start_client():
 
     # Start the React frontend
     try:
-        process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "client", shell=(os.name == "nt"))
+        process = subprocess.Popen(
+            ["npm", "run", "dev"], cwd=ROOT_DIR / "client", shell=(os.name == "nt")
+        )
         process_manager.add_process(process)
         return process
     except FileNotFoundError:
@@ -708,7 +714,11 @@ def start_server_ts():
         logger.info("Installing TypeScript server dependencies...")
         try:
             result = subprocess.run(
-                ["npm", "install"], cwd=ROOT_DIR / "server", capture_output=True, text=True, shell=(os.name == "nt")
+                ["npm", "install"],
+                cwd=ROOT_DIR / "server",
+                capture_output=True,
+                text=True,
+                shell=(os.name == "nt"),
             )
             if result.returncode != 0:
                 logger.error(f"Failed to install TypeScript server dependencies: {result.stderr}")
@@ -719,7 +729,9 @@ def start_server_ts():
 
     # Start the TypeScript backend
     try:
-        process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "server", shell=(os.name == "nt"))
+        process = subprocess.Popen(
+            ["npm", "run", "dev"], cwd=ROOT_DIR / "server", shell=(os.name == "nt")
+        )
         process_manager.add_process(process)
         return process
     except FileNotFoundError:

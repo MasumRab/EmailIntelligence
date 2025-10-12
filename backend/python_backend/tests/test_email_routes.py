@@ -178,7 +178,9 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
     # 1. Activate the workflow from the example plugin
     activate_response = client_with_real_workflows.put("/api/workflows/active/example_uppercase")
     assert activate_response.status_code == 200
-    assert activate_response.json()["message"] == "Active legacy workflow set to 'example_uppercase'."
+    assert (
+        activate_response.json()["message"] == "Active legacy workflow set to 'example_uppercase'."
+    )
 
     # 2. Prepare the email data
     new_email_data = {

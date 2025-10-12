@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
+
 from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
 
@@ -78,7 +79,7 @@ class JSONDataManager:
             self.data_dir = Path(data_dir)
         else:
             self.data_dir = DATA_DIR
-            
+
         self.email_content_dir = os.path.join(self.data_dir, "email_content")
         self.emails_index_file = os.path.join(self.data_dir, "emails_index.json.gz")
         self.categories_file = os.path.join(self.data_dir, "categories.json.gz")
@@ -421,9 +422,7 @@ class JSONDataManager:
             )
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
-        logger.info(
-            f"Retrieved {len(result_emails)} emails with applied filters."
-        )
+        logger.info(f"Retrieved {len(result_emails)} emails with applied filters.")
         return result_emails
 
     async def update_email_by_message_id(
