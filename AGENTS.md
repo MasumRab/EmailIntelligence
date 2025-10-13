@@ -8,7 +8,6 @@
 - **Format**: `black .`
 - **Lint**: `flake8 .`
 - **Type check**: `mypy .`
-<<<<<<< Updated upstream
 - **Code quality**: `pylint src modules`
 
 ### Dependency Management

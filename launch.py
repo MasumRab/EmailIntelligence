@@ -220,7 +220,7 @@ process_manager = ProcessManager()
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
-VENV_DIR = ".venv"
+VENV_DIR = "venv"
 
 # Dependency configuration
 TORCH_VERSION = "torch>=2.4.0"
