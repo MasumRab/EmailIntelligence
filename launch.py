@@ -25,13 +25,10 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
-# Import dotenv for environment file loading
 try:
     from dotenv import load_dotenv
-
     DOTENV_AVAILABLE = True
 except ImportError:
-    load_dotenv = None
     DOTENV_AVAILABLE = False
 
 # Configure logging
@@ -597,8 +594,6 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
 
 
-def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
-    """Start the Python FastAPI backend."""
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
     if not check_uvicorn_installed(venv_path):
