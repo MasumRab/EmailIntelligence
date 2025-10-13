@@ -95,10 +95,9 @@ def test_get_model_loads_if_unloaded(model_manager):
         "status": "unloaded",
     }
 
-    with patch.object(model_manager, "load_model") as mock_load_model:
+    with patch.object(model_manager, 'load_model') as mock_load_model:
         model_manager.get_model(model_name)
         mock_load_model.assert_called_once_with(model_name)
-
 
 def test_unload_model(model_manager):
     """Tests that a loaded model can be unloaded."""

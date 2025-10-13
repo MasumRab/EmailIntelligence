@@ -27,6 +27,7 @@ from launch import (
     start_client,
     start_gradio_ui,
     start_server_ts,
+    install_nodejs_dependencies,
 )
 
 
@@ -189,6 +190,41 @@ class TestServiceStartup:
             mock_run.assert_called_once_with(
                 ["npm", "install"], cwd=ROOT_DIR / "server", capture_output=True, text=True
             )
+
+
+# Test case 1: node executable is not found
+@patch("launch.ROOT_DIR", Path("/app"))
+@patch("pathlib.Path.exists", return_value=True)
+@patch("shutil.which", return_value=None)  # This will now correctly trigger the node check first
+@patch("launch.logger")
+def test_install_deps_node_not_found(mock_logger, mock_which, mock_exists):
+    """
+    Verifies that install_nodejs_dependencies exits gracefully if node is not installed.
+    """
+    result = install_nodejs_dependencies("client")
+
+    assert result is False, "Function should return False when node is not found"
+    # Correctly assert the first error that should be logged
+    mock_logger.error.assert_called_with("Node.js is not installed. Please install it to continue.")
+
+
+# Test case 2: npm install fails
+@patch("launch.ROOT_DIR", Path("/app"))
+@patch("pathlib.Path.exists", return_value=True)
+@patch("shutil.which", side_effect=["/fake/path/to/node", "/fake/path/to/npm"])  # Mock both node and npm
+@patch(
+    "subprocess.run",
+    side_effect=subprocess.CalledProcessError(1, "npm install", "Error output", "Error details"),
+)
+@patch("launch.logger")
+def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
+    """
+    Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.
+    """
+    result = install_nodejs_dependencies("client")
+
+    assert result is False, "Function should return False when npm install fails"
+    mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
 
 
 class TestMainFunction:

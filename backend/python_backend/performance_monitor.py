@@ -271,38 +271,34 @@ def get_performance_monitor() -> PerformanceMonitor:
     """Get the global performance monitor instance"""
     return performance_monitor
 
-
-def log_performance(operation_or_func=None, *, operation: str = ""):
+def log_performance(_func=None, *, operation: str = ""):
     """
     A decorator to log the performance of both sync and async functions.
     Can be used as @log_performance or @log_performance(operation="custom_name").
     """
-    if callable(operation_or_func) and operation == "":
-        # Used as @log_performance (without parentheses)
-        func = operation_or_func
-        op_name = func.__name__
-        return _create_decorator(func, op_name)
-    elif operation_or_func is not None and operation == "":
-        # Used as @log_performance("custom_name")
-        op_name = operation_or_func
+    def decorator(func):
+        op_name = operation or func.__name__
 
-        def decorator(func):
-            return _create_decorator(func, op_name)
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
 
-        return decorator
-    else:
-        # Used as @log_performance(operation="custom_name")
-        op_name = operation
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": op_name,
+                "duration_seconds": duration,
+            }
 
-        def decorator(func):
-            return _create_decorator(func, op_name)
+            try:
+                with open(LOG_FILE, 'a') as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
-        return decorator
-
-
-def _create_decorator(func, op_name):
-    """Create the actual decorator for a function"""
-    if asyncio.iscoroutinefunction(func):
+            return result
 
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -324,27 +320,12 @@ def _create_decorator(func, op_name):
 
             return result
 
-        return async_wrapper
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
+
+    if _func is None:
+        return decorator
     else:
-
-        @wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
-            try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
-
-            return result
-
-        return sync_wrapper
+        return decorator(_func)
