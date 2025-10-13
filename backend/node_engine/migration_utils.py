@@ -123,24 +123,24 @@ class WorkflowMigrationService:
 
         # Create connections following the standard pipeline
         # source -> preprocessing
-                node_workflow.add_connection(
-                    Connection(
-                        source_node_id=source_node.node_id,
-                        source_port="emails",
-                        target_node_id=preprocessing_node.node_id,
-                        target_port="emails",
-                    )
-                )
+        node_workflow.add_connection(
+            Connection(
+                source_node_id=source_node.node_id,
+                source_port="emails",
+                target_node_id=preprocessing_node.node_id,
+                target_port="emails",
+            )
+        )
 
         # preprocessing -> ai_analysis
-                node_workflow.add_connection(
-                    Connection(
-                        source_node_id=preprocessing_node.node_id,
-                        source_port="processed_emails",
-                        target_node_id=ai_analysis_node.node_id,
-                        target_port="emails",
-                    )
-                )
+        node_workflow.add_connection(
+            Connection(
+                source_node_id=preprocessing_node.node_id,
+                source_port="processed_emails",
+                target_node_id=ai_analysis_node.node_id,
+                target_port="emails",
+            )
+        )
 
         # ai_analysis -> filter
         node_workflow.add_connection(
