@@ -106,6 +106,7 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     )
 
     # We are NOT mocking get_workflow_engine here.
+
     # Reset mocks
     for manager_mock in [mock_db_manager, mock_ai_engine, mock_filter_manager]:
         manager_mock.reset_mock()

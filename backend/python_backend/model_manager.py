@@ -129,3 +129,7 @@ class ModelManager:
 
 # Create a global instance
 model_manager = ModelManager()
+
+def get_model_manager() -> ModelManager:
+    """Get the global model manager instance"""
+    return model_manager

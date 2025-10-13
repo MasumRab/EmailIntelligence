@@ -20,7 +20,7 @@ def test_set_active_workflow(client, mock_workflow_engine):
 
     response = client.put(f"/api/workflows/active/{workflow_name}")
     assert response.status_code == 200
-    assert response.json() == {"message": f"Active legacy workflow set to '{workflow_name}'."}
+    assert response.json() == {"message": f"Active workflow set to '{workflow_name}'."}
     # Verify the mock was called correctly
     mock_workflow_engine.set_active_workflow.assert_called_once_with(workflow_name)
 
@@ -28,9 +28,7 @@ def test_set_active_workflow(client, mock_workflow_engine):
 def test_set_nonexistent_active_workflow(client, mock_workflow_engine):
     """Tests setting a nonexistent workflow returns a 404."""
     # Configure the mock to raise a ValueError, as the real engine would
-    mock_workflow_engine.set_active_workflow.side_effect = ValueError(
-        "Workflow 'nonexistent' not found."
-    )
+    mock_workflow_engine.set_active_workflow.side_effect = ValueError("Workflow 'nonexistent' not found.")
 
     response = client.put("/api/workflows/active/nonexistent")
     assert response.status_code == 404
@@ -65,7 +63,7 @@ async def test_create_and_activate_new_workflow(client, mock_workflow_engine):
     assert response_create.status_code == 200
     assert (
         response_create.json()["message"]
-        == "Legacy workflow 'my_brand_new_workflow' created successfully."
+        == "Workflow 'my_brand_new_workflow' created successfully."
     )
 
     # 2. Immediately try to activate the new workflow
@@ -73,7 +71,7 @@ async def test_create_and_activate_new_workflow(client, mock_workflow_engine):
     assert response_activate.status_code == 200
     assert (
         response_activate.json()["message"]
-        == "Active legacy workflow set to 'my_brand_new_workflow'."
+        == "Active workflow set to 'my_brand_new_workflow'."
     )
 
     # 3. Verify the mocks were called as expected
