@@ -20,6 +20,9 @@ if TYPE_CHECKING:
 from ..python_nlp.gmail_service import GmailAIService
 from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
+from .model_manager import ModelManager
+from .workflow_engine import WorkflowEngine
+from .plugin_manager import PluginManager
 from .database import DatabaseManager, get_db
 from .model_manager import ModelManager
 from .plugin_manager import PluginManager

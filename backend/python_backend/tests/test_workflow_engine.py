@@ -15,25 +15,26 @@ from backend.python_backend.workflow_engine import (
 # Mocks for dependencies
 @pytest.fixture
 def mock_ai_engine():
-    return MagicMock()
-
-
-@pytest.fixture
+        return MagicMock()
+    
+    
+    @pytest.fixture
 def mock_filter_manager():
-    return MagicMock()
-
-
-@pytest.fixture
+        return MagicMock()
+    
+    
+    @pytest.fixture
 def mock_db_manager():
-    return MagicMock()
-
-
-@pytest.fixture
+        return MagicMock()
+    
+    
+    @pytest.fixture
 def workflow_engine():
     """Provides a clean WorkflowEngine instance for each test."""
-    return WorkflowEngine()
-
-
+        return WorkflowEngine()
+    
+    
+    
 def test_register_workflow(workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager):
     """Tests that a workflow can be registered correctly."""
     mock_workflow = DefaultWorkflow(mock_ai_engine, mock_filter_manager, mock_db_manager)
@@ -56,15 +57,12 @@ def test_set_active_nonexistent_workflow(workflow_engine):
     with pytest.raises(ValueError, match="Workflow 'nonexistent' not found."):
         workflow_engine.set_active_workflow("nonexistent")
 
-
-@pytest.mark.asyncio
-async def test_discover_workflows(
-    workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager
-):
-    """Tests the discovery of code-based and file-based workflows."""
     mock_workflow_config = {
+
         "name": "my_file_workflow",
+
         "models": {"sentiment": "sentiment-default"},
+
     }
 
     m = mock_open(read_data=json.dumps(mock_workflow_config))
@@ -91,11 +89,19 @@ async def test_discover_workflows(
         assert workflow_engine.active_workflow.name == "default"
 
 
+
+
+
 @pytest.mark.asyncio
+
 async def test_create_and_register_workflow(
+
     workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager
+
 ):
+
     """Tests creating, saving, and registering a new workflow from a config."""
+
     new_config = {"name": "new_api_workflow", "models": {"topic": "topic-default"}}
     # Set up the engine with dependencies first
     workflow_engine._ai_engine = mock_ai_engine
