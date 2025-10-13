@@ -1,7 +1,6 @@
 """
 API routes for managing AI models.
 """
-
 import logging
 from typing import Any, Dict, List
 

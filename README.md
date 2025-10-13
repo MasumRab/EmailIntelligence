@@ -68,7 +68,9 @@ The application follows a modular architecture composed of interconnected servic
     -   Serves the primary REST API for core application logic, data processing, and AI/NLP tasks.
     -   Integrated Gradio UI for scientific development, model testing, and data visualization.
     -   Modular design allows easy extension with new features via modules.
-    -   Manages data storage (JSON files and SQLite databases).
+    -   Manages data storage (JSON files and SQLite databases), now with a configurable data directory.
+    -   Enhanced email search and update functionalities.
+    -   API routes for workflows, models, and performance are explicitly included, while `training_routes` has been removed.
 
 2.  **Node-Based Workflow Engine:**
     -   Located in `src/core/advanced_workflow_engine.py` and `backend/node_engine/`.
@@ -119,6 +121,27 @@ Email Intelligence Platform (Gradio UI)
     ├── API Key Management
     └── User Preferences
 ```
+
+### Gradio UI Enhancements
+
+#### Email Retrieval and Filtering Tab
+
+**Objective:** Implement a new Gradio tab for interactive email retrieval and filtering, leveraging the existing backend filtering capabilities.
+
+**Requirements:**
+
+*   **Email Listing:** Display a paginated list of emails, showing key information (subject, sender, date, categories).
+*   **Search Functionality:**
+    *   Text search across email subjects, senders, and content.
+    *   Filter by category (dropdown/multi-select).
+    *   Filter by read/unread status.
+*   **Email Details View:** Allow users to click on an email to view its full content and analysis results.
+*   **Action Buttons:**
+    *   Mark as read/unread.
+    *   Assign/change category.
+    *   Trigger re-analysis by the active workflow.
+*   **Integration:** Utilize the existing FastAPI backend endpoints for email retrieval, search, and updates.
+*   **User Experience:** Provide a clear, intuitive interface for exploring and managing emails.
 
 ## Directory Structure
 
@@ -259,9 +282,11 @@ Use `python3 launch.py --help` to see all available options.
 -   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
 -   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
 -   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
--   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root.
+-   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root. The data directory is now configurable via the `DATA_DIR` environment variable.
 -   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
 -   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
+-   **Performance Monitoring:** The `@log_performance` decorator has been refactored for improved flexibility and direct logging to a file.
+-   **Dependency Management:** Enhanced testing for Node.js dependency installation ensures more robust setup.
 
 
 ## Troubleshooting

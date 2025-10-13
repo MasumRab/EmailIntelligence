@@ -90,7 +90,6 @@ def test_get_email_by_id_not_found(client, mock_db_manager):
     assert response.status_code == 404
     assert response.json() == {"detail": "Email not found"}
 
-
 def test_create_email(client, mock_db_manager, mock_workflow_engine):
     new_email_data = {
         "sender": "new@example.com",
@@ -101,16 +100,14 @@ def test_create_email(client, mock_db_manager, mock_workflow_engine):
     }
 
     processed_data_from_workflow = new_email_data.copy()
-    processed_data_from_workflow.update(
-        {
-            "confidence": 95,
-            "categoryId": 1,
-            "labels": ["test"],
-            "analysisMetadata": {"some_ai_field": "value"},
-            "filterResults": {"actions_taken": []},
-            "workflow_status": "processed_by_default_workflow",
-        }
-    )
+    processed_data_from_workflow.update({
+        "confidence": 95,
+        "categoryId": 1,
+        "labels": ["test"],
+        "analysisMetadata": {"some_ai_field": "value"},
+        "filterResults": {"actions_taken": []},
+        "workflow_status": "processed_by_default_workflow"
+    })
     mock_workflow_engine.run_workflow.return_value = processed_data_from_workflow
 
     # The database receives the processed data. We need to pop the subject
@@ -120,7 +117,7 @@ def test_create_email(client, mock_db_manager, mock_workflow_engine):
     mock_db_manager.create_email.return_value = created_email_from_db
 
     # Restore the subject for the original dictionary that we'll check against
-    processed_data_from_workflow["subject"] = subject
+    processed_data_from_workflow['subject'] = subject
 
     response = client.post("/api/emails", json=new_email_data)
 
@@ -133,12 +130,11 @@ def test_create_email(client, mock_db_manager, mock_workflow_engine):
     # Inspect the arguments to check the core data.
     call_args, _ = mock_workflow_engine.run_workflow.call_args
     workflow_input_data = call_args[0]
-    assert workflow_input_data["subject"] == new_email_data["subject"]
-    assert workflow_input_data["content"] == new_email_data["content"]
+    assert workflow_input_data['subject'] == new_email_data['subject']
+    assert workflow_input_data['content'] == new_email_data['content']
 
     # Verify the database was called with the processed data.
     mock_db_manager.create_email.assert_called_once_with(processed_data_from_workflow)
-
 
 def test_update_email(client, mock_db_manager):
     update_data = {"subject": "Updated Subject"}
@@ -157,7 +153,6 @@ def test_update_email_not_found(client, mock_db_manager):
     assert response.status_code == 404
     assert response.json() == {"detail": "Email not found"}
 
-
 def test_get_emails_db_error(client, mock_db_manager):
     class MockDBError(Exception):
         pass
@@ -169,7 +164,6 @@ def test_get_emails_db_error(client, mock_db_manager):
     assert response.status_code == 503
     assert response.json() == {"detail": "Database service unavailable."}
 
-
 def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_ai_engine):
     """
     Tests the full end-to-end flow of activating and using a workflow from a plugin.
@@ -178,9 +172,7 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
     # 1. Activate the workflow from the example plugin
     activate_response = client_with_real_workflows.put("/api/workflows/active/example_uppercase")
     assert activate_response.status_code == 200
-    assert (
-        activate_response.json()["message"] == "Active legacy workflow set to 'example_uppercase'."
-    )
+    assert activate_response.json()["message"] == "Active workflow set to 'example_uppercase'."
 
     # 2. Prepare the email data
     new_email_data = {
@@ -194,8 +186,8 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
     # The database create_email method needs to be mocked to return a valid email dictionary
     # The real workflow will add 'workflow_status' and change the subject.
     processed_data = new_email_data.copy()
-    processed_data["subject"] = "A SUBJECT TO BE UPPERCASED"
-    processed_data["workflow_status"] = "processed_by_example_uppercase_workflow"
+    processed_data['subject'] = 'A SUBJECT TO BE UPPERCASED'
+    processed_data['workflow_status'] = 'processed_by_example_uppercase_workflow'
 
     # We need to mock the return value from the db create call
     mock_db_manager.create_email.return_value = create_mock_email(10, **processed_data)

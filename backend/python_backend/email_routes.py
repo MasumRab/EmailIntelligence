@@ -8,19 +8,19 @@ from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
 from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
+from .workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError
-from .models import EmailResponse  # Changed from .main to .models
+from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
-from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/api/emails", response_model=List[EmailResponse])
-@log_performance("get_emails")
+@log_performance(operation="get_emails")
 async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
@@ -72,20 +72,9 @@ async def get_emails(
         )
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
-        raise DatabaseError(detail="Database service unavailable.")
-    except Exception as e:
-        log_data = {
-            "message": "Unhandled error in get_emails",
-            "endpoint": str(request.url),
-            "error_type": type(e).__name__,
-            "error_detail": str(e),
-        }
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
-
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("get_email")
+@log_performance(operation="get_email")
 async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
     """
     Retrieves a specific email by its unique ID.
@@ -138,8 +127,8 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 
-@router.post("/api/emails", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("create_email")
+@router.post("/api/emails", response_model=EmailResponse)
+@log_performance(operation="create_email")
 async def create_email(
     request: Request,
     email: EmailCreate,
@@ -147,29 +136,13 @@ async def create_email(
     db: DatabaseManager = Depends(get_db),
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
-    """
-    Creates a new email by running it through the active workflow.
-
-    The workflow performs AI analysis, applies smart filters, and enriches the email data
-    before it's saved to the database.
-
-    Args:
-        request: The incoming request object.
-        email: The email data for creation.
-        background_tasks: FastAPI's background task runner.
-        db: The database manager dependency.
-        workflow_engine: The workflow engine dependency.
-
-    Returns:
-        The newly created and enriched email object.
-
-    Raises:
-        HTTPException: If a database error or any other failure occurs.
-    """
+    """Create new email with AI analysis using the active workflow."""
     try:
-        processed_email_data = await workflow_engine.run_workflow(email.model_dump())
+        # Run the active workflow to process the email data
+        processed_data = await workflow_engine.run_workflow(email.model_dump())
 
-        created_email_dict = await db.create_email(processed_email_data)
+        # Create the email in the database with the processed data
+        created_email_dict = await db.create_email(processed_data)
 
         try:
             return EmailResponse(**created_email_dict)
@@ -182,28 +155,28 @@ async def create_email(
                 logger.error(f"Pydantic errors: {e_outer.errors()}")
             raise  # Re-raise for FastAPI to handle
     except Exception as db_err:
-        log_data = {
-            "message": "Database operation failed while creating email",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": None,
-        }
+        log_data = create_log_data(
+            message="Database operation failed while creating email",
+            request_url=request.url,
+            error_type=type(db_err).__name__,
+            error_detail=str(db_err),
+            pgcode=None,
+        )
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
-        log_data = {
-            "message": "Unhandled error in create_email",
-            "endpoint": str(request.url),
-            "error_type": type(e).__name__,
-            "error_detail": str(e),
-        }
+        log_data = create_log_data(
+            message="Unhandled error in create_email",
+            request_url=request.url,
+            error_type=type(e).__name__,
+            error_detail=str(e),
+        )
         logger.error(json.dumps(log_data))
         raise AIAnalysisError(detail="Failed to create email due to an unexpected error.")
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("update_email")
+@log_performance(operation="update_email")
 async def update_email(
     request: Request,
     email_id: int,
