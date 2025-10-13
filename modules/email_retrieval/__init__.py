@@ -5,4 +5,4 @@ def register(app, gradio_app):
     with gradio_app:
         with gr.Tabs():
             with gr.TabItem("Email Retrieval"):
-                email_retrieval_tab.render()
+                email_retrieval_tab
