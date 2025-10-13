@@ -61,10 +61,15 @@ class SyncCheckpoint:
     errors_count: int
 
 
+<<<<<<< Updated upstream
 class SmartGmailRetriever:
     """Advanced Gmail retrieval with intelligent filtering and batching"""
 
     def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
+=======
+    def __init__(self, checkpoint_db_path: str = "sync_checkpoints.db"):
+        """Initializes the SmartGmailRetriever."""
+>>>>>>> Stashed changes
         self.logger = logging.getLogger(__name__)
         self.checkpoint_db_path = checkpoint_db_path
         self.logger.info(f"Using checkpoint database: {self.checkpoint_db_path}")
