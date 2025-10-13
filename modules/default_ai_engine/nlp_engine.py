@@ -75,7 +75,9 @@ class NLPEngine:
                     nltk.download("stopwords", quiet=True)
                     self.stop_words = set(nltk.corpus.stopwords.words("english"))
                 except Exception as e:
-                    logger.error(f"Failed to download NLTK stopwords: {e}. Using empty stopwords set.")
+                    logger.error(
+                        f"Failed to download NLTK stopwords: {e}. Using empty stopwords set."
+                    )
                     self.stop_words = set()
             except Exception as e:
                 logger.error(f"Error loading NLTK stopwords: {e}. Using empty stopwords set.")
