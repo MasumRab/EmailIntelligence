@@ -25,7 +25,6 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
-<<<<<<< Updated upstream
 # Import dotenv for environment file loading
 try:
     from dotenv import load_dotenv
@@ -33,12 +32,6 @@ try:
     DOTENV_AVAILABLE = True
 except ImportError:
     load_dotenv = None
-=======
-try:
-    from dotenv import load_dotenv
-    DOTENV_AVAILABLE = True
-except ImportError:
->>>>>>> Stashed changes
     DOTENV_AVAILABLE = False
 
 # Configure logging
@@ -606,7 +599,8 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
 
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
-<<<<<<< Updated upstream
+def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
     if not check_uvicorn_installed(venv_path):
         logger.error(
             "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
@@ -631,12 +625,6 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
         "--port",
         str(port),
     ]
-=======
-    venv_python = venv_path / "Scripts" / "python.exe" if platform.system() == "Windows" else venv_path / "bin" / "python"
-
-    # Always use uvicorn to run the FastAPI app
-    cmd = [str(venv_python), "-m", "uvicorn", "backend.python_backend.main:app", "--host", host, "--port", str(port)]
->>>>>>> Stashed changes
     if debug:
         cmd.append("--reload")  # Enable auto-reload in debug mode
 
@@ -770,54 +758,12 @@ def wait_for_processes():
         process_manager.shutdown()
 
 
-<<<<<<< Updated upstream
 def _handle_setup_mode(args, venv_path: Path) -> None:
     """Handle the setup mode functionality."""
     if not args.no_venv:
         create_venv(venv_path, args.force_recreate_venv)
         if args.use_poetry:
             install_poetry(venv_path)
-=======
-def main():
-    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
-    
-    # Setup arguments
-    parser.add_argument("--setup", action="store_true", help="Run environment setup and exit.")
-    parser.add_argument("--update-deps", action="store_true", help="Update all dependencies.")
-    parser.add_argument("--no-venv", action="store_true", help="Do not create or use a Python venv.")
-    parser.add_argument("--force-recreate-venv", action="store_true", help="Delete and recreate the venv before setup.")
-    parser.add_argument("--no-download-nltk", action="store_true", help="Skip downloading NLTK data.")
-    
-    # Service selection
-    parser.add_argument("--no-backend", action="store_true", help="Do not start the Python backend.")
-    parser.add_argument("--no-ui", action="store_true", help="Do not start the Gradio UI.")
-    parser.add_argument("--no-client", action="store_true", help="Do not start the Node.js frontend.")
-    
-    # Configuration
-    parser.add_argument("--stage", choices=["dev", "test"], default="dev", help="Application stage.")
-    parser.add_argument("--port", type=int, default=8000, help="Port for the Python backend.")
-    parser.add_argument("--gradio-port", type=int, help="Port for the Gradio UI (defaults to 7860).")
-    parser.add_argument("--host", default="127.0.0.1", help="Host address for servers.")
-    parser.add_argument("--listen", action="store_true", help="Listen on 0.0.0.0 (overrides --host).")
-    parser.add_argument("--share", action="store_true", help="Create a public Gradio sharing link.")
-    parser.add_argument("--debug", action="store_true", help="Enable debug/reload mode for services.")
-    parser.add_argument("--env-file", help="Path to a custom .env file to load.")
-    
-    args = parser.parse_args()
-
-    # Use 0.0.0.0 if --listen is specified
-    host = "0.0.0.0" if args.listen else args.host
-
-    # Set environment file if specified
-    if args.env_file:
-        env_path = Path(args.env_file)
-        if env_path.exists():
-            if not DOTENV_AVAILABLE:
-                logger.error("python-dotenv is not available. Please install it or ensure dependencies are set up correctly.")
-                sys.exit(1)
-            load_dotenv(env_path)
-            logger.info(f"Loaded environment variables from {env_path}")
->>>>>>> Stashed changes
         else:
             install_uv(venv_path)
         setup_dependencies(venv_path, args.update_deps, args.use_poetry)
