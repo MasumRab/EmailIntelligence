@@ -422,7 +422,9 @@ class JSONDataManager:
             )
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
-        logger.info(f"Retrieved {len(result_emails)} emails with applied filters.")
+        logger.info(
+            f"Retrieved {len(result_emails)} emails with applied filters."
+        )
         return result_emails
 
     async def update_email_by_message_id(
