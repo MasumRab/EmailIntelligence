@@ -111,7 +111,6 @@ async def test_analyze_email_with_db_category_match(
     assert result.category_id == 5
     assert result.categories == ["Work Related"]
     mock_db_manager_for_ai_engine.get_all_categories.assert_called_once()
-
 @pytest.mark.asyncio
 async def test_analyze_email_with_db_no_category_match(ai_engine_instance: AdvancedAIEngine):
     subject = "Unique Topic"
@@ -126,8 +125,6 @@ async def test_analyze_email_with_db_no_category_match(ai_engine_instance: Advan
 
     assert isinstance(result, AIAnalysisResult)
     assert result.category_id is None
-
-
 @pytest.mark.asyncio
 async def test_analyze_email_model_failure(
     ai_engine_instance: AdvancedAIEngine, mock_model_manager

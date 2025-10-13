@@ -235,6 +235,7 @@ class PerformanceMonitor:
             return {
                 "cpu_usage": cpu_metrics[-1].value if cpu_metrics else 0.0,
                 "memory_usage": memory_metrics[-1].value if memory_metrics else 0.0,
+<<<<<<< Updated upstream
                 "disk_usage": disk_metrics[-1].value if disk_metrics else 0.0,
             }
 
@@ -293,10 +294,9 @@ def log_performance(_func=None, *, operation: str = ""):
             }
 
             try:
-                with open(LOG_FILE, 'a') as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
-                logger.error(f"Failed to write performance log: {e}")
+                performance_monitor.log_performance(log_entry)
+            except Exception as e:
+                logger.warning(f"Failed to log performance: {e}")
 
             return result
 
@@ -329,3 +329,107 @@ def log_performance(_func=None, *, operation: str = ""):
         return decorator
     else:
         return decorator(_func)
+
+    def get_error_rate(self, minutes: int = 5) -> float:
+        """Get the error rate in the last specified minutes"""
+        with self._lock:
+            cutoff_time = time.time() - (minutes * 60)
+            recent_events = [event for event in self._events if event.start_time >= cutoff_time]
+
+            if not recent_events:
+                return 0.0
+
+            failed_events = [event for event in recent_events if not event.success]
+            return len(failed_events) / len(recent_events)
+
+    def stop_monitoring(self):
+        """Stop the system resource monitoring"""
+        self._system_monitoring = False
+
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Log a performance entry to file"""
+        try:
+            with open(LOG_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_entry) + "\n")
+        except Exception as e:
+            logger.error(f"Failed to write performance log: {e}")
+
+
+# Global performance monitor instance
+performance_monitor = PerformanceMonitor()
+
+
+<<<<<<< HEAD
+def get_performance_monitor() -> PerformanceMonitor:
+    """Get the global performance monitor instance"""
+    return performance_monitor
+<<<<<<< Updated upstream
+
+def log_performance(_func=None, *, operation: str = ""):
+    """
+    A decorator to log the performance of both sync and async functions.
+    Can be used as @log_performance or @log_performance(operation="custom_name").
+    """
+    def decorator(func):
+        op_name = operation or func.__name__
+
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+
+=======
+=======
+>>>>>>> Stashed changes
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": op_name,
+                "duration_seconds": duration,
+            }
+
+            try:
+                with open(LOG_FILE, 'a') as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
+
+            return result
+
+<<<<<<< Updated upstream
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = await func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": op_name,
+                "duration_seconds": duration,
+            }
+
+            try:
+                performance_monitor.log_performance(log_entry)
+            except Exception as e:
+                logger.warning(f"Failed to log performance: {e}")
+
+            return result
+
+=======
+>>>>>>> Stashed changes
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
+
+    if _func is None:
+        return decorator
+    else:
+        return decorator(_func)
+<<<<<<< Updated upstream
+=======
+>>>>>>> origin/feat/modular-ai-platform
+>>>>>>> Stashed changes

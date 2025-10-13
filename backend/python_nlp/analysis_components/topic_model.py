@@ -1,7 +1,6 @@
 """
 A simple, placeholder topic analysis model.
 """
-
 import logging
 from typing import Any, Dict
 

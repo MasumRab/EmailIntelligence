@@ -6,6 +6,7 @@ including environment setup, dependency management, and service startup.
 """
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
@@ -206,7 +207,6 @@ def test_install_deps_node_not_found(mock_logger, mock_which, mock_exists):
     assert result is False, "Function should return False when node is not found"
     # Correctly assert the first error that should be logged
     mock_logger.error.assert_called_with("Node.js is not installed. Please install it to continue.")
-
 
 # Test case 2: npm install fails
 @patch("launch.ROOT_DIR", Path("/app"))
