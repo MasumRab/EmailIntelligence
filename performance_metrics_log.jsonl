@@ -1002,6 +1002,7 @@
 {"timestamp": "2025-10-11T14:04:11.914846+00:00", "operation": "load_data", "duration_seconds": 0.05948980001267046}
 {"timestamp": "2025-10-11T14:04:11.917868+00:00", "operation": "build_indexes", "duration_seconds": 0.00044490001164376736}
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 {"timestamp": "2025-10-11T14:20:11.125195+00:00", "operation": "load_data", "duration_seconds": 0.015150499995797873}
 {"timestamp": "2025-10-11T14:20:11.128245+00:00", "operation": "build_indexes", "duration_seconds": 0.001124400005210191}
 {"timestamp": "2025-10-11T14:27:21.096652+00:00", "operation": "load_data", "duration_seconds": 0.04810279997764155}
@@ -1016,6 +1017,8 @@
 {"timestamp": "2025-10-11T14:32:34.260812+00:00", "operation": "build_indexes", "duration_seconds": 0.0003865000035148114}
 =======
 =======
+>>>>>>> Stashed changes
+=======
 {"timestamp": "2025-10-11T14:02:19.050515+00:00", "operation": "load_data", "duration_seconds": 0.023676400014664978}
 {"timestamp": "2025-10-11T14:02:19.050515+00:00", "operation": "build_indexes", "duration_seconds": 0.0008922000124584883}
 >>>>>>> Stashed changes
@@ -1029,6 +1032,7 @@
 {"timestamp": "2025-10-11T14:30:45.387396+00:00", "operation": "build_indexes", "duration_seconds": 0.00419589999364689}
 {"timestamp": "2025-10-11T14:56:41.154818+00:00", "operation": "load_data", "duration_seconds": 0.084020700014662}
 {"timestamp": "2025-10-11T14:56:41.156861+00:00", "operation": "build_indexes", "duration_seconds": 0.0007385000062640756}
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes
 {"timestamp": "2025-10-12T03:32:31.292626+00:00", "operation": "load_data", "duration_seconds": 0.03671100000065053}
 {"timestamp": "2025-10-12T03:32:31.308571+00:00", "operation": "build_indexes", "duration_seconds": 0.008473500000036438}
@@ -1040,3 +1044,5 @@
 {"timestamp": "2025-10-13T01:06:12.217483+00:00", "operation": "build_indexes", "duration_seconds": 0.00026170000001002336}
 {"timestamp": "2025-10-13T10:09:25.386315+00:00", "operation": "load_data", "duration_seconds": 0.06681939999998576}
 {"timestamp": "2025-10-13T10:09:25.389993+00:00", "operation": "build_indexes", "duration_seconds": 0.0013214999999036081}
+=======
+>>>>>>> Stashed changes
