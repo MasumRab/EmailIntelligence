@@ -89,7 +89,6 @@
 {"timestamp": "2025-10-03T13:42:32.066168+00:00", "operation": "smart_retrieval", "duration_seconds": 5.485200017574243e-05}
 {"timestamp": "2025-10-03T13:42:32.071699+00:00", "operation": "get_retrieval_strategies", "duration_seconds": 5.5298999996011844e-05}
 {"timestamp": "2025-10-03T13:42:32.076974+00:00", "operation": "get_gmail_performance", "duration_seconds": 5.2706000133184716e-05}
-<<<<<<< HEAD
 {"timestamp": "2025-10-04T09:33:55.621983+00:00", "operation": "get_categories", "duration_seconds": 0.00040443999978378997}
 {"timestamp": "2025-10-04T09:33:55.637134+00:00", "operation": "create_category", "duration_seconds": 0.0001505929999439104}
 {"timestamp": "2025-10-04T09:33:55.650319+00:00", "operation": "save_data_to_file", "duration_seconds": 0.003107485999862547}
@@ -997,11 +996,8 @@
 {"timestamp": "2025-10-11T13:57:05.956660+00:00", "operation": "build_indexes", "duration_seconds": 0.0010460999910719693}
 {"timestamp": "2025-10-11T13:49:35.529010+00:00", "operation": "load_data", "duration_seconds": 0.0056542000093031675}
 {"timestamp": "2025-10-11T13:49:35.529010+00:00", "operation": "build_indexes", "duration_seconds": 0.00033409998286515474}
-<<<<<<< Updated upstream
->>>>>>> b71a8aeb2f1a762b1b3c8d2eb15bbf28d7655870
 {"timestamp": "2025-10-11T14:04:11.914846+00:00", "operation": "load_data", "duration_seconds": 0.05948980001267046}
 {"timestamp": "2025-10-11T14:04:11.917868+00:00", "operation": "build_indexes", "duration_seconds": 0.00044490001164376736}
-<<<<<<< Updated upstream
 {"timestamp": "2025-10-11T14:20:11.125195+00:00", "operation": "load_data", "duration_seconds": 0.015150499995797873}
 {"timestamp": "2025-10-11T14:20:11.128245+00:00", "operation": "build_indexes", "duration_seconds": 0.001124400005210191}
 {"timestamp": "2025-10-11T14:27:21.096652+00:00", "operation": "load_data", "duration_seconds": 0.04810279997764155}
@@ -1014,11 +1010,8 @@
 {"timestamp": "2025-10-11T14:31:13.421362+00:00", "operation": "build_indexes", "duration_seconds": 0.0002587999915704131}
 {"timestamp": "2025-10-11T14:32:34.258795+00:00", "operation": "load_data", "duration_seconds": 0.019582899985834956}
 {"timestamp": "2025-10-11T14:32:34.260812+00:00", "operation": "build_indexes", "duration_seconds": 0.0003865000035148114}
-=======
-=======
 {"timestamp": "2025-10-11T14:02:19.050515+00:00", "operation": "load_data", "duration_seconds": 0.023676400014664978}
 {"timestamp": "2025-10-11T14:02:19.050515+00:00", "operation": "build_indexes", "duration_seconds": 0.0008922000124584883}
->>>>>>> Stashed changes
 {"timestamp": "2025-10-11T14:10:05.363150+00:00", "operation": "load_data", "duration_seconds": 0.06546099999104626}
 {"timestamp": "2025-10-11T14:10:05.375331+00:00", "operation": "build_indexes", "duration_seconds": 0.010345499991672114}
 {"timestamp": "2025-10-11T14:14:35.804096+00:00", "operation": "load_data", "duration_seconds": 0.005288399988785386}
@@ -1029,4 +1022,4 @@
 {"timestamp": "2025-10-11T14:30:45.387396+00:00", "operation": "build_indexes", "duration_seconds": 0.00419589999364689}
 {"timestamp": "2025-10-11T14:56:41.154818+00:00", "operation": "load_data", "duration_seconds": 0.084020700014662}
 {"timestamp": "2025-10-11T14:56:41.156861+00:00", "operation": "build_indexes", "duration_seconds": 0.0007385000062640756}
->>>>>>> Stashed changes
+
