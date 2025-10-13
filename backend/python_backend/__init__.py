@@ -7,10 +7,11 @@ Use the modular architecture in src/ and modules/ instead.
 """
 
 import warnings
+
 warnings.warn(
     "backend.python_backend is deprecated. Use src.main:create_app() for the new modular architecture.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 from backend.python_nlp.gmail_service import GmailAIService

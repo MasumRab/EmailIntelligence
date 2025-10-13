@@ -12,7 +12,6 @@ This module provides:
 """
 
 import asyncio
-
 import json
 import logging
 import time

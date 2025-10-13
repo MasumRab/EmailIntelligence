@@ -155,7 +155,7 @@ class TestDatabaseOptimizations:
 
             handle = mocked_file()
             written_content = handle.write.call_args[0][0]  # The write call is the JSON + \n
-            log_data = json.loads(written_content.rstrip('\n'))
+            log_data = json.loads(written_content.rstrip("\n"))
 
             assert log_data["operation"] == "search_emails"
             assert "duration_seconds" in log_data

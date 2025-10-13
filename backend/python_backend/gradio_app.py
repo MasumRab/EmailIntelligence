@@ -371,23 +371,11 @@ print(df.head())
                 fn=refresh_models,
                 inputs=[],
                 outputs=[model_list, model_selector]
-<<<<<<< Updated upstream
             )
 
             load_model_btn.click(
-                fn=load_selected_model,
-                inputs=model_selector,
-                outputs=model_status_output
+                fn=load_selected_model, inputs=model_selector, outputs=model_status_output
             )
-=======
-             )
-
-             load_model_btn.click(
-                 fn=load_selected_model,
-                 inputs=model_selector,
-                 outputs=model_status_output
-             )
->>>>>>> Stashed changes
 
         with gr.TabItem("Model Training"):
             gr.Markdown("### AI Model Training")
@@ -543,6 +531,8 @@ print(df.head())
                 fn=get_error_rate, inputs=minutes_input, outputs=error_rate_output
             )
 
+
+
 # To launch this app, you can run this file directly.
 if __name__ == "__main__":
     import argparse
@@ -555,8 +545,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"Launching Gradio UI for Email Intelligence Analysis on {args.host}:{args.port}...")
-<<<<<<< Updated upstream
     iface.launch(server_name=args.host, server_port=args.port, share=args.share)
-=======
-    iface.launch(server_name=args.host, server_port=args.port, share=args.share)
->>>>>>> Stashed changes

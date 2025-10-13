@@ -15,10 +15,12 @@ import logging
 import os
 import re
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from backend.python_nlp.text_utils import clean_text
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
 from .analysis_components.intent_model import IntentModel
 from .analysis_components.sentiment_model import SentimentModel
@@ -31,17 +33,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 try:
-    import joblib
     import nltk
     from textblob import TextBlob
 
     HAS_NLTK = True
-    HAS_SKLEARN_AND_JOBLIB = True
 except ImportError:
     HAS_NLTK = False
-    HAS_SKLEARN_AND_JOBLIB = False
     print(
-        "Warning: NLTK, scikit-learn or joblib not available. Advanced NLP features will be disabled.",
+        "Warning: NLTK not available. Advanced NLP features will be disabled.",
         file=sys.stderr,
     )
 
@@ -55,11 +54,6 @@ class NLPEngine:
     urgency. It handles model loading, text preprocessing, and result aggregation.
 
     Attributes:
-        sentiment_model_path: Path to the serialized sentiment model.
-        topic_model_path: Path to the serialized topic model.
-        intent_model_path: Path to the serialized intent model.
-        urgency_model_path: Path to the serialized urgency model.
-        stop_words: A set of English stopwords for text processing.
         sentiment_analyzer: Component for sentiment analysis.
         topic_analyzer: Component for topic analysis.
         intent_analyzer: Component for intent analysis.
@@ -69,7 +63,7 @@ class NLPEngine:
     CATEGORY_PATTERNS = {
         "Work & Business": [
             r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
-            r"colleague|office|work|business|professional|corporate|company|organization)\b",
+            r"colleague|office|work|business|professional|corporate|company|organization)",
             r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
             r"quarterly|annual|monthly|weekly|daily)\b",
         ],
@@ -107,11 +101,11 @@ class NLPEngine:
 
     def __init__(self):
         """Initializes the NLP engine and loads all necessary models and resources."""
-        model_dir = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__))
-        self.sentiment_model_path = os.path.join(model_dir, "sentiment_model.pkl")
-        self.topic_model_path = os.path.join(model_dir, "topic_model.pkl")
-        self.intent_model_path = os.path.join(model_dir, "intent_model.pkl")
-        self.urgency_model_path = os.path.join(model_dir, "urgency_model.pkl")
+        model_dir = "models"
+        self.sentiment_model_path = os.path.join(model_dir, "sentiment")
+        self.topic_model_path = os.path.join(model_dir, "topic")
+        self.intent_model_path = os.path.join(model_dir, "intent")
+        self.urgency_model_path = os.path.join(model_dir, "urgency")
         self.compiled_patterns = {}
 
         if HAS_NLTK:
@@ -124,26 +118,11 @@ class NLPEngine:
         else:
             self.stop_words = set()
 
-        _sentiment_model_obj, _topic_model_obj, _intent_model_obj, _urgency_model_obj = (None,) * 4
-        if HAS_SKLEARN_AND_JOBLIB:
-            logger.info("Attempting to load NLP models...")
-            self.sentiment_model = self._load_model(self.sentiment_model_path)
-            self.topic_model = self._load_model(self.topic_model_path)
-            self.intent_model = self._load_model(self.intent_model_path)
-            self.urgency_model = self._load_model(self.urgency_model_path)
-            _sentiment_model_obj = self.sentiment_model
-            _topic_model_obj = self.topic_model
-            _intent_model_obj = self.intent_model
-            _urgency_model_obj = self.urgency_model
-        else:
-            logger.warning("Scikit-learn or joblib not available. Using fallback logic.")
-
-        self.sentiment_analyzer = SentimentModel(
-            sentiment_model=_sentiment_model_obj, has_nltk_installed=HAS_NLTK
-        )
-        self.topic_analyzer = TopicModel(topic_model=_topic_model_obj)
-        self.intent_analyzer = IntentModel(intent_model=_intent_model_obj)
-        self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
+        logger.info("Attempting to load NLP models...")
+        self.sentiment_analyzer = pipeline("sentiment-analysis", model=self.sentiment_model_path)
+        self.topic_analyzer = pipeline("text-classification", model=self.topic_model_path)
+        self.intent_analyzer = pipeline("text-classification", model=self.intent_model_path)
+        self.urgency_analyzer = pipeline("text-classification", model=self.urgency_model_path)
 
     def initialize_patterns(self):
         """Pre-compiles regex patterns for categorization."""
@@ -153,26 +132,6 @@ class NLPEngine:
             for category in self.CATEGORY_PATTERNS
         }
         logger.info("Regex patterns compiled successfully.")
-
-    def _load_model(self, model_path: str) -> Optional[Any]:
-        """
-        Safely loads a pickled model from the specified file path.
-
-        Args:
-            model_path: The path to the .pkl model file.
-
-        Returns:
-            The loaded model object, or None if loading fails.
-        """
-        try:
-            if os.path.exists(model_path):
-                model = joblib.load(model_path)
-                logger.info(f"Successfully loaded model from {model_path}")
-                return model
-            logger.warning(f"Model file not found at {model_path}.")
-        except Exception as e:
-            logger.error(f"Error loading model from {model_path}: {e}")
-        return None
 
     def _preprocess_text(self, text: str) -> str:
         """
@@ -188,27 +147,19 @@ class NLPEngine:
 
     def _analyze_sentiment_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
-        Analyze sentiment using the loaded sklearn model.
+        Analyze sentiment using the loaded Hugging Face model.
         """
-        if not self.sentiment_model:
+        if not self.sentiment_analyzer:
             return None
 
         try:
-            prediction = self.sentiment_model.predict([text])[0]
-            probabilities = self.sentiment_model.predict_proba([text])[0]
-            confidence = max(probabilities)
-
-            polarity = 0.0
-            if prediction == "positive":
-                polarity = confidence
-            elif prediction == "negative":
-                polarity = -confidence
-
+            results = self.sentiment_analyzer(text)
+            prediction = results[0]
             return {
-                "sentiment": str(prediction),
-                "polarity": polarity,
+                "sentiment": prediction["label"],
+                "polarity": prediction["score"] if prediction["label"] == "POSITIVE" else -prediction["score"],
                 "subjectivity": 0.5,
-                "confidence": float(confidence),
+                "confidence": prediction["score"],
                 "method_used": "model_sentiment",
             }
         except Exception as e:
@@ -309,7 +260,7 @@ class NLPEngine:
 
     def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
-        Analyzes the topic of the text using a pre-trained scikit-learn model.
+        Analyzes the topic of the text using a pre-trained Hugging Face model.
 
         Args:
             text: The text to analyze.
@@ -318,15 +269,14 @@ class NLPEngine:
             A dictionary with the predicted topic and confidence score, or None if
             the model is not available or an error occurs.
         """
-        if not self.topic_model:
+        if not self.topic_analyzer:
             return None
         try:
-            prediction = self.topic_model.predict([text])[0]
-            probabilities = self.topic_model.predict_proba([text])[0]
-            confidence = float(max(probabilities))
+            results = self.topic_analyzer(text)
+            prediction = results[0]
             return {
-                "topic": str(prediction),
-                "confidence": confidence,
+                "topic": prediction["label"],
+                "confidence": prediction["score"],
                 "method_used": "model_topic",
             }
         except Exception as e:
@@ -387,19 +337,17 @@ class NLPEngine:
 
     def _analyze_intent_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
-        Analyze intent using the loaded sklearn model.
+        Analyze intent using the loaded Hugging Face model.
         """
-        if not self.intent_model:
+        if not self.intent_analyzer:
             return None
 
         try:
-            prediction = self.intent_model.predict([text])[0]
-            probabilities = self.intent_model.predict_proba([text])[0]
-            confidence = float(max(probabilities))
-
+            results = self.intent_analyzer(text)
+            prediction = results[0]
             return {
-                "intent": str(prediction),
-                "confidence": confidence,
+                "intent": prediction["label"],
+                "confidence": prediction["score"],
                 "method_used": "model_intent",
             }
         except Exception as e:
@@ -457,19 +405,17 @@ class NLPEngine:
 
     def _analyze_urgency_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
-        Analyze urgency using the loaded sklearn model.
+        Analyze urgency using the loaded Hugging Face model.
         """
-        if not self.urgency_model:
+        if not self.urgency_analyzer:
             return None
 
         try:
-            prediction = self.urgency_model.predict([text])[0]
-            probabilities = self.urgency_model.predict_proba([text])[0]
-            confidence = float(max(probabilities))
-
+            results = self.urgency_analyzer(text)
+            prediction = results[0]
             return {
-                "urgency": str(prediction),
-                "confidence": confidence,
+                "urgency": prediction["label"],
+                "confidence": prediction["score"],
                 "method_used": "model_urgency",
             }
         except Exception as e:
@@ -756,7 +702,7 @@ class NLPEngine:
             A dictionary containing the detailed analysis results.
         """
         try:
-            if not HAS_NLTK or not HAS_SKLEARN_AND_JOBLIB:
+            if not HAS_NLTK:
                 logger.warning("Dependencies missing, using simple fallback analysis.")
                 return self._get_simple_fallback_analysis(subject, content)
 
@@ -908,7 +854,6 @@ def _perform_health_check(engine: NLPEngine, output_format: str):
         "status": "ok" if models_available else "degraded",
         "models_available": models_available,
         "nltk_available": HAS_NLTK,
-        "sklearn_available": HAS_SKLEARN_AND_JOBLIB,
         "timestamp": datetime.now().isoformat(),
     }
     if output_format == "json":

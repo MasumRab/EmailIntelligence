@@ -85,11 +85,12 @@ class DefaultAIEngine(BaseAIEngine):
     def train_models(self, training_data: Optional[Dict[str, Any]] = None):
         """Trains or retrains the AI models using sample data or provided training data."""
         try:
+            import os
+
+            import joblib
             from sklearn.feature_extraction.text import TfidfVectorizer
             from sklearn.linear_model import LogisticRegression
             from sklearn.pipeline import Pipeline
-            import joblib
-            import os
 
             logger.info("Starting AI model training...")
 
@@ -98,43 +99,80 @@ class DefaultAIEngine(BaseAIEngine):
                 training_data = {
                     "sentiment": {
                         "texts": [
-                            "I love this product", "This is amazing", "Great job",
-                            "This is terrible", "I hate this", "Worst experience"
+                            "I love this product",
+                            "This is amazing",
+                            "Great job",
+                            "This is terrible",
+                            "I hate this",
+                            "Worst experience",
                         ],
-                        "labels": ["positive", "positive", "positive", "negative", "negative", "negative"]
+                        "labels": [
+                            "positive",
+                            "positive",
+                            "positive",
+                            "negative",
+                            "negative",
+                            "negative",
+                        ],
                     },
                     "topic": {
                         "texts": [
-                            "Meeting scheduled for tomorrow", "Project deadline approaching",
-                            "Invoice payment due", "Bank statement ready",
-                            "How are you doing?", "Let's catch up soon"
+                            "Meeting scheduled for tomorrow",
+                            "Project deadline approaching",
+                            "Invoice payment due",
+                            "Bank statement ready",
+                            "How are you doing?",
+                            "Let's catch up soon",
                         ],
-                        "labels": ["work_business", "work_business", "finance_banking", "finance_banking", "personal_communication", "personal_communication"]
+                        "labels": [
+                            "work_business",
+                            "work_business",
+                            "finance_banking",
+                            "finance_banking",
+                            "personal_communication",
+                            "personal_communication",
+                        ],
                     },
                     "intent": {
                         "texts": [
-                            "Please review this document", "Can you help me?", "Schedule a meeting",
-                            "What's the status?", "Thank you for your help"
+                            "Please review this document",
+                            "Can you help me?",
+                            "Schedule a meeting",
+                            "What's the status?",
+                            "Thank you for your help",
                         ],
-                        "labels": ["request", "request", "informational", "informational", "informational"]
+                        "labels": [
+                            "request",
+                            "request",
+                            "informational",
+                            "informational",
+                            "informational",
+                        ],
                     },
                     "urgency": {
                         "texts": [
-                            "URGENT: Action required now", "Please respond ASAP", "Normal update",
-                            "Take your time", "No rush"
+                            "URGENT: Action required now",
+                            "Please respond ASAP",
+                            "Normal update",
+                            "Take your time",
+                            "No rush",
                         ],
-                        "labels": ["high", "high", "low", "low", "low"]
-                    }
+                        "labels": ["high", "high", "low", "low", "low"],
+                    },
                 }
 
             # Train sentiment model
             if "sentiment" in training_data:
                 logger.info("Training sentiment model...")
-                pipeline = Pipeline([
-                    ('tfidf', TfidfVectorizer(max_features=1000)),
-                    ('clf', LogisticRegression(random_state=42))
-                ])
-                pipeline.fit(training_data["sentiment"]["texts"], training_data["sentiment"]["labels"])
+                pipeline = Pipeline(
+                    [
+                        ("tfidf", TfidfVectorizer(max_features=1000)),
+                        ("clf", LogisticRegression(random_state=42)),
+                    ]
+                )
+                pipeline.fit(
+                    training_data["sentiment"]["texts"], training_data["sentiment"]["labels"]
+                )
                 model_path = os.path.join(os.path.dirname(__file__), "sentiment_model.pkl")
                 joblib.dump(pipeline, model_path)
                 logger.info(f"Sentiment model saved to {model_path}")
@@ -142,10 +180,12 @@ class DefaultAIEngine(BaseAIEngine):
             # Train topic model
             if "topic" in training_data:
                 logger.info("Training topic model...")
-                pipeline = Pipeline([
-                    ('tfidf', TfidfVectorizer(max_features=1000)),
-                    ('clf', LogisticRegression(random_state=42))
-                ])
+                pipeline = Pipeline(
+                    [
+                        ("tfidf", TfidfVectorizer(max_features=1000)),
+                        ("clf", LogisticRegression(random_state=42)),
+                    ]
+                )
                 pipeline.fit(training_data["topic"]["texts"], training_data["topic"]["labels"])
                 model_path = os.path.join(os.path.dirname(__file__), "topic_model.pkl")
                 joblib.dump(pipeline, model_path)
@@ -154,10 +194,12 @@ class DefaultAIEngine(BaseAIEngine):
             # Train intent model
             if "intent" in training_data:
                 logger.info("Training intent model...")
-                pipeline = Pipeline([
-                    ('tfidf', TfidfVectorizer(max_features=1000)),
-                    ('clf', LogisticRegression(random_state=42))
-                ])
+                pipeline = Pipeline(
+                    [
+                        ("tfidf", TfidfVectorizer(max_features=1000)),
+                        ("clf", LogisticRegression(random_state=42)),
+                    ]
+                )
                 pipeline.fit(training_data["intent"]["texts"], training_data["intent"]["labels"])
                 model_path = os.path.join(os.path.dirname(__file__), "intent_model.pkl")
                 joblib.dump(pipeline, model_path)
@@ -166,10 +208,12 @@ class DefaultAIEngine(BaseAIEngine):
             # Train urgency model
             if "urgency" in training_data:
                 logger.info("Training urgency model...")
-                pipeline = Pipeline([
-                    ('tfidf', TfidfVectorizer(max_features=1000)),
-                    ('clf', LogisticRegression(random_state=42))
-                ])
+                pipeline = Pipeline(
+                    [
+                        ("tfidf", TfidfVectorizer(max_features=1000)),
+                        ("clf", LogisticRegression(random_state=42)),
+                    ]
+                )
                 pipeline.fit(training_data["urgency"]["texts"], training_data["urgency"]["labels"])
                 model_path = os.path.join(os.path.dirname(__file__), "urgency_model.pkl")
                 joblib.dump(pipeline, model_path)
