@@ -125,11 +125,3 @@ class ModelManager:
         Returns a list of all discovered models and their metadata.
         """
         return list(self._model_metadata.values())
-
-
-# Create a global instance
-model_manager = ModelManager()
-
-def get_model_manager() -> ModelManager:
-    """Get the global model manager instance"""
-    return model_manager

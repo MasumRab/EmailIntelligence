@@ -1,7 +1,6 @@
 """
 A simple, placeholder sentiment analysis model.
 """
-
 import logging
 from typing import Any, Dict
 
