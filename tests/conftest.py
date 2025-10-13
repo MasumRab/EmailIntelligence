@@ -19,8 +19,24 @@ def mock_db_manager():
     """
     mock = AsyncMock()
     # Pre-configure all database methods as AsyncMocks
-    mock.get_all_categories = AsyncMock()
-    mock.create_category = AsyncMock()
+    mock.get_all_categories = AsyncMock(
+        return_value=[
+            {
+                "id": 1,
+                "name": "Test Category",
+                "description": "A category for testing purposes.",
+                "color": "#FF0000",
+            }
+        ]
+    )
+    mock.create_category = AsyncMock(
+        return_value={
+            "id": 1,
+            "name": "Test Category",
+            "description": "A category for testing purposes.",
+            "color": "#FF0000",
+        }
+    )
     mock.get_email_by_id = AsyncMock()
     mock.get_all_emails = AsyncMock()
     mock.search_emails = AsyncMock()
