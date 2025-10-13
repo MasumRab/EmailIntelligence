@@ -8,7 +8,6 @@
 - **Format**: `black .`
 - **Lint**: `flake8 .`
 - **Type check**: `mypy .`
-<<<<<<< Updated upstream
 - **Code quality**: `pylint src modules`
 
 ### Dependency Management
@@ -16,13 +15,35 @@
 - **Poetry**: `python launch.py --use-poetry --setup` - Alternative Poetry-based setup
 - **Update deps**: `python launch.py --update-deps` - Updates all dependencies
 - **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
+### TypeScript/React Frontend
+- **Build**: `npm run build` (from client/)
+- **Lint**: `npm run lint` (from client/)
+- **Dev server**: `npm run dev` (from client/)
 
+## Code Style Guidelines
+### Python
+- **Line length**: 100 chars max, Black formatting, isort imports (stdlib → third-party → local)
+- **Naming**: snake_case functions/vars, CapWords classes, UPPER_CASE constants
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+- **Error handling**: Specific exceptions, meaningful messages, logging
 ## Troubleshooting
 
 ### Port Binding Errors (e.g., [Errno 10048])
 
+### TypeScript/React
+- **Strict mode**: Enabled (noUnusedLocals, noUnusedParameters)
+- **JSX**: react-jsx transform, @/ for client src, @shared/ for shared types
+- **Components**: Default export functions, PascalCase naming
+- **Styling**: Tailwind CSS utilities, component-specific styles
+- **API**: Use api client from lib/api.ts
 If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
 
+## Critical Rules
+- Avoid circular dependencies (AIEngine ↔ DatabaseManager)
+- Never hard-code paths or expose secrets
+- Use dependency injection over global state
+- Check existing dependencies before adding new libraries
 **Procedure to identify and fix:**
 
 1. **Identify the process using the port:**
