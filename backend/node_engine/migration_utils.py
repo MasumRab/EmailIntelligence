@@ -8,7 +8,7 @@ to the new node-based workflow format.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from backend.node_engine.email_nodes import (
     ActionNode,
@@ -281,7 +281,9 @@ class WorkflowMigrationManager:
                 # Migrate individual file
                 result = self.migration_service.migrate_workflow_file(str(workflow_file))
                 summary["successful_migrations"] += 1
-                summary["migrated_files"].append({"original": str(workflow_file), "result": result})
+                summary["migrated_files"].append(
+                    {"original": str(workflow_file), "result": result}
+                )
                 self.logger.info(f"Successfully migrated: {workflow_file.name}")
             except Exception as e:
                 summary["failed_migrations"] += 1

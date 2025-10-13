@@ -7,6 +7,7 @@ from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
+
 class SentimentModel:
     """A basic sentiment model for demonstration purposes."""
 

@@ -101,10 +101,13 @@ class SmartFilterManager:
                 if "database is locked" in str(e) and attempt < retries - 1:
                     self.logger.warning(f"Database locked, retrying ({attempt + 1}/{retries}): {e}")
                     import time
+
                     time.sleep(0.1 * (attempt + 1))  # Exponential backoff
                     continue
                 else:
-                    self.logger.error(f"Database error after {retries} attempts: {e} with query: {query[:100]}")
+                    self.logger.error(
+                        f"Database error after {retries} attempts: {e} with query: {query[:100]}"
+                    )
                     raise
             except sqlite3.Error as e:
                 self.logger.error(f"Database error: {e} with query: {query[:100]}")
