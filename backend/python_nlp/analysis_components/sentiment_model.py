@@ -1,6 +1,7 @@
 """
 A simple, placeholder sentiment analysis model.
 """
+
 import logging
 from typing import Any, Dict
 
@@ -10,7 +11,11 @@ logger = logging.getLogger(__name__)
 class SentimentModel:
     """A basic sentiment model for demonstration purposes."""
 
+<<<<<<< HEAD
     def __init__(self, sentiment_model=None, has_nltk_installed=False):
+=======
+    def __init__(self):
+>>>>>>> main
         logger.info("SentimentModel instance created.")
         self.model = sentiment_model
         self.has_nltk = has_nltk_installed

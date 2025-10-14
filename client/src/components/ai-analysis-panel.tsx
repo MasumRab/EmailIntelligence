@@ -77,7 +77,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
   const analyzeEmail = async () => {
     setIsAnalyzing(true);
     try {
-      const response = await fetch('/api/ai/analyze', {
+      const response = await fetch('http://localhost:8000/api/ai/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
     if (!analysis) return;
 
     try {
-      const response = await fetch('/api/ai/categorize', {
+      const response = await fetch('http://localhost:8000/api/ai/categorize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
    */
   const provideFeedback = async (feedback: 'correct' | 'incorrect') => {
     try {
-      const response = await fetch('/api/ai/validate', {
+      const response = await fetch('http://localhost:8000/api/ai/validate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
