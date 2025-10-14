@@ -12,11 +12,11 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .text_utils import clean_text
 from .analysis_components.intent_model import IntentModel
 from .analysis_components.sentiment_model import SentimentModel
 from .analysis_components.topic_model import TopicModel
 from .analysis_components.urgency_model import UrgencyModel
+from .text_utils import clean_text
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
@@ -68,10 +68,20 @@ class NLPEngine:
         if HAS_NLTK:
             try:
                 nltk.data.find("corpora/stopwords")
+                self.stop_words = set(nltk.corpus.stopwords.words("english"))
             except LookupError:
                 logger.info("Downloading NLTK 'stopwords' resource...")
-                nltk.download("stopwords", quiet=True)
-            self.stop_words = set(nltk.corpus.stopwords.words("english"))
+                try:
+                    nltk.download("stopwords", quiet=True)
+                    self.stop_words = set(nltk.corpus.stopwords.words("english"))
+                except Exception as e:
+                    logger.error(
+                        f"Failed to download NLTK stopwords: {e}. Using empty stopwords set."
+                    )
+                    self.stop_words = set()
+            except Exception as e:
+                logger.error(f"Error loading NLTK stopwords: {e}. Using empty stopwords set.")
+                self.stop_words = set()
         else:
             self.stop_words = set()
 
