@@ -4,18 +4,19 @@ JSON file storage implementation with in-memory caching and indexing.
 """
 
 import asyncio
+import gzip
 import json
 import logging
 import os
-import gzip
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Literal
 from functools import partial
+from typing import Any, Dict, List, Literal, Optional
+
+from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ FIELD_COLOR = "color"
 FIELD_COUNT = "count"
 FIELD_TIME = "time"
 FIELD_CONTENT = "content"
+FIELD_SUBJECT = "subject"
 FIELD_SENDER = "sender"
 FIELD_SENDER_EMAIL = "sender_email"
 HEAVY_EMAIL_FIELDS = [FIELD_CONTENT, "content_html"]
@@ -112,7 +114,7 @@ class DatabaseManager:
             self._build_indexes()
             self._initialized = True
 
-    @log_performance("build_indexes")
+    @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
         logger.info("Building in-memory indexes...")
@@ -138,7 +140,7 @@ class DatabaseManager:
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
         logger.info("In-memory indexes built successfully.")
 
-    @log_performance("load_data")
+    @log_performance(operation="load_data")
     async def _load_data(self) -> None:
         """
         Loads data from JSON files into memory.
@@ -165,7 +167,8 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-    @log_performance("save_data_to_file")
+<<<<<<< HEAD
+    @log_performance(operation="save_data_to_file")
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -468,7 +471,7 @@ class DatabaseManager:
         """Get emails by category"""
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
-    @log_performance("search_emails")
+    @log_performance(operation="search_emails")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:

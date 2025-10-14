@@ -5,7 +5,9 @@ Implements a sample UI component for the Gradio interface.
 """
 
 from typing import Any, Dict, List
+
 import gradio as gr
+
 from backend.plugins.base_plugin import UIComponentPlugin
 
 

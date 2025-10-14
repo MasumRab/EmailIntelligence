@@ -2,14 +2,15 @@
 API routes for enhanced features: model management, workflows, and performance monitoring
 """
 
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, HTTPException
-from typing import List, Dict, Any
 from pydantic import BaseModel
 
-from ..model_manager import ModelInfo, ModelStatus, model_manager
-from ..workflow_manager import Workflow, WorkflowManager, workflow_manager
-from ..performance_monitor import PerformanceMetric, performance_monitor
-from ...plugins.plugin_manager import plugin_manager
+from ..plugins.plugin_manager import plugin_manager
+from .model_manager import model_manager
+from .performance_monitor import PerformanceMetric, performance_monitor
+from .workflow_manager import Workflow, WorkflowManager, workflow_manager
 
 router = APIRouter()
 
