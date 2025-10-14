@@ -29,12 +29,13 @@ from . import (
     performance_routes,
 )
 from .ai_engine import AdvancedAIEngine
-from .exceptions import BaseAppException
+from .exceptions import AppException, BaseAppException
 
 # Import new components
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .workflow_manager import workflow_manager
+from .settings import settings
 
 # Updated import to use NLP GmailAIService directly
 # Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
@@ -45,11 +46,11 @@ from .workflow_manager import workflow_manager
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Initialize FastAPI app with settings
 app = FastAPI(
-    title="Gmail AI Email Management",
+    title=settings.app_name,
     description="Advanced email management with AI categorization and smart filtering",
-    version="2.0.0",
+    version=settings.app_version,
 )
 
 # Import the get_db function to access the database manager
@@ -91,11 +92,24 @@ async def shutdown_event():
     await db.shutdown()
 
 
-@app.exception_handler(BaseAppException)
-async def app_exception_handler(request: Request, exc: BaseAppException):
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail},
+        content=exc.detail,
+    )
+
+
+@app.exception_handler(BaseAppException)
+async def base_app_exception_handler(request: Request, exc: BaseAppException):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "An internal error occurred",
+            "error_code": "INTERNAL_ERROR",
+            "details": str(exc)
+        },
     )
 
 
@@ -111,13 +125,10 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
     )
 
 
-# Configure CORS
+# Configure CORS using settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5000",
-        "http://localhost:5173",
-    ],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -135,7 +146,15 @@ app.add_middleware(
 
 # Services are now managed by the dependency injection system.
 
-# Include routers in the app
+# Include versioned API routers
+from .routes.v1.email_routes import router as email_router_v1
+from .routes.v1.category_routes import router as category_router_v1
+
+# Mount versioned APIs
+app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
+app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
+
+# Include legacy routers for backward compatibility
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
@@ -190,7 +209,8 @@ async def health_check(request: Request):
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
-            "version": "2.0.0",
+            "version": settings.app_version,
+            "app_name": settings.app_name,
         }
     except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
         logger.error(  # Simple log for health check itself
