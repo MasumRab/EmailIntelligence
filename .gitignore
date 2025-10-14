@@ -18,6 +18,8 @@ venv/
 *.local.yaml
 *.local.yml
 jsons/client_id.json
+credentials.json
+jsons/apikey.json
 config.local.*
 
 # Ignore all dotfiles (hidden files)
