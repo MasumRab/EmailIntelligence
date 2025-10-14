@@ -50,6 +50,11 @@ def test_python_interpreter_discovery_avoids_substring_match(
     exec_path, exec_args = mock_execve.call_args[0]
     assert exec_path == "/usr/bin/python-good"
 
+    # When the mocked execve raises an exception, the except block should log it
+    # and then exit with status 1.
+    assert mock_logger.error.call_count > 0
+    mock_exit.assert_called_once_with(1)
+
 
 class TestVirtualEnvironment:
     """Test virtual environment creation and management."""
