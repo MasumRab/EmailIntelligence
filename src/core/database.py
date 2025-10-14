@@ -16,6 +16,7 @@ from functools import partial
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from .data.data_source import DataSource
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ FIELD_CATEGORY_NAME = "categoryName"
 FIELD_CATEGORY_COLOR = "categoryColor"
 
 
-class DatabaseManager:
+class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
@@ -568,6 +569,30 @@ class DatabaseManager:
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
+
+    async def add_tags(self, email_id: int, tags: List[str]) -> bool:
+        """Adds tags to an email."""
+        email = await self.get_email_by_id(email_id)
+        if not email:
+            return False
+
+        existing_tags = email.get("tags", [])
+        new_tags = list(set(existing_tags + tags))
+
+        updated_email = await self.update_email(email_id, {"tags": new_tags})
+        return updated_email is not None
+
+    async def remove_tags(self, email_id: int, tags: List[str]) -> bool:
+        """Removes tags from an email."""
+        email = await self.get_email_by_id(email_id)
+        if not email:
+            return False
+
+        existing_tags = email.get("tags", [])
+        updated_tags = [tag for tag in existing_tags if tag not in tags]
+
+        updated_email = await self.update_email(email_id, {"tags": updated_tags})
+        return updated_email is not None
 
 
 # Singleton instance
