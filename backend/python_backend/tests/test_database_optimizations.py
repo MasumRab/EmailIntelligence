@@ -151,7 +151,11 @@ class TestDatabaseOptimizations:
         with patch("backend.python_backend.performance_monitor.open", mock_open()) as mocked_file:
             await fresh_db.search_emails("test")
 
+<<<<<<< HEAD
             mocked_file.assert_called_once_with(LOG_FILE, "a", encoding="utf-8")
+=======
+            mocked_file.assert_called_once_with(LOG_FILE, "a")
+>>>>>>> main
 
             handle = mocked_file()
             written_content = handle.write.call_args[0][0]  # The write call is the JSON + \n

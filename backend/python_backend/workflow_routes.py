@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+<<<<<<< HEAD
 class WorkflowType:
     LEGACY = "legacy"
     NODE_BASED = "node_based"
@@ -55,6 +56,15 @@ class WorkflowCreate(BaseModel):
     connections: List[Dict[str, str]] = Field(
         default=[], description="List of connections for node-based workflows."
     )
+=======
+class WorkflowCreate(BaseModel):
+    name: str = Field(..., description="The unique name for the workflow.")
+    description: str = ""
+    models: Dict[str, str] = Field(
+        ..., description="A dictionary mapping model types to model names."
+    )
+
+>>>>>>> main
 
 
 @router.get("/api/workflows", response_model=List[dict])
@@ -165,9 +175,18 @@ async def create_workflow(
         raise HTTPException(
             status_code=500, detail="An unexpected error occurred while creating the workflow."
         )
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 
 
+<<<<<<< HEAD
 @router.get("/api/workflows/active", response_model=dict)
+=======
+
+@router.get("/api/workflows/active", response_model=str)
+>>>>>>> main
 async def get_active_workflow(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
@@ -191,6 +210,7 @@ async def get_active_workflow(
         return result
 
     return result
+
 
 @router.put("/api/workflows/active/{workflow_name}", response_model=dict)
 async def set_active_workflow(
@@ -220,6 +240,7 @@ async def set_active_workflow(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to set active workflow: {e}", exc_info=True)
+<<<<<<< HEAD
         raise HTTPException(
             status_code=500, detail="An unexpected error occurred."
         )
@@ -343,3 +364,6 @@ async def set_active_workflow(
             raise HTTPException(
                 status_code=500, detail="An unexpected error occurred while deleting the workflow."
             )
+=======
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+>>>>>>> main

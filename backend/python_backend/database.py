@@ -76,6 +76,10 @@ class DatabaseManager:
     """
 
     def __init__(self):
+<<<<<<< HEAD
+=======
+        """Initializes the DatabaseManager, setting up file paths and data caches."""
+>>>>>>> main
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -153,7 +157,7 @@ class DatabaseManager:
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
         logger.info("In-memory indexes built successfully.")
 
-    @log_performance(operation="load_data")
+    @log_performance("load_data")
     async def _load_data(self) -> None:
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, "emails_data"),
@@ -176,7 +180,11 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
+<<<<<<< HEAD
     @log_performance(operation="save_data_to_file")
+=======
+    @log_performance("save_data_to_file")
+>>>>>>> main
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -213,11 +221,36 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
+<<<<<<< HEAD
+=======
+        """
+        Generates a new unique integer ID for a record.
+
+        Args:
+            data_list: The list of records to scan for the current maximum ID.
+
+        Returns:
+            A new unique integer ID.
+        """
+>>>>>>> main
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
+<<<<<<< HEAD
+=======
+        """
+        Parses fields in a data row that are stored as JSON strings.
+
+        Args:
+            row: The data record (dictionary).
+            fields: A list of field names to parse.
+
+        Returns:
+            The modified data record with parsed fields.
+        """
+>>>>>>> main
         if not row:
             return row
         for field in row:
@@ -315,25 +348,6 @@ class DatabaseManager:
         else:
             return self._add_category_details(email_light.copy())
 
-    async def get_email_by_message_id(self, message_id: str, include_content: bool = True) -> Optional[Dict[str, Any]]:
-        """Get email by message_id using in-memory index."""
-        email_light = self.emails_by_message_id.get(message_id)
-        if not email_light:
-            return None
-        if include_content:
-            email_full = await self._load_and_merge_content(email_light)
-            return self._add_category_details(email_full)
-        else:
-            return self._add_category_details(email_light.copy())
-
-    async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Update email by its message_id."""
-        email_to_update = self.emails_by_message_id.get(message_id)
-        if not email_to_update:
-            logger.warning(f"Email with messageId {message_id} not found for update.")
-            return None
-        return await self.update_email(email_to_update['id'], update_data)
-
     async def get_all_categories(self) -> List[Dict[str, Any]]:
 
         for cat_id, count in self.category_counts.items():
@@ -378,49 +392,13 @@ class DatabaseManager:
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
-    @log_performance(operation="search_emails")
-    async def search_emails(self, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """Search emails by a term in subject or sender."""
-        search_term_lower = search_term.lower()
-        results = [
-            email for email in self.emails_data
-            if search_term_lower in email.get(FIELD_SUBJECT, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER_EMAIL, '').lower()
-        ]
-        try:
-            results = sorted(results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, '')), reverse=True)
-        except TypeError:
-            logger.warning(f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'.")
-            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ''), reverse=True)
-
-        paginated_results = results[offset : offset + limit]
-        detailed_results = [self._add_category_details(email) for email in paginated_results]
-        logger.info(f"Email search for '{search_term}' completed. Found {len(detailed_results)} emails.")
-        return detailed_results
-
-    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """Search emails within a specific category."""
-        search_term_lower = search_term.lower()
-        category_emails = [e for e in self.emails_data if e.get(FIELD_CATEGORY_ID) == category_id]
-        results = [
-            email for email in category_emails
-            if search_term_lower in email.get(FIELD_SUBJECT, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER_EMAIL, '').lower()
-        ]
-        try:
-            results = sorted(results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, '')), reverse=True)
-        except TypeError:
-            logger.warning(f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'.")
-            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ''), reverse=True)
-
-        paginated_results = results[offset : offset + limit]
-        detailed_results = [self._add_category_details(email) for email in paginated_results]
-        logger.info(f"Email search for '{search_term}' in category {category_id} completed. Found {len(detailed_results)} emails.")
-        return detailed_results
-
-    async def get_emails(self, limit: int = 50, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        category_id: Optional[int] = None,
+        is_unread: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
         filtered_emails = self.emails_data
         if category_id is not None:
@@ -444,7 +422,9 @@ class DatabaseManager:
             )
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
-        logger.info(f"Email retrieval completed. Found {len(result_emails)} emails.")
+        logger.info(
+            f"Email retrieval completed. Found {len(result_emails)} emails."
+        )
         return result_emails
 
     async def update_email_by_message_id(
@@ -483,7 +463,12 @@ class DatabaseManager:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
 
             self.emails_by_id[email_id] = email_to_update
+<<<<<<< HEAD
             self.emails_by_message_id[message_id] = email_to_update
+=======
+            if email_to_update.get(FIELD_MESSAGE_ID):
+                self.emails_by_message_id[email_to_update[FIELD_MESSAGE_ID]] = email_to_update
+>>>>>>> main
             idx = next(
                 (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
             )
@@ -515,6 +500,10 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+<<<<<<< HEAD
+=======
+        """Retrieves all emails with pagination."""
+>>>>>>> main
         return await self.get_emails(limit=limit, offset=offset)
 
     async def get_emails_by_category(
@@ -642,6 +631,20 @@ _db_manager_instance = None
 
 
 async def get_db() -> DatabaseManager:
+<<<<<<< HEAD
+=======
+    """
+    Provides the singleton instance of the DatabaseManager.
+
+    This function is used for dependency injection in FastAPI routes. It ensures
+    that only one instance of the DatabaseManager is used throughout the
+
+    application's lifecycle.
+
+    Returns:
+        The singleton DatabaseManager instance.
+    """
+>>>>>>> main
     global _db_manager_instance
     if _db_manager_instance is None:
         # This should ideally not be reached if startup event is properly set

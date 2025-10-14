@@ -4,6 +4,10 @@ Plugin Manager for Email Intelligence Platform
 Manages the loading, registration, and execution of plugins in the system.
 """
 
+<<<<<<< HEAD
+=======
+import os
+>>>>>>> main
 import importlib
 import inspect
 import logging

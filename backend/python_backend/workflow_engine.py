@@ -4,12 +4,22 @@ Workflow Engine for the Email Intelligence Platform
 This module provides a system for defining, discovering, and executing
 standardized email processing workflows.
 """
+<<<<<<< HEAD
 import json
+=======
+
+>>>>>>> main
 import logging
 import os
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List
 
+<<<<<<< HEAD
+=======
+# Forward-referencing for type hints
+from typing import TYPE_CHECKING
+
+>>>>>>> main
 if TYPE_CHECKING:
     from ..python_nlp.smart_filters import SmartFilterManager
     from .ai_engine import AdvancedAIEngine
@@ -22,7 +32,10 @@ logger = logging.getLogger(__name__)
 WORKFLOWS_DIR = DATA_DIR / "workflows"
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 class BaseWorkflow(ABC):
     """
     Abstract base class for all email processing workflows.
@@ -74,9 +87,7 @@ class WorkflowEngine:
 
     def _save_settings(self):
         """Saves the current settings to the JSON file."""
-        settings = {
-            "active_workflow": self.active_workflow.name if self.active_workflow else None
-        }
+        settings = {"active_workflow": self.active_workflow.name if self.active_workflow else None}
         try:
             with open(self.settings_file, "w") as f:
                 json.dump(settings, f, indent=4)
@@ -182,6 +193,7 @@ class WorkflowEngine:
             raise RuntimeError("No active workflow is set.")
         return await self.active_workflow.execute(email_data)
 
+
 class DefaultWorkflow(BaseWorkflow):
     """The default workflow that uses a hardcoded set of models."""
 
@@ -205,6 +217,22 @@ class DefaultWorkflow(BaseWorkflow):
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()
+<<<<<<< HEAD
+=======
+        processed_data.update(
+            {
+                "confidence": int(ai_analysis.confidence * 100),
+                "categoryId": ai_analysis.category_id,
+                "labels": ai_analysis.suggested_labels,
+                "analysisMetadata": ai_analysis.to_dict(),
+                "filterResults": filter_results,
+                "workflow_status": "processed_by_default_workflow",
+            }
+        )
+        return processed_data
+
+
+>>>>>>> main
 class FileBasedWorkflow(BaseWorkflow):
     """A generic workflow configured by a JSON file."""
 

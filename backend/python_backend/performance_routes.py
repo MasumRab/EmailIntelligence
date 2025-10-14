@@ -1,6 +1,11 @@
 """
 API routes for performance monitoring.
 """
+<<<<<<< HEAD
+=======
+
+import logging
+>>>>>>> main
 import json
 import logging
 from typing import Any, Dict, List
@@ -13,9 +18,12 @@ router = APIRouter()
 LOG_FILE = "performance_metrics_log.jsonl"
 
 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> main
 @router.get("/api/performance", response_model=List[Dict[str, Any]])
 async def get_performance_metrics():
     """
