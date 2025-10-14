@@ -53,14 +53,15 @@ The following commits differ between `fixes-branch` and `scientific`, ordered fr
 
 For the full ordered list of all differing commits, refer to git logs: `git log --oneline --stat fixes-branch..scientific` and `git log --oneline --stat scientific..fixes-branch`.
 
+## Cherry-pick Progress
+Successfully cherry-picked 6 commits from scientific to fixes-branch, including recent additions: 9f9bb34, ef7ef30, 43fd643.
+
 ## Uncherry-picked Commits (Remaining Least Impactful)
 The following commits from the least impactful list were not successfully cherry-picked due to conflicts or being empty:
 - **411677e** - Merge remote-tracking branch 'origin/scientific' into scientific (merge commit, skipped)
 - **474a5af** - qwen (conflicted in .qwen/PROJECT_SUMMARY.md)
 - **867b180** - copilot (empty after resolution)
 - **0b4fc65** - feat: Harden launch process and resolve merge conflicts (not attempted due to lock issues)
-- **9f9bb34** - Update performance metrics from recent test runs (not attempted)
-- **ef7ef30** - Add root redirect to Gradio UI and align with main branch goals (not attempted)
 - **7dfb995** - Auto stash before merge of "scientific" and "origin/scientific" (not attempted)
 
 ## What needs to be done next:
