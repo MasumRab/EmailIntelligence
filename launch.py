@@ -292,14 +292,14 @@ def run_command(
 
 def check_python_version():
     """Check if the current Python version is compatible."""
-    current_version = sys.version_info[:2]
-    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
+    current_version = sys.version_info
+    if not (PYTHON_MIN_VERSION <= current_version < PYTHON_MAX_VERSION):
         logger.error(
-            f"Python version {current_version} is not compatible. "
+            f"Python version {platform.python_version()} is not compatible. "
             f"Required: >={'.'.join(map(str, PYTHON_MIN_VERSION))}, "
-            f"<={'.'.join(map(str, PYTHON_MAX_VERSION))}"
+            f"<{'.'.join(map(str, PYTHON_MAX_VERSION))}"
         )
-        sys.exit(1)
+        raise SystemExit(1)
     logger.info(f"Python version {sys.version} is compatible.")
 
 
@@ -655,29 +655,8 @@ def start_gradio_ui(
 def start_client():
     """Start the Node.js frontend."""
     logger.info("Starting Node.js frontend...")
-    # Check if npm is available
-    if not shutil.which("npm"):
-        logger.error("npm is not available in PATH. Please install Node.js.")
-        sys.exit(1)
-
-    # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "client" / "node_modules"
-    if not node_modules_path.exists():
-        logger.info("Installing Node.js dependencies...")
-        try:
-            result = subprocess.run(
-                ["npm", "install"],
-                cwd=ROOT_DIR / "client",
-                capture_output=True,
-                text=True,
-                shell=(os.name == "nt"),
-            )
-            if result.returncode != 0:
-                logger.error(f"Failed to install Node.js dependencies: {result.stderr}")
-                return None
-            logger.info("Node.js dependencies installed.")
-        except FileNotFoundError:
-            logger.warning("npm not found. Skipping Node.js dependency installation.")
+    if not install_nodejs_dependencies("client"):
+        return None
 
     # Start the React frontend
     try:
