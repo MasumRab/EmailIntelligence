@@ -88,7 +88,7 @@ Beyond side effects, the analysis identified other anti-patterns related to func
 
 ## 3. Proposed Architectural Design for External Database Interface
 
-To address the issues of side effects and modularity, a new architecture is proposed. This design isolates data access logic and and allows for multiple, swappable data sources.
+To address the issues of side effects and modularity, a new architecture is proposed. This design isolates data access logic and allows for multiple, swappable data sources.
 
 ### 3.1. Core Components
 
