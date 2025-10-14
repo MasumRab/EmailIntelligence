@@ -968,14 +968,18 @@ class NLPEngine:
                 verb = match.group(1) if len(match.groups()) > 1 else None
                 obj = match.group(2) if len(match.groups()) > 2 else None
                 due_date_text = match.group(3) if len(match.groups()) > 3 else None
-                
-                action_items.append({
-                    "action_phrase": action_phrase,
-                    "verb": verb,
-                    "object": obj.strip() if obj else None,
-                    "raw_due_date_text": due_date_text.strip() if due_date_text else None,
-                    "context": text_lower[max(0, match.start()-50):min(len(text_lower), match.end()+50)].strip()
-                })
+
+                action_items.append(
+                    {
+                        "action_phrase": action_phrase,
+                        "verb": verb,
+                        "object": obj.strip() if obj else None,
+                        "raw_due_date_text": due_date_text.strip() if due_date_text else None,
+                        "context": text_lower[
+                            max(0, match.start() - 50) : min(len(text_lower), match.end() + 50)
+                        ].strip(),
+                    }
+                )
         return action_items
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
@@ -1111,7 +1115,9 @@ class NLPEngine:
             intent_analysis.get("intent", "informational") if intent_analysis else "informational"
         )
         final_urgency = urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
-        final_is_important = importance_analysis.get("is_important", False) if importance_analysis else False
+        final_is_important = (
+            importance_analysis.get("is_important", False) if importance_analysis else False
+        )
 
         suggested_labels = self._suggest_labels(categories, final_urgency)
 

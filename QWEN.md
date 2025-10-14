@@ -34,7 +34,7 @@ EmailIntelligence/
 ├── mock_models/            # Mock models for testing
 ├── docs/                   # Documentation
 ├── jsons/                  # JSON data files
-├── .venv/                  # Python virtual environment
+├── venv/                   # Python virtual environment
 ├── venv/                   # Alternative Python virtual environment
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Node.js dependencies
