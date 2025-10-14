@@ -5,8 +5,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 # Updated imports to use the new core framework components
-from src.core.database import DatabaseManager, get_db
+from src.core.data_source import DataSource
+from src.core.database import DatabaseManager
 from src.core.exceptions import DatabaseError
+from src.core.factory import get_data_source
 from src.core.models import CategoryCreate, CategoryResponse
 from src.core.performance_monitor import log_performance
 
@@ -16,7 +18,7 @@ router = APIRouter()
 
 @router.get("/categories", response_model=List[CategoryResponse])
 @log_performance("get_categories")
-async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
+async def get_categories(request: Request, db: DataSource = Depends(get_data_source)):
     """
     Retrieves all categories from the database.
     """
@@ -31,7 +33,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
 @router.post("/categories", response_model=CategoryResponse)
 @log_performance("create_category")
 async def create_category(
-    request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
+    request: Request, category: CategoryCreate, db: DataSource = Depends(get_data_source)
 ):
     """
     Creates a new category in the database.
