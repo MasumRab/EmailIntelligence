@@ -203,17 +203,45 @@ async def main_cli():
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
     subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
 
-    list_parser = subparsers.add_parser("list-strategies", help="List available retrieval strategies")
-    list_parser.add_argument("--checkpoint-db-path", type=str, default="sync_checkpoints.db", help="Path to the checkpoint database")
+    list_parser = subparsers.add_parser(
+        "list-strategies", help="List available retrieval strategies"
+    )
+    list_parser.add_argument(
+        "--checkpoint-db-path",
+        type=str,
+        default="sync_checkpoints.db",
+        help="Path to the checkpoint database",
+    )
 
-    execute_parser = subparsers.add_parser("execute-strategies", help="Execute retrieval strategies")
-    execute_parser.add_argument("--strategies", "--strategy-names", dest="strategies", nargs="+", help="Names of specific strategies to execute (optional)")
-    execute_parser.add_argument("--max-api-calls", type=int, default=100, help="Maximum API calls allowed")
-    execute_parser.add_argument("--time-budget-minutes", type=int, default=30, help="Time budget for retrieval in minutes")
+    execute_parser = subparsers.add_parser(
+        "execute-strategies", help="Execute retrieval strategies"
+    )
+    execute_parser.add_argument(
+        "--strategies",
+        "--strategy-names",
+        dest="strategies",
+        nargs="+",
+        help="Names of specific strategies to execute (optional)",
+    )
+    execute_parser.add_argument(
+        "--max-api-calls", type=int, default=100, help="Maximum API calls allowed"
+    )
+    execute_parser.add_argument(
+        "--time-budget-minutes", type=int, default=30, help="Time budget for retrieval in minutes"
+    )
 
-    analytics_parser = subparsers.add_parser("get-retrieval-analytics", help="Get retrieval analytics")
-    analytics_parser.add_argument("--days", type=int, default=30, help="Number of past days to include in analytics")
-    analytics_parser.add_argument("--checkpoint-db-path", type=str, default="sync_checkpoints.db", help="Path to the checkpoint database")
+    analytics_parser = subparsers.add_parser(
+        "get-retrieval-analytics", help="Get retrieval analytics"
+    )
+    analytics_parser.add_argument(
+        "--days", type=int, default=30, help="Number of past days to include in analytics"
+    )
+    analytics_parser.add_argument(
+        "--checkpoint-db-path",
+        type=str,
+        default="sync_checkpoints.db",
+        help="Path to the checkpoint database",
+    )
     args = parser.parse_args()
     retriever = SmartGmailRetriever()
     if args.command == "list-strategies":
