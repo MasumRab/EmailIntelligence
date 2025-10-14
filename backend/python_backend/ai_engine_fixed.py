@@ -1,19 +1,22 @@
 """
-Advanced AI Engine Module
+AI Engine Adapter for Python Backend.
 
 This module provides a bridge between the FastAPI backend and the AI/NLP
 services. It encapsulates the logic for analyzing email content, matching
 categories, and managing the AI model's lifecycle.
 """
-
-import asyncio
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from ..python_nlp.nlp_engine import NLPEngine
-from .database import DatabaseManager
+
+if TYPE_CHECKING:
+    from .database import DatabaseManager
+
+
+logger = logging.getLogger(__name__)
 
 
 class AIAnalysisResult:
@@ -36,7 +39,7 @@ class AIAnalysisResult:
         risk_flags (List[str]): A list of identified risk factors.
         category_id (Optional[int]): The ID of the matched database category, if any.
     """
-    
+
     def __init__(self, data: Dict[str, Any]):
         """
         Initializes the AIAnalysisResult object.
@@ -48,10 +51,10 @@ class AIAnalysisResult:
         self.sentiment = data.get("sentiment", "neutral")
         self.intent = data.get("intent", "unknown")
         self.urgency = data.get("urgency", "low")
-        self.confidence = data.get("confidence", 0.5)
+        self.confidence = data.get("confidence", 0.0)
         self.categories = data.get("categories", [])
         self.keywords = data.get("keywords", [])
-        self.reasoning = data.get("reasoning", "Analysis completed")
+        self.reasoning = data.get("reasoning", "")
         self.suggested_labels = data.get("suggested_labels", [])
         self.risk_flags = data.get("risk_flags", [])
         self.category_id = data.get("category_id")
@@ -79,66 +82,58 @@ class AIAnalysisResult:
 
 
 class AdvancedAIEngine:
-    """
-    "Optimized Advanced AI engine with async support and caching."
-    
+    """Optimized Advanced AI engine with async support and caching."""
+
     This class integrates with an NLP engine to perform analysis and includes
     methods for health checks, cleanup, and fallback mechanisms.
+
+    Attributes:
+        nlp_engine (NLPEngine): An instance of the NLP engine for text analysis.
     """
 
     def __init__(self):
-        """
-        Initializes the AdvancedAIEngine.
-        
-        Args:
-            nlp_engine (NLPEngine): An instance of the NLP engine for text analysis.
-        """
         self.nlp_engine = NLPEngine()
-        self.category_lookup_map = {}
-        self._initialize_patterns()
+        # Cache for category lookup map
+        self.category_lookup_map: Dict[str, Dict[str, Any]] = {}
 
-    def _initialize_patterns(self):
+    def initialize(self):
         """Initialize AI engine and pre-compile patterns."""
-        self.nlp_engine.initialize_patterns() # Pre-compile regex
-
-    def _build_category_lookup_map(self, db: DatabaseManager):
-        """Builds a normalized lookup map for categories."""
         try:
-            categories = db.get_categories()
-            self.category_lookup_map = {
-                cat["name"].lower(): cat 
-                for cat in categories
-            }
-            return self.category_lookup_map
+            self.nlp_engine.initialize_patterns() # Pre-compile regex
+            self.health_check()
+            logger.info("AI Engine initialized successfully")
         except Exception as e:
-            logging.error(f"Error building category lookup map: {e}")
-            return {}
+            logger.error(f"AI Engine initialization failed: {e}")
+
+    async def _build_category_lookup(self, db: "DatabaseManager") -> None:
+        """Builds a normalized lookup map for categories."""
+        all_db_categories = await db.get_all_categories()
+        self.category_lookup_map = {cat['name'].lower(): cat for cat in all_db_categories}
+        logger.info("Built category lookup map.")
 
     async def _match_category_id(
-        self, ai_categories: List[str], db: DatabaseManager
+        self, ai_categories: List[str], db: "DatabaseManager"
     ) -> Optional[int]:
-        """
-        Matches AI suggested categories to DB categories using a lookup map.
-        
-        Args:
-            ai_categories (List[str]): Categories suggested by AI engine.
-            db (DatabaseManager): Database manager instance to access categories.
-            
-        Returns:
-            Optional[int]: The ID of the matched category, or None if no match.
-        """
+        """Matches AI suggested categories to DB categories using a lookup map."""
+        if not ai_categories:
+            return None
+
+        # Build the lookup map if it's empty
         if not self.category_lookup_map:
-            self._build_category_lookup_map(db)
+            await self._build_category_lookup(db)
+
+        if not self.category_lookup_map:
+            return None
 
         for ai_cat_str in ai_categories:
-            ai_cat_lower = ai_cat_str.lower().replace(" ", "_").replace("-", "_")
-            
+            ai_cat_lower = ai_cat_str.lower()
+            # O(1) lookup
             if ai_cat_lower in self.category_lookup_map:
                 matched_cat = self.category_lookup_map[ai_cat_lower]
-                logging.info(f"Matched AI category '{ai_cat_str}' to DB category '{matched_cat['name']}' (ID: {matched_cat['id']})")
+                logger.info(f"Matched AI category '{ai_cat_str}' to DB category '{matched_cat['name']}' (ID: {matched_cat['id']})")
                 return matched_cat['id']
 
-        logging.info(f"No direct match for AI categories: {ai_categories} against DB categories.")
+        logger.info(f"No direct match for AI categories: {ai_categories} against DB categories.")
         return None
 
     async def analyze_email(
@@ -160,7 +155,6 @@ class AdvancedAIEngine:
             AIAnalysisResult: An object containing the analysis results.
         """
         log_subject = subject[:50] + "..." if len(subject) > 50 else subject
-        logger = logging.getLogger(__name__)
         logger.info(f"Initiating AI analysis for email subject: '{log_subject}'")
         try:
             analysis_data = self.nlp_engine.analyze_email(subject, content)
@@ -264,7 +258,6 @@ class AdvancedAIEngine:
                 if os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)
-                        logger = logging.getLogger(__name__)
                         logger.info(f"Removed temp file during cleanup: {temp_file}")
                     except OSError as e:
                         logger.error(
@@ -298,7 +291,6 @@ class AdvancedAIEngine:
         if error_context:
             reason += f": {error_context}"
 
-        logger = logging.getLogger(__name__)
         logger.warning(f"{reason}. Subject: {subject[:50]}...")
 
         try:
