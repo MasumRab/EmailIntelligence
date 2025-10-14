@@ -15,23 +15,23 @@ from backend.python_backend.workflow_engine import (
 # Mocks for dependencies
 @pytest.fixture
 def mock_ai_engine():
-        return MagicMock()
-    
-    
-    @pytest.fixture
+    return MagicMock()
+
+
+@pytest.fixture
 def mock_filter_manager():
-        return MagicMock()
-    
-    
-    @pytest.fixture
+    return MagicMock()
+
+
+@pytest.fixture
 def mock_db_manager():
-        return MagicMock()
-    
-    
-    @pytest.fixture
+    return MagicMock()
+
+
+@pytest.fixture
 def workflow_engine():
     """Provides a clean WorkflowEngine instance for each test."""
-        return WorkflowEngine()
+    return WorkflowEngine()
     
     
     
@@ -57,21 +57,20 @@ def test_set_active_nonexistent_workflow(workflow_engine):
     with pytest.raises(ValueError, match="Workflow 'nonexistent' not found."):
         workflow_engine.set_active_workflow("nonexistent")
 
+
+@pytest.mark.asyncio
+async def test_discover_workflows(workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager):
+    """Tests that file-based workflows are discovered correctly."""
     mock_workflow_config = {
-
         "name": "my_file_workflow",
-
         "models": {"sentiment": "sentiment-default"},
-
     }
 
     m = mock_open(read_data=json.dumps(mock_workflow_config))
 
-    with (
-        patch("os.path.exists") as mock_exists,
-        patch("os.listdir") as mock_listdir,
-        patch("builtins.open", m),
-    ):
+    with patch("os.path.exists") as mock_exists, \
+         patch("os.listdir") as mock_listdir, \
+         patch("builtins.open", m):
 
         mock_exists.return_value = True
         mock_listdir.return_value = ["my_file_workflow.json"]

@@ -38,11 +38,11 @@ def mock_ai_engine():
 def mock_filter_manager():
     """A session-scoped mock for the SmartFilterManager."""
     filter_mock = MagicMock()
-        filter_mock.apply_filters_to_email_data = AsyncMock()
-        return filter_mock
-    
-    
-    @pytest.fixture(scope="session")
+    filter_mock.apply_filters_to_email_data = AsyncMock()
+    return filter_mock
+
+
+@pytest.fixture(scope="session")
 def mock_workflow_engine():
     """A session-scoped mock for the WorkflowEngine."""
     workflow_mock = MagicMock()
