@@ -5,10 +5,12 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
+from .dependencies import get_category_service
 from .exceptions import DatabaseError
-from .models import CategoryCreate, CategoryResponse  # Added CategoryResponse, changed from .main
+from .models import CategoryCreate, CategoryResponse
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
+from .services.category_service import CategoryService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -16,11 +18,20 @@ router = APIRouter()
 
 @router.get("/api/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories")
-async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
+async def get_categories(
+    request: Request, 
+    category_service: CategoryService = Depends(get_category_service)
+):
     """Get all categories"""
     try:
-        categories = await db.get_all_categories()
-        return await handle_pydantic_validation(categories, CategoryResponse, "get_categories")
+        result = await category_service.get_all_categories()
+        if result.success:
+            return result.data
+        else:
+            # Handle error case
+            raise HTTPException(status_code=500, detail=result.error)
+    except HTTPException:
+        raise
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while fetching categories",
@@ -33,21 +44,25 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
         raise DatabaseError(detail="Database service unavailable.")
 
 
-@router.post("/api/categories", response_model=CategoryResponse)  # Changed to CategoryResponse
+@router.post("/api/categories", response_model=CategoryResponse)
 @log_performance(operation="create_category")
 async def create_category(
-    request: Request, category: CategoryCreate, db: DatabaseManager = Depends(get_db)
+    request: Request, 
+    category: CategoryCreate, 
+    category_service: CategoryService = Depends(get_category_service)
 ):
     """Create new category"""
     try:
-        created_category_dict = await db.create_category(
-            category.model_dump()
-        )  # db.create_category returns a dict
-        # Use the utility function to handle Pydantic validation
-        validated_categories = await handle_pydantic_validation(
-            [created_category_dict], CategoryResponse, "create_category"
-        )
-        return validated_categories[0]  # Return the single validated category
+        # Add category through service layer
+        result = await category_service.create_category(category.model_dump())
+        
+        if result.success:
+            return result.data
+        else:
+            # Handle error case
+            raise HTTPException(status_code=500, detail=result.error)
+    except HTTPException:
+        raise
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while creating category",
