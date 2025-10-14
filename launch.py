@@ -306,7 +306,7 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
         venv_uv = get_venv_executable(venv_path, "uv")
 
         # Configure uv to use the virtual environment
-        os.environ['UV_PROJECT_ENVIRONMENT'] = str(venv_path)
+        os.environ["UV_PROJECT_ENVIRONMENT"] = str(venv_path)
 
         cmd = [str(venv_uv), "sync"]
         if update:
@@ -668,8 +668,6 @@ def main():
     if not args.no_client:
         # Note: The client and server-ts might require additional parameters or configuration
         start_client()
-
-
 
     logger.info("All selected services started. Press Ctrl+C to shut down.")
     wait_for_processes()

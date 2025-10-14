@@ -47,6 +47,7 @@ async def startup_event():
     """Application startup: initialize database and services."""
     from .database import initialize_db
     from .dependencies import initialize_services
+
     await initialize_db()
     await initialize_services()
 
