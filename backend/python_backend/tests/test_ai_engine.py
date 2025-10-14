@@ -1,6 +1,5 @@
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 
 from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
@@ -9,7 +8,6 @@ from backend.python_backend.model_manager import ModelManager
 # This mock is for the database, which is used for category lookups
 mock_db_manager_for_ai_engine = MagicMock()
 mock_db_manager_for_ai_engine.get_all_categories = AsyncMock()
-
 
 @pytest.fixture
 def mock_model_manager():
@@ -21,14 +19,14 @@ def mock_model_manager():
     mock_sentiment_model.analyze.return_value = {
         "sentiment": "neutral",
         "confidence": 0.8,
-        "method_used": "mock_sentiment",
+        "method_used": "mock_sentiment"
     }
 
     mock_topic_model = MagicMock()
     mock_topic_model.analyze.return_value = {
         "topic": "General",
         "confidence": 0.9,
-        "method_used": "mock_topic",
+        "method_used": "mock_topic"
     }
 
     # Configure get_model to return the correct mock model
@@ -47,7 +45,6 @@ def mock_model_manager():
 
     return manager
 
-
 @pytest.fixture
 def ai_engine_instance(mock_model_manager):
     """Fixture to provide an AdvancedAIEngine instance with a mocked ModelManager."""
@@ -61,13 +58,11 @@ def ai_engine_instance(mock_model_manager):
     engine = AdvancedAIEngine(model_manager=mock_model_manager)
     return engine
 
-
 # Define a default model configuration for the tests
 DEFAULT_MODELS_TO_USE = {
     "sentiment": "sentiment-default",
     "topic": "topic-default",
 }
-
 
 @pytest.mark.asyncio
 async def test_analyze_email_no_db_provided(
@@ -116,8 +111,6 @@ async def test_analyze_email_with_db_category_match(
     assert result.category_id == 5
     assert result.categories == ["Work Related"]
     mock_db_manager_for_ai_engine.get_all_categories.assert_called_once()
-
-
 @pytest.mark.asyncio
 async def test_analyze_email_with_db_no_category_match(ai_engine_instance: AdvancedAIEngine):
     subject = "Unique Topic"
@@ -132,8 +125,6 @@ async def test_analyze_email_with_db_no_category_match(ai_engine_instance: Advan
 
     assert isinstance(result, AIAnalysisResult)
     assert result.category_id is None
-
-
 @pytest.mark.asyncio
 async def test_analyze_email_model_failure(
     ai_engine_instance: AdvancedAIEngine, mock_model_manager

@@ -127,5 +127,4 @@ class ModelManager:
         return list(self._model_metadata.values())
 
 
-# Create a global instance
 model_manager = ModelManager()
