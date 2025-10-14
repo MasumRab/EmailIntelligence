@@ -40,7 +40,6 @@ dependencies = [
 
     # Security
     "bleach>=6.0.0",
->>>>>>> d094f0c (Add RestrictedPython to dependencies to fix Gradio import error)
 ]
 
 [dependency-groups]
