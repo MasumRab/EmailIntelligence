@@ -18,8 +18,10 @@ import seaborn as sns
 import requests
 from typing import Dict, Any, List
 import ast
+
 # Define a base URL for the API
 BASE_URL = "http://127.0.0.1:8000"
+
 
 def analyze_email_interface(subject, content):
     """
@@ -27,38 +29,45 @@ def analyze_email_interface(subject, content):
     """
     if not subject and not content:
         return {"error": "Subject and content cannot both be empty."}
-    
+
     try:
-        response = requests.post(f"{BASE_URL}/api/ai/analyze", json={"subject": subject, "content": content})
+        response = requests.post(
+            f"{BASE_URL}/api/ai/analyze", json={"subject": subject, "content": content}
+        )
         if response.status_code == 200:
             return response.json()
         else:
-            return {"error": f"Failed to analyze email. Status code: {response.status_code}, Response: {response.text}"}
+            return {
+                "error": f"Failed to analyze email. Status code: {response.status_code}, Response: {response.text}"
+            }
     except Exception as e:
         return {"error": f"An exception occurred: {str(e)}"}
+
 
 def get_emails_list(category_id=None, search=None):
     """Fetch emails from API with optional filters"""
     try:
         params = {}
         if category_id is not None:
-            params['category_id'] = category_id
+            params["category_id"] = category_id
         if search:
-            params['search'] = search
+            params["search"] = search
         response = requests.get("http://127.0.0.1:8000/api/emails", params=params)
         if response.status_code == 200:
             emails = response.json()
             # Convert to list of lists for Dataframe
             data = []
             for email in emails:
-                data.append([
-                    email['id'],
-                    email['time'][:19],  # Truncate datetime
-                    email['sender'],
-                    email['subject'],
-                    email.get('category', ''),
-                    'Read' if not email.get('isUnread', True) else 'Unread'
-                ])
+                data.append(
+                    [
+                        email["id"],
+                        email["time"][:19],  # Truncate datetime
+                        email["sender"],
+                        email["subject"],
+                        email.get("category", ""),
+                        "Read" if not email.get("isUnread", True) else "Unread",
+                    ]
+                )
             return data
         return []
     except Exception:
@@ -71,7 +80,7 @@ def get_categories():
         response = requests.get("http://127.0.0.1:8000/api/categories")
         if response.status_code == 200:
             cats = response.json()
-            return {cat['name']: cat['id'] for cat in cats}
+            return {cat["name"]: cat["id"] for cat in cats}
         return {}
     except Exception:
         return {}
@@ -108,8 +117,10 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
 
         with gr.TabItem("📥 Inbox"):
             gr.Markdown("## Inbox")
-            email_df = gr.DataFrame(headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails")
-            
+            email_df = gr.DataFrame(
+                headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails"
+            )
+
             with gr.Row():
                 category_filter = gr.Dropdown(label="Filter by Category")
                 search_box = gr.Textbox(label="Search")
@@ -131,7 +142,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     if category and category != "All":
                         cat_response = requests.get(f"{BASE_URL}/api/categories")
                         if cat_response.status_code == 200:
-                            cats = {c['name']: c['id'] for c in cat_response.json()}
+                            cats = {c["name"]: c["id"] for c in cat_response.json()}
                             if category in cats:
                                 params["category_id"] = cats[category]
                     if search:
@@ -160,21 +171,40 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     return ["All"]
 
             def on_select(evt: gr.SelectData):
-                email_id = evt.value[0] # Assuming the first column is ID
+                email_id = evt.value[0]  # Assuming the first column is ID
                 response = requests.get(f"{BASE_URL}/api/emails/{email_id}")
                 if response.status_code == 200:
                     email = response.json()
                     is_important = email["aiAnalysis"].get("isImportant", False)
                     importance_icon = "⭐ Important" if is_important else "Not Important"
-                    return email["subject"], email["sender"], email["content"], email["aiAnalysis"], importance_icon
+                    return (
+                        email["subject"],
+                        email["sender"],
+                        email["content"],
+                        email["aiAnalysis"],
+                        importance_icon,
+                    )
                 return "", "", "", {}, ""
 
             iface.load(fn=get_categories, outputs=category_filter)
             iface.load(fn=get_emails, outputs=email_df)
-            refresh_inbox_btn.click(fn=get_emails, inputs=[category_filter, search_box], outputs=email_df)
-            category_filter.change(fn=get_emails, inputs=[category_filter, search_box], outputs=email_df)
+            refresh_inbox_btn.click(
+                fn=get_emails, inputs=[category_filter, search_box], outputs=email_df
+            )
+            category_filter.change(
+                fn=get_emails, inputs=[category_filter, search_box], outputs=email_df
+            )
             search_box.submit(fn=get_emails, inputs=[category_filter, search_box], outputs=email_df)
-            email_df.select(fn=on_select, outputs=[selected_subject, selected_from, selected_content, selected_analysis, is_important_output])
+            email_df.select(
+                fn=on_select,
+                outputs=[
+                    selected_subject,
+                    selected_from,
+                    selected_content,
+                    selected_analysis,
+                    is_important_output,
+                ],
+            )
 
         with gr.TabItem("📧 Gmail"):
             gr.Markdown("Gmail integration coming soon...")
@@ -187,7 +217,11 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
 
                 with gr.TabItem("Batch Analysis"):
                     gr.Markdown("### Advanced Data Analysis with Pandas & Stats")
-                    data_input = gr.Textbox(label="Paste Email Data (JSON format)", lines=5, placeholder='[{"subject": "Test", "content": "Test content"}]')
+                    data_input = gr.Textbox(
+                        label="Paste Email Data (JSON format)",
+                        lines=5,
+                        placeholder='[{"subject": "Test", "content": "Test content"}]',
+                    )
                     analyze_data_button = gr.Button("Analyze Batch")
                     batch_output = gr.Dataframe(label="Batch Analysis Results")
                     stats_output = gr.JSON(label="Descriptive Statistics")
@@ -209,13 +243,21 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                         except Exception as e:
                             return pd.DataFrame(), {"error": str(e)}, px.bar(title="Error")
 
-                    analyze_data_button.click(fn=analyze_batch, inputs=data_input, outputs=[batch_output, stats_output, viz_output])
+                    analyze_data_button.click(
+                        fn=analyze_batch,
+                        inputs=data_input,
+                        outputs=[batch_output, stats_output, viz_output],
+                    )
 
                 with gr.TabItem("Model Management"):
                     gr.Markdown("### AI Model Management")
                     with gr.Row():
                         with gr.Column():
-                            model_list = gr.Dataframe(headers=["Name", "Status", "Size (MB)", "Load Time (s)"], label="Available Models", interactive=False)
+                            model_list = gr.Dataframe(
+                                headers=["Name", "Status", "Size (MB)", "Load Time (s)"],
+                                label="Available Models",
+                                interactive=False,
+                            )
                             refresh_models_btn = gr.Button("Refresh Models")
 
                     with gr.Row():
@@ -230,8 +272,16 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                             response = requests.get(f"{BASE_URL}/api/models")
                             if response.status_code == 200:
                                 models = response.json()
-                                data = [[m.get('name'), m.get('status'), m.get('size_mb'), m.get('load_time')] for m in models]
-                                names = [m.get('name') for m in models]
+                                data = [
+                                    [
+                                        m.get("name"),
+                                        m.get("status"),
+                                        m.get("size_mb"),
+                                        m.get("load_time"),
+                                    ]
+                                    for m in models
+                                ]
+                                names = [m.get("name") for m in models]
                                 return data, gr.Dropdown.update(choices=names)
                             return [], gr.Dropdown.update(choices=[])
                         except Exception as e:
@@ -255,15 +305,27 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                         except Exception as e:
                             return str(e)
 
-                    refresh_models_btn.click(fn=refresh_models, outputs=[model_list, model_selector])
-                    load_model_btn.click(fn=load_selected_model, inputs=model_selector, outputs=model_status_output)
-                    unload_model_btn.click(fn=unload_selected_model, inputs=model_selector, outputs=model_status_output)
+                    refresh_models_btn.click(
+                        fn=refresh_models, outputs=[model_list, model_selector]
+                    )
+                    load_model_btn.click(
+                        fn=load_selected_model, inputs=model_selector, outputs=model_status_output
+                    )
+                    unload_model_btn.click(
+                        fn=unload_selected_model, inputs=model_selector, outputs=model_status_output
+                    )
 
                 with gr.TabItem("Advanced"):
                     gr.Markdown("### Jupyter & Custom Code")
-                    gr.Markdown("For advanced scientific analysis, launch Jupyter Notebook: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`")
+                    gr.Markdown(
+                        "For advanced scientific analysis, launch Jupyter Notebook: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`"
+                    )
                     with gr.Accordion("Custom Code Execution", open=False):
-                        code_input = gr.Code(label="Python Code", language="python", value='import pandas as pd\ndata = [{"subject": "Hello", "content": "World"}]\ndf = pd.DataFrame(data)\nprint(df.head())')
+                        code_input = gr.Code(
+                            label="Python Code",
+                            language="python",
+                            value='import pandas as pd\ndata = [{"subject": "Hello", "content": "World"}]\ndf = pd.DataFrame(data)\nprint(df.head())',
+                        )
                         run_code_button = gr.Button("Run Code")
                         code_output = gr.Textbox(label="Output", lines=10)
 
@@ -276,7 +338,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                             except Exception as e:
                                 return f"Error: {str(e)}"
 
-                        run_code_button.click(fn=run_custom_code, inputs=code_input, outputs=code_output)
+                        run_code_button.click(
+                            fn=run_custom_code, inputs=code_input, outputs=code_output
+                        )
 
         with gr.TabItem("⚙️ System Status"):
             gr.Markdown("## System Performance & Health")
@@ -289,14 +353,15 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     response = requests.get(f"{BASE_URL}/health")
                     if response.status_code == 200:
                         return response.json()
-                    return {"status": "unhealthy", "reason": f"API returned status {response.status_code}"}
+                    return {
+                        "status": "unhealthy",
+                        "reason": f"API returned status {response.status_code}",
+                    }
                 except Exception as e:
                     return {"status": "unhealthy", "reason": str(e)}
-            
+
             refresh_health_btn.click(fn=get_system_health, outputs=health_output)
 
-<<<<<<< HEAD
-=======
             start_training_btn.click(
                 fn=start_training_job,
                 inputs=[model_name_input, model_type_input, training_data_input, parameters_input],
@@ -398,9 +463,13 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
 
             # Search and filters
             with gr.Row():
-                search_box = gr.Textbox(label="Search", placeholder="Search subject, sender, content...")
+                search_box = gr.Textbox(
+                    label="Search", placeholder="Search subject, sender, content..."
+                )
                 category_filter = gr.Dropdown(["All"], label="Category", value="All")
-                read_filter = gr.Dropdown(["All", "Read", "Unread"], label="Read Status", value="All")
+                read_filter = gr.Dropdown(
+                    ["All", "Read", "Unread"], label="Read Status", value="All"
+                )
                 search_btn = gr.Button("Search", variant="primary")
 
             # Email list
@@ -408,7 +477,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 headers=["ID", "Date", "Sender", "Subject", "Category", "Status"],
                 label="Emails",
                 interactive=False,
-                value=[]
+                value=[],
             )
 
             # Pagination
@@ -416,7 +485,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 prev_btn = gr.Button("Previous")
                 page_input = gr.Number(label="Page", value=1, minimum=1, precision=0)
                 next_btn = gr.Button("Next")
-                page_size = gr.Number(label="Page Size", value=20, minimum=1, maximum=100, precision=0)
+                page_size = gr.Number(
+                    label="Page Size", value=20, minimum=1, maximum=100, precision=0
+                )
 
             # Details view
             selected_email_id = gr.State()
@@ -440,9 +511,21 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 cat_options = ["All"] + list(cats.keys())
                 emails = get_emails_list()
                 displayed = emails[:20]
-                return emails, displayed, cat_options, cat_options[1:] if len(cat_options) > 1 else [], 1
+                return (
+                    emails,
+                    displayed,
+                    cat_options,
+                    cat_options[1:] if len(cat_options) > 1 else [],
+                    1,
+                )
 
-            all_emails_state.value, email_table.value, category_filter.choices, change_category_dropdown.choices, current_page_state.value = load_initial_data()
+            (
+                all_emails_state.value,
+                email_table.value,
+                category_filter.choices,
+                change_category_dropdown.choices,
+                current_page_state.value,
+            ) = load_initial_data()
 
             # Search function
             def search_emails(search, category, read_status, page_size_val):
@@ -465,7 +548,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
             search_btn.click(
                 fn=search_emails,
                 inputs=[search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
             # Pagination functions
@@ -479,15 +562,19 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 return displayed, new_page, new_page
 
             prev_btn.click(
-                fn=lambda all_emails, page, page_size_val: go_to_page(all_emails, page, page_size_val, -1),
+                fn=lambda all_emails, page, page_size_val: go_to_page(
+                    all_emails, page, page_size_val, -1
+                ),
                 inputs=[all_emails_state, current_page_state, page_size],
-                outputs=[email_table, current_page_state, page_input]
+                outputs=[email_table, current_page_state, page_input],
             )
 
             next_btn.click(
-                fn=lambda all_emails, page, page_size_val: go_to_page(all_emails, page, page_size_val, 1),
+                fn=lambda all_emails, page, page_size_val: go_to_page(
+                    all_emails, page, page_size_val, 1
+                ),
                 inputs=[all_emails_state, current_page_state, page_size],
-                outputs=[email_table, current_page_state, page_input]
+                outputs=[email_table, current_page_state, page_input],
             )
 
             def change_page(all_emails, page, page_size_val):
@@ -499,7 +586,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
             page_input.change(
                 fn=change_page,
                 inputs=[all_emails_state, page_input, page_size],
-                outputs=[email_table, current_page_state]
+                outputs=[email_table, current_page_state],
             )
 
             # Select email for details
@@ -513,7 +600,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
             email_table.select(
                 fn=select_email,
                 inputs=[all_emails_state],
-                outputs=[selected_email_id, details_view]
+                outputs=[selected_email_id, details_view],
             )
 
             # Action functions
@@ -523,21 +610,32 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     if success:
                         # Refresh search
                         return search_emails(search, category, read_status, page_size_val)
-                return all_emails_state.value, email_table.value, current_page_state.value, page_input.value
+                return (
+                    all_emails_state.value,
+                    email_table.value,
+                    current_page_state.value,
+                    page_input.value,
+                )
 
             mark_read_btn.click(
-                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(email_id, False, search, category, read_status, page_size_val),
+                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(
+                    email_id, False, search, category, read_status, page_size_val
+                ),
                 inputs=[selected_email_id, search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
             mark_unread_btn.click(
-                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(email_id, True, search, category, read_status, page_size_val),
+                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(
+                    email_id, True, search, category, read_status, page_size_val
+                ),
                 inputs=[selected_email_id, search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
-            def change_category(email_id, new_category, search, category, read_status, page_size_val):
+            def change_category(
+                email_id, new_category, search, category, read_status, page_size_val
+            ):
                 if email_id and new_category and new_category != "All":
                     cats = get_categories()
                     cat_id = cats.get(new_category)
@@ -545,24 +643,34 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                         success = update_email(email_id, {"categoryId": cat_id})
                         if success:
                             return search_emails(search, category, read_status, page_size_val)
-                return all_emails_state.value, email_table.value, current_page_state.value, page_input.value
+                return (
+                    all_emails_state.value,
+                    email_table.value,
+                    current_page_state.value,
+                    page_input.value,
+                )
 
             change_category_btn.click(
                 fn=change_category,
-                inputs=[selected_email_id, change_category_dropdown, search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                inputs=[
+                    selected_email_id,
+                    change_category_dropdown,
+                    search_box,
+                    category_filter,
+                    read_filter,
+                    page_size,
+                ],
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
             # Re-analyze: for now, just trigger update without changes (assuming workflow re-runs)
             reanalyze_btn.click(
                 fn=lambda email_id: update_email(email_id, {}) if email_id else False,
                 inputs=[selected_email_id],
-                outputs=[]
+                outputs=[],
             )
 
 
-
 # To launch this app, you can run this file directly.
->>>>>>> 747c19c (Implement Gradio Email Retrieval and Filtering Tab)
 if __name__ == "__main__":
     iface.launch()
