@@ -20,7 +20,7 @@ training_jobs: Dict[str, Dict[str, Any]] = {}
 
 
 @router.post("/api/training/start")
-@log_performance("start_training")
+@log_performance(operation="start_training")
 async def start_training(model_config: ModelConfig, background_tasks: BackgroundTasks):
     """
     Start training a model with the given configuration.
@@ -52,7 +52,7 @@ async def start_training(model_config: ModelConfig, background_tasks: Background
 
 
 @router.get("/api/training/status/{job_id}")
-@log_performance("get_training_status")
+@log_performance(operation="get_training_status")
 async def get_training_status(job_id: str):
     """
     Get the status of a training job.

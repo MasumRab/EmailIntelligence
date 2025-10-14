@@ -216,13 +216,13 @@ async def set_active_workflow(
             # Legacy behavior for file-based workflows
             workflow_engine.set_active_workflow(workflow_name)
             return {"message": f"Active legacy workflow set to '{workflow_name}'."}
-        except ValueError as e:
-            raise HTTPException(status_code=404, detail=str(e))
-        except Exception as e:
-            logger.error(f"Failed to set active workflow: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=500, detail="An unexpected error occurred."
-            )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to set active workflow: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="An unexpected error occurred."
+        )
     
     
     @router.get("/api/workflows/{workflow_name}", response_model=dict)
