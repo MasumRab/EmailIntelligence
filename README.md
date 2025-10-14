@@ -147,24 +147,70 @@ Email Intelligence Platform (Gradio UI)
 
 ```
 .
-├── src/                  # Core modular Python backend (FastAPI + Gradio)
-│   ├── core/             # Core components (AI engine, database, workflows, etc.)
-│   └── main.py           # Application entry point
-├── modules/              # Modular extensions
-│   ├── categories/       # Category management module
-│   ├── default_ai_engine/# Default AI engine module
-│   └── workflows/        # Workflow management module
-├── backend/
-│   ├── node_engine/      # Node-based workflow engine and specialized email nodes
-│   └── python_nlp/       # NLP-specific modules and utilities (legacy)
-├── client/               # React/Vite frontend application
-├── server/               # TypeScript/Node.js backend application
-├── shared/               # Code/types shared between services
-│
-├── launch.py             # 🚀 Unified script to set up, manage, and run the project
-├── pyproject.toml        # Python dependency definitions (for uv)
-├── package.json          # Node.js workspace configuration
-│
+├── src/                        # Core platform components
+│   └── core/                   # Core components (AI engine, database, workflows, etc.)
+│       ├── advanced_workflow_engine.py # Advanced node-based workflow engine
+│       ├── security.py         # Security framework
+│       └── workflow_engine.py  # Basic workflow engine
+├── modules/                    # Reusable modules
+│   ├── categories/             # Category management module
+│   ├── default_ai_engine/      # Default AI engine module
+│   └── workflows/              # Workflow management module
+├── backend/                    # Backend services
+│   ├── data/                   # Data storage files
+│   ├── extensions/             # Backend extensions
+│   ├── plugins/                # Plugin implementations
+│   ├── python_backend/         # Main FastAPI application and Gradio UI
+│   │   ├── notebooks/          # Jupyter notebooks for analysis
+│   │   ├── tests/              # Backend tests
+│   │   ├── ai_engine.py        # AI analysis engine
+│   │   ├── category_routes.py  # Category management routes
+│   │   ├── database.py         # Database management
+│   │   ├── email_routes.py     # Email processing routes
+│   │   ├── enhanced_routes.py  # Enhanced feature routes
+│   │   ├── gradio_app.py       # Gradio UI application
+│   │   ├── main.py             # FastAPI main application
+│   │   ├── model_manager.py    # AI model management
+│   │   ├── models.py           # Pydantic models
+│   │   ├── performance_monitor.py # Performance monitoring
+│   │   ├── plugin_manager.py   # Plugin management
+│   │   ├── workflow_engine.py  # Workflow processing engine
+│   │   ├── workflow_manager.py # Workflow persistence
+│   │   ├── workflow_editor_ui.py # Node-based workflow editor UI
+│   │   ├── advanced_workflow_routes.py # Advanced workflow API routes
+│   │   └── ...                 # Other backend modules
+│   └── python_nlp/             # NLP-specific modules
+│       ├── analysis_components/ # NLP analysis components
+│       ├── tests/              # NLP tests
+│       ├── nlp_engine.py       # Core NLP engine
+│       ├── smart_filters.py    # Smart filtering system
+│       └── ...                 # Other NLP modules
+├── client/                     # React frontend application
+├── server/                     # TypeScript Node.js backend
+├── shared/                     # Shared code between services
+├── config/                     # Configuration files
+├── data/                       # Application data
+├── deployment/                 # Deployment configurations
+├── docs/                       # Documentation
+├── models/                     # ML models
+├── plugins/                    # Plugin implementations
+├── tests/                      # Test files
+├── .github/                    # GitHub configurations
+├── .config/                    # Configuration files
+├── .continue/                  # Continue configurations
+├── .openhands/                 # OpenHands configurations
+├── .qwen/                      # Qwen Code configurations
+├── jules-scratch/             # Scratch directory
+├── launch.py                   # Unified launcher script
+├── pyproject.toml              # Python project configuration
+├── package.json                # Node.js project configuration
+├── requirements.txt            # Python dependencies
+├── requirements-dev.txt        # Development dependencies
+├── run.py                      # Development server runner
+├── setup_linting.py            # Linting setup script
+├── setup_python.sh             # Python setup shell script
+├── SETUP.md                    # Manual setup guide
+├── QWEN.md                     # Development context
 └── ...
 ```
 
@@ -285,8 +331,40 @@ Use `python3 launch.py --help` to see all available options.
 -   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root. The data directory is now configurable via the `DATA_DIR` environment variable.
 -   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
 -   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
+-   **New Node-Based Workflow System:** The platform has been enhanced with a sophisticated node-based workflow system:
+
+    ### Core Components:
+    - **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
+    - **src/core/security.py**: Enterprise-grade security framework
+    - **backend/python_backend/workflow_editor_ui.py**: Visual workflow editor UI
+    - **backend/python_backend/advanced_workflow_routes.py**: API endpoints for workflow management
+
+    ### Key Features:
+    - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
+    - **Security Framework**: Multi-layer security with authentication, authorization, and audit logging
+    - **Extensibility**: Plugin system for adding new node types
+    - **Performance Monitoring**: Built-in metrics collection and monitoring
+    - **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
+
+    ### API Endpoints:
+    - `POST /api/workflows/advanced/workflows` - Create new workflows
+    - `GET /api/workflows/advanced/workflows` - List available workflows
+    - `GET /api/workflows/advanced/workflows/{id}` - Get specific workflow
+    - `PUT /api/workflows/advanced/workflows/{id}` - Update workflow
+    - `DELETE /api/workflows/advanced/workflows/{id}` - Delete workflow
+    - `POST /api/workflows/advanced/workflows/{id}/execute` - Execute workflow
+    - `GET /api/workflows/advanced/nodes` - List available node types
+    - `GET /api/workflows/advanced/execution/status` - Get execution status
+    - `POST /api/workflows/advanced/execution/cancel/{id}` - Cancel execution
 -   **Performance Monitoring:** The `@log_performance` decorator has been refactored for improved flexibility and direct logging to a file.
 -   **Dependency Management:** Enhanced testing for Node.js dependency installation ensures more robust setup.
+-   **Special Components:**
+    - **Model Manager**: Handles dynamic loading/unloading of AI models
+    - **Workflow Engine**: Manages configurable email processing workflows
+    - **Performance Monitor**: Tracks system performance metrics
+    - **Plugin Manager**: Enables extensible functionality
+    - **Security Manager**: Provides enterprise-grade security
+    - **Smart Filters**: Provides advanced email filtering capabilities
 
 
 ## Troubleshooting

@@ -472,3 +472,12 @@ class BatchOperationResponse(BaseModel):
     errors: List[Dict[str, Any]] = Field(default_factory=list)
 
     model_config = ConfigDict(validate_by_name=True)
+
+
+# API Response Models
+class BaseResponse(BaseModel):
+    """Base response model for all API responses"""
+    success: bool
+    message: str
+    data: Optional[Any] = None
+    error: Optional[str] = None

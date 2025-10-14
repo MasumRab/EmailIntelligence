@@ -114,7 +114,7 @@ class DatabaseManager:
             self._build_indexes()
             self._initialized = True
 
-    @log_performance("build_indexes")
+    @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
         logger.info("Building in-memory indexes...")
@@ -140,7 +140,7 @@ class DatabaseManager:
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
         logger.info("In-memory indexes built successfully.")
 
-    @log_performance("load_data")
+    @log_performance(operation="load_data")
     async def _load_data(self) -> None:
         """
         Loads data from JSON files into memory.
@@ -167,7 +167,7 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-    @log_performance("save_data_to_file")
+    @log_performance(operation="save_data_to_file")
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -470,7 +470,7 @@ class DatabaseManager:
         """Get emails by category"""
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
-    @log_performance("search_emails")
+    @log_performance(operation="search_emails")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
