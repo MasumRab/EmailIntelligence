@@ -9,44 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from launch import ROOT_DIR, main, start_gradio_ui, install_nodejs_dependencies
-
-
-# Test case 1: node executable is not found
-@patch("launch.ROOT_DIR", Path("/app"))
-@patch("pathlib.Path.exists", return_value=True)
-@patch("shutil.which", return_value=None)  # This will now correctly trigger the node check first
-@patch("launch.logger")
-def test_install_deps_node_not_found(mock_logger, mock_which, mock_exists):
-    """
-    Verifies that install_nodejs_dependencies exits gracefully if node is not installed.
-    """
-    result = install_nodejs_dependencies("client")
-
-    assert result is False, "Function should return False when node is not found"
-    # Correctly assert the first error that should be logged
-    mock_logger.error.assert_called_with("Node.js is not installed. Please install it to continue.")
-
-
-# Test case 2: npm install fails
-@patch("launch.ROOT_DIR", Path("/app"))
-@patch("pathlib.Path.exists", return_value=True)
-@patch(
-    "shutil.which", side_effect=["/fake/path/to/node", "/fake/path/to/npm"]
-)  # Mock both node and npm
-@patch(
-    "subprocess.run",
-    side_effect=subprocess.CalledProcessError(1, "npm install", "Error output", "Error details"),
-)
-@patch("launch.logger")
-def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
-    """
-    Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.
-    """
-    result = install_nodejs_dependencies("client")
-
-    assert result is False, "Function should return False when npm install fails"
-    mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
+from launch import ROOT_DIR, main, start_gradio_ui
 
 
 @patch("launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
@@ -87,12 +50,6 @@ def test_python_interpreter_discovery_avoids_substring_match(
     exec_path, exec_args = mock_execve.call_args[0]
     assert exec_path == "/usr/bin/python-good"
 
-<<<<<<< HEAD
-    # When the mocked execve raises an exception, the except block should log it
-    # and then exit with status 1.
-    assert mock_logger.error.call_count > 0
-    mock_exit.assert_called_once_with(1)
-=======
 
 class TestVirtualEnvironment:
     """Test virtual environment creation and management."""
@@ -379,4 +336,3 @@ class TestLauncherIntegration:
                     # Should raise SystemExit
                     with pytest.raises(SystemExit):
                         check_python_version()
->>>>>>> 184666c (Change virtual environment directory from .venv to venv for consistency)

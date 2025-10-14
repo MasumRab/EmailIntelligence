@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from server.python_backend.models import EmailCreate, EmailUpdate
-from server.python_backend.ai_engine import AIAnalysisResult
+from backend.python_backend.models import EmailCreate, EmailUpdate
+from backend.python_backend.ai_engine import AIAnalysisResult
 from datetime import datetime
 
 
