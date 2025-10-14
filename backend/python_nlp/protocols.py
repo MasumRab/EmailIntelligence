@@ -2,12 +2,12 @@
 Protocol definitions to avoid circular dependencies between modules.
 """
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from ..python_backend.database import DatabaseManager
     from ..python_backend.ai_engine import AdvancedAIEngine
+    from ..python_backend.database import DatabaseManager
 
 
 class DatabaseProtocol(ABC):

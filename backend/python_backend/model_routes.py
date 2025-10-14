@@ -3,8 +3,9 @@ API routes for managing AI models.
 """
 
 import logging
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Dict, Any
 
 from .dependencies import get_model_manager
 from .model_manager import ModelManager

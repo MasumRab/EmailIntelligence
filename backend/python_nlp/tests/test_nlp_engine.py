@@ -1,10 +1,17 @@
-import pytest
-from unittest.mock import patch, MagicMock
-import sys
 import os
+import sys
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Ensure the root directory is in the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+# Use __file__ to determine the script's location and calculate the project root dynamically
+script_dir = Path(__file__).resolve().parent
+project_root = (
+    script_dir.parent.parent.parent
+)  # Go up to main project directory from backend/python_nlp/tests/
+sys.path.insert(0, str(project_root))
 
 from backend.python_nlp.nlp_engine import NLPEngine
 
