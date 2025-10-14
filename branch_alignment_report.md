@@ -24,7 +24,36 @@
 9. **747c19c** - Implement Gradio Email Retrieval and Filtering Tab. Status: Already applied in main branch.
 10. **d163d4f** - feat: Resolve merge conflicts and integrate workflow engine updates. Status: Likely has extensive conflicts.
 
+## Final Alignment Status:
+- **Cherry-Picking Outcome**: Selective cherry-picking of key commits from 'scientific' to 'main' was attempted but aborted due to extensive conflicts in multiple files (e.g., main.py, models.py, README.md, performance logs). Successfully applied Qwen integration commits (474a5af, 9652bda) and Gradio UI enhancements.
+- **Branch Consolidation**: Created 'fixes-branch' to resolve conflicts in test_launcher.py and gradio_app.py, then merged into 'main'. Attempted rebase of 'scientific' onto 'main' and full merge, but both resulted in extensive conflicts across 50+ files due to significant divergence (202 commits in scientific vs 114 in main).
+- **Recommendation**: Branches have diverged too extensively for easy alignment. Suggest keeping 'scientific' as a separate feature branch or performing a full merge with manual conflict resolution if consolidation is desired. 'fixes-branch' can serve as a consolidated target with resolved conflicts.
+
+## Commit Differences Between fixes-branch and scientific Branches
+
+The following commits differ between `fixes-branch` and `scientific`, ordered from least impactful to most impactful based on total lines changed (insertions + deletions). This helps prioritize alignment efforts starting with low-risk changes.
+
+### Least Impactful Commits (Sample of Lowest Impact):
+1. **411677e** - Merge remote-tracking branch 'origin/scientific' into scientific (1 change)
+2. **474a5af** - qwen (1 change)
+3. **71d1961** - refactor: improve gmail api auth and error handling (1 change)
+4. **d094f0c** - Add RestrictedPython to dependencies to fix Gradio import error (1 change)
+5. **867b180** - copilot (1 change)
+6. **096f9ca** - Add backend data files (categories, emails, settings, users) (3 changes)
+7. **0b4fc65** - feat: Harden launch process and resolve merge conflicts (4 changes)
+8. **9f9bb34** - Update performance metrics from recent test runs (4 changes)
+9. **ef7ef30** - Add root redirect to Gradio UI and align with main branch goals (6 changes)
+10. **7dfb995** - Auto stash before merge of "scientific" and "origin/scientific" (6 changes)
+
+### Most Impactful Commits (Sample of Highest Impact):
+- **56b061b** - feat: Implement new Gradio UI for email retrieval and filtering (485,797 changes)
+- **b492553** - refactor: Improve CI workflow and fix module syntax errors (2,367 changes)
+- **307c9c6** - feat: Add static functional analysis report and refactoring plan (1,397 changes)
+- **7cf484b** - Implement architecture foundation: configuration management, error handling, service layer, API versioning, and standardized models (1,281 changes)
+
+For the full ordered list of all differing commits, refer to git logs: `git log --oneline --stat fixes-branch..scientific` and `git log --oneline --stat scientific..fixes-branch`.
+
 ## What needs to be done next:
-- **High Priority**: Cherry-pick commit `7cf484b` to align `launch.py` architecture foundation between branches.
-- **Medium Priority**: Review and potentially merge additional hardening commits for launch.py (e.g., merge conflict detection, security validation).
-- **Lower Priority**: Continue addressing workflow system Phase 2 (security/performance) and refine remaining documentation. Test the merged Gradio UI features in the main branch. If alignment succeeds, consider rebasing or merging remaining divergent features selectively.
+- **High Priority**: None - alignment attempts completed.
+- **Medium Priority**: Test merged Qwen and Gradio features in main branch; run lint/type checks.
+- **Lower Priority**: Review PR for 'fixes-branch' if applicable; update documentation on branch strategy.
