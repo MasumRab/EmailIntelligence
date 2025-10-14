@@ -30,7 +30,7 @@ The `launch.py` script is the unified entry point for managing the development e
     ```bash
     python launch.py --setup
     ```
-    This command creates the Python virtual environment (`.venv/`), installs all Python and Node.js dependencies, and downloads necessary NLTK data.
+    This command creates the Python virtual environment (`venv/`), installs all Python and Node.js dependencies, and downloads necessary NLTK data.
 
 -   **Run Development Servers**:
     ```bash
