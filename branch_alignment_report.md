@@ -54,15 +54,16 @@ The following commits differ between `fixes-branch` and `scientific`, ordered fr
 For the full ordered list of all differing commits, refer to git logs: `git log --oneline --stat fixes-branch..scientific` and `git log --oneline --stat scientific..fixes-branch`.
 
 ## Cherry-pick Progress
-Successfully cherry-picked 6 commits from scientific to fixes-branch, including recent additions: 9f9bb34, ef7ef30, 43fd643.
+Successfully cherry-picked 7 commits from scientific to fixes-branch, including recent additions: 9f9bb34, ef7ef30, 43fd643, 56a7f84. Attempted additional low-impact commits but encountered pervasive conflicts due to extensive branch divergence.
 
 ## Uncherry-picked Commits (Remaining Least Impactful)
-The following commits from the least impactful list were not successfully cherry-picked due to conflicts or being empty:
+The following commits from the least impactful list were not successfully cherry-picked due to conflicts, deletions, or divergence:
 - **411677e** - Merge remote-tracking branch 'origin/scientific' into scientific (merge commit, skipped)
 - **474a5af** - qwen (conflicted in .qwen/PROJECT_SUMMARY.md)
 - **867b180** - copilot (empty after resolution)
-- **0b4fc65** - feat: Harden launch process and resolve merge conflicts (not attempted due to lock issues)
+- **0b4fc65** - feat: Harden launch process and resolve merge conflicts (not attempted due to conflicts)
 - **7dfb995** - Auto stash before merge of "scientific" and "origin/scientific" (not attempted)
+- **7388cbe** - Fix style issues in imbox module (modify/delete conflict, module deleted in fixes-branch)
 
 ## What needs to be done next:
 - **High Priority**: None - alignment attempts completed.
