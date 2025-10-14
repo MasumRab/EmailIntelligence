@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
+<<<<<<< HEAD
 from launch import (
     PYTHON_MAX_VERSION,
     PYTHON_MIN_VERSION,
@@ -191,6 +192,9 @@ class TestServiceStartup:
             mock_run.assert_called_once_with(
                 ["npm", "install"], cwd=ROOT_DIR / "server", capture_output=True, text=True
             )
+=======
+from launch import ROOT_DIR, main, start_gradio_ui, install_nodejs_dependencies
+>>>>>>> main
 
 
 # Test case 1: node executable is not found
@@ -208,10 +212,17 @@ def test_install_deps_node_not_found(mock_logger, mock_which, mock_exists):
     # Correctly assert the first error that should be logged
     mock_logger.error.assert_called_with("Node.js is not installed. Please install it to continue.")
 
+
 # Test case 2: npm install fails
 @patch("launch.ROOT_DIR", Path("/app"))
 @patch("pathlib.Path.exists", return_value=True)
+<<<<<<< HEAD
 @patch("shutil.which", side_effect=["/fake/path/to/node", "/fake/path/to/npm"])  # Mock both node and npm
+=======
+@patch(
+    "shutil.which", side_effect=["/fake/path/to/node", "/fake/path/to/npm"]
+)  # Mock both node and npm
+>>>>>>> main
 @patch(
     "subprocess.run",
     side_effect=subprocess.CalledProcessError(1, "npm install", "Error output", "Error details"),
@@ -227,8 +238,36 @@ def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_
     mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
 
 
+<<<<<<< HEAD
 class TestMainFunction:
     """Test the main launcher function and argument parsing."""
+=======
+@patch("launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
+@patch("launch.sys.argv", ["launch.py"])
+@patch("launch.platform.system", return_value="Linux")
+@patch("launch.sys.version_info", (3, 10, 0))  # Incompatible version
+@patch("launch.shutil.which")
+@patch("launch.subprocess.run")
+@patch("launch.os.execv", side_effect=Exception("Called execve"))
+@patch("launch.sys.exit")
+@patch("launch.logger")
+def test_python_interpreter_discovery_avoids_substring_match(
+    mock_logger, mock_exit, mock_execve, mock_subprocess_run, mock_which, _mock_system
+):
+    """
+    Tests that the launcher does not incorrectly match partial version strings.
+    """
+    # Arrange
+    mock_which.side_effect = [
+        "/usr/bin/python-tricky",
+        "/usr/bin/python-good",
+        None,
+    ]
+    mock_subprocess_run.side_effect = [
+        MagicMock(stdout="Python 3.1.11", stderr="", returncode=0),  # Should be rejected
+        MagicMock(stdout="Python 3.12.5", stderr="", returncode=0),  # Should be accepted
+    ]
+>>>>>>> main
 
     @patch("launch.check_python_version")
     @patch("launch.parse_arguments")
@@ -244,6 +283,7 @@ class TestMainFunction:
         mock_args.env_file = None
         mock_parse.return_value = mock_args
 
+<<<<<<< HEAD
         with patch("launch.create_venv") as mock_create_venv:
             with patch("launch.install_uv") as mock_install_uv:
                 with patch("launch.setup_dependencies") as mock_setup_deps:
@@ -370,3 +410,15 @@ class TestLauncherIntegration:
                     # Should raise SystemExit
                     with pytest.raises(SystemExit):
                         check_python_version()
+=======
+    # Assert
+    mock_execve.assert_called_once()
+    # Correctly unpack the two arguments for os.execv
+    exec_path, exec_args = mock_execve.call_args[0]
+    assert exec_path == "/usr/bin/python-good"
+
+    # When the mocked execve raises an exception, the except block should log it
+    # and then exit with status 1.
+    assert mock_logger.error.call_count > 0
+    mock_exit.assert_called_once_with(1)
+>>>>>>> main

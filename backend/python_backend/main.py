@@ -10,19 +10,31 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+<<<<<<< HEAD
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 from ..plugins.plugin_manager import plugin_manager
+=======
+from fastapi.responses import JSONResponse
+
+# Updated import to use NLP GmailAIService directly
+from backend.python_nlp.gmail_service import GmailAIService
+>>>>>>> main
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from ..python_nlp.smart_filters import SmartFilterManager
+from backend.python_nlp.smart_filters import SmartFilterManager
+
 from . import (
+    action_routes,
+    ai_routes,
     category_routes,
+    dashboard_routes,
     email_routes,
     filter_routes,
     gmail_routes,
+<<<<<<< HEAD
     training_routes,
     workflow_routes,
     model_routes,
@@ -41,6 +53,14 @@ from .settings import settings
 # Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
 # Instead, dependencies are managed via dependency injection in the routes
 
+=======
+)
+from .ai_engine import AdvancedAIEngine
+
+# Import our Python modules
+from .performance_monitor import PerformanceMonitor
+from .database import db_manager
+>>>>>>> main
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -53,12 +73,10 @@ app = FastAPI(
     version=settings.app_version,
 )
 
-# Import the get_db function to access the database manager
-from .database import get_db
-
 
 @app.on_event("startup")
 async def startup_event():
+<<<<<<< HEAD
     """On startup, initialize all services."""
     logger.info("Application startup event received.")
 
@@ -82,15 +100,18 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
+=======
+    """Application startup: connect to the database."""
+    await db_manager.connect()
+>>>>>>> main
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """On shutdown, save any pending data."""
-    logger.info("Application shutdown event received.")
-    db = await get_db()
-    await db.shutdown()
+    """Application shutdown: disconnect from the database."""
+    await db_manager.close()
 
+<<<<<<< HEAD
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
@@ -98,6 +119,8 @@ async def app_exception_handler(request: Request, exc: AppException):
         status_code=exc.status_code,
         content=exc.detail,
     )
+=======
+>>>>>>> main
 
 
 @app.exception_handler(BaseAppException)
@@ -140,11 +163,24 @@ app.add_middleware(
 # Other shared request/response models like EmailResponse, CategoryResponse etc. are also in models.py.
 
 # Set up metrics if in production or staging environment
+<<<<<<< HEAD
 # if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
 # from .metrics import setup_metrics # Removed
 # setup_metrics(app) # Removed
+=======
+if os.getenv("NODE_ENV") in ["production", "staging"]:
+    from .metrics import setup_metrics
+>>>>>>> main
 
-# Services are now managed by the dependency injection system.
+    setup_metrics(app)
+
+# Initialize services
+# Services are now initialized within their respective route files
+# or kept here if they are used by multiple route files or for general app setup.
+gmail_service = GmailAIService()  # Used by gmail_routes
+filter_manager = SmartFilterManager()  # Used by filter_routes
+ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
+performance_monitor = PerformanceMonitor()  # Used by all routes via @performance_monitor.track
 
 # Include versioned API routers
 from .routes.v1.email_routes import router as email_router_v1
@@ -159,6 +195,7 @@ app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
+<<<<<<< HEAD
 app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
@@ -195,6 +232,11 @@ except ImportError:
     # Fallback if node engine is not available
     workflow_manager_instance = None
 
+=======
+app.include_router(action_routes.router)
+app.include_router(dashboard_routes.router)
+app.include_router(ai_routes.router)
+>>>>>>> main
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
@@ -206,6 +248,7 @@ async def health_check(request: Request):
     """System health check"""
     try:
         # Perform any necessary checks, e.g., DB connectivity if desired
+        # await db.execute_query("SELECT 1") # Example DB check
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),

@@ -28,7 +28,9 @@ def test_set_active_workflow(client, mock_workflow_engine):
 def test_set_nonexistent_active_workflow(client, mock_workflow_engine):
     """Tests setting a nonexistent workflow returns a 404."""
     # Configure the mock to raise a ValueError, as the real engine would
-    mock_workflow_engine.set_active_workflow.side_effect = ValueError("Workflow 'nonexistent' not found.")
+    mock_workflow_engine.set_active_workflow.side_effect = ValueError(
+        "Workflow 'nonexistent' not found."
+    )
 
     response = client.put("/api/workflows/active/nonexistent")
     assert response.status_code == 404
@@ -75,9 +77,14 @@ async def test_create_and_activate_new_workflow(client, mock_workflow_engine):
     )
 
     # 3. Verify the mocks were called as expected
+<<<<<<< HEAD
     expected_config = new_workflow_config.copy()
     expected_config.update({"workflow_type": "legacy", "nodes": [], "connections": []})
     mock_workflow_engine.create_and_register_workflow_from_config.assert_called_once_with(
         expected_config
+=======
+    mock_workflow_engine.create_and_register_workflow_from_config.assert_called_once_with(
+        new_workflow_config
+>>>>>>> main
     )
     mock_workflow_engine.set_active_workflow.assert_called_with("my_brand_new_workflow")

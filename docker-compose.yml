@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # SQLite doesn't require a dedicated database service like PostgreSQL
+  # The application uses a local sqlite.db file for storage
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - sqlite_data:/app/sqlite.db
+    environment:
+      - DATABASE_URL=sqlite.db
+    depends_on:
+      - redis  # If using redis for sessions/cache
+    # Add other services as needed
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  sqlite_data:
+  redis_data:

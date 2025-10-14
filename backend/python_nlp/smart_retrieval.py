@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 """
 Smart Gmail Retrieval with Advanced Filtering and Batching Strategies
 Implements intelligent filtering, date-based incremental sync, and optimized batch processing
 """
 
+=======
+>>>>>>> main
 import argparse
 import asyncio
 import json
@@ -20,13 +23,16 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+<<<<<<< HEAD
 
 load_dotenv()
+=======
+>>>>>>> main
 
-# Define constants for authentication
+load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
-CREDENTIALS_PATH = "credentials.json"  # Fallback
+CREDENTIALS_PATH = "credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 # Define the project's root directory and default path for the checkpoint database
@@ -36,13 +42,16 @@ DEFAULT_CHECKPOINT_DB_PATH = os.path.join(PROJECT_ROOT, "sync_checkpoints.db")
 
 @dataclass
 class RetrievalStrategy:
+<<<<<<< HEAD
     """Configuration for smart retrieval strategy"""
 
+=======
+>>>>>>> main
     name: str
     query_filter: str
-    priority: int  # 1-10, higher is more priority
+    priority: int
     batch_size: int
-    frequency: str  # hourly, daily, weekly
+    frequency: str
     max_emails_per_run: int
     include_folders: List[str]
     exclude_folders: List[str]
@@ -51,8 +60,11 @@ class RetrievalStrategy:
 
 @dataclass
 class SyncCheckpoint:
+<<<<<<< HEAD
     """Checkpoint for incremental synchronization"""
 
+=======
+>>>>>>> main
     strategy_name: str
     last_sync_date: datetime
     last_history_id: str
@@ -60,30 +72,26 @@ class SyncCheckpoint:
     next_page_token: Optional[str]
     errors_count: int
 
+<<<<<<< HEAD
 
 class SmartGmailRetriever:
     """Advanced Gmail retrieval with intelligent filtering and batching"""
 
     def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
+=======
+
+class SmartGmailRetriever:
+
+    def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
+        """Initializes the SmartGmailRetriever."""
+>>>>>>> main
         self.logger = logging.getLogger(__name__)
         self.checkpoint_db_path = checkpoint_db_path
-        self.logger.info(f"Using checkpoint database: {self.checkpoint_db_path}")
         self.gmail_service = None
         self._init_checkpoint_db()
-
-        creds = self._load_credentials()
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                try:
-                    creds.refresh(Request())
-                    self._store_credentials(creds)
-                except Exception as e:
-                    self.logger.error(f"Failed to refresh token: {e}")
-                    creds = self._authenticate()  # Try to re-authenticate
-            else:
-                creds = self._authenticate()
-
+        creds = self._load_credentials() or self._authenticate()
         if creds and creds.valid:
+<<<<<<< HEAD
             try:
                 self.gmail_service = build("gmail", "v1", credentials=creds)
                 self._store_credentials(creds)  # Save refreshed or new credentials
@@ -155,15 +163,26 @@ class SmartGmailRetriever:
     def _load_credentials(self) -> Optional[Credentials]:
         """Loads credentials from TOKEN_JSON_PATH if it exists."""
         creds = None
+=======
+            self.gmail_service = build("gmail", "v1", credentials=creds)
+
+    def _init_checkpoint_db(self):
+        with sqlite3.connect(self.checkpoint_db_path) as conn:
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS sync_checkpoints (strategy_name TEXT PRIMARY KEY, last_sync_date TEXT, last_history_id TEXT)"
+            )
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS retrieval_stats (date TEXT PRIMARY KEY, total_retrieved INTEGER, api_calls_used INTEGER)"
+            )
+
+    def _load_credentials(self) -> Optional[Credentials]:
+>>>>>>> main
         if os.path.exists(TOKEN_JSON_PATH):
-            try:
-                creds = Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
-                self.logger.info(f"Loaded credentials from {TOKEN_JSON_PATH}")
-            except Exception as e:
-                self.logger.error(f"Error loading credentials from {TOKEN_JSON_PATH}: {e}")
-        return creds
+            return Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
+        return None
 
     def _store_credentials(self, creds: Credentials):
+<<<<<<< HEAD
         """Stores credentials to TOKEN_JSON_PATH."""
         try:
             with open(TOKEN_JSON_PATH, "w") as token_file:
@@ -203,23 +222,47 @@ class SmartGmailRetriever:
                 return None  # Cannot proceed without client secrets
 
         if not flow:
+=======
+        with open(TOKEN_JSON_PATH, "w") as token_file:
+            token_file.write(creds.to_json())
+
+    def _authenticate(self) -> Optional[Credentials]:
+        flow = None
+        gmail_creds_json = os.getenv(GMAIL_CREDENTIALS_ENV_VAR)
+        if gmail_creds_json:
+            try:
+                self.logger.info(
+                    "Attempting authentication using GMAIL_CREDENTIALS_JSON environment variable."
+                )
+                creds_info = json.loads(gmail_creds_json)
+                flow = InstalledAppFlow.from_client_config(creds_info, SCOPES)
+            except json.JSONDecodeError:
+                self.logger.error(
+                    "Failed to parse GMAIL_CREDENTIALS_JSON. Ensure it is valid JSON."
+                )
+                return None
+        elif os.path.exists(CREDENTIALS_PATH):
+            self.logger.info(f"Attempting authentication using {CREDENTIALS_PATH} file.")
+            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
+        else:
             self.logger.error(
-                f"Authentication failed: No credentials found in GMAIL_CREDENTIALS_JSON or at {CREDENTIALS_PATH}"
+                f"Authentication failed: Neither GMAIL_CREDENTIALS_JSON environment variable is set nor the '{CREDENTIALS_PATH}' file was found."
+            )
+            return None
+        try:
+            creds = flow.run_local_server(port=0)
+            if creds:
+                self._store_credentials(creds)
+            return creds
+        except Exception as e:
+>>>>>>> main
+            self.logger.error(
+                f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
             )
             return None
 
-        try:
-            creds = flow.run_local_server(port=0)
-            self.logger.info("Authentication successful via local server flow.")
-        except Exception as e:
-            self.logger.error(f"Authentication flow failed: {e}")
-            return None
-
-        if creds:
-            self._store_credentials(creds)
-        return creds
-
     def get_optimized_retrieval_strategies(self) -> List[RetrievalStrategy]:
+<<<<<<< HEAD
         """Generate optimized retrieval strategies based on folder types and priorities"""
         strategies = []
         strategies.extend(
@@ -371,15 +414,24 @@ class SmartGmailRetriever:
             ]
         )
         return sorted(strategies, key=lambda x: x.priority, reverse=True)
+=======
+        return [
+            RetrievalStrategy(
+                "critical_inbox", "is:important", 10, 50, "hourly", 200, ["INBOX"], [], 1
+            )
+        ]
+>>>>>>> main
 
     def get_incremental_query(
         self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None
     ) -> str:
+<<<<<<< HEAD
         """Build incremental query based on checkpoint and strategy"""
+=======
+>>>>>>> main
         base_query = strategy.query_filter
-        self.logger.debug(f"Base query for strategy '{strategy.name}': {base_query}")
-
         if checkpoint and checkpoint.last_sync_date:
+<<<<<<< HEAD
             self.logger.info(
                 f"Found checkpoint for strategy '{strategy.name}' with last_sync_date: {checkpoint.last_sync_date}"
             )
@@ -419,6 +471,9 @@ class SmartGmailRetriever:
         self.logger.info(
             f"Generated incremental query for strategy '{strategy.name}': {base_query}"
         )
+=======
+            base_query += f" after:{int(checkpoint.last_sync_date.timestamp())}"
+>>>>>>> main
         return base_query
 
     async def execute_smart_retrieval(
@@ -427,19 +482,22 @@ class SmartGmailRetriever:
         max_api_calls: int = 100,
         time_budget_minutes: int = 30,
     ) -> Dict[str, Any]:
+<<<<<<< HEAD
         """Execute smart retrieval with multiple strategies and rate limiting"""
         self.logger.info(
             f"Starting smart retrieval. Max API calls: {max_api_calls}, Time budget: {time_budget_minutes} mins."
         )
+=======
+        """
+        Executes a series of retrieval strategies within given constraints.
+>>>>>>> main
 
-        if strategies is None:
-            strategies = self.get_optimized_retrieval_strategies()
-            self.logger.info(
-                f"No specific strategies provided, using {len(strategies)} optimized strategies."
-            )
-        else:
-            self.logger.info(f"Executing {len(strategies)} provided strategies.")
+        Args:
+            strategies: A list of strategies to execute. If None, uses default optimized strategies.
+            max_api_calls: The maximum number of API calls to make.
+            time_budget_minutes: The time limit in minutes for the retrieval process.
 
+<<<<<<< HEAD
         results = {
             "strategies_executed": [],
             "total_emails_retrieved": 0,
@@ -832,15 +890,54 @@ class SmartGmailRetriever:
                 processed_count=row[3] or 0,
                 next_page_token=row[4],
                 errors_count=row[5] or 0,
+=======
+        Returns:
+            A dictionary summarizing the results of the retrieval.
+        """
+        if not self.gmail_service:
+            return {"success": False, "error": "Gmail service not initialized."}
+        strategies = strategies or self.get_optimized_retrieval_strategies()
+        results = {"strategies_executed": [], "total_emails_retrieved": 0, "api_calls_used": 0}
+        start_time = datetime.now()
+        for strategy in strategies:
+            if (datetime.now() - start_time).total_seconds() / 60 > time_budget_minutes:
+                break
+            checkpoint = self._load_checkpoint(strategy.name)
+            query = self.get_incremental_query(strategy, checkpoint)
+            results["strategies_executed"].append(strategy.name)
+        return results
+
+    async def _fetch_email_batch(
+        self, query: str, batch_size: int, page_token: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Fetches a single batch of emails from the Gmail API."""
+        response = (
+            self.gmail_service.users()
+            .messages()
+            .list(userId="me", q=query, maxResults=batch_size, pageToken=page_token)
+            .execute()
+        )
+        return {
+            "messages": response.get("messages", []),
+            "nextPageToken": response.get("nextPageToken"),
+        }
+
+    def _load_checkpoint(self, strategy_name: str) -> Optional[SyncCheckpoint]:
+        with sqlite3.connect(self.checkpoint_db_path) as conn:
+            cursor = conn.execute(
+                "SELECT last_sync_date, last_history_id FROM sync_checkpoints WHERE strategy_name = ?",
+                (strategy_name,),
+>>>>>>> main
             )
-            self.logger.info(
-                f"Checkpoint loaded for '{strategy_name}': Last sync {loaded_checkpoint.last_sync_date}, Processed {loaded_checkpoint.processed_count}"
-            )
-            return loaded_checkpoint
-        self.logger.info(f"No checkpoint found for strategy: {strategy_name}")
+            row = cursor.fetchone()
+            if row:
+                return SyncCheckpoint(
+                    strategy_name, datetime.fromisoformat(row[0]), row[1], 0, None, 0
+                )
         return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
+<<<<<<< HEAD
         """Save sync checkpoint"""
         self.logger.info(
             f"Saving checkpoint for strategy '{checkpoint.strategy_name}': Last sync {checkpoint.last_sync_date}, Processed {checkpoint.processed_count}, HistoryID {checkpoint.last_history_id}"
@@ -1074,11 +1171,23 @@ async def run_example_usage():
     print(f"- Strategies executed: {len(results['strategies_executed'])}")
     analytics = retriever.get_retrieval_analytics(days=7)
     print(f"Analytics summary: {analytics['summary']}")
+=======
+        with sqlite3.connect(self.checkpoint_db_path) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO sync_checkpoints (strategy_name, last_sync_date, last_history_id) VALUES (?, ?, ?)",
+                (
+                    checkpoint.strategy_name,
+                    checkpoint.last_sync_date.isoformat(),
+                    checkpoint.last_history_id,
+                ),
+            )
+>>>>>>> main
 
 
 async def main_cli():
-    """Command-line interface for Smart Gmail Retriever"""
+    """Provides a command-line interface for the SmartGmailRetriever."""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
+<<<<<<< HEAD
     subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
 
     list_parser = subparsers.add_parser(
@@ -1195,4 +1304,19 @@ if __name__ == "__main__":
         logging.getLogger("google.auth.transport.requests").setLevel(logging.WARNING)
         logging.getLogger("oauth2client.client").setLevel(logging.WARNING)
 
+=======
+    parser.add_argument("command", choices=["list-strategies", "execute-strategies"])
+    args = parser.parse_args()
+    retriever = SmartGmailRetriever()
+    if args.command == "list-strategies":
+        strategies = retriever.get_optimized_retrieval_strategies()
+        print(json.dumps([asdict(s) for s in strategies], indent=2))
+    elif args.command == "execute-strategies":
+        results = await retriever.execute_smart_retrieval()
+        print(json.dumps(results, indent=2))
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+>>>>>>> main
     asyncio.run(main_cli())

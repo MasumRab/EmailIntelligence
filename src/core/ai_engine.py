@@ -82,6 +82,7 @@ class BaseAIEngine(ABC):
         """
         pass
 
+<<<<<<< HEAD
     @abstractmethod
     def train_models(self, training_data: Optional[Dict[str, Any]] = None):
         """
@@ -92,6 +93,8 @@ class BaseAIEngine(ABC):
         """
         pass
 
+=======
+>>>>>>> main
 
 # A placeholder for the active AI engine. In a real application, this would
 # be managed by a service locator or dependency injection system.

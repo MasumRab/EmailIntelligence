@@ -6,11 +6,20 @@ import pytest
 
 # Import the class to be tested and the constant
 from backend.python_backend.workflow_engine import (
+<<<<<<< HEAD
     WORKFLOWS_DIR,
     DefaultWorkflow,
     FileBasedWorkflow,
     WorkflowEngine,
 )
+=======
+    WorkflowEngine,
+    DefaultWorkflow,
+    FileBasedWorkflow,
+    WORKFLOWS_DIR,
+)
+
+>>>>>>> main
 
 # Mocks for dependencies
 @pytest.fixture
@@ -32,9 +41,14 @@ def mock_db_manager():
 def workflow_engine():
     """Provides a clean WorkflowEngine instance for each test."""
     return WorkflowEngine()
+<<<<<<< HEAD
     
     
     
+=======
+
+
+>>>>>>> main
 def test_register_workflow(workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager):
     """Tests that a workflow can be registered correctly."""
     mock_workflow = DefaultWorkflow(mock_ai_engine, mock_filter_manager, mock_db_manager)
@@ -59,8 +73,15 @@ def test_set_active_nonexistent_workflow(workflow_engine):
 
 
 @pytest.mark.asyncio
+<<<<<<< HEAD
 async def test_discover_workflows(workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager):
     """Tests that file-based workflows are discovered correctly."""
+=======
+async def test_discover_workflows(
+    workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager
+):
+    """Tests the discovery of code-based and file-based workflows."""
+>>>>>>> main
     mock_workflow_config = {
         "name": "my_file_workflow",
         "models": {"sentiment": "sentiment-default"},
@@ -68,9 +89,11 @@ async def test_discover_workflows(workflow_engine, mock_ai_engine, mock_filter_m
 
     m = mock_open(read_data=json.dumps(mock_workflow_config))
 
-    with patch("os.path.exists") as mock_exists, \
-         patch("os.listdir") as mock_listdir, \
-         patch("builtins.open", m):
+    with (
+        patch("os.path.exists") as mock_exists,
+        patch("os.listdir") as mock_listdir,
+        patch("builtins.open", m),
+    ):
 
         mock_exists.return_value = True
         mock_listdir.return_value = ["my_file_workflow.json"]
@@ -88,6 +111,7 @@ async def test_discover_workflows(workflow_engine, mock_ai_engine, mock_filter_m
         assert workflow_engine.active_workflow.name == "default"
 
 
+<<<<<<< HEAD
 
 
 
@@ -101,6 +125,13 @@ async def test_create_and_register_workflow(
 
     """Tests creating, saving, and registering a new workflow from a config."""
 
+=======
+@pytest.mark.asyncio
+async def test_create_and_register_workflow(
+    workflow_engine, mock_ai_engine, mock_filter_manager, mock_db_manager
+):
+    """Tests creating, saving, and registering a new workflow from a config."""
+>>>>>>> main
     new_config = {"name": "new_api_workflow", "models": {"topic": "topic-default"}}
     # Set up the engine with dependencies first
     workflow_engine._ai_engine = mock_ai_engine
