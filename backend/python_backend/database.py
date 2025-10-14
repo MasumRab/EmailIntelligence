@@ -176,7 +176,7 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-    @log_performance("save_data_to_file")
+    @log_performance(operation="save_data_to_file")
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -523,7 +523,7 @@ class DatabaseManager:
         """Get emails by category"""
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
-    @log_performance("search_emails")
+    @log_performance(operation="search_emails")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
