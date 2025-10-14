@@ -18,6 +18,8 @@ class PluginManager:
     """
 
     def __init__(self, plugin_folder: str = "plugins/"):
+        self.plugin_folder = plugin_folder
+        self.loaded_plugins: List[str] = []
 
     def discover_and_load_plugins(self, **kwargs):
         """
