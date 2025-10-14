@@ -119,6 +119,7 @@ class NLPEngine:
         # Initialize stop words if NLTK is available
         if HAS_NLTK:
             try:
+                import nltk
                 nltk.data.find("corpora/stopwords")
             except LookupError:
                 logger.info("NLTK 'stopwords' resource not found. Downloading...")
@@ -183,6 +184,7 @@ class NLPEngine:
         """
         try:
             if os.path.exists(model_path):
+                import joblib
                 model = joblib.load(model_path)
                 logger.info(f"Successfully loaded model from {model_path}")
                 return model

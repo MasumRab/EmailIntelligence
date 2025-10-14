@@ -4,9 +4,9 @@ from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
+from src.core.data.repository import EmailRepository, get_email_repository
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
-from .database import DatabaseManager, get_db
 from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
 from .workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError
@@ -25,7 +25,8 @@ async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
     search: Optional[str] = None,
-    db: DatabaseManager = Depends(get_db),
+    is_unread: Optional[bool] = None,
+    email_repo: EmailRepository = Depends(get_email_repository),
 ):
     """
     Retrieves a list of emails, with optional filtering by category and search term.
@@ -34,7 +35,8 @@ async def get_emails(
         request: The incoming request object.
         category_id: An optional category ID to filter emails.
         search: An optional search term to filter emails by subject, content, or sender.
-        db: The database manager dependency.
+        is_unread: An optional flag to filter unread emails.
+        email_repo: The email repository dependency.
 
     Returns:
         A list of emails that match the filtering criteria.
@@ -43,14 +45,13 @@ async def get_emails(
         HTTPException: If a database error occurs or if there's a validation error.
     """
     try:
-        if search and category_id is not None:
-            emails = await db.search_emails_by_category(search, category_id)
-        elif search:
-            emails = await db.search_emails(search)
-        elif category_id is not None:
-            emails = await db.get_emails_by_category(category_id)
+        if search:
+            emails = await email_repo.search_emails(search)
+            if category_id is not None:
+                emails = [email for email in emails if email.get("category_id") == category_id]
         else:
-            emails = await db.get_all_emails()
+            emails = await email_repo.get_emails(category_id=category_id, is_unread=is_unread)
+
         try:
             return [EmailResponse(**email) for email in emails]
         except Exception as e_outer:
@@ -82,16 +83,16 @@ async def get_emails(
         raise HTTPException(status_code=500, detail="Failed to fetch emails")
 
 
-@router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
+@router.get("/api/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="get_email")
-async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
+async def get_email(request: Request, email_id: int, email_repo: EmailRepository = Depends(get_email_repository)):
     """
     Retrieves a specific email by its unique ID.
 
     Args:
         request: The incoming request object.
         email_id: The ID of the email to retrieve.
-        db: The database manager dependency.
+        email_repo: The email repository dependency.
 
     Returns:
         The email object if found.
@@ -100,7 +101,7 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
-        email = await db.get_email_by_id(email_id)
+        email = await email_repo.get_email_by_id(email_id)
         if not email:
             raise HTTPException(status_code=404, detail="Email not found")
         try:
@@ -142,7 +143,7 @@ async def create_email(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
-    db: DatabaseManager = Depends(get_db),
+    email_repo: EmailRepository = Depends(get_email_repository),
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Create new email with AI analysis using the active workflow."""
@@ -151,7 +152,7 @@ async def create_email(
         processed_data = await workflow_engine.run_workflow(email.model_dump())
 
         # Create the email in the database with the processed data
-        created_email_dict = await db.create_email(processed_data)
+        created_email_dict = await email_repo.create_email(processed_data)
 
         try:
             return EmailResponse(**created_email_dict)
@@ -186,13 +187,13 @@ async def create_email(
         )
 
 
-@router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
+@router.put("/api/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="update_email")
 async def update_email(
     request: Request,
     email_id: int,
     email_update: EmailUpdate,
-    db: DatabaseManager = Depends(get_db),
+    email_repo: EmailRepository = Depends(get_email_repository),
 ):
     """
     Updates an existing email by its ID.
@@ -201,7 +202,7 @@ async def update_email(
         request: The incoming request object.
         email_id: The ID of the email to update.
         email_update: The email data to update.
-        db: The database manager dependency.
+        email_repo: The email repository dependency.
 
     Returns:
         The updated email object.
@@ -210,7 +211,7 @@ async def update_email(
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
-        updated_email_dict = await db.update_email(
+        updated_email_dict = await email_repo.update_email(
             email_id, email_update.model_dump(exclude_unset=True)
         )
         if not updated_email_dict:
