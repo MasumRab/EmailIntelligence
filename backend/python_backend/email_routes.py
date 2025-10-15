@@ -8,7 +8,7 @@ from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
 from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine, get_email_service
-from .workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
 from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
@@ -76,9 +76,7 @@ async def get_emails(
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @log_performance(operation="get_email")
 async def get_email(
-    request: Request, 
-    email_id: int, 
-    email_service: EmailService = Depends(get_email_service)
+    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
 ):
     """
     Retrieves a specific email by its unique ID.
@@ -127,12 +125,19 @@ async def create_email(
 ):
     """Create new email with AI analysis using the active workflow."""
     try:
-        # Run the active workflow to process the email data
-        processed_data = await workflow_engine.run_workflow(email.model_dump())
-        
+        # Run the default workflow to process the email data
+        # TODO: Implement proper workflow selection
+        from backend.node_engine.workflow_manager import workflow_manager
+
+        default_workflow = workflow_manager.create_sample_workflow()
+        execution_context = await workflow_engine.execute_workflow(
+            default_workflow, {"email_data": email.model_dump()}
+        )
+        processed_data = execution_context.outputs.get("processed_email", email.model_dump())
+
         # Add email through service layer
         result = await email_service.create_email(processed_data)
-        
+
         if result.success:
             return EmailResponse(**result.data)
         else:
@@ -175,9 +180,9 @@ async def update_email(
     try:
         # Convert EmailUpdate to dict for service layer, excluding unset values
         update_data = email_update.model_dump(exclude_unset=True)
-        
+
         result = await email_service.update_email(email_id, update_data)
-        
+
         if result.success:
             return EmailResponse(**result.data)
         else:

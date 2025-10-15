@@ -505,6 +505,7 @@ class BatchOperationResponse(BaseModel):
 # API Response Models
 class BaseResponse(BaseModel):
     """Base response model for all API responses"""
+
     success: bool
     message: str
     data: Optional[Any] = None

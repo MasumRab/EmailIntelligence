@@ -208,10 +208,13 @@ def test_install_deps_node_not_found(mock_logger, mock_which, mock_exists):
     # Correctly assert the first error that should be logged
     mock_logger.error.assert_called_with("Node.js is not installed. Please install it to continue.")
 
+
 # Test case 2: npm install fails
 @patch("launch.ROOT_DIR", Path("/app"))
 @patch("pathlib.Path.exists", return_value=True)
-@patch("shutil.which", side_effect=["/fake/path/to/node", "/fake/path/to/npm"])  # Mock both node and npm
+@patch(
+    "shutil.which", side_effect=["/fake/path/to/node", "/fake/path/to/npm"]
+)  # Mock both node and npm
 @patch(
     "subprocess.run",
     side_effect=subprocess.CalledProcessError(1, "npm install", "Error output", "Error details"),

@@ -89,6 +89,7 @@ class BaseAIEngine(ABC):
         """
         pass
 
+
 # A placeholder for the active AI engine. In a real application, this would
 # be managed by a service locator or dependency injection system.
 _active_ai_engine: Optional[BaseAIEngine] = None

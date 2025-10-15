@@ -1,8 +1,10 @@
-# Email Intelligence Platform - Modular AI Processing System
+# Email Intelligence Platform - Unified Node Engine Architecture
 
 ## Overview
 
-This document describes the transformation of the Email Intelligence Platform into a modular, extensible AI processing platform with node-based workflows, inspired by leading AI frameworks like ComfyUI, Automatic1111, and Stability-AI systems, while maintaining enterprise-grade security and scalability.
+This document describes the unified Node Engine architecture of the Email Intelligence Platform, which consolidates all workflow systems into a single, modular, extensible AI processing platform with node-based workflows. The Node Engine replaces the previous competing systems (Basic Workflow, Advanced Core) and provides a standardized, secure, and scalable foundation for email processing pipelines, inspired by leading AI frameworks like ComfyUI, Automatic1111, and Stability-AI systems.
+
+**Migration Note**: As of the latest update, all workflow functionality has been unified under the Node Engine. Legacy systems have been deprecated with warnings. All new development should use the Node Engine APIs.
 
 ## Architecture Overview
 
@@ -168,39 +170,47 @@ The system implements multiple layers of security:
 ### Creating a Simple Workflow
 
 ```python
-from src.core.advanced_workflow_engine import get_workflow_manager
-
-# Get the workflow manager
-wf_manager = get_workflow_manager()
+from backend.node_engine.workflow_manager import workflow_manager
+from backend.node_engine.node_base import Workflow
+from backend.node_engine.email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode
 
 # Create a new workflow
-workflow = wf_manager.create_workflow("Email Processing Pipeline")
+workflow = Workflow(name="Email Processing Pipeline")
 
 # Add nodes
-input_node_id = workflow.add_node("email_input", x=0, y=0)
-nlp_node_id = workflow.add_node("nlp_processor", x=200, y=0)
-output_node_id = workflow.add_node("email_output", x=400, y=0)
+input_node = EmailSourceNode(node_id="input_1", name="Email Input")
+nlp_node = PreprocessingNode(node_id="nlp_1", name="NLP Processor")
+output_node = AIAnalysisNode(node_id="output_1", name="AI Analysis")
+
+workflow.add_node(input_node)
+workflow.add_node(nlp_node)
+workflow.add_node(output_node)
 
 # Connect nodes
-workflow.add_connection(input_node_id, "email", nlp_node_id, "email")
-workflow.add_connection(nlp_node_id, "analysis", output_node_id, "analysis")
+from backend.node_engine.node_base import Connection
+workflow.add_connection(Connection("input_1", "emails", "nlp_1", "emails"))
+workflow.add_connection(Connection("nlp_1", "processed_emails", "output_1", "emails"))
 
 # Save the workflow
-wf_manager.save_workflow(workflow)
+file_path = workflow_manager.save_workflow(workflow)
 ```
 
 ### Executing a Workflow
 
 ```python
+from backend.node_engine.workflow_engine import workflow_engine
+
 # Execute with sample data
-result = await wf_manager.execute_workflow(
-    workflow.workflow_id,
+execution_context = await workflow_engine.execute_workflow(
+    workflow,
     initial_inputs={
-        "email_data": {
-            "subject": "Sample Email",
-            "content": "This is a sample email for processing",
-            "sender": "sender@example.com"
-        }
+        "emails": [
+            {
+                "subject": "Sample Email",
+                "content": "This is a sample email for processing",
+                "sender": "sender@example.com"
+            }
+        ]
     }
 )
 ```

@@ -2,13 +2,14 @@
 Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
 """
+
 from typing import Generator, AsyncGenerator
 from fastapi import Depends
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
 from backend.python_backend.ai_engine import AdvancedAIEngine
 from backend.python_nlp.smart_filters import SmartFilterManager
-from backend.python_backend.workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_engine import WorkflowEngine
 from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_backend.model_manager import ModelManager
 from backend.python_backend.database import get_db
