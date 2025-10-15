@@ -2,7 +2,7 @@
     "branch": "scientific",
     "model": "qwen-7b",
     "temperature": 0.0,
-    "max_tokens": 1024,
+    "max_tokens": 4096,
     "system_instructions": "You are an assistant specialized for the EmailIntelligence 'scientific' branch. Prefer concise, evidence-based responses and preserve any internal naming conventions. When answering, reference project files when relevant.",
     "safety": {
         "filter_sensitive": true,

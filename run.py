@@ -6,7 +6,6 @@ suitable for development purposes. It ensures that the application reloads
 automatically when code changes are detected.
 """
 
-import uvicorn
 import os
 import sys
 from pathlib import Path

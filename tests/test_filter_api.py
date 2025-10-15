@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from server.python_backend.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
-from server.python_nlp.smart_filters import EmailFilter
+from backend.python_backend.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
+from backend.python_nlp.smart_filters import EmailFilter
 from datetime import datetime
 
 

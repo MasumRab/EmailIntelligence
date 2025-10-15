@@ -3,16 +3,16 @@ An example plugin that registers a new workflow.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
+
+from backend.python_backend.ai_engine import AdvancedAIEngine
+from backend.python_backend.database import DatabaseManager
+from backend.python_nlp.smart_filters import SmartFilterManager
 
 # Note: Plugins need to import from the main application's modules.
 # This requires the main application to be installed as a package or
 # for the PYTHONPATH to be set up correctly.
 from backend.python_backend.workflow_engine import BaseWorkflow, WorkflowEngine
-from backend.python_backend.ai_engine import AdvancedAIEngine
-from backend.python_nlp.smart_filters import SmartFilterManager
-from backend.python_backend.database import DatabaseManager
-
 
 logger = logging.getLogger(__name__)
 

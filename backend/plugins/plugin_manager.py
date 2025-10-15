@@ -4,14 +4,14 @@ Plugin Manager for Email Intelligence Platform
 Manages the loading, registration, and execution of plugins in the system.
 """
 
-import os
 import importlib
 import inspect
-from typing import Dict, List, Type, Any, Optional
-from pathlib import Path
 import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Type
 
-from backend.plugins.base_plugin import BasePlugin, UIComponentPlugin, ProcessingNode
+from backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
 
 logger = logging.getLogger(__name__)
 
