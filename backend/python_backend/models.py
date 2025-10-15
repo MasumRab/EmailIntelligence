@@ -157,6 +157,16 @@ class ActivityResponse(ActivityBase):
 
 
 # AI Analysis Models
+class ActionItem(BaseModel):
+    """Model representing a single extracted action item from an email."""
+
+    action_phrase: str
+    verb: Optional[str] = None
+    object: Optional[str] = None
+    raw_due_date_text: Optional[str] = None
+    context: str
+
+
 class AIAnalysisResponse(BaseModel):
     """Model representing the detailed output of an AI email analysis."""
 
@@ -209,16 +219,6 @@ class ActionExtractionRequest(BaseModel):
 
     subject: Optional[str] = None
     content: str
-
-
-class ActionItem(BaseModel):
-    """Model representing a single extracted action item from an email."""
-
-    action_phrase: str
-    verb: Optional[str] = None
-    object: Optional[str] = None
-    raw_due_date_text: Optional[str] = None
-    context: str
 
 
 # Gmail Sync Models

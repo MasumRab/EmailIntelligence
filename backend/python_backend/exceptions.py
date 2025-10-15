@@ -90,6 +90,30 @@ class DatabaseError(AppException):
         )
 
 
+class AIAnalysisError(AppException):
+    """Raised when AI analysis fails"""
+    
+    def __init__(self, message: str, details: Optional[str] = None):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message=message,
+            error_code="AI_ANALYSIS_ERROR",
+            details=details
+        )
+
+
+class GmailServiceError(AppException):
+    """Raised when Gmail service operations fail"""
+    
+    def __init__(self, message: str, details: Optional[str] = None):
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message=message,
+            error_code="GMAIL_SERVICE_ERROR",
+            details=details
+        )
+
+
 class UnauthorizedException(AppException):
     """Raised when authentication/authorization fails"""
     
