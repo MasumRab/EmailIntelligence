@@ -3,7 +3,7 @@ A simple, placeholder sentiment analysis model.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -11,8 +11,10 @@ logger = logging.getLogger(__name__)
 class SentimentModel:
     """A basic sentiment model for demonstration purposes."""
 
-    def __init__(self):
+    def __init__(self, sentiment_model=None, has_nltk_installed=False):
         logger.info("SentimentModel instance created.")
+        self.model = sentiment_model
+        self.has_nltk = has_nltk_installed
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """

@@ -6,7 +6,8 @@ Data validation and serialization models for the core application and modules.
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # A default color for categories, can be moved to a config file later
 DEFAULT_CATEGORY_COLOR = "#FFFFFF"
