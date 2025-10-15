@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 def mock_performance_monitor():
     """Fixture to mock the performance monitor used in dashboard routes."""
     with patch(
-        "server.python_backend.dashboard_routes.performance_monitor", new_callable=AsyncMock
+        "backend.python_backend.dashboard_routes.performance_monitor", new_callable=AsyncMock
     ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm
