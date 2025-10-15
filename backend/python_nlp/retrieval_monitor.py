@@ -15,7 +15,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-
 RETRIEVAL_LOG_FILE = "retrieval_metrics_log.jsonl"
 LOG_INTERVAL_SECONDS = 300
 
@@ -43,6 +42,7 @@ class RetrievalMetrics:
         latency_ms: The average latency in milliseconds.
         quota_consumed: The amount of API quota consumed.
     """
+
     strategy_name: str
     timestamp: datetime
     emails_retrieved: int
@@ -65,6 +65,7 @@ class AdaptiveThresholds:
         max_latency_ms: The maximum acceptable latency in milliseconds.
         min_retrieval_rate: The minimum acceptable retrieval rate in emails per second.
     """
+
     min_efficiency: float = 5.0
     max_error_rate: float = 0.05
     max_latency_ms: float = 2000.0
@@ -146,7 +147,9 @@ class RetrievalMonitor:
         trends = self.performance_trends[metrics.strategy_name]
         trends.append(trend_data)
         cutoff = datetime.now() - timedelta(hours=24)
-        self.performance_trends[metrics.strategy_name] = [t for t in trends if t["timestamp"] > cutoff]
+        self.performance_trends[metrics.strategy_name] = [
+            t for t in trends if t["timestamp"] > cutoff
+        ]
 
     def get_real_time_dashboard(self) -> Dict[str, Any]:
         """
@@ -185,23 +188,44 @@ class RetrievalMonitor:
         for name, metrics in self.metrics_buffer.items():
             if not metrics:
                 continue
-            summaries.append({"strategy_name": name, "avg_efficiency": round(statistics.mean(m.api_efficiency for m in metrics), 2)})
+            summaries.append(
+                {
+                    "strategy_name": name,
+                    "avg_efficiency": round(statistics.mean(m.api_efficiency for m in metrics), 2),
+                }
+            )
         return summaries
 
     def _get_active_alerts(self) -> List[Dict[str, Any]]:
         """Returns a list of currently active performance alerts."""
         alerts = []
         for name, metrics_list in self.metrics_buffer.items():
-            if metrics_list and (latest := metrics_list[-1]).api_efficiency < self.alert_thresholds.min_efficiency:
-                alerts.append({"type": "low_efficiency", "strategy": name, "value": latest.api_efficiency})
+            if (
+                metrics_list
+                and (latest := metrics_list[-1]).api_efficiency
+                < self.alert_thresholds.min_efficiency
+            ):
+                alerts.append(
+                    {"type": "low_efficiency", "strategy": name, "value": latest.api_efficiency}
+                )
         return alerts
 
     def _generate_optimization_recommendations(self) -> List[Dict[str, Any]]:
         """Generates recommendations for optimizing retrieval strategies."""
         recommendations = []
         for name, metrics_list in self.metrics_buffer.items():
-            if metrics_list and statistics.mean(m.api_efficiency for m in metrics_list) < self.alert_thresholds.min_efficiency:
-                recommendations.append({"type": "efficiency", "strategy": name, "recommendation": "Increase batch size"})
+            if (
+                metrics_list
+                and statistics.mean(m.api_efficiency for m in metrics_list)
+                < self.alert_thresholds.min_efficiency
+            ):
+                recommendations.append(
+                    {
+                        "type": "efficiency",
+                        "strategy": name,
+                        "recommendation": "Increase batch size",
+                    }
+                )
         return recommendations
 
     def apply_adaptive_optimization(self, strategy_name: str) -> Dict[str, Any]:
@@ -217,7 +241,6 @@ class RetrievalMonitor:
         if strategy_name not in self.metrics_buffer:
             return {"success": False, "error": "Strategy not found"}
         return {"success": True, "optimizations_applied": 0}
-
 
     def get_optimization_history(self, days: int = 7) -> List[Dict[str, Any]]:
         """

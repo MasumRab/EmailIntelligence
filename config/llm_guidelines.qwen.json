@@ -1,0 +1,10 @@
+{
+    "branch": "qwen",
+    "model": "qwen-7b",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "system_instructions": "QWEN preset: concise, research-oriented responses, cite files or docs when relevant.",
+    "safety": {
+        "filter_sensitive": true
+    }
+}

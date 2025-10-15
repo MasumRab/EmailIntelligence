@@ -18,7 +18,7 @@ This directory contains the server-side components of the EmailIntelligence appl
   - `storage.ts` - File storage utilities
   - `vite.ts` - Vite configuration for serving the frontend
 
-- **python_backend/**: Contains the Python FastAPI backend
+- **backend/python_backend/**: Contains the Python FastAPI backend
   - `main.py` - Main entry point for the FastAPI server
   - `run_server.py` - Script to run the FastAPI server
   - `ai_engine.py` - AI engine implementation
@@ -29,7 +29,7 @@ This directory contains the server-side components of the EmailIntelligence appl
   - `performance_monitor.py` - Performance monitoring utilities
   - `smart_filters.py` - Smart filtering implementation
 
-- **python_nlp/**: Contains the core NLP and AI functionality
+- **backend/python_nlp/**: Contains the core NLP and AI functionality
   - `nlp_engine.py` - Core NLP engine implementation
   - `ai_training.py` - Model training utilities
   - `gmail_integration.py` - Gmail API integration
@@ -53,7 +53,7 @@ npm run dev
 
 ```bash
 # From the project root
-python server/python_backend/run_server.py
+python backend/python_backend/run_server.py
 ```
 
 Or use the unified launcher:

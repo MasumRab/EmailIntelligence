@@ -1,0 +1,8 @@
+{
+    "name": "topic-default",
+    "type": "topic",
+    "class": "TopicModel",
+    "module": "backend.python_nlp.analysis_components.topic_model",
+    "description": "A default topic analysis model.",
+    "memory_req": "256MB"
+}

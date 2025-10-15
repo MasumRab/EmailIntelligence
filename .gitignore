@@ -41,6 +41,7 @@ ENV/
 token.json
 credentials.json
 apikey.json
+.config/.semgrep/settings.yml
 
 # Build / packaging
 build/
@@ -64,7 +65,6 @@ coverage/
 
 # IDEs / editors
 .vscode/
-.vscode/settings.json
 .idea/
 *.iml
 *.sublime-project
@@ -79,9 +79,17 @@ diagnosis_message.txt
 *.local.yml
 config.local.*
 config/*.local.*
+performance_metrics_log.jsonl
+.qwen/PROJECT_SUMMARY.md
 
 # Keep the docs placeholder
 !docs/.gitkeep
 
 # Ignore the jsons folder which may contain local data/secrets
 jsons/
+ 
+# Ignore local LLM guideline overrides so developers can keep ephemeral configs
+config/llm_guidelines.local.json
+
+.gemini/
+gha-creds-*.json

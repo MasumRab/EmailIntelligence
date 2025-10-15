@@ -1,203 +1,121 @@
-# EmailIntelligence Setup Guide
+# Manual Setup & Troubleshooting Guide
 
-This guide will help you set up the EmailIntelligence application in a fresh environment.
+This document provides instructions for manual environment setup and solutions to common problems. For most users, the automated `launch.py` script is the recommended way to manage the project.
 
-## Prerequisites
+**Primary Method:** Use the [main README.md guide](README.md) and the `launch.py` script for a one-command setup and launch experience.
 
-Before starting, ensure you have the following installed:
+## Table of Contents
+- [When to Use This Guide](#when-to-use-this-guide)
+- [Manual Environment Setup](#manual-environment-setup)
+  - [1. Python Environment (venv)](#1-python-environment-venv)
+  - [2. Node.js Dependencies](#2-nodejs-dependencies)
+- [Manual Execution](#manual-execution)
+  - [Running the Python Backend](#running-the-python-backend)
+  - [Running the Gradio UI](#running-the-gradio-ui)
+  - [Running the Node.js Services](#running-the-nodejs-services)
+- [Troubleshooting](#troubleshooting)
 
-- **Python 3.11+** - [Download Python](https://python.org/downloads/)
-- **Node.js 18+** - [Download Node.js](https://nodejs.org/)
-- **npm** (comes with Node.js)
-- **Git** - [Download Git](https://git-scm.com/)
+## When to Use This Guide
 
-## Quick Setup (Automated)
+You should only need this guide if:
+- The `python3 launch.py --setup` command fails for an unknown reason.
+- You want to set up the environment manually for debugging purposes.
+- You need to run individual components of the application without using the launcher.
 
-1. Clone the repository and checkout the scientific branch:
-```bash
-git clone https://github.com/MasumRab/EmailIntelligence.git
-cd EmailIntelligence
-git checkout scientific
-```
+## Manual Environment Setup
 
-2. Run the automated setup script:
-```bash
-./setup.sh
-```
+### 1. Python Environment (venv)
 
-The script will automatically:
-- Create a Python virtual environment
-- Install all Python dependencies using uv
-- Install all Node.js dependencies
-- Verify the setup
-
-## Manual Setup
-
-If you prefer to set up manually or the automated script fails:
-
-### 1. Python Backend Setup
+This process creates a virtual environment and installs all Python packages using `uv`.
 
 ```bash
-# Create and activate virtual environment
+# 1. Create a Python 3.12 virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install uv package manager (recommended)
-pip install uv
-
-# Install dependencies with uv (faster and more reliable)
-uv sync
-
-# Alternative: Install with pip
-# pip install -e .
-```
-
-### 2. Node.js Frontend Setup
-
-```bash
-# Navigate to client directory
-cd client
-
-# Install dependencies
-npm install
-
-# Return to root directory
-cd ..
-```
-
-## Running the Application
-
-### Start Backend Server
-
-```bash
-# Activate virtual environment (if not already active)
+# 2. Activate the virtual environment
+# On Linux/macOS:
 source venv/bin/activate
+# On Windows:
+# venv\Scripts\activate
 
-# Start the FastAPI backend server
-python3 backend/main.py
+# 3. Install the 'uv' package manager into the venv
+pip install -U uv
+
+# 4. Install all project dependencies from pyproject.toml
+# The --all-extras flag includes development dependencies (for testing, etc.)
+uv sync --active --all-extras
+
+# 5. Download NLTK data
+python -c "import nltk; [nltk.download(d, quiet=True) for d in ['punkt', 'stopwords', 'wordnet', 'vader_lexicon', 'averaged_perceptron_tagger', 'brown']]"
 ```
 
-The backend will be available at: http://localhost:8000
+### 2. Node.js Dependencies
 
-### Start Frontend Development Server
-
-In a new terminal:
+This process installs dependencies for both the frontend client and the TypeScript backend.
 
 ```bash
-# Navigate to client directory
-cd client
+# 1. Install dependencies for the React client
+npm install --prefix client
 
-# Start Vite development server
-npm run dev
+# 2. Install dependencies for the TypeScript server
+npm install --prefix server
 ```
 
-The frontend will be available at: http://localhost:5173
+## Manual Execution
 
-## Alternative: Using the Launcher
+If you want to run services individually, first activate the Python virtual environment (`source venv/bin/activate`), then run the following commands in separate terminal windows.
 
-The application includes a Python-based launcher that can start both backend and frontend:
+### Running the Python Backend
 
 ```bash
-# Activate virtual environment
-source venv/bin/activate
-
-# Use the launcher
-python3 launcher.py --help
+uvicorn backend.python_backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-## Verification
+### Running the Gradio UI
 
-To verify your setup is working:
+```bash
+python backend/python_backend/gradio_app.py
+```
 
-1. **Backend API**: Visit http://localhost:8000/docs to see the FastAPI documentation
-2. **Frontend**: Visit http://localhost:5173 to see the React application
-3. **API Connection**: The frontend should be able to connect to the backend API
+### Running the Node.js Services
+
+```bash
+# To run the frontend client (http://localhost:5173)
+npm run dev --prefix client
+
+# To run the TypeScript backend
+npm run dev --prefix server
+```
 
 ## Troubleshooting
 
-### Common Issues
+-   **`ModuleNotFoundError` in Python:**
+    Your virtual environment is likely corrupted or wasn't activated.
+    1.  Ensure your venv is active: `source venv/bin/activate`.
+    2.  If the error persists, force a clean setup with the launcher: `python3 launch.py --setup --force-recreate-venv`.
 
-1. **Python version error**: Ensure you have Python 3.11 or higher
-   ```bash
-   python3 --version
-   ```
+-   **`uv` fails with cache errors:**
+    Sometimes the `uv` cache can become corrupted. Clear it and reinstall.
+    ```bash
+    uv cache clean
+    uv sync --active --all-extras --reinstall
+    ```
 
-2. **Node.js version error**: Ensure you have Node.js 18 or higher
-   ```bash
-   node --version
-   ```
+-   **Node.js `npm install` fails:**
+    This can be due to a corrupted cache or lockfile.
+    ```bash
+    # For the client
+    rm -rf client/node_modules client/package-lock.json
+    npm install --prefix client
 
-3. **Permission denied on setup.sh**: Make the script executable
-   ```bash
-   chmod +x setup.sh
-   ```
+    # For the server
+    rm -rf server/node_modules server/package-lock.json
+    npm install --prefix server
+    ```
 
-4. **Import errors**: Ensure virtual environment is activated
-   ```bash
-   source venv/bin/activate
-   ```
-
-5. **Frontend build errors**: Clear npm cache and reinstall
-   ```bash
-   cd client
-   npm cache clean --force
-   rm -rf node_modules package-lock.json
-   npm install
-   ```
-
-6. **Port conflicts**: If ports 8000 or 5173 are in use, you can change them:
-   - Backend: Set `PORT` environment variable
-   - Frontend: Use `npm run dev -- --port 3000`
-
-### Dependencies Issues
-
-If you encounter dependency conflicts:
-
-1. **Python dependencies**: Use uv for better dependency resolution
-   ```bash
-   uv sync --refresh
-   ```
-
-2. **Node.js dependencies**: Update to latest compatible versions
-   ```bash
-   cd client
-   npm update
-   ```
-
-## Development Workflow
-
-1. **Backend development**: 
-   - Edit files in `backend/`
-   - The server auto-reloads on changes
-   - API docs at http://localhost:8000/docs
-
-2. **Frontend development**:
-   - Edit files in `client/src/`
-   - Vite provides hot module replacement
-   - Uses shadcn/ui components with Tailwind CSS
-
-3. **Shared types**:
-   - Edit files in `shared/`
-   - Used by both backend and frontend
-
-## Production Deployment
-
-For production deployment:
-
-1. **Build frontend**:
-   ```bash
-   cd client
-   npm run build
-   ```
-
-2. **Configure backend** for production (set environment variables)
-
-3. **Use a production WSGI server** like Gunicorn or Uvicorn
-
-## Additional Resources
-
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [React Documentation](https://react.dev/)
-- [Vite Documentation](https://vitejs.dev/)
-- [shadcn/ui Documentation](https://ui.shadcn.com/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/)
+-   **Port Conflicts (`Address already in use`):**
+    If a port (e.g., 8000, 5173) is in use, you can either stop the conflicting process or use the launcher's flags to change ports.
+    ```bash
+    # Run Python backend on port 8001
+    python3 launch.py --port 8001
+    ```

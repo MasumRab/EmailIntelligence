@@ -35,7 +35,7 @@ sleep 5
 set -e
 
 PYTHON_ALIAS="python3" # Or python, if python3 is not standard
-VENV_DIR=".venv"
+VENV_DIR="venv"
 
 # Check if Python 3 is installed
 if ! command -v $PYTHON_ALIAS &> /dev/null

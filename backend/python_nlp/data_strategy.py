@@ -29,6 +29,7 @@ class EmailSample:
         labels: A dictionary of ground truth labels for the email.
         metadata: A dictionary for storing additional context or metadata.
     """
+
     id: str
     subject: str
     content: str
@@ -57,6 +58,7 @@ class AnnotationSchema:
         confidence: The confidence score of the annotation.
         annotator_id: The ID of the annotator for quality tracking.
     """
+
     topic: str
     sentiment: str
     intent: str
@@ -151,13 +153,23 @@ class DataCollectionStrategy:
                 "subject": "Q4 Budget Review Meeting - Urgent Action Required",
                 "content": "Hi team, we need to finalize the Q4 budget by tomorrow. Please review the attached spreadsheet and provide your feedback ASAP. This is critical for our quarterly planning.",
                 "sender": "manager@company.com",
-                "labels": {"topic": "work_business", "sentiment": "neutral", "intent": "request", "urgency": "high"},
+                "labels": {
+                    "topic": "work_business",
+                    "sentiment": "neutral",
+                    "intent": "request",
+                    "urgency": "high",
+                },
             },
             {
                 "subject": "Happy Birthday! Family Gathering This Weekend",
                 "content": "Hey everyone! Don't forget about Dad's birthday party this Saturday. We're meeting at the park at 2 PM. Bring your favorite dish to share!",
                 "sender": "sister@gmail.com",
-                "labels": {"topic": "personal_family", "sentiment": "positive", "intent": "information", "urgency": "medium"},
+                "labels": {
+                    "topic": "personal_family",
+                    "sentiment": "positive",
+                    "intent": "information",
+                    "urgency": "medium",
+                },
             },
         ]
 
@@ -172,7 +184,11 @@ class DataCollectionStrategy:
                 sender=email_data["sender"],
                 timestamp=datetime.now().isoformat(),
                 labels=email_data["labels"],
-                metadata={"source": source, "collection_date": datetime.now().isoformat(), "preprocessed": False},
+                metadata={
+                    "source": source,
+                    "collection_date": datetime.now().isoformat(),
+                    "preprocessed": False,
+                },
             )
             samples.append(sample)
 
@@ -200,13 +216,15 @@ class DataCollectionStrategy:
         processed_subject = self._clean_email_content(email.subject)
         features = self._extract_basic_features(processed_content, processed_subject)
 
-        email.metadata.update({
-            "preprocessed": True,
-            "preprocessing_timestamp": datetime.now().isoformat(),
-            "original_length": len(email.content),
-            "processed_length": len(processed_content),
-            "features": features,
-        })
+        email.metadata.update(
+            {
+                "preprocessed": True,
+                "preprocessing_timestamp": datetime.now().isoformat(),
+                "original_length": len(email.content),
+                "processed_length": len(processed_content),
+                "features": features,
+            }
+        )
 
         email.content = processed_content
         email.subject = processed_subject
@@ -214,8 +232,18 @@ class DataCollectionStrategy:
 
     def _clean_email_content(self, text: str) -> str:
         """Cleans and normalizes the text content of an email."""
-        text = re.sub(self.preprocessing_rules["email_patterns"]["signatures"], "", text, flags=re.MULTILINE | re.IGNORECASE)
-        text = re.sub(self.preprocessing_rules["email_patterns"]["forwarded_headers"], "", text, flags=re.MULTILINE | re.IGNORECASE)
+        text = re.sub(
+            self.preprocessing_rules["email_patterns"]["signatures"],
+            "",
+            text,
+            flags=re.MULTILINE | re.IGNORECASE,
+        )
+        text = re.sub(
+            self.preprocessing_rules["email_patterns"]["forwarded_headers"],
+            "",
+            text,
+            flags=re.MULTILINE | re.IGNORECASE,
+        )
         text = re.sub(r"\s+", " ", text)
         text = re.sub(r"\n+", "\n", text)
         text = text.strip()
@@ -230,11 +258,23 @@ class DataCollectionStrategy:
             "has_question": "?" in combined_text,
             "has_exclamation": "!" in combined_text,
             "has_numbers": bool(re.search(r"\d+", combined_text)),
-            "has_email": bool(re.search(self.preprocessing_rules["email_patterns"]["email_addresses"], combined_text)),
-            "has_phone": bool(re.search(self.preprocessing_rules["email_patterns"]["phone_numbers"], combined_text)),
-            "has_url": bool(re.search(self.preprocessing_rules["email_patterns"]["urls"], combined_text)),
+            "has_email": bool(
+                re.search(
+                    self.preprocessing_rules["email_patterns"]["email_addresses"], combined_text
+                )
+            ),
+            "has_phone": bool(
+                re.search(
+                    self.preprocessing_rules["email_patterns"]["phone_numbers"], combined_text
+                )
+            ),
+            "has_url": bool(
+                re.search(self.preprocessing_rules["email_patterns"]["urls"], combined_text)
+            ),
             "urgency_keywords": self._count_pattern_matches(combined_text, "urgency_signals"),
-            "sentiment_keywords": self._count_pattern_matches(combined_text, "sentiment_indicators"),
+            "sentiment_keywords": self._count_pattern_matches(
+                combined_text, "sentiment_indicators"
+            ),
             "intent_keywords": self._count_pattern_matches(combined_text, "intent_patterns"),
         }
         return features
@@ -271,12 +311,24 @@ class DataCollectionStrategy:
         """
         if external_analysis_results:
             self.logger.info(f"Using external analysis results for email ID: {email.id}")
-            topic = external_analysis_results.get("topic", self._predict_topic(email.content, is_fallback=True))
-            sentiment = external_analysis_results.get("sentiment", self._predict_sentiment(email.content, is_fallback=True))
-            intent = external_analysis_results.get("intent", self._predict_intent(email.content, is_fallback=True))
-            urgency = external_analysis_results.get("urgency", self._predict_urgency(email.content, is_fallback=True))
-            keywords = external_analysis_results.get("keywords", self._extract_keywords(email.content))
-            entities = external_analysis_results.get("entities", self._extract_entities(email.content))
+            topic = external_analysis_results.get(
+                "topic", self._predict_topic(email.content, is_fallback=True)
+            )
+            sentiment = external_analysis_results.get(
+                "sentiment", self._predict_sentiment(email.content, is_fallback=True)
+            )
+            intent = external_analysis_results.get(
+                "intent", self._predict_intent(email.content, is_fallback=True)
+            )
+            urgency = external_analysis_results.get(
+                "urgency", self._predict_urgency(email.content, is_fallback=True)
+            )
+            keywords = external_analysis_results.get(
+                "keywords", self._extract_keywords(email.content)
+            )
+            entities = external_analysis_results.get(
+                "entities", self._extract_entities(email.content)
+            )
             confidence = external_analysis_results.get("confidence", 0.9)
             annotator_id_suffix = "_external"
         else:
@@ -323,12 +375,20 @@ class DataCollectionStrategy:
         for sentiment, keywords in self.annotation_guidelines["sentiment_indicators"].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             sentiment_scores[sentiment] = score
-        if sentiment_scores.get("positive", 0) > 0 and sentiment_scores["positive"] == sentiment_scores.get("negative", 0):
+        if sentiment_scores.get("positive", 0) > 0 and sentiment_scores[
+            "positive"
+        ] == sentiment_scores.get("negative", 0):
             result = "positive"
-        elif sentiment_scores.get("negative", 0) > 0 and sentiment_scores["negative"] == sentiment_scores.get("positive", 0):
+        elif sentiment_scores.get("negative", 0) > 0 and sentiment_scores[
+            "negative"
+        ] == sentiment_scores.get("positive", 0):
             result = "negative"
         else:
-            result = max(sentiment_scores, key=sentiment_scores.get) if any(sentiment_scores.values()) else "neutral"
+            result = (
+                max(sentiment_scores, key=sentiment_scores.get)
+                if any(sentiment_scores.values())
+                else "neutral"
+            )
         self.logger.debug(f"{prefix}Predicted sentiment: {result}")
         return result
 
@@ -341,7 +401,11 @@ class DataCollectionStrategy:
         for intent, patterns in self.annotation_guidelines["intent_patterns"].items():
             score = sum(1 for pattern in patterns if pattern in text_lower)
             intent_scores[intent] = score
-        result = max(intent_scores, key=intent_scores.get) if any(intent_scores.values()) else "information"
+        result = (
+            max(intent_scores, key=intent_scores.get)
+            if any(intent_scores.values())
+            else "information"
+        )
         self.logger.debug(f"{prefix}Predicted intent: {result}")
         return result
 
@@ -354,7 +418,9 @@ class DataCollectionStrategy:
         for urgency, signals in self.annotation_guidelines["urgency_signals"].items():
             score = sum(1 for signal in signals if signal in text_lower)
             urgency_scores[urgency] = score
-        result = max(urgency_scores, key=urgency_scores.get) if any(urgency_scores.values()) else "low"
+        result = (
+            max(urgency_scores, key=urgency_scores.get) if any(urgency_scores.values()) else "low"
+        )
         self.logger.debug(f"{prefix}Predicted urgency: {result}")
         return result
 
@@ -374,9 +440,32 @@ class DataCollectionStrategy:
     def _extract_keywords(self, text: str) -> List[str]:
         """Extracts important keywords from text using frequency analysis."""
         words = re.findall(r"\b\w+\b", text.lower())
-        stopwords = {"the", "a", "an", "and", "in", "on", "at", "to", "for", "of", "with", "is", "are", "was", "were", "this", "that", "i", "you", "we", "they"}
+        stopwords = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "is",
+            "are",
+            "was",
+            "were",
+            "this",
+            "that",
+            "i",
+            "you",
+            "we",
+            "they",
+        }
         keywords = [word for word in words if len(word) > 3 and word not in stopwords]
         from collections import Counter
+
         word_freq = Counter(keywords)
         return [word for word, _ in word_freq.most_common(10)]
 
@@ -392,11 +481,20 @@ class DataCollectionStrategy:
         """
         if not samples:
             self.logger.warning("No email samples provided for dataset creation")
-            return {"metadata": {"creation_date": datetime.now().isoformat(), "sample_count": 0}, "samples": [], "statistics": {}}
+            return {
+                "metadata": {"creation_date": datetime.now().isoformat(), "sample_count": 0},
+                "samples": [],
+                "statistics": {},
+            }
 
         self.logger.info(f"Creating training dataset from {len(samples)} samples")
         dataset = {
-            "metadata": {"creation_date": datetime.now().isoformat(), "sample_count": len(samples), "version": "1.0", "schema": "email_nlp_v1"},
+            "metadata": {
+                "creation_date": datetime.now().isoformat(),
+                "sample_count": len(samples),
+                "version": "1.0",
+                "schema": "email_nlp_v1",
+            },
             "samples": [],
             "statistics": self._calculate_dataset_statistics(samples),
         }
@@ -404,7 +502,9 @@ class DataCollectionStrategy:
         for sample in samples:
             processed_sample = self.preprocess_email(sample)
             annotation = self.annotate_email(processed_sample)
-            dataset["samples"].append({"sample": processed_sample.to_dict(), "annotation": asdict(annotation)})
+            dataset["samples"].append(
+                {"sample": processed_sample.to_dict(), "annotation": asdict(annotation)}
+            )
 
         return dataset
 

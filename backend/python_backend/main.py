@@ -10,25 +10,33 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from .exceptions import BaseAppException
+from pydantic import ValidationError
 
-# Updated import to use NLP GmailAIService directly
-from ..python_nlp.gmail_service import GmailAIService
+from ..plugins.plugin_manager import plugin_manager
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from ..python_nlp.smart_filters import SmartFilterManager
-
-from . import (
-    # action_routes, # Removed
+from . import (  # action_routes, # Removed; dashboard_routes, # Removed
     category_routes,
-    # dashboard_routes, # Removed
     email_routes,
     filter_routes,
     gmail_routes,
+    training_routes,
 )
 from .ai_engine import AdvancedAIEngine
+from .exceptions import BaseAppException
+
+# Import new components
+from .model_manager import model_manager
+from .performance_monitor import performance_monitor
+from .workflow_manager import workflow_manager
+
+# Updated import to use NLP GmailAIService directly
+# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
+# Instead, dependencies are managed via dependency injection in the routes
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -44,12 +52,41 @@ app = FastAPI(
 # Import the get_db function to access the database manager
 from .database import get_db
 
+
+@app.on_event("startup")
+async def startup_event():
+    """On startup, initialize all services."""
+    logger.info("Application startup event received.")
+
+    # Initialize database first
+    from .database import initialize_db
+
+    await initialize_db()
+
+    # Initialize new components
+    logger.info("Initializing model manager...")
+    model_manager.discover_models()
+
+    logger.info("Initializing workflow manager...")
+    # Nothing specific needed for workflow manager initialization
+
+    logger.info("Initializing plugin manager...")
+    plugin_manager.load_plugins()
+    plugin_manager.initialize_all_plugins()
+
+    # Initialize other services
+    from .dependencies import initialize_services
+
+    await initialize_services()
+
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """On shutdown, save any pending data."""
     logger.info("Application shutdown event received.")
     db = await get_db()
     await db.shutdown()
+
 
 @app.exception_handler(BaseAppException)
 async def app_exception_handler(request: Request, exc: BaseAppException):
@@ -58,13 +95,25 @@ async def app_exception_handler(request: Request, exc: BaseAppException):
         content={"detail": exc.detail},
     )
 
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle Pydantic validation errors with detailed 422 responses."""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "message": "Validation error with provided data.",
+        },
+    )
+
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5000",
         "http://localhost:5173",
-        "https://*.replit.dev",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -78,8 +127,8 @@ app.add_middleware(
 
 # Set up metrics if in production or staging environment
 # if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
-    # from .metrics import setup_metrics # Removed
-    # setup_metrics(app) # Removed
+# from .metrics import setup_metrics # Removed
+# setup_metrics(app) # Removed
 
 # Services are now managed by the dependency injection system.
 
@@ -88,8 +137,38 @@ app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
+app.include_router(training_routes.router)
 # app.include_router(action_routes.router) # Removed
 # app.include_router(dashboard_routes.router) # Removed
+
+# Include enhanced feature routers
+from .enhanced_routes import router as enhanced_router
+
+app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
+
+# Include workflow routes (legacy and node-based)
+from .workflow_routes import router as workflow_router
+
+app.include_router(workflow_router, prefix="", tags=["workflows"])
+
+# Include advanced workflow routes (will use node-based system)
+from .advanced_workflow_routes import router as advanced_workflow_router
+
+app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
+
+# Include node-based workflow routes
+from .node_workflow_routes import router as node_workflow_router
+
+app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
+
+# Initialize workflow manager instance (using the node-based workflow manager)
+try:
+    from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+
+    workflow_manager_instance = node_workflow_manager
+except ImportError:
+    # Fallback if node engine is not available
+    workflow_manager_instance = None
 
 
 # Request/Response Models previously defined here are now in .models
@@ -107,7 +186,7 @@ async def health_check(request: Request):
             "timestamp": datetime.now().isoformat(),
             "version": "2.0.0",
         }
-    except Exception as e:  # This generic exception is fine for health check's own error
+    except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
         logger.error(  # Simple log for health check itself
             json.dumps(
                 {
