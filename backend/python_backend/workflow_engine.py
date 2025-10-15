@@ -4,6 +4,7 @@ Workflow Engine for the Email Intelligence Platform
 This module provides a system for defining, discovering, and executing
 standardized email processing workflows.
 """
+
 import json
 import logging
 import os
@@ -20,7 +21,6 @@ from .database import DATA_DIR, SETTINGS_FILE
 logger = logging.getLogger(__name__)
 
 WORKFLOWS_DIR = DATA_DIR / "workflows"
-
 
 
 class BaseWorkflow(ABC):
@@ -74,9 +74,7 @@ class WorkflowEngine:
 
     def _save_settings(self):
         """Saves the current settings to the JSON file."""
-        settings = {
-            "active_workflow": self.active_workflow.name if self.active_workflow else None
-        }
+        settings = {"active_workflow": self.active_workflow.name if self.active_workflow else None}
         try:
             with open(self.settings_file, "w") as f:
                 json.dump(settings, f, indent=4)
@@ -182,6 +180,7 @@ class WorkflowEngine:
             raise RuntimeError("No active workflow is set.")
         return await self.active_workflow.execute(email_data)
 
+
 class DefaultWorkflow(BaseWorkflow):
     """The default workflow that uses a hardcoded set of models."""
 
@@ -205,6 +204,8 @@ class DefaultWorkflow(BaseWorkflow):
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()
+
+
 class FileBasedWorkflow(BaseWorkflow):
     """A generic workflow configured by a JSON file."""
 

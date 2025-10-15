@@ -315,7 +315,9 @@ class DatabaseManager:
         else:
             return self._add_category_details(email_light.copy())
 
-    async def get_email_by_message_id(self, message_id: str, include_content: bool = True) -> Optional[Dict[str, Any]]:
+    async def get_email_by_message_id(
+        self, message_id: str, include_content: bool = True
+    ) -> Optional[Dict[str, Any]]:
         """Get email by message_id using in-memory index."""
         email_light = self.emails_by_message_id.get(message_id)
         if not email_light:
@@ -326,13 +328,15 @@ class DatabaseManager:
         else:
             return self._add_category_details(email_light.copy())
 
-    async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def update_email_by_message_id(
+        self, message_id: str, update_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Update email by its message_id."""
         email_to_update = self.emails_by_message_id.get(message_id)
         if not email_to_update:
             logger.warning(f"Email with messageId {message_id} not found for update.")
             return None
-        return await self.update_email(email_to_update['id'], update_data)
+        return await self.update_email(email_to_update["id"], update_data)
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
 
@@ -379,48 +383,72 @@ class DatabaseManager:
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
     @log_performance(operation="search_emails")
-    async def search_emails(self, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def search_emails(
+        self, search_term: str, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """Search emails by a term in subject or sender."""
         search_term_lower = search_term.lower()
         results = [
-            email for email in self.emails_data
-            if search_term_lower in email.get(FIELD_SUBJECT, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER_EMAIL, '').lower()
+            email
+            for email in self.emails_data
+            if search_term_lower in email.get(FIELD_SUBJECT, "").lower()
+            or search_term_lower in email.get(FIELD_SENDER, "").lower()
+            or search_term_lower in email.get(FIELD_SENDER_EMAIL, "").lower()
         ]
         try:
-            results = sorted(results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, '')), reverse=True)
+            results = sorted(
+                results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")), reverse=True
+            )
         except TypeError:
-            logger.warning(f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'.")
-            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ''), reverse=True)
+            logger.warning(
+                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+            )
+            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True)
 
         paginated_results = results[offset : offset + limit]
         detailed_results = [self._add_category_details(email) for email in paginated_results]
-        logger.info(f"Email search for '{search_term}' completed. Found {len(detailed_results)} emails.")
+        logger.info(
+            f"Email search for '{search_term}' completed. Found {len(detailed_results)} emails."
+        )
         return detailed_results
 
-    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def search_emails_by_category(
+        self, search_term: str, category_id: int, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """Search emails within a specific category."""
         search_term_lower = search_term.lower()
         category_emails = [e for e in self.emails_data if e.get(FIELD_CATEGORY_ID) == category_id]
         results = [
-            email for email in category_emails
-            if search_term_lower in email.get(FIELD_SUBJECT, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER, '').lower() or
-               search_term_lower in email.get(FIELD_SENDER_EMAIL, '').lower()
+            email
+            for email in category_emails
+            if search_term_lower in email.get(FIELD_SUBJECT, "").lower()
+            or search_term_lower in email.get(FIELD_SENDER, "").lower()
+            or search_term_lower in email.get(FIELD_SENDER_EMAIL, "").lower()
         ]
         try:
-            results = sorted(results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, '')), reverse=True)
+            results = sorted(
+                results, key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")), reverse=True
+            )
         except TypeError:
-            logger.warning(f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'.")
-            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ''), reverse=True)
+            logger.warning(
+                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+            )
+            results = sorted(results, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True)
 
         paginated_results = results[offset : offset + limit]
         detailed_results = [self._add_category_details(email) for email in paginated_results]
-        logger.info(f"Email search for '{search_term}' in category {category_id} completed. Found {len(detailed_results)} emails.")
+        logger.info(
+            f"Email search for '{search_term}' in category {category_id} completed. Found {len(detailed_results)} emails."
+        )
         return detailed_results
 
-    async def get_emails(self, limit: int = 50, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        category_id: Optional[int] = None,
+        is_unread: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
         filtered_emails = self.emails_data
         if category_id is not None:

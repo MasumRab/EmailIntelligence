@@ -34,7 +34,6 @@ from .exceptions import AppException
 # Import new components
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
-from .workflow_manager import workflow_manager
 from .settings import settings
 
 # Updated import to use NLP GmailAIService directly
@@ -108,7 +107,7 @@ async def base_app_exception_handler(request: Request, exc: AppException):
             "success": False,
             "message": "An internal error occurred",
             "error_code": "INTERNAL_ERROR",
-            "details": str(exc)
+            "details": str(exc),
         },
     )
 
