@@ -41,6 +41,7 @@ import venv
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 from enum import Enum, auto
+from dotenv import load_dotenv
 
 try:
     from importlib.metadata import version, PackageNotFoundError
@@ -503,11 +504,7 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
 
 
 def run_application(args: argparse.Namespace) -> int:
-    """Run the application with the specified arguments."""
-    from dotenv import load_dotenv
-    python_executable = get_python_executable()
-    backend_process = None
-    gradio_process = None
+    """Run the application with the specified arguments.
 
     Args:
         args: The parsed command-line arguments.
@@ -515,6 +512,36 @@ def run_application(args: argparse.Namespace) -> int:
     Returns:
         An exit code (0 for success, 1 for failure).
     """
+    if args.stage == "test":
+        logger.info("Running application in 'test' stage (executing tests)...")
+        logger.info(
+            f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided."
+        )
+        try:
+            from deployment.test_stages import run_unit_tests, run_integration_tests
+            logger.info("Successfully imported test_stages.")
+        except ImportError as e:
+            logger.error(f"Failed to import test_stages: {e}")
+            return 1
+
+        test_run_success = True
+
+        logger.info("Calling run_unit_tests...")
+        if not run_unit_tests(args.coverage, args.debug):
+            test_run_success = False
+            logger.error("Unit tests failed.")
+
+        logger.info("Calling run_integration_tests...")
+        if not run_integration_tests(args.coverage, args.debug):
+            test_run_success = False
+            logger.error("Integration tests failed.")
+
+        logger.info(f"Default test suite execution finished. Success: {test_run_success}")
+        return 0 if test_run_success else 1
+
+    python_executable = get_python_executable()
+    backend_process = None
+    gradio_process = None
     python_executable = get_python_executable()
     if args.api_only:
         backend_process = start_backend(args, python_executable)
@@ -598,36 +625,6 @@ def run_application(args: argparse.Namespace) -> int:
                 logger.error(f"Backend process exited with code: {backend_process.returncode}")
                 return 1
 
-    elif args.stage == "test":
-        logger.info("Running application in 'test' stage (executing tests)...")
-        logger.info(
-            f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided."
-        )
-        from deployment.test_stages import test_stages
-
-        test_run_success = True
-
-        if hasattr(test_stages, "run_unit_tests"):
-            logger.info("Running unit tests (default for --stage test)...")
-            if not test_stages.run_unit_tests(args.coverage, args.debug):
-                test_run_success = False
-                logger.error("Unit tests failed.")
-        else:
-            logger.warning("test_stages.run_unit_tests not found, cannot run unit tests.")
-
-        if hasattr(test_stages, "run_integration_tests"):
-            logger.info("Running integration tests (default for --stage test)...")
-            if not test_stages.run_integration_tests(args.coverage, args.debug):
-                test_run_success = False
-                logger.error("Integration tests failed.")
-        else:
-            logger.warning(
-                "test_stages.run_integration_tests not found, cannot run integration tests."
-            )
-
-        logger.info(f"Default test suite execution finished. Success: {test_run_success}")
-        return 0 if test_run_success else 1
-
     return 0
 
 
@@ -645,8 +642,15 @@ def _print_system_info():
 def parse_arguments() -> argparse.Namespace:
     """
     Parses command-line arguments for the launcher.
+    """
+    parser = argparse.ArgumentParser(description="EmailIntelligence Launcher")
 
     # Environment setup arguments
+    parser.add_argument(
+        "--setup",
+        action="store_true",
+        help="Run initial setup (create venv, install dependencies, download NLTK data) and then exit.",
+    )
     parser.add_argument(
         "--no-venv",
         action="store_true",
@@ -679,8 +683,25 @@ def parse_arguments() -> argparse.Namespace:
         default="dev",
         help="Specify the application mode ('dev' for running, 'test' for running tests).",
     )
+    parser.add_argument(
+        "--coverage",
+        action="store_true",
+        help="Generate coverage report when running tests.",
+    )
 
     # Server configuration
+    parser.add_argument(
+        "--loglevel",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level (default: INFO)",
+    )
+    parser.add_argument(
+        "--listen",
+        action="store_true",
+        help="Listen on all public IPs (0.0.0.0) instead of just localhost (127.0.0.1)",
+    )
     parser.add_argument(
         "--port",
         type=int,
@@ -706,12 +727,17 @@ def parse_arguments() -> argparse.Namespace:
         help="Run only the API server without the Gradio UI",
     )
     parser.add_argument(
+        "--frontend-only",
+        action="store_true",
+        help="Run only the frontend without the API server",
+    )
+    parser.add_argument(
         "--ui-only",
         action="store_true",
         help="Run only the Gradio UI without the API server",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--no-download-nltk", action="store_true", help="Skip NLTK data download")
+
     parser.add_argument("--system-info", action="store_true", help="Print system information")
     return parser.parse_args()
 
@@ -765,7 +791,7 @@ def main() -> int:
     if not prepare_environment(args):
         return 1
 
-    from dotenv import load_dotenv
+
     default_env_file = ROOT_DIR / ".env"
     if default_env_file.exists():
         logger.info(f"Loading environment variables from default .env file: {default_env_file}")
