@@ -29,6 +29,7 @@
 - **Branch Consolidation**: Created 'fixes-branch' to resolve conflicts in test_launcher.py and gradio_app.py, then merged into 'main'. Attempted rebase of 'scientific' onto 'main' and full merge, but both resulted in extensive conflicts across 50+ files due to significant divergence (202 commits in scientific vs 114 in main).
 - **Recommendation**: Branches have diverged too extensively for easy alignment. Suggest keeping 'scientific' as a separate feature branch or performing a full merge with manual conflict resolution if consolidation is desired. 'fixes-branch' can serve as a consolidated target with resolved conflicts.
 
+<<<<<<< Updated upstream
 ## Commit Differences Between fixes-branch and scientific Branches
 
 The following commits differ between `fixes-branch` and `scientific`, ordered from least impactful to most impactful based on total lines changed (insertions + deletions). This helps prioritize alignment efforts starting with low-risk changes.
