@@ -16,8 +16,39 @@ venv/
 jsons/*
 token.json
 credentials.json
+apikey.json
+.config/.semgrep/settings.yml
 
-# Ignore configuration and local environment files
+# Build / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+*.whl
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Coverage
+.coverage
+.coverage.*
+coverage.xml
+coverage/
+*.cover
+
+# IDEs / editors
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+.history
+
+# Misc
+diagnosis_message.txt
 *.local.config
 *.local.json
 *.local.yaml

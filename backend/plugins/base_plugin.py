@@ -6,7 +6,8 @@ This follows patterns similar to leading AI frameworks like ComfyUI.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Callable, List
+from typing import Any, Callable, Dict, List, Optional
+
 import gradio as gr
 
 

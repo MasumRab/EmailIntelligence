@@ -1,7 +1,8 @@
 import argparse
 import logging
-import uvicorn
+
 import gradio as gr
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from .core.module_manager import ModuleManager
@@ -41,8 +42,8 @@ def create_app():
     module_manager.load_modules()
 
     # Mount the Gradio UI onto the FastAPI app
-    # This makes the UI accessible at the '/gradio' endpoint
-    gr.mount_gradio_app(app, gradio_app, path="/")
+    # This makes the UI accessible at the '/ui' endpoint
+    gr.mount_gradio_app(app, gradio_app, path="/ui")
 
     logger.info("Application creation complete. FastAPI and Gradio are integrated.")
     return app

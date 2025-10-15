@@ -10,61 +10,125 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
 
-# Updated import to use NLP GmailAIService directly
-from backend.python_nlp.gmail_service import GmailAIService
+from ..plugins.plugin_manager import plugin_manager
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from backend.python_nlp.smart_filters import SmartFilterManager
-
+from ..python_nlp.smart_filters import SmartFilterManager
 from . import (
-    ai_routes,
     category_routes,
     email_routes,
     filter_routes,
     gmail_routes,
+    training_routes,
+    workflow_routes,
+    model_routes,
+    performance_routes,
 )
 from .ai_engine import AdvancedAIEngine
+from .exceptions import AppException
 
-# Import our Python modules
-from .performance_monitor import PerformanceMonitor
+# Import new components
+from .model_manager import model_manager
+from .performance_monitor import performance_monitor
+from .workflow_manager import workflow_manager
+from .settings import settings
+
+# Updated import to use NLP GmailAIService directly
+# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
+# Instead, dependencies are managed via dependency injection in the routes
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Initialize FastAPI app with settings
 app = FastAPI(
-    title="Gmail AI Email Management",
+    title=settings.app_name,
     description="Advanced email management with AI categorization and smart filtering",
-    version="2.0.0",
+    version=settings.app_version,
 )
+
+# Import the get_db function to access the database manager
+from .database import get_db
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Application startup: initialize database and services."""
+    """On startup, initialize all services."""
+    logger.info("Application startup event received.")
+
+    # Initialize database first
     from .database import initialize_db
-    from .dependencies import initialize_services
 
     await initialize_db()
+
+    # Initialize new components
+    logger.info("Initializing model manager...")
+    model_manager.discover_models()
+
+    logger.info("Initializing workflow manager...")
+    # Nothing specific needed for workflow manager initialization
+
+    logger.info("Initializing plugin manager...")
+    plugin_manager.load_plugins()
+    plugin_manager.initialize_all_plugins()
+
+    # Initialize other services
+    from .dependencies import initialize_services
+
     await initialize_services()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Application shutdown: disconnect from the database."""
-    # Add shutdown logic if needed
+    """On shutdown, save any pending data."""
+    logger.info("Application shutdown event received.")
+    db = await get_db()
+    await db.shutdown()
 
 
-# Configure CORS
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.detail,
+    )
+
+
+@app.exception_handler(AppException)
+async def base_app_exception_handler(request: Request, exc: AppException):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "An internal error occurred",
+            "error_code": "INTERNAL_ERROR",
+            "details": str(exc)
+        },
+    )
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle Pydantic validation errors with detailed 422 responses."""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "message": "Validation error with provided data.",
+        },
+    )
+
+
+# Configure CORS using settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5000",
-        "http://localhost:5173",
-    ],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -76,24 +140,61 @@ app.add_middleware(
 # Other shared request/response models like EmailResponse, CategoryResponse etc. are also in models.py.
 
 # Set up metrics if in production or staging environment
-if os.getenv("NODE_ENV") in ["production", "staging"]:
-    from .metrics import setup_metrics
+# if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
+# from .metrics import setup_metrics # Removed
+# setup_metrics(app) # Removed
 
-    setup_metrics(app)
+# Services are now managed by the dependency injection system.
 
-# Initialize services
-# Services are now initialized within their respective route files
-# or kept here if they are used by multiple route files or for general app setup.
-performance_monitor = PerformanceMonitor()  # Used by all routes via @performance_monitor.track
+# Include versioned API routers
+from .routes.v1.email_routes import router as email_router_v1
+from .routes.v1.category_routes import router as category_router_v1
 
-# Include routers in the app
+# Mount versioned APIs
+app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
+app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
+
+# Include legacy routers for backward compatibility
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
+app.include_router(training_routes.router)
+app.include_router(workflow_routes.router)
+app.include_router(model_routes.router)
+app.include_router(performance_routes.router)
+# app.include_router(action_routes.router) # Removed
+# app.include_router(dashboard_routes.router) # Removed
 
+# Include enhanced feature routers
+from .enhanced_routes import router as enhanced_router
 
-app.include_router(ai_routes.router)
+app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
+
+# Include workflow routes (legacy and node-based)
+from .workflow_routes import router as workflow_router
+
+app.include_router(workflow_router, prefix="", tags=["workflows"])
+
+# Include advanced workflow routes (will use node-based system)
+from .advanced_workflow_routes import router as advanced_workflow_router
+
+app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
+
+# Include node-based workflow routes
+from .node_workflow_routes import router as node_workflow_router
+
+app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
+
+# Initialize workflow manager instance (using the node-based workflow manager)
+try:
+    from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+
+    workflow_manager_instance = node_workflow_manager
+except ImportError:
+    # Fallback if node engine is not available
+    workflow_manager_instance = None
+
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
@@ -105,11 +206,11 @@ async def health_check(request: Request):
     """System health check"""
     try:
         # Perform any necessary checks, e.g., DB connectivity if desired
-        # await db.execute_query("SELECT 1") # Example DB check
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
-            "version": "2.0.0",
+            "version": settings.app_version,
+            "app_name": settings.app_name,
         }
     except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
         logger.error(  # Simple log for health check itself

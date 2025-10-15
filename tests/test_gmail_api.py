@@ -8,7 +8,7 @@ from http.client import HTTPResponse
 def mock_gmail_service():
     """Fixture to mock the GmailAIService used in the gmail routes."""
     with patch(
-        "server.python_backend.gmail_routes.gmail_service", new_callable=AsyncMock
+        "backend.python_backend.gmail_routes.gmail_service", new_callable=AsyncMock
     ) as mock_gs:
         yield mock_gs
 
@@ -17,7 +17,7 @@ def mock_gmail_service():
 def mock_performance_monitor_gmail():
     """Fixture to mock the PerformanceMonitor used in the gmail routes."""
     with patch(
-        "server.python_backend.gmail_routes.performance_monitor", new_callable=AsyncMock
+        "backend.python_backend.gmail_routes.performance_monitor", new_callable=AsyncMock
     ) as mock_pm:
         mock_pm.track = lambda func: func
         mock_pm.record_sync_performance = AsyncMock()

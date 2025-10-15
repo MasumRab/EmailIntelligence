@@ -151,11 +151,11 @@ class TestDatabaseOptimizations:
         with patch("backend.python_backend.performance_monitor.open", mock_open()) as mocked_file:
             await fresh_db.search_emails("test")
 
-            mocked_file.assert_called_once_with(LOG_FILE, "a")
+            mocked_file.assert_called_once_with(LOG_FILE, "a", encoding="utf-8")
 
             handle = mocked_file()
-            written_content = handle.write.call_args[0][0]
-            log_data = json.loads(written_content)
+            written_content = handle.write.call_args[0][0]  # The write call is the JSON + \n
+            log_data = json.loads(written_content.rstrip("\n"))
 
             assert log_data["operation"] == "search_emails"
             assert "duration_seconds" in log_data
