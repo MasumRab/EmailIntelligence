@@ -578,8 +578,27 @@ class WorkflowManager:
     def load_workflow(self, filepath: Union[str, Path]) -> Optional[Workflow]:
         """Load a workflow from file"""
         try:
-            filepath = Path(filepath)
-            with open(filepath, "r", encoding="utf-8") as f:
+            # Always resolve against the workflows directory to prevent traversal
+            # Coerce filepath to string to support both Path and str
+            candidate = self.workflows_dir / str(filepath)
+            try:
+                resolved = candidate.resolve(strict=False)
+            except Exception as e:
+                logger.error(f"Could not resolve workflow path: {str(e)}")
+                return None
+            # Security check: restrict reads to within workflows_dir
+            try:
+                workflows_dir_resolved = self.workflows_dir.resolve(strict=True)
+            except Exception as e:
+                logger.error(f"Workflows directory does not exist: {str(e)}")
+                return None
+            if not str(resolved).startswith(str(workflows_dir_resolved)):
+                logger.error(f"Attempt to load workflow from outside workflows directory: {resolved}")
+                return None
+            if not resolved.exists() or not resolved.is_file():
+                logger.error(f"Workflow file does not exist: {resolved}")
+                return None
+            with open(resolved, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             workflow = Workflow.from_dict(data)
