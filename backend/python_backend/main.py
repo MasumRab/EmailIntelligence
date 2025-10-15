@@ -29,7 +29,7 @@ from . import (
     performance_routes,
 )
 from .ai_engine import AdvancedAIEngine
-from .exceptions import AppException, BaseAppException
+from .exceptions import AppException
 
 # Import new components
 from .model_manager import model_manager
@@ -100,8 +100,8 @@ async def app_exception_handler(request: Request, exc: AppException):
     )
 
 
-@app.exception_handler(BaseAppException)
-async def base_app_exception_handler(request: Request, exc: BaseAppException):
+@app.exception_handler(AppException)
+async def base_app_exception_handler(request: Request, exc: AppException):
     return JSONResponse(
         status_code=500,
         content={
