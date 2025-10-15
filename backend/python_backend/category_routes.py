@@ -19,8 +19,7 @@ router = APIRouter()
 @router.get("/api/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories")
 async def get_categories(
-    request: Request, 
-    category_service: CategoryService = Depends(get_category_service)
+    request: Request, category_service: CategoryService = Depends(get_category_service)
 ):
     """Get all categories"""
     try:
@@ -47,15 +46,15 @@ async def get_categories(
 @router.post("/api/categories", response_model=CategoryResponse)
 @log_performance(operation="create_category")
 async def create_category(
-    request: Request, 
-    category: CategoryCreate, 
-    category_service: CategoryService = Depends(get_category_service)
+    request: Request,
+    category: CategoryCreate,
+    category_service: CategoryService = Depends(get_category_service),
 ):
     """Create new category"""
     try:
         # Add category through service layer
         result = await category_service.create_category(category.model_dump())
-        
+
         if result.success:
             return result.data
         else:

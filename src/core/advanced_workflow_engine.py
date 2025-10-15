@@ -593,7 +593,9 @@ class WorkflowManager:
                 logger.error(f"Workflows directory does not exist: {str(e)}")
                 return None
             if not str(resolved).startswith(str(workflows_dir_resolved)):
-                logger.error(f"Attempt to load workflow from outside workflows directory: {resolved}")
+                logger.error(
+                    f"Attempt to load workflow from outside workflows directory: {resolved}"
+                )
                 return None
             if not resolved.exists() or not resolved.is_file():
                 logger.error(f"Workflow file does not exist: {resolved}")
@@ -764,6 +766,14 @@ def initialize_workflow_system() -> WorkflowManager:
 
 def get_workflow_manager() -> WorkflowManager:
     """Get the global workflow manager instance"""
+    import warnings
+
+    warnings.warn(
+        "get_workflow_manager from src.core.advanced_workflow_engine is deprecated. "
+        "Use backend.node_engine.workflow_manager.workflow_manager instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if not workflow_manager:
         # Initialize with default configuration
         return initialize_workflow_system()

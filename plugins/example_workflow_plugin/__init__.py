@@ -12,60 +12,81 @@ from backend.python_nlp.smart_filters import SmartFilterManager
 # Note: Plugins need to import from the main application's modules.
 # This requires the main application to be installed as a package or
 # for the PYTHONPATH to be set up correctly.
-from backend.python_backend.workflow_engine import BaseWorkflow, WorkflowEngine
+from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
+from backend.node_engine.workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 
 
-class ExampleUpperCaseWorkflow(BaseWorkflow):
+class ExampleUppercaseNode(BaseNode):
     """
-    An example workflow that converts the email subject to uppercase.
+    An example node that converts email subject to uppercase.
+    This demonstrates how to create custom node types for the Node Engine.
     """
 
-    def __init__(
-        self,
-        ai_engine: "AdvancedAIEngine",
-        filter_manager: "SmartFilterManager",
-        db: "DatabaseManager",
-    ):
-        # Call the parent constructor with the required dependencies
-        super().__init__(ai_engine, filter_manager, db)
-        logger.info("ExampleUpperCaseWorkflow instance created.")
+    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+        super().__init__(
+            node_id, name or "Example Uppercase", "Converts email subject to uppercase"
+        )
+        self.config = config or {}
 
-    @property
-    def name(self) -> str:
-        return "example_uppercase"
+        # Define input and output ports
+        self.input_ports = [
+            NodePort(
+                "emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="List of emails to process",
+            )
+        ]
+        self.output_ports = [
+            NodePort(
+                "processed_emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="Processed emails with uppercase subjects",
+            )
+        ]
 
-    async def execute(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Converts the subject to uppercase and adds a note.
-        This workflow intentionally does not use the AI engine,
-        to demonstrate a simple transformation.
-        """
-        logger.info(f"Executing example_uppercase workflow for email: {email_data.get('subject')}")
+    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+        """Execute the uppercase transformation on email subjects."""
+        try:
+            input_emails = self.inputs.get("emails", [])
 
-        processed_data = email_data.copy()
+            if not input_emails:
+                return {"processed_emails": []}
 
-        if "subject" in processed_data:
-            processed_data["subject"] = processed_data["subject"].upper()
+            processed_emails = []
+            for email in input_emails:
+                processed_email = email.copy()
+                if "subject" in processed_email:
+                    processed_email["subject"] = processed_email["subject"].upper()
+                processed_email["processed_by"] = "example_uppercase_node"
+                processed_emails.append(processed_email)
 
-        processed_data["workflow_status"] = "processed_by_example_uppercase_workflow"
+            logger.info(f"Processed {len(processed_emails)} emails with uppercase transformation")
 
-        return processed_data
+            return {"processed_emails": processed_emails}
+
+        except Exception as e:
+            logger.error(f"ExampleUppercaseNode execution failed: {e}")
+            context.add_error(self.node_id, f"Uppercase processing failed: {str(e)}")
+            return {"processed_emails": []}
 
 
 def register(
     workflow_engine: WorkflowEngine,
-    ai_engine: AdvancedAIEngine,
-    filter_manager: SmartFilterManager,
-    db: DatabaseManager,
+    ai_engine: AdvancedAIEngine = None,
+    filter_manager: SmartFilterManager = None,
+    db: DatabaseManager = None,
     **kwargs,
 ):
     """
     The required register function for the plugin.
     This function is called by the PluginManager at startup.
+    Registers the custom node type with the workflow engine.
     """
-    logger.info("Registering the ExampleUpperCaseWorkflow.")
-    # Instantiate the workflow with the required dependencies
-    example_workflow = ExampleUpperCaseWorkflow(ai_engine, filter_manager, db)
-    workflow_engine.register_workflow(example_workflow)
+    logger.info("Registering the ExampleUppercaseNode.")
+    # Register the custom node type
+    workflow_engine.register_node_type(ExampleUppercaseNode)
+    logger.info("ExampleUppercaseNode registered successfully")

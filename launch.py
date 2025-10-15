@@ -27,6 +27,7 @@ from typing import List, Optional
 
 try:
     from dotenv import load_dotenv
+
     DOTENV_AVAILABLE = True
 except ImportError:
     DOTENV_AVAILABLE = False

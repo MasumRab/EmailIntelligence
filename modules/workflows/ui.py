@@ -3,7 +3,9 @@ import logging
 
 import gradio as gr
 
-from src.core.workflow_engine import Node, Workflow, WorkflowRunner
+from backend.node_engine.node_base import Workflow
+from backend.node_engine.workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_manager import workflow_manager
 
 logger = logging.getLogger(__name__)
 
@@ -20,23 +22,21 @@ def uppercase(text):
     return text.upper()
 
 
+# Import actual node classes from the Node Engine
+from backend.node_engine.email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode
+
 # A registry of available node types for this proof-of-concept.
 # This allows the UI to instantiate the correct Node objects.
-AVAILABLE_NODES = {
-    "add": Node(node_id="add", name="Add", operation=add, inputs=["a", "b"], outputs=["result"]),
-    "uppercase": Node(
-        node_id="uppercase",
-        name="Uppercase",
-        operation=uppercase,
-        inputs=["text"],
-        outputs=["uppercased_text"],
-    ),
+AVAILABLE_NODE_CLASSES = {
+    "email_source": EmailSourceNode,
+    "preprocessing": PreprocessingNode,
+    "ai_analysis": AIAnalysisNode,
 }
 
 # --- Gradio UI ---
 
 
-def run_workflow_from_json(workflow_json: str, initial_context_json: str) -> dict:
+async def run_workflow_from_json(workflow_json: str, initial_context_json: str) -> dict:
     """
     Parses a JSON definition of a workflow, runs it, and returns the result.
     This function serves as the backend logic for the Gradio UI.
@@ -49,27 +49,45 @@ def run_workflow_from_json(workflow_json: str, initial_context_json: str) -> dic
         return {"error": f"Invalid JSON input: {e}"}
 
     try:
-        # Create Node instances from the workflow definition
-        nodes = {}
+        # Create a Node Engine workflow
+        workflow = Workflow(name=workflow_data.get("name", "My Workflow"))
+
+        # Add nodes to the workflow
         for node_def in workflow_data.get("nodes", []):
             node_type = node_def.get("type")
-            if node_type in AVAILABLE_NODES:
-                # Use the node_def 'id' as the key in our dictionary
-                nodes[node_def["id"]] = AVAILABLE_NODES[node_type]
+            if node_type in AVAILABLE_NODE_CLASSES:
+                node_class = AVAILABLE_NODE_CLASSES[node_type]
+                node = node_class(
+                    node_id=node_def["id"],
+                    name=node_def.get("name", node_type),
+                    config=node_def.get("config", {}),
+                )
+                workflow.add_node(node)
             else:
                 return {"error": f"Unknown node type: {node_type}"}
 
-        # Create the Workflow instance
-        workflow = Workflow(
-            name=workflow_data.get("name", "My Workflow"),
-            nodes=nodes,
-            connections=workflow_data.get("connections", {}),
+        # Add connections if specified
+        for conn_def in workflow_data.get("connections", []):
+            workflow.add_connection(
+                source_node_id=conn_def["source_node"],
+                source_port=conn_def["source_output"],
+                target_node_id=conn_def["target_node"],
+                target_port=conn_def["target_input"],
+            )
+
+        # Run the workflow using the Node Engine
+        workflow_engine = WorkflowEngine()
+        execution_context = await workflow_engine.execute_workflow(
+            workflow, initial_inputs=initial_context
         )
 
-        # Run the workflow
-        runner = WorkflowRunner(workflow)
-        result = runner.run(initial_context)
-        return result
+        # Return the execution results
+        return {
+            "status": execution_context.metadata.get("status", "unknown"),
+            "execution_time": execution_context.metadata.get("execution_duration", 0),
+            "outputs": execution_context.outputs,
+            "errors": [str(error) for error in execution_context.errors],
+        }
 
     except Exception as e:
         logger.error(f"Workflow execution failed: {e}", exc_info=True)
@@ -78,13 +96,13 @@ def run_workflow_from_json(workflow_json: str, initial_context_json: str) -> dic
 
 def create_workflow_ui():
     """
-    Creates the Gradio UI for the workflow engine as a self-contained tab.
+    Creates the Gradio UI for the Node Engine workflow system as a self-contained tab.
     """
     with gr.Blocks() as workflow_tab:
-        gr.Markdown("## Node-Based Workflow Engine")
+        gr.Markdown("## Node Engine Workflow System")
         gr.Markdown(
-            "Define and run processing workflows using a JSON-based format. "
-            "This is a proof-of-concept interface."
+            "Define and run node-based email processing workflows. "
+            "Available node types: email_source, preprocessing, ai_analysis."
         )
 
         with gr.Row():
@@ -92,12 +110,31 @@ def create_workflow_ui():
                 gr.Markdown("### Workflow Definition (JSON)")
                 # Provide a default example workflow for users
                 default_workflow = {
-                    "name": "Simple Text and Math Workflow",
-                    "nodes": [{"id": "node1", "type": "uppercase"}, {"id": "node2", "type": "add"}],
-                    "connections": {
-                        # This part is not yet used by the simple runner,
-                        # but is included to show the intended structure.
-                    },
+                    "name": "Email Processing Pipeline",
+                    "nodes": [
+                        {
+                            "id": "source",
+                            "type": "email_source",
+                            "name": "Email Source",
+                            "config": {"max_emails": 5},
+                        },
+                        {"id": "preprocess", "type": "preprocessing", "name": "Text Preprocessor"},
+                        {"id": "analyze", "type": "ai_analysis", "name": "AI Analyzer"},
+                    ],
+                    "connections": [
+                        {
+                            "source_node": "source",
+                            "source_output": "emails",
+                            "target_node": "preprocess",
+                            "target_input": "emails",
+                        },
+                        {
+                            "source_node": "preprocess",
+                            "source_output": "processed_emails",
+                            "target_node": "analyze",
+                            "target_input": "emails",
+                        },
+                    ],
                 }
                 workflow_input = gr.Code(
                     value=json.dumps(default_workflow, indent=2),
@@ -105,12 +142,12 @@ def create_workflow_ui():
                     label="Workflow JSON",
                 )
 
-                gr.Markdown("### Initial Context (JSON)")
-                default_context = {"text": "hello world", "a": 10, "b": 5}
+                gr.Markdown("### Initial Inputs (JSON)")
+                default_context = {"max_emails": 3}
                 context_input = gr.Code(
                     value=json.dumps(default_context, indent=2),
                     language="json",
-                    label="Initial Context JSON",
+                    label="Initial Inputs JSON",
                 )
 
             with gr.Column(scale=1):

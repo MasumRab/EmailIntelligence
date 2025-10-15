@@ -2,6 +2,7 @@
 Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
+
 from typing import List, Optional
 import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Create router with API version prefix
 router = APIRouter(prefix="/v1")
 
+
 @router.get("/emails", response_model=EmailResponse)
 @log_performance(operation="get_emails_v1")
 async def get_emails_v1(
@@ -26,7 +28,7 @@ async def get_emails_v1(
     category_id: Optional[int] = None,
     is_unread: Optional[bool] = None,
     search: Optional[str] = None,
-    email_service: EmailService = Depends(get_email_service)
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Retrieves a list of emails with optional filtering, pagination, and search.
@@ -49,7 +51,7 @@ async def get_emails_v1(
     else:
         # Use get_all_emails with filters
         result = await email_service.get_all_emails(limit, offset, category_id, is_unread)
-    
+
     if result.success:
         return result
     else:
@@ -60,9 +62,7 @@ async def get_emails_v1(
 @router.get("/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="get_email_v1")
 async def get_email_v1(
-    request: Request,
-    email_id: int,
-    email_service: EmailService = Depends(get_email_service)
+    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
 ):
     """
     Retrieves a specific email by its unique ID.
@@ -79,7 +79,7 @@ async def get_email_v1(
         EmailNotFoundException: If the email is not found.
     """
     result = await email_service.get_email_by_id(email_id)
-    
+
     if result.success:
         # Create a successful response using BaseResponse structure
         response = EmailResponse(**result.data)
@@ -95,7 +95,7 @@ async def create_email_v1(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
-    email_service: EmailService = Depends(get_email_service)
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Create a new email.
@@ -111,9 +111,9 @@ async def create_email_v1(
     """
     # Convert EmailCreate to dict for service layer
     email_data = email.model_dump()
-    
+
     result = await email_service.create_email(email_data)
-    
+
     if result.success:
         # Create a successful response using BaseResponse structure
         response = EmailResponse(**result.data)
@@ -121,6 +121,7 @@ async def create_email_v1(
     else:
         # Handle error case - in a complete implementation, we'd have specific error handling
         from fastapi import HTTPException
+
         raise HTTPException(status_code=500, detail=result.error)
 
 
@@ -130,7 +131,7 @@ async def update_email_v1(
     request: Request,
     email_id: int,
     email_update: EmailUpdate,
-    email_service: EmailService = Depends(get_email_service)
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Updates an existing email by its ID.
@@ -149,9 +150,9 @@ async def update_email_v1(
     """
     # Convert EmailUpdate to dict for service layer, excluding unset values
     update_data = email_update.model_dump(exclude_unset=True)
-    
+
     result = await email_service.update_email(email_id, update_data)
-    
+
     if result.success:
         # Create a successful response using BaseResponse structure
         response = EmailResponse(**result.data)

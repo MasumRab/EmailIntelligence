@@ -144,23 +144,25 @@ def get_emails_list(category_id=None, search=None):
     try:
         params = {}
         if category_id is not None:
-            params['category_id'] = category_id
+            params["category_id"] = category_id
         if search:
-            params['search'] = search
+            params["search"] = search
         response = requests.get("http://127.0.0.1:8000/api/emails", params=params)
         if response.status_code == 200:
             emails = response.json()
             # Convert to list of lists for Dataframe
             data = []
             for email in emails:
-                data.append([
-                    email['id'],
-                    email['time'][:19],  # Truncate datetime
-                    email['sender'],
-                    email['subject'],
-                    email.get('category', ''),
-                    'Read' if not email.get('isUnread', True) else 'Unread'
-                ])
+                data.append(
+                    [
+                        email["id"],
+                        email["time"][:19],  # Truncate datetime
+                        email["sender"],
+                        email["subject"],
+                        email.get("category", ""),
+                        "Read" if not email.get("isUnread", True) else "Unread",
+                    ]
+                )
             return data
         return []
     except Exception:
@@ -173,7 +175,7 @@ def get_categories():
         response = requests.get("http://127.0.0.1:8000/api/categories")
         if response.status_code == 200:
             cats = response.json()
-            return {cat['name']: cat['id'] for cat in cats}
+            return {cat["name"]: cat["id"] for cat in cats}
         return {}
     except Exception:
         return {}
@@ -428,9 +430,7 @@ print(df.head())
                 return load_model(model_name)
 
             refresh_models_btn.click(
-                fn=refresh_models,
-                inputs=[],
-                outputs=[model_list, model_selector]
+                fn=refresh_models, inputs=[], outputs=[model_list, model_selector]
             )
 
             load_model_btn.click(
@@ -597,9 +597,13 @@ print(df.head())
 
             # Search and filters
             with gr.Row():
-                search_box = gr.Textbox(label="Search", placeholder="Search subject, sender, content...")
+                search_box = gr.Textbox(
+                    label="Search", placeholder="Search subject, sender, content..."
+                )
                 category_filter = gr.Dropdown(["All"], label="Category", value="All")
-                read_filter = gr.Dropdown(["All", "Read", "Unread"], label="Read Status", value="All")
+                read_filter = gr.Dropdown(
+                    ["All", "Read", "Unread"], label="Read Status", value="All"
+                )
                 search_btn = gr.Button("Search", variant="primary")
 
             # Email list
@@ -607,7 +611,7 @@ print(df.head())
                 headers=["ID", "Date", "Sender", "Subject", "Category", "Status"],
                 label="Emails",
                 interactive=False,
-                value=[]
+                value=[],
             )
 
             # Pagination
@@ -615,7 +619,9 @@ print(df.head())
                 prev_btn = gr.Button("Previous")
                 page_input = gr.Number(label="Page", value=1, minimum=1, precision=0)
                 next_btn = gr.Button("Next")
-                page_size = gr.Number(label="Page Size", value=20, minimum=1, maximum=100, precision=0)
+                page_size = gr.Number(
+                    label="Page Size", value=20, minimum=1, maximum=100, precision=0
+                )
 
             # Details view
             selected_email_id = gr.State()
@@ -639,9 +645,21 @@ print(df.head())
                 cat_options = ["All"] + list(cats.keys())
                 emails = get_emails_list()
                 displayed = emails[:20]
-                return emails, displayed, cat_options, cat_options[1:] if len(cat_options) > 1 else [], 1
+                return (
+                    emails,
+                    displayed,
+                    cat_options,
+                    cat_options[1:] if len(cat_options) > 1 else [],
+                    1,
+                )
 
-            all_emails_state.value, email_table.value, category_filter.choices, change_category_dropdown.choices, current_page_state.value = load_initial_data()
+            (
+                all_emails_state.value,
+                email_table.value,
+                category_filter.choices,
+                change_category_dropdown.choices,
+                current_page_state.value,
+            ) = load_initial_data()
 
             # Search function
             def search_emails(search, category, read_status, page_size_val):
@@ -664,7 +682,7 @@ print(df.head())
             search_btn.click(
                 fn=search_emails,
                 inputs=[search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
             # Pagination functions
@@ -678,15 +696,19 @@ print(df.head())
                 return displayed, new_page, new_page
 
             prev_btn.click(
-                fn=lambda all_emails, page, page_size_val: go_to_page(all_emails, page, page_size_val, -1),
+                fn=lambda all_emails, page, page_size_val: go_to_page(
+                    all_emails, page, page_size_val, -1
+                ),
                 inputs=[all_emails_state, current_page_state, page_size],
-                outputs=[email_table, current_page_state, page_input]
+                outputs=[email_table, current_page_state, page_input],
             )
 
             next_btn.click(
-                fn=lambda all_emails, page, page_size_val: go_to_page(all_emails, page, page_size_val, 1),
+                fn=lambda all_emails, page, page_size_val: go_to_page(
+                    all_emails, page, page_size_val, 1
+                ),
                 inputs=[all_emails_state, current_page_state, page_size],
-                outputs=[email_table, current_page_state, page_input]
+                outputs=[email_table, current_page_state, page_input],
             )
 
             def change_page(all_emails, page, page_size_val):
@@ -698,7 +720,7 @@ print(df.head())
             page_input.change(
                 fn=change_page,
                 inputs=[all_emails_state, page_input, page_size],
-                outputs=[email_table, current_page_state]
+                outputs=[email_table, current_page_state],
             )
 
             # Select email for details
@@ -712,7 +734,7 @@ print(df.head())
             email_table.select(
                 fn=select_email,
                 inputs=[all_emails_state],
-                outputs=[selected_email_id, details_view]
+                outputs=[selected_email_id, details_view],
             )
 
             # Action functions
@@ -722,21 +744,32 @@ print(df.head())
                     if success:
                         # Refresh search
                         return search_emails(search, category, read_status, page_size_val)
-                return all_emails_state.value, email_table.value, current_page_state.value, page_input.value
+                return (
+                    all_emails_state.value,
+                    email_table.value,
+                    current_page_state.value,
+                    page_input.value,
+                )
 
             mark_read_btn.click(
-                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(email_id, False, search, category, read_status, page_size_val),
+                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(
+                    email_id, False, search, category, read_status, page_size_val
+                ),
                 inputs=[selected_email_id, search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
             mark_unread_btn.click(
-                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(email_id, True, search, category, read_status, page_size_val),
+                fn=lambda email_id, search, category, read_status, page_size_val: mark_read_unread(
+                    email_id, True, search, category, read_status, page_size_val
+                ),
                 inputs=[selected_email_id, search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
-            def change_category(email_id, new_category, search, category, read_status, page_size_val):
+            def change_category(
+                email_id, new_category, search, category, read_status, page_size_val
+            ):
                 if email_id and new_category and new_category != "All":
                     cats = get_categories()
                     cat_id = cats.get(new_category)
@@ -744,21 +777,32 @@ print(df.head())
                         success = update_email(email_id, {"categoryId": cat_id})
                         if success:
                             return search_emails(search, category, read_status, page_size_val)
-                return all_emails_state.value, email_table.value, current_page_state.value, page_input.value
+                return (
+                    all_emails_state.value,
+                    email_table.value,
+                    current_page_state.value,
+                    page_input.value,
+                )
 
             change_category_btn.click(
                 fn=change_category,
-                inputs=[selected_email_id, change_category_dropdown, search_box, category_filter, read_filter, page_size],
-                outputs=[all_emails_state, email_table, current_page_state, page_input]
+                inputs=[
+                    selected_email_id,
+                    change_category_dropdown,
+                    search_box,
+                    category_filter,
+                    read_filter,
+                    page_size,
+                ],
+                outputs=[all_emails_state, email_table, current_page_state, page_input],
             )
 
             # Re-analyze: for now, just trigger update without changes (assuming workflow re-runs)
             reanalyze_btn.click(
                 fn=lambda email_id: update_email(email_id, {}) if email_id else False,
                 inputs=[selected_email_id],
-                outputs=[]
+                outputs=[],
             )
-
 
 
 # To launch this app, you can run this file directly.

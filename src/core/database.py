@@ -167,7 +167,6 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-
     @log_performance(operation="save_data_to_file")
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
