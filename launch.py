@@ -154,12 +154,23 @@ def validate_port(port: int) -> int:
 
 
 def validate_host(host: str) -> str:
-    """Validate host name/address format."""
+    """Validate host name/address format (IPv4, IPv6, or hostname)."""
     import re
+    import ipaddress
 
-    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
-        raise ValueError(f"Invalid host: {host}")
-    return host
+    try:
+        # Try IPv4/IPv6 validation
+        ipaddress.ip_address(host)
+        return host
+    except ValueError:
+        # Not an IP, check for valid hostname
+        # Hostname RFC 1123: max 253 chars, labels separated by dots, each label 1-63 chars, allowed: a-zA-Z0-9-, cannot start/end with -
+        hostname_regex = re.compile(
+            r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$"
+        )
+        if not hostname_regex.match(host):
+            raise ValueError(f"Invalid host: {host}")
+        return host
 
 
 # --- Global state ---
