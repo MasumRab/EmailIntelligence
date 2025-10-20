@@ -2,51 +2,20 @@
 Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
 """
-<<<<<<< HEAD
-from typing import Generator, AsyncGenerator
-=======
-
 import logging
 from typing import TYPE_CHECKING, Optional
-
->>>>>>> main
 from fastapi import Depends
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
-from backend.python_backend.database import get_db
+from backend.python_backend.database import get_db, DatabaseManager
+from backend.python_backend.services.gmail_service import GmailAIService
+from backend.python_backend.models import ModelManager
+from backend.python_backend.ai_engine import AdvancedAIEngine
+from backend.python_backend.smart_filters import SmartFilterManager
+from backend.python_backend.workflows import WorkflowEngine
+from backend.python_backend.plugins import PluginManager
 
 
-<<<<<<< HEAD
-# Dependency functions for services
-async def get_email_service() -> AsyncGenerator[EmailService, None]:
-    """Provides an EmailService instance"""
-    service = EmailService()
-    try:
-        yield service
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-async def get_category_service() -> AsyncGenerator[CategoryService, None]:
-    """Provides a CategoryService instance"""
-    service = CategoryService()
-    try:
-        yield service
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-# For backward compatibility with existing code
-async def get_database():
-    """Provides database instance (for existing code that uses direct database access)"""
-    db = await get_db()
-    return db
-
-
-# Additional dependencies for other services can be added here
-=======
 async def initialize_services():
     """Initialize all singleton services. This should be called on application startup."""
     global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
@@ -148,4 +117,16 @@ def get_gmail_service(
         ai_engine = get_ai_engine()
         _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
->>>>>>> main
+
+async def get_email_service() -> "EmailService":
+    """Provides an EmailService instance"""
+    return EmailService()
+
+async def get_category_service() -> "CategoryService":
+    """Provides a CategoryService instance"""
+    return CategoryService()
+
+async def get_database():
+    """Provides database instance (for existing code that uses direct database access)"""
+    db = await get_db()
+    return db

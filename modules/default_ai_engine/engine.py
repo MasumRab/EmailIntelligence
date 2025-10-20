@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from src.core.ai_engine import AIAnalysisResult, BaseAIEngine
 
 # Module-specific components
-from .nlp_engine import NLPEngine
+from backend.python_nlp.nlp_engine import NLPEngine
 
 logger = logging.getLogger(__name__)
 
@@ -31,16 +31,9 @@ class DefaultAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"Default AI Engine initialization failed: {e}", exc_info=True)
 
-<<<<<<< HEAD
     def _build_category_lookup(self, categories: List[Dict[str, Any]]) -> None:
         """Builds a normalized lookup map for categories."""
         self.category_lookup_map = {cat["name"].lower(): cat for cat in categories}
-=======
-    async def _build_category_lookup(self, db: "DatabaseManager") -> None:
-        """Builds a normalized lookup map for categories from the database."""
-        all_db_categories = await db.get_all_categories()
-        self.category_lookup_map = {cat["name"].lower(): cat for cat in all_db_categories}
->>>>>>> main
         logger.info("Built category lookup map for the default AI engine.")
 
     def _match_category_id(self, ai_categories: List[str]) -> Optional[int]:
@@ -88,7 +81,6 @@ class DefaultAIEngine(BaseAIEngine):
         """Cleans up resources used by the NLP engine."""
         # The original cleanup logic can be added here if needed.
         logger.info("Default AI Engine cleanup complete.")
-<<<<<<< HEAD
 
     def train_models(self, training_data: Optional[Dict[str, Any]] = None):
         """Trains or retrains the AI models using sample data or provided training data."""
@@ -232,5 +224,4 @@ class DefaultAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"Error during AI model training: {e}")
             raise
-=======
->>>>>>> main
+
