@@ -18,7 +18,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from .analysis_components.importance_model import ImportanceModel
 
-<<<<<<< HEAD
 from backend.python_nlp.text_utils import clean_text
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
@@ -32,22 +31,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-=======
 # Try to import optional dependencies
->>>>>>> main
 try:
     import nltk
     from textblob import TextBlob
-<<<<<<< HEAD
-
-    HAS_NLTK = True
-except ImportError:
-    HAS_NLTK = False
-    print(
-        "Warning: NLTK not available. Advanced NLP features will be disabled.",
-        file=sys.stderr,
-    )
-=======
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     HAS_NLTK = True
@@ -80,14 +67,11 @@ def clean_text(text: str) -> str:
 # TOPIC_MODEL_PATH = os.path.join(MODEL_DIR, "topic_model.pkl")
 # INTENT_MODEL_PATH = os.path.join(MODEL_DIR, "intent_model.pkl")
 # URGENCY_MODEL_PATH = os.path.join(MODEL_DIR, "urgency_model.pkl")
->>>>>>> main
-
 
 class NLPEngine:
     """
     Natural Language Processing engine for email analysis.
 
-<<<<<<< HEAD
     This engine integrates multiple analysis components to provide a holistic
     view of an email's content, including its sentiment, topic, intent, and
     urgency. It handles model loading, text preprocessing, and result aggregation.
@@ -97,10 +81,6 @@ class NLPEngine:
         topic_analyzer: Component for topic analysis.
         intent_analyzer: Component for intent analysis.
         urgency_analyzer: Component for urgency analysis.
-=======
-    This class provides methods for analyzing email content using various NLP techniques,
-    including sentiment analysis, topic identification, intent detection, and urgency assessment.
->>>>>>> main
     """
 
     CATEGORY_PATTERNS = {
@@ -143,17 +123,10 @@ class NLPEngine:
     }
 
     def __init__(self):
-<<<<<<< HEAD
         """Initializes the NLP engine and loads all necessary models and resources."""
-        model_dir = "models"
-=======
-        """Initialize the NLP engine and load required models."""
-
-        # Define model paths dynamically using env var at instantiation time
         model_dir = os.getenv(
             "NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models")
         )
->>>>>>> main
         self.sentiment_model_path = os.path.join(model_dir, "sentiment")
         self.topic_model_path = os.path.join(model_dir, "topic")
         self.intent_model_path = os.path.join(model_dir, "intent")
@@ -171,48 +144,12 @@ class NLPEngine:
         else:
             self.stop_words = set()
 
-<<<<<<< HEAD
         logger.info("Attempting to load NLP models...")
         self.sentiment_analyzer = pipeline("sentiment-analysis", model=self.sentiment_model_path)
         self.topic_analyzer = pipeline("text-classification", model=self.topic_model_path)
         self.intent_analyzer = pipeline("text-classification", model=self.intent_model_path)
         self.urgency_analyzer = pipeline("text-classification", model=self.urgency_model_path)
-=======
-        # Initialize model attributes
-        self.sentiment_model = None
-        self.topic_model = None
-        self.intent_model = None
-        self.urgency_model = None
         self.importance_model = ImportanceModel()
-
-        # Load models if dependencies are available
-        # These attributes self.sentiment_model, self.topic_model etc. are the actual model objects (e.g. from joblib)
-
-        if HAS_SKLEARN_AND_JOBLIB:
-            logger.info("Attempting to load NLP models...")
-            self.sentiment_model = self._load_model(self.sentiment_model_path)
-            self.topic_model = self._load_model(self.topic_model_path)
-        else:
-            logger.warning(
-                "Scikit-learn or joblib not available. "
-                "NLP models will not be loaded. Using fallback logic."
-            )
-
-        # Initialize SentimentModel (previously SentimentAnalyzer)
-        # These attributes self.sentiment_analyzer, self.topic_analyzer etc. are instances of our analyzer/model classes
-        # self.sentiment_analyzer = SentimentModel(
-        #     sentiment_model=_sentiment_model_obj, has_nltk_installed=HAS_NLTK
-        # )
-
-        # Initialize TopicModel (previously TopicAnalyzer)
-        # self.topic_analyzer = TopicModel(topic_model=_topic_model_obj) # This is now redundant
-
-        # Initialize IntentModel (previously IntentAnalyzer)
-        # self.intent_analyzer = IntentModel(intent_model=_intent_model_obj)
-
-        # Initialize UrgencyModel (previously UrgencyAnalyzer)
-        # self.urgency_analyzer = UrgencyModel(urgency_model=_urgency_model_obj)
->>>>>>> main
 
     def initialize_patterns(self):
         """Pre-compiles regex patterns for categorization."""
@@ -223,31 +160,8 @@ class NLPEngine:
         }
         logger.info("Regex patterns compiled successfully.")
 
-<<<<<<< HEAD
-=======
-    def _load_model(self, model_path: str) -> Optional[Any]:
-        """
-        Load a pickled model file from the specified path.
 
-        Args:
-            model_path: Path to the model file
 
-        Returns:
-            Loaded model object or None if loading fails
-        """
-        try:
-            if os.path.exists(model_path):
-                model = joblib.load(model_path)
-                logger.info(f"Successfully loaded model from {model_path}")
-                return model
-
-            logger.warning(f"Model file not found at {model_path}. This model will be unavailable.")
-            return None
-        except Exception as e:
-            logger.error(f"Error loading model from {model_path}: {e}")
-            return None
-
->>>>>>> main
     def _preprocess_text(self, text: str) -> str:
         """
         Perform basic text cleaning and normalization using the shared utility.
@@ -375,11 +289,7 @@ class NLPEngine:
 
     def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
         """
-<<<<<<< HEAD
         Analyzes the topic of the text using a pre-trained Hugging Face model.
-=======
-        Analyze topic using the loaded sklearn model.
->>>>>>> main
 
         Args:
             text: Text to analyze
@@ -391,21 +301,11 @@ class NLPEngine:
             return None
 
         try:
-<<<<<<< HEAD
             results = self.topic_analyzer(text)
             prediction = results[0]
             return {
                 "topic": prediction["label"],
                 "confidence": prediction["score"],
-=======
-            prediction = self.topic_model.predict([text])[0]
-            probabilities = self.topic_model.predict_proba([text])[0]
-            confidence = float(max(probabilities))
-
-            return {
-                "topic": str(prediction),
-                "confidence": confidence,
->>>>>>> main
                 "method_used": "model_topic",
             }
         except Exception as e:
@@ -487,27 +387,17 @@ class NLPEngine:
         # Calculate scores for each topic
         topic_scores = {}
         text_lower = text.lower()
-<<<<<<< HEAD
         topic_scores = {
             topic: sum(1 for keyword in keywords if keyword in text_lower)
             for topic, keywords in topics.items()
         }
         if any(topic_scores.values()):
-=======
-        for topic, keywords in topics.items():
-            score = sum(1 for keyword in keywords if keyword in text_lower)
-            topic_scores[topic] = score
-
-        # Determine the best matching topic
-        if any(score > 0 for score in topic_scores.values()):
->>>>>>> main
             best_topic = max(topic_scores, key=topic_scores.get)
 
             # Calculate confidence score
             # Using a simple heuristic: matched_keywords / 5.0 (capped at 0.9)
             confidence = min(topic_scores[best_topic] / 5.0, 0.9)
             normalized_topic = best_topic.lower().replace(" & ", "_").replace(" ", "_")
-<<<<<<< HEAD
             return {
                 "topic": normalized_topic,
                 "confidence": max(0.1, confidence),
@@ -518,20 +408,6 @@ class NLPEngine:
             "confidence": 0.5,
             "method_used": "fallback_keyword_topic",
         }
-=======
-
-            return {
-                "topic": normalized_topic,  # Normalized topic
-                "confidence": max(0.1, confidence),
-                "method_used": "fallback_keyword_topic",
-            }
-        else:
-            return {
-                "topic": "general_communication",  # Consistent fallback topic name
-                "confidence": 0.5,
-                "method_used": "fallback_keyword_topic",
-            }
->>>>>>> main
 
     def _analyze_topic(self, text: str) -> Dict[str, Any]:
         """
@@ -895,20 +771,10 @@ class NLPEngine:
         # Simple validation based on confidence levels
         confidence = self._calculate_confidence([analysis_results[key] for key in analysis_results])
         is_reliable = confidence > 0.7
-<<<<<<< HEAD
-        feedback = (
-            "Analysis completed with high confidence."
-            if is_reliable
-            else "Analysis completed with moderate confidence. Please review."
-        )
-=======
-
         if is_reliable:
             feedback = "Analysis completed with high confidence."
         else:
             feedback = "Analysis completed with moderate confidence. Please review the results."
-
->>>>>>> main
         return {
             "method": "confidence_threshold",
             "score": confidence,
@@ -941,16 +807,6 @@ class NLPEngine:
     def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
         """Simple fallback analysis when NLTK is not available"""
         text = f"{subject} {content}".lower()
-<<<<<<< HEAD
-        sentiment = (
-            "positive" if "thank" in text else "negative" if "problem" in text else "neutral"
-        )
-        urgency = "high" if "urgent" in text else "low"
-        topic = "work_business" if "meeting" in text else "general_communication"
-        confidence_value = 0.5
-        categories = ["General"]
-=======
-
         # Basic sentiment analysis
         positive_words = [
             "good",
@@ -1011,8 +867,6 @@ class NLPEngine:
         else:
             categories = ["General"]
             topic = "general_communication"
-
->>>>>>> main
         return {
             "topic": topic,
             "sentiment": sentiment,
@@ -1033,11 +887,6 @@ class NLPEngine:
             # "action_items": [], # Removed
         }
 
-    def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
-        """
-        Analyze text for action items using ActionItemExtractor.
-        """
-        return []
 
     def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
         """
@@ -1075,31 +924,21 @@ class NLPEngine:
         Comprehensive email analysis using multiple NLP techniques
         """
         try:
-<<<<<<< HEAD
-            if not HAS_NLTK:
-                logger.warning("Dependencies missing, using simple fallback analysis.")
-=======
             # If NLTK and models are not available, use simple fallback
             if not HAS_NLTK and not HAS_SKLEARN_AND_JOBLIB:  # or specific model checks
                 logger.warning(
                     "NLTK and scikit-learn/joblib are unavailable. Using simple fallback analysis."
                 )
->>>>>>> main
                 return self._get_simple_fallback_analysis(subject, content)
 
             # Combine subject and content for analysis
             full_text = f"{subject} {content}"
 
-<<<<<<< HEAD
-            # Multi-model analysis
-=======
             # Basic preprocessing (primarily for non-model based methods or as initial step)
             # Model pipelines should ideally handle their own specific preprocessing.
             logger.info("Preprocessing email text...")
             cleaned_text = self._preprocess_text(full_text)
             logger.info("Email text preprocessed successfully.")
-
->>>>>>> main
             analyses = [
                 ("sentiment", self._analyze_sentiment),
                 ("topic", self._analyze_topic),
@@ -1161,18 +1000,11 @@ class NLPEngine:
 
     def _build_final_analysis_response(
         self,
-<<<<<<< HEAD
-        sentiment,
-        topic,
-        intent,
-        urgency,
-=======
         sentiment_analysis,
         topic_analysis,
         intent_analysis,
         urgency_analysis,
         importance_analysis,
->>>>>>> main
         categories,
         keywords,
         risk_analysis_flags,
@@ -1180,7 +1012,7 @@ class NLPEngine:
     ) -> Dict[str, Any]:
         """
         Helper function to consolidate analysis results and build the final response dictionary.
-
+        """
         analysis_results_for_confidence = [
             r
             for r in [
@@ -1198,18 +1030,6 @@ class NLPEngine:
             else 0.5
         )
 
-<<<<<<< HEAD
-        Returns:
-            A dictionary containing the final, aggregated analysis.
-        """
-        analysis_results = [res for res in [sentiment, topic, intent, urgency] if res]
-        confidence = self._calculate_confidence(analysis_results)
-        reasoning = self._generate_reasoning(sentiment, topic, intent, urgency)
-        suggested_labels = self._suggest_labels(categories, urgency.get("urgency", "low"))
-        validation = self._validate_analysis(
-            {"sentiment": sentiment, "topic": topic, "intent": intent, "urgency": urgency}
-        )
-=======
         reasoning = self._generate_reasoning(
             sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis
         )
@@ -1235,7 +1055,6 @@ class NLPEngine:
         final_is_important = importance_analysis.get("is_important", False) if importance_analysis else False
 
         suggested_labels = self._suggest_labels(categories, final_urgency)
->>>>>>> main
 
         return {
             "topic": final_topic,
@@ -1252,41 +1071,23 @@ class NLPEngine:
             "validation": validation,
             "actionItems": action_items,
             "details": {
-<<<<<<< HEAD
-                "sentiment_analysis": sentiment,
-                "topic_analysis": topic,
-                "intent_analysis": intent,
-                "urgency_analysis": urgency,
-=======
                 "sentiment_analysis": sentiment_analysis,
                 "topic_analysis": topic_analysis,
                 "intent_analysis": intent_analysis,
                 "urgency_analysis": urgency_analysis,
                 "importance_analysis": importance_analysis,
->>>>>>> main
             },
         }
 
 
 # This is the main function to be kept (argparse based)
 def main():
-<<<<<<< HEAD
-    parser = argparse.ArgumentParser(description="NLP Engine for Email Analysis")
-    parser.add_argument("--subject", type=str, default="", help="Email subject")
-    parser.add_argument("--content", type=str, default="", help="Email content")
-    parser.add_argument("--health-check", action="store_true", help="Perform a health check.")
-    parser.add_argument(
-        "--output-format", type=str, default="text", choices=["json", "text"], help="Output format."
-    )
-    args = parser.parse_args()
-=======
     # Basic logging for CLI usage, can be overridden by Gunicorn's logger in production
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
->>>>>>> main
 
     parser = argparse.ArgumentParser(
         description="Enhanced NLP Engine for Gmail AI Email Management"
@@ -1343,32 +1144,26 @@ def main():
 
 
 def _perform_health_check(engine: NLPEngine, output_format: str):
-<<<<<<< HEAD
-=======
     """Performs a health check and prints the status."""
->>>>>>> main
     models_available = []
-    if engine.sentiment_model:
+    if hasattr(engine, 'sentiment_analyzer') and engine.sentiment_analyzer:
         models_available.append("sentiment")
-    if engine.topic_model:
+    if hasattr(engine, 'topic_analyzer') and engine.topic_analyzer:
         models_available.append("topic")
-    if engine.intent_model:
+    if hasattr(engine, 'intent_analyzer') and engine.intent_analyzer:
         models_available.append("intent")
-    if engine.urgency_model:
+    if hasattr(engine, 'urgency_analyzer') and engine.urgency_analyzer:
         models_available.append("urgency")
-<<<<<<< HEAD
-=======
 
     all_models_loaded = all(
         model is not None
         for model in [
-            engine.sentiment_model,
-            engine.topic_model,
-            engine.intent_model,
-            engine.urgency_model,
+            engine.sentiment_analyzer,
+            engine.topic_analyzer,
+            engine.intent_analyzer,
+            engine.urgency_analyzer,
         ]
     )
->>>>>>> main
 
     health_status = {
         "status": "ok" if all_models_loaded else "degraded",
@@ -1384,14 +1179,10 @@ def _perform_health_check(engine: NLPEngine, output_format: str):
 
 
 def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, output_format: str):
-<<<<<<< HEAD
-=======
     """Performs email analysis based on CLI arguments and prints the result."""
     if not subject and not content:
         # If called with --analyze-email but no subject/content, could be an error or expect empty analysis
         logger.warning("Analysis requested with empty subject and content.")
-
->>>>>>> main
     result = engine.analyze_email(subject, content)
     if output_format == "json":
         print(json.dumps(result))  # Compact JSON for machine readability

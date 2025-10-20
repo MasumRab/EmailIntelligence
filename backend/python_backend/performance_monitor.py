@@ -95,14 +95,10 @@ class PerformanceMonitor:
             time.sleep(5)  # Monitor every 5 seconds
 
     def record_model_performance(
-<<<<<<< HEAD
-        self, model_name: str, execution_time: float, success: bool = True
-=======
         self,
         model_name: str,
         execution_time: float,
         success: bool = True,
->>>>>>> main
     ) -> None:
         """Record performance metric for a model execution"""
         with self._lock:
@@ -142,14 +138,10 @@ class PerformanceMonitor:
             )
 
     def record_workflow_execution(
-<<<<<<< HEAD
-        self, workflow_name: str, execution_time: float, success: bool = True
-=======
         self,
         workflow_name: str,
         execution_time: float,
         success: bool = True,
->>>>>>> main
     ) -> None:
         """Record performance metric for a workflow execution"""
         with self._lock:
@@ -199,13 +191,9 @@ class PerformanceMonitor:
                     break
 
     def get_recent_metrics(
-<<<<<<< HEAD
-        self, minutes: int = 5, source_filter: Optional[str] = None
-=======
         self,
         minutes: int = 5,
         source_filter: Optional[str] = None,
->>>>>>> main
     ) -> List[PerformanceMetric]:
         """Get metrics from the last specified minutes"""
         with self._lock:
@@ -291,12 +279,7 @@ def get_performance_monitor() -> PerformanceMonitor:
     """Get the global performance monitor instance"""
     return performance_monitor
 
-<<<<<<< HEAD
-def log_performance(_func=None, *, operation: str = ""):
-=======
-
 def log_performance(operation_or_func=None, *, operation: str = ""):
->>>>>>> main
     """
     A decorator to log the performance of both sync and async functions.
     Can be used as @log_performance or @log_performance(operation="custom_name").
@@ -362,7 +345,6 @@ def _create_decorator(func, op_name):
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
-<<<<<<< HEAD
             }
 
             try:
@@ -372,38 +354,4 @@ def _create_decorator(func, op_name):
 
             return result
 
-        @wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = await func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-=======
->>>>>>> main
-            }
-
-            try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
-
-            return result
-
-<<<<<<< HEAD
-        if asyncio.iscoroutinefunction(func):
-            return async_wrapper
-        else:
-            return sync_wrapper
-
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)
-=======
         return sync_wrapper
->>>>>>> main
