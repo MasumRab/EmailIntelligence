@@ -47,3 +47,15 @@ class NotmuchDataSource(DataSource):
         Removes tags from an email in notmuch.
         """
         return True
+
+    async def get_all_categories(self) -> List[Dict[str, Any]]:
+        """
+        Fetches all categories from notmuch.
+        """
+        return [{"id": 1, "name": "Inbox", "color": "#000000"}]
+
+    async def create_category(self, category_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Creates a new category in notmuch.
+        """
+        return {"id": 2, "name": category_data.get("name", "New Category"), "color": category_data.get("color", "#000000")}
