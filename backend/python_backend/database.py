@@ -76,10 +76,7 @@ class DatabaseManager:
     """
 
     def __init__(self):
-<<<<<<< HEAD
-=======
         """Initializes the DatabaseManager, setting up file paths and data caches."""
->>>>>>> main
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -180,11 +177,7 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-<<<<<<< HEAD
     @log_performance(operation="save_data_to_file")
-=======
-    @log_performance("save_data_to_file")
->>>>>>> main
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -221,8 +214,7 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-<<<<<<< HEAD
-=======
+    def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
         """
         Generates a new unique integer ID for a record.
 
@@ -232,14 +224,12 @@ class DatabaseManager:
         Returns:
             A new unique integer ID.
         """
->>>>>>> main
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-<<<<<<< HEAD
-=======
+    def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
         """
         Parses fields in a data row that are stored as JSON strings.
 
@@ -250,7 +240,6 @@ class DatabaseManager:
         Returns:
             The modified data record with parsed fields.
         """
->>>>>>> main
         if not row:
             return row
         for field in row:
@@ -463,12 +452,8 @@ class DatabaseManager:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
 
             self.emails_by_id[email_id] = email_to_update
-<<<<<<< HEAD
-            self.emails_by_message_id[message_id] = email_to_update
-=======
             if email_to_update.get(FIELD_MESSAGE_ID):
                 self.emails_by_message_id[email_to_update[FIELD_MESSAGE_ID]] = email_to_update
->>>>>>> main
             idx = next(
                 (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
             )
@@ -500,10 +485,8 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-<<<<<<< HEAD
-=======
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """Retrieves all emails with pagination."""
->>>>>>> main
         return await self.get_emails(limit=limit, offset=offset)
 
     async def get_emails_by_category(
@@ -631,8 +614,7 @@ _db_manager_instance = None
 
 
 async def get_db() -> DatabaseManager:
-<<<<<<< HEAD
-=======
+async def get_db() -> DatabaseManager:
     """
     Provides the singleton instance of the DatabaseManager.
 
@@ -644,7 +626,6 @@ async def get_db() -> DatabaseManager:
     Returns:
         The singleton DatabaseManager instance.
     """
->>>>>>> main
     global _db_manager_instance
     if _db_manager_instance is None:
         # This should ideally not be reached if startup event is properly set
