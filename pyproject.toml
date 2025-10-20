@@ -5,15 +5,14 @@ description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",
-<<<<<<< HEAD
+    "fastapi>=0.115.12",
     "httpx>=0.28.1",
-
-    # Gradio UI
+    "pydantic>=2.11.5",
+    "python-multipart>=0.0.20",
+    "uvicorn>=0.34.3",
     "gradio>=4.0.0",
     "RestrictedPython>=8.0",
     "pyngrok>=0.7.0",
-
-    # NLP and Machine Learning
     "nltk>=3.9.1",
     "textblob>=0.19.0",
     "transformers>=4.40.0",
@@ -22,58 +21,32 @@ dependencies = [
     "sentencepiece>=0.2.0",
     "scikit-learn>=1.5.0",
     "joblib>=1.5.1",
-
-    # Data Handling and Plotting
     "pandas>=2.0.0",
     "numpy>=1.26.0",
     "matplotlib>=3.8.0",
     "seaborn>=0.13.0",
     "scipy>=1.11.0",
     "plotly>=5.18.0",
-
-    # System and Performance Monitoring
     "psutil>=6.0.0",
-
-    # Google API
     "google-api-python-client>=2.172.0",
     "google-auth>=2.40.3",
     "google-auth-oauthlib>=1.2.2",
-
-    # Security
     "bleach>=6.0.0",
-=======
-    "fastapi>=0.115.12",
-    "pydantic>=2.11.5",
-    "python-multipart>=0.0.20",
-    "uvicorn>=0.34.3",
->>>>>>> main
+    "python-dotenv>=1.1.0",
+    "pydantic-settings>=2.0.0",
+    "aiosqlite>=0.19.0"
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
-    "accelerate>=1.7.0",
     "black>=25.1.0",
     "flake8>=7.2.0",
-    "google-api-python-client>=2.172.0",
-    "google-auth>=2.40.3",
-    "google-auth-oauthlib>=1.2.2",
-    "gradio>=5.34.0",
     "isort>=6.0.1",
-    "joblib>=1.5.1",
     "mypy>=1.16.0",
-    "nltk>=3.9.1",
     "pylint>=3.3.7",
-    "pyngrok>=0.7.0",
     "pytest>=8.4.0",
-    "python-dotenv>=1.1.0",
-    "scikit-learn>=1.7.0",
-    "sentencepiece>=0.2.0",
-    "textblob>=0.19.0",
-    "torch>=2.7.1",
-    "transformers>=4.52.4",
-    "uvicorn>=0.34.3",
+    "pytest-asyncio>=0.23.0"
 ]
-
 
 [tool.black]
 line-length = 100
@@ -98,8 +71,8 @@ profile = "black"
 line_length = 100
 
 [tool.pytest.ini_options]
-# Try setting via addopts as the plugin might not be loading to register the asyncio_mode option directly
 addopts = "--asyncio-mode=auto"
 markers = [
     "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
 ]
+norecursedirs = ["backend"]

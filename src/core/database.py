@@ -43,10 +43,7 @@ FIELD_COLOR = "color"
 FIELD_COUNT = "count"
 FIELD_TIME = "time"
 FIELD_CONTENT = "content"
-<<<<<<< HEAD
 FIELD_SUBJECT = "subject"
-=======
->>>>>>> main
 FIELD_SENDER = "sender"
 FIELD_SENDER_EMAIL = "sender_email"
 HEAVY_EMAIL_FIELDS = [FIELD_CONTENT, "content_html"]
@@ -168,11 +165,7 @@ class DatabaseManager(DataSource):
                 )
                 setattr(self, data_list_attr, [])
 
-<<<<<<< HEAD
     @log_performance(operation="save_data_to_file")
-=======
-    @log_performance("save_data_to_file")
->>>>>>> main
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []

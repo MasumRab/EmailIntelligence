@@ -6,7 +6,6 @@ from typing import Optional
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 
-<<<<<<< HEAD
 
 class APIError(BaseModel):
     """API Error response model"""
@@ -41,18 +40,15 @@ class EmailNotFoundException(AppException):
     def __init__(self, email_id: int = None, message_id: str = None):
         if email_id:
             message = f"Email with ID {email_id} not found"
-            error_code = "EMAIL_NOT_FOUND"
         elif message_id:
             message = f"Email with message ID {message_id} not found"
-            error_code = "EMAIL_NOT_FOUND"
         else:
             message = "Email not found"
-            error_code = "EMAIL_NOT_FOUND"
         
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             message=message,
-            error_code=error_code
+            error_code="EMAIL_NOT_FOUND"
         )
 
 
@@ -91,6 +87,20 @@ class DatabaseError(AppException):
         )
 
 
+class AIAnalysisError(AppException):
+    """Exception for AI analysis related errors."""
+
+    def __init__(self, detail: str = "An error occurred during AI analysis."):
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, message=detail, error_code="AI_ANALYSIS_ERROR")
+
+
+class GmailServiceError(AppException):
+    """Exception for Gmail service related errors."""
+
+    def __init__(self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502):
+        super().__init__(status_code=status_code, message=detail, error_code="GMAIL_SERVICE_ERROR")
+
+
 class UnauthorizedException(AppException):
     """Raised when authentication/authorization fails"""
     
@@ -111,36 +121,3 @@ class ForbiddenException(AppException):
             message=message,
             error_code="FORBIDDEN"
         )
-=======
-
-class BaseAppException(Exception):
-    """Base exception class for the application."""
-
-    def __init__(self, status_code: int, detail: str):
-        self.status_code = status_code
-        self.detail = detail
-        super().__init__(detail)
-
-
-class DatabaseError(BaseAppException):
-    """Exception for database related errors."""
-
-    def __init__(self, detail: str = "A database error occurred."):
-        super().__init__(status_code=503, detail=detail)
-
-
-class AIAnalysisError(BaseAppException):
-    """Exception for AI analysis related errors."""
-
-    def __init__(self, detail: str = "An error occurred during AI analysis."):
-        super().__init__(status_code=500, detail=detail)
-
-
-class GmailServiceError(BaseAppException):
-    """Exception for Gmail service related errors."""
-
-    def __init__(
-        self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
-    ):
-        super().__init__(status_code=status_code, detail=detail)
->>>>>>> main

@@ -299,6 +299,8 @@ def check_python_version():
 
         logger.error("No compatible Python interpreter found. Please install Python 3.12 or 3.11.")
         sys.exit(1)
+    else:
+        logger.info(f"Python version {sys.version.split()[0]} is compatible.")
 
 
 # --- Signal Handling ---

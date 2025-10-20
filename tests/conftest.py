@@ -1,19 +1,5 @@
 import os
 import sys
-<<<<<<< HEAD
-
-import pytest
-from fastapi.testclient import TestClient
-
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from src.main import create_app
-
-
-@pytest.fixture(scope="module")
-def client():
-=======
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -27,7 +13,6 @@ from src.core.database import get_db
 
 @pytest.fixture
 def mock_db_manager():
->>>>>>> main
     """
     Provides a mock DatabaseManager instance.
     This mock is reset for each test function, ensuring test isolation.
@@ -54,14 +39,9 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
-<<<<<<< HEAD
-    with TestClient(app) as c:
-        yield c
-=======
     app.dependency_overrides[get_db] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
     del app.dependency_overrides[get_db]
->>>>>>> main

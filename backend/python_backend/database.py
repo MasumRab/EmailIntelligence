@@ -19,7 +19,6 @@ from .performance_monitor import log_performance
 logger = logging.getLogger(__name__)
 
 # File paths - now configurable via environment variable
-# Use a more general default that works across different deployment scenarios
 DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
 EMAIL_CONTENT_DIR = DATA_DIR / "email_content"
 EMAILS_FILE = DATA_DIR / "emails.json.gz"
@@ -50,7 +49,6 @@ FIELD_SENDER = "sender"
 FIELD_SENDER_EMAIL = "sender_email"
 HEAVY_EMAIL_FIELDS = [FIELD_CONTENT, "content_html"]
 
-
 # UI field names
 FIELD_CATEGORY_NAME = "categoryName"
 FIELD_CATEGORY_COLOR = "categoryColor"
@@ -76,10 +74,7 @@ class DatabaseManager:
     """
 
     def __init__(self):
-<<<<<<< HEAD
-=======
         """Initializes the DatabaseManager, setting up file paths and data caches."""
->>>>>>> main
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -126,7 +121,6 @@ class DatabaseManager:
         return full_email
 
     async def _ensure_initialized(self) -> None:
-
         if not self._initialized:
             await self._load_data()
             self._build_indexes()
@@ -157,7 +151,7 @@ class DatabaseManager:
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
         logger.info("In-memory indexes built successfully.")
 
-    @log_performance("load_data")
+    @log_performance(operation="load_data")
     async def _load_data(self) -> None:
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, "emails_data"),
@@ -180,11 +174,7 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-<<<<<<< HEAD
     @log_performance(operation="save_data_to_file")
-=======
-    @log_performance("save_data_to_file")
->>>>>>> main
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -221,8 +211,6 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-<<<<<<< HEAD
-=======
         """
         Generates a new unique integer ID for a record.
 
@@ -232,14 +220,11 @@ class DatabaseManager:
         Returns:
             A new unique integer ID.
         """
->>>>>>> main
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-<<<<<<< HEAD
-=======
         """
         Parses fields in a data row that are stored as JSON strings.
 
@@ -250,7 +235,6 @@ class DatabaseManager:
         Returns:
             The modified data record with parsed fields.
         """
->>>>>>> main
         if not row:
             return row
         for field in row:
@@ -349,7 +333,6 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
-
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
@@ -463,12 +446,8 @@ class DatabaseManager:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
 
             self.emails_by_id[email_id] = email_to_update
-<<<<<<< HEAD
-            self.emails_by_message_id[message_id] = email_to_update
-=======
             if email_to_update.get(FIELD_MESSAGE_ID):
                 self.emails_by_message_id[email_to_update[FIELD_MESSAGE_ID]] = email_to_update
->>>>>>> main
             idx = next(
                 (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
             )
@@ -500,10 +479,7 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-<<<<<<< HEAD
-=======
         """Retrieves all emails with pagination."""
->>>>>>> main
         return await self.get_emails(limit=limit, offset=offset)
 
     async def get_emails_by_category(
@@ -626,25 +602,20 @@ class DatabaseManager:
 
 
 # Module-level variable to store the database manager instance
-# This is initialized via FastAPI startup event
 _db_manager_instance = None
 
 
 async def get_db() -> DatabaseManager:
-<<<<<<< HEAD
-=======
     """
     Provides the singleton instance of the DatabaseManager.
 
     This function is used for dependency injection in FastAPI routes. It ensures
     that only one instance of the DatabaseManager is used throughout the
-
     application's lifecycle.
 
     Returns:
         The singleton DatabaseManager instance.
     """
->>>>>>> main
     global _db_manager_instance
     if _db_manager_instance is None:
         # This should ideally not be reached if startup event is properly set

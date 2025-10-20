@@ -5,24 +5,12 @@ from unittest.mock import MagicMock, call, mock_open, patch
 import pytest
 
 from backend.python_backend.model_manager import ModelManager
-<<<<<<< HEAD
-=======
 
-
->>>>>>> main
 @pytest.fixture
 def model_manager():
     """Provides a clean ModelManager instance for each test."""
     return ModelManager()
 
-
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> main
 def test_discover_models_success(model_manager):
     """Tests that models are correctly discovered from JSON config files."""
     mock_sentiment_config = {
@@ -47,10 +35,6 @@ def test_discover_models_success(model_manager):
         patch("os.listdir", return_value=["sentiment-test.json", "topic-test.json"]),
         patch("builtins.open", m),
     ):
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 
         model_manager.discover_models()
 
@@ -59,28 +43,12 @@ def test_discover_models_success(model_manager):
         assert "topic-test" in model_manager._model_metadata
         assert model_manager._model_metadata["sentiment-test"]["module"] == "test.sentiment_module"
 
-
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> main
 def test_discover_models_file_not_found(model_manager):
     """Tests that model discovery handles a missing directory gracefully."""
     with patch("os.path.exists", return_value=False):
         model_manager.discover_models()
         assert len(model_manager.list_models()) == 0
 
-
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> main
 @patch("importlib.import_module")
 def test_load_model_success(mock_import_module, model_manager):
     """Tests that a model is loaded dynamically using importlib."""
@@ -88,10 +56,7 @@ def test_load_model_success(mock_import_module, model_manager):
     model_meta = {
         "name": model_name,
         "module": "test.sentiment_module",
-<<<<<<< HEAD
-=======
         "class": "TestSentimentModel",
->>>>>>> main
         "status": "unloaded",
     }
     model_manager._model_metadata[model_name] = model_meta
@@ -109,27 +74,11 @@ def test_load_model_success(mock_import_module, model_manager):
     assert model_name in model_manager._models
     assert model_manager._model_metadata[model_name]["status"] == "loaded"
 
-
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> main
 def test_load_nonexistent_model(model_manager):
     """Tests that loading a nonexistent model raises a ValueError."""
     with pytest.raises(ValueError, match="Model 'nonexistent' not found."):
         model_manager.load_model("nonexistent")
 
-
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> main
 def test_get_model_loads_if_unloaded(model_manager):
     """Tests that get_model triggers load_model if the model is not yet loaded."""
     model_name = "sentiment-test"
