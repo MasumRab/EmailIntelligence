@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 """
 Development server runner for the FastAPI backend.
 
@@ -8,7 +6,6 @@ suitable for development purposes. It ensures that the application reloads
 automatically when code changes are detected.
 """
 import uvicorn
->>>>>>> origin/feature/git-history-analysis-report
 import os
 import sys
 from pathlib import Path
