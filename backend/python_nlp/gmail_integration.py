@@ -6,6 +6,8 @@ API, featuring smart batching, caching, rate limit management, and a
 pluggable authentication mechanism. It is designed to be resilient and
 efficient, even when dealing with large volumes of emails.
 """
+import dataclasses
+import dataclasses
 import asyncio
 import hashlib
 import json

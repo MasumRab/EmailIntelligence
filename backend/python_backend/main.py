@@ -15,16 +15,9 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from ..plugins.plugin_manager import plugin_manager
-=======
-from fastapi.responses import JSONResponse
-
-# Updated import to use NLP GmailAIService directly
-from backend.python_nlp.gmail_service import GmailAIService
->>>>>>> main
-
-# Removed: from .smart_filters import EmailFilter (as per instruction)
-from backend.python_nlp.smart_filters import SmartFilterManager
+from backend.python_backend.plugins.plugin_manager import plugin_manager
+from backend.python_backend.services.gmail_service import GmailAIService
+from backend.python_backend.smart_filters import SmartFilterManager
 
 from . import (
     action_routes,
@@ -34,7 +27,6 @@ from . import (
     email_routes,
     filter_routes,
     gmail_routes,
-<<<<<<< HEAD
     training_routes,
     workflow_routes,
     model_routes,
@@ -48,19 +40,6 @@ from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .workflow_manager import workflow_manager
 from .settings import settings
-
-# Updated import to use NLP GmailAIService directly
-# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
-# Instead, dependencies are managed via dependency injection in the routes
-
-=======
-)
-from .ai_engine import AdvancedAIEngine
-
-# Import our Python modules
-from .performance_monitor import PerformanceMonitor
-from .database import db_manager
->>>>>>> main
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -76,7 +55,7 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
-<<<<<<< HEAD
+async def startup_event():
     """On startup, initialize all services."""
     logger.info("Application startup event received.")
 
@@ -100,10 +79,6 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-=======
-    """Application startup: connect to the database."""
-    await db_manager.connect()
->>>>>>> main
 
 
 @app.on_event("shutdown")
@@ -111,40 +86,66 @@ async def shutdown_event():
     """Application shutdown: disconnect from the database."""
     await db_manager.close()
 
-<<<<<<< HEAD
-
 @app.exception_handler(AppException)
+
 async def app_exception_handler(request: Request, exc: AppException):
+
     return JSONResponse(
+
         status_code=exc.status_code,
+
         content=exc.detail,
+
     )
-=======
->>>>>>> main
+
+
+
 
 
 @app.exception_handler(BaseAppException)
+
 async def base_app_exception_handler(request: Request, exc: BaseAppException):
+
     return JSONResponse(
+
         status_code=500,
+
         content={
+
             "success": False,
+
             "message": "An internal error occurred",
+
             "error_code": "INTERNAL_ERROR",
+
             "details": str(exc)
+
         },
+
     )
 
 
+
+
+
 @app.exception_handler(ValidationError)
+
 async def validation_exception_handler(request: Request, exc: ValidationError):
+
     """Handle Pydantic validation errors with detailed 422 responses."""
+
     return JSONResponse(
+
         status_code=422,
+
         content={
+
             "detail": exc.errors(),
+
             "message": "Validation error with provided data.",
+
         },
+
     )
 
 
@@ -163,14 +164,8 @@ app.add_middleware(
 # Other shared request/response models like EmailResponse, CategoryResponse etc. are also in models.py.
 
 # Set up metrics if in production or staging environment
-<<<<<<< HEAD
-# if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
-# from .metrics import setup_metrics # Removed
-# setup_metrics(app) # Removed
-=======
 if os.getenv("NODE_ENV") in ["production", "staging"]:
     from .metrics import setup_metrics
->>>>>>> main
 
     setup_metrics(app)
 
@@ -195,13 +190,13 @@ app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
-<<<<<<< HEAD
 app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-# app.include_router(action_routes.router) # Removed
-# app.include_router(dashboard_routes.router) # Removed
+app.include_router(action_routes.router)
+app.include_router(dashboard_routes.router)
+app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
 from .enhanced_routes import router as enhanced_router
@@ -231,12 +226,6 @@ try:
 except ImportError:
     # Fallback if node engine is not available
     workflow_manager_instance = None
-
-=======
-app.include_router(action_routes.router)
-app.include_router(dashboard_routes.router)
-app.include_router(ai_routes.router)
->>>>>>> main
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models

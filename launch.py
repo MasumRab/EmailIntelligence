@@ -29,11 +29,7 @@ try:
     from dotenv import load_dotenv
     DOTENV_AVAILABLE = True
 except ImportError:
-<<<<<<< HEAD
-    DOTENV_AVAILABLE = False
-=======
     load_dotenv = None  # Will be loaded later if needed
->>>>>>> main
 
 # Configure logging
 logging.basicConfig(
@@ -408,19 +404,9 @@ def create_venv(venv_path: Path, recreate: bool = False):
         logger.info(f"Virtual environment already exists at {venv_path}")
 
 
-<<<<<<< HEAD
 def _install_package_manager(venv_path: Path, package_manager: str) -> bool:
     """Install a package manager in the virtual environment."""
     venv_python = get_venv_executable(venv_path, "python")
-=======
-def install_uv(venv_path: Path):
-    """Install uv package manager in the virtual environment."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
->>>>>>> main
     if not venv_python.exists():
         logger.error(f"Python executable not found at {venv_python}")
         return False
@@ -438,61 +424,9 @@ def install_uv(venv_path: Path):
     logger.info(f"{package_manager} installed successfully.")
     return True
 
-
-def _install_pytorch(venv_python: Path):
-    """Install PyTorch with CPU support, with fallback options."""
-    # SECURITY NOTE: Using hardcoded PyTorch URL - ensure this source is trusted
-    logger.info("Installing CPU-only PyTorch...")
-    pytorch_cmd = [
-        str(venv_python),
-        "-m",
-        "pip",
-        "install",
-        TORCH_VERSION,
-        "--index-url",
-        TORCH_CPU_URL,
-    ]
-    if not run_command(pytorch_cmd, "Install PyTorch CPU"):
-        logger.warning("PyTorch installation failed, attempting fallback...")
-        # Try without index URL
-        fallback_cmd = [str(venv_python), "-m", "pip", "install", TORCH_VERSION]
-        if not run_command(fallback_cmd, "Install PyTorch fallback"):
-            logger.error("PyTorch installation completely failed, ML features may not work")
-
-
 def install_uv(venv_path: Path):
     """Install uv package manager in the virtual environment."""
     if not _install_package_manager(venv_path, "uv"):
-        sys.exit(1)
-
-
-<<<<<<< HEAD
-def install_poetry(venv_path: Path):
-    """Install Poetry in the virtual environment."""
-    if not _install_package_manager(venv_path, "poetry"):
-=======
-def setup_dependencies(venv_path: Path, update: bool = False):
-    """Install project dependencies using uv."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
-    venv_uv = (
-        venv_path / "Scripts" / "uv.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "uv"
-    )
-
-    cmd = [str(venv_uv), "sync"]
-    if update:
-        cmd.extend(["--upgrade"])
-
-    logger.info("Installing project dependencies...")
-    result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
-    if result.returncode != 0:
-        logger.error(f"Failed to install dependencies: {result.stderr}")
->>>>>>> main
         sys.exit(1)
 
 
@@ -627,17 +561,11 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
             logger.info("All critical packages verified successfully.")
 
 
-def download_nltk_data(venv_path: Path):
-    """Download required NLTK data."""
-<<<<<<< HEAD
-    venv_python = get_venv_executable(venv_path, "python")
-=======
     venv_python = (
         venv_path / "Scripts" / "python.exe"
         if platform.system() == "Windows"
         else venv_path / "bin" / "python"
     )
->>>>>>> main
 
     nltk_download_script = """
 import nltk
