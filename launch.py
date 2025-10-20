@@ -45,6 +45,31 @@ PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 
+# Dependency configuration
+TORCH_VERSION = "torch>=2.4.0"
+TORCH_CPU_URL = "https://download.pytorch.org/whl/cpu"
+
+
+def _install_pytorch(venv_python: Path):
+    """Install PyTorch with CPU support, with fallback options."""
+    # SECURITY NOTE: Using hardcoded PyTorch URL - ensure this source is trusted
+    logger.info("Installing CPU-only PyTorch...")
+    pytorch_cmd = [
+        str(venv_python),
+        "-m",
+        "pip",
+        "install",
+        TORCH_VERSION,
+        "--index-url",
+        TORCH_CPU_URL,
+    ]
+    if not run_command(pytorch_cmd, "Install PyTorch CPU"):
+        logger.warning("PyTorch installation failed, attempting fallback...")
+        # Try without index URL
+        fallback_cmd = [str(venv_python), "-m", "pip", "install", TORCH_VERSION]
+        if not run_command(fallback_cmd, "Install PyTorch fallback"):
+            logger.error("PyTorch installation completely failed, ML features may not work")
+
 
 # --- Python Version Checking ---
 def check_python_version():
@@ -142,17 +167,57 @@ signal.signal(signal.SIGINT, _handle_sigint)
 signal.signal(signal.SIGTERM, _handle_sigint)
 
 
-def check_python_version():
-    """Check if the current Python version is compatible."""
-    current_version = sys.version_info[:2]
-    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        logger.error(
-            f"Python version {current_version} is not compatible. "
-            f"Required: >={'.'.join(map(str, PYTHON_MIN_VERSION))}, "
-            f"<={'.'.join(map(str, PYTHON_MAX_VERSION))}"
+def run_command(
+    cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False
+) -> bool:
+    """Run a command and log its output.
+
+    SECURITY NOTE: Use shell=False whenever possible to prevent shell injection.
+    The shell parameter is maintained for backward compatibility but should be used cautiously.
+    """
+    if shell:
+        logger.warning(
+            f"Using shell=True for command: {' '.join(cmd)}. This may be a security risk."
         )
-        sys.exit(1)
-    logger.info(f"Python version {sys.version} is compatible.")
+
+    logger.info(f"{description}...")
+    try:
+        # Use sys.executable for Python commands to ensure we're using the correct Python
+        if cmd[0] == "python":
+            cmd[0] = sys.executable
+
+        proc = subprocess.run(
+            cmd, cwd=cwd or ROOT_DIR, shell=shell, capture_output=True, text=True, check=True
+        )
+        # Always log stdout for visibility, especially for debugging setup steps.
+        if proc.stdout:
+            logger.debug(f"stdout from '{' '.join(cmd)}':\n{proc.stdout}")
+        if proc.stderr:
+            logger.warning(f"stderr from '{' '.join(cmd)}':\n{proc.stderr}")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed: {description}")
+        logger.error(f"Command failed: {' '.join(cmd) if isinstance(cmd, list) else str(cmd)}")
+        logger.error(f"stdout:\n{e.stdout}")
+        logger.error(f"stderr:\n{e.stderr}")
+        return False
+    except FileNotFoundError:
+        logger.error(f"Command not found: {cmd[0] if cmd else 'Unknown command'}")
+        return False
+
+
+def get_venv_executable(venv_path: Path, executable: str) -> Path:
+    """Get the path to a specific executable in the virtual environment."""
+    if platform.system() == "Windows":
+        return venv_path / "Scripts" / f"{executable}.exe"
+    else:
+        return venv_path / "bin" / executable
+
+
+def get_venv_python_path(venv_path: Path = None) -> Path:
+    """Get the path to the Python executable in the virtual environment."""
+    venv_path = venv_path or (ROOT_DIR / VENV_DIR)
+    return get_venv_executable(venv_path, "python")
 
 
 def create_venv(venv_path: Path, recreate: bool = False):
@@ -192,31 +257,7 @@ def install_uv(venv_path: Path):
     logger.info("uv installed successfully.")
 
 
-def setup_dependencies(venv_path: Path, update: bool = False):
-    """Install project dependencies using uv."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
-    venv_uv = (
-        venv_path / "Scripts" / "uv.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "uv"
-    )
-
-    cmd = [str(venv_uv), "sync"]
-    if update:
-        cmd.extend(["--upgrade"])
-
-    logger.info("Installing project dependencies...")
-    result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
-    if result.returncode != 0:
-        logger.error(f"Failed to install dependencies: {result.stderr}")
-        sys.exit(1)
-    logger.info("Dependencies installed successfully.")
- 
- def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
+def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
     """Install project dependencies using uv or Poetry."""
     venv_python = get_venv_executable(venv_path, "python")
 
@@ -292,7 +333,7 @@ def setup_dependencies(venv_path: Path, update: bool = False):
         venv_uv = get_venv_executable(venv_path, "uv")
 
         # Configure uv to use the virtual environment
-        os.environ['UV_PROJECT_ENVIRONMENT'] = str(venv_path)
+        os.environ["UV_PROJECT_ENVIRONMENT"] = str(venv_path)
 
         cmd = [str(venv_uv), "sync"]
         if update:
@@ -479,63 +520,6 @@ def start_server_ts():
         logger.info("TypeScript server dependencies installed.")
 
     # Start the TypeScript backend
-    process = subprocess.Popen(["npm", "run", "dev"], cwd=ROOT_DIR / "server")
-    processes.append(process)
-    return process
-
-
-def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
-    """Start the Python FastAPI backend."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
-
-    # Use uvicorn to run the FastAPI app directly
-    cmd = [
-        str(venv_python),
-        "-m",
-        "uvicorn",
-        "backend.python_backend.main:app",
-        "--host",
-        host,
-        "--port",
-        str(port),
-    ]
-    if debug:
-        cmd.append("--reload")
-
-    logger.info(f"Starting Python backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    processes.append(process)
-    return process
-
-
-def start_gradio_ui(
-    venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
-):
-    """Start the Gradio UI."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
-    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
-
-    cmd = [str(venv_python), str(gradio_path)]
-    if share:
-        cmd.append("--share")  # Enable public sharing
-    if port:
-        # Gradio doesn't take port as a command line param directly,
-        # we'd need to modify the app to accept it
-        logger.info(f"Starting Gradio UI (on default or next available port)")
-    else:
-        logger.info("Starting Gradio UI on default port")
-
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    processes.append(process)
-    return process
 
 
 def wait_for_processes():
@@ -654,8 +638,6 @@ def main():
     if not args.no_client:
         # Note: The client and server-ts might require additional parameters or configuration
         start_client()
-
-
 
     logger.info("All selected services started. Press Ctrl+C to shut down.")
     wait_for_processes()

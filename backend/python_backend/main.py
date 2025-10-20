@@ -19,19 +19,17 @@ from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import SmartFilterManager
 
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
-    dashboard_routes,
     email_routes,
     filter_routes,
     gmail_routes,
 )
 from .ai_engine import AdvancedAIEngine
+from .database import get_db
 
 # Import our Python modules
 from .performance_monitor import PerformanceMonitor
-from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -81,21 +79,38 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 
     setup_metrics(app)
 
+from .database import get_db, initialize_db
+
 # Initialize services
 # Services are now initialized within their respective route files
 # or kept here if they are used by multiple route files or for general app setup.
-gmail_service = GmailAIService()  # Used by gmail_routes
+from .model_manager import ModelManager
+
+model_manager = ModelManager()
+model_manager.load_available_models()
+ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
+gmail_service = GmailAIService(advanced_ai_engine=ai_engine)  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
 performance_monitor = PerformanceMonitor()  # Used by all routes via @performance_monitor.track
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Application startup: initialize and connect to the database."""
+    await initialize_db()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Application shutdown: disconnect from the database."""
+    pass  # No specific shutdown logic needed currently
+
 
 # Include routers in the app
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
-app.include_router(action_routes.router)
-app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Request/Response Models previously defined here are now in .models

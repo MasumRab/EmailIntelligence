@@ -147,7 +147,7 @@ class AIAnalysisResponse(BaseModel):
     reasoning: str
     suggestedLabels: List[str] = Field(alias="suggested_labels")
     riskFlags: List[str] = Field(alias="risk_flags")
-    actionItems: List[ActionItem] = Field(default_factory=list)
+    actionItems: List["ActionItem"] = Field(default_factory=list)
     categoryId: Optional[int] = None
 
     class Config:
