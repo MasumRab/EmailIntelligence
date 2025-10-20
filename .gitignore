@@ -16,9 +16,10 @@ venv/
 jsons/*
 token.json
 credentials.json
-<<<<<<< HEAD
 apikey.json
 .config/.semgrep/settings.yml
+jsons/*
+
 
 # Build / packaging
 build/
@@ -50,10 +51,8 @@ coverage/
 
 # Misc
 diagnosis_message.txt
-=======
 
 # Ignore configuration and local environment files
->>>>>>> main
 *.local.config
 *.local.json
 *.local.yaml
