@@ -53,25 +53,35 @@ class CategoryService(BaseService):
     async def update_category(self, category_id: int, update_data: Dict[str, Any]) -> BaseResponse:
         """Update a category by its ID"""
         try:
-            # Note: The database manager doesn't have an update_category method
-            # We'll return an error indicating this functionality needs to be implemented
-            return BaseResponse(
-                success=False,
-                message="Update category functionality not implemented in database manager",
-                error="Method not implemented",
-            )
+            db = await self.get_db()
+            updated_category = await db.update_category(category_id, update_data)
+            if updated_category:
+                return BaseResponse(
+                    success=True, message="Category updated successfully", data=updated_category
+                )
+            else:
+                return BaseResponse(
+                    success=False,
+                    message="Category not found",
+                    error="Category with specified ID does not exist",
+                )
         except Exception as e:
             return await self.handle_error(e, "update_category")
 
     async def delete_category(self, category_id: int) -> BaseResponse:
         """Delete a category by its ID"""
         try:
-            # Note: The database manager doesn't have a delete_category method
-            # We'll return an error indicating this functionality needs to be implemented
-            return BaseResponse(
-                success=False,
-                message="Delete category functionality not implemented in database manager",
-                error="Method not implemented",
-            )
+            db = await self.get_db()
+            deleted = await db.delete_category(category_id)
+            if deleted:
+                return BaseResponse(
+                    success=True, message="Category deleted successfully"
+                )
+            else:
+                return BaseResponse(
+                    success=False,
+                    message="Category not found",
+                    error="Category with specified ID does not exist",
+                )
         except Exception as e:
             return await self.handle_error(e, "delete_category")

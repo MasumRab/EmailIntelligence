@@ -369,6 +369,59 @@ class DatabaseManager:
         await self._save_data(DATA_TYPE_CATEGORIES)
         return category_record
 
+    async def update_category(self, category_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update a category by its ID."""
+        if category_id not in self.categories_by_id:
+            logger.warning(f"Category with {FIELD_ID} {category_id} not found for update.")
+            return None
+
+        category_to_update = self.categories_by_id[category_id]
+        changed_fields = False
+        
+        # Update allowed fields
+        for key, value in update_data.items():
+            # Skip ID field as it shouldn't be changed
+            if key == FIELD_ID:
+                continue
+            # Update the field if it's different
+            if key in category_to_update and category_to_update[key] != value:
+                category_to_update[key] = value
+                changed_fields = True
+            elif key not in category_to_update:
+                category_to_update[key] = value
+                changed_fields = True
+
+        # If any fields were changed, save the data
+        if changed_fields:
+            # Update indexes
+            category_name_lower = category_to_update[FIELD_NAME].lower()
+            self.categories_by_name[category_name_lower] = category_to_update
+            await self._save_data(DATA_TYPE_CATEGORIES)
+            
+        return category_to_update
+
+    async def delete_category(self, category_id: int) -> bool:
+        """Delete a category by its ID."""
+        if category_id not in self.categories_by_id:
+            logger.warning(f"Category with {FIELD_ID} {category_id} not found for deletion.")
+            return False
+
+        # Remove from all indexes
+        category_to_delete = self.categories_by_id[category_id]
+        category_name_lower = category_to_delete[FIELD_NAME].lower()
+        
+        # Remove from data list
+        self.categories_data = [cat for cat in self.categories_data if cat.get(FIELD_ID) != category_id]
+        
+        # Remove from indexes
+        self.categories_by_id.pop(category_id, None)
+        self.categories_by_name.pop(category_name_lower, None)
+        self.category_counts.pop(category_id, None)
+        
+        # Save the updated data
+        await self._save_data(DATA_TYPE_CATEGORIES)
+        return True
+
     async def _update_category_count(
         self, category_id: int, increment: bool = False, decrement: bool = False
     ) -> None:

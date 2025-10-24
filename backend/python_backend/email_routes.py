@@ -125,13 +125,50 @@ async def create_email(
 ):
     """Create new email with AI analysis using the active workflow."""
     try:
-        # Run the default workflow to process the email data
-        # TODO: Implement proper workflow selection
+        # Get the active workflow from the workflow engine
+        # First, check if there's a global active workflow setting
         from backend.node_engine.workflow_manager import workflow_manager
+        
+        # Try to get the active workflow from settings
+        active_workflow = None
+        settings_file = "data/settings.json"
+        import os
+        import json
+        
+        if os.path.exists(settings_file):
+            try:
+                with open(settings_file, "r") as f:
+                    settings = json.load(f)
+                    active_workflow_id = settings.get("active_workflow")
+                    if active_workflow_id:
+                        active_workflow = workflow_manager.load_workflow(active_workflow_id)
+            except Exception as e:
+                logger.warning(f"Could not load active workflow from settings: {e}")
+        
+        # If no active workflow from settings, use the default one
+        if not active_workflow:
+            # Try to find a default workflow
+            workflows = workflow_manager.list_workflows()
+            default_workflow = next((w for w in workflows if w["name"] == "default"), None)
+            if default_workflow:
+                active_workflow = workflow_manager.load_workflow(default_workflow["id"])
+        
+        # If still no workflow, create a default one-time workflow
+        if not active_workflow:
+            active_workflow = workflow_manager.create_sample_workflow()
+            # Save it as the default workflow
+            try:
+                workflow_manager.save_workflow(active_workflow)
+                logger.info(f"Created and saved default sample workflow: {active_workflow.workflow_id}")
+            except Exception as e:
+                logger.warning(f"Could not save sample workflow: {e}")
+            
+            # Log that we're using a fallback workflow
+            logger.warning("No active workflow found, using sample workflow as fallback")
 
-        default_workflow = workflow_manager.create_sample_workflow()
+        # Execute the selected workflow to process the email data
         execution_context = await workflow_engine.execute_workflow(
-            default_workflow, {"email_data": email.model_dump()}
+            active_workflow, {"email_data": email.model_dump()}
         )
         processed_data = execution_context.outputs.get("processed_email", email.model_dump())
 
