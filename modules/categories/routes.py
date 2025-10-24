@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/categories", response_model=List[CategoryResponse])
+@router.get("/", response_model=List[CategoryResponse])
 @log_performance("get_categories")
 async def get_categories(request: Request, db: DataSource = Depends(get_data_source)):
     """
@@ -27,10 +27,10 @@ async def get_categories(request: Request, db: DataSource = Depends(get_data_sou
         return [CategoryResponse(**cat) for cat in categories]
     except Exception as e:
         logger.error(f"Failed to get categories: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to retrieve categories.")
+        raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 
-@router.post("/categories", response_model=CategoryResponse)
+@router.post("/", response_model=CategoryResponse)
 @log_performance("create_category")
 async def create_category(
     request: Request, category: CategoryCreate, db: DataSource = Depends(get_data_source)
@@ -39,7 +39,8 @@ async def create_category(
     Creates a new category in the database.
     """
     try:
-        created_category_dict = await db.create_category(category.model_dump())
+        created_category_coro = db.create_category(category.model_dump())
+        created_category_dict = await created_category_coro
         return CategoryResponse(**created_category_dict)
     except Exception as e:
         logger.error(f"Failed to create category: {e}", exc_info=True)

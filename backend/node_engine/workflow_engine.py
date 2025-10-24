@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Execution Engine for the Email Intelligence Platform.
 
 This module manages the execution of node-based workflows, handling

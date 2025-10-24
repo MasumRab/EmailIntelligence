@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Test module for the node-based workflow system.
 
 This module contains tests to verify that the node system works as expected.

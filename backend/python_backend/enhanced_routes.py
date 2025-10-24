@@ -1,12 +1,12 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 API routes for enhanced features: model management, workflows, and performance monitoring
 """
 
-<<<<<<< HEAD
 from typing import Any, Dict, List
 
-=======
->>>>>>> main
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 

@@ -1,4 +1,6 @@
-# EmailIntelligence Extensions
+# DEPRECATED: EmailIntelligence Extensions
+
+**This directory is part of the deprecated `backend` package and will be removed in a future release.**
 
 This directory contains extensions for the EmailIntelligence application, allowing for modular enhancements.
 
