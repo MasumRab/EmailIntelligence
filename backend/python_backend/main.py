@@ -93,35 +93,60 @@ async def shutdown_event():
 
 
 @app.exception_handler(AppException)
+
 async def app_exception_handler(request: Request, exc: AppException):
+
     return JSONResponse(
+
         status_code=exc.status_code,
+
         content=exc.detail,
+
     )
 
 
 @app.exception_handler(BaseAppException)
+
 async def base_app_exception_handler(request: Request, exc: BaseAppException):
+
     return JSONResponse(
+
         status_code=500,
+
         content={
+
             "success": False,
+
             "message": "An internal error occurred",
+
             "error_code": "INTERNAL_ERROR",
             "details": str(exc),
         },
+
     )
 
 
+
+
+
 @app.exception_handler(ValidationError)
+
 async def validation_exception_handler(request: Request, exc: ValidationError):
+
     """Handle Pydantic validation errors with detailed 422 responses."""
+
     return JSONResponse(
+
         status_code=422,
+
         content={
+
             "detail": exc.errors(),
+
             "message": "Validation error with provided data.",
+
         },
+
     )
 
 
@@ -203,6 +228,9 @@ try:
 except ImportError:
     # Fallback if node engine is not available
     workflow_manager_instance = None
+
+# Request/Response Models previously defined here are now in .models
+# Ensure route files import them from .models
 
 
 # Health check endpoint (usually kept in main.py)

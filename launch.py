@@ -145,6 +145,232 @@ def download_nltk_data(venv_path: Path):
         [str(python_exe), "-m", "textblob.download_corpora"],
         "Downloading TextBlob corpora",
     )
+    venv_python = (
+        venv_path / "Scripts" / "python.exe"
+        if platform.system() == "Windows"
+        else venv_path / "bin" / "python"
+    )
+
+    nltk_download_script = """
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('vader_lexicon')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+print("NLTK data download completed.")
+"""
+
+    logger.info("Downloading NLTK data...")
+    result = subprocess.run(
+        [str(venv_python), "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        logger.error(f"Failed to download NLTK data: {result.stderr}")
+        # This might fail in some environments but it's not critical for basic operation
+        logger.warning("NLTK data download failed, but continuing setup...")
+    else:
+        logger.info("NLTK data downloaded successfully.")
+
+
+def check_uvicorn_installed(venv_path: Path) -> bool:
+    """Check if uvicorn is installed in the virtual environment."""
+    venv_python = get_venv_python_path()
+    try:
+        result = subprocess.run(
+            [str(venv_python), "-c", "import uvicorn"], capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            logger.info("uvicorn is available in the virtual environment.")
+            return True
+        else:
+            logger.error("uvicorn is not installed in the virtual environment.")
+            return False
+    except FileNotFoundError:
+        logger.error("Virtual environment Python not found.")
+        return False
+
+
+def check_node_npm_installed() -> bool:
+    """Check if Node.js and npm are installed and available."""
+    if not shutil.which("node"):
+        logger.error("Node.js is not installed. Please install it to continue.")
+        return False
+    if not shutil.which("npm"):
+        logger.error("npm is not installed. Please install it to continue.")
+        return False
+    return True
+
+
+def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
+    """Install Node.js dependencies in a given directory."""
+    pkg_json_path = ROOT_DIR / directory / "package.json"
+    if not pkg_json_path.exists():
+        logger.debug(f"No package.json in '{directory}/', skipping npm install.")
+        return True
+
+    if not check_node_npm_installed():
+        return False
+
+    cmd = ["npm", "update" if update else "install"]
+    desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
+    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+
+
+def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
+    if not check_uvicorn_installed(venv_path):
+        logger.error(
+            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
+        )
+        return None
+
+    venv_python = get_venv_python_path(venv_path)
+
+    # Always use uvicorn to run the FastAPI app
+    import os
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+
+def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
+    venv_python = (
+        venv_path / "Scripts" / "python.exe"
+        if platform.system() == "Windows"
+        else venv_path / "bin" / "python"
+    )
+
+    # Use uvicorn to run the FastAPI app directly
+    cmd = [
+        str(venv_python),
+        "-m",
+        "uvicorn",
+        "backend.python_backend.main:app",
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+    if debug:
+        cmd.append("--reload")  # Enable auto-reload in debug mode
+
+    logger.info(f"Starting Python backend on {host}:{port}")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    process_manager.add_process(process)
+    return process
+
+
+def start_gradio_ui(
+    venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
+):
+    """Start the Gradio UI."""
+    venv_python = get_venv_executable(venv_path, "python")
+    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
+
+    cmd = [str(venv_python), str(gradio_path), "--host", host]
+    if port:
+        cmd.extend(["--port", str(port)])
+        logger.info(f"Starting Gradio UI on {host}:{port}")
+    else:
+        logger.info(f"Starting Gradio UI on {host}:7860 (default port)")
+
+    if share:
+        cmd.append("--share")  # Enable public sharing
+    if port:
+        # Gradio doesn't take port as a command line param directly,
+        # we'd need to modify the app to accept it
+        logger.info(f"Starting Gradio UI (on default or next available port)")
+    else:
+        logger.info("Starting Gradio UI on default port")
+
+    logger.info("Starting Gradio UI...")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
+    return process
+
+
+def start_client():
+    """Start the Node.js frontend."""
+    logger.info("Starting Node.js frontend...")
+    if not install_nodejs_dependencies("client"):
+        return None
+
+    # Install Node.js dependencies if node_modules doesn't exist
+    node_modules_path = ROOT_DIR / "client" / "node_modules"
+    if not node_modules_path.exists():
+        logger.info("Installing Node.js dependencies...")
+        try:
+            result = subprocess.run(
+                ["npm", "install"],
+                cwd=ROOT_DIR / "client",
+                capture_output=True,
+                text=True,
+                shell=(os.name == "nt"),
+            )
+            if result.returncode != 0:
+                logger.error(f"Failed to install Node.js dependencies: {result.stderr}")
+                return None
+            logger.info("Node.js dependencies installed.")
+        except FileNotFoundError:
+            logger.warning("npm not found. Skipping Node.js dependency installation.")
+
+    # Start the React frontend
+    try:
+        process = subprocess.Popen(
+            ["npm", "run", "dev"], cwd=ROOT_DIR / "client", shell=(os.name == "nt")
+        )
+        process_manager.add_process(process)
+        return process
+    except FileNotFoundError:
+        logger.warning("npm not found. Skipping Node.js frontend startup.")
+        return None
+
+
+def start_server_ts():
+    """Start the TypeScript backend server."""
+    logger.info("Starting TypeScript backend server...")
+    # Check if npm is available
+    if not shutil.which("npm"):
+        logger.warning("npm not found. Skipping TypeScript backend server startup.")
+        return None
+
+    # Check if package.json exists
+    pkg_json_path = ROOT_DIR / "server" / "package.json"
+    if not pkg_json_path.exists():
+        logger.debug("No package.json in 'server/', skipping TypeScript backend server startup.")
+        return None
+
+    # Install Node.js dependencies if node_modules doesn't exist
+    node_modules_path = ROOT_DIR / "server" / "node_modules"
+    if not node_modules_path.exists():
+        logger.info("Installing TypeScript server dependencies...")
+        try:
+            result = subprocess.run(
+                ["npm", "install"],
+                cwd=ROOT_DIR / "server",
+                capture_output=True,
+                text=True,
+                shell=(os.name == "nt"),
+            )
+            if result.returncode != 0:
+                logger.error(f"Failed to install TypeScript server dependencies: {result.stderr}")
+                return None
+            logger.info("TypeScript server dependencies installed.")
+        except FileNotFoundError:
+            logger.warning("npm not found. Skipping TypeScript server dependency installation.")
+
+    # Start the TypeScript backend
+    try:
+        process = subprocess.Popen(
+            ["npm", "run", "dev"], cwd=ROOT_DIR / "server", shell=(os.name == "nt")
+        )
+        process_manager.add_process(process)
+        return process
+    except FileNotFoundError:
+        logger.warning("npm not found. Skipping TypeScript backend server startup.")
+        return None
 
 # --- Service Startup Functions ---
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):

@@ -18,12 +18,15 @@ from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
-# Centralized data directory at the project root
+# Globalized data directory at the project root
 DATA_DIR = "data"
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+
+# TODO(P1, 6h): Refactor global state management to use dependency injection
+# TODO(P2, 4h): Make data directory configurable via environment variables or settings
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -84,6 +87,9 @@ class DatabaseManager(DataSource):
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
 
+    # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
+    # TODO(P2, 6h): Implement proper dependency injection for database manager instance
+
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
@@ -111,6 +117,9 @@ class DatabaseManager(DataSource):
             await self._load_data()
             self._build_indexes()
             self._initialized = True
+
+    # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
+    # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
@@ -532,6 +541,10 @@ async def get_db() -> DatabaseManager:
         paginated_emails = sorted_emails[:limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
+
+    # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
+    # TODO(P2, 4h): Implement search indexing to improve query performance
+    # TODO(P3, 3h): Add support for search result caching
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
