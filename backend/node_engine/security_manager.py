@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Security and Resource Management for the Node-Based Email Intelligence Platform.
 
 This module implements security measures and resource management for the node-based

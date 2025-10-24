@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 AI Engine Adapter for Python Backend
 Bridges FastAPI backend with existing AI/NLP services
 """

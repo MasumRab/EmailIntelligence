@@ -1,19 +1,69 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
 """
+from typing import Generator, AsyncGenerator
 import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import Depends
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
 from backend.python_backend.database import get_db, DatabaseManager
-from backend.python_backend.services.gmail_service import GmailAIService
-from backend.python_backend.models import ModelManager
+from backend.python_backend.model_manager import ModelManager
 from backend.python_backend.ai_engine import AdvancedAIEngine
 from backend.python_backend.smart_filters import SmartFilterManager
-from backend.python_backend.workflows import WorkflowEngine
-from backend.python_backend.plugins import PluginManager
+from backend.python_backend.workflow_engine import WorkflowEngine
+from backend.python_backend.plugin_manager import PluginManager
+from backend.python_nlp.gmail_service import GmailAIService
+
+if TYPE_CHECKING:
+    from backend.python_backend.model_manager import ModelManager
+    from backend.python_backend.ai_engine import AdvancedAIEngine
+    from backend.python_backend.smart_filters import SmartFilterManager
+    from backend.python_backend.workflow_engine import WorkflowEngine
+    from backend.python_backend.plugin_manager import PluginManager
+    from backend.python_nlp.gmail_service import GmailAIService
+
+logger = logging.getLogger(__name__)
+
+# Singleton instances of services
+_model_manager_instance: Optional["ModelManager"] = None
+_ai_engine_instance: Optional["AdvancedAIEngine"] = None
+_filter_manager_instance: Optional["SmartFilterManager"] = None
+_workflow_engine_instance: Optional["WorkflowEngine"] = None
+_plugin_manager_instance: Optional["PluginManager"] = None
+_gmail_service_instance: Optional["GmailAIService"] = None
+
+
+# Dependency functions for services
+async def get_email_service() -> AsyncGenerator[EmailService, None]:
+    """Provides an EmailService instance"""
+    service = EmailService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_category_service() -> AsyncGenerator[CategoryService, None]:
+    """Provides a CategoryService instance"""
+    service = CategoryService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+# For backward compatibility with existing code
+async def get_database():
+    """Provides database instance (for existing code that uses direct database access)"""
+    db = await get_db()
+    return db
 
 
 async def initialize_services():
