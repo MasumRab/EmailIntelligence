@@ -50,7 +50,10 @@ coverage/
 *.sublime-workspace
 .history
 
-# Local configuration files
+# Misc
+diagnosis_message.txt
+
+# Ignore configuration and local environment files
 *.local.config
 *.local.json
 *.local.yaml
@@ -70,3 +73,4 @@ __pycache__/
 # Miscellaneous
 diagnosis_message.txt
 performance_metrics_log.jsonl
+config/llm_guidelines.local.json

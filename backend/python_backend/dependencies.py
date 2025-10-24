@@ -167,3 +167,16 @@ def get_gmail_service(
         ai_engine = get_ai_engine()
         _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
+
+async def get_email_service() -> "EmailService":
+    """Provides an EmailService instance"""
+    return EmailService()
+
+async def get_category_service() -> "CategoryService":
+    """Provides a CategoryService instance"""
+    return CategoryService()
+
+async def get_database():
+    """Provides database instance (for existing code that uses direct database access)"""
+    db = await get_db()
+    return db
