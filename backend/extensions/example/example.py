@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Example Extension for EmailIntelligence
 
 This extension demonstrates the extension system by adding a simple

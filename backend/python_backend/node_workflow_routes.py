@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 API routes for node-based workflows in the Email Intelligence Platform.
 
 This module provides API endpoints for managing and executing node-based workflows

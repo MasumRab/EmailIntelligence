@@ -1,3 +1,7 @@
+/*
+ * DEPRECATED: This file is part of the deprecated `backend` package.
+ * It will be removed in a future release.
+ */
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import * as schema from '@shared/schema';
