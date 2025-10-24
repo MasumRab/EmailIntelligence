@@ -1,4 +1,6 @@
-# Python Backend README
+# DEPRECATED: Python Backend README
+
+**This directory is part of the deprecated `backend` package and will be removed in a future release.**
 
 This directory contains the main and only Python backend for the EmailIntelligence application. It is a FastAPI application that handles all backend logic, including API endpoints, AI/NLP services, and database interactions.
 

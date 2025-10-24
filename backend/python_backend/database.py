@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Database management for Gmail AI email processing
 JSON file storage implementation.
 """
@@ -214,7 +217,6 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-    def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
         """
         Generates a new unique integer ID for a record.
 
@@ -228,7 +230,6 @@ class DatabaseManager:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
-    def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
         """
         Parses fields in a data row that are stored as JSON strings.
@@ -485,7 +486,6 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """Retrieves all emails with pagination."""
         return await self.get_emails(limit=limit, offset=offset)
 
@@ -613,7 +613,6 @@ class DatabaseManager:
 _db_manager_instance = None
 
 
-async def get_db() -> DatabaseManager:
 async def get_db() -> DatabaseManager:
     """
     Provides the singleton instance of the DatabaseManager.

@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Configuration management for the Email Intelligence Platform
 Using Pydantic Settings for environment-based configuration
 """
