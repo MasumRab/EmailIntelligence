@@ -1,3 +1,7 @@
+"""
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+"""
 import gradio as gr
 import pandas as pd
 import numpy as np
@@ -6,15 +10,16 @@ import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 import json
+import requests
+from typing import Dict, Any, List
+
 from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
 nlp_engine = NLPEngine()
-=======
-import json
-import seaborn as sns
-import requests
-from typing import Dict, Any, List
+
+BASE_URL = "http://127.0.0.1:8000"
+
 
 def analyze_email_interface(subject, content):
     """
@@ -22,14 +27,20 @@ def analyze_email_interface(subject, content):
     """
     if not subject and not content:
         return {"error": "Subject and content cannot both be empty."}
-<<<<<<< HEAD
 
-    # Use analyze_email (singular)
-    analysis_result = nlp_engine.analyze_email(subject, content)
+    try:
+        response = requests.post(
+            f"{BASE_URL}/api/ai/analyze", json={"subject": subject, "content": content}
+        )
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {
+                "error": f"Failed to analyze email. Status code: {response.status_code}, Response: {response.text}"
+            }
+    except Exception as e:
+        return {"error": f"An exception occurred: {str(e)}"}
 
-    if analysis_result:
-        return analysis_result
-    return {"error": "Failed to analyze email."}
 
 def generate_sentiment_chart(sentiment):
     """Generate a simple bar chart for sentiment."""
@@ -39,51 +50,49 @@ def generate_sentiment_chart(sentiment):
         value = -1
     else:
         value = 0
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=value,
-        title={'text': "Sentiment Gauge"},
-        gauge={'axis': {'range': [-1, 1]}, 'bar': {'color': "darkblue"}}
-    ))
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=value,
+            title={"text": "Sentiment Gauge"},
+            gauge={"axis": {"range": [-1, 1]}, "bar": {"color": "darkblue"}},
+        )
+    )
     return fig
+
 
 def generate_topic_pie(categories):
     """Generate a pie chart for categories."""
     if not categories:
         categories = ["General"]
-    fig = px.pie(values=[1]*len(categories), names=categories, title="Topic Categories")
+    fig = px.pie(values=[1] * len(categories), names=categories, title="Topic Categories")
     return fig
-=======
-    
-    try:
-        response = requests.post(f"{BASE_URL}/api/ai/analyze", json={"subject": subject, "content": content})
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {"error": f"Failed to analyze email. Status code: {response.status_code}, Response: {response.text}"}
-    except Exception as e:
-        return {"error": f"An exception occurred: {str(e)}"}
->>>>>>> main
+
 
 # Create the Gradio interface
 with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
     gr.Markdown("## Email Intelligence Platform")
 
     with gr.Tabs():
-        with gr.TabItem("Single Email Analysis"):
-    with gr.Tabs():
         with gr.TabItem("📈 Dashboard"):
+            gr.Markdown("## Dashboard")
             # ... (Implementation from previous step)
 
         with gr.TabItem("📥 Inbox"):
             gr.Markdown("## Inbox")
-            email_df = gr.DataFrame(headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails")
-            
+            email_df = gr.DataFrame(
+                headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails"
+            )
+
+        with gr.TabItem("Single Email Analysis"):
             with gr.Row():
-<<<<<<< HEAD
                 with gr.Column(scale=2):
-                    email_subject = gr.Textbox(label="Email Subject", placeholder="Enter email subject...")
-                    email_content = gr.Textbox(label="Email Content", lines=10, placeholder="Enter email content...")
+                    email_subject = gr.Textbox(
+                        label="Email Subject", placeholder="Enter email subject..."
+                    )
+                    email_content = gr.Textbox(
+                        label="Email Content", lines=10, placeholder="Enter email content..."
+                    )
                     analyze_button = gr.Button("Analyze Email", variant="primary")
                 with gr.Column(scale=1):
                     gr.Markdown("### Analysis Results")
@@ -96,7 +105,15 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
             def update_outputs(subject, content):
                 result = analyze_email_interface(subject, content)
                 if "error" in result:
-                    return gr.update(), gr.update(), result.get("error", "An error occurred."), [], result, gr.update(), gr.update()
+                    return (
+                        gr.update(),
+                        gr.update(),
+                        result.get("error", "An error occurred."),
+                        [],
+                        result,
+                        gr.update(),
+                        gr.update(),
+                    )
 
                 topic = result.get("topic", "N/A")
                 sentiment = result.get("sentiment", "N/A")
@@ -109,23 +126,45 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 sentiment_chart_fig = generate_sentiment_chart(sentiment)
                 topic_chart_fig = generate_topic_pie(categories)
 
-                return topic, sentiment, reasoning, highlighted_keywords, result, sentiment_chart_fig, topic_chart_fig
+                return (
+                    topic,
+                    sentiment,
+                    reasoning,
+                    highlighted_keywords,
+                    result,
+                    sentiment_chart_fig,
+                    topic_chart_fig,
+                )
 
             analyze_button.click(
                 fn=update_outputs,
                 inputs=[email_subject, email_content],
-                outputs=[topic_output, sentiment_output, reasoning_output, keywords_output, analysis_output, sentiment_chart, topic_chart]
+                outputs=[
+                    topic_output,
+                    sentiment_output,
+                    reasoning_output,
+                    keywords_output,
+                    analysis_output,
+                    sentiment_chart,
+                    topic_chart,
+                ],
             )
 
         with gr.TabItem("Visualization"):
             gr.Markdown("### Data Visualization")
             sentiment_chart = gr.Plot(label="Sentiment Gauge")
             topic_chart = gr.Plot(label="Topic Pie Chart")
-            gr.Markdown("The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab.")
+            gr.Markdown(
+                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
+            )
 
         with gr.TabItem("Scientific Analysis"):
             gr.Markdown("### Advanced Data Analysis")
-            data_input = gr.Textbox(label="Paste Email Data (JSON format)", lines=5, placeholder='[{"subject": "Test", "content": "Test content"}]')
+            data_input = gr.Textbox(
+                label="Paste Email Data (JSON format)",
+                lines=5,
+                placeholder='[{"subject": "Test", "content": "Test content"}]',
+            )
             analyze_data_button = gr.Button("Analyze Batch")
             batch_output = gr.Dataframe(label="Batch Analysis Results")
             stats_output = gr.JSON(label="Statistics")
@@ -134,19 +173,25 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 try:
                     emails = json.loads(data_str)  # Switched to safe parsing
                     if not isinstance(emails, list):
-                        return pd.DataFrame(), {"error": "Input must be a JSON array of email objects"}
+                        return pd.DataFrame(), {
+                            "error": "Input must be a JSON array of email objects"
+                        }
                     if len(emails) > 100:
                         return pd.DataFrame(), {"error": "Too many emails, maximum 100 allowed"}
                     results = []
                     for email in emails:
-                        if not isinstance(email, dict) or "subject" not in email or "content" not in email:
+                        if (
+                            not isinstance(email, dict)
+                            or "subject" not in email
+                            or "content" not in email
+                        ):
                             continue  # Skip invalid entries
                         subject = str(email["subject"])[:1000]  # Limit subject length
                         content = str(email["content"])[:10000]  # Limit content length
                         result = nlp_engine.analyze_email(subject, content)
                         results.append(result)
                     df = pd.DataFrame(results)
-                    stats = df.describe(include='all').to_dict()
+                    stats = df.describe(include="all").to_dict()
                     return df, stats
                 except json.JSONDecodeError as e:
                     return pd.DataFrame(), {"error": f"Invalid JSON: {str(e)}"}
@@ -154,21 +199,22 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     return pd.DataFrame(), {"error": str(e)}
 
             analyze_data_button.click(
-                fn=analyze_batch,
-                inputs=data_input,
-                outputs=[batch_output, stats_output]
+                fn=analyze_batch, inputs=data_input, outputs=[batch_output, stats_output]
             )
 
         with gr.TabItem("Jupyter Notebook"):
             gr.Markdown("### Interactive Jupyter Analysis")
             gr.Markdown("For advanced scientific analysis, launch Jupyter Notebook.")
-            gr.Markdown("Run: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`")
+            gr.Markdown(
+                "Run: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`"
+            )
             launch_jupyter_button = gr.Button("Launch Jupyter (External)")
             launch_jupyter_button.click(
                 fn=lambda: "Jupyter launched externally. Check terminal.",
                 inputs=[],
-                outputs=gr.Textbox(label="Status")
+                outputs=gr.Textbox(label="Status"),
             )
+
 
 # To launch this app, you can run this file directly.
 if __name__ == "__main__":

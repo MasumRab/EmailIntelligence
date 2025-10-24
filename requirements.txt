@@ -7,7 +7,6 @@ email-validator>=2.2.0
 httpx>=0.28.1
 gradio>=4.0.0
 pyngrok>=0.7.0
-<<<<<<< HEAD
 nltk>=3.9.1
 textblob>=0.19.0
 transformers>=4.52.4
@@ -30,19 +29,5 @@ RestrictedPython==8.0
 jupyter>=1.0.0
 ipykernel>=6.29.0
 ipywidgets>=8.1.0
-=======
-gradio
-nltk
-uvicorn>=0.34.3
-transformers
-# Hugging Face model dependencies
-# Use torch for most models, tensorflow for some (optional), and accelerate for performance
-# If you only want PyTorch support, you can omit tensorflow
-# If you want both, you can include both
-# Below is a recommended set for PyTorch-based Hugging Face models:
-torch
-accelerate
-sentencepiece
 aiosqlite
 requests
->>>>>>> main
