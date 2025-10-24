@@ -90,25 +90,30 @@ class EmailUpdate(BaseModel):
     isRead: Optional[bool] = None
 
 
-class EmailResponse(EmailBase):
+class EmailResponse(BaseModel):
     """Model for the response when an email is retrieved."""
 
     id: int
     messageId: Optional[str]
     threadId: Optional[str]
+    sender: str
+    senderEmail: str
+    subject: str
+    content: str
+    time: datetime
     preview: str
     category: Optional[str]
     categoryId: Optional[int]
     labels: List[str]
-    confidence: int = Field(ge=0, le=100)
+    confidence: int
     isImportant: bool
     isStarred: bool
     isUnread: bool
     hasAttachments: bool
     attachmentCount: int
     sizeEstimate: int
-    aiAnalysis: Dict[str, Any] = Field(default_factory=dict)
-    filterResults: Dict[str, Any] = Field(default_factory=dict)
+    aiAnalysis: Dict[str, Any]
+    filterResults: Dict[str, Any]
 
 
 # Category Models

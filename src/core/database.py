@@ -450,6 +450,24 @@ class DatabaseManager(DataSource):
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
 
+
+# --- Singleton Instance Management ---
+_db_manager_instance: Optional[DatabaseManager] = None
+_db_init_lock = asyncio.Lock()
+
+async def get_db() -> DatabaseManager:
+    """
+    Provides the singleton instance of the DatabaseManager, ensuring it is initialized.
+    This function is used for dependency injection in FastAPI routes.
+    """
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        async with _db_init_lock:
+            if _db_manager_instance is None:
+                _db_manager_instance = DatabaseManager()
+                await _db_manager_instance._ensure_initialized()
+    return _db_manager_instance
+
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:

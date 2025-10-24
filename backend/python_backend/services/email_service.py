@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Email service for the Email Intelligence Platform
 Handles all email-related business logic
 """

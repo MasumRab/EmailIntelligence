@@ -1,9 +1,9 @@
+"""
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+"""
 import json
 import logging
-<<<<<<< HEAD
-=======
-import aiosqlite
->>>>>>> main
 import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -27,11 +27,7 @@ async def get_filters(request: Request):
     try:
         filters = filter_manager.get_active_filters_sorted()
         return {"filters": filters}
-<<<<<<< HEAD
-    except (ValueError, RuntimeError, OSError) as e:
-=======
     except (ValueError, KeyError, TypeError, RuntimeError) as e:
->>>>>>> main
         log_data = {
             "message": "Unhandled error in get_filters",
             "endpoint": str(request.url),
@@ -56,11 +52,7 @@ async def create_filter(request: Request, filter_request_model: FilterRequest):
             priority=filter_request_model.priority,
         )
         return new_filter_object
-<<<<<<< HEAD
-    except (ValueError, RuntimeError, OSError) as e:
-=======
     except (ValueError, KeyError, TypeError, RuntimeError) as e:
->>>>>>> main
         log_data = {
             "message": "Unhandled error in create_filter",
             "endpoint": str(request.url),
@@ -79,7 +71,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
         emails = await db.get_recent_emails(limit=1000)
         created_filters = filter_manager.create_intelligent_filters(emails)
         return {"created_filters": len(created_filters), "filters": created_filters}
-    except aiosqlite.Error as db_err:
+    except sqlite3.Error as db_err:
         log_data = {
             "message": "DB operation failed during intelligent filter generation",
             "endpoint": str(request.url),
@@ -87,11 +79,7 @@ async def generate_intelligent_filters(request: Request, db: DatabaseManager = D
             "error_detail": str(db_err),
         }
         logger.error(json.dumps(log_data))
-<<<<<<< HEAD
-        raise DatabaseError(detail="Database service unavailable.")
-=======
         raise HTTPException(status_code=503, detail="Database service unavailable.")
->>>>>>> main
     except (ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in generate_intelligent_filters",
@@ -110,11 +98,7 @@ async def prune_filters(request: Request):
     try:
         results = filter_manager.prune_ineffective_filters()
         return results
-<<<<<<< HEAD
-    except (sqlite3.Error, ValueError, RuntimeError, OSError) as e:
-=======
     except (sqlite3.Error, ValueError, TypeError, RuntimeError) as e:
->>>>>>> main
         log_data = {
             "message": "Unhandled error in prune_filters",
             "endpoint": str(request.url),
@@ -122,8 +106,4 @@ async def prune_filters(request: Request):
             "error_detail": str(e),
         }
         logger.error(json.dumps(log_data))
-<<<<<<< HEAD
-        raise AIAnalysisError(detail="Failed to prune filters")
-=======
         raise HTTPException(status_code=500, detail="Failed to prune filters")
->>>>>>> main
