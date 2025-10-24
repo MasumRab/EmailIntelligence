@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
+    # API Keys
+    openrouter_api_key: str = Field(default="", env="OPENROUTER_API_KEY")
+    gemini_api_key: str = Field(default="", env="GEMINI_API_KEY")
+    deepseek_api_key: str = Field(default="", env="DEEPSEEK_API_KEY")
+    groq_api_key: str = Field(default="", env="GROQ_API_KEY")
+    cohere_api_key: str = Field(default="", env="COHERE_API_KEY")
+
     # CORS settings
     allowed_origins: list = [
         "http://localhost:5000",
