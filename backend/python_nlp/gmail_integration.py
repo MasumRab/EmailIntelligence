@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-"""Gmail API Integration with Rate Limiting and Efficient Data Retrieval
-Implements smart batching, caching, and rate limit management for email collection
-"""
-
-import dataclasses
-from typing import List, Optional
-=======
 """
 Integrates with the Gmail API for efficient and robust email data retrieval.
 
@@ -14,7 +6,8 @@ API, featuring smart batching, caching, rate limit management, and a
 pluggable authentication mechanism. It is designed to be resilient and
 efficient, even when dealing with large volumes of emails.
 """
-
+import dataclasses
+import dataclasses
 import asyncio
 import hashlib
 import json
@@ -47,17 +40,10 @@ DEFAULT_CACHE_PATH = PROJECT_ROOT / "email_cache.db"
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
 CREDENTIALS_PATH = "credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
->>>>>>> main
 
 
 @dataclasses.dataclass
 class RateLimitConfig:
-<<<<<<< HEAD
-    """Configuration for rate limiting."""
-
-    max_calls: int = 5
-    period_seconds: int = 60
-=======
     """
     Configuration for managing Gmail API rate limits.
 
@@ -80,31 +66,11 @@ class RateLimitConfig:
     initial_backoff: float = 1.0
     max_backoff: float = 60.0
     backoff_multiplier: float = 2.0
->>>>>>> main
 
 
 @dataclasses.dataclass
+@dataclasses.dataclass
 class EmailBatch:
-<<<<<<< HEAD
-    """Represents a batch of emails."""
-
-    emails: List[dict]
-
-
-class GmailDataCollector:
-    """Collects data from Gmail with rate limiting."""
-
-    def __init__(self, rate_config: Optional[RateLimitConfig] = None):
-        """Initializes the data collector."""
-        self.rate_config = rate_config or RateLimitConfig()
-
-    def fetch_emails(self, query: str, max_count: int) -> EmailBatch:
-        """Fetches emails from Gmail."""
-        # This is a mock implementation.
-        # In a real implementation, this would connect to the Gmail API.
-        print(f"Fetching emails with query: {query}, max_count: {max_count}")
-        return EmailBatch(emails=[])
-=======
     """
     Represents a batch of emails retrieved from the Gmail API.
 
@@ -641,4 +607,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
->>>>>>> main
