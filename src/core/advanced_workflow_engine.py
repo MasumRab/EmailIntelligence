@@ -759,6 +759,14 @@ def initialize_workflow_system() -> WorkflowManager:
 
 def get_workflow_manager() -> WorkflowManager:
     """Get the global workflow manager instance"""
+    import warnings
+
+    warnings.warn(
+        "get_workflow_manager from src.core.advanced_workflow_engine is deprecated. "
+        "Use backend.node_engine.workflow_manager.workflow_manager instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if not workflow_manager:
         # Initialize with default configuration
         return initialize_workflow_system()

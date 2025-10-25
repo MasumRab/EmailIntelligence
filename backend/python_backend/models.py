@@ -180,6 +180,8 @@ class AIAnalysisResponse(BaseModel):
     riskFlags: List[str] = Field(alias="risk_flags")
     actionItems: List[ActionItem] = Field(default_factory=list)
     categoryId: Optional[int] = None
+    isImportant: bool = False
+    actionItems: List[ActionItem] = Field(default_factory=list)
 
     class Config:
         allow_population_by_field_name = True
@@ -217,16 +219,6 @@ class ActionExtractionRequest(BaseModel):
 
     subject: Optional[str] = None
     content: str
-
-
-class ActionItem(BaseModel):
-    """Model representing a single extracted action item from an email."""
-
-    action_phrase: str
-    verb: Optional[str] = None
-    object: Optional[str] = None
-    raw_due_date_text: Optional[str] = None
-    context: str
 
 
 # Gmail Sync Models

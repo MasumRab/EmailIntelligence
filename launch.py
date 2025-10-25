@@ -32,6 +32,7 @@ try:
     DOTENV_AVAILABLE = True
 except ImportError:
     DOTENV_AVAILABLE = False
+    load_dotenv = None  # Will be loaded later if needed
 
 # Configure logging
 logging.basicConfig(
@@ -266,7 +267,6 @@ def start_gradio_ui(
     venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
 ):
     """Start the Gradio UI."""
-    venv_python = get_venv_executable(venv_path, "python")
     gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
 
     cmd = [str(venv_python), str(gradio_path), "--host", host]
@@ -301,31 +301,6 @@ def start_client():
     node_modules_path = ROOT_DIR / "client" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing Node.js dependencies...")
-        try:
-            result = subprocess.run(
-                ["npm", "install"],
-                cwd=ROOT_DIR / "client",
-                capture_output=True,
-                text=True,
-                shell=(os.name == "nt"),
-            )
-            if result.returncode != 0:
-                logger.error(f"Failed to install Node.js dependencies: {result.stderr}")
-                return None
-            logger.info("Node.js dependencies installed.")
-        except FileNotFoundError:
-            logger.warning("npm not found. Skipping Node.js dependency installation.")
-
-    # Start the React frontend
-    try:
-        process = subprocess.Popen(
-            ["npm", "run", "dev"], cwd=ROOT_DIR / "client", shell=(os.name == "nt")
-        )
-        process_manager.add_process(process)
-        return process
-    except FileNotFoundError:
-        logger.warning("npm not found. Skipping Node.js frontend startup.")
-        return None
 
 
 def start_server_ts():
@@ -346,31 +321,6 @@ def start_server_ts():
     node_modules_path = ROOT_DIR / "server" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
-        try:
-            result = subprocess.run(
-                ["npm", "install"],
-                cwd=ROOT_DIR / "server",
-                capture_output=True,
-                text=True,
-                shell=(os.name == "nt"),
-            )
-            if result.returncode != 0:
-                logger.error(f"Failed to install TypeScript server dependencies: {result.stderr}")
-                return None
-            logger.info("TypeScript server dependencies installed.")
-        except FileNotFoundError:
-            logger.warning("npm not found. Skipping TypeScript server dependency installation.")
-
-    # Start the TypeScript backend
-    try:
-        process = subprocess.Popen(
-            ["npm", "run", "dev"], cwd=ROOT_DIR / "server", shell=(os.name == "nt")
-        )
-        process_manager.add_process(process)
-        return process
-    except FileNotFoundError:
-        logger.warning("npm not found. Skipping TypeScript backend server startup.")
-        return None
 
 # --- Service Startup Functions ---
 def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
