@@ -1,171 +1,98 @@
-# EmailIntelligence Deployment Framework
+Note: This branch of the application has been configured to use SQLite. PostgreSQL-specific sections in the main [Deployment Guide](../../docs/deployment_guide.md) may not apply directly or will require adaptation for an SQLite environment.
 
-This directory contains deployment configurations and scripts for the EmailIntelligence project. The framework supports multiple deployment environments for agile development.
+# Deployment
+
+This directory contains configurations and scripts related to deploying the EmailIntelligence application.
+
+## Overview
+
+The deployment strategy for EmailIntelligence supports various environments:
+-   **Local Development:** Using local Python and Node.js (for the frontend) and optionally Docker for other services.
+-   **Dockerized Local Environment:** Running the entire application stack (frontend, Python backend) in Docker containers locally.
+-   **Staging Environment:** A Dockerized environment configured for staging/testing.
+-   **Production Environment:** A Dockerized environment configured for production deployment.
+
+## Key Files and Directories
+
+-   **`Dockerfile.backend`**: Dockerfile for building the Python FastAPI backend application.
+-   **`Dockerfile.frontend`**: Dockerfile for building the React frontend application.
+-   **`docker-compose.yml`**: Base Docker Compose file for services.
+-   **`docker-compose.dev.yml`**: Docker Compose overrides for local development.
+-   **`docker-compose.prod.yml`**: Docker Compose overrides for production.
+-   **`deploy.py`**: Python script for managing deployments across different environments.
+-   **`nginx/`**: Nginx configurations for reverse proxy, SSL termination, etc.
+-   **`monitoring/`**: Configurations for monitoring tools (e.g., Prometheus, Grafana).
+-   **`setup_env.py`**: Python script to help set up `.env` files with default configurations.
+-   **`run_tests.py`**: Python script for running automated tests.
 
 ## Deployment Environments
 
-### 1. Local Development Environment
+### 1. Local Development (Non-Dockerized)
 
-The local development environment is designed for quick testing and development on your local machine.
+-   Run frontend and backend servers directly on the host machine.
+-   Requires local installation of Node.js and Python.
+-   Typically managed via `launch.py --stage dev` as described in the main [README.md](../../README.md) and [Launcher Guide](../../docs/launcher_guide.md).
 
-**Features:**
-- Hot-reloading for quick development
-- Direct access to the file system
-- Simple setup with minimal dependencies
+### 2. Dockerized Local Environment
 
-**Usage:**
-```bash
-python deployment/deploy.py local up
-```
-
-### 2. Docker-based Development Environment
-
-The Docker-based development environment provides a consistent development experience across different machines.
-
-**Features:**
-- Containerized services (backend, frontend, database)
-- Volume mounts for live code changes
-- Isolated environment that matches production
-
-**Usage:**
-```bash
-python deployment/deploy.py dev up
-```
+-   Uses Docker Compose to run all services in containers.
+-   Simplifies dependency management and environment consistency.
+-   Managed by `python deployment/deploy.py dev <command>`.
 
 ### 3. Staging Environment
 
-The staging environment is designed for testing before production deployment.
-
-**Features:**
-- Production-like environment
-- SSL/TLS support
-- Performance optimizations
-
-**Usage:**
-```bash
-python deployment/deploy.py staging up
-```
+-   A pre-production environment that mirrors production as closely as possible.
+-   Deployed using Docker Compose with staging-specific configurations (`docker-compose.stag.yml`).
+-   Typically involves building production-like Docker images.
+-   Managed by `python deployment/deploy.py stag <command>`.
 
 ### 4. Production Environment
 
-The production environment is optimized for performance, security, and reliability.
+-   Live environment for end-users.
+-   Deployed using Docker Compose with production-hardened configurations (`docker-compose.prod.yml`).
+-   Involves building optimized Docker images, secure configurations, and robust monitoring.
+-   Managed by `python deployment/deploy.py prod <command>`.
 
-**Features:**
-- High availability with multiple replicas
-- Load balancing
-- Monitoring and alerting
-- Security hardening
+## General Deployment Workflow (using `deploy.py`)
 
-**Usage:**
-```bash
-python deployment/deploy.py prod up
-```
+Use the `deployment/deploy.py` script to manage your Docker deployments. It supports `dev`, `stag`, and `prod` environments.
 
-## Deployment Commands
+1.  **Build Images:**
+    ```bash
+    python deployment/deploy.py <environment> build
+    # Example: python deployment/deploy.py prod build
+    ```
+2.  **Start Services:**
+    ```bash
+    python deployment/deploy.py <environment> up
+    # Example: python deployment/deploy.py dev up -d
+    ```
+3.  **Stop Services:**
+    ```bash
+    python deployment/deploy.py <environment> down
+    ```
+4.  **View Logs:**
+    ```bash
+    python deployment/deploy.py <environment> logs
+    ```
 
-The deployment script supports the following commands:
+## Configuration Management
 
-- `up`: Start the environment
-- `down`: Stop the environment
-- `build`: Build the environment
-- `logs`: View logs
-- `status`: Check status
-- `test`: Run tests
-- `migrate`: Run database migrations
-- `backup`: Backup the database
-- `restore`: Restore the database
+-   Environment variables are crucial for configuring the application in different environments.
+-   Base configurations might be in `.env` (gitignored) or directly in Docker Compose files.
+-   Production and staging environments should use secure methods for managing secrets (e.g., Docker secrets, environment variables injected by CI/CD or orchestration platform).
 
-## Directory Structure
+## Nginx Reverse Proxy
 
-- `Dockerfile.dev`: Docker configuration for development
-- `Dockerfile.staging`: Docker configuration for staging
-- `Dockerfile.production`: Docker configuration for production
-- `Dockerfile.frontend`: Docker configuration for the frontend
-- `docker-compose.dev.yml`: Docker Compose configuration for development
-- `docker-compose.staging.yml`: Docker Compose configuration for staging
-- `docker-compose.production.yml`: Docker Compose configuration for production
-- `nginx/`: Nginx configurations for different environments
-- `monitoring/`: Prometheus and Grafana configurations
-- `deploy.py`: Deployment script
-- `local_dev.py`: Local development server script
+-   Nginx is used as a reverse proxy in staging and production environments.
+-   Handles SSL termination, serves static frontend assets, and routes API requests to the appropriate backend services.
+-   Configuration files are located in `nginx/`.
 
-## Prerequisites
+## Monitoring
 
-- Python 3.11 or higher
-- Docker and Docker Compose (for containerized environments)
-- PostgreSQL (for local development)
-- Node.js and npm (for frontend development)
+-   Prometheus and Grafana are set up for monitoring application metrics and performance.
+-   Prometheus scrapes metrics from backend services.
+-   Grafana provides dashboards for visualizing these metrics.
+-   Configurations are in `monitoring/`.
 
-## Environment Variables
-
-The following environment variables are used by the deployment framework:
-
-- `DATABASE_URL`: PostgreSQL connection string
-- `NODE_ENV`: Environment name (development, staging, production)
-- `PORT`: Port for the backend server
-- `POSTGRES_USER`: PostgreSQL username
-- `POSTGRES_PASSWORD`: PostgreSQL password
-- `POSTGRES_DB`: PostgreSQL database name
-- `GRAFANA_PASSWORD`: Grafana admin password
-
-## Getting Started
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/EmailIntelligence.git
-   cd EmailIntelligence
-   ```
-
-2. Set up the local development environment:
-   ```bash
-   python deployment/deploy.py local build
-   python deployment/deploy.py local up
-   ```
-
-3. Access the application:
-   - Backend: http://localhost:8000
-   - Frontend: http://localhost:5173
-
-## Continuous Integration/Continuous Deployment (CI/CD)
-
-For CI/CD, you can use the deployment script in your pipeline:
-
-```yaml
-# Example GitHub Actions workflow
-name: Deploy to Staging
-
-on:
-  push:
-    branches: [ staging ]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.11'
-      - name: Deploy to staging
-        run: |
-          python deployment/deploy.py staging build
-          python deployment/deploy.py staging up
-```
-
-## Troubleshooting
-
-If you encounter issues with the deployment, check the logs:
-
-```bash
-python deployment/deploy.py <environment> logs
-```
-
-For database issues, you can try resetting the database:
-
-```bash
-python deployment/deploy.py <environment> down
-# Delete the volume if needed (Docker environments only)
-docker volume rm emailintelligence_postgres_data
-python deployment/deploy.py <environment> up
-```
+For more detailed instructions, refer to the main [Deployment Guide](../../docs/deployment_guide.md). The `deploy.py` script (if implemented) would also contain its own usage instructions (`python deployment/deploy.py --help`).
