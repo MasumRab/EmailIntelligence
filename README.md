@@ -274,6 +274,7 @@ To launch the Gradio UI, use the `--gradio-ui` flag with the launcher script:
 
 -   On Linux/macOS:
     ```bash
+    source venv/bin/activate
     ./launch.sh --gradio-ui
     ```
 -   On Windows:
