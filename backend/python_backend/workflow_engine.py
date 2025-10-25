@@ -4,22 +4,13 @@ Workflow Engine for the Email Intelligence Platform
 This module provides a system for defining, discovering, and executing
 standardized email processing workflows.
 """
-<<<<<<< HEAD
 import json
-=======
-
->>>>>>> main
 import logging
 import os
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List
 
-<<<<<<< HEAD
-=======
 # Forward-referencing for type hints
-from typing import TYPE_CHECKING
-
->>>>>>> main
 if TYPE_CHECKING:
     from ..python_nlp.smart_filters import SmartFilterManager
     from .ai_engine import AdvancedAIEngine
@@ -32,10 +23,6 @@ logger = logging.getLogger(__name__)
 WORKFLOWS_DIR = DATA_DIR / "workflows"
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 class BaseWorkflow(ABC):
     """
     Abstract base class for all email processing workflows.
@@ -217,8 +204,6 @@ class DefaultWorkflow(BaseWorkflow):
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()
-<<<<<<< HEAD
-=======
         processed_data.update(
             {
                 "confidence": int(ai_analysis.confidence * 100),
@@ -230,9 +215,6 @@ class DefaultWorkflow(BaseWorkflow):
             }
         )
         return processed_data
-
-
->>>>>>> main
 class FileBasedWorkflow(BaseWorkflow):
     """A generic workflow configured by a JSON file."""
 
