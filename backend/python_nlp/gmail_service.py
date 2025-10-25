@@ -14,10 +14,6 @@ import sys
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-<<<<<<< HEAD
-=======
-
->>>>>>> main
 # To avoid circular imports with type hints
 if TYPE_CHECKING:
     from ..python_backend.ai_engine import AdvancedAIEngine
@@ -26,15 +22,6 @@ if TYPE_CHECKING:
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
-<<<<<<< HEAD
-from ..python_backend.ai_engine import AdvancedAIEngine
-from ..python_backend.database import DatabaseManager
-=======
-
-from ..python_backend.ai_engine import AdvancedAIEngine
-from ..python_backend.database import DatabaseManager
-
->>>>>>> main
 from .ai_training import ModelConfig
 from .data_strategy import DataCollectionStrategy
 from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
@@ -62,18 +49,9 @@ class GmailAIService:
     def __init__(
         self,
         rate_config: Optional[RateLimitConfig] = None,
-<<<<<<< HEAD
-        advanced_ai_engine: Optional[AdvancedAIEngine] = None,
-        db_manager: Optional[DatabaseManager] = None,
+        advanced_ai_engine=None,
+        db_manager=None,
     ):
-        """Initializes the GmailAIService."""
-=======
-        advanced_ai_engine: Optional["AIEngineProtocol"] = None,  # Using protocol
-        db_manager: Optional["DatabaseProtocol"] = None,  # Using protocol
-    ):
-        """Initializes the GmailAIService."""
-
->>>>>>> main
         self.collector = GmailDataCollector(rate_config)
         self.metadata_extractor = GmailMetadataExtractor()
         self.data_strategy = DataCollectionStrategy()
@@ -95,13 +73,6 @@ class GmailAIService:
             self.db_manager = None
 
         # Path definitions for scripts (like smart_retrieval.py) might still be relevant
-<<<<<<< HEAD
-=======
-
-        self.advanced_ai_engine = advanced_ai_engine or AdvancedAIEngine()
-        self.db_manager = db_manager or DatabaseManager()
-
->>>>>>> main
         self.nlp_path = os.path.dirname(__file__)
         self.retrieval_script = os.path.join(self.nlp_path, "smart_retrieval.py")
         self.stats = {
@@ -227,10 +198,6 @@ class GmailAIService:
     async def _perform_ai_analysis(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Performs AI analysis on a single email."""
         if not self.advanced_ai_engine:
-<<<<<<< HEAD
-=======
-
->>>>>>> main
             self.logger.error("AI engine not available for AI analysis.")
             return self._get_basic_fallback_analysis_structure("AI engine not configured")
 
@@ -351,28 +318,7 @@ class GmailAIService:
     async def execute_smart_retrieval(
         self, strategies: List[str] = None, max_api_calls: int = 100, time_budget_minutes: int = 30
     ) -> Dict[str, Any]:
-<<<<<<< HEAD
-        """Execute smart Gmail retrieval with multiple strategies using smart_retrieval.py script."""
-        self.logger.info(
-            f"Executing smart retrieval. Strategies: {strategies}, Max API calls: {max_api_calls}, Budget: {time_budget_minutes}min"
-        )
-        try:
-            cmd = [
-                sys.executable,
-                self.retrieval_script,
-                "execute-strategies",  # Corrected: positional command
-                "--max-api-calls",
-                str(max_api_calls),
-                "--time-budget",
-                str(time_budget_minutes),
-            ]
-            if strategies:
-                cmd.extend(["--strategies"] + strategies)
-=======
         """
-        Executes a smart retrieval process using a separate script.
->>>>>>> main
-
         Args:
             strategies: A list of retrieval strategies to execute.
             max_api_calls: The maximum number of API calls allowed.
@@ -395,93 +341,19 @@ class GmailAIService:
         return await self._execute_async_command(cmd, cwd=self.nlp_path)
 
     async def get_retrieval_strategies(self) -> List[Dict[str, Any]]:
-<<<<<<< HEAD
-        """Get available retrieval strategies from smart_retrieval.py script."""
-        self.logger.info("Fetching retrieval strategies.")
-        try:
-            cmd = [
-                sys.executable,
-                self.retrieval_script,
-                "list-strategies",
-            ]  # Corrected: positional command
-            result = await self._execute_async_command(cmd, cwd=self.nlp_path)
+        """
+        Retrieves available email retrieval strategies.
 
-            if result.get("success") and "strategies" in result.get(
-                "data", result
-            ):  # Check success and if 'strategies' is in result or result.data
-                # _execute_async_command might return {'success':True, 'data': [...] } for non-dict JSON
-                return (
-                    result.get("data", result).get("strategies", [])
-                    if isinstance(result.get("data", result), dict)
-                    else result.get("data", [])
-                )
-
-            error_msg = result.get(
-                "error",
-                "Failed to get strategies: No 'strategies' key in script response or script error.",
-            )
-            self.logger.error(error_msg)
-            return []
-        except Exception as e:
-            self.logger.error(
-                f"Failed to get retrieval strategies unexpectedly: {e}", exc_info=True
-            )
-            return []
-
-    async def get_performance_metrics(self) -> Optional[Dict[str, Any]]:
-        """Get Gmail API performance metrics from smart_retrieval.py script."""
-        self.logger.info("Fetching performance metrics.")
-        try:
-            cmd = [
-                sys.executable,
-                self.retrieval_script,
-                "get-retrieval-analytics",
-            ]  # Corrected command
-            result = await self._execute_async_command(cmd, cwd=self.nlp_path)
-
-            if result.get("success"):  # Script command execution was successful
-                # Adapt script output (which is in 'result' dict) to the expected structure
-                # If script's JSON output has 'success':false, it will be caught by result.get('success', True)
-                # in the calling function, but here we assume the structure based on a successful script run.
-                return {
-                    "overallStatus": {
-                        "status": result.get("status", "healthy"),
-                        "avgEfficiency": result.get("avg_efficiency", 0.0),
-                        "activeStrategies": result.get("active_strategies", 0),
-                    },
-                    "quotaStatus": {
-                        "dailyUsage": {"percentage": result.get("quota_used_percent", 0)}
-                    },
-                    "alerts": result.get("alerts", []),
-                    "recommendations": result.get("recommendations", []),
-                    "raw_data": result,  # Include full script output for debugging or richer info
-                }
-            else:
-                error_msg = result.get(
-                    "error",
-                    "Failed to get performance metrics: Script error or no data.",
-                )
-                self.logger.error(error_msg)
-                return None
-        except Exception as e:
-            self.logger.error(f"Failed to get performance metrics unexpectedly: {e}", exc_info=True)
-            return None
-=======
-        """Retrieves the list of available smart retrieval strategies."""
-        cmd = [sys.executable, self.retrieval_script, "list-strategies"]
-        result = await self._execute_async_command(cmd, cwd=self.nlp_path)
-        return result.get("strategies", []) if result.get("success") else []
-
-    async def get_performance_metrics(self) -> Optional[Dict[str, Any]]:
-        """Retrieves performance metrics for the Gmail integration."""
-        cmd = [sys.executable, self.retrieval_script, "get-retrieval-analytics"]
-        result = await self._execute_async_command(cmd, cwd=self.nlp_path)
-        return result if result.get("success") else None
->>>>>>> main
-
+        Returns:
+            A list of dictionaries representing available retrieval strategies.
+        """
+        # Implementation would go here
+        return []
 
 async def main():
-    """Demonstrates the usage of the GmailAIService."""
+    """
+    Demonstrates the usage of the GmailAIService.
+    """
     logging.basicConfig(
         level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
