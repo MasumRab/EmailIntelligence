@@ -17,7 +17,7 @@ from backend.node_engine.workflow_engine import workflow_engine as node_workflow
 from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 
 from .dependencies import get_workflow_engine
-from .workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

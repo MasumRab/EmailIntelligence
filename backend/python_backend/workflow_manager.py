@@ -151,4 +151,12 @@ workflow_manager = WorkflowManager()
 
 def get_workflow_manager() -> WorkflowManager:
     """Get the global workflow manager instance"""
+    import warnings
+
+    warnings.warn(
+        "get_workflow_manager from backend.python_backend.workflow_manager is deprecated. "
+        "Use backend.node_engine.workflow_manager.workflow_manager instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return workflow_manager

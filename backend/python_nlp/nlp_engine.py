@@ -186,7 +186,11 @@ class NLPEngine:
             prediction = results[0]
             return {
                 "sentiment": prediction["label"],
-                "polarity": prediction["score"] if prediction["label"] == "POSITIVE" else -prediction["score"],
+                "polarity": (
+                    prediction["score"]
+                    if prediction["label"] == "POSITIVE"
+                    else -prediction["score"]
+                ),
                 "subjectivity": 0.5,
                 "confidence": prediction["score"],
                 "method_used": "model_sentiment",

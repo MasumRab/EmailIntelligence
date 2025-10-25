@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from ..plugins.plugin_manager import plugin_manager
 from .model_manager import model_manager
 from .performance_monitor import PerformanceMetric, performance_monitor
-from .workflow_manager import Workflow, WorkflowManager, workflow_manager
+from backend.node_engine.workflow_manager import workflow_manager
 
 router = APIRouter()
 
@@ -72,59 +72,83 @@ class WorkflowCreateRequest(BaseModel):
 
 
 class WorkflowResponse(BaseModel):
+    workflow_id: str
     name: str
     description: str
-    created_at: str
-    updated_at: str
-    version: str
-    nodes: List[Dict[str, Any]]
+    nodes: Dict[str, Any]
     connections: List[Dict[str, Any]]
-    config: Dict[str, Any]
 
 
-@router.get("/workflows", response_model=List[str])
+@router.get("/workflows", response_model=List[Dict[str, Any]])
 async def list_workflows():
     """List all available workflow files."""
     return workflow_manager.list_workflows()
 
 
-@router.get("/workflows/{workflow_filename}", response_model=WorkflowResponse)
-async def get_workflow(workflow_filename: str):
-    """Get a specific workflow by filename."""
-    workflow = workflow_manager.load_workflow(workflow_filename)
+@router.get("/workflows/{workflow_id}", response_model=WorkflowResponse)
+async def get_workflow(workflow_id: str):
+    """Get a specific workflow by ID."""
+    workflow = workflow_manager.load_workflow(workflow_id)
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
+    nodes = {
+        node_id: {
+            "id": node.node_id,
+            "name": node.name,
+            "type": node.__class__.__name__,
+            "description": node.description,
+        }
+        for node_id, node in workflow.nodes.items()
+    }
+    connections = [
+        {
+            "source_node": conn.source_node_id,
+            "source_output": conn.source_port,
+            "target_node": conn.target_node_id,
+            "target_input": conn.target_port,
+        }
+        for conn in workflow.connections
+    ]
+
     return WorkflowResponse(
+        workflow_id=workflow.workflow_id,
         name=workflow.name,
         description=workflow.description,
-        created_at=workflow.created_at,
-        updated_at=workflow.updated_at,
-        version=workflow.version,
-        nodes=workflow.nodes,
-        connections=workflow.connections,
-        config=workflow.config,
+        nodes=nodes,
+        connections=connections,
     )
 
 
 @router.post("/workflows")
 async def create_workflow(request: WorkflowCreateRequest):
     """Create a new workflow."""
-    workflow = Workflow(request.name, request.description)
+    from backend.node_engine.node_base import Workflow
+    from backend.node_engine.email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode
+
+    workflow = Workflow(name=request.name, description=request.description)
     # Add some default nodes for demonstration
-    workflow.add_node("email_input", "input_1", 0, 0)
-    workflow.add_node("nlp_processor", "processor_1", 200, 0)
-    workflow.add_node("email_output", "output_1", 400, 0)
+    input_node = EmailSourceNode(node_id="input_1", name="Email Input")
+    processor_node = PreprocessingNode(node_id="processor_1", name="Preprocessing")
+    output_node = AIAnalysisNode(node_id="output_1", name="AI Analysis")
+
+    workflow.add_node(input_node)
+    workflow.add_node(processor_node)
+    workflow.add_node(output_node)
 
     # Connect the nodes
-    workflow.add_connection("input_1", "output", "processor_1", "input")
-    workflow.add_connection("processor_1", "output", "output_1", "input")
+    from backend.node_engine.node_base import Connection
 
-    success = workflow_manager.save_workflow(workflow)
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to save workflow")
+    workflow.add_connection(Connection("input_1", "emails", "processor_1", "emails"))
+    workflow.add_connection(Connection("processor_1", "processed_emails", "output_1", "emails"))
 
-    return {"message": "Workflow created successfully", "workflow_name": workflow.name}
+    file_path = workflow_manager.save_workflow(workflow)
+
+    return {
+        "message": "Workflow created successfully",
+        "workflow_id": workflow.workflow_id,
+        "file_path": file_path,
+    }
 
 
 # Performance Monitoring Routes

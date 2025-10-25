@@ -5,6 +5,7 @@ It will be removed in a future release.
 Custom exceptions for the Email Intelligence Platform
 Provides consistent error handling across the application
 """
+
 from typing import Optional
 from fastapi import HTTPException, status
 from pydantic import BaseModel

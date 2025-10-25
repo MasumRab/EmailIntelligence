@@ -5,7 +5,6 @@ import gradio as gr
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
-
 from .core.module_manager import ModuleManager
 
 # Configure logging
@@ -36,7 +35,16 @@ def create_app():
     # Modules will add their own tabs and components to this.
     with gr.Blocks(theme=gr.themes.Soft(), title="Email Intelligence Platform") as gradio_app:
         gr.Markdown("# Email Intelligence Platform")
-        gr.Markdown("Welcome! Modules will be loaded into tabs below.")
+
+        with gr.Tabs():
+            with gr.TabItem("Simple UI (A)"):
+                gr.Markdown("## Simple & Streamlined UI\nThis is the placeholder for the simple, user-friendly interface where users can run pre-built workflows.")
+
+            with gr.TabItem("Visual Editor (B)"):
+                gr.Markdown("## Visual & Node-Based UI\nThis is the placeholder for the powerful, node-based workflow editor.")
+
+            with gr.TabItem("Admin Dashboard (C)"):
+                gr.Markdown("## Power-User Dashboard\nThis is the placeholder for the admin and power-user dashboard for managing models, users, and system performance.")
 
     # Initialize the Module Manager
     module_manager = ModuleManager(app, gradio_app)
