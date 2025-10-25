@@ -1,7 +1,7 @@
 import json
 import logging
+import sqlite3
 
-import psycopg2
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 # Corrected import path for SmartFilterManager
@@ -9,19 +9,18 @@ from ..python_nlp.smart_filters import (  # Assuming EmailFilter is needed for r
     EmailFilter,
     SmartFilterManager,
 )
-
 from .database import DatabaseManager, get_db
 from .dependencies import get_filter_manager
 from .exceptions import AIAnalysisError, DatabaseError
-from .performance_monitor import log_performance
 from .models import FilterRequest  # Models are imported from .models
+from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/api/filters")
-@log_performance("get_filters")
+@log_performance(operation="get_filters")
 async def get_filters(
     request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
 ):
@@ -29,7 +28,7 @@ async def get_filters(
     try:
         filters = filter_manager.get_active_filters_sorted()
         return {"filters": filters}
-    except Exception as e:
+    except (ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in get_filters",
             "endpoint": str(request.url),
@@ -41,7 +40,7 @@ async def get_filters(
 
 
 @router.post("/api/filters", response_model=EmailFilter)
-@log_performance("create_filter")
+@log_performance(operation="create_filter")
 async def create_filter(
     request: Request,
     filter_request_model: FilterRequest,
@@ -59,7 +58,7 @@ async def create_filter(
             priority=filter_request_model.priority,
         )
         return new_filter_object
-    except Exception as e:
+    except (ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in create_filter",
             "endpoint": str(request.url),
@@ -71,7 +70,7 @@ async def create_filter(
 
 
 @router.post("/api/filters/generate-intelligent")
-@log_performance("generate_intelligent_filters")
+@log_performance(operation="generate_intelligent_filters")
 async def generate_intelligent_filters(
     request: Request,
     db: DatabaseManager = Depends(get_db),
@@ -86,17 +85,17 @@ async def generate_intelligent_filters(
         created_filters = filter_manager.create_intelligent_filters(emails)
 
         return {"created_filters": len(created_filters), "filters": created_filters}
-    except psycopg2.Error as db_err:
+    except Exception as db_err:
         log_data = {
             "message": "DB operation failed during intelligent filter generation",
             "endpoint": str(request.url),
             "error_type": type(db_err).__name__,
             "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
+            "pgcode": None,
         }
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Database service unavailable.")
-    except Exception as e:
+    except (ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in generate_intelligent_filters",
             "endpoint": str(request.url),
@@ -108,7 +107,7 @@ async def generate_intelligent_filters(
 
 
 @router.post("/api/filters/prune")
-@log_performance("prune_filters")
+@log_performance(operation="prune_filters")
 async def prune_filters(
     request: Request, filter_manager: SmartFilterManager = Depends(get_filter_manager)
 ):
@@ -118,7 +117,7 @@ async def prune_filters(
         # This method was not in original smart_filters.py, assuming added.
         results = filter_manager.prune_ineffective_filters()
         return results
-    except Exception as e:
+    except (sqlite3.Error, ValueError, RuntimeError, OSError) as e:
         log_data = {
             "message": "Unhandled error in prune_filters",
             "endpoint": str(request.url),

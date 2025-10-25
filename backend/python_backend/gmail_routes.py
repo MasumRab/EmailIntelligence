@@ -7,20 +7,19 @@ from googleapiclient.errors import HttpError as GoogleApiHttpError
 
 # Corrected import path for GmailAIService
 from ..python_nlp.gmail_service import GmailAIService
-
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
 from .dependencies import get_gmail_service
 from .exceptions import GmailServiceError
-from .performance_monitor import log_performance
 from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
+from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.post("/api/gmail/sync")
-@log_performance("sync_gmail")
+@log_performance(operation="sync_gmail")
 async def sync_gmail(
     req: Request,
     request_model: GmailSyncRequest,
@@ -127,17 +126,17 @@ async def sync_gmail(
         log_data = {
             "message": "Unhandled error in sync_gmail",
             "endpoint": str(req.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))  # Added logger call
         raise GmailServiceError(
             detail=f"Gmail sync failed due to an unexpected error: {str(e)}",
         )
 
 
 @router.post("/api/gmail/smart-retrieval")
-@log_performance("smart_retrieval")
+@log_performance(operation="smart_retrieval")
 async def smart_retrieval(
     req: Request,
     request_model: SmartRetrievalRequest,
@@ -192,17 +191,17 @@ async def smart_retrieval(
         log_data = {
             "message": "Unhandled error in smart_retrieval",
             "endpoint": str(req.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))  # Added logger call
         raise GmailServiceError(
             detail=f"Smart retrieval failed due to an unexpected error: {str(e)}",
         )
 
 
 @router.get("/api/gmail/strategies")
-@log_performance("get_retrieval_strategies")
+@log_performance(operation="get_retrieval_strategies")
 async def get_retrieval_strategies(
     request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
 ):
@@ -213,16 +212,16 @@ async def get_retrieval_strategies(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_retrieval_strategies",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))  # Added logger call
         raise GmailServiceError(detail="Failed to fetch strategies")
 
 
 @router.get("/api/gmail/performance")
-@log_performance("get_gmail_performance")
+@log_performance(operation="get_gmail_performance")
 async def get_gmail_performance(
     request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
 ):
@@ -233,9 +232,9 @@ async def get_gmail_performance(
     except Exception as e:
         log_data = {
             "message": "Unhandled error in get_gmail_performance",
-                    "endpoint": str(request.url),
-                    "error_type": type(e).__name__,
-                    "error_detail": str(e),
-                }
-        logger.error(json.dumps(log_data)) # Added logger call
+            "endpoint": str(request.url),
+            "error_type": type(e).__name__,
+            "error_detail": str(e),
+        }
+        logger.error(json.dumps(log_data))  # Added logger call
         raise GmailServiceError(detail="Failed to fetch performance metrics")

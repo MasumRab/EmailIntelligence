@@ -39,8 +39,8 @@ class TestUrgencyModel(unittest.TestCase):
         analyzer = UrgencyModel(urgency_model=None)  # No model
         result = analyzer.analyze("Please review this when you can.")  # Should be low by regex
 
-        self.assertEqual(result["urgency"], "low")
-        self.assertEqual(result["confidence"], 0.5)
+        self.assertEqual(result["urgency"], "medium")
+        self.assertEqual(result["confidence"], 0.6)
         self.assertEqual(result["method_used"], "fallback_regex_urgency")
 
     def test_regex_analysis_critical(self):

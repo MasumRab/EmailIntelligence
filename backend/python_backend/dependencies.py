@@ -1,56 +1,105 @@
 """
-Dependency injectors for the FastAPI application.
+Dependency injection system for the Email Intelligence Platform
+Manages service dependencies and provides them to route handlers
 """
-from typing import Optional, TYPE_CHECKING
+
+from typing import Generator, AsyncGenerator
 from fastapi import Depends
-
-# To avoid circular imports with type hints
-if TYPE_CHECKING:
-    from .ai_engine import AdvancedAIEngine
-    from ..python_nlp.gmail_service import GmailAIService
-    from ..python_nlp.smart_filters import SmartFilterManager
-    from .database import DatabaseManager
-
-from .ai_engine import AdvancedAIEngine
-from ..python_nlp.gmail_service import GmailAIService
-from ..python_nlp.smart_filters import SmartFilterManager
-from .database import get_db, DatabaseManager
+from backend.python_backend.services.email_service import EmailService
+from backend.python_backend.services.category_service import CategoryService
+from backend.python_backend.ai_engine import AdvancedAIEngine
+from backend.python_nlp.smart_filters import SmartFilterManager
+from backend.node_engine.workflow_engine import WorkflowEngine
+from backend.python_nlp.gmail_service import GmailAIService
+from backend.python_backend.model_manager import ModelManager
+from backend.python_backend.database import get_db
 
 
-# Singleton instances
-_ai_engine_instance: Optional[AdvancedAIEngine] = None
-_filter_manager_instance: Optional[SmartFilterManager] = None
-_gmail_service_instance: Optional[GmailAIService] = None
+# Dependency functions for services
+async def get_email_service() -> AsyncGenerator[EmailService, None]:
+    """Provides an EmailService instance"""
+    service = EmailService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
 
 
-def get_ai_engine() -> "AdvancedAIEngine":
-    """Dependency injector for AdvancedAIEngine. Returns a singleton instance."""
-    global _ai_engine_instance
-    if _ai_engine_instance is None:
-        _ai_engine_instance = AdvancedAIEngine()
-        _ai_engine_instance.initialize()
-    return _ai_engine_instance
+async def get_category_service() -> AsyncGenerator[CategoryService, None]:
+    """Provides a CategoryService instance"""
+    service = CategoryService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
 
 
-def get_filter_manager() -> "SmartFilterManager":
-    """Dependency injector for SmartFilterManager. Returns a singleton instance."""
-    global _filter_manager_instance
-    if _filter_manager_instance is None:
-        _filter_manager_instance = SmartFilterManager()
-    return _filter_manager_instance
+async def get_ai_engine() -> AsyncGenerator[AdvancedAIEngine, None]:
+    """Provides an AdvancedAIEngine instance"""
+    engine = AdvancedAIEngine()
+    try:
+        yield engine
+    finally:
+        # Perform any cleanup if needed
+        pass
 
 
-def get_gmail_service(
-    db: DatabaseManager = Depends(get_db),
-    ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
-) -> "GmailAIService":
-    """
-    Dependency injector for GmailAIService. Returns a singleton instance.
-    This service depends on other services which are also injected.
-    """
-    global _gmail_service_instance
-    if _gmail_service_instance is None:
-        _gmail_service_instance = GmailAIService(
-            db_manager=db, advanced_ai_engine=ai_engine
-        )
-    return _gmail_service_instance
+async def get_filter_manager() -> AsyncGenerator[SmartFilterManager, None]:
+    """Provides a SmartFilterManager instance"""
+    manager = SmartFilterManager()
+    try:
+        yield manager
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_workflow_engine() -> AsyncGenerator[WorkflowEngine, None]:
+    """Provides a WorkflowEngine instance"""
+    engine = WorkflowEngine()
+    try:
+        yield engine
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_gmail_service() -> AsyncGenerator[GmailAIService, None]:
+    """Provides a GmailAIService instance"""
+    service = GmailAIService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_model_manager() -> AsyncGenerator[ModelManager, None]:
+    """Provides a ModelManager instance"""
+    manager = ModelManager()
+    try:
+        yield manager
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+# For backward compatibility with existing code
+async def get_database():
+    """Provides database instance (for existing code that uses direct database access)"""
+    db = await get_db()
+    return db
+
+
+# Additional dependencies for other services can be added here
+
+
+# Global instances for backward compatibility
+_workflow_engine_instance = None
+
+
+async def initialize_services():
+    """Initialize services for backward compatibility"""
+    pass

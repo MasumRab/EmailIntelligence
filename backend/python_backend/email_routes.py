@@ -2,30 +2,34 @@ import json
 import logging
 from typing import List, Optional
 
-import psycopg2
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
-
 from .ai_engine import AdvancedAIEngine
-from .exceptions import AIAnalysisError, DatabaseError
 from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_filter_manager
-from .performance_monitor import log_performance
-from .models import EmailResponse  # Changed from .main to .models
+from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine, get_email_service
+from backend.node_engine.workflow_engine import WorkflowEngine
+from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
+from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
+from .performance_monitor import log_performance
+from .utils import create_log_data, handle_pydantic_validation
+from .services.email_service import EmailService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/api/emails", response_model=List[EmailResponse])
-@log_performance("get_emails")
+@log_performance(operation="get_emails")
 async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
     search: Optional[str] = None,
-    db: DatabaseManager = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0,
+    is_unread: Optional[bool] = None,
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Retrieves a list of emails, with optional filtering by category and search term.
@@ -34,7 +38,10 @@ async def get_emails(
         request: The incoming request object.
         category_id: An optional category ID to filter emails.
         search: An optional search term to filter emails by subject, content, or sender.
-        db: The database manager dependency.
+        limit: Number of emails to return (default 50)
+        offset: Number of emails to skip (for pagination)
+        is_unread: Optional flag to filter unread emails
+        email_service: The email service dependency.
 
     Returns:
         A list of emails that match the filtering criteria.
@@ -43,55 +50,41 @@ async def get_emails(
         HTTPException: If a database error occurs or if there's a validation error.
     """
     try:
-        if search and category_id is not None:
-            emails = await db.search_emails_by_category(search, category_id)
-        elif search:
-            emails = await db.search_emails(search)
-        elif category_id is not None:
-            emails = await db.get_emails_by_category(category_id)
+        if search:
+            result = await email_service.search_emails(search, limit)
         else:
-            emails = await db.get_all_emails()
-        try:
-            return [EmailResponse(**email) for email in emails]
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during get_emails Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
-        log_data = {
-            "message": "Database operation failed while fetching emails",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Database service unavailable.")
+            result = await email_service.get_all_emails(limit, offset, category_id, is_unread)
+
+        if result.success:
+            return result.data
+        else:
+            # Handle error case
+            raise HTTPException(status_code=500, detail=result.error)
+    except HTTPException:
+        raise
     except Exception as e:
-        log_data = {
-            "message": "Unhandled error in get_emails",
-            "endpoint": str(request.url),
-            "error_type": type(e).__name__,
-            "error_detail": str(e),
-        }
+        log_data = create_log_data(
+            message="Unhandled error in get_emails",
+            request_url=request.url,
+            error_type=type(e).__name__,
+            error_detail=str(e),
+        )
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to fetch emails")
+        raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
 
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("get_email")
-async def get_email(request: Request, email_id: int, db: DatabaseManager = Depends(get_db)):
+@log_performance(operation="get_email")
+async def get_email(
+    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
+):
     """
     Retrieves a specific email by its unique ID.
 
     Args:
         request: The incoming request object.
         email_id: The ID of the email to retrieve.
-        db: The database manager dependency.
+        email_service: The email service dependency.
 
     Returns:
         The email object if found.
@@ -100,31 +93,16 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
-        email = await db.get_email_by_id(email_id)
-        if not email:
-            raise HTTPException(status_code=404, detail="Email not found")
-        try:
-            return EmailResponse(**email)
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during get_email Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
+        result = await email_service.get_email_by_id(email_id)
+        if result.success:
+            return EmailResponse(**result.data)
+        else:
+            # Raise appropriate exception if not found
+            raise EmailNotFoundException(email_id=email_id)
+    except EmailNotFoundException:
+        raise
     except HTTPException:
         raise
-    except psycopg2.Error as db_err:
-        log_data = {
-            "message": f"Database operation failed while fetching email id {email_id}",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": f"Unhandled error fetching email id {email_id}",
@@ -136,91 +114,90 @@ async def get_email(request: Request, email_id: int, db: DatabaseManager = Depen
         raise HTTPException(status_code=500, detail="Failed to fetch email")
 
 
-@router.post("/api/emails", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("create_email")
+@router.post("/api/emails", response_model=EmailResponse)
+@log_performance(operation="create_email")
 async def create_email(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
-    db: DatabaseManager = Depends(get_db),
-    ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
-    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+    email_service: EmailService = Depends(get_email_service),
+    workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
-    """
-    Creates a new email, performs AI analysis, and applies smart filters.
-
-    The AI analysis and filter application enrich the email data before it's
-    saved to the database.
-
-    Args:
-        request: The incoming request object.
-        email: The email data for creation.
-        background_tasks: FastAPI's background task runner.
-        db: The database manager dependency.
-
-    Returns:
-        The newly created and enriched email object.
-
-    Raises:
-        HTTPException: If a database error or any other failure occurs.
-    """
+    """Create new email with AI analysis using the active workflow."""
     try:
-        ai_analysis = await ai_engine.analyze_email(email.subject, email.content, db=db)
+        # Get the active workflow from the workflow engine
+        # First, check if there's a global active workflow setting
+        from backend.node_engine.workflow_manager import workflow_manager
+        
+        # Try to get the active workflow from settings
+        active_workflow = None
+        settings_file = "data/settings.json"
+        import os
+        import json
+        
+        if os.path.exists(settings_file):
+            try:
+                with open(settings_file, "r") as f:
+                    settings = json.load(f)
+                    active_workflow_id = settings.get("active_workflow")
+                    if active_workflow_id:
+                        active_workflow = workflow_manager.load_workflow(active_workflow_id)
+            except Exception as e:
+                logger.warning(f"Could not load active workflow from settings: {e}")
+        
+        # If no active workflow from settings, use the default one
+        if not active_workflow:
+            # Try to find a default workflow
+            workflows = workflow_manager.list_workflows()
+            default_workflow = next((w for w in workflows if w["name"] == "default"), None)
+            if default_workflow:
+                active_workflow = workflow_manager.load_workflow(default_workflow["id"])
+        
+        # If still no workflow, create a default one-time workflow
+        if not active_workflow:
+            active_workflow = workflow_manager.create_sample_workflow()
+            # Save it as the default workflow
+            try:
+                workflow_manager.save_workflow(active_workflow)
+                logger.info(f"Created and saved default sample workflow: {active_workflow.workflow_id}")
+            except Exception as e:
+                logger.warning(f"Could not save sample workflow: {e}")
+            
+            # Log that we're using a fallback workflow
+            logger.warning("No active workflow found, using sample workflow as fallback")
 
-        filter_results = await filter_manager.apply_filters_to_email_data(
-            email.model_dump()
+        # Execute the selected workflow to process the email data
+        execution_context = await workflow_engine.execute_workflow(
+            active_workflow, {"email_data": email.model_dump()}
         )
+        processed_data = execution_context.outputs.get("processed_email", email.model_dump())
 
-        email_data = email.model_dump()
-        email_data.update(
-            {
-                "confidence": int(ai_analysis.confidence * 100),
-                "categoryId": ai_analysis.category_id,
-                "labels": ai_analysis.suggested_labels,
-                "analysisMetadata": ai_analysis.to_dict(),
-            }
-        )
+        # Add email through service layer
+        result = await email_service.create_email(processed_data)
 
-        created_email_dict = await db.create_email(email_data)
-
-        try:
-            return EmailResponse(**created_email_dict)
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during create_email Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
-    except psycopg2.Error as db_err:
-        log_data = {
-            "message": "Database operation failed while creating email",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Database service unavailable.")
+        if result.success:
+            return EmailResponse(**result.data)
+        else:
+            # Handle error case
+            raise HTTPException(status_code=500, detail=result.error)
     except Exception as e:
-        log_data = {
-            "message": "Unhandled error in create_email",
-            "endpoint": str(request.url),
-            "error_type": type(e).__name__,
-            "error_detail": str(e),
-        }
+        log_data = create_log_data(
+            message="Unhandled error in create_email",
+            request_url=request.url,
+            error_type=type(e).__name__,
+            error_detail=str(e),
+        )
         logger.error(json.dumps(log_data))
         raise AIAnalysisError(detail="Failed to create email due to an unexpected error.")
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
-@log_performance("update_email")
+@log_performance(operation="update_email")
 async def update_email(
     request: Request,
     email_id: int,
     email_update: EmailUpdate,
-    db: DatabaseManager = Depends(get_db),
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Updates an existing email by its ID.
@@ -229,7 +206,7 @@ async def update_email(
         request: The incoming request object.
         email_id: The ID of the email to update.
         email_update: The email data to update.
-        db: The database manager dependency.
+        email_service: The email service dependency.
 
     Returns:
         The updated email object.
@@ -238,33 +215,20 @@ async def update_email(
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
-        updated_email_dict = await db.update_email(
-            email_id, email_update.model_dump(exclude_unset=True)
-        )
-        if not updated_email_dict:
-            raise HTTPException(status_code=404, detail="Email not found")
-        try:
-            return EmailResponse(**updated_email_dict)
-        except Exception as e_outer:
-            logger.error(
-                "Outer exception during update_email Pydantic validation: "
-                f"{type(e_outer)} - {repr(e_outer)}"
-            )
-            if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
-                logger.error(f"Pydantic errors: {e_outer.errors()}")
-            raise  # Re-raise for FastAPI to handle
+        # Convert EmailUpdate to dict for service layer, excluding unset values
+        update_data = email_update.model_dump(exclude_unset=True)
+
+        result = await email_service.update_email(email_id, update_data)
+
+        if result.success:
+            return EmailResponse(**result.data)
+        else:
+            # Raise appropriate exception if not found
+            raise EmailNotFoundException(email_id=email_id)
+    except EmailNotFoundException:
+        raise
     except HTTPException:
         raise
-    except psycopg2.Error as db_err:
-        log_data = {
-            "message": f"Database operation failed while updating email id {email_id}",
-            "endpoint": str(request.url),
-            "error_type": type(db_err).__name__,
-            "error_detail": str(db_err),
-            "pgcode": db_err.pgcode if hasattr(db_err, "pgcode") else None,
-        }
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Database service unavailable.")
     except Exception as e:
         log_data = {
             "message": f"Unhandled error updating email id {email_id}",
