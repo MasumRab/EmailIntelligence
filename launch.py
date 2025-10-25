@@ -27,10 +27,10 @@ from typing import List, Optional
 
 try:
     from dotenv import load_dotenv
-
     DOTENV_AVAILABLE = True
 except ImportError:
     DOTENV_AVAILABLE = False
+    load_dotenv = None  # Will be loaded later if needed
 
 # Configure logging
 logging.basicConfig(
@@ -154,12 +154,23 @@ def validate_port(port: int) -> int:
 
 
 def validate_host(host: str) -> str:
-    """Validate host name/address format."""
+    """Validate host name/address format (IPv4, IPv6, or hostname)."""
     import re
+    import ipaddress
 
-    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
-        raise ValueError(f"Invalid host: {host}")
-    return host
+    try:
+        # Try IPv4/IPv6 validation
+        ipaddress.ip_address(host)
+        return host
+    except ValueError:
+        # Not an IP, check for valid hostname
+        # Hostname RFC 1123: max 253 chars, labels separated by dots, each label 1-63 chars, allowed: a-zA-Z0-9-, cannot start/end with -
+        hostname_regex = re.compile(
+            r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$"
+        )
+        if not hostname_regex.match(host):
+            raise ValueError(f"Invalid host: {host}")
+        return host
 
 
 # --- Global state ---
@@ -230,6 +241,72 @@ VENV_DIR = "venv"
 # Dependency configuration
 TORCH_VERSION = "torch>=2.4.0"
 TORCH_CPU_URL = "https://download.pytorch.org/whl/cpu"
+
+
+# --- Python Version Checking ---
+def check_python_version():
+    """Check if the current Python version is compatible and re-execute if necessary."""
+    current_major, current_minor = sys.version_info[:2]
+    current_version = (current_major, current_minor)
+    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
+        logger.info(
+            f"Current Python is {current_major}.{current_minor}. "
+            f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
+        )
+
+        candidate_interpreters = []
+        if platform.system() == "Windows":
+            candidate_interpreters = [
+                ["py", "-3.12"],  # Python Launcher for Windows
+                ["py", "-3.11"],  # Python Launcher for Windows
+                ["python3.12"],
+                ["python3.11"],
+                ["python"],  # General python, check version
+            ]
+        else:  # Linux/macOS
+            candidate_interpreters = [
+                ["python3.12"],
+                ["python3.11"],
+                ["python3"],  # General python3, check version
+            ]
+
+        for exe_name in candidate_interpreters:
+            try:
+                result = subprocess.run(
+                    exe_name + ["--version"], capture_output=True, text=True, timeout=10
+                )
+                # Python version can be in stdout or stderr
+                version_output = result.stdout.strip() + result.stderr.strip()
+
+                # Check if version is in supported range
+                compatible = False
+                for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
+                    for minor in range(
+                        PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0,
+                        PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100,
+                    ):
+                        if f"Python {major}.{minor}" in version_output:
+                            logger.info(
+                                f"Found compatible Python {major}.{minor} interpreter: {exe_name} (version output: {version_output})"
+                            )
+                            # Re-execute with the found interpreter
+                            os.execv(exe_name[0], exe_name + sys.argv)
+                            compatible = True
+                            break
+                    if compatible:
+                        break
+
+                if compatible:
+                    break
+                else:
+                    logger.debug(
+                        f"Candidate {exe_name} is not in supported Python version range. Output: {version_output}"
+                    )
+            except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+                continue
+
+        logger.error("No compatible Python interpreter found. Please install Python 3.12 or 3.11.")
+        sys.exit(1)
 
 
 # --- Signal Handling ---
@@ -387,9 +464,6 @@ def install_uv(venv_path: Path):
         sys.exit(1)
 
 
-def install_poetry(venv_path: Path):
-    """Install Poetry in the virtual environment."""
-    if not _install_package_manager(venv_path, "poetry"):
         sys.exit(1)
 
 
@@ -526,7 +600,6 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
 
 def download_nltk_data(venv_path: Path):
     """Download required NLTK data."""
-    venv_python = get_venv_executable(venv_path, "python")
 
     nltk_download_script = """
 import nltk
@@ -551,66 +624,6 @@ print("NLTK data download completed.")
         logger.info("NLTK data downloaded successfully.")
 
 
-def check_uvicorn_installed(venv_path: Path) -> bool:
-    """Check if uvicorn is installed in the virtual environment."""
-    venv_python = get_venv_python_path()
-    try:
-        result = subprocess.run(
-            [str(venv_python), "-c", "import uvicorn"], capture_output=True, text=True
-        )
-        if result.returncode == 0:
-            logger.info("uvicorn is available in the virtual environment.")
-            return True
-        else:
-            logger.error("uvicorn is not installed in the virtual environment.")
-            return False
-    except FileNotFoundError:
-        logger.error("Virtual environment Python not found.")
-        return False
-
-
-def check_node_npm_installed() -> bool:
-    """Check if Node.js and npm are installed and available."""
-    if not shutil.which("node"):
-        logger.error("Node.js is not installed. Please install it to continue.")
-        return False
-    if not shutil.which("npm"):
-        logger.error("npm is not installed. Please install it to continue.")
-        return False
-    return True
-
-
-def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
-    """Install Node.js dependencies in a given directory."""
-    pkg_json_path = ROOT_DIR / directory / "package.json"
-    if not pkg_json_path.exists():
-        logger.debug(f"No package.json in '{directory}/', skipping npm install.")
-        return True
-
-    if not check_node_npm_installed():
-        return False
-
-    cmd = ["npm", "update" if update else "install"]
-    desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
-    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
-
-
-def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
-    """Start the Python FastAPI backend."""
-    if not check_uvicorn_installed(venv_path):
-        logger.error(
-            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
-        )
-        return None
-
-    venv_python = get_venv_python_path(venv_path)
-
-    # Always use uvicorn to run the FastAPI app
-    import os
-
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
-
     cmd = [
         str(venv_python),
         "-m",
@@ -634,7 +647,6 @@ def start_gradio_ui(
     venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
 ):
     """Start the Gradio UI."""
-    venv_python = get_venv_executable(venv_path, "python")
     gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
 
     cmd = [str(venv_python), str(gradio_path), "--host", host]
@@ -665,31 +677,6 @@ def start_client():
     node_modules_path = ROOT_DIR / "client" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing Node.js dependencies...")
-        try:
-            result = subprocess.run(
-                ["npm", "install"],
-                cwd=ROOT_DIR / "client",
-                capture_output=True,
-                text=True,
-                shell=(os.name == "nt"),
-            )
-            if result.returncode != 0:
-                logger.error(f"Failed to install Node.js dependencies: {result.stderr}")
-                return None
-            logger.info("Node.js dependencies installed.")
-        except FileNotFoundError:
-            logger.warning("npm not found. Skipping Node.js dependency installation.")
-
-    # Start the React frontend
-    try:
-        process = subprocess.Popen(
-            ["npm", "run", "dev"], cwd=ROOT_DIR / "client", shell=(os.name == "nt")
-        )
-        process_manager.add_process(process)
-        return process
-    except FileNotFoundError:
-        logger.warning("npm not found. Skipping Node.js frontend startup.")
-        return None
 
 
 def start_server_ts():
@@ -710,31 +697,6 @@ def start_server_ts():
     node_modules_path = ROOT_DIR / "server" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
-        try:
-            result = subprocess.run(
-                ["npm", "install"],
-                cwd=ROOT_DIR / "server",
-                capture_output=True,
-                text=True,
-                shell=(os.name == "nt"),
-            )
-            if result.returncode != 0:
-                logger.error(f"Failed to install TypeScript server dependencies: {result.stderr}")
-                return None
-            logger.info("TypeScript server dependencies installed.")
-        except FileNotFoundError:
-            logger.warning("npm not found. Skipping TypeScript server dependency installation.")
-
-    # Start the TypeScript backend
-    try:
-        process = subprocess.Popen(
-            ["npm", "run", "dev"], cwd=ROOT_DIR / "server", shell=(os.name == "nt")
-        )
-        process_manager.add_process(process)
-        return process
-    except FileNotFoundError:
-        logger.warning("npm not found. Skipping TypeScript backend server startup.")
-        return None
 
 
 def wait_for_processes():
@@ -748,24 +710,11 @@ def wait_for_processes():
                     logger.warning(
                         f"Process {process.pid} terminated with code {process.returncode}"
                     )
-                    process_manager.processes.remove(process)
     except KeyboardInterrupt:
         logger.info("Received interrupt signal, shutting down...")
         process_manager.shutdown()
 
 
-def _handle_setup_mode(args, venv_path: Path) -> None:
-    """Handle the setup mode functionality."""
-    if not args.no_venv:
-        create_venv(venv_path, args.force_recreate_venv)
-        if args.use_poetry:
-            install_poetry(venv_path)
-        else:
-            install_uv(venv_path)
-        setup_dependencies(venv_path, args.update_deps, args.use_poetry)
-
-    if not args.no_download_nltk:
-        download_nltk_data(venv_path)
 
     logger.info("Setup completed successfully.")
 
@@ -783,7 +732,8 @@ def _start_selected_services(args, venv_path: Path, host: str) -> None:
     if not args.no_client:
         # Note: The client and server-ts might require additional parameters or configuration
         start_client()
-        start_server_ts()
+
+
 
 
 def main():
