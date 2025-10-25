@@ -86,9 +86,6 @@ class BaseAIEngine(ABC):
     def train_models(self, training_data: Optional[Dict[str, Any]] = None):
         """
         Trains or retrains the AI models using provided training data.
-
-        Args:
-            training_data: Optional dictionary containing training data for different models.
         """
         pass
 

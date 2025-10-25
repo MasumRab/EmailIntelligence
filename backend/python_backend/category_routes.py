@@ -33,9 +33,9 @@ router = APIRouter()
 @router.post("/api/categories", response_model=CategoryResponse)
 @log_performance(operation="create_category")
 async def create_category(
-    request: Request, 
-    category: CategoryCreate, 
-    category_service: CategoryService = Depends(get_category_service)
+    request: Request,
+    category: CategoryCreate,
+    category_service: CategoryService = Depends(get_category_service),
 ):
     """
     Creates a new category in the database.

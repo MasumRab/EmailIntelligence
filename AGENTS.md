@@ -21,6 +21,30 @@
 - **Lint**: `npm run lint` (from client/)
 - **Dev server**: `npm run dev` (from client/)
 
+## Architecture & Codebase Structure
+
+### Services
+- **Python Backend (FastAPI)**: Core API at `backend/python_backend/` with AI engine, database, workflows
+- **React Frontend (Vite)**: User interface at `client/` with TypeScript, Tailwind CSS, Radix UI
+- **Node.js TypeScript Backend**: Secondary API routes at `server/` with Express, Drizzle ORM
+- **Gradio UI**: Interactive interface integrated with Python backend for scientific development
+
+### Key Modules
+- **Core Components**: `src/core/` - AI engine, database manager, workflow engines, security
+- **Modules**: `modules/` - Pluggable features (categories, AI engine, workflows)
+- **Backend Extensions**: `backend/` - Additional Python services, plugins, NLP components
+- **Shared Code**: `shared/` - Cross-service utilities and types
+
+### Databases & Storage
+- **SQLite**: Primary database (`.db` files in project root and `data/`)
+- **JSON Files**: Configuration and cached data in `data/` directory
+- **Configurable Data Directory**: Via `DATA_DIR` environment variable
+
+### APIs
+- **FastAPI**: Main REST API on port 8000 (`/api/*`)
+- **Express**: Secondary Node.js API routes
+- **Internal APIs**: Workflow execution, AI model management, performance monitoring
+
 ## Code Style Guidelines
 ### Python
 - **Line length**: 100 chars max, Black formatting, isort imports (stdlib → third-party → local)

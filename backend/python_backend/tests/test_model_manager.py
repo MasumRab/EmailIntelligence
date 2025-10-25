@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, call, mock_open, patch
 import pytest
 
 from backend.python_backend.model_manager import ModelManager
+
+
 @pytest.fixture
 def model_manager():
     """Provides a clean ModelManager instance for each test."""

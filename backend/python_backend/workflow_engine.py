@@ -4,6 +4,7 @@ Workflow Engine for the Email Intelligence Platform
 This module provides a system for defining, discovering, and executing
 standardized email processing workflows.
 """
+
 import json
 import logging
 import os

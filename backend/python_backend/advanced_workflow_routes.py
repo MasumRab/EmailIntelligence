@@ -23,7 +23,7 @@ from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
 from .dependencies import get_db
 from .model_manager import model_manager
-from .workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_engine import WorkflowEngine
 
 
 class WorkflowExecutionResult:
