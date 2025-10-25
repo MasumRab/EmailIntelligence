@@ -1,23 +1,37 @@
+/**
+ * @file This file contains the EmailList component, which is responsible for
+ *       rendering a list of emails, including their loading and empty states.
+ */
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Brain, Star } from "lucide-react";
 import type { EmailWithCategory } from "@shared/schema";
 
+/**
+ * @interface EmailListProps
+ * @description Defines the props for the EmailList component.
+ * @property {EmailWithCategory[]} emails - An array of email objects to display.
+ * @property {boolean} loading - A flag to indicate if the component is in a loading state.
+ * @property {(email: EmailWithCategory) => void} onEmailSelect - A callback function to handle email selection.
+ */
 interface EmailListProps {
   emails: EmailWithCategory[];
   loading: boolean;
+  onEmailSelect: (email: EmailWithCategory) => void;
 }
 
 /**
- * Renders a list of emails with sender details, subject, preview, and associated badges, including loading and empty states.
+ * Renders a list of emails with sender details, subject, preview, and associated badges.
  *
- * Displays skeleton loaders when loading, a message if no emails are found, and a styled list of emails with category, labels, and confidence indicators. Each email is clickable, simulating an open action.
+ * This component handles the display of emails, providing visual feedback for loading
+ * states and a message for when no emails are available. Each email is interactive,
+ * triggering a callback on selection.
  *
- * @param emails - Array of email objects with category and metadata to display.
- * @param loading - Whether to show loading skeletons instead of email content.
+ * @param {EmailListProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
-export function EmailList({ emails, loading }: EmailListProps) {
+export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
@@ -45,10 +59,20 @@ export function EmailList({ emails, loading }: EmailListProps) {
     );
   }
 
+  /**
+   * Generates initials from a given name.
+   * @param {string} name - The full name of the sender.
+   * @returns {string} The initials of the sender.
+   */
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  /**
+   * Determines the badge color based on the category name.
+   * @param {string} [categoryName] - The name of the category.
+   * @returns {string} The Tailwind CSS classes for the badge color.
+   */
   const getCategoryBadgeColor = (categoryName?: string) => {
     if (!categoryName) return "bg-gray-100 text-gray-800";
     
@@ -63,9 +87,12 @@ export function EmailList({ emails, loading }: EmailListProps) {
     }
   };
 
+  /**
+   * Handles the click event on an email item.
+   * @param {EmailWithCategory} email - The selected email object.
+   */
   const handleEmailClick = (email: EmailWithCategory) => {
-    // In a real app, this would open the email detail view or redirect to Gmail
-    console.log("Opening email:", email.subject);
+    onEmailSelect(email);
   };
 
   if (emails.length === 0) {
@@ -120,7 +147,7 @@ export function EmailList({ emails, loading }: EmailListProps) {
                       {email.categoryData.name}
                     </Badge>
                   )}
-                  {email.labels?.map((label, index) => (
+                  {email.labels?.map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>

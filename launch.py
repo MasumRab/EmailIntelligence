@@ -1,923 +1,539 @@
 #!/usr/bin/env python3
 """
-EmailIntelligence Launcher
+EmailIntelligence Unified Launcher
 
-This script provides a unified way to launch the EmailIntelligence application
-with automatic environment setup, dependency management, and configuration.
-It's inspired by the approach used in projects like Stable Diffusion WebUI.
+This script provides a single, unified way to set up, manage, and run all
+components of the EmailIntelligence application, including the Python backend,
+Gradio UI, and Node.js services. It uses 'uv' for Python dependency management
+based on pyproject.toml.
 
 Usage:
     python launch.py [arguments]
-
-Arguments:
-    --help                      Show this help message
-    --no-venv                   Don't create or use a virtual environment
-    --update-deps               Update dependencies before launching
-    --skip-torch-cuda-test      Skip CUDA availability test for PyTorch
-    --reinstall-torch           Reinstall PyTorch (useful for CUDA issues)
-    --skip-python-version-check Skip Python version check
-    --stage {dev,test,staging,prod}  Specify the application stage to run
-    --port PORT                 Specify the port to run on (default: 8000)
-    --host HOST                 Specify the host to run on (default: 127.0.0.1)
-    --api-only                  Run only the API server without the frontend
-    --frontend-only             Run only the frontend without the API server
-    --debug                     Enable debug mode
-    --no-download-nltk          Skip downloading NLTK data
-    --skip-prepare              Skip preparation steps
-    --skip-extensions           Skip loading extensions
-    --no-half                   Disable half-precision for models
-    --force-cpu                 Force CPU mode even if GPU is available
-    --low-memory                Enable low memory mode
-    --share                     Create a public URL
-    --listen                    Make the server listen on network
-    --ngrok NGROK               Use ngrok to create a tunnel, specify ngrok region
-    --env-file FILE             Specify a custom .env file
 """
 
-import os
-import sys
-import platform
-import subprocess
 import argparse
-import shutil
-import venv
+import atexit
 import logging
-import json
-import time
+import os
+import platform
+import shutil
 import signal
-import pkg_resources
+import subprocess
+import sys
+import time
+import venv
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple, Union
-from dotenv import load_dotenv
+from typing import List, Optional
+
+from deployment.test_stages import test_stages
+
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
+    load_dotenv = None  # Will be loaded later if needed
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("launcher")
 
-# Global list to keep track of subprocesses
-processes = []
-# Global variable to store ngrok tunnel if created
-ngrok_tunnel = None
 
-def _handle_sigint(signum, frame):
-    logger.info("Received SIGINT/SIGTERM, shutting down...")
-    for p in processes:
-        if p.poll() is None: # Check if process is still running
-            logger.info(f"Terminating process {p.pid}...")
-            p.terminate()
-            try:
-                p.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
-                p.kill()
+# --- Global state ---
+def find_project_root() -> Path:
+    """Find the project root directory by looking for key files."""
+    current = Path(__file__).resolve().parent
+    if (current / "pyproject.toml").exists():
+        return current
+    for parent in current.parents:
+        if (parent / "pyproject.toml").exists():
+            return parent
+    return current
 
-    global ngrok_tunnel
-    if ngrok_tunnel:
-        try:
-            from pyngrok import ngrok
-            logger.info(f"Closing ngrok tunnel: {ngrok_tunnel.public_url} ...")
-            ngrok.disconnect(ngrok_tunnel.public_url)
-            ngrok.kill()
-            logger.info("Ngrok tunnel closed.")
-            ngrok_tunnel = None
-        except ImportError:
-            logger.warning("pyngrok is not installed, cannot manage ngrok tunnel shutdown.")
-        except Exception as e:
-            logger.error(f"Error shutting down ngrok: {e}")
 
-    sys.exit(0)
+ROOT_DIR = find_project_root()
 
-def _setup_signal_handlers():
-    signal.signal(signal.SIGINT, _handle_sigint)
-    signal.signal(signal.SIGTERM, _handle_sigint)
+class ProcessManager:
+    """Manages child processes for the application."""
+    def __init__(self):
+        self.processes = []
+    def add_process(self, process):
+        self.processes.append(process)
+    def cleanup(self):
+        logger.info("Performing explicit resource cleanup...")
+        for p in self.processes[:]:
+            if p.poll() is None:
+                logger.info(f"Terminating process {p.pid}...")
+                p.terminate()
+                try:
+                    p.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
+                    p.kill()
+        logger.info("Resource cleanup completed.")
+    def shutdown(self):
+        logger.info("Received shutdown signal, cleaning up processes...")
+        self.cleanup()
+        sys.exit(0)
 
-# Constants
-PYTHON_MIN_VERSION = (3, 8)
-PYTHON_MAX_VERSION = (3, 11)
-VENV_DIR = "venv"
-REQUIREMENTS_FILE = "requirements.txt"
-REQUIREMENTS_VERSIONS_FILE = "requirements_versions.txt" # New constant
-TORCH_CUDA_REQUIRED = False  # Set to True if CUDA is required
+process_manager = ProcessManager()
+atexit.register(process_manager.cleanup)
 
-# Project root directory
-ROOT_DIR = Path(__file__).resolve().parent
+# --- Constants ---
+PYTHON_MIN_VERSION = (3, 11)
+PYTHON_MAX_VERSION = (3, 13)
+VENV_DIR = ".venv"
 
-# --- Functions migrated from deployment/env_manager.py ---
-# These are initially named with _standalone to avoid conflict
-# and will be renamed later.
-
-# --- Start of functions that were migrated and renamed ---
-# The _standalone suffix is removed from definitions and calls directly.
-
-def check_python_version() -> bool:
-    """Check if the Python version is supported."""
+# --- Python Version Checking ---
+def check_python_version():
+    """Check if the current Python version is compatible."""
     current_version = sys.version_info[:2]
-    if current_version < PYTHON_MIN_VERSION:
-        logger.error(f"Python {'.'.join(map(str, PYTHON_MIN_VERSION))} or higher is required")
-        return False
-    if current_version > PYTHON_MAX_VERSION:
-        logger.warning(f"Python {'.'.join(map(str, current_version))} is not officially supported. "
-                      f"Recommended version is {'.'.join(map(str, PYTHON_MAX_VERSION))} or lower.")
-    return True
+    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
+        logger.error(f"Python version {platform.python_version()} is not compatible.")
+        sys.exit(1)
+    logger.info(f"Python version {platform.python_version()} is compatible.")
 
-def is_venv_available() -> bool:
-    """Check if a virtual environment is available."""
-    venv_path = ROOT_DIR / VENV_DIR
-    if os.name == 'nt':  # Windows
-        return venv_path.exists() and (venv_path / "Scripts" / "python.exe").exists()
-    else:  # Unix-based systems
-        return venv_path.exists() and (venv_path / "bin" / "python").exists()
+# --- Helper Functions ---
+def get_venv_executable(venv_path: Path, executable: str) -> Path:
+    """Get the path to a specific executable in the virtual environment."""
+    scripts_dir = "Scripts" if platform.system() == "Windows" else "bin"
+    return venv_path / scripts_dir / (f"{executable}.exe" if platform.system() == "Windows" else executable)
 
-def create_venv() -> bool:
-    """Create a virtual environment."""
-    venv_path = ROOT_DIR / VENV_DIR
-    if venv_path.exists():
-        logger.info(f"Virtual environment already exists at {venv_path}")
-        return True
-    
-    logger.info(f"Creating virtual environment at {venv_path}")
+def run_command(cmd: List[str], description: str, **kwargs) -> bool:
+    """Run a command and log its output."""
+    logger.info(f"{description}...")
     try:
-        venv.create(venv_path, with_pip=True)
+        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
+        if proc.stdout:
+            logger.debug(proc.stdout)
+        if proc.stderr:
+            logger.warning(proc.stderr)
         return True
-    except Exception as e:
-        logger.error(f"Failed to create virtual environment: {e}")
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logger.error(f"Failed: {description}")
+        if isinstance(e, subprocess.CalledProcessError):
+            logger.error(f"Stderr: {e.stderr}")
         return False
 
-def get_python_executable() -> str:
-    """Get the Python executable path."""
-    if is_venv_available(): # Internal call uses the final name
-        if os.name == 'nt':  # Windows
-            return str(ROOT_DIR / VENV_DIR / "Scripts" / "python.exe")
-        else:  # Unix-based systems
-            return str(ROOT_DIR / VENV_DIR / "bin" / "python")
-    return sys.executable
+# --- Setup Functions ---
+def create_venv(venv_path: Path, recreate: bool = False):
+    if venv_path.exists() and recreate:
+        logger.info("Removing existing virtual environment.")
+        shutil.rmtree(venv_path)
+    if not venv_path.exists():
+        logger.info("Creating virtual environment.")
+        venv.create(venv_path, with_pip=True, upgrade_deps=True)
 
-def install_requirements_from_file(requirements_file_path_str: str, update: bool = False) -> bool:
-    """Install or update requirements from a file.
-    requirements_file_path_str is relative to ROOT_DIR.
-    """
-    python = get_python_executable() # Internal call uses the final name
-    requirements_path = ROOT_DIR / requirements_file_path_str
-    
-    if not requirements_path.exists():
-        logger.error(f"Requirements file not found at {requirements_path}")
-        return False
-    
-    cmd = [python, "-m", "pip", "install"]
-    if update:
-        cmd.append("--upgrade")
-    cmd.extend(["-r", str(requirements_path)])
-    
-    logger.info(f"{'Updating' if update else 'Installing'} dependencies from {requirements_path.name}...")
-    try:
-        # Using subprocess.run to capture output for better error reporting (as per previous subtask)
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install dependencies from {requirements_path.name}.")
-        logger.error(f"pip stdout:\n{e.stdout}")
-        logger.error(f"pip stderr:\n{e.stderr}")
-        return False
+def install_package_manager(venv_path: Path, manager: str):
+    python_exe = get_venv_executable(venv_path, "python")
+    run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
 
-# Alias for backward compatibility or consistent naming if preferred elsewhere
-install_dependencies = install_requirements_from_file
+def setup_dependencies(venv_path: Path, use_poetry: bool = False):
+    if use_poetry:
+        poetry_exe = get_venv_executable(venv_path, "poetry")
+        run_command([str(poetry_exe), "install", "--with", "dev"], "Installing dependencies with Poetry", cwd=ROOT_DIR)
+    else:
+        uv_exe = get_venv_executable(venv_path, "uv")
+        run_command([str(uv_exe), "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
 
-# --- End of functions that were migrated and renamed ---
+def download_nltk_data(venv_path: Path):
+    python_exe = get_venv_executable(venv_path, "python")
+    script = "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+    run_command([str(python_exe), "-c", script], "Downloading NLTK data")
+    run_command(
+        [str(python_exe), "-m", "textblob.download_corpora"],
+        "Downloading TextBlob corpora",
+    )
+    venv_python = (
+        venv_path / "Scripts" / "python.exe"
+        if platform.system() == "Windows"
+        else venv_path / "bin" / "python"
+    )
 
-# Original functions are now fully replaced.
-# The aliasing and del operations for _standalone versions are no longer needed.
+    nltk_download_script = """
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('vader_lexicon')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+print("NLTK data download completed.")
+"""
 
-def check_torch_cuda() -> bool:
-    """Check if PyTorch with CUDA is available."""
-    python = get_python_executable()
-    
+    logger.info("Downloading NLTK data...")
+    result = subprocess.run(
+        [str(venv_python), "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        logger.error(f"Failed to download NLTK data: {result.stderr}")
+        # This might fail in some environments but it's not critical for basic operation
+        logger.warning("NLTK data download failed, but continuing setup...")
+    else:
+        logger.info("NLTK data downloaded successfully.")
+
+
+def check_uvicorn_installed(venv_path: Path) -> bool:
+    """Check if uvicorn is installed in the virtual environment."""
+    venv_python = get_venv_python_path()
     try:
         result = subprocess.run(
-            [python, "-c", "import torch; print(torch.cuda.is_available())"],
-            capture_output=True,
-            text=True,
-            check=True
+            [str(venv_python), "-c", "import uvicorn"], capture_output=True, text=True
         )
-        is_available = result.stdout.strip() == "True"
-        logger.info(f"PyTorch CUDA is {'available' if is_available else 'not available'}")
-        return is_available
-    except subprocess.CalledProcessError:
-        logger.warning("Failed to check PyTorch CUDA availability")
-        return False
-
-def reinstall_torch() -> bool:
-    """Reinstall PyTorch with CUDA support."""
-    python = get_python_executable()
-    
-    # Uninstall existing PyTorch
-    logger.info("Uninstalling existing PyTorch...")
-    subprocess.run([python, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"])
-    
-    # Install PyTorch with CUDA support
-    logger.info("Installing PyTorch with CUDA support...")
-    if os.name == 'nt':  # Windows
-        cmd = f"{python} -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118"
-    else:  # Linux/MacOS
-        cmd = f"{python} -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118"
-    
-    try:
-        subprocess.check_call(cmd, shell=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to reinstall PyTorch: {e}")
-        return False
-
-def download_nltk_data() -> bool:
-    """Download NLTK data."""
-    python = get_python_executable()
-    
-    logger.info("Downloading NLTK data...")
-    cmd = [
-        python, "-c",
-        "import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); print('NLTK data download initiated.')"
-    ]
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        logger.info("NLTK data download process completed.")
-        if result.stdout:
-            logger.debug(f"NLTK download stdout:\n{result.stdout}")
-        if result.stderr: # NLTK often prints to stderr even on success for some messages
-            logger.debug(f"NLTK download stderr:\n{result.stderr}") # Use debug for potentially noisy stderr
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error("Failed to download NLTK data.")
-        if e.stdout: # Only log if there's actual content
-            logger.error(f"NLTK download stdout:\n{e.stdout}")
-        if e.stderr: # Only log if there's actual content
-            logger.error(f"NLTK download stderr:\n{e.stderr}")
-        return False
-
-# Helper function to get the primary requirements file (factored out in a previous task)
-def _get_primary_requirements_file() -> str:
-    """Determines the primary requirements file to use.
-    Prefers requirements_versions.txt, falls back to requirements.txt.
-    Returns the file name string (relative to ROOT_DIR).
-    """
-    versions_file_path = ROOT_DIR / REQUIREMENTS_VERSIONS_FILE
-    if versions_file_path.exists():
-        return REQUIREMENTS_VERSIONS_FILE
-    else:
-        logger.info(f"'{REQUIREMENTS_VERSIONS_FILE}' not found, attempting to use '{REQUIREMENTS_FILE}'.")
-        return REQUIREMENTS_FILE
-
-def prepare_environment(args: argparse.Namespace) -> bool:
-    """Prepare the environment for running the application."""
-    # Remove Import environment manager
-    # from deployment.env_manager import env_manager # This line is removed.
-    
-    # Check Python version
-    if not args.skip_python_version_check and not check_python_version():
-        return False
-    
-    # Create virtual environment if needed and install/update dependencies
-    if not args.no_venv:
-        if not is_venv_available():
-            logger.info("Virtual environment not found. Creating...")
-            if not create_venv():
-                logger.error("Failed to create virtual environment. Exiting.")
-                return False
-            # Install/update dependencies after creating venv
-            # Use the helper function _get_primary_requirements_file (as per previous subtask)
-            primary_req_file_to_install = _get_primary_requirements_file()
-            logger.info(f"Installing base dependencies from {Path(primary_req_file_to_install).name} into new venv...")
-            if not install_dependencies(primary_req_file_to_install, args.update_deps):
-                logger.error(f"Failed to install base dependencies from {Path(primary_req_file_to_install).name} in new venv. Exiting.")
-                return False
-        elif args.update_deps: # If venv exists, only update if requested
-            # Use the helper function _get_primary_requirements_file
-            primary_req_file_to_update = _get_primary_requirements_file()
-            logger.info(f"Updating base dependencies from {Path(primary_req_file_to_update).name} in existing venv...")
-            if not install_dependencies(primary_req_file_to_update, True): # Force update True
-                logger.error(f"Failed to update base dependencies from {Path(primary_req_file_to_update).name}. Exiting.")
-                return False
+        if result.returncode == 0:
+            logger.info("uvicorn is available in the virtual environment.")
+            return True
         else:
-            # Even if not updating, log which primary file is considered active or would be used.
-            # Use the helper function _get_primary_requirements_file
-            chosen_req_file = _get_primary_requirements_file()
-            logger.info(f"Virtual environment found. Primary requirements file: {Path(chosen_req_file).name}. Skipping dependency installation unless --update-deps is used.")
-
-        # Handle stage-specific requirements after base requirements
-        # This replaces the logic from env_manager.setup_environment_for_stage()
-        stage_requirements_file = None
-        if args.stage == "dev":
-            # Assuming DEV_REQUIREMENTS_FILE would be defined, let's use a string literal for now
-            # Or better, define it as a constant if it's standard
-            dev_req_path = ROOT_DIR / "requirements-dev.txt"
-            dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
-            if dev_req_path_obj.exists():
-                stage_requirements_file_path = "requirements-dev.txt"
-        elif args.stage == "test":
-            test_req_path_obj = ROOT_DIR / "requirements-test.txt"
-            if test_req_path_obj.exists():
-                stage_requirements_file_path = "requirements-test.txt"
-
-        if stage_requirements_file_path:
-            logger.info(f"Installing stage-specific requirements for '{args.stage}' stage from {Path(stage_requirements_file_path).name}...")
-            if not install_dependencies(stage_requirements_file_path, args.update_deps):
-                logger.error(f"Failed to install stage-specific dependencies from {Path(stage_requirements_file_path).name}. Exiting.")
-                return False
-    
-    # Check PyTorch CUDA
-    if TORCH_CUDA_REQUIRED and not args.skip_torch_cuda_test:
-        if not check_torch_cuda():
-            if args.reinstall_torch:
-                logger.info("PyTorch CUDA not found. Reinstalling PyTorch with CUDA support as requested.")
-                if not reinstall_torch():
-                    logger.error("Failed to reinstall PyTorch with CUDA. Please check manually.")
-            else:
-                logger.warning("PyTorch CUDA is not available. Use --reinstall-torch to attempt reinstallation, or --skip-torch-cuda-test to ignore.")
-    
-    # Download NLTK data
-    if not args.no_download_nltk:
-        if not download_nltk_data():
+            logger.error("uvicorn is not installed in the virtual environment.")
             return False
-    
-    python_executable = get_python_executable() # Get python executable for managers
+    except FileNotFoundError:
+        logger.error("Virtual environment Python not found.")
+        return False
 
-    # Load extensions if not skipped
-    if not args.skip_extensions:
-        from deployment.extensions import extensions_manager
-        extensions_manager.set_python_executable(python_executable) # Set python executable
-        if not extensions_manager.load_extensions():
-            logger.error("Failed to load one or more extensions.")
-            return False
-        if not extensions_manager.initialize_extensions():
-            logger.error("Failed to initialize one or more extensions.")
-            return False
-    
-    # Download models if needed
-    if not args.skip_models:
-        from deployment.models import models_manager
-        # models_manager does not require python_executable to be set explicitly for now
-        if not models_manager.list_models():
-            logger.info("No models found. Downloading default models...")
-            if not models_manager.download_default_models():
-                logger.error("Failed to download default models.")
-                return False
-    
+
+def check_node_npm_installed() -> bool:
+    """Check if Node.js and npm are installed and available."""
+    if not shutil.which("node"):
+        logger.error("Node.js is not installed. Please install it to continue.")
+        return False
+    if not shutil.which("npm"):
+        logger.error("npm is not installed. Please install it to continue.")
+        return False
     return True
 
-def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[subprocess.Popen]:
-    """Starts the backend server."""
-    actual_host = "0.0.0.0" if args.listen else args.host
-    logger.info(f"Starting backend server on {actual_host}:{args.port}...")
 
-    cmd = [
-        python_executable,
-        "-m", "uvicorn",
-        "server.python_backend.main:app", # Assuming this is the correct path to your ASGI app
-        "--host", actual_host, # Use actual_host here
-        "--port", str(args.port)
-    ]
+def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
+    """Install Node.js dependencies in a given directory."""
+    pkg_json_path = ROOT_DIR / directory / "package.json"
+    if not pkg_json_path.exists():
+        logger.debug(f"No package.json in '{directory}/', skipping npm install.")
+        return True
 
-    if args.debug: # For local development, --reload is often useful
-        cmd.append("--log-level=debug")
-        cmd.append("--reload") # Add reload for development
+    if not check_node_npm_installed():
+        return False
+
+    cmd = ["npm", "update" if update else "install"]
+    desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
+    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+
+
+def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
+    if not check_uvicorn_installed(venv_path):
+        logger.error(
+            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
+        )
+        return None
+
+    venv_python = get_venv_python_path(venv_path)
+
+    # Always use uvicorn to run the FastAPI app
+    import os
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
-    # Determine NODE_ENV based on stage, default to development
-    env["NODE_ENV"] = "development" if args.stage == "dev" else args.stage
-    env["DEBUG"] = str(args.debug)
 
-    try:
-        # Log the command with the actual host
-        log_cmd = cmd[:]
-        if args.listen: # For logging, show the original intention if --listen was used
-            log_cmd[log_cmd.index(actual_host)] = f"{args.host} (via --listen on 0.0.0.0)"
-        logger.info(f"Running backend command: {' '.join(log_cmd)}")
-        process = subprocess.Popen(cmd, env=env)
-        processes.append(process) # Add to global list
-        logger.info(f"Backend server started with PID {process.pid} on {actual_host}:{args.port}.")
-        return process
-    except FileNotFoundError:
-        logger.error(f"Error: Python executable not found at {python_executable} or uvicorn not installed in the venv.")
-        logger.error("Please ensure your virtual environment is active and has 'uvicorn' and other backend dependencies installed.")
-        return None
-    except Exception as e:
-        logger.error(f"Failed to start backend server: {e}")
-        return None
-
-def start_frontend(args: argparse.Namespace) -> Optional[subprocess.Popen]:
-    """Starts the frontend development server."""
-    logger.info(f"Starting frontend server on {args.host}:{args.frontend_port}...")
-
-    # Check for Node.js
-    try:
-        subprocess.check_call(["node", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        logger.error("Node.js is not installed or not found in PATH. Cannot start frontend.")
-        return None
-
-    cmd = [
-        "npm", "run", "dev", "--",
-        "--host", args.host,
-        "--port", str(args.frontend_port)
-    ]
-
-    env = os.environ.copy()
-    env["VITE_API_URL"] = f"http://{args.host}:{args.port}" # Backend URL for Vite
-    env["NODE_ENV"] = "development" # Or args.stage if relevant for frontend build
-
-    try:
-        logger.info(f"Running frontend command: {' '.join(cmd)} in {str(ROOT_DIR / 'client')}")
-        process = subprocess.Popen(cmd, cwd=str(ROOT_DIR / "client"), env=env)
-        processes.append(process) # Add to global list
-        logger.info(f"Frontend server started with PID {process.pid}.")
-        return process
-    except FileNotFoundError:
-        logger.error("Error: 'npm' not found. Please ensure Node.js and npm are installed and in your PATH.")
-        return None
-    except Exception as e:
-        logger.error(f"Failed to start frontend server: {e}")
-        return None
-
-def run_application(args: argparse.Namespace) -> int:
-    """Run the application with the specified arguments."""
-    python_executable = get_python_executable()
-    backend_process = None
-    frontend_process = None
-    global ngrok_tunnel # To store the ngrok tunnel object
-
-    if args.share:
-        try:
-            from pyngrok import ngrok, conf
-            logger.info("Starting ngrok tunnel...")
-            if args.ngrok_region:
-                logger.info(f"Using ngrok region: {args.ngrok_region}")
-                # Pyngrok uses a config object or can be set via ngrok config file
-                # For direct region setting if available via conf object:
-                ngrok_conf = conf.PyngrokConfig(region=args.ngrok_region)
-                conf.set_default(ngrok_conf)
-                # Alternatively, ensure user has ngrok configured with region if above doesn't work as expected
-
-            # Assuming backend port (args.port) is the one to share
-            ngrok_tunnel = ngrok.connect(args.port)
-            logger.info(f"Ngrok tunnel established. Public URL: {ngrok_tunnel.public_url}")
-            logger.info("Note: If you have a free ngrok account, you might be limited to one tunnel at a time.")
-            logger.info("Ensure your ngrok authtoken is configured if you face issues: ngrok authtoken <YOUR_AUTHTOKEN>")
-
-        except ImportError:
-            logger.error("pyngrok is not installed. Please run 'pip install pyngrok' to use the --share feature.")
-            logger.warning("--share feature disabled.")
-        except Exception as e: # Catch other ngrok errors (auth, connection, etc.)
-            logger.error(f"Failed to start ngrok tunnel: {e}")
-            logger.warning("--share feature might not be working as expected.")
-            if ngrok_tunnel: # If tunnel object exists but failed later
-                try: ngrok.disconnect(ngrok_tunnel.public_url); ngrok.kill()
-                except: pass
-                ngrok_tunnel = None
-
-
-    # Load .env file if specified
-    # Note: The env dict from original code is not directly used by Popen here.
-    # Environment variables for Popen are set directly in start_backend/start_frontend.
-    # If args.env_file is meant to globally affect os.environ, that should be handled earlier,
-    # possibly in main() before prepare_environment or run_application.
-    # For now, this specific 'env' dict isn't used further in this refactored version.
-    if args.env_file:
-        env_file_path = ROOT_DIR / args.env_file
-        if env_file_path.exists():
-            logger.info(f"Loading environment variables from {env_file_path}")
-            from dotenv import load_dotenv # Consider adding to imports if not there
-            load_dotenv(dotenv_path=env_file_path, override=True)
-        else:
-            logger.warning(f"Specified env file {args.env_file} not found at {env_file_path}")
-
-    if args.api_only:
-        logger.info("Running in API only mode.")
-        backend_process = start_backend(args, python_executable)
-        if backend_process:
-            backend_process.wait() # Wait for backend to finish or be interrupted
-        else:
-            logger.error("Failed to start backend server in API only mode.")
-            return 1
-    elif args.frontend_only:
-        logger.info("Running in Frontend only mode.")
-        # Note: Frontend usually needs API URL. User must ensure API is running elsewhere or configured.
-        if not args.api_url: # Or some other check if frontend can run without live API
-             logger.warning("Frontend only mode: VITE_API_URL might not be correctly set if backend is not running or --api-url is not provided.")
-        frontend_process = start_frontend(args)
-        if frontend_process:
-            frontend_process.wait()
-        else:
-            logger.error("Failed to start frontend server in frontend only mode.")
-            return 1
-    elif args.stage == "dev" or not args.stage: # Default to local development mode
-        logger.info("Running in local development mode (backend and frontend).")
-        unexpected_exit = False
-        backend_process = start_backend(args, python_executable)
-        frontend_process = start_frontend(args)
-
-        if backend_process:
-            logger.info(f"Backend accessible at http://{args.host}:{args.port}")
-        else:
-            logger.error("Backend server failed to start.")
-            if frontend_process and frontend_process.poll() is None:
-                frontend_process.terminate() # Stop frontend if backend failed
-            return 1 # Critical failure
-
-        if frontend_process:
-            logger.info(f"Frontend accessible at http://{args.host}:{args.frontend_port}")
-        else:
-            logger.error("Frontend server failed to start.")
-            if backend_process and backend_process.poll() is None:
-                backend_process.terminate() # Stop backend if frontend failed
-            return 1 # Critical failure
-
-        if backend_process and frontend_process:
-            logger.info("Backend and Frontend started. Press Ctrl+C to stop.")
-            try:
-                # Keep main thread alive until SIGINT, which is handled by _handle_sigint
-                while True:
-                    # Check if either process has exited unexpectedly
-                    if backend_process.poll() is not None:
-                        logger.error(f"Backend process {backend_process.pid} exited unexpectedly.")
-                        unexpected_exit = True
-                        if frontend_process.poll() is None:
-                            logger.info(f"Terminating frontend process {frontend_process.pid}...")
-                            frontend_process.terminate()
-                        break
-                    if frontend_process.poll() is not None:
-                        logger.error(f"Frontend process {frontend_process.pid} exited unexpectedly.")
-                        unexpected_exit = True
-                        if backend_process.poll() is None:
-                            logger.info(f"Terminating backend process {backend_process.pid}...")
-                            backend_process.terminate()
-                        break
-                    time.sleep(1)
-            except KeyboardInterrupt: # This should ideally be caught by the SIGINT handler
-                logger.info("KeyboardInterrupt in run_application. Signal handler should take over.")
-                pass # Signal handler will manage shutdown
-            except Exception as e:
-                logger.error(f"An unexpected error occurred in run_application main loop: {e}")
-            finally:
-                # Ensure processes are terminated if loop exits for other reasons
-                # _handle_sigint should manage this, but as a fallback:
-                for p in [backend_process, frontend_process]:
-                    if p and p.poll() is None:
-                        p.terminate()
-                        try: p.wait(timeout=1)
-                        except subprocess.TimeoutExpired: p.kill()
-            if unexpected_exit:
-                logger.error("One or more services exited unexpectedly.")
-                return 1
-
-        elif backend_process: # Only backend started and frontend failed earlier
-            logger.info("Only backend process is running. Waiting for it to complete.")
-            backend_process.wait()
-            # If backend exits with an error code, it might be an unexpected exit
-            if backend_process.returncode != 0:
-                 logger.error(f"Backend process exited with code: {backend_process.returncode}")
-                 return 1
-        # (No case for only frontend, as backend failure would terminate it)
-
-    elif args.stage == "test":
-        logger.info("Running application in 'test' stage (executing tests)...")
-        logger.info(f"Executing default test suite for '--stage {args.stage}'. Specific test flags (e.g., --unit, --integration) were not provided.")
-        from deployment.test_stages import test_stages # Moved import here for locality
-
-        test_run_success = True # Assume success initially
-
-        # Run unit tests by default
-        if hasattr(test_stages, 'run_unit_tests'):
-            logger.info("Running unit tests (default for --stage test)...")
-            if not test_stages.run_unit_tests(args.coverage, args.debug):
-                test_run_success = False
-                logger.error("Unit tests failed.")
-        else:
-            logger.warning("test_stages.run_unit_tests not found, cannot run unit tests.")
-            # Consider if this should be a failure for the 'test' stage
-            # test_run_success = False
-
-        # Run integration tests by default
-        if hasattr(test_stages, 'run_integration_tests'):
-            logger.info("Running integration tests (default for --stage test)...")
-            if not test_stages.run_integration_tests(args.coverage, args.debug):
-                test_run_success = False
-                logger.error("Integration tests failed.")
-        else:
-            logger.warning("test_stages.run_integration_tests not found, cannot run integration tests.")
-            # Consider if this should be a failure for the 'test' stage
-            # test_run_success = False
-
-        logger.info(f"Default test suite execution finished. Success: {test_run_success}")
-        return 0 if test_run_success else 1
-
-    return 0 # Assuming success if processes managed by signal handler or exited cleanly for other stages
-
-def _print_system_info():
-    """Prints detailed system information."""
-    print("\n--- System Information ---")
-    print(f"Operating System: {platform.system()} {platform.release()} ({platform.version()})")
-    print(f"Processor: {platform.processor()}")
-    try:
-        print(f"CPU Cores: {os.cpu_count()}")
-    except NotImplementedError:
-        print("CPU Cores: Not available")
-
-    print(f"\n--- Python Environment ---")
-    print(f"Python Version: {sys.version.splitlines()[0]}")
-    print(f"System Python Executable: {sys.executable}")
-    print(f"Launcher's Perceived Python Executable: {get_python_executable()}")
-    print(f"Project Root Directory (ROOT_DIR): {ROOT_DIR}")
-    print(f"Virtual Environment Directory (VENV_DIR): {ROOT_DIR / VENV_DIR}")
-    print(f"Venv Active (according to launcher): {is_venv_available()}")
-
-    print("\n--- Requirements Files ---")
-    for req_file_name in [REQUIREMENTS_FILE, REQUIREMENTS_VERSIONS_FILE, "requirements-dev.txt", "requirements-test.txt"]:
-        req_file_path = ROOT_DIR / req_file_name
-        status = "Found" if req_file_path.exists() else "Not Found"
-        print(f"{req_file_name}: {status} at {req_file_path}")
-
-    print("\n--- PyTorch Information ---")
-    # Check if PyTorch is installed before trying to import or run check_torch_cuda
-    # This avoids ModuleNotFoundError if torch isn't even in the environment.
-    # A more robust check might involve trying to import torch.
-    try:
-        # Attempt a lightweight check first using pkg_resources if available,
-        # or directly try importing torch if that's preferred.
-        # For simplicity, directly call check_torch_cuda and let it handle import errors if any.
-        # However, check_torch_cuda itself calls get_python_executable and runs a subprocess.
-        python_exec = get_python_executable()
-        torch_version_proc = subprocess.run([python_exec, "-c", "import torch; print(torch.__version__)"], capture_output=True, text=True)
-        if torch_version_proc.returncode == 0:
-            print(f"PyTorch Version: {torch_version_proc.stdout.strip()}")
-            check_torch_cuda() # This will print CUDA availability
-        else:
-            print("PyTorch Version: Not installed or importable with current Python executable.")
-            logger.debug(f"Failed to get PyTorch version: {torch_version_proc.stderr}")
-    except Exception as e:
-        print(f"PyTorch Information: Error checking PyTorch - {e}")
-
-
-    print("\n--- Memory Information ---")
-    try:
-        import psutil
-        virtual_mem = psutil.virtual_memory()
-        swap_mem = psutil.swap_memory()
-        print(f"Total RAM: {virtual_mem.total / (1024**3):.2f} GB")
-        print(f"Available RAM: {virtual_mem.available / (1024**3):.2f} GB")
-        print(f"Used RAM: {virtual_mem.used / (1024**3):.2f} GB ({virtual_mem.percent}%)")
-        print(f"Total Swap: {swap_mem.total / (1024**3):.2f} GB")
-        print(f"Used Swap: {swap_mem.used / (1024**3):.2f} GB ({swap_mem.percent}%)")
-    except ImportError:
-        print("Memory Information: `psutil` module not found. Install with `pip install psutil` for detailed memory stats.")
-    except Exception as e:
-        print(f"Memory Information: Error getting memory info - {e}")
-
-    print("\n--- End of System Information ---")
-
-
-def parse_arguments() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="EmailIntelligence Launcher")
-    
-    # Environment setup arguments
-    parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment")
-    parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching")
-    parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test for PyTorch")
-    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch (useful for CUDA issues)")
-    parser.add_argument("--skip-python-version-check", action="store_true", help="Skip Python version check")
-    parser.add_argument("--no-download-nltk", action="store_true", help="Skip downloading NLTK data")
-    parser.add_argument("--skip-prepare", action="store_true", help="Skip preparation steps")
-    
-    # Application stage
-    parser.add_argument("--stage", choices=["dev", "test"], default="dev",
-                        help="Specify the application mode ('dev' for running, 'test' for running tests).")
-    
-    # Server configuration
-    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on (default: 8000)")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on (default: 127.0.0.1)")
-    parser.add_argument("--frontend-port", type=int, default=5173, help="Specify the frontend port to run on (default: 5173)")
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend")
-    parser.add_argument("--api-only", action="store_true", help="Run only the API server without the frontend")
-    parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    
-    # Testing options
-    parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests")
-    parser.add_argument("--unit", action="store_true", help="Run unit tests")
-    parser.add_argument("--integration", action="store_true", help="Run integration tests")
-    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    parser.add_argument("--performance", action="store_true", help="Run performance tests")
-    parser.add_argument("--security", action="store_true", help="Run security tests")
-    
-    # Extensions and models
-    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions")
-    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models")
-    parser.add_argument("--install-extension", type=str, help="Install an extension from a Git repository")
-    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension")
-    parser.add_argument("--update-extension", type=str, help="Update an extension")
-    parser.add_argument("--list-extensions", action="store_true", help="List all extensions")
-    parser.add_argument("--create-extension", type=str, help="Create a new extension template")
-    
-    # Model options
-    parser.add_argument("--download-model", type=str, help="Download a model from a URL")
-    parser.add_argument("--model-name", type=str, help="Specify the model name for download")
-    parser.add_argument("--list-models", action="store_true", help="List all models")
-    parser.add_argument("--delete-model", type=str, help="Delete a model")
-    
-    # Advanced options
-    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models")
-    parser.add_argument("--force-cpu", action="store_true", help="Force CPU mode even if GPU is available")
-    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode")
-    parser.add_argument("--system-info", action="store_true", help="Print system information")
-    
-    # Networking options
-    parser.add_argument("--share", action="store_true", help="Create a public URL using ngrok")
-    parser.add_argument("--listen", action="store_true", help="Make the backend server listen on 0.0.0.0")
-    parser.add_argument("--ngrok-region", type=str, help="Specify ngrok region (e.g., us, eu, ap, au, sa, jp, in). Used with --share.")
-
-    # UI and Execution options
-    parser.add_argument("--theme", type=str, default="system", help="UI theme (e.g., light, dark, system). For future use.")
-    parser.add_argument("--allow-code", action="store_true", help="Allow execution of custom code from extensions (for future use).")
-    parser.add_argument("--loglevel", type=str, default="INFO",
-                        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-                        help="Set the logging level for the launcher and application.")
-
-    # Environment configuration
-    parser.add_argument("--env-file", type=str, help="Specify a custom .env file")
-    
-    return parser.parse_args()
-
-def main() -> int:
-    """Main entry point."""
-    _setup_signal_handlers() # Setup signal handlers at the beginning
-    # Parse arguments
-    args = parse_arguments()
-
-    # Configure logging level based on command line argument
-    numeric_level = getattr(logging, args.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        # This should not happen due to choices in argparse, but good practice to check
-        raise ValueError(f"Invalid log level: {args.loglevel}")
-
-    # Reconfigure the root logger. Using force=True (Python 3.8+) to allow this.
-    # This will affect all loggers unless they have had their level set explicitly.
-    logging.basicConfig(
-        level=numeric_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        force=True
+def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
+    venv_python = (
+        venv_path / "Scripts" / "python.exe"
+        if platform.system() == "Windows"
+        else venv_path / "bin" / "python"
     )
-    # Ensure our main launcher logger also adheres to this level.
-    # (basicConfig sets root, getLogger then inherits or can be set specifically)
-    logger.setLevel(numeric_level)
-    # Other loggers (e.g., from libraries) will also use this level unless configured otherwise.
 
-    logger.info(f"Launcher log level set to: {args.loglevel}")
+    # Use uvicorn to run the FastAPI app directly
+    cmd = [
+        str(venv_python),
+        "-m",
+        "uvicorn",
+        "backend.python_backend.main:app",
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+    if debug:
+        cmd.append("--reload")  # Enable auto-reload in debug mode
 
-    # Handle special commands
-    
-    # System information
+    logger.info(f"Starting Python backend on {host}:{port}")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    process_manager.add_process(process)
+    return process
+
+
+def start_gradio_ui(
+    venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
+):
+    """Start the Gradio UI."""
+    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
+
+    cmd = [str(venv_python), str(gradio_path), "--host", host]
+    if port:
+        cmd.extend(["--port", str(port)])
+        logger.info(f"Starting Gradio UI on {host}:{port}")
+    else:
+        logger.info(f"Starting Gradio UI on {host}:7860 (default port)")
+
+    if share:
+        cmd.append("--share")  # Enable public sharing
+    if port:
+        # Gradio doesn't take port as a command line param directly,
+        # we'd need to modify the app to accept it
+        logger.info(f"Starting Gradio UI (on default or next available port)")
+    else:
+        logger.info("Starting Gradio UI on default port")
+
+    logger.info("Starting Gradio UI...")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
+    return process
+
+
+def start_client():
+    """Start the Node.js frontend."""
+    logger.info("Starting Node.js frontend...")
+    if not install_nodejs_dependencies("client"):
+        return None
+
+    # Install Node.js dependencies if node_modules doesn't exist
+    node_modules_path = ROOT_DIR / "client" / "node_modules"
+    if not node_modules_path.exists():
+        logger.info("Installing Node.js dependencies...")
+
+
+def start_server_ts():
+    """Start the TypeScript backend server."""
+    logger.info("Starting TypeScript backend server...")
+    # Check if npm is available
+    if not shutil.which("npm"):
+        logger.warning("npm not found. Skipping TypeScript backend server startup.")
+        return None
+
+    # Check if package.json exists
+    pkg_json_path = ROOT_DIR / "server" / "package.json"
+    if not pkg_json_path.exists():
+        logger.debug("No package.json in 'server/', skipping TypeScript backend server startup.")
+        return None
+
+    # Install Node.js dependencies if node_modules doesn't exist
+    node_modules_path = ROOT_DIR / "server" / "node_modules"
+    if not node_modules_path.exists():
+        logger.info("Installing TypeScript server dependencies...")
+
+# --- Service Startup Functions ---
+def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+    python_exe = get_venv_executable(venv_path, "python")
+    cmd = [str(python_exe), "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
+    if debug:
+        cmd.append("--reload")
+    logger.info(f"Starting backend on {host}:{port}")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
+
+def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
+    """Start a Node.js service."""
+    if not service_path.exists():
+        logger.warning(f"{service_name} path not found at {service_path}, skipping.")
+        return
+    logger.info(f"Starting {service_name} on port {port}...")
+    env = os.environ.copy()
+    env["PORT"] = str(port)
+    env["VITE_API_URL"] = api_url
+    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
+    process_manager.add_process(process)
+
+def setup_node_dependencies(service_path: Path, service_name: str):
+    """Install npm dependencies for a Node.js service."""
+    if not (service_path / "package.json").exists():
+        logger.warning(f"package.json not found for {service_name}, skipping dependency installation.")
+        return
+    logger.info(f"Installing npm dependencies for {service_name}...")
+    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
+
+def start_gradio_ui(venv_path, host, port, share, debug):
+    logger.info("Starting Gradio UI...")
+    # Simplified example
+    python_exe = get_venv_executable(venv_path, "python")
+    cmd = [str(python_exe), "-m", "src.main"] # Assuming Gradio is launched from main
+    if share:
+        cmd.append("--share")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
+
+def handle_setup(args, venv_path):
+    """Handles the complete setup process."""
+    logger.info("Starting environment setup...")
+    create_venv(venv_path, args.force_recreate_venv)
+    install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
+    setup_dependencies(venv_path, args.use_poetry)
+    if not args.no_download_nltk:
+        download_nltk_data(venv_path)
+
+    # Setup Node.js dependencies
+    setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
+    setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
+    logger.info("Setup complete.")
+
+def prepare_environment(args, venv_path):
+    """Prepares the environment for running the application."""
+    if not args.no_venv:
+        create_venv(venv_path)
+        if args.update_deps:
+            setup_dependencies(venv_path, args.use_poetry)
+    if not args.no_download_nltk:
+        download_nltk_data(venv_path)
+
+def start_services(args, venv_path):
+    """Starts the required services based on arguments."""
+    api_url = args.api_url or f"http://{args.host}:{args.port}"
+
+    if not args.frontend_only:
+        start_backend(venv_path, args.host, args.port, args.debug)
+        start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
+
+    if not args.api_only:
+        start_gradio_ui(venv_path, args.host, 7860, args.share, args.debug)
+        start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
+
+def handle_test_stage(args):
+    """Handles the test stage execution."""
+    logger.info("Starting test stage...")
+    results = []
+    if args.unit:
+        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
+    if args.integration:
+        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
+    if args.e2e:
+        results.append(test_stages.run_e2e_tests(headless=not args.debug, debug=args.debug))
+    if args.performance:
+        results.append(test_stages.run_performance_tests(duration=300, users=10, debug=args.debug))
+    if args.security:
+        results.append(test_stages.run_security_tests(target_url=f"http://{args.host}:{args.port}", debug=args.debug))
+
+    # If no specific test type is selected, run a default set (e.g., unit and integration)
+    if not any([args.unit, args.integration, args.e2e, args.performance, args.security]):
+        logger.info("No specific test type selected, running unit and integration tests.")
+        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
+        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
+
+    if all(results):
+        logger.info("All tests passed successfully.")
+        sys.exit(0)
+    else:
+        logger.error("Some tests failed.")
+        sys.exit(1)
+
+def main():
+    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
+
+    # Environment Setup
+    parser.add_argument("--setup", action="store_true", help="Run environment setup.")
+    parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
+    parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
+    parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
+    parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching.")
+    parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test for PyTorch.")
+    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
+    parser.add_argument("--skip-python-version-check", action="store_true", help="Skip Python version check.")
+    parser.add_argument("--no-download-nltk", action="store_true", help="Skip downloading NLTK data.")
+    parser.add_argument("--skip-prepare", action="store_true", help="Skip all environment preparation steps.")
+    parser.add_argument("--loglevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help="Set the logging level.")
+
+    # Application Stage
+    parser.add_argument("--stage", choices=['dev', 'test'], default='dev', help="Specify the application mode.")
+
+    # Server Configuration
+    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
+    parser.add_argument("--frontend-port", type=int, default=5173, help="Specify the frontend port to run on.")
+    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
+    parser.add_argument("--api-only", action="store_true", help="Run only the API server without the frontend.")
+    parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server.")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
+
+    # Testing Options
+    parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests.")
+    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
+    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
+    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    parser.add_argument("--security", action="store_true", help="Run security tests.")
+
+    # Extensions and Models
+    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
+    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
+    parser.add_argument("--install-extension", type=str, help="Install an extension from a Git repository.")
+    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension.")
+    parser.add_argument("--update-extension", type=str, help="Update an extension.")
+    parser.add_argument("--list-extensions", action="store_true", help="List all extensions.")
+    parser.add_argument("--create-extension", type=str, help="Create a new extension template.")
+    parser.add_argument("--download-model", type=str, help="Download a model from a URL.")
+    parser.add_argument("--model-name", type=str, help="Specify the model name for download.")
+    parser.add_argument("--list-models", action="store_true", help="List all models.")
+    parser.add_argument("--delete-model", type=str, help="Delete a model.")
+
+    # Advanced Options
+    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models.")
+    parser.add_argument("--force-cpu", action="store_true", help="Force CPU mode even if GPU is available.")
+    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode.")
+    parser.add_argument("--system-info", action="store_true", help="Print detailed system, Python, and project configuration information then exit.")
+
+    # Networking Options
+    parser.add_argument("--share", action="store_true", help="Create a public URL.")
+    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
+    parser.add_argument("--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region.")
+
+    # Environment Configuration
+    parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
+
+    args = parser.parse_args()
+
+    check_python_version()
+    venv_path = ROOT_DIR / VENV_DIR
+
+    if not args.skip_python_version_check:
+        check_python_version()
+
+    logging.getLogger().setLevel(args.loglevel)
+
+    if DOTENV_AVAILABLE:
+        env_file = args.env_file or ".env"
+        if os.path.exists(env_file):
+            logger.info(f"Loading environment variables from {env_file}")
+            load_dotenv(env_file)
+
+    venv_path = ROOT_DIR / VENV_DIR
+
+    if args.setup:
+        handle_setup(args, venv_path)
+        return
+
+    if not args.skip_prepare:
+        prepare_environment(args, venv_path)
+
     if args.system_info:
-        _print_system_info()
-        return 0
-    
-    # Extensions management
-    # Ensure python_executable is set for extensions_manager if any extension command is run
-    # This is a bit repetitive but ensures it's set if --skip-prepare was used.
-    # A more elegant solution might involve a global setup for managers.
-    if args.list_extensions or args.install_extension or \
-       args.uninstall_extension or args.update_extension or args.create_extension:
-        from deployment.extensions import extensions_manager
-        if not extensions_manager.python_executable or extensions_manager.python_executable == sys.executable: # Check if it needs setting
-            # This check is to avoid overriding if already set by prepare_environment
-            # to a venv python. If it's None or system python, and we are in venv, update it.
-            current_launcher_python_exec = get_python_executable()
-            if extensions_manager.python_executable != current_launcher_python_exec:
-                extensions_manager.set_python_executable(current_launcher_python_exec)
-                logger.debug(f"Set python_executable for extensions_manager in main() to: {current_launcher_python_exec}")
+        # Placeholder for system_info function
+        logger.info("System Info command would be executed here.")
+        return
 
+    # Stage-specific logic
+    if args.stage == 'test':
+        handle_test_stage(args)
+        return
 
-    if args.list_extensions:
-        from deployment.extensions import extensions_manager
-        # load_extensions might be needed if prepare_environment was skipped
-        # However, list_extensions in its current form doesn't strictly need them loaded,
-        # it lists based on discovery. If it were to list *loaded* extensions, this would change.
-        # For now, assuming list_extensions can operate without full load_extensions() if needed.
-        # extensions_manager.load_extensions() # Potentially add this if list shows *active* extensions
-        extensions = extensions_manager.list_extensions()
-        
-        print(f"Found {len(extensions)} extensions:")
-        for extension in extensions:
-            print(f"  {extension['name']} - {'Enabled' if extension['enabled'] else 'Disabled'}")
-            print(f"    Path: {extension['path']}")
-            print(f"    Loaded: {extension['loaded']}")
-            print(f"    Description: {extension['metadata'].get('description', 'No description')}")
-            print()
-        
-        return 0
-    
-    if args.install_extension:
-        from deployment.extensions import extensions_manager
-        # Ensure prepare_environment or equivalent setup for venv has run if installing.
-        if not args.skip_prepare: # If prepare_environment ran, venv should be ready.
-            pass # Dependencies should be in venv.
-        else: # If skipping prepare, user is responsible for environment.
-            logger.warning("Skipping prepare_environment. Ensure correct Python environment for extension installation.")
-        success = extensions_manager.install_extension(args.install_extension)
-        return 0 if success else 1
-    
-    if args.uninstall_extension:
-        from deployment.extensions import extensions_manager
-        success = extensions_manager.uninstall_extension(args.uninstall_extension)
-        return 0 if success else 1
-    
-    if args.update_extension:
-        from deployment.extensions import extensions_manager
-        # Similar to install, ensure environment is appropriate.
-        if not args.skip_prepare:
-            pass
-        else:
-            logger.warning("Skipping prepare_environment. Ensure correct Python environment for extension update.")
-        success = extensions_manager.update_extension(args.update_extension)
-        return 0 if success else 1
-    
-    if args.create_extension:
-        from deployment.extensions import extensions_manager
-        success = extensions_manager.create_extension_template(args.create_extension)
-        return 0 if success else 1
-    
-    # Models management
-    if args.list_models:
-        from deployment.models import models_manager
-        models = models_manager.list_models()
-        
-        print(f"Found {len(models)} models:")
-        for model in models:
-            print(f"  {model}")
-            
-            # Print the model configuration if available
-            config = models_manager.get_model_config(model)
-            if config:
-                print(f"    Configuration:")
-                for key, value in config.items():
-                    print(f"      {key}: {value}")
-            
-            print()
-        
-        return 0
-    
-    if args.download_model and args.model_name:
-        from deployment.models import models_manager
-        success = models_manager.download_model(args.download_model, args.model_name)
-        return 0 if success else 1
-    
-    if args.delete_model:
-        from deployment.models import models_manager
-        success = models_manager.delete_model(args.delete_model)
-        return 0 if success else 1
-    
-    # Testing options
-    # This block handles specific test flags. If any are true, tests run and program exits.
-    # If --stage test is specified WITHOUT these specific flags, it will be handled in run_application.
-    if args.unit or args.integration or args.e2e or args.performance or args.security:
-        logger.info("Specific test flags detected. Running requested tests...")
-        from deployment.test_stages import test_stages # Import here as it's specific to this block
-        
-        test_run_success = True
-        
-        if args.unit:
-            logger.info("Running unit tests...")
-            test_run_success = test_stages.run_unit_tests(args.coverage, args.debug) and test_run_success
-        
-        if args.integration:
-            logger.info("Running integration tests...")
-            test_run_success = test_stages.run_integration_tests(args.coverage, args.debug) and test_run_success
-        
-        if args.e2e:
-            logger.info("Running e2e tests...")
-            test_run_success = test_stages.run_e2e_tests(True, args.debug) and test_run_success
-        
-        if args.performance:
-            logger.info("Running performance tests...")
-            test_run_success = test_stages.run_performance_tests(60, 10, args.debug) and test_run_success
-        
-        if args.security:
-            logger.info("Running security tests...")
-            test_run_success = test_stages.run_security_tests(f"http://{args.host}:{args.port}", args.debug) and test_run_success
-        
-        logger.info(f"Test execution finished. Success: {test_run_success}")
-        return 0 if test_run_success else 1
-    
-    # If --stage is 'test' but no specific test flags were given, run_application will handle it.
-    # For other stages or default 'dev' stage, proceed to prepare environment and run application.
+    # Service startup logic
+    start_services(args, venv_path)
 
-    # Prepare environment
-    if not args.skip_prepare and not prepare_environment(args):
-        return 1
-    
-    # Run application
-    return run_application(args)
+    logger.info("All services started. Press Ctrl+C to shut down.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Shutdown signal received.")
+    finally:
+        process_manager.cleanup()
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
