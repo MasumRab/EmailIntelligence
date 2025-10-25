@@ -17,6 +17,9 @@ yarn-error.log*
 pnpm-lock.yaml
 package-lock.json
 uv.lock
+jsons/client_id.json
+credentials.json
+jsons/apikey.json
 
 # Python caches and artifacts
 __pycache__/
