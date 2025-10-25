@@ -1,49 +1,59 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*"]
+
+[tool.uv.index]
+pytorch-cpu = { url = "https://download.pytorch.org/whl/cpu" }
+
+[project]
 name = "email-intelligence"
 version = "0.2.0"
 description = "An AI-powered email analysis and management tool."
-authors = ["Jules <jules@example.com>"]
+authors = [{name = "Jules", email = "jules@example.com"}]
 readme = "README.md"
-packages = [{include = "backend"}]
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "fastapi>=0.115.12",
+    "uvicorn[standard]>=0.34.3",
+    "pydantic>=2.11.5",
+    "python-dotenv",
+    "gradio",
+    "google-api-python-client",
+    "google-auth-oauthlib",
+    "nltk",
+    "scikit-learn",
+    "joblib",
+    "textblob",
+    {name = "torch", index = "pytorch-cpu"},
+    "transformers",
+    "accelerate",
+    "sentencepiece",
+    "psycopg2-binary>=2.9.10",
+    "email-validator>=2.2.0",
+    "httpx>=0.28.1",
+    "python-multipart>=0.0.20",
+    "regex"
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-fastapi = ">=0.115.12"
-uvicorn = {extras = ["standard"], version = ">=0.34.3"}
-pydantic = ">=2.11.5"
-python-dotenv = "*"
-gradio = "*"
-google-api-python-client = "*"
-google-auth-oauthlib = "*"
-nltk = "*"
-scikit-learn = "*"
-joblib = "*"
-textblob = "*"
-torch = "*"
-transformers = "*"
-accelerate = "*"
-sentencepiece = "*"
-psycopg2-binary = ">=2.9.10"
-email-validator = ">=2.2.0"
-httpx = ">=0.28.1"
-python-multipart = ">=0.0.20"
-regex = "*"
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=6.0.0",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "pylint>=3.3.7",
+    "mypy>=1.16.0",
+    "unimport>=1.3.0",
+    "flake8>=7.2.0",
+    "playwright"
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8.4.0"
-pytest-asyncio = ">=1.2.0"
-pytest-cov = ">=6.0.0"
-black = ">=25.1.0"
-isort = ">=6.0.1"
-pylint = ">=3.3.7"
-mypy = ">=1.16.0"
-unimport = {version = ">=1.3.0", python = ">=3.9,<3.14"}
-flake8 = ">=7.2.0"
-playwright = "*"
+
 
 [tool.black]
 line-length = 100
