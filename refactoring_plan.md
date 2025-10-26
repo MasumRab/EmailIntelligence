@@ -61,8 +61,8 @@ This plan outlines the concrete steps to transition the `src/core/` module towar
     *   **Action:** Refactor the v1 routes to be thin wrappers. The core business logic should reside in the main route files, and the versioned routes should call that logic.
 
 12. **Step 12: Clean Up Application Entry Points**
-    *   **Problem:** The presence of `backend/python_backend/main.py` and `src/main.py`, as well as `launch.py` and `launcher.py`, creates confusion about how to start the application.
-    *   **Action:** Investigate the purpose of each file. If any are redundant, remove them. If they serve different purposes, rename them to be more descriptive (e.g., `run_api.py`, `run_worker.py`).
+    *   **Problem:** The presence of `backend/python_backend/main.py` and `src/main.py`, as well as multiple launcher scripts, creates confusion about how to start the application.
+    *   **Action:** Consolidate launch functionality into `launch.py`. Remove redundant launcher scripts.
 
 13. **Step 13: Consolidate Test Fixtures**
     *   **Problem:** Test fixtures are duplicated in `backend/python_backend/tests/conftest.py` and `tests/conftest.py`.
