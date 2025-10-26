@@ -774,6 +774,9 @@ def main():
     global CONDA_ENV_NAME
     if args.conda_env:
         CONDA_ENV_NAME = args.conda_env
+        args.use_conda = True  # Set flag when conda env is specified
+    else:
+        args.use_conda = False
 
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
@@ -800,7 +803,7 @@ def main():
             logger.error("Conda is not available. Please install Conda or use venv.")
             sys.exit(1)
 
-        if not is_in_conda_env():
+        if not get_conda_env_info()["is_active"]:
             if not activate_conda_env(args.conda_env):
                 logger.error(f"Failed to activate Conda environment: {args.conda_env}")
                 sys.exit(1)
