@@ -1,6 +1,8 @@
 """
 Development server runner for the FastAPI backend.
 
+DEPRECATED: This script is deprecated. Use 'python launch.py --no-ui --no-client' instead.
+
 This script starts the Uvicorn server with hot-reloading enabled, making it
 suitable for development purposes. It ensures that the application reloads
 automatically when code changes are detected.
