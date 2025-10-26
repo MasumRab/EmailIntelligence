@@ -237,6 +237,7 @@ atexit.register(process_manager.cleanup)
 PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
+CONDA_ENV_NAME = "base"  # Default Conda environment name
 
 # Dependency configuration
 TORCH_VERSION = "torch>=2.4.0"
@@ -401,6 +402,54 @@ def get_python_executable() -> str:
     if venv_python.exists():
         return str(venv_python)
     return sys.executable
+
+
+def is_conda_available() -> bool:
+    """Check if Conda is available in the system."""
+    try:
+        result = subprocess.run(
+            ["conda", "--version"], capture_output=True, text=True, timeout=10
+        )
+        return result.returncode == 0
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+def is_in_conda_env() -> bool:
+    """Check if we're currently running in a Conda environment."""
+    return "CONDA_DEFAULT_ENV" in os.environ
+
+
+def get_conda_python_path() -> Optional[Path]:
+    """Get the Python executable path in the current Conda environment."""
+    if is_in_conda_env():
+        conda_prefix = os.environ.get("CONDA_PREFIX")
+        if conda_prefix:
+            python_path = Path(conda_prefix) / "python"
+            if platform.system() == "Windows":
+                python_path = Path(conda_prefix) / "python.exe"
+            if python_path.exists():
+                return python_path
+    return None
+
+
+def activate_conda_env(env_name: str = None) -> bool:
+    """Activate a Conda environment."""
+    env_name = env_name or CONDA_ENV_NAME
+    try:
+        logger.info(f"Activating Conda environment: {env_name}")
+        result = subprocess.run(
+            ["conda", "activate", env_name], shell=True, capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            logger.info(f"Successfully activated Conda environment: {env_name}")
+            return True
+        else:
+            logger.warning(f"Failed to activate Conda environment: {result.stderr}")
+            return False
+    except Exception as e:
+        logger.warning(f"Error activating Conda environment: {e}")
+        return False
 
 
 def create_venv(venv_path: Path, recreate: bool = False):
@@ -736,6 +785,39 @@ def _start_selected_services(args, venv_path: Path, host: str) -> None:
 
 
 
+def _handle_setup_mode(args, venv_path: Path) -> None:
+    """Handle setup mode operations."""
+    logger.info("Running setup mode...")
+
+    # Determine if using conda
+    use_conda = args.use_conda
+    conda_env = args.conda_env
+
+    if use_conda:
+        if not is_conda_available():
+            logger.error("Conda is not available. Cannot use --use-conda.")
+            sys.exit(1)
+
+        # For Conda, we assume the environment is already set up
+        # In the future, we could add Conda environment creation logic here
+        logger.info(f"Using Conda environment: {conda_env}")
+    else:
+        # Use venv
+        if args.force_recreate_venv:
+            create_venv(venv_path, recreate=True)
+        else:
+            create_venv(venv_path)
+
+        # Install dependencies
+        setup_dependencies(venv_path, update=args.update_deps, use_poetry=args.use_poetry)
+
+        # Download NLTK data if requested
+        if not args.no_download_nltk:
+            download_nltk_data(venv_path)
+
+    logger.info("Setup completed successfully.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
 
@@ -754,9 +836,19 @@ def main():
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
     )
     parser.add_argument(
-        "--use-poetry",
+    "--use-poetry",
+    action="store_true",
+    help="Use Poetry instead of uv for dependency management.",
+    )
+    parser.add_argument(
+        "--use-conda",
         action="store_true",
-        help="Use Poetry instead of uv for dependency management.",
+        help="Use Conda environment instead of venv.",
+    )
+    parser.add_argument(
+        "--conda-env",
+        default=CONDA_ENV_NAME,
+        help=f"Conda environment name to use (default: {CONDA_ENV_NAME}).",
     )
 
     # Service selection
@@ -797,6 +889,15 @@ def main():
     # Use 0.0.0.0 if --listen is specified
     host = "0.0.0.0" if args.listen else args.host
 
+    # Load user customizations from launch-user.env if it exists
+    user_env_file = ROOT_DIR / "launch-user.env"
+    if user_env_file.exists():
+        if DOTENV_AVAILABLE:
+            load_dotenv(user_env_file)
+            logger.info(f"Loaded user environment variables from {user_env_file}")
+        else:
+            logger.warning(f"python-dotenv not available, cannot load {user_env_file}")
+
     # Set environment file if specified
     if args.env_file:
         env_path = Path(args.env_file)
@@ -818,16 +919,30 @@ def main():
     # Set PYTHONPATH for proper imports
     os.environ["PYTHONPATH"] = str(ROOT_DIR)
 
-    # Determine venv path
+    # Determine environment setup
+    use_conda = args.use_conda
+    conda_env = args.conda_env
     venv_path = ROOT_DIR / VENV_DIR
+
+    if use_conda:
+        if not is_conda_available():
+            logger.error("Conda is not available. Please install Conda or use venv.")
+            sys.exit(1)
+
+        if not is_in_conda_env():
+            if not activate_conda_env(conda_env):
+                logger.error(f"Failed to activate Conda environment: {conda_env}")
+                sys.exit(1)
+        else:
+            logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
 
     # Setup mode
     if args.setup or args.update_deps:
         _handle_setup_mode(args, venv_path)
         return
 
-    # If not in setup mode, ensure venv exists (unless --no-venv is specified)
-    if not args.no_venv and not venv_path.exists():
+    # If not in setup mode, ensure environment exists (unless --no-venv is specified and not using conda)
+    if not use_conda and not args.no_venv and not venv_path.exists():
         logger.error(
             f"Virtual environment does not exist at {venv_path}. Please run with --setup first."
         )

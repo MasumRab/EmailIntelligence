@@ -1,23 +1,27 @@
 # EmailIntelligence Launcher
 
-The EmailIntelligence Launcher is a unified way to run the EmailIntelligence application with automatic environment setup, dependency management, and configuration. It's inspired by the approach used in projects like Stable Diffusion WebUI.
+**Note: This documentation may be outdated. The current launcher (`launch.py`) has a simplified feature set focused on environment setup and basic service launching.**
+
+The EmailIntelligence Launcher is a unified way to run the EmailIntelligence application with automatic environment setup, dependency management, and configuration.
 
 ## Quick Start
 
-### Windows
+### Cross-Platform
 
-1. Double-click `launch.bat` to start the application in development mode.
-2. Or open a command prompt and run:
-   ```
-   launch.bat --stage dev
-   ```
+1. Run the setup command:
+```bash
+python launch.py --setup
+    ```
 
-### Linux/macOS
+2. Start the application:
+    ```bash
+python launch.py --stage dev
+```
 
-1. Open a terminal and run:
-   ```
-   ./launch.sh --stage dev
-   ```
+### Convenience Wrappers
+
+- **Windows**: `launch.bat --stage dev`
+- **Linux/macOS**: `./launch.sh --stage dev`
 
 ## Features
 
