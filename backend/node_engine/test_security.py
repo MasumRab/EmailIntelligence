@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Test module for security and scalability features of the node-based workflow system.
 """
 
@@ -22,6 +25,9 @@ from backend.node_engine.security_manager import (
 )
 from backend.node_engine.workflow_engine import workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager
+
+# TODO(P1, 3h): Fix bare except clauses in test files per CODEREVIEW_REPORT.md
+# TODO(P2, 2h): Add missing type hints to all test functions
 
 
 async def test_security_features():
@@ -47,6 +53,9 @@ async def test_security_features():
             target_port="emails",
         )
     )
+
+    # TODO(P1, 4h): Add comprehensive test coverage for all security features
+    # TODO(P2, 2h): Implement negative test cases for security validation
 
     # Test that trusted nodes can execute
     print(f"EmailSourceNode trusted: {security_manager.is_trusted_node('EmailSourceNode')}")

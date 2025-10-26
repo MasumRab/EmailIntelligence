@@ -16,6 +16,7 @@ import atexit
 import logging
 import os
 import platform
+import re
 import shutil
 import signal
 import subprocess
@@ -24,6 +25,8 @@ import time
 import venv
 from pathlib import Path
 from typing import List, Optional
+
+from deployment.test_stages import test_stages
 
 try:
     from dotenv import load_dotenv
@@ -39,7 +42,62 @@ logging.basicConfig(
 logger = logging.getLogger("launcher")
 
 
-# --- Hardening Functions ---
+# --- Global state ---
+def find_project_root() -> Path:
+    """Find the project root directory by looking for key files."""
+    current = Path(__file__).resolve().parent
+    if (current / "pyproject.toml").exists():
+        return current
+    for parent in current.parents:
+        if (parent / "pyproject.toml").exists():
+            return parent
+    return current
+
+
+ROOT_DIR = find_project_root()
+
+class ProcessManager:
+    """Manages child processes for the application."""
+    def __init__(self):
+        self.processes = []
+    def add_process(self, process):
+        self.processes.append(process)
+    def cleanup(self):
+        logger.info("Performing explicit resource cleanup...")
+        for p in self.processes[:]:
+            if p.poll() is None:
+                logger.info(f"Terminating process {p.pid}...")
+                p.terminate()
+                try:
+                    p.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
+                    p.kill()
+        logger.info("Resource cleanup completed.")
+    def shutdown(self):
+        logger.info("Received shutdown signal, cleaning up processes...")
+        self.cleanup()
+        sys.exit(0)
+
+process_manager = ProcessManager()
+atexit.register(process_manager.cleanup)
+
+# --- Constants ---
+PYTHON_MIN_VERSION = (3, 11)
+PYTHON_MAX_VERSION = (3, 13)
+VENV_DIR = ".venv"
+CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
+
+# --- Python Version Checking ---
+def check_python_version():
+    """Check if the current Python version is compatible."""
+    current_version = sys.version_info[:2]
+    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
+        logger.error(f"Python version {platform.python_version()} is not compatible.")
+        sys.exit(1)
+    logger.info(f"Python version {platform.python_version()} is compatible.")
+
+# --- Environment Validation ---
 def check_for_merge_conflicts() -> bool:
     """Check for unresolved merge conflict markers in critical files."""
     conflict_markers = ["<<<<<<< ", "======= ", ">>>>>>> "]
@@ -154,539 +212,157 @@ def validate_port(port: int) -> int:
 
 
 def validate_host(host: str) -> str:
-    """Validate host name/address format (IPv4, IPv6, or hostname)."""
+    """Validate host name/address format."""
     import re
-    import ipaddress
 
-    try:
-        # Try IPv4/IPv6 validation
-        ipaddress.ip_address(host)
-        return host
-    except ValueError:
-        # Not an IP, check for valid hostname
-        # Hostname RFC 1123: max 253 chars, labels separated by dots, each label 1-63 chars, allowed: a-zA-Z0-9-, cannot start/end with -
-        hostname_regex = re.compile(
-            r"^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$"
-        )
-        if not hostname_regex.match(host):
-            raise ValueError(f"Invalid host: {host}")
-        return host
+    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
+        raise ValueError(f"Invalid host: {host}")
+    return host
 
 
-# --- Global state ---
-def find_project_root() -> Path:
-    """Find the project root directory by looking for key files."""
-    current = Path(__file__).resolve().parent
-
-    # Check if we're already in project root
-    if (current / "pyproject.toml").exists() and (current / "README.md").exists():
-        return current
-
-    # Search upwards for project markers
-    for parent in current.parents:
-        if (parent / "pyproject.toml").exists() and (parent / "README.md").exists():
-            return parent
-
-    # Fallback to script directory
-    return current
-
-
-ROOT_DIR = find_project_root()
-processes: List[subprocess.Popen] = []
-
-
-class ProcessManager:
-    """Manages child processes for the application."""
-
-    def __init__(self):
-        self.processes = []
-
-    def add_process(self, process):
-        """Add a process to be managed."""
-        self.processes.append(process)
-
-    def cleanup(self):
-        """Explicitly cleanup all managed processes."""
-        logger.info("Performing explicit resource cleanup...")
-        for p in self.processes[:]:  # Create a copy to iterate over
-            if p.poll() is None:
-                logger.info(f"Terminating process {p.pid}...")
-                p.terminate()
-                try:
-                    p.wait(timeout=15)  # Wait up to 15 seconds for graceful shutdown
-                except subprocess.TimeoutExpired:
-                    logger.warning(f"Process {p.pid} did not terminate gracefully, killing it...")
-                    p.kill()
-                    try:
-                        p.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        logger.error(f"Process {p.pid} could not be killed")
-        logger.info("Resource cleanup completed.")
-
-    def shutdown(self):
-        """Terminate all managed processes gracefully."""
-        logger.info("Received SIGINT/SIGTERM, shutting down...")
-        self.cleanup()
-        logger.info("All services shut down.")
-
-
-process_manager = ProcessManager()
-atexit.register(process_manager.cleanup)
-
-# --- Constants ---
-PYTHON_MIN_VERSION = (3, 11)
-PYTHON_MAX_VERSION = (3, 13)
-VENV_DIR = "venv"
-CONDA_ENV_NAME = "base"  # Default Conda environment name
-
-# Dependency configuration
-TORCH_VERSION = "torch>=2.4.0"
-TORCH_CPU_URL = "https://download.pytorch.org/whl/cpu"
-
-
-# --- Python Version Checking ---
-def check_python_version():
-    """Check if the current Python version is compatible and re-execute if necessary."""
-    current_major, current_minor = sys.version_info[:2]
-    current_version = (current_major, current_minor)
-    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        logger.info(
-            f"Current Python is {current_major}.{current_minor}. "
-            f"Launcher requires Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}. Attempting to find and re-execute."
-        )
-
-        candidate_interpreters = []
-        if platform.system() == "Windows":
-            candidate_interpreters = [
-                ["py", "-3.12"],  # Python Launcher for Windows
-                ["py", "-3.11"],  # Python Launcher for Windows
-                ["python3.12"],
-                ["python3.11"],
-                ["python"],  # General python, check version
-            ]
-        else:  # Linux/macOS
-            candidate_interpreters = [
-                ["python3.12"],
-                ["python3.11"],
-                ["python3"],  # General python3, check version
-            ]
-
-        for exe_name in candidate_interpreters:
-            try:
-                result = subprocess.run(
-                    exe_name + ["--version"], capture_output=True, text=True, timeout=10
-                )
-                # Python version can be in stdout or stderr
-                version_output = result.stdout.strip() + result.stderr.strip()
-
-                # Check if version is in supported range
-                compatible = False
-                for major in range(PYTHON_MIN_VERSION[0], PYTHON_MAX_VERSION[0] + 1):
-                    for minor in range(
-                        PYTHON_MIN_VERSION[1] if major == PYTHON_MIN_VERSION[0] else 0,
-                        PYTHON_MAX_VERSION[1] + 1 if major == PYTHON_MAX_VERSION[0] else 100,
-                    ):
-                        if f"Python {major}.{minor}" in version_output:
-                            logger.info(
-                                f"Found compatible Python {major}.{minor} interpreter: {exe_name} (version output: {version_output})"
-                            )
-                            # Re-execute with the found interpreter
-                            os.execv(exe_name[0], exe_name + sys.argv)
-                            compatible = True
-                            break
-                    if compatible:
-                        break
-
-                if compatible:
-                    break
-                else:
-                    logger.debug(
-                        f"Candidate {exe_name} is not in supported Python version range. Output: {version_output}"
-                    )
-            except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-                continue
-
-        logger.error("No compatible Python interpreter found. Please install Python 3.12 or 3.11.")
-        sys.exit(1)
-
-
-# --- Signal Handling ---
-def _handle_sigint(signum, frame):
-    """
-    Handles SIGINT and SIGTERM signals for graceful shutdown.
-
-    Terminates all child processes tracked in the process manager.
-
-    Args:
-        signum: The signal number.
-        frame: The current stack frame.
-    """
-    process_manager.shutdown()
-    sys.exit(0)
-
-
-# Setup signal handlers
-signal.signal(signal.SIGINT, _handle_sigint)
-signal.signal(signal.SIGTERM, _handle_sigint)
-
-
-def run_command(
-    cmd: List[str], description: str, cwd: Optional[Path] = None, shell: bool = False
-) -> bool:
-    """Run a command and log its output.
-
-    SECURITY NOTE: Use shell=False whenever possible to prevent shell injection.
-    The shell parameter is maintained for backward compatibility but should be used cautiously.
-    """
-    if shell:
-        logger.warning(
-            f"Using shell=True for command: {' '.join(cmd)}. This may be a security risk."
-        )
-
-    logger.info(f"{description}...")
-    try:
-        # Use sys.executable for Python commands to ensure we're using the correct Python
-        if cmd[0] == "python":
-            cmd[0] = sys.executable
-
-        proc = subprocess.run(
-            cmd, cwd=cwd or ROOT_DIR, shell=shell, capture_output=True, text=True, check=True
-        )
-        # Always log stdout for visibility, especially for debugging setup steps.
-        if proc.stdout:
-            logger.debug(f"stdout from '{' '.join(cmd)}':\n{proc.stdout}")
-        if proc.stderr:
-            logger.warning(f"stderr from '{' '.join(cmd)}':\n{proc.stderr}")
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed: {description}")
-        logger.error(f"Command failed: {' '.join(cmd) if isinstance(cmd, list) else str(cmd)}")
-        logger.error(f"stdout:\n{e.stdout}")
-        logger.error(f"stderr:\n{e.stderr}")
-        return False
-    except FileNotFoundError:
-        logger.error(f"Command not found: {cmd[0] if cmd else 'Unknown command'}")
-        return False
-
-
-def check_python_version():
-    """Check if the current Python version is compatible."""
-    current_version = sys.version_info[:2]
-    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        logger.error(
-            f"Python version {current_version} is not compatible. "
-            f"Required: >={'.'.join(map(str, PYTHON_MIN_VERSION))}, "
-            f"<={'.'.join(map(str, PYTHON_MAX_VERSION))}"
-        )
-        sys.exit(1)
-    logger.info(f"Python version {sys.version} is compatible.")
-
-
-def get_venv_executable(venv_path: Path, executable: str) -> Path:
-    """Get the path to a specific executable in the virtual environment."""
-    if platform.system() == "Windows":
-        return venv_path / "Scripts" / f"{executable}.exe"
-    else:
-        return venv_path / "bin" / executable
-
-
-def get_venv_python_path(venv_path: Path = None) -> Path:
-    """Get the path to the Python executable in the virtual environment."""
-    venv_path = venv_path or (ROOT_DIR / VENV_DIR)
-    return get_venv_executable(venv_path, "python")
-
-
-def get_python_executable() -> str:
-    """Get the Python executable to use (venv or system)."""
-    venv_python = get_venv_python_path()
-    if venv_python.exists():
-        return str(venv_python)
-    return sys.executable
-
-
+# --- Conda Environment Support ---
 def is_conda_available() -> bool:
-    """Check if Conda is available in the system."""
+    """Check if conda is available on the system."""
     try:
         result = subprocess.run(
-            ["conda", "--version"], capture_output=True, text=True, timeout=10
+            ["conda", "--version"],
+            capture_output=True,
+            text=True,
+            check=True
         )
-        return result.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 
-def is_in_conda_env() -> bool:
-    """Check if we're currently running in a Conda environment."""
-    return "CONDA_DEFAULT_ENV" in os.environ
+def get_conda_env_info():
+    """Get information about the current conda environment."""
+    env_vars = os.environ
+    conda_default_env = env_vars.get("CONDA_DEFAULT_ENV")
+    conda_prefix = env_vars.get("CONDA_PREFIX")
 
-
-def get_conda_python_path() -> Optional[Path]:
-    """Get the Python executable path in the current Conda environment."""
-    if is_in_conda_env():
-        conda_prefix = os.environ.get("CONDA_PREFIX")
-        if conda_prefix:
-            python_path = Path(conda_prefix) / "python"
-            if platform.system() == "Windows":
-                python_path = Path(conda_prefix) / "python.exe"
-            if python_path.exists():
-                return python_path
-    return None
+    return {
+        "is_active": conda_default_env is not None,
+        "env_name": conda_default_env,
+        "prefix": conda_prefix,
+        "python_exe": env_vars.get("CONDA_PREFIX", "") + "/python" if conda_prefix else None
+    }
 
 
 def activate_conda_env(env_name: str = None) -> bool:
-    """Activate a Conda environment."""
+    """Activate a conda environment."""
     env_name = env_name or CONDA_ENV_NAME
-    try:
-        logger.info(f"Activating Conda environment: {env_name}")
-        result = subprocess.run(
-            ["conda", "activate", env_name], shell=True, capture_output=True, text=True
-        )
-        if result.returncode == 0:
-            logger.info(f"Successfully activated Conda environment: {env_name}")
-            return True
-        else:
-            logger.warning(f"Failed to activate Conda environment: {result.stderr}")
-            return False
-    except Exception as e:
-        logger.warning(f"Error activating Conda environment: {e}")
+
+    if not is_conda_available():
+        logger.debug("Conda not available, skipping environment activation.")
         return False
 
-
-def create_venv(venv_path: Path, recreate: bool = False):
-    """Create or recreate the virtual environment."""
-    if venv_path.exists() and recreate:
-        logger.info(f"Removing existing virtual environment at {venv_path}")
-        shutil.rmtree(venv_path)
-
-    if not venv_path.exists():
-        logger.info(f"Creating virtual environment at {venv_path}")
-        venv.create(venv_path, with_pip=True)
-    else:
-        logger.info(f"Virtual environment already exists at {venv_path}")
-
-
-def _install_package_manager(venv_path: Path, package_manager: str) -> bool:
-    """Install a package manager in the virtual environment."""
-    venv_python = get_venv_executable(venv_path, "python")
-    if not venv_python.exists():
-        logger.error(f"Python executable not found at {venv_python}")
-        return False
-
-    logger.info(f"Installing {package_manager} package manager...")
-    result = subprocess.run(
-        [str(venv_python), "-m", "pip", "install", package_manager],
-        cwd=ROOT_DIR,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        logger.error(f"Failed to install {package_manager}: {result.stderr}")
-        return False
-    logger.info(f"{package_manager} installed successfully.")
-    return True
-
-
-def _install_pytorch(venv_python: Path):
-    """Install PyTorch with CPU support, with fallback options."""
-    # SECURITY NOTE: Using hardcoded PyTorch URL - ensure this source is trusted
-    logger.info("Installing CPU-only PyTorch...")
-    pytorch_cmd = [
-        str(venv_python),
-        "-m",
-        "pip",
-        "install",
-        TORCH_VERSION,
-        "--index-url",
-        TORCH_CPU_URL,
-    ]
-    if not run_command(pytorch_cmd, "Install PyTorch CPU"):
-        logger.warning("PyTorch installation failed, attempting fallback...")
-        # Try without index URL
-        fallback_cmd = [str(venv_python), "-m", "pip", "install", TORCH_VERSION]
-        if not run_command(fallback_cmd, "Install PyTorch fallback"):
-            logger.error("PyTorch installation completely failed, ML features may not work")
-
-
-def install_uv(venv_path: Path):
-    """Install uv package manager in the virtual environment."""
-    if not _install_package_manager(venv_path, "uv"):
-        sys.exit(1)
-
-
-        sys.exit(1)
-
-
-def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool = False):
-    """Install project dependencies using uv or Poetry."""
-    venv_python = get_venv_executable(venv_path, "python")
-
-    if use_poetry:
-        venv_poetry = get_venv_executable(venv_path, "poetry")
-
-        # Install CPU-only PyTorch first for Poetry
-        _install_pytorch(venv_python)
-
-        # Configure Poetry to use the virtual environment
-        env_use_cmd = [str(venv_poetry), "env", "use", str(venv_python)]
-        logger.info("Configuring Poetry to use the virtual environment...")
-        env_use_result = subprocess.run(env_use_cmd, cwd=ROOT_DIR, capture_output=True, text=True)
-        if env_use_result.returncode != 0:
-            logger.error(f"Failed to configure Poetry venv: {env_use_result.stderr}")
-            sys.exit(1)
-
-        cmd = [str(venv_poetry), "install"]
-        if not update:
-            cmd.extend(["--with", "dev"])
-
-        logger.info("Installing project dependencies with Poetry...")
-        result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
-        if result.returncode != 0:
-            logger.error(f"Failed to install dependencies with Poetry: {result.stderr}")
-            logger.error(f"stdout: {result.stdout}")
-            sys.exit(1)
-        logger.info("Dependencies installed successfully with Poetry.")
-
-        # Verify critical packages are installed
-        logger.info("Verifying critical package installations...")
-        critical_packages = [
-            "uvicorn",
-            "fastapi",
-            "numpy",
-            "transformers",
-            "nltk",
-            "psutil",
-            "gradio",
-        ]
-        missing_packages = []
-        for package in critical_packages:
-            try:
-                venv_python = get_venv_python_path()
-                check_result = subprocess.run(
-                    [str(venv_python), "-c", f"import {package}"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                if check_result.returncode != 0:
-                    missing_packages.append(package)
-            except (subprocess.TimeoutExpired, FileNotFoundError):
-                missing_packages.append(package)
-
-        if missing_packages:
-            logger.warning(f"Some packages may not be installed: {missing_packages}")
-            logger.info("Attempting to install missing packages individually...")
-            for package in missing_packages:
-                install_cmd = [str(venv_python), "-m", "pip", "install", package]
-                if package == "uvicorn":
-                    install_cmd = [str(venv_python), "-m", "pip", "install", "uvicorn[standard]"]
-                if run_command(install_cmd, f"Install {package}"):
-                    logger.info(f"Successfully installed {package}")
-                else:
-                    logger.error(f"Failed to install {package}")
-        else:
-            logger.info("All critical packages verified successfully.")
-    else:
-        # Install CPU-only PyTorch first for uv
-        _install_pytorch(venv_python)
-
-        venv_uv = get_venv_executable(venv_path, "uv")
-
-        # Configure uv to use the virtual environment
-        os.environ["UV_PROJECT_ENVIRONMENT"] = str(venv_path)
-
-        cmd = [str(venv_uv), "sync"]
-        if update:
-            cmd.extend(["--upgrade"])
-
-        logger.info("Installing project dependencies with uv...")
-        result = subprocess.run(cmd, cwd=ROOT_DIR, capture_output=True, text=True)
-        if result.returncode != 0:
-            logger.error(f"Failed to install dependencies with uv: {result.stderr}")
-            logger.error(f"stdout: {result.stdout}")
-            sys.exit(1)
-        logger.info("Dependencies installed successfully with uv.")
-
-        # Verify critical packages are installed
-        logger.info("Verifying critical package installations...")
-        critical_packages = [
-            "uvicorn",
-            "fastapi",
-            "numpy",
-            "transformers",
-            "nltk",
-            "psutil",
-            "gradio",
-        ]
-        missing_packages = []
-        for package in critical_packages:
-            try:
-                venv_python = get_venv_python_path()
-                check_result = subprocess.run(
-                    [str(venv_python), "-c", f"import {package}"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                if check_result.returncode != 0:
-                    missing_packages.append(package)
-            except (subprocess.TimeoutExpired, FileNotFoundError):
-                missing_packages.append(package)
-
-        if missing_packages:
-            logger.warning(f"Some packages may not be installed: {missing_packages}")
-            logger.info("Attempting to install missing packages individually...")
-            for package in missing_packages:
-                install_cmd = [str(venv_python), "-m", "pip", "install", package]
-                if package == "uvicorn":
-                    install_cmd = [str(venv_python), "-m", "pip", "install", "uvicorn[standard]"]
-                if run_command(install_cmd, f"Install {package}"):
-                    logger.info(f"Successfully installed {package}")
-                else:
-                    logger.error(f"Failed to install {package}")
-        else:
-            logger.info("All critical packages verified successfully.")
-
-
-def check_node_npm_installed() -> bool:
-    """Check if Node.js and npm are installed and available."""
-if not shutil.which("node"):
-    logger.error("Node.js is not installed. Please install it to continue.")
-return False
-    if not shutil.which("npm"):
-        logger.error("npm is not installed. Please install it to continue.")
-        return False
-    return True
-
-
-def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
-"""Install Node.js dependencies in a given directory."""
-pkg_json_path = ROOT_DIR / directory / "package.json"
-    if not pkg_json_path.exists():
-    logger.debug(f"No package.json in '{directory}/', skipping npm install.")
+    conda_info = get_conda_env_info()
+    if conda_info["is_active"]:
+        logger.info(f"Already in conda environment: {conda_info['env_name']}")
         return True
 
-    if not check_node_npm_installed():
+    try:
+        # Try to activate the specified environment
+        logger.info(f"Activating conda environment: {env_name}")
+        result = subprocess.run(
+            ["conda", "activate", env_name],
+            shell=True,  # shell=True is needed for conda activate
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        logger.info(f"Successfully activated conda environment: {env_name}")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"Failed to activate conda environment {env_name}: {e}")
         return False
 
-    cmd = ["npm", "update" if update else "install"]
-    desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
-    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
 
+def get_python_executable() -> str:
+    """Get the appropriate Python executable (conda > venv > system)."""
+    # Check if we're in a conda environment
+    conda_info = get_conda_env_info()
+    if conda_info["is_active"] and conda_info["python_exe"]:
+        python_exe = conda_info["python_exe"]
+        if platform.system() == "Windows":
+            python_exe += ".exe"
+        if os.path.exists(python_exe):
+            logger.info(f"Using conda Python: {python_exe}")
+            return python_exe
 
-def setup_node_dependencies(service_path: Path, service_name: str):
-    """Install npm dependencies for a Node.js service."""
-    if not (service_path / "package.json").exists():
-        logger.warning(f"package.json not found for {service_name}, skipping dependency installation.")
-        return
-    logger.info(f"Installing npm dependencies for {service_name}...")
-    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
+    # Check for venv
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
+        python_exe = get_venv_executable(venv_path, "python")
+        if python_exe.exists():
+            logger.info(f"Using venv Python: {python_exe}")
+            return str(python_exe)
 
+    # Fall back to system Python
+    logger.info("Using system Python")
+    return sys.executable
 
-def download_nltk_data(venv_path: Path):
-    """Download required NLTK data."""
-    venv_python = get_venv_executable(venv_path, "python")
+# --- Helper Functions ---
+def get_venv_executable(venv_path: Path, executable: str) -> Path:
+    """Get the path to a specific executable in the virtual environment."""
+    scripts_dir = "Scripts" if platform.system() == "Windows" else "bin"
+    return venv_path / scripts_dir / (f"{executable}.exe" if platform.system() == "Windows" else executable)
 
-    nltk_download_script = """import nltk
+def run_command(cmd: List[str], description: str, **kwargs) -> bool:
+    """Run a command and log its output."""
+    logger.info(f"{description}...")
+    try:
+        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
+        if proc.stdout:
+            logger.debug(proc.stdout)
+        if proc.stderr:
+            logger.warning(proc.stderr)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logger.error(f"Failed: {description}")
+        if isinstance(e, subprocess.CalledProcessError):
+            logger.error(f"Stderr: {e.stderr}")
+        return False
+
+# --- Setup Functions ---
+def create_venv(venv_path: Path, recreate: bool = False):
+    if venv_path.exists() and recreate:
+        logger.info("Removing existing virtual environment.")
+        shutil.rmtree(venv_path)
+    if not venv_path.exists():
+        logger.info("Creating virtual environment.")
+        venv.create(venv_path, with_pip=True, upgrade_deps=True)
+
+def install_package_manager(venv_path: Path, manager: str):
+    python_exe = get_venv_executable(venv_path, "python")
+    run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
+
+def setup_dependencies(venv_path: Path, use_poetry: bool = False):
+    python_exe = get_python_executable()
+
+    if use_poetry:
+        # For poetry, we need to install it first if not available
+        try:
+            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
+
+        run_command([python_exe, "-m", "poetry", "install", "--with", "dev"], "Installing dependencies with Poetry", cwd=ROOT_DIR)
+    else:
+        # For uv, install if not available
+        try:
+            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
+
+        run_command([python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
+
+def download_nltk_data():
+    python_exe = get_python_executable()
+
+    nltk_download_script = """
+import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('vader_lexicon')
@@ -698,7 +374,7 @@ print("NLTK data download completed.")
 
     logger.info("Downloading NLTK data...")
     result = subprocess.run(
-        [str(venv_python), "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+        [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
     )
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
@@ -707,9 +383,67 @@ print("NLTK data download completed.")
     else:
         logger.info("NLTK data downloaded successfully.")
 
+    # Download TextBlob corpora
+    run_command([python_exe, "-m", "textblob.download_corpora"], "Downloading TextBlob corpora")
 
+
+def check_uvicorn_installed() -> bool:
+    """Check if uvicorn is installed."""
+    python_exe = get_python_executable()
+    try:
+        result = subprocess.run(
+            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            logger.info("uvicorn is available.")
+            return True
+        else:
+            logger.error("uvicorn is not installed.")
+            return False
+    except FileNotFoundError:
+        logger.error("Python executable not found.")
+        return False
+
+
+def check_node_npm_installed() -> bool:
+    """Check if Node.js and npm are installed and available."""
+    if not shutil.which("node"):
+        logger.error("Node.js is not installed. Please install it to continue.")
+        return False
+    if not shutil.which("npm"):
+        logger.error("npm is not installed. Please install it to continue.")
+        return False
+    return True
+
+
+def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
+    """Install Node.js dependencies in a given directory."""
+    pkg_json_path = ROOT_DIR / directory / "package.json"
+    if not pkg_json_path.exists():
+        logger.debug(f"No package.json in '{directory}/', skipping npm install.")
+        return True
+
+    if not check_node_npm_installed():
+        return False
+
+    cmd = ["npm", "update" if update else "install"]
+    desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
+    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+
+
+def start_backend(host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
+    if not check_uvicorn_installed():
+        logger.error(
+            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
+        )
+        return None
+
+    python_exe = get_python_executable()
+
+    # Use uvicorn to run the FastAPI app directly
     cmd = [
-        str(venv_python),
+        python_exe,
         "-m",
         "uvicorn",
         "backend.python_backend.main:app",
@@ -720,6 +454,9 @@ print("NLTK data download completed.")
     ]
     if debug:
         cmd.append("--reload")  # Enable auto-reload in debug mode
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
 
     logger.info(f"Starting Python backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
@@ -742,6 +479,12 @@ def start_gradio_ui(
 
     if share:
         cmd.append("--share")  # Enable public sharing
+    if port:
+        # Gradio doesn't take port as a command line param directly,
+        # we'd need to modify the app to accept it
+        logger.info(f"Starting Gradio UI (on default or next available port)")
+    else:
+        logger.info("Starting Gradio UI on default port")
 
     logger.info("Starting Gradio UI...")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
@@ -752,10 +495,8 @@ def start_gradio_ui(
 def start_client():
     """Start the Node.js frontend."""
     logger.info("Starting Node.js frontend...")
-    # Check if npm is available
-    if not shutil.which("npm"):
-        logger.error("npm is not available in PATH. Please install Node.js.")
-        sys.exit(1)
+    if not install_nodejs_dependencies("client"):
+        return None
 
     # Install Node.js dependencies if node_modules doesn't exist
     node_modules_path = ROOT_DIR / "client" / "node_modules"
@@ -782,272 +523,316 @@ def start_server_ts():
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
 
+# --- Service Startup Functions ---
+def start_backend(host: str, port: int, debug: bool = False):
+    python_exe = get_python_executable()
+    cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
+    if debug:
+        cmd.append("--reload")
+    logger.info(f"Starting backend on {host}:{port}")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
 
-def wait_for_processes():
-    """Wait for all processes to complete."""
-    try:
-        while process_manager.processes:
-            time.sleep(1)
-            # Check if any process has terminated unexpectedly
-            for process in process_manager.processes[:]:
-                if process.poll() is not None:
-                    logger.warning(
-                        f"Process {process.pid} terminated with code {process.returncode}"
-                    )
-    except KeyboardInterrupt:
-        logger.info("Received interrupt signal, shutting down...")
-        process_manager.shutdown()
+def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
+    """Start a Node.js service."""
+    if not service_path.exists():
+        logger.warning(f"{service_name} path not found at {service_path}, skipping.")
+        return
+    logger.info(f"Starting {service_name} on port {port}...")
+    env = os.environ.copy()
+    env["PORT"] = str(port)
+    env["VITE_API_URL"] = api_url
+    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
+    process_manager.add_process(process)
 
+def setup_node_dependencies(service_path: Path, service_name: str):
+    """Install npm dependencies for a Node.js service."""
+    if not (service_path / "package.json").exists():
+        logger.warning(f"package.json not found for {service_name}, skipping dependency installation.")
+        return
+    logger.info(f"Installing npm dependencies for {service_name}...")
+    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
 
+def start_gradio_ui(host, port, share, debug):
+    logger.info("Starting Gradio UI...")
+    python_exe = get_python_executable()
+    cmd = [python_exe, "-m", "src.main"] # Assuming Gradio is launched from main
+    if share:
+        cmd.append("--share")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
 
-    logger.info("Setup completed successfully.")
+def handle_setup(args, venv_path):
+    """Handles the complete setup process."""
+    logger.info("Starting environment setup...")
 
-
-def _start_selected_services(args, venv_path: Path, host: str) -> None:
-    """Start selected services based on command-line arguments."""
-    # Start services
-    if not args.no_backend:
-        start_backend(venv_path, host, args.port, args.debug)
-        time.sleep(5)  # Brief pause to let backend start
-
-    if not args.no_ui:
-        start_gradio_ui(venv_path, host, args.gradio_port, args.debug, args.share)
-
-    if not args.no_client:
-        # Note: The client and server-ts might require additional parameters or configuration
-        start_client()
-
-
-
-
-def _handle_setup_mode(args, venv_path: Path) -> None:
-    """Handle setup mode operations."""
-    logger.info("Running setup mode...")
-
-    # Determine if using conda
-    use_conda = args.use_conda
-    conda_env = args.conda_env
-
-    if use_conda:
-        if not is_conda_available():
-            logger.error("Conda is not available. Cannot use --use-conda.")
-            sys.exit(1)
-
-        # For Conda, we assume the environment is already set up
-        # In the future, we could add Conda environment creation logic here
-        logger.info(f"Using Conda environment: {conda_env}")
+    if args.use_conda:
+    # For Conda, we assume the environment is already set up
+        # Could add Conda environment creation here in the future
+        logger.info("Using Conda environment - assuming dependencies are already installed")
     else:
         # Use venv
-        if args.force_recreate_venv:
-            create_venv(venv_path, recreate=True)
-        else:
-            create_venv(venv_path)
-
-        # Install dependencies
-        setup_dependencies(venv_path, update=args.update_deps, use_poetry=args.use_poetry)
-
-        # Download NLTK data if requested
+        create_venv(venv_path, args.force_recreate_venv)
+        install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
+        setup_dependencies(venv_path, args.use_poetry)
         if not args.no_download_nltk:
             download_nltk_data(venv_path)
 
         # Setup Node.js dependencies
         setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
-        setup_node_dependencies(ROOT_DIR / "server", "TypeScript Backend")
+        setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
+    logger.info("Setup complete.")
 
-    logger.info("Setup completed successfully.")
+def prepare_environment(args):
+    """Prepares the environment for running the application."""
+    if not args.no_venv:
+        # Try conda first
+        if not activate_conda_env():
+            venv_path = ROOT_DIR / VENV_DIR
+            create_venv(venv_path)
+        if args.update_deps:
+            setup_dependencies(ROOT_DIR / VENV_DIR, args.use_poetry)
+    if not args.no_download_nltk:
+        download_nltk_data()
 
+def start_services(args):
+    """Starts the required services based on arguments."""
+    api_url = args.api_url or f"http://{args.host}:{args.port}"
+
+    if not args.frontend_only:
+        start_backend(args.host, args.port, args.debug)
+        start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
+
+    if not args.api_only:
+        start_gradio_ui(args.host, 7860, args.share, args.debug)
+        start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
+
+def handle_test_stage(args):
+    """Handles the test stage execution."""
+    logger.info("Starting test stage...")
+    results = []
+    if args.unit:
+        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
+    if args.integration:
+        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
+    if args.e2e:
+        results.append(test_stages.run_e2e_tests(headless=not args.debug, debug=args.debug))
+    if args.performance:
+        results.append(test_stages.run_performance_tests(duration=300, users=10, debug=args.debug))
+    if args.security:
+        results.append(test_stages.run_security_tests(target_url=f"http://{args.host}:{args.port}", debug=args.debug))
+
+    # If no specific test type is selected, run a default set (e.g., unit and integration)
+    if not any([args.unit, args.integration, args.e2e, args.performance, args.security]):
+        logger.info("No specific test type selected, running unit and integration tests.")
+        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
+        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
+
+    if all(results):
+        logger.info("All tests passed successfully.")
+        sys.exit(0)
+    else:
+        logger.error("Some tests failed.")
+        sys.exit(1)
 
 def print_system_info():
-"""Print detailed system, Python, and project configuration information."""
+    """Print detailed system, Python, and project configuration information."""
     import platform
     import sys
 
-    print(\"=== System Information ===\")
-    print(f\"OS: {platform.system()} {platform.release()}\")
-    print(f\"Architecture: {platform.machine()}\")
-    print(f\"Python Version: {sys.version}\")
-    print(f\"Python Executable: {sys.executable}\")
+    print("=== System Information ===")
+    print(f"OS: {platform.system()} {platform.release()}")
+    print(f"Architecture: {platform.machine()}")
+    print(f"Python Version: {sys.version}")
+    print(f"Python Executable: {sys.executable}")
 
-    print(\"\\n=== Project Information ===\")
-    print(f\"Project Root: {ROOT_DIR}\")
-    print(f\"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}\")
+    print("\\n=== Project Information ===")
+    print(f"Project Root: {ROOT_DIR}")
+    print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
 
-    print(\"\\n=== Environment Status ===\")
+    print("\\n=== Environment Status ===")
     venv_path = ROOT_DIR / VENV_DIR
     if venv_path.exists():
-        print(f\"Virtual Environment: {venv_path} (exists)\")
-        python_exe = get_venv_executable(venv_path, \"python\")
+        print(f"Virtual Environment: {venv_path} (exists)")
+        python_exe = get_venv_executable(venv_path, "python")
         if python_exe.exists():
-            print(f\"Venv Python: {python_exe}\")
+            print(f"Venv Python: {python_exe}")
         else:
-            print(\"Venv Python: Not found\")
+            print("Venv Python: Not found")
     else:
-        print(f\"Virtual Environment: {venv_path} (not created)\")
+        print(f"Virtual Environment: {venv_path} (not created)")
 
     conda_available = is_conda_available()
-    print(f\"Conda Available: {conda_available}\")
+    print(f"Conda Available: {conda_available}")
     if conda_available:
         conda_env = os.environ.get('CONDA_DEFAULT_ENV', 'None')
-        print(f\"Current Conda Env: {conda_env}\")
+        print(f"Current Conda Env: {conda_env}")
 
     node_available = check_node_npm_installed()
-    print(f\"Node.js/npm Available: {node_available}\")
+    print(f"Node.js/npm Available: {node_available}")
 
-    print(\"\\n=== Configuration Files ===\")
+    print("\\n=== Configuration Files ===")
     config_files = [
-        \"pyproject.toml\", \"requirements.txt\", \"requirements-dev.txt\",
-        \"package.json\", \"launch-user.env\", \".env\"
+        "pyproject.toml", "requirements.txt", "requirements-dev.txt",
+        "package.json", "launch-user.env", ".env"
     ]
     for cf in config_files:
         exists = (ROOT_DIR / cf).exists()
-        print(f\"{cf}: {'Found' if exists else 'Not found'}\")
-
+        print(f"{cf}: {'Found' if exists else 'Not found'}")
 
 def main():
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
 
-    # Setup arguments
-    parser.add_argument("--setup", action="store_true", help="Run environment setup and exit.")
-    parser.add_argument("--update-deps", action="store_true", help="Update all dependencies.")
-    parser.add_argument(
-        "--no-venv", action="store_true", help="Do not create or use a Python venv."
-    )
-    parser.add_argument(
-        "--force-recreate-venv",
-        action="store_true",
-        help="Delete and recreate the venv before setup.",
-    )
-    parser.add_argument(
-        "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
-    )
-    parser.add_argument(
-    "--use-poetry",
-    action="store_true",
-    help="Use Poetry instead of uv for dependency management.",
-    )
-    parser.add_argument(
-        "--use-conda",
-        action="store_true",
-        help="Use Conda environment instead of venv.",
-    )
-    parser.add_argument(
-        "--conda-env",
-        default=CONDA_ENV_NAME,
-        help=f"Conda environment name to use (default: {CONDA_ENV_NAME}).",
-    )
+    # Environment Setup
+    parser.add_argument("--setup", action="store_true", help="Run environment setup.")
+    parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
+    parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
+    parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
+    parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
+    parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
+    parser.add_argument("--conda-env", type=str, help="Specify conda environment name to use.")
+    parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching.")
+    parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test for PyTorch.")
+    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
+    parser.add_argument("--skip-python-version-check", action="store_true", help="Skip Python version check.")
+    parser.add_argument("--no-download-nltk", action="store_true", help="Skip downloading NLTK data.")
+    parser.add_argument("--skip-prepare", action="store_true", help="Skip all environment preparation steps.")
+    parser.add_argument("--loglevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help="Set the logging level.")
 
-    # Service selection
-    parser.add_argument(
-        "--no-backend", action="store_true", help="Do not start the Python backend."
-    )
-    parser.add_argument("--no-ui", action="store_true", help="Do not start the Gradio UI.")
-    parser.add_argument(
-        "--no-client", action="store_true", help="Do not start the Node.js frontend."
-    )
+    # Application Stage
+    parser.add_argument("--stage", choices=['dev', 'test'], default='dev', help="Specify the application mode.")
 
-    # Configuration
-    parser.add_argument(
-        "--stage", choices=["dev", "test"], default="dev", help="Application stage."
-    )
-    parser.add_argument("--port", type=int, default=8000, help="Port for the Python backend.")
-    parser.add_argument(
-        "--gradio-port", type=int, help="Port for the Gradio UI (defaults to 7860)."
-    )
-    parser.add_argument("--host", default="127.0.0.1", help="Host address for servers.")
-    parser.add_argument(
-        "--listen",
-        action="store_true",
-        help="Listen on 0.0.0.0 (overrides --host). SECURITY WARNING: This makes services accessible from external networks.",
-    )
-    parser.add_argument(
-        "--share",
-        action="store_true",
-        help="Create a public Gradio sharing link. SECURITY WARNING: This exposes your application to the internet and should be used carefully.",
-    )
-    parser.add_argument(
-        "--debug", action="store_true", help="Enable debug/reload mode for services."
-    )
-    parser.add_argument("--env-file", help="Path to a custom .env file to load.")
+    # Server Configuration
+    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
+    parser.add_argument("--frontend-port", type=int, default=5173, help="Specify the frontend port to run on.")
+    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
+    parser.add_argument("--api-only", action="store_true", help="Run only the API server without the frontend.")
+    parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server.")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
+
+    # Testing Options
+    parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests.")
+    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
+    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
+    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    parser.add_argument("--security", action="store_true", help="Run security tests.")
+
+    # Extensions and Models
+    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
+    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
+    parser.add_argument("--install-extension", type=str, help="Install an extension from a Git repository.")
+    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension.")
+    parser.add_argument("--update-extension", type=str, help="Update an extension.")
+    parser.add_argument("--list-extensions", action="store_true", help="List all extensions.")
+    parser.add_argument("--create-extension", type=str, help="Create a new extension template.")
+    parser.add_argument("--download-model", type=str, help="Download a model from a URL.")
+    parser.add_argument("--model-name", type=str, help="Specify the model name for download.")
+    parser.add_argument("--list-models", action="store_true", help="List all models.")
+    parser.add_argument("--delete-model", type=str, help="Delete a model.")
+
+    # Advanced Options
+    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models.")
+    parser.add_argument("--force-cpu", action="store_true", help="Force CPU mode even if GPU is available.")
+    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode.")
     parser.add_argument("--system-info", action="store_true", help="Print detailed system, Python, and project configuration information then exit.")
+
+    # Networking Options
+    parser.add_argument("--share", action="store_true", help="Create a public URL.")
+    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
+    parser.add_argument("--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region.")
+
+    # Environment Configuration
+    parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
 
     args = parser.parse_args()
 
-    # Use 0.0.0.0 if --listen is specified
-    host = "0.0.0.0" if args.listen else args.host
+    check_python_version()
 
-    # Load user customizations from launch-user.env if it exists
-    user_env_file = ROOT_DIR / "launch-user.env"
-    if user_env_file.exists():
-        if DOTENV_AVAILABLE:
+    if not args.skip_python_version_check:
+        check_python_version()
+
+    logging.getLogger().setLevel(args.loglevel)
+
+    if DOTENV_AVAILABLE:
+        # Load user customizations from launch-user.env if it exists
+        user_env_file = ROOT_DIR / "launch-user.env"
+        if user_env_file.exists():
             load_dotenv(user_env_file)
             logger.info(f"Loaded user environment variables from {user_env_file}")
         else:
-            logger.warning(f"python-dotenv not available, cannot load {user_env_file}")
+            logger.debug(f"User env file not found: {user_env_file}")
 
-    # Set environment file if specified
-    if args.env_file:
-        env_path = Path(args.env_file)
-        if env_path.exists():
-            if not DOTENV_AVAILABLE:
-                logger.error(
-                    "python-dotenv is not available. Please install it or ensure dependencies are set up correctly."
-                )
-                sys.exit(1)
-            load_dotenv(env_path)
-            logger.info(f"Loaded environment variables from {env_path}")
-        else:
-            logger.error(f"Environment file not found: {env_path}")
-            sys.exit(1)
+        # Load environment file if specified
+        env_file = args.env_file or ".env"
+        if os.path.exists(env_file):
+            logger.info(f"Loading environment variables from {env_file}")
+            load_dotenv(env_file)
 
-    # Check Python version
-    check_python_version()
+    # Set conda environment name if specified
+    global CONDA_ENV_NAME
+    if args.conda_env:
+        CONDA_ENV_NAME = args.conda_env
+        args.use_conda = True  # Set flag when conda env is specified
+    else:
+        args.use_conda = False
 
-    # Handle system info request
-    if args.system_info:
-        print_system_info()
+    # Validate environment if not skipping preparation
+    if not args.skip_prepare and not validate_environment():
+        sys.exit(1)
+
+    # Validate input arguments
+    try:
+        args.port = validate_port(args.port)
+        args.host = validate_host(args.host)
+        if hasattr(args, 'frontend_port'):
+            args.frontend_port = validate_port(args.frontend_port)
+    except ValueError as e:
+        logger.error(f"Input validation failed: {e}")
+        sys.exit(1)
+
+    if args.setup:
+        venv_path = ROOT_DIR / VENV_DIR
+        handle_setup(args, venv_path)
         return
 
-    # Set PYTHONPATH for proper imports
-    os.environ["PYTHONPATH"] = str(ROOT_DIR)
-
-    # Determine environment setup
-    use_conda = args.use_conda
-    conda_env = args.conda_env
-    venv_path = ROOT_DIR / VENV_DIR
-
-    if use_conda:
+    # Handle Conda environment if requested
+    if args.use_conda:
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
             sys.exit(1)
 
-        if not is_in_conda_env():
-            if not activate_conda_env(conda_env):
-                logger.error(f"Failed to activate Conda environment: {conda_env}")
+        if not get_conda_env_info()["is_active"]:
+            if not activate_conda_env(args.conda_env):
+                logger.error(f"Failed to activate Conda environment: {args.conda_env}")
                 sys.exit(1)
         else:
             logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
 
-    # Setup mode
-    if args.setup or args.update_deps:
-        _handle_setup_mode(args, venv_path)
+    if not args.skip_prepare and not args.use_conda:
+        prepare_environment(args)
+
+    if args.system_info:
+        print_system_info()
         return
 
-    # If not in setup mode, ensure environment exists (unless --no-venv is specified and not using conda)
-    if not use_conda and not args.no_venv and not venv_path.exists():
-        logger.error(
-            f"Virtual environment does not exist at {venv_path}. Please run with --setup first."
-        )
-        sys.exit(1)
+    # Stage-specific logic
+    if args.stage == 'test':
+        handle_test_stage(args)
+        return
 
-    # Run environment validation unless in setup mode
-    if not validate_environment():
-        logger.error("Environment validation failed. Please resolve issues and try again.")
-        sys.exit(1)
+    # Service startup logic
+    start_services(args)
 
-    _start_selected_services(args, venv_path, host)
-    logger.info("All selected services started. Press Ctrl+C to shut down.")
-    wait_for_processes()
-
+    logger.info("All services started. Press Ctrl+C to shut down.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Shutdown signal received.")
+    finally:
+        process_manager.cleanup()
 
 if __name__ == "__main__":
     main()

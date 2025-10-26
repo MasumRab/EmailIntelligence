@@ -4,11 +4,22 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import pytest
+import subprocess
 from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 
 from src.main import create_app
 from src.core.database import get_db
+from src.core.factory import get_data_source
+
+
+@pytest.fixture(scope="session", autouse=True)
+def download_nltk_data():
+    """Download NLTK data before running tests."""
+    packages = ["punkt", "stopwords"]
+    for package in packages:
+        subprocess.run([sys.executable, "-m", "nltk.downloader", package], check=True)
+    subprocess.run([sys.executable, "-m", "textblob.download_corpora"], check=True)
 
 
 @pytest.fixture
@@ -19,24 +30,8 @@ def mock_db_manager():
     """
     mock = AsyncMock()
     # Pre-configure all database methods as AsyncMocks
-    mock.get_all_categories = AsyncMock(
-        return_value=[
-            {
-                "id": 1,
-                "name": "Test Category",
-                "description": "A category for testing purposes.",
-                "color": "#FF0000",
-            }
-        ]
-    )
-    mock.create_category = AsyncMock(
-        return_value={
-            "id": 1,
-            "name": "Test Category",
-            "description": "A category for testing purposes.",
-            "color": "#FF0000",
-        }
-    )
+    mock.get_all_categories = AsyncMock()
+    mock.create_category = AsyncMock()
     mock.get_email_by_id = AsyncMock()
     mock.get_all_emails = AsyncMock()
     mock.search_emails = AsyncMock()
@@ -56,8 +51,10 @@ def client(mock_db_manager: AsyncMock):
     """
     app = create_app()
     app.dependency_overrides[get_db] = lambda: mock_db_manager
+    app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
     del app.dependency_overrides[get_db]
+    del app.dependency_overrides[get_data_source]

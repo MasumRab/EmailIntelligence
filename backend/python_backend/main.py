@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 FastAPI Backend for Gmail AI Email Management
 Unified Python backend with optimized performance and integrated NLP
 """
@@ -15,11 +18,16 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 from ..plugins.plugin_manager import plugin_manager
+from backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from ..python_nlp.smart_filters import SmartFilterManager
+from backend.python_nlp.smart_filters import SmartFilterManager
+
 from . import (
+    action_routes,
+    ai_routes,
     category_routes,
+    dashboard_routes,
     email_routes,
     filter_routes,
     gmail_routes,
@@ -35,11 +43,7 @@ from .exceptions import AppException
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
-
-# Updated import to use NLP GmailAIService directly
-# Note: We should avoid direct imports of GmailAIService in main.py to prevent circular dependencies
-# Instead, dependencies are managed via dependency injection in the routes
-
+from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,9 +55,6 @@ app = FastAPI(
     description="Advanced email management with AI categorization and smart filtering",
     version=settings.app_version,
 )
-
-# Import the get_db function to access the database manager
-from .database import get_db
 
 
 @app.on_event("startup")
@@ -81,46 +82,70 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
+    await db_manager.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """On shutdown, save any pending data."""
-    logger.info("Application shutdown event received.")
-    db = await get_db()
-    await db.shutdown()
+    """Application shutdown: disconnect from the database."""
+    await db_manager.close()
 
 
 @app.exception_handler(AppException)
+
 async def app_exception_handler(request: Request, exc: AppException):
+
     return JSONResponse(
+
         status_code=exc.status_code,
+
         content=exc.detail,
+
     )
 
 
-@app.exception_handler(AppException)
-async def base_app_exception_handler(request: Request, exc: AppException):
+@app.exception_handler(BaseAppException)
+
+async def base_app_exception_handler(request: Request, exc: BaseAppException):
+
     return JSONResponse(
+
         status_code=500,
+
         content={
+
             "success": False,
+
             "message": "An internal error occurred",
+
             "error_code": "INTERNAL_ERROR",
             "details": str(exc),
         },
+
     )
 
 
+
+
+
 @app.exception_handler(ValidationError)
+
 async def validation_exception_handler(request: Request, exc: ValidationError):
+
     """Handle Pydantic validation errors with detailed 422 responses."""
+
     return JSONResponse(
+
         status_code=422,
+
         content={
+
             "detail": exc.errors(),
+
             "message": "Validation error with provided data.",
+
         },
+
     )
 
 
@@ -133,17 +158,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Pydantic models are now primarily defined in .models
 # Ensure any models needed directly by main.py (e.g. for health endpoint response) are defined or imported.
 # For this refactor, ActionExtractionRequest and ActionItem were moved to models.py.
 # Other shared request/response models like EmailResponse, CategoryResponse etc. are also in models.py.
 
 # Set up metrics if in production or staging environment
-# if os.getenv("NODE_ENV") in ["production", "staging"]: # Removed
-# from .metrics import setup_metrics # Removed
-# setup_metrics(app) # Removed
+if os.getenv("NODE_ENV") in ["production", "staging"]:
+    from .metrics import setup_metrics
 
-# Services are now managed by the dependency injection system.
+    setup_metrics(app)
+
+# Initialize services
+# Services are now initialized within their respective route files
+# or kept here if they are used by multiple route files or for general app setup.
+gmail_service = GmailAIService()  # Used by gmail_routes
+filter_manager = SmartFilterManager()  # Used by filter_routes
+ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
+performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
 # Include versioned API routers
 from .routes.v1.email_routes import router as email_router_v1
@@ -162,8 +195,9 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-# app.include_router(action_routes.router) # Removed
-# app.include_router(dashboard_routes.router) # Removed
+app.include_router(action_routes.router)
+app.include_router(dashboard_routes.router)
+app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
 from .enhanced_routes import router as enhanced_router
@@ -194,7 +228,6 @@ except ImportError:
     # Fallback if node engine is not available
     workflow_manager_instance = None
 
-
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
 
@@ -205,6 +238,7 @@ async def health_check(request: Request):
     """System health check"""
     try:
         # Perform any necessary checks, e.g., DB connectivity if desired
+        # await db.execute_query("SELECT 1") # Example DB check
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),

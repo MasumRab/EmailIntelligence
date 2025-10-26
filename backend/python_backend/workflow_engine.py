@@ -11,6 +11,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List
 
+# Forward-referencing for type hints
 if TYPE_CHECKING:
     from ..python_nlp.smart_filters import SmartFilterManager
     from .ai_engine import AdvancedAIEngine
@@ -204,8 +205,17 @@ class DefaultWorkflow(BaseWorkflow):
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()
-
-
+        processed_data.update(
+            {
+                "confidence": int(ai_analysis.confidence * 100),
+                "categoryId": ai_analysis.category_id,
+                "labels": ai_analysis.suggested_labels,
+                "analysisMetadata": ai_analysis.to_dict(),
+                "filterResults": filter_results,
+                "workflow_status": "processed_by_default_workflow",
+            }
+        )
+        return processed_data
 class FileBasedWorkflow(BaseWorkflow):
     """A generic workflow configured by a JSON file."""
 

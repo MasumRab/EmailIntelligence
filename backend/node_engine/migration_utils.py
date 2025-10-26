@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Migration Utilities for the Email Intelligence Platform.
 
 This module provides utilities to convert legacy workflow formats
