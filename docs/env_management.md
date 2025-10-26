@@ -6,8 +6,8 @@ This document provides a summary of the Python Environment Management implementa
 
 The primary method for setting up and managing the Python environment for EmailIntelligence is through the main launcher script, `launch.py`. This script automates several key processes:
 
-*   **Virtual Environment Creation**: Automatically creates a Python virtual environment (named `venv` by default) to isolate project dependencies.
-*   **Dependency Installation**: Installs required Python packages from predefined requirements files.
+*   **Environment Management**: Automatically detects and uses conda environments if available, otherwise creates a Python virtual environment (named `.venv` by default) to isolate project dependencies.
+*   **Dependency Installation**: Installs required Python packages from predefined requirements files using uv or Poetry.
 *   **NLTK Data Download**: Ensures necessary NLTK (Natural Language Toolkit) data is available.
 *   **Application Launching**: Serves as the main entry point to run the application, tests, and other utilities.
 
@@ -29,9 +29,10 @@ The shell script `scripts/setup_python.sh` is **DEPRECATED** and should no longe
 
 `launch.py` directly manages the Python environment to ensure consistency:
 
-- **Virtual Environment Management**:
-    - Creates a virtual environment named `venv` in the project root if it doesn't exist (unless `--no-venv` is used).
-    - Activates this venv for application execution.
+- **Environment Detection and Management**:
+    - **Conda Support**: Automatically detects conda environments and uses them if available. Use `--conda-env <name>` to specify a particular environment.
+    - **Virtual Environment Fallback**: Creates a virtual environment named `.venv` in the project root if conda is not available and `--no-venv` is not used.
+    - **System Python**: Uses system Python if both conda and venv are disabled (not recommended).
 - **Dependency Management Strategy**:
     - **Base Dependencies**:
         - `launch.py` first looks for `requirements_versions.txt`. If found, dependencies listed here (expected to be pinned versions) are installed.
