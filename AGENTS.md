@@ -15,6 +15,7 @@
 - **Poetry**: `python launch.py --use-poetry --setup` - Alternative Poetry-based setup
 - **Update deps**: `python launch.py --update-deps` - Updates all dependencies
 - **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
+- **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
 
 ### TypeScript/React Frontend
 - **Build**: `npm run build` (from client/)

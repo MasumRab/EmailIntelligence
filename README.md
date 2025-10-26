@@ -55,28 +55,36 @@ To successfully set up and run EmailIntelligence, you will need the following:
 
 To successfully set up and run EmailIntelligence, you will need the following:
 
-You can run any combination of services by using the `--no-<service>` flags.
+- **Python 3.11+**: Required for the backend services
+- **Node.js 16+**: Required for the frontend (optional if running API-only)
+- **Conda (optional)**: For conda environment management (venv is used by default)
+
+You can run any combination of services by using the launcher scripts:
 
 -   **Run only the Python backend and Gradio UI:**
     ```bash
-    python3 launch.py --no-client --no-server-ts
+    python launch.py --no-client --no-server-ts
     ```
 -   **Run only the React client:**
     ```bash
-    python3 launch.py --no-backend --no-ui --no-server-ts
+    python launch.py --no-backend --no-ui --no-server-ts
     ```
 -   **Run in "API only" mode (just the Python backend):**
     ```bash
-    python3 launch.py --no-client --no-server-ts --no-ui
+    python launch.py --no-client --no-server-ts --no-ui
+    ```
+-   **Use a specific conda environment:**
+    ```bash
+    python launch.py --conda-env myenv
     ```
 
-Use `python3 launch.py --help` to see all available options.
+Use `python launch.py --help` to see all available options.
 
 ## Development Notes
 
--   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
--   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
--   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
+-   **Python Environment:** The launcher automatically detects and uses conda environments if available, otherwise creates and manages a virtual environment in the `./venv` directory. You do not need to activate environments manually.
+-   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv` (or Poetry). All Node.js dependencies are defined in the `package.json` files.
+-   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside your active environment (conda or venv).
 -   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root. The data directory is now configurable via the `DATA_DIR` environment variable.
 -   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
 -   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
@@ -137,20 +145,29 @@ The application now uses SQLite. The database file (e.g., `sqlite.db`) will typi
 
 **Step 4: Run the Application using the Launcher**
 ```bash
-# For Windows (ensure Python 3.11+ is your default python or use `py -3.11 launch.py --stage dev`)
+# For Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev
 
-# For Linux/macOS (ensure Python 3.11+ or Python 3 is available)
+# For Linux/macOS (ensure Python 3.11+ is available)
 chmod +x launch.sh
 ./launch.sh --stage dev
+
+# Or use Python directly (supports conda environments)
+python launch.py --stage dev
 ```
 This command will:
-- Set up the Python virtual environment and install Python dependencies.
-- Download necessary NLTK data.
-- Create placeholder AI model files if actual models are not found (see [AI Models Setup](#ai-models-setup) for crucial next steps).
-- Start the Python FastAPI AI server (default: port 8000) and the React frontend development server (default: port 5173).
+- Automatically detect and use conda environments if available, otherwise create/use a virtual environment
+- Install Python dependencies using uv (or Poetry if specified)
+- Download necessary NLTK data
+- Create placeholder AI model files if actual models are not found (see [AI Models Setup](#ai-models-setup) for crucial next steps)
+- Start the Python FastAPI AI server (default: port 8000) and the React frontend development server (default: port 5173)
 
 The application will typically be available at http://localhost:5173.
+
+**Environment Options:**
+- **Conda users**: The launcher automatically detects conda environments. Use `--conda-env <name>` to specify a particular environment
+- **Virtual environment**: Created automatically in `.venv/` if conda is not available
+- **System Python**: Use `--no-venv` to skip environment creation (not recommended)
 
 **Important Next Steps:**
 - **AI Models:** The Quick Start will get the application running, but AI features require trained models. Please see the [AI Models Setup](#ai-models-setup) section below for critical information.
@@ -253,15 +270,23 @@ Once [Setup](#setup) is complete (including Node.js dependencies, database, and 
 
 The recommended way to run the application for development is using the unified launcher:
 ```bash
-# Windows
+# Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev
 
 # Linux/macOS
 ./launch.sh --stage dev
+
+# Or use Python directly
+python launch.py --stage dev
 ```
 This typically starts:
 - Python FastAPI AI Server (default: port 8000)
 - React Frontend Development Server (default: port 5173, served by Vite)
+
+**Environment Support:**
+- **Conda**: Automatically detected and used if available
+- **Virtual Environment**: Created automatically if conda not found
+- **Custom Conda Environment**: Use `--conda-env <name>` to specify
 
 For other modes (e.g., API-only, frontend-only) and advanced options, see the [Launcher Guide](docs/launcher_guide.md).
 For information on running in Docker, staging, or production environments, see the [Deployment Guide](docs/deployment_guide.md).
@@ -274,19 +299,22 @@ To launch the Gradio UI, use the `--gradio-ui` flag with the launcher script:
 
 -   On Linux/macOS:
     ```bash
-    source venv/bin/activate
     ./launch.sh --gradio-ui
     ```
 -   On Windows:
     ```bash
     launch.bat --gradio-ui
     ```
+-   Or directly with Python:
+    ```bash
+    python launch.py --gradio-ui
+    ```
 
 You can also specify the host, port, and enable debug or sharing mode using the standard launcher arguments:
     ```bash
-    ./launch.sh --gradio-ui --host 0.0.0.0 --port 7860 --debug --share
+    python launch.py --gradio-ui --host 0.0.0.0 --port 7860 --debug --share
     ```
-This will start the Gradio interface, typically accessible at the specified host and port (Gradio's default is 7860 if `--port` is not provided).
+This will start the Gradio interface, typically accessible at the specified host and port (Gradio's default is 7860 if `--port` is not provided). The launcher automatically handles conda/venv environment detection.
 
 ## AI System Overview
 
