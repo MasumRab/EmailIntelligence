@@ -562,25 +562,24 @@ def start_gradio_ui(host, port, share, debug):
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
 
-def handle_setup(args, venv_path):
+def handle_setup(args):
     """Handles the complete setup process."""
     logger.info("Starting environment setup...")
 
-    if args.use_conda:
-    # For Conda, we assume the environment is already set up
-        # Could add Conda environment creation here in the future
-        logger.info("Using Conda environment - assuming dependencies are already installed")
-    else:
-        # Use venv
+    # Try to activate conda environment first
+    if not activate_conda_env():
+        # Fall back to venv if conda activation failed or not available
+        venv_path = ROOT_DIR / VENV_DIR
         create_venv(venv_path, args.force_recreate_venv)
         install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
-        setup_dependencies(venv_path, args.use_poetry)
-        if not args.no_download_nltk:
-            download_nltk_data(venv_path)
 
-        # Setup Node.js dependencies
-        setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
-        setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
+    setup_dependencies(ROOT_DIR / VENV_DIR, args.use_poetry)
+    if not args.no_download_nltk:
+        download_nltk_data()
+
+    # Setup Node.js dependencies
+    setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
+    setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
     logger.info("Setup complete.")
 
 def prepare_environment(args):
@@ -709,15 +708,6 @@ def main():
     logging.getLogger().setLevel(args.loglevel)
 
     if DOTENV_AVAILABLE:
-        # Load user customizations from launch-user.env if it exists
-        user_env_file = ROOT_DIR / "launch-user.env"
-        if user_env_file.exists():
-            load_dotenv(user_env_file)
-            logger.info(f"Loaded user environment variables from {user_env_file}")
-        else:
-            logger.debug(f"User env file not found: {user_env_file}")
-
-        # Load environment file if specified
         env_file = args.env_file or ".env"
         if os.path.exists(env_file):
             logger.info(f"Loading environment variables from {env_file}")
@@ -727,9 +717,6 @@ def main():
     global CONDA_ENV_NAME
     if args.conda_env:
         CONDA_ENV_NAME = args.conda_env
-        args.use_conda = True  # Set flag when conda env is specified
-    else:
-        args.use_conda = False
 
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
@@ -746,24 +733,10 @@ def main():
         sys.exit(1)
 
     if args.setup:
-        venv_path = ROOT_DIR / VENV_DIR
-        handle_setup(args, venv_path)
+        handle_setup(args)
         return
 
-    # Handle Conda environment if requested
-    if args.use_conda:
-        if not is_conda_available():
-            logger.error("Conda is not available. Please install Conda or use venv.")
-            sys.exit(1)
-
-        if not get_conda_env_info()["is_active"]:
-            if not activate_conda_env(args.conda_env):
-                logger.error(f"Failed to activate Conda environment: {args.conda_env}")
-                sys.exit(1)
-        else:
-            logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
-
-    if not args.skip_prepare and not args.use_conda:
+    if not args.skip_prepare:
         prepare_environment(args)
 
     if args.system_info:
