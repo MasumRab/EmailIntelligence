@@ -16,6 +16,7 @@ import atexit
 import logging
 import os
 import platform
+import re
 import shutil
 import signal
 import subprocess
@@ -94,6 +95,128 @@ def check_python_version():
         logger.error(f"Python version {platform.python_version()} is not compatible.")
         sys.exit(1)
     logger.info(f"Python version {platform.python_version()} is compatible.")
+
+# --- Environment Validation ---
+def check_for_merge_conflicts() -> bool:
+    """Check for unresolved merge conflict markers in critical files."""
+    conflict_markers = ["<<<<<<< ", "======= ", ">>>>>>> "]
+    critical_files = [
+        "backend/python_backend/main.py",
+        "backend/python_nlp/nlp_engine.py",
+        "backend/python_backend/database.py",
+        "backend/python_backend/email_routes.py",
+        "backend/python_backend/category_routes.py",
+        "backend/python_backend/gmail_routes.py",
+        "backend/python_backend/filter_routes.py",
+        "backend/python_backend/action_routes.py",
+        "backend/python_backend/dashboard_routes.py",
+        "backend/python_backend/workflow_routes.py",
+        "backend/python_backend/performance_monitor.py",
+        "backend/python_nlp/gmail_integration.py",
+        "backend/python_nlp/gmail_service.py",
+        "backend/python_nlp/smart_filters.py",
+        "backend/python_nlp/smart_retrieval.py",
+        "backend/python_nlp/ai_training.py",
+        "README.md",
+        "pyproject.toml",
+        "requirements.txt",
+        "requirements-dev.txt",
+    ]
+
+    conflicts_found = False
+    for file_path in critical_files:
+        full_path = ROOT_DIR / file_path
+        if full_path.exists():
+            try:
+                with open(full_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    for marker in conflict_markers:
+                        if marker in content:
+                            logger.error(
+                                f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
+                            )
+                            conflicts_found = True
+            except Exception as e:
+                logger.warning(f"Could not check {file_path} for conflicts: {e}")
+
+    if conflicts_found:
+        logger.error("Please resolve all merge conflicts before proceeding.")
+        return False
+
+    logger.info("No unresolved merge conflicts detected in critical files.")
+    return True
+
+
+def check_required_components() -> bool:
+    """Check for required components and configurations."""
+    issues = []
+
+    # Check Python version
+    current_version = sys.version_info[:2]
+    if not ((3, 11) <= current_version <= (3, 13)):
+        issues.append(f"Python version {current_version} is not compatible. Required: 3.11-3.13")
+
+    # Check key directories
+    required_dirs = ["backend", "client", "server", "shared", "tests"]
+    for dir_name in required_dirs:
+        if not (ROOT_DIR / dir_name).exists():
+            issues.append(f"Required directory '{dir_name}' is missing.")
+
+    # Check key files
+    required_files = ["pyproject.toml", "README.md", "requirements.txt"]
+    for file_name in required_files:
+        if not (ROOT_DIR / file_name).exists():
+            issues.append(f"Required file '{file_name}' is missing.")
+
+    # Check AI models directory
+    models_dir = ROOT_DIR / "models"
+    if not models_dir.exists():
+        logger.warning("AI models directory not found. Creating it...")
+        try:
+            models_dir.mkdir(parents=True, exist_ok=True)
+            logger.info("AI models directory created successfully.")
+        except Exception as e:
+            logger.error(f"Failed to create models directory: {e}")
+            issues.append("Failed to create models directory")
+
+    if issues:
+        for issue in issues:
+            logger.error(issue)
+        return False
+
+    logger.info("All required components are present.")
+    return True
+
+
+def validate_environment() -> bool:
+    """Run comprehensive environment validation."""
+    logger.info("Running environment validation...")
+
+    if not check_for_merge_conflicts():
+        return False
+
+    if not check_required_components():
+        return False
+
+    logger.info("Environment validation passed.")
+    return True
+
+
+# --- Input Validation ---
+def validate_port(port: int) -> int:
+    """Validate port number is within valid range."""
+    if not 1 <= port <= 65535:
+        raise ValueError(f"Invalid port: {port}. Port must be between 1 and 65535.")
+    return port
+
+
+def validate_host(host: str) -> str:
+    """Validate host name/address format."""
+    import re
+
+    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
+        raise ValueError(f"Invalid host: {host}")
+    return host
 
 # --- Helper Functions ---
 def get_venv_executable(venv_path: Path, executable: str) -> Path:
@@ -505,6 +628,20 @@ def main():
             load_dotenv(env_file)
 
     venv_path = ROOT_DIR / VENV_DIR
+
+    # Validate environment if not skipping preparation
+    if not args.skip_prepare and not validate_environment():
+        sys.exit(1)
+
+    # Validate input arguments
+    try:
+        args.port = validate_port(args.port)
+        args.host = validate_host(args.host)
+        if hasattr(args, 'frontend_port'):
+            args.frontend_port = validate_port(args.frontend_port)
+    except ValueError as e:
+        logger.error(f"Input validation failed: {e}")
+        sys.exit(1)
 
     if args.setup:
         handle_setup(args, venv_path)
