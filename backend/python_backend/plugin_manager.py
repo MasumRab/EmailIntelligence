@@ -4,8 +4,6 @@ Plugin Manager for the Email Intelligence Platform
 This module provides a system for discovering, loading, and managing
 external plugins.
 """
-
-import importlib.util
 import logging
 import os
 from typing import List

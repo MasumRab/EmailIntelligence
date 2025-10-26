@@ -1,11 +1,13 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Sample Email Processing Node Plugin for Email Intelligence Platform
 
 Implements a sample processing node for the node-based workflow system.
 """
 
 from typing import Any, Dict, Type
-
 from backend.plugins.base_plugin import ProcessingNode
 
 

@@ -38,10 +38,6 @@ async def get_emails(
         request: The incoming request object.
         category_id: An optional category ID to filter emails.
         search: An optional search term to filter emails by subject, content, or sender.
-        limit: Number of emails to return (default 50)
-        offset: Number of emails to skip (for pagination)
-        is_unread: Optional flag to filter unread emails
-        email_service: The email service dependency.
 
     Returns:
         A list of emails that match the filtering criteria.
@@ -53,38 +49,16 @@ async def get_emails(
         if search:
             result = await email_service.search_emails(search, limit)
         else:
-            result = await email_service.get_all_emails(limit, offset, category_id, is_unread)
-
-        if result.success:
-            return result.data
-        else:
-            # Handle error case
-            raise HTTPException(status_code=500, detail=result.error)
-    except HTTPException:
-        raise
-    except Exception as e:
-        log_data = create_log_data(
-            message="Unhandled error in get_emails",
-            request_url=request.url,
-            error_type=type(e).__name__,
-            error_detail=str(e),
-        )
-        logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to fetch emails due to an unexpected error.")
 
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @log_performance(operation="get_email")
-async def get_email(
-    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
-):
     """
     Retrieves a specific email by its unique ID.
 
     Args:
         request: The incoming request object.
         email_id: The ID of the email to retrieve.
-        email_service: The email service dependency.
 
     Returns:
         The email object if found.
@@ -93,14 +67,6 @@ async def get_email(
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
-        result = await email_service.get_email_by_id(email_id)
-        if result.success:
-            return EmailResponse(**result.data)
-        else:
-            # Raise appropriate exception if not found
-            raise EmailNotFoundException(email_id=email_id)
-    except EmailNotFoundException:
-        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -125,61 +91,8 @@ async def create_email(
 ):
     """Create new email with AI analysis using the active workflow."""
     try:
-        # Get the active workflow from the workflow engine
-        # First, check if there's a global active workflow setting
-        from backend.node_engine.workflow_manager import workflow_manager
-        
-        # Try to get the active workflow from settings
-        active_workflow = None
-        settings_file = "data/settings.json"
-        import os
-        import json
-        
-        if os.path.exists(settings_file):
-            try:
-                with open(settings_file, "r") as f:
-                    settings = json.load(f)
-                    active_workflow_id = settings.get("active_workflow")
-                    if active_workflow_id:
-                        active_workflow = workflow_manager.load_workflow(active_workflow_id)
-            except Exception as e:
-                logger.warning(f"Could not load active workflow from settings: {e}")
-        
-        # If no active workflow from settings, use the default one
-        if not active_workflow:
-            # Try to find a default workflow
-            workflows = workflow_manager.list_workflows()
-            default_workflow = next((w for w in workflows if w["name"] == "default"), None)
-            if default_workflow:
-                active_workflow = workflow_manager.load_workflow(default_workflow["id"])
-        
-        # If still no workflow, create a default one-time workflow
-        if not active_workflow:
-            active_workflow = workflow_manager.create_sample_workflow()
-            # Save it as the default workflow
-            try:
-                workflow_manager.save_workflow(active_workflow)
-                logger.info(f"Created and saved default sample workflow: {active_workflow.workflow_id}")
-            except Exception as e:
-                logger.warning(f"Could not save sample workflow: {e}")
-            
-            # Log that we're using a fallback workflow
-            logger.warning("No active workflow found, using sample workflow as fallback")
-
-        # Execute the selected workflow to process the email data
-        execution_context = await workflow_engine.execute_workflow(
-            active_workflow, {"email_data": email.model_dump()}
-        )
-        processed_data = execution_context.outputs.get("processed_email", email.model_dump())
-
-        # Add email through service layer
-        result = await email_service.create_email(processed_data)
-
-        if result.success:
-            return EmailResponse(**result.data)
-        else:
-            # Handle error case
-            raise HTTPException(status_code=500, detail=result.error)
+        # Run the active workflow to process the email data
+        processed_data = await workflow_engine.run_workflow(email.model_dump())
     except Exception as e:
         log_data = create_log_data(
             message="Unhandled error in create_email",
@@ -188,7 +101,9 @@ async def create_email(
             error_detail=str(e),
         )
         logger.error(json.dumps(log_data))
-        raise AIAnalysisError(detail="Failed to create email due to an unexpected error.")
+        raise HTTPException(
+            status_code=500, detail="Failed to create email due to an unexpected error."
+        )
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
@@ -206,7 +121,6 @@ async def update_email(
         request: The incoming request object.
         email_id: The ID of the email to update.
         email_update: The email data to update.
-        email_service: The email service dependency.
 
     Returns:
         The updated email object.
@@ -215,18 +129,6 @@ async def update_email(
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
-        # Convert EmailUpdate to dict for service layer, excluding unset values
-        update_data = email_update.model_dump(exclude_unset=True)
-
-        result = await email_service.update_email(email_id, update_data)
-
-        if result.success:
-            return EmailResponse(**result.data)
-        else:
-            # Raise appropriate exception if not found
-            raise EmailNotFoundException(email_id=email_id)
-    except EmailNotFoundException:
-        raise
     except HTTPException:
         raise
     except Exception as e:

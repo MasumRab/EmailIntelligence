@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Pydantic Models for Gmail AI Email Management
 Data validation and serialization models
 """
@@ -7,9 +10,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-from .constants import DEFAULT_CATEGORY_COLOR
+from pydantic import BaseModel, Field, validator
 
 
 # Enums
@@ -66,13 +67,14 @@ class EmailCreate(EmailBase):
     attachmentCount: int = 0
     sizeEstimate: int = 0
 
-    @field_validator("preview", mode="before")
-    @classmethod
-    def set_preview(cls, v, info):
-        """Sets the preview from the content if not provided."""
-        if not v and info.data and "content" in info.data:
-            content = info.data["content"]
-            return content[:200] + "..." if len(content) > 200 else content
+    @validator("preview", always=True)
+    def set_preview(cls, v, values):
+        if not v and "content" in values:
+            return (
+                values["content"][:200] + "..."
+                if len(values["content"]) > 200
+                else values["content"]
+            )
         return v
 
 
@@ -116,7 +118,7 @@ class CategoryBase(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
-    color: str = Field(default=DEFAULT_CATEGORY_COLOR, pattern=r"^#[0-9A-Fa-f]{6}$")
+    color: str = Field(default="#6366f1", pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
 class CategoryCreate(CategoryBase):
@@ -157,14 +159,9 @@ class ActivityResponse(ActivityBase):
 
 
 # AI Analysis Models
-class ActionItem(BaseModel):
-    """Model representing a single extracted action item from an email."""
-
-    action_phrase: str
-    verb: Optional[str] = None
-    object: Optional[str] = None
-    raw_due_date_text: Optional[str] = None
-    context: str
+class AIAnalysisRequest(BaseModel):
+    subject: str
+    content: str
 
 
 class AIAnalysisResponse(BaseModel):
@@ -174,17 +171,20 @@ class AIAnalysisResponse(BaseModel):
     sentiment: SentimentType
     intent: str
     urgency: EmailPriority
+    isImportant: bool = False
     confidence: float = Field(ge=0.0, le=1.0)
     categories: List[str]
     keywords: List[str]
     reasoning: str
     suggestedLabels: List[str] = Field(alias="suggested_labels")
     riskFlags: List[str] = Field(alias="risk_flags")
+    actionItems: List[ActionItem] = Field(default_factory=list)
     categoryId: Optional[int] = None
     isImportant: bool = False
     actionItems: List[ActionItem] = Field(default_factory=list)
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class AICategorizeRequest(BaseModel):
@@ -213,7 +213,7 @@ class AIValidateResponse(BaseModel):
     message: str
 
 
-# Models for Action Item Extraction
+# Models moved from main.py for Action Item Extraction
 class ActionExtractionRequest(BaseModel):
     """Model for a request to extract action items from an email."""
 
@@ -271,26 +271,28 @@ class RetrievalStrategy(BaseModel):
 class EmailFilterCriteria(BaseModel):
     """Model representing the criteria for an email filter."""
 
-    fromPatterns: Optional[List[str]] = Field(alias="from_patterns")
-    subjectKeywords: Optional[List[str]] = Field(alias="subject_keywords")
-    contentKeywords: Optional[List[str]] = Field(alias="content_keywords")
-    excludePatterns: Optional[List[str]] = Field(alias="exclude_patterns")
-    timeSensitivity: Optional[str] = Field(alias="time_sensitivity")
+    fromPatterns: Optional[List[str]] = Field(default=None, alias="from_patterns")
+    subjectKeywords: Optional[List[str]] = Field(default=None, alias="subject_keywords")
+    contentKeywords: Optional[List[str]] = Field(default=None, alias="content_keywords")
+    excludePatterns: Optional[List[str]] = Field(default=None, alias="exclude_patterns")
+    timeSensitivity: Optional[str] = Field(default=None, alias="time_sensitivity")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class EmailFilterActions(BaseModel):
     """Model representing the actions to be taken by an email filter."""
 
-    addLabel: Optional[str] = Field(alias="add_label")
+    addLabel: Optional[str] = Field(default=None, alias="add_label")
     markImportant: bool = Field(default=False, alias="mark_important")
     markRead: bool = Field(default=False, alias="mark_read")
     archive: bool = False
-    forwardTo: Optional[str] = Field(alias="forward_to")
+    forwardTo: Optional[str] = Field(default=None, alias="forward_to")
     autoReply: bool = Field(default=False, alias="auto_reply")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class FilterRequest(BaseModel):
@@ -319,7 +321,8 @@ class FilterResponse(BaseModel):
     falsePositiveRate: float = Field(alias="false_positive_rate")
     isActive: bool = Field(alias="is_active")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 # Performance Models
@@ -332,7 +335,8 @@ class PerformanceMetric(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
     recordedAt: datetime = Field(alias="recorded_at")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class QuotaStatus(BaseModel):
@@ -342,7 +346,8 @@ class QuotaStatus(BaseModel):
     hourlyUsage: Dict[str, Any] = Field(alias="hourly_usage")
     projectedDailyUsage: int = Field(alias="projected_daily_usage")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class PerformanceAlert(BaseModel):
@@ -365,7 +370,8 @@ class PerformanceRecommendation(BaseModel):
     expectedImprovement: str = Field(alias="expected_improvement")
     action: str
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class PerformanceOverview(BaseModel):
@@ -378,7 +384,8 @@ class PerformanceOverview(BaseModel):
     alerts: List[PerformanceAlert]
     recommendations: List[PerformanceRecommendation]
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 # Dashboard Models
@@ -398,7 +405,8 @@ class DashboardStats(BaseModel):
     timeSaved: str = Field(alias="time_saved")
     weeklyGrowth: WeeklyGrowth = Field(alias="weekly_growth")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 # Training Models
@@ -413,7 +421,8 @@ class TrainingRequest(BaseModel):
     )
     validationSplit: float = Field(default=0.2, ge=0.1, le=0.5, alias="validation_split")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class TrainingResponse(BaseModel):
@@ -427,7 +436,8 @@ class TrainingResponse(BaseModel):
     emailsProcessed: int = Field(alias="emails_processed")
     error: Optional[str] = None
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 # Health Check Models
@@ -439,7 +449,8 @@ class ServiceHealth(BaseModel):
     timestamp: datetime
     responseTime: Optional[float] = Field(alias="response_time")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class SystemHealth(BaseModel):
@@ -466,7 +477,8 @@ class SearchRequest(BaseModel):
     limit: int = Field(default=50, ge=1, le=200)
     offset: int = Field(default=0, ge=0)
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class SearchResponse(BaseModel):
@@ -477,17 +489,19 @@ class SearchResponse(BaseModel):
     hasMore: bool = Field(alias="has_more")
     searchTime: float = Field(alias="search_time")
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 # Batch Operations
 class BatchEmailUpdate(BaseModel):
     """Model for a request to update a batch of emails."""
 
-    emailIds: List[int] = Field(alias="email_ids", min_length=1)
+    emailIds: List[int] = Field(alias="email_ids", min_items=1)
     updates: EmailUpdate
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 class BatchOperationResponse(BaseModel):
@@ -499,7 +513,8 @@ class BatchOperationResponse(BaseModel):
     errorCount: int = Field(alias="error_count")
     errors: List[Dict[str, Any]] = Field(default_factory=list)
 
-    model_config = ConfigDict(populate_by_name=True)
+    class Config:
+        allow_population_by_field_name = True
 
 
 # API Response Models

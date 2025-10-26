@@ -4,14 +4,6 @@ Test stages for the EmailIntelligence application.
 This module provides test execution stages that can be run via the launch.py script.
 It assumes that the Python virtual environment is already set up and activated externally.
 The launch.py script handles environment setup before calling these test stages.
-
-Test Environment Setup Requirements:
-- Python virtual environment must be created and activated (run `python launch.py --setup` to install dependencies)
-- For unit tests: No external services needed
-- For integration tests: SQLite database should be initialized; run `python launch.py` to start services if needed
-- For API tests: Backend services must be running (use `python launch.py` to start)
-- Ensure NLTK data is downloaded for NLP tests (handled automatically in code)
-- Coverage reporting requires `pytest-cov` installed
 """
 
 import logging
@@ -28,7 +20,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 def get_python_executable() -> str:
     """Get the Python executable path from the venv."""
-    venv_path = ROOT_DIR / "venv"
+    venv_path = ROOT_DIR / ".venv"
     if sys.platform == "win32":
         python_exe = venv_path / "Scripts" / "python.exe"
     else:
@@ -36,17 +28,15 @@ def get_python_executable() -> str:
 
     if python_exe.exists():
         return str(python_exe)
-    # Fallback to system python if venv not found, though it should exist
-    # when run via launch.py
+    # Fallback to system python if venv not found
     return sys.executable
 
 
 def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
     """Helper function to run pytest."""
     python_exe = get_python_executable()
-    cmd = [python_exe, "-m", "pytest", test_path]
+    cmd = [python_exe, "-m", "pytest"] + test_path.split()
     if coverage:
-        # Adjusting cov path to be more specific
         cmd.extend(["--cov=src", "--cov-report=term-missing"])
     if debug:
         cmd.append("-vv")
@@ -75,7 +65,7 @@ class TestStages:
     def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
         """Runs unit tests."""
         print("\n--- Running Unit Tests ---")
-        # Run unit tests in tests/core and tests/modules (assuming granular structure)
+        # Run unit tests in tests/core and tests/modules
         success = _run_pytest("tests/core tests/modules", coverage, debug)
         print(f"--- Unit Test Result: {'SUCCESS' if success else 'FAILURE'} ---")
         return success
@@ -105,7 +95,6 @@ class TestStages:
         print("\n--- Running Security Tests ---")
         print("No security tests configured. Skipping.")
         return True
-
 
 # The launch script expects to import this specific object.
 test_stages = TestStages()
