@@ -86,6 +86,7 @@ atexit.register(process_manager.cleanup)
 PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = ".venv"
+CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 # --- Python Version Checking ---
 def check_python_version():
@@ -218,6 +219,90 @@ def validate_host(host: str) -> str:
         raise ValueError(f"Invalid host: {host}")
     return host
 
+
+# --- Conda Environment Support ---
+def is_conda_available() -> bool:
+    """Check if conda is available on the system."""
+    try:
+        result = subprocess.run(
+            ["conda", "--version"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def get_conda_env_info():
+    """Get information about the current conda environment."""
+    env_vars = os.environ
+    conda_default_env = env_vars.get("CONDA_DEFAULT_ENV")
+    conda_prefix = env_vars.get("CONDA_PREFIX")
+
+    return {
+        "is_active": conda_default_env is not None,
+        "env_name": conda_default_env,
+        "prefix": conda_prefix,
+        "python_exe": env_vars.get("CONDA_PREFIX", "") + "/python" if conda_prefix else None
+    }
+
+
+def activate_conda_env(env_name: str = None) -> bool:
+    """Activate a conda environment."""
+    env_name = env_name or CONDA_ENV_NAME
+
+    if not is_conda_available():
+        logger.debug("Conda not available, skipping environment activation.")
+        return False
+
+    conda_info = get_conda_env_info()
+    if conda_info["is_active"]:
+        logger.info(f"Already in conda environment: {conda_info['env_name']}")
+        return True
+
+    try:
+        # Try to activate the specified environment
+        logger.info(f"Activating conda environment: {env_name}")
+        result = subprocess.run(
+            ["conda", "activate", env_name],
+            shell=True,  # shell=True is needed for conda activate
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        logger.info(f"Successfully activated conda environment: {env_name}")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"Failed to activate conda environment {env_name}: {e}")
+        return False
+
+
+def get_python_executable() -> str:
+    """Get the appropriate Python executable (conda > venv > system)."""
+    # Check if we're in a conda environment
+    conda_info = get_conda_env_info()
+    if conda_info["is_active"] and conda_info["python_exe"]:
+        python_exe = conda_info["python_exe"]
+        if platform.system() == "Windows":
+            python_exe += ".exe"
+        if os.path.exists(python_exe):
+            logger.info(f"Using conda Python: {python_exe}")
+            return python_exe
+
+    # Check for venv
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
+        python_exe = get_venv_executable(venv_path, "python")
+        if python_exe.exists():
+            logger.info(f"Using venv Python: {python_exe}")
+            return str(python_exe)
+
+    # Fall back to system Python
+    logger.info("Using system Python")
+    return sys.executable
+
 # --- Helper Functions ---
 def get_venv_executable(venv_path: Path, executable: str) -> Path:
     """Get the path to a specific executable in the virtual environment."""
@@ -254,26 +339,27 @@ def install_package_manager(venv_path: Path, manager: str):
     run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
-    if use_poetry:
-        poetry_exe = get_venv_executable(venv_path, "poetry")
-        run_command([str(poetry_exe), "install", "--with", "dev"], "Installing dependencies with Poetry", cwd=ROOT_DIR)
-    else:
-        uv_exe = get_venv_executable(venv_path, "uv")
-        run_command([str(uv_exe), "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
+    python_exe = get_python_executable()
 
-def download_nltk_data(venv_path: Path):
-    python_exe = get_venv_executable(venv_path, "python")
-    script = "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
-    run_command([str(python_exe), "-c", script], "Downloading NLTK data")
-    run_command(
-        [str(python_exe), "-m", "textblob.download_corpora"],
-        "Downloading TextBlob corpora",
-    )
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+    if use_poetry:
+        # For poetry, we need to install it first if not available
+        try:
+            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
+
+        run_command([python_exe, "-m", "poetry", "install", "--with", "dev"], "Installing dependencies with Poetry", cwd=ROOT_DIR)
+    else:
+        # For uv, install if not available
+        try:
+            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
+
+        run_command([python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
+
+def download_nltk_data():
+    python_exe = get_python_executable()
 
     nltk_download_script = """
 import nltk
@@ -288,7 +374,7 @@ print("NLTK data download completed.")
 
     logger.info("Downloading NLTK data...")
     result = subprocess.run(
-        [str(venv_python), "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+        [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
     )
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
@@ -297,22 +383,25 @@ print("NLTK data download completed.")
     else:
         logger.info("NLTK data downloaded successfully.")
 
+    # Download TextBlob corpora
+    run_command([python_exe, "-m", "textblob.download_corpora"], "Downloading TextBlob corpora")
 
-def check_uvicorn_installed(venv_path: Path) -> bool:
-    """Check if uvicorn is installed in the virtual environment."""
-    venv_python = get_venv_python_path()
+
+def check_uvicorn_installed() -> bool:
+    """Check if uvicorn is installed."""
+    python_exe = get_python_executable()
     try:
         result = subprocess.run(
-            [str(venv_python), "-c", "import uvicorn"], capture_output=True, text=True
+            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
         )
         if result.returncode == 0:
-            logger.info("uvicorn is available in the virtual environment.")
+            logger.info("uvicorn is available.")
             return True
         else:
-            logger.error("uvicorn is not installed in the virtual environment.")
+            logger.error("uvicorn is not installed.")
             return False
     except FileNotFoundError:
-        logger.error("Virtual environment Python not found.")
+        logger.error("Python executable not found.")
         return False
 
 
@@ -342,33 +431,19 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
 
 
-def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
+def start_backend(host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
-    if not check_uvicorn_installed(venv_path):
+    if not check_uvicorn_installed():
         logger.error(
             "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
         )
         return None
 
-    venv_python = get_venv_python_path(venv_path)
-
-    # Always use uvicorn to run the FastAPI app
-    import os
-
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
-
-def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
-    """Start the Python FastAPI backend."""
-    venv_python = (
-        venv_path / "Scripts" / "python.exe"
-        if platform.system() == "Windows"
-        else venv_path / "bin" / "python"
-    )
+    python_exe = get_python_executable()
 
     # Use uvicorn to run the FastAPI app directly
     cmd = [
-        str(venv_python),
+        python_exe,
         "-m",
         "uvicorn",
         "backend.python_backend.main:app",
@@ -379,6 +454,9 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
     ]
     if debug:
         cmd.append("--reload")  # Enable auto-reload in debug mode
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
 
     logger.info(f"Starting Python backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
@@ -446,9 +524,9 @@ def start_server_ts():
         logger.info("Installing TypeScript server dependencies...")
 
 # --- Service Startup Functions ---
-def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
-    python_exe = get_venv_executable(venv_path, "python")
-    cmd = [str(python_exe), "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
+def start_backend(host: str, port: int, debug: bool = False):
+    python_exe = get_python_executable()
+    cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
     if debug:
         cmd.append("--reload")
     logger.info(f"Starting backend on {host}:{port}")
@@ -475,49 +553,57 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     logger.info(f"Installing npm dependencies for {service_name}...")
     run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
 
-def start_gradio_ui(venv_path, host, port, share, debug):
+def start_gradio_ui(host, port, share, debug):
     logger.info("Starting Gradio UI...")
-    # Simplified example
-    python_exe = get_venv_executable(venv_path, "python")
-    cmd = [str(python_exe), "-m", "src.main"] # Assuming Gradio is launched from main
+    python_exe = get_python_executable()
+    cmd = [python_exe, "-m", "src.main"] # Assuming Gradio is launched from main
     if share:
         cmd.append("--share")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
 
-def handle_setup(args, venv_path):
+def handle_setup(args):
     """Handles the complete setup process."""
     logger.info("Starting environment setup...")
-    create_venv(venv_path, args.force_recreate_venv)
-    install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
-    setup_dependencies(venv_path, args.use_poetry)
+
+    # Try to activate conda environment first
+    if not activate_conda_env():
+        # Fall back to venv if conda activation failed or not available
+        venv_path = ROOT_DIR / VENV_DIR
+        create_venv(venv_path, args.force_recreate_venv)
+        install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
+
+    setup_dependencies(ROOT_DIR / VENV_DIR, args.use_poetry)
     if not args.no_download_nltk:
-        download_nltk_data(venv_path)
+        download_nltk_data()
 
     # Setup Node.js dependencies
     setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
     setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
     logger.info("Setup complete.")
 
-def prepare_environment(args, venv_path):
+def prepare_environment(args):
     """Prepares the environment for running the application."""
     if not args.no_venv:
-        create_venv(venv_path)
+        # Try conda first
+        if not activate_conda_env():
+            venv_path = ROOT_DIR / VENV_DIR
+            create_venv(venv_path)
         if args.update_deps:
-            setup_dependencies(venv_path, args.use_poetry)
+            setup_dependencies(ROOT_DIR / VENV_DIR, args.use_poetry)
     if not args.no_download_nltk:
-        download_nltk_data(venv_path)
+        download_nltk_data()
 
-def start_services(args, venv_path):
+def start_services(args):
     """Starts the required services based on arguments."""
     api_url = args.api_url or f"http://{args.host}:{args.port}"
 
     if not args.frontend_only:
-        start_backend(venv_path, args.host, args.port, args.debug)
+        start_backend(args.host, args.port, args.debug)
         start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
 
     if not args.api_only:
-        start_gradio_ui(venv_path, args.host, 7860, args.share, args.debug)
+        start_gradio_ui(args.host, 7860, args.share, args.debug)
         start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
 
 def handle_test_stage(args):
@@ -556,6 +642,7 @@ def main():
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
     parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
     parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
+    parser.add_argument("--conda-env", type=str, help="Specify conda environment name to use.")
     parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching.")
     parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test for PyTorch.")
     parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
@@ -614,7 +701,6 @@ def main():
     args = parser.parse_args()
 
     check_python_version()
-    venv_path = ROOT_DIR / VENV_DIR
 
     if not args.skip_python_version_check:
         check_python_version()
@@ -627,7 +713,10 @@ def main():
             logger.info(f"Loading environment variables from {env_file}")
             load_dotenv(env_file)
 
-    venv_path = ROOT_DIR / VENV_DIR
+    # Set conda environment name if specified
+    global CONDA_ENV_NAME
+    if args.conda_env:
+        CONDA_ENV_NAME = args.conda_env
 
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
@@ -644,11 +733,11 @@ def main():
         sys.exit(1)
 
     if args.setup:
-        handle_setup(args, venv_path)
+        handle_setup(args)
         return
 
     if not args.skip_prepare:
-        prepare_environment(args, venv_path)
+        prepare_environment(args)
 
     if args.system_info:
         # Placeholder for system_info function
@@ -661,7 +750,7 @@ def main():
         return
 
     # Service startup logic
-    start_services(args, venv_path)
+    start_services(args)
 
     logger.info("All services started. Press Ctrl+C to shut down.")
     try:
