@@ -647,11 +647,46 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
             logger.info("All critical packages verified successfully.")
 
 
+def check_node_npm_installed() -> bool:
+    """Check if Node.js and npm are installed and available."""
+if not shutil.which("node"):
+    logger.error("Node.js is not installed. Please install it to continue.")
+return False
+    if not shutil.which("npm"):
+        logger.error("npm is not installed. Please install it to continue.")
+        return False
+    return True
+
+
+def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
+"""Install Node.js dependencies in a given directory."""
+pkg_json_path = ROOT_DIR / directory / "package.json"
+    if not pkg_json_path.exists():
+    logger.debug(f"No package.json in '{directory}/', skipping npm install.")
+        return True
+
+    if not check_node_npm_installed():
+        return False
+
+    cmd = ["npm", "update" if update else "install"]
+    desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
+    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+
+
+def setup_node_dependencies(service_path: Path, service_name: str):
+    """Install npm dependencies for a Node.js service."""
+    if not (service_path / "package.json").exists():
+        logger.warning(f"package.json not found for {service_name}, skipping dependency installation.")
+        return
+    logger.info(f"Installing npm dependencies for {service_name}...")
+    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
+
+
 def download_nltk_data(venv_path: Path):
     """Download required NLTK data."""
+    venv_python = get_venv_executable(venv_path, "python")
 
-    nltk_download_script = """
-import nltk
+    nltk_download_script = """import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('vader_lexicon')
@@ -815,7 +850,57 @@ def _handle_setup_mode(args, venv_path: Path) -> None:
         if not args.no_download_nltk:
             download_nltk_data(venv_path)
 
+        # Setup Node.js dependencies
+        setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
+        setup_node_dependencies(ROOT_DIR / "server", "TypeScript Backend")
+
     logger.info("Setup completed successfully.")
+
+
+def print_system_info():
+"""Print detailed system, Python, and project configuration information."""
+    import platform
+    import sys
+
+    print(\"=== System Information ===\")
+    print(f\"OS: {platform.system()} {platform.release()}\")
+    print(f\"Architecture: {platform.machine()}\")
+    print(f\"Python Version: {sys.version}\")
+    print(f\"Python Executable: {sys.executable}\")
+
+    print(\"\\n=== Project Information ===\")
+    print(f\"Project Root: {ROOT_DIR}\")
+    print(f\"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}\")
+
+    print(\"\\n=== Environment Status ===\")
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
+        print(f\"Virtual Environment: {venv_path} (exists)\")
+        python_exe = get_venv_executable(venv_path, \"python\")
+        if python_exe.exists():
+            print(f\"Venv Python: {python_exe}\")
+        else:
+            print(\"Venv Python: Not found\")
+    else:
+        print(f\"Virtual Environment: {venv_path} (not created)\")
+
+    conda_available = is_conda_available()
+    print(f\"Conda Available: {conda_available}\")
+    if conda_available:
+        conda_env = os.environ.get('CONDA_DEFAULT_ENV', 'None')
+        print(f\"Current Conda Env: {conda_env}\")
+
+    node_available = check_node_npm_installed()
+    print(f\"Node.js/npm Available: {node_available}\")
+
+    print(\"\\n=== Configuration Files ===\")
+    config_files = [
+        \"pyproject.toml\", \"requirements.txt\", \"requirements-dev.txt\",
+        \"package.json\", \"launch-user.env\", \".env\"
+    ]
+    for cf in config_files:
+        exists = (ROOT_DIR / cf).exists()
+        print(f\"{cf}: {'Found' if exists else 'Not found'}\")
 
 
 def main():
@@ -883,6 +968,7 @@ def main():
         "--debug", action="store_true", help="Enable debug/reload mode for services."
     )
     parser.add_argument("--env-file", help="Path to a custom .env file to load.")
+    parser.add_argument("--system-info", action="store_true", help="Print detailed system, Python, and project configuration information then exit.")
 
     args = parser.parse_args()
 
@@ -915,6 +1001,11 @@ def main():
 
     # Check Python version
     check_python_version()
+
+    # Handle system info request
+    if args.system_info:
+        print_system_info()
+        return
 
     # Set PYTHONPATH for proper imports
     os.environ["PYTHONPATH"] = str(ROOT_DIR)
