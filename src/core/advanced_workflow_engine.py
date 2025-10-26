@@ -575,41 +575,34 @@ class WorkflowManager:
             logger.error(f"Failed to save workflow: {str(e)}")
             return False
 
-    def load_workflow(self, filepath: Union[str, Path]) -> Optional[Workflow]:
+    def load_workflow(self, workflow_filename: Union[str, Path]) -> Optional[Workflow]:
         """Load a workflow from file"""
         try:
-            # Always resolve against the workflows directory to prevent traversal
-            # Coerce filepath to string to support both Path and str
-            candidate = self.workflows_dir / str(filepath)
+            # Always join the user-provided filename with the workflows_dir, then normalize & check it's inside
+            candidate_path = self.workflows_dir / workflow_filename
+            fullpath = candidate_path.resolve()
+            workflows_dir_resolved = self.workflows_dir.resolve()
             try:
-                resolved = candidate.resolve(strict=False)
-            except Exception as e:
-                logger.error(f"Could not resolve workflow path: {str(e)}")
+                # This will raise ValueError if fullpath is not inside workflows_dir_resolved
+                fullpath.relative_to(workflows_dir_resolved)
+            except ValueError:
+                logger.error(f"Access to file outside workflow directory is not allowed: {fullpath}")
                 return None
-            # Security check: restrict reads to within workflows_dir
-            try:
-                workflows_dir_resolved = self.workflows_dir.resolve(strict=True)
-            except Exception as e:
-                logger.error(f"Workflows directory does not exist: {str(e)}")
+
+            if not fullpath.is_file():
+                logger.error(f"Workflow file does not exist: {fullpath}")
                 return None
-            if not str(resolved).startswith(str(workflows_dir_resolved)):
-                logger.error(
-                    f"Attempt to load workflow from outside workflows directory: {resolved}"
-                )
-                return None
-            if not resolved.exists() or not resolved.is_file():
-                logger.error(f"Workflow file does not exist: {resolved}")
-                return None
-            with open(resolved, "r", encoding="utf-8") as f:
+
+            with open(fullpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             workflow = Workflow.from_dict(data)
             self._workflows[workflow.workflow_id] = workflow
-            logger.info(f"Workflow loaded from {filepath}")
+            logger.info(f"Workflow loaded from {fullpath}")
             return workflow
 
         except Exception as e:
-            logger.error(f"Failed to load workflow from {filepath}: {str(e)}")
+            logger.error(f"Failed to load workflow from {workflow_filename}: {str(e)}")
             return None
 
     def list_workflows(self) -> List[str]:

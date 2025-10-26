@@ -18,19 +18,6 @@ router = APIRouter()
 
 @router.get("/api/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories")
-async def get_categories(
-    request: Request, category_service: CategoryService = Depends(get_category_service)
-):
-    """Get all categories"""
-    try:
-        result = await category_service.get_all_categories()
-        if result.success:
-            return result.data
-        else:
-            # Handle error case
-            raise HTTPException(status_code=500, detail=result.error)
-    except HTTPException:
-        raise
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while fetching categories",
@@ -50,18 +37,21 @@ async def create_category(
     category: CategoryCreate,
     category_service: CategoryService = Depends(get_category_service),
 ):
-    """Create new category"""
-    try:
-        # Add category through service layer
-        result = await category_service.create_category(category.model_dump())
+    """
+    Creates a new category in the database.
 
-        if result.success:
-            return result.data
-        else:
-            # Handle error case
-            raise HTTPException(status_code=500, detail=result.error)
-    except HTTPException:
-        raise
+    Args:
+        request (Request): The incoming request object.
+        category (CategoryCreate): The category data for creation.
+        db (DatabaseManager): The database manager dependency.
+
+    Returns:
+        CategoryResponse: The newly created category.
+
+    Raises:
+        HTTPException: If there is a database error or any other failure.
+    """
+    try:
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while creating category",
@@ -71,4 +61,3 @@ async def create_category(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Database service unavailable.")

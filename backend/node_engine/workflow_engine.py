@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Execution Engine for the Email Intelligence Platform.
 
 This module manages the execution of node-based workflows, handling
@@ -258,6 +261,10 @@ class WorkflowEngine:
 
                 node.set_input(conn.target_port, source_output)
 
+    # TODO(P2, 2h): Enhance type validation to support more complex type relationships
+    # TODO(P2, 3h): Add support for optional input ports with default values
+    # TODO(P3, 4h): Implement input transformation pipeline for incompatible but convertible types
+
     def _validate_type_compatibility(
         self, source_type: "DataType", target_type: "DataType"
     ) -> bool:
@@ -279,6 +286,10 @@ class WorkflowEngine:
 
         # Add more type compatibility rules as needed
         return False
+
+    # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations
+    # TODO(P2, 3h): Add support for generic types and type parameters
+    # TODO(P3, 2h): Implement type coercion for compatible but distinct types
 
     async def execute_workflow_async(
         self, workflow: Workflow, initial_inputs: Dict[str, Any] = None

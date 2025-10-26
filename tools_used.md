@@ -80,4 +80,3 @@ To maintain this document, add or remove tools as they are incorporated or remov
 
 ## Launcher & Management
 - **launch.py**: Unified launcher for all application components
-- **run.py**: Development server runner

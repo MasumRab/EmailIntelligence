@@ -1,155 +1,167 @@
-# iFlow Development Session Documentation
+# EmailIntelligence - Unified Development Environment (iFlow Context)
 
-## Session Overview
-- **Date**: Friday, October 24, 2025
-- **Project**: EmailIntelligence - AI-powered email management application
-- **Session Type**: Documented development session with IFLOW.md integration
-- **Environment**: Linux operating system
-- **Working Directory**: /home/masum/github/EmailIntelligence
+## Project Overview
 
-## Session Goals
-- Establish structured development sessions with proper documentation
-- Integrate session tracking with project documentation
-- Create a framework for productive development workflows
-- Ensure all session activities are properly recorded
-- Address high-priority development markers identified in the codebase
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
 
-## Project Context
-The Email Intelligence Platform is a comprehensive email analysis application that combines Python NLP models with a modern React frontend. The project follows a microservices architecture with multiple interconnected services:
+The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports both a standard web interface and a Gradio-based UI for scientific exploration and direct AI model interaction.
 
-- **Python Backend (FastAPI)**: Primary REST API for core application logic, data processing, and AI/NLP tasks
-- **Gradio UI**: Interactive interface for scientific development, model testing, and data visualization
-- **Node-Based Workflow Engine**: Sophisticated workflow system with dependency management and visual editor
-- **TypeScript Backend (Node.js)**: Secondary backend for specific API routes
-- **React Frontend (Vite)**: Main user-facing web application
+## Key Technologies
 
-## Current Architecture
-- **Frontend**: React 18, TypeScript, TailwindCSS, Radix UI, Wouter (routing), React Query
-- **Backend**: FastAPI, Python 3.12, Express.js, TypeScript
-- **AI/ML**: Python NLP models, scikit-learn, Transformers, PyTorch
-- **Database**: SQLite, Drizzle ORM, with JSON file storage
-- **Build Tools**: Vite, esbuild, npm
+- **Backend**: Python 3.11+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
+- **Frontend**: React (Vite), TypeScript
+- **NLP/AI**: Custom NLP engine with sentiment, topic, intent, and urgency analysis models
+- **Database**: SQLite (default)
+- **Deployment**: Docker support, unified launcher script
+- **Workflow Engine**: Node-based workflow system for email processing
+- **Extension System**: Plugin architecture for extending functionality
 
-## Setup & Launch Process
-The project uses a unified launcher script (`launch.py`) for all operations:
+## Project Structure
 
-```bash
-# First-time setup:
-python launch.py --setup
-
-# Running the application:
-python launch.py
-
-# This starts:
-# - Python FastAPI Backend on http://127.0.0.1:8000
-# - Gradio UI on http://127.0.0.1:7860 (or next available port)
-# - Node.js TypeScript Backend (port managed by npm)
-# - React Frontend on http://127.0.0.1:5173 (or next available port)
+```
+EmailIntelligence/
+├── backend/
+│   ├── python_backend/     # Main FastAPI application and Gradio UI
+│   │   ├── main.py         # FastAPI app entry point
+│   │   ├── gradio_app.py   # Gradio UI application
+│   │   ├── ai_engine.py    # AI analysis engine
+│   │   ├── database.py     # Database management
+│   │   └── ...             # Other backend modules
+│   └── python_nlp/         # Core NLP models and analysis components
+│       ├── nlp_engine.py   # Main NLP engine
+│       └── ...             # Analysis components (sentiment, topic, etc.)
+├── client/                 # React frontend application
+├── launch.py               # Unified launcher script
+├── pyproject.toml          # Python project configuration
+├── package.json            # Node.js project configuration
+├── README.md               # Project documentation
+└── ...                     # Other configuration and documentation files
 ```
 
-## Development Priorities
-Based on the development markers report, the following high-priority items have been addressed:
+## Building and Running
 
-1. **High-Priority TODO**: Implement proper workflow selection in `backend/python_backend/email_routes.py:129` - **COMPLETED**
-2. **High-Priority FIXME**: Address the FIXME marker in `setup_linting.py:66` - **COMPLETED**
-3. **Security Notes**: Several security-related notes in `launch.py` regarding shell injection and hardcoded URLs - **RETAINED AS APPROPRIATE SECURITY DOCUMENTATION**
-4. **Missing Features**: Missing update_category and delete_category methods in category_service.py - **COMPLETED**
+### Prerequisites
 
-## Session Tracking
-This IFLOW.md file will serve as the central documentation for development sessions, capturing:
+- Python 3.11 or later
+- Node.js 18 or later
+- Git
 
-1. **Session objectives and goals**
-2. **Development activities performed**
-3. **Code changes and modifications**
-4. **Issues encountered and solutions**
-5. **Next steps and future work**
-6. **Integration with existing project documentation**
+### Quick Start
 
-## Development Workflow
-- All development sessions will be documented in this file
-- Changes will be tracked with timestamps and descriptions
-- Integration points with existing documentation will be noted
-- Session outcomes will be recorded for future reference
-- Focus on addressing high-priority development markers first
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd EmailIntelligence
+   ```
 
-## Expected Outcomes
-- Improved documentation of development activities
-- Better tracking of project progression
-- Enhanced collaboration through shared session logs
-- Integration with existing project documentation practices
-- Structured approach to development session management
-- Resolution of high-priority development markers
+2. Install Node.js dependencies:
+   ```bash
+   npm install
+   ```
 
-## Recent Development Activities
-- **Workflow Selection Implementation**: Updated the email_routes.py to properly handle workflow selection using the Node Engine system
-- **Code Quality Improvements**: Removed the W0511 disable flag from pylint configuration to properly detect FIXME comments
-- **Documentation Updates**: Updated development_markers_report.md to reflect current state of the codebase
-- **Security Practices**: Maintained appropriate security documentation in launch.py as these are legitimate security considerations
-- **Category Management**: Implemented missing update_category and delete_category methods in the database and service layers
+3. Run the application using the launcher:
+   ```bash
+   # Windows
+   launch.bat --stage dev
 
-## Current Outstanding Items
-- **Security Documentation**: The security notes in launch.py are appropriate documentation of security considerations and should be retained
-- **Feature Gaps**: Some items identified in JULES_WIP_ANALYSIS.md still need attention, particularly regarding Gmail API authentication for non-interactive environments
-- **Technical Debt**: Some circular dependency warnings and debug code remain for future cleanup
+   # Linux/macOS
+   ./launch.sh --stage dev
+   ```
 
-## Detailed Development Updates
+This will:
+- Set up the Python virtual environment
+- Install Python dependencies
+- Download necessary NLTK data
+- Create placeholder AI model files
+- Start the Python FastAPI server (default: port 8000)
+- Start the React frontend development server (default: port 5173)
 
-### 1. Workflow Selection Implementation
-The email processing system has been enhanced to properly select and use workflows from the Node Engine system:
-- Added logic to load active workflow from settings
-- Implemented fallback to default workflow if none is configured
-- Added workflow creation and saving functionality for default workflows
-- Integrated with the existing workflow execution engine
+### Launcher Usage
 
-### 2. Category Management Enhancement
-Previously missing functionality for category management has been implemented:
-- **update_category**: Added method to update existing categories in the database
-- **delete_category**: Added method to remove categories from the database
-- Both methods include proper error handling and index management
+The `launch.py` script is the central tool for managing the development environment:
 
-### 3. Code Quality Improvements
-- Removed W0511 disable flag from pylint configuration to properly detect FIXME comments
-- This ensures that future FIXME markers will be properly flagged during code reviews
+- Setup: `python launch.py --setup`
+- Run all services: `python launch.py`
+- Run specific services:
+  - Backend only: `python launch.py --no-client --no-ui`
+  - Frontend only: `python launch.py --no-backend --no-ui`
+  - Gradio UI only: `python launch.py --no-backend --no-client`
 
-### 4. Project Structure and Architecture
-The project follows a modular architecture with these key components:
+### AI Models Setup
 
-#### Backend Services
-- **Python Backend (FastAPI)**: Main API server with email processing, category management, and workflow execution
-- **Node Engine**: Sophisticated node-based workflow system with visual editor capabilities
-- **TypeScript Backend**: Secondary backend for specific API routes
+The application's AI features require trained models. On first run, placeholder files are created. To enable actual AI functionality:
 
-#### Frontend Applications
-- **React Client**: Main user interface built with React, TypeScript, and TailwindCSS
-- **Gradio UI**: Scientific interface for model testing and data visualization
+1. Prepare labeled datasets for training
+2. Modify `backend/python_nlp/ai_training.py` to load your data
+3. Train models and save them with the exact filenames expected by the application:
+   - `backend/python_nlp/sentiment_model.pkl`
+   - `backend/python_nlp/topic_model.pkl`
+   - `backend/python_nlp/intent_model.pkl`
+   - `backend/python_nlp/urgency_model.pkl`
 
-#### Data Management
-- **JSON Storage**: Primary storage for categories, users, and settings
-- **SQLite Database**: Used for performance-critical operations and caching
-- **Workflow Storage**: Node-based workflows stored as JSON files
+### Environment Configuration
 
-#### AI/ML Components
-- **NLP Engine**: Core natural language processing system
-- **Smart Filters**: Advanced email filtering capabilities
-- **Model Manager**: Dynamic loading and management of AI models
+Key environment variables:
+- `DATABASE_URL`: Database connection string
+- `GMAIL_CREDENTIALS_JSON`: Gmail API credentials
+- `NLP_MODEL_DIR`: Directory for trained NLP models
+- `PORT`: Port for the Python FastAPI server (default: 8000)
 
-### 5. Launch Script Enhancements
-The `launch.py` script provides comprehensive management of the development environment:
-- Automated setup of Python virtual environment
-- Dependency installation with uv or Poetry
-- Service management for all components
-- Graceful shutdown handling
-- Environment validation and conflict detection
+## Development Conventions
 
-### 6. Development Tools and Practices
-- **Linting**: Integrated Black, Flake8, isort, Pylint, and MyPy for code quality
-- **Testing**: Pytest-based testing framework with comprehensive test coverage
-- **Documentation**: Auto-generated documentation and manual guides
-- **Deployment**: Docker-based deployment configurations for different environments
+### Code Organization
 
-## Next Development Steps
-1. Address remaining items in JULES_WIP_ANALYSIS.md, particularly Gmail API authentication
-2. Continue refactoring to eliminate circular dependencies
-3. Enhance testing coverage for new workflow and category management features
-4. Improve documentation for the node-based workflow system
-5. Optimize performance of the database operations
+- Backend code is organized in `backend/python_backend/` with modular components
+- NLP models and analysis components are in `backend/python_nlp/`
+- Frontend code follows standard React patterns in `client/`
+- Tests are located in `tests/`
+
+### Python Development
+
+- Uses `uv` for Python dependency management based on `pyproject.toml`
+- Code formatting with `black` and `isort`
+- Type checking with `mypy`
+- Testing with `pytest`
+
+### Frontend Development
+
+- Uses Vite for building and development
+- TypeScript for type safety
+- React for UI components
+
+### Testing
+
+- Backend tests use `pytest`
+- Frontend tests use Vitest
+
+### Security Considerations
+
+- Securely manage API keys and credentials
+- Validate and sanitize user inputs
+- Restrict CORS policy in production
+- Ensure sensitive information is not excessively logged
+
+## Gradio UI Structure
+
+The Gradio interface provides an interactive web UI with the following tabs:
+- Dashboard: Overview and metrics
+- Inbox: Email listing and filtering
+- Gmail: Gmail synchronization
+- AI Lab: Advanced analysis tools and model management
+- System Status: Health and performance metrics
+
+## Advanced Features
+
+### Node-Based Workflow Engine
+
+The application includes a sophisticated node-based workflow system for creating complex email processing pipelines with:
+- Visual workflow creation
+- Security framework
+- Extensibility through plugins
+- Performance monitoring
+
+### Extension System
+
+EmailIntelligence supports an extension system for adding custom functionality:
+- Extensions can be managed using `launch.py`
+- Detailed documentation in `docs/extensions_guide.md`

@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Editor UI for Email Intelligence Platform
 
 Implements a Gradio-based node editor interface for creating and managing

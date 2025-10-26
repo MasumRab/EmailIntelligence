@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Custom exceptions for the Email Intelligence Platform
 Provides consistent error handling across the application
 """
@@ -87,30 +90,6 @@ class DatabaseError(AppException):
         )
 
 
-class AIAnalysisError(AppException):
-    """Raised when AI analysis fails"""
-
-    def __init__(self, message: str, details: Optional[str] = None):
-        super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=message,
-            error_code="AI_ANALYSIS_ERROR",
-            details=details,
-        )
-
-
-class GmailServiceError(AppException):
-    """Raised when Gmail service operations fail"""
-
-    def __init__(self, message: str, details: Optional[str] = None):
-        super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=message,
-            error_code="GMAIL_SERVICE_ERROR",
-            details=details,
-        )
-
-
 class UnauthorizedException(AppException):
     """Raised when authentication/authorization fails"""
 
@@ -127,3 +106,28 @@ class ForbiddenException(AppException):
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN, message=message, error_code="FORBIDDEN"
         )
+
+
+class BaseAppException(Exception):
+    """Base exception class for the application."""
+
+    def __init__(self, status_code: int, detail: str):
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(detail)
+
+
+class AIAnalysisError(BaseAppException):
+    """Exception for AI analysis related errors."""
+
+    def __init__(self, detail: str = "An error occurred during AI analysis."):
+        super().__init__(status_code=500, detail=detail)
+
+
+class GmailServiceError(BaseAppException):
+    """Exception for Gmail service related errors."""
+
+    def __init__(
+        self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
+    ):
+        super().__init__(status_code=status_code, detail=detail)

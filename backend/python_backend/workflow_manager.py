@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Persistence System for Email Intelligence Platform
 
 Implements a complete workflow persistence system allowing users to save

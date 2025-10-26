@@ -26,6 +26,7 @@ python launch.py --stage dev
 ## Features
 
 - **Automatic Environment Setup**: Creates a virtual environment and installs dependencies automatically.
+- **Conda Environment Support**: Automatically detects and uses conda environments when available, with fallback to venv.
 - **Multiple Stages**: Supports development, testing, staging, and production environments.
 - **Extensions Support**: Easily install, update, and manage extensions.
 - **Model Management**: Download, verify, and manage machine learning models.
@@ -37,6 +38,7 @@ python launch.py --stage dev
 ### Environment Setup
 
 - `--no-venv`: Don't create or use a virtual environment. This also skips all Python dependency installation steps. The user is responsible for managing their environment.
+- `--conda-env NAME`: Specify conda environment name to use (default: base). The launcher will try conda first, then fall back to venv.
 - `--update-deps`: Update dependencies before launching (applies if venv is used).
 - `--skip-torch-cuda-test`: Skip CUDA availability test for PyTorch.
 - `--reinstall-torch`: Reinstall PyTorch (useful for CUDA issues).
@@ -191,6 +193,16 @@ If you encounter issues with the virtual environment (e.g., creation failures), 
 ```
 python launch.py --no-venv
 ```
+
+### Conda Environment Issues
+
+The launcher automatically detects and uses conda environments. If you want to use a specific conda environment:
+
+```
+python launch.py --conda-env myenv
+```
+
+If conda is not available or you prefer not to use it, the launcher will fall back to using venv or system Python.
 
 ### Dependency Issues
 
