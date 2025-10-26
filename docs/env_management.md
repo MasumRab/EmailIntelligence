@@ -111,13 +111,14 @@ While `launch.py` automates the installation of Python packages listed in the re
 `launch.py` offers several command-line arguments to control its behavior regarding environment setup:
 
 - **`--no-venv`**: Skips virtual environment creation/use and all Python dependency installations.
+- **`--force-recreate-venv`**: Deletes and recreates the virtual environment before setup.
 - **`--update-deps`**: Forces an update of dependencies during installation.
-- **`--skip-python-version-check`**: Bypasses the Python version compatibility check.
 - **`--no-download-nltk`**: Skips the automatic download of NLTK data.
-- **`--system-info`**: Prints detailed system and environment information and exits.
-- **`--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}`**: Sets the logging verbosity for the launcher.
+- **`--use-poetry`**: Use Poetry instead of uv for dependency management.
+- **`--use-conda`**: Use Conda environment instead of venv.
+- **`--conda-env`**: Specify Conda environment name (default: base).
 
-*(For a full list of launcher arguments, see \`launcher_guide.md\` or run \`python launch.py --help\`)*
+*(For a full list of launcher arguments, run `python launch.py --help`)*
 
 <!-- The section below is intentionally commented out as env_manager.py no longer exists and its functionalities are integrated into launch.py -->
 <!--

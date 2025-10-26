@@ -32,7 +32,13 @@ This README provides a unified guide to setting up and running all components us
 
 ## Getting Started
 
-A single script, `launch.py`, manages the entire development environment, from installing dependencies to running services.
+A single script, `launch.py`, manages the entire development environment, from installing dependencies to running services. It supports both venv and Conda environments and handles Python version detection automatically.
+
+For convenience, simple wrapper scripts are provided:
+- `launch.bat` (Windows)
+- `launch.sh` (Linux/macOS)
+
+User customizations can be added to `launch-user.env`.
 
 ### 1. First-Time Setup
 
@@ -217,7 +223,7 @@ Email Intelligence Platform (Gradio UI)
 ├── package.json                # Node.js project configuration
 ├── requirements.txt            # Python dependencies
 ├── requirements-dev.txt        # Development dependencies
-├── run.py                      # Development server runner
+├── run.py                      # DEPRECATED: Use launch.py instead
 ├── setup_linting.py            # Linting setup script
 ├── setup_python.sh             # Python setup shell script
 ├── SETUP.md                    # Manual setup guide
@@ -447,7 +453,7 @@ Email Intelligence Platform (Gradio UI)
 ├── package.json                # Node.js project configuration
 ├── requirements.txt            # Python dependencies
 ├── requirements-dev.txt        # Development dependencies
-├── run.py                      # Development server runner
+├── run.py                      # DEPRECATED: Use launch.py instead
 ├── setup_linting.py            # Linting setup script
 ├── setup_python.sh             # Python setup shell script
 ├── SETUP.md                    # Manual setup guide
@@ -711,12 +717,12 @@ The application now uses SQLite. The database file (e.g., `sqlite.db`) will typi
 
 **Step 4: Run the Application using the Launcher**
 ```bash
-# For Windows (ensure Python 3.11+ is your default python or use `py -3.11 launch.py --stage dev`)
-launch.bat --stage dev
+# Using the unified launcher (works on all platforms)
+python launch.py --stage dev
 
-# For Linux/macOS (ensure Python 3.11+ or Python 3 is available)
-chmod +x launch.sh
-./launch.sh --stage dev
+# Or use convenience wrappers:
+# Windows: launch.bat --stage dev
+# Linux/macOS: ./launch.sh --stage dev
 ```
 This command will:
 - Set up the Python virtual environment and install Python dependencies.
@@ -749,7 +755,7 @@ The primary method for setting up EmailIntelligence for development is using the
 1.  Clone the repository.
 2.  Install Node.js dependencies (`npm install`).
 3.  Set up the PostgreSQL database (e.g., using `npm run db:setup` with Docker or configuring an existing instance).
-4.  Run the unified launcher script (`launch.py` via `launch.bat` or `launch.sh`) with the `--stage dev` flag.
+4.  Run the unified launcher script (`python launch.py`) with the `--stage dev` flag.
 
 The launcher script (`launch.py`) handles:
 - Python virtual environment creation.
@@ -827,11 +833,12 @@ Once [Setup](#setup) is complete (including Node.js dependencies, database, and 
 
 The recommended way to run the application for development is using the unified launcher:
 ```bash
-# Windows
-launch.bat --stage dev
+# Cross-platform (recommended)
+python launch.py --stage dev
 
-# Linux/macOS
-./launch.sh --stage dev
+# Or use convenience wrappers:
+# Windows: launch.bat --stage dev
+# Linux/macOS: ./launch.sh --stage dev
 ```
 This typically starts:
 - Python FastAPI AI Server (default: port 8000)
@@ -844,20 +851,20 @@ For information on running in Docker, staging, or production environments, see t
 
 For scientific exploration, direct AI model interaction, or testing specific UI components, a Gradio-based interface is available. This is a Python-only, non-Dockerized deployment that runs independently of the main FastAPI backend and React frontend.
 
-To launch the Gradio UI, use the `--gradio-ui` flag with the launcher script:
+To launch the Gradio UI, use the launcher script with service selection flags:
 
--   On Linux/macOS:
-    ```bash
-    ./launch.sh --gradio-ui
-    ```
--   On Windows:
-    ```bash
-    launch.bat --gradio-ui
-    ```
+```bash
+# Cross-platform
+python launch.py --no-backend --no-client
+
+# Or use convenience wrappers:
+# Windows: launch.bat --no-backend --no-client
+# Linux/macOS: ./launch.sh --no-backend --no-client
+```
 
 You can also specify the host, port, and enable debug or sharing mode using the standard launcher arguments:
     ```bash
-    ./launch.sh --gradio-ui --host 0.0.0.0 --port 7860 --debug --share
+    python launch.py --no-backend --no-client --host 0.0.0.0 --port 7860 --debug --share
     ```
 This will start the Gradio interface, typically accessible at the specified host and port (Gradio's default is 7860 if `--port` is not provided).
 
