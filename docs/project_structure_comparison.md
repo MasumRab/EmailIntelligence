@@ -21,7 +21,7 @@
 │   │   ├── performance_monitor.py # Performance monitoring
 │   │   ├── plugin_manager.py   # Plugin management
 │   │   ├── workflow_engine.py  # OLD workflow engine (basic)
-│   │   └── ...                 # Other backend modules
+│   └── ...                 # Other backend modules
 │   └── python_nlp/             # NLP-specific modules
 │       ├── analysis_components/ # NLP analysis components
 │       ├── tests/              # NLP tests
@@ -63,7 +63,6 @@
 ├── package.json                # Node.js project configuration
 ├── requirements.txt            # Python dependencies
 ├── requirements-dev.txt        # Development dependencies
-├── run.py                      # Development server runner
 ├── setup_linting.py            # Linting setup script
 ├── setup_python.sh             # Python setup shell script
 ├── SETUP.md                    # Manual setup guide
@@ -82,7 +81,7 @@
 │   │   ├── models.py           # Pydantic models
 │   │   ├── module_manager.py   # Module registration system
 │   │   ├── performance_monitor.py # Performance monitoring
-│   │   └── workflow_engine.py  # Workflow engine
+│   └── workflow_engine.py  # Workflow engine
 │   └── main.py                 # Application entry point
 ├── modules/                    # NEW: Modular extensions
 │   ├── categories/             # Category management module
@@ -106,7 +105,7 @@
 │   │   ├── security_manager.py # Security components
 │   │   ├── workflow_engine.py  # Advanced workflow engine
 │   │   ├── workflow_manager.py # Workflow persistence
-│   │   └── ...                 # Node engine components
+│   └── ...                 # Node engine components
 │   ├── plugins/                # Plugin implementations
 │   ├── python_backend/         # LEGACY: Old monolithic backend (deprecated)
 │   │   ├── ...                 # Legacy components (marked for removal)
@@ -150,7 +149,6 @@
 ├── package.json                # Node.js project configuration
 ├── requirements.txt            # Python dependencies
 ├── requirements-dev.txt        # Development dependencies
-├── run.py                      # Development server runner
 ├── setup_linting.py            # Linting setup script
 ├── setup_python.sh             # Python setup shell script
 ├── SETUP.md                    # Manual setup guide
