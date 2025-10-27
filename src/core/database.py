@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
 from .data_source import DataSource
-from .performance_monitor import log_performance
+from backend.python_backend.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
@@ -450,6 +450,21 @@ class DatabaseManager(DataSource):
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
 
+    async def get_email_by_message_id(
+        self, message_id: str, include_content: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """Get email by messageId using in-memory index, with option to load heavy content."""
+        if not message_id:
+            return None
+        email_light = self.emails_by_message_id.get(message_id)
+        if not email_light:
+            return None
+        if include_content:
+            email_full = await self._load_and_merge_content(email_light)
+            return self._add_category_details(email_full)
+        else:
+            return self._add_category_details(email_light.copy())
+
 
 # --- Singleton Instance Management ---
 _db_manager_instance: Optional[DatabaseManager] = None
@@ -468,20 +483,6 @@ async def get_db() -> DatabaseManager:
                 await _db_manager_instance._ensure_initialized()
     return _db_manager_instance
 
-    async def get_email_by_message_id(
-        self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
-        """Get email by messageId using in-memory index, with option to load heavy content."""
-        if not message_id:
-            return None
-        email_light = self.emails_by_message_id.get(message_id)
-        if not email_light:
-            return None
-        if include_content:
-            email_full = await self._load_and_merge_content(email_light)
-            return self._add_category_details(email_full)
-        else:
-            return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """

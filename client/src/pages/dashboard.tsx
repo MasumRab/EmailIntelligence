@@ -6,12 +6,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Sidebar } from "@/components/sidebar";
 import { EmailList } from "@/components/email-list";
 import { AIAnalysisPanel } from "@/components/ai-analysis-panel";
+import { AdvancedFilterPanel } from "@/components/advanced-filter-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Search, FolderSync } from "lucide-react";
+import { Search, FolderSync, Filter } from "lucide-react";
 import { useState } from "react";
 import type { Category, EmailWithCategory } from "@shared/schema";
 
@@ -81,6 +82,16 @@ export default function Dashboard() {
     // The query will automatically trigger refetch due to dependency in useQuery
   };
 
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<any>(null);
+
+  const handleApplyFilters = (filters: any) => {
+    setActiveFilters(filters);
+    // In a real implementation, you would apply these filters to your email query
+    console.log("Applying filters:", filters);
+    setShowAdvancedFilters(false); // Close the filter panel after applying
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-gmail-bg">
       <Sidebar categories={categories} />
@@ -105,6 +116,16 @@ export default function Dashboard() {
 
             {/* User Actions */}
             <div className="flex items-center space-x-4">
+              {/* Advanced Filters Button */}
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="flex items-center"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Advanced Filters
+              </Button>
+              
               {/* Connection Status */}
               <Badge variant="secondary" className="bg-green-50 text-green-700 hover:bg-green-50">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
@@ -148,41 +169,50 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Recent Emails & AI Analysis Section - Two Column Layout */}
+          {/* Filter Panel and Email List Section */}
           <div className="mt-8 flex gap-6">
-            {/* Left Column: Email List */}
-            <div className="w-1/2 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Recently Categorized Emails
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      onClick={handleSync}
-                      disabled={syncLoading}
-                      className="bg-blue-500 text-white hover:bg-blue-600"
-                    >
-                      <FolderSync className={`mr-2 h-4 w-4 ${syncLoading ? 'animate-spin' : ''}`} />
-                      {syncLoading ? 'Syncing...' : 'FolderSync Now'}
-                    </Button>
-                    <Button variant="outline">
-                      View Inbox
-                    </Button>
+            {/* Left Column: Advanced Filter Panel and Email List */}
+            <div className="w-2/3 flex flex-col gap-6">
+              {showAdvancedFilters && (
+                <AdvancedFilterPanel 
+                  categories={categories} 
+                  onApplyFilters={handleApplyFilters} 
+                />
+              )}
+              
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Recently Categorized Emails
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        onClick={handleSync}
+                        disabled={syncLoading}
+                        className="bg-blue-500 text-white hover:bg-blue-600"
+                      >
+                        <FolderSync className={`mr-2 h-4 w-4 ${syncLoading ? 'animate-spin' : ''}`} />
+                        {syncLoading ? 'Syncing...' : 'FolderSync Now'}
+                      </Button>
+                      <Button variant="outline">
+                        View Inbox
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex-grow overflow-auto">
-                <EmailList
-                  emails={emails}
-                  loading={emailsLoading}
-                  onEmailSelect={setSelectedEmail}
-                />
+                <div className="flex-grow overflow-auto">
+                  <EmailList
+                    emails={emails}
+                    loading={emailsLoading}
+                    onEmailSelect={setSelectedEmail}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Right Column: AI Analysis Panel */}
-            <div className="w-1/2">
+            <div className="w-1/3">
               {selectedEmail ? (
                 <AIAnalysisPanel email={selectedEmail} />
               ) : (

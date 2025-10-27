@@ -20,7 +20,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 def get_python_executable() -> str:
     """Get the Python executable path from the venv."""
-    venv_path = ROOT_DIR / ".venv"
+    venv_path = ROOT_DIR / "venv"
     if sys.platform == "win32":
         python_exe = venv_path / "Scripts" / "python.exe"
     else:
