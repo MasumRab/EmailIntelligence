@@ -162,6 +162,11 @@ class SmartGmailRetriever:
 
 
 async def main_cli():
-    """Provides a command-line interface for the SmartGmailRetriever."""
-    parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
+"""Provides a command-line interface for the SmartGmailRetriever."""
+parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
+# TODO: Implement CLI logic
+    pass
+
+
+if __name__ == "__main__":
     asyncio.run(main_cli())
