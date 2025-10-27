@@ -6,7 +6,7 @@ from backend.python_backend.ai_engine import AIAnalysisResult
 @pytest.fixture
 def mock_ai_engine():
     """Fixture to mock the AdvancedAIEngine used in the action routes."""
-    with patch("backend.python_backend.action_routes.ai_engine", new_callable=AsyncMock) as mock_ae:
+    with patch("backend.python_backend.ai_routes.ai_engine", new_callable=AsyncMock) as mock_ae:
         yield mock_ae
 
 
