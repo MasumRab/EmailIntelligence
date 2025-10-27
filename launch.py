@@ -22,6 +22,7 @@ import signal
 import subprocess
 import sys
 import time
+import threading
 import venv
 from pathlib import Path
 from typing import List, Optional
@@ -60,11 +61,19 @@ class ProcessManager:
     """Manages child processes for the application."""
     def __init__(self):
         self.processes = []
+        self.lock = threading.Lock()  # Add lock for thread safety
+        
     def add_process(self, process):
-        self.processes.append(process)
+        with self.lock:
+            self.processes.append(process)
+            
     def cleanup(self):
         logger.info("Performing explicit resource cleanup...")
-        for p in self.processes[:]:
+        # Create a copy of the list to avoid modifying while iterating
+        with self.lock:
+            processes_copy = self.processes[:]
+            
+        for p in processes_copy:
             if p.poll() is None:
                 logger.info(f"Terminating process {p.pid}...")
                 p.terminate()
@@ -74,6 +83,7 @@ class ProcessManager:
                     logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                     p.kill()
         logger.info("Resource cleanup completed.")
+        
     def shutdown(self):
         logger.info("Received shutdown signal, cleaning up processes...")
         self.cleanup()
@@ -315,21 +325,28 @@ def activate_conda_env(env_name: str = None) -> bool:
         logger.info(f"Already in conda environment: {conda_info['env_name']}")
         return True
 
+    # Check if the requested environment exists
     try:
-        # Try to activate the specified environment
-        logger.info(f"Activating conda environment: {env_name}")
         result = subprocess.run(
-            ["conda", "activate", env_name],
-            shell=True,  # shell=True is needed for conda activate
+            ["conda", "info", "--envs"],
             capture_output=True,
             text=True,
             check=True
         )
-        logger.info(f"Successfully activated conda environment: {env_name}")
-        return True
+        envs = result.stdout.strip().split('\n')
+        env_names = [line.split()[0] for line in envs if line.strip() and not line.startswith('#')]
+        if env_name not in env_names:
+            logger.warning(f"Conda environment '{env_name}' not found.")
+            return False
     except subprocess.CalledProcessError as e:
-        logger.warning(f"Failed to activate conda environment {env_name}: {e}")
+        logger.warning(f"Failed to list conda environments: {e}")
         return False
+
+    logger.info(f"Will use conda environment: {env_name}")
+    # We don't actually activate the environment here since subprocess.run
+    # cannot persist environment changes. Instead, we rely on get_python_executable()
+    # to find the correct Python executable for the environment.
+    return True
 
 
 def get_python_executable() -> str:
@@ -484,67 +501,6 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
 
 
-def start_backend(host: str, port: int, debug: bool = False):
-    """Start the Python FastAPI backend."""
-    if not check_uvicorn_installed():
-        logger.error(
-            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
-        )
-        return None
-
-    python_exe = get_python_executable()
-
-    # Use uvicorn to run the FastAPI app directly
-    cmd = [
-        python_exe,
-        "-m",
-        "uvicorn",
-        "backend.python_backend.main:app",
-        "--host",
-        host,
-        "--port",
-        str(port),
-    ]
-    if debug:
-        cmd.append("--reload")  # Enable auto-reload in debug mode
-
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
-
-    logger.info(f"Starting Python backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
-    process_manager.add_process(process)
-    return process
-
-
-def start_gradio_ui(
-    venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
-):
-    """Start the Gradio UI."""
-    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
-
-    cmd = [str(venv_python), str(gradio_path), "--host", host]
-    if port:
-        cmd.extend(["--port", str(port)])
-        logger.info(f"Starting Gradio UI on {host}:{port}")
-    else:
-        logger.info(f"Starting Gradio UI on {host}:7860 (default port)")
-
-    if share:
-        cmd.append("--share")  # Enable public sharing
-    if port:
-        # Gradio doesn't take port as a command line param directly,
-        # we'd need to modify the app to accept it
-        logger.info(f"Starting Gradio UI (on default or next available port)")
-    else:
-        logger.info("Starting Gradio UI on default port")
-
-    logger.info("Starting Gradio UI...")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    process_manager.add_process(process)
-    return process
-
-
 def start_client():
     """Start the Node.js frontend."""
     logger.info("Starting Node.js frontend...")
@@ -612,7 +568,11 @@ def start_gradio_ui(host, port, share, debug):
     cmd = [python_exe, "-m", "src.main"] # Assuming Gradio is launched from main
     if share:
         cmd.append("--share")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    if debug:
+        cmd.append("--debug")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
 
 def handle_setup(args, venv_path):
@@ -803,8 +763,6 @@ def main():
     # Setup WSL environment if applicable (early setup)
     setup_wsl_environment()
     check_wsl_requirements()
-
-    check_python_version()
 
     if not args.skip_python_version_check:
         check_python_version()
