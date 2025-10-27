@@ -88,5 +88,4 @@ async def get_email_repository() -> EmailRepository:
         from .factory import get_data_source
         data_source = await get_data_source()
         _email_repo_instance = DatabaseEmailRepository(data_source)
-    return _email_repo_instance</content>
-</xai:function_call">Create the EmailRepository interface and implementation
+    return _email_repo_instance
