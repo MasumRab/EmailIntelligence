@@ -113,6 +113,27 @@ Use `python launch.py --help` to see all available options.
     - `GET /api/workflows/advanced/nodes` - List available node types
     - `GET /api/workflows/advanced/execution/status` - Get execution status
     - `POST /api/workflows/advanced/execution/cancel/{id}` - Cancel execution
+
+-   **Enhanced Filtering System:** Advanced email filtering capabilities with multiple criteria types:
+
+    ### New Filtering Features:
+    - **Multi-Criteria Filtering**: Support for keyword, sender, recipient, category, date/time, and size-based filtering
+    - **Complex Boolean Logic**: AND, OR, and NOT operations for creating complex filtering rules
+    - **UI Component**: AdvancedFilterPanel for creating and managing filters through an intuitive interface
+    - **Node Integration**: Enhanced FilterNode compatible with the existing workflow engine
+    - **API Integration**: Filter criteria can be passed through the workflow system for processing emails according to user-defined rules
+
+    ### Filtering Capabilities:
+    - Required/excluded keywords in subject or content
+    - Required/excluded senders and recipients
+    - Category-based filtering
+    - Date/time range filtering
+    - Size-based filtering
+    - Priority-based filtering
+    - Custom boolean logic operations
+
+    For more details on the enhanced filtering system, see [Advanced Filtering Documentation](docs/advanced_filtering_system.md)
+
 -   **Performance Monitoring:** The `@log_performance` decorator has been refactored for improved flexibility and direct logging to a file.
 -   **Dependency Management:** Enhanced testing for Node.js dependency installation ensures more robust setup.
 -   **Special Components:**
