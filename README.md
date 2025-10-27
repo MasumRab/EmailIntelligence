@@ -189,6 +189,7 @@ The application will typically be available at http://localhost:5173.
 - **Conda users**: The launcher automatically detects conda environments. Use `--conda-env <name>` to specify a particular environment
 - **Virtual environment**: Created automatically in `venv/` if conda is not available
 - **System Python**: Use `--no-venv` to skip environment creation (not recommended)
+- **CPU-only setup**: For systems without NVIDIA GPUs, see [CPU_SETUP.md](CPU_SETUP.md) for NVIDIA-free installation
 
 **Important Next Steps:**
 - **AI Models:** The Quick Start will get the application running, but AI features require trained models. Please see the [AI Models Setup](#ai-models-setup) section below for critical information.

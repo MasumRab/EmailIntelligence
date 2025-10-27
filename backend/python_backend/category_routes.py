@@ -20,7 +20,7 @@ router = APIRouter()
 @log_performance(operation="get_categories")
 async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
     try:
-        categories = db.get_all_categories()
+        categories = await db.get_all_categories()
         return [CategoryResponse(**cat) for cat in categories]
     except Exception as db_err:
         log_data = create_log_data(
