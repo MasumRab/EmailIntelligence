@@ -660,6 +660,31 @@ class DatabaseManager:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
 
+    async def get_total_emails_count(self) -> int:
+        """Get the total count of emails in the system."""
+        await self._ensure_initialized()
+        return len(self.emails_data)
+
+    async def get_auto_labeled_count(self) -> int:
+        """Get the count of emails that have been auto-labeled."""
+        await self._ensure_initialized()
+        return sum(1 for email in self.emails_data if email.get(FIELD_CATEGORY_ID))
+
+    async def get_categories_count(self) -> int:
+        """Get the total number of categories."""
+        await self._ensure_initialized()
+        return len(self.categories_data)
+
+    async def get_weekly_growth(self) -> Dict[str, Any]:
+        """Get the weekly growth statistics."""
+        await self._ensure_initialized()
+        # For now, return a simplified calculation
+        # In a real implementation, this would calculate growth over the past week
+        total_count = len(self.emails_data)
+        # Return a placeholder percentage that would need to be calculated properly
+        # based on actual week-over-week data
+        return {"emails": total_count, "percentage": 0.0}
+
 
 # Module-level variable to store the database manager instance
 # This is initialized via FastAPI startup event
