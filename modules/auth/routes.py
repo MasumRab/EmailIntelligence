@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from src.core.auth import authenticate_user, create_access_token, create_user, get_current_active_user
 from src.core.database import get_db
-from ..backend.python_backend.settings import settings
+from backend.python_backend.settings import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
