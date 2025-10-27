@@ -37,6 +37,8 @@ from . import (
     performance_routes,
 )
 from .auth import create_access_token, get_current_user, TokenData
+from src.core.auth import authenticate_user
+from .settings import settings
 from fastapi.security import HTTPBearer
 from fastapi import Depends, HTTPException, status
 from datetime import timedelta
@@ -240,23 +242,29 @@ except ImportError:
 @app.post("/token")
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
-    # In a real implementation, you would verify the username and password
-    # against a database or other authentication system
-    # For this example, we'll just check for a hardcoded user
+    # Use the new authentication system
+    db = await get_db()
+    user = await authenticate_user(username, password, db)
     
-    # Simple example validation - replace with real authentication logic
-    if username == "admin" and password == "secret":  # This should be replaced with a secure method
-        access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-        access_token = create_access_token(
-            data={"sub": username}, expires_delta=access_token_expires
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-        return {"access_token": access_token, "token_type": "bearer"}
     
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Incorrect username or password",
-        headers={"WWW-Authenticate": "Bearer"},
+    # Try to get the settings if possible
+    try:
+        from .settings import settings
+        access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    except ImportError:
+        # Use a default if settings are not available
+        access_token_expires = timedelta(minutes=30)
+    
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
     )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # Health check endpoint (usually kept in main.py)
