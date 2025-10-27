@@ -12,7 +12,7 @@ iFlow CLI is an interactive command-line interface agent designed to assist with
 
 ## Key Technologies
 
-- **Backend**: Python 3.11+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
+- **Backend**: Python 3.12+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
 - **Frontend**: React (Vite), TypeScript
 - **NLP/AI**: Custom NLP engine with sentiment, topic, intent, and urgency analysis models using Hugging Face transformers
 - **Database**: SQLite (default)
@@ -51,7 +51,7 @@ EmailIntelligence/
 
 ### Prerequisites
 
-- Python 3.11 or later
+- Python 3.12 or later
 - Node.js 18 or later
 - Git
 

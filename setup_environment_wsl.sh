@@ -90,7 +90,15 @@ sudo apt install -y \
     liblapack-dev \
     libatlas-base-dev \
     gfortran \
-    libopenblas-dev
+    libopenblas-dev \
+    python3-numpy \
+    python3-scipy \
+    python3-matplotlib \
+    python3-pandas \
+    python3-seaborn \
+    python3-plotly \
+    python3-scikit-learn \
+    python3-joblib
 
 # Graphics and imaging libraries
 sudo apt install -y \
@@ -104,6 +112,29 @@ sudo apt install -y \
     libxrandr-dev \
     libxss1
 
+# Web framework and utilities (system packages)
+sudo apt install -y \
+    python3-fastapi \
+    python3-uvicorn \
+    python3-pydantic \
+    python3-multipart \
+    python3-httpx \
+    python3-dotenv \
+    python3-bleach \
+    python3-psutil \
+    python3-plotly \
+    python3-seaborn
+
+# Development tools (system packages)
+sudo apt install -y \
+    python3-black \
+    python3-flake8 \
+    python3-isort \
+    python3-mypy \
+    python3-pylint \
+    python3-pytest \
+    python3-pytest-asyncio
+
 # Additional WSL-specific packages
 sudo apt install -y \
     git \
@@ -116,15 +147,8 @@ sudo apt install -y \
     libgirepository1.0-dev \
     gir1.2-gtk-3.0
 
-# Install Python 3.11 if not available (WSL might have older default)
-if ! python3.11 --version &>/dev/null; then
-    log_info "Installing Python 3.11..."
-    sudo apt install -y python3.11 python3.11-dev python3.11-venv
-    # Set Python 3.11 as default for this session
-    PYTHON_CMD="python3.11"
-else
-    PYTHON_CMD="python3"
-fi
+# Use system Python 3.12+ (default in Ubuntu 24.04+)
+PYTHON_CMD="python3"
 
 log_success "System packages installed successfully!"
 
@@ -161,12 +185,6 @@ python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f
 # Install core packages first (for better dependency resolution)
 log_info "📚 Installing core Python packages..."
 pip install --quiet \
-    fastapi>=0.115.12 \
-    uvicorn[standard]>=0.34.3 \
-    pydantic>=2.11.5 \
-    python-multipart>=0.0.20 \
-    httpx>=0.28.1 \
-    python-dotenv>=1.1.0 \
     pydantic-settings>=2.0.0
 
 # Install AI/ML packages
@@ -174,19 +192,11 @@ log_info "🤖 Installing AI/ML packages..."
 pip install --quiet \
     transformers>=4.40.0 \
     accelerate>=0.30.0 \
-    sentencepiece>=0.2.0 \
-    scikit-learn>=1.5.0 \
-    joblib>=1.5.1
+    sentencepiece>=0.2.0
 
-# Install data science packages
+# Install data science packages (remaining pip-only packages)
 log_info "📊 Installing data science packages..."
-pip install --quiet \
-    pandas>=2.0.0 \
-    numpy>=1.26.0 \
-    matplotlib>=3.8.0 \
-    seaborn>=0.13.0 \
-    scipy>=1.11.0 \
-    plotly>=5.18.0
+# Note: pandas, numpy, matplotlib, seaborn, scipy, plotly installed via system packages
 
 # Install NLP packages
 log_info "📖 Installing NLP packages..."
@@ -208,24 +218,15 @@ pip install --quiet \
     google-auth>=2.40.3 \
     google-auth-oauthlib>=1.2.2
 
-# Install utility packages
+# Install utility packages (remaining pip-only packages)
 log_info "🛠️ Installing utility packages..."
 pip install --quiet \
-    bleach>=6.0.0 \
-    psutil>=6.0.0 \
     aiosqlite>=0.19.0 \
     RestrictedPython>=8.0
 
-# Install development tools
+# Install development tools (remaining pip-only packages)
 log_info "🔧 Installing development tools..."
-pip install --quiet \
-    black>=25.1.0 \
-    flake8>=7.2.0 \
-    isort>=6.0.1 \
-    mypy>=1.16.0 \
-    pylint>=3.3.7 \
-    pytest>=8.4.0 \
-    pytest-asyncio>=0.23.0
+# Note: black, flake8, isort, mypy, pylint, pytest, pytest-asyncio installed via system packages
 
 # Download NLTK data with error handling
 log_info "📖 Downloading NLTK data..."
