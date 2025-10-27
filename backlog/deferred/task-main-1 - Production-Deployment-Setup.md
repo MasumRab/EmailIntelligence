@@ -2,9 +2,9 @@
 id: task-main-1
 title: Production Deployment Setup
 description: Set up complete production deployment infrastructure for stable releases
-status: To Do
-priority: high
-labels: ["deployment", "production", "infrastructure"]
+status: Deferred
+priority: low
+labels: ["deployment", "production", "infrastructure", "docker"]
 created: 2025-10-25
 assignees: []
 ---
