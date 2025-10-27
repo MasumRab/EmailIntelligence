@@ -6,7 +6,7 @@ This document provides a summary of the Python Environment Management implementa
 
 The primary method for setting up and managing the Python environment for EmailIntelligence is through the main launcher script, `launch.py`. This script automates several key processes:
 
-*   **Environment Management**: Automatically detects and uses conda environments if available, otherwise creates a Python virtual environment (named `.venv` by default) to isolate project dependencies.
+*   **Environment Management**: Automatically detects and uses conda environments if available, otherwise creates a Python virtual environment (named `venv` by default) to isolate project dependencies.
 *   **Dependency Installation**: Installs required Python packages from predefined requirements files using uv or Poetry.
 *   **NLTK Data Download**: Ensures necessary NLTK (Natural Language Toolkit) data is available.
 *   **Application Launching**: Serves as the main entry point to run the application, tests, and other utilities.
@@ -31,7 +31,7 @@ The shell script `scripts/setup_python.sh` is **DEPRECATED** and should no longe
 
 - **Environment Detection and Management**:
     - **Conda Support**: Automatically detects conda environments and uses them if available. Use `--conda-env <name>` to specify a particular environment.
-    - **Virtual Environment Fallback**: Creates a virtual environment named `.venv` in the project root if conda is not available and `--no-venv` is not used.
+    - **Virtual Environment Fallback**: Creates a virtual environment named `venv` in the project root if conda is not available and `--no-venv` is not used.
     - **System Python**: Uses system Python if both conda and venv are disabled (not recommended).
 - **Dependency Management Strategy**:
     - **Base Dependencies**:
@@ -112,13 +112,14 @@ While `launch.py` automates the installation of Python packages listed in the re
 `launch.py` offers several command-line arguments to control its behavior regarding environment setup:
 
 - **`--no-venv`**: Skips virtual environment creation/use and all Python dependency installations.
+- **`--force-recreate-venv`**: Deletes and recreates the virtual environment before setup.
 - **`--update-deps`**: Forces an update of dependencies during installation.
-- **`--skip-python-version-check`**: Bypasses the Python version compatibility check.
 - **`--no-download-nltk`**: Skips the automatic download of NLTK data.
-- **`--system-info`**: Prints detailed system and environment information and exits.
-- **`--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}`**: Sets the logging verbosity for the launcher.
+- **`--use-poetry`**: Use Poetry instead of uv for dependency management.
+- **`--use-conda`**: Use Conda environment instead of venv.
+- **`--conda-env`**: Specify Conda environment name (default: base).
 
-*(For a full list of launcher arguments, see \`launcher_guide.md\` or run \`python launch.py --help\`)*
+*(For a full list of launcher arguments, run `python launch.py --help`)*
 
 <!-- The section below is intentionally commented out as env_manager.py no longer exists and its functionalities are integrated into launch.py -->
 <!--
