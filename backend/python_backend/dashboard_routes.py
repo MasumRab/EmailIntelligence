@@ -13,7 +13,7 @@ from .models import DashboardStats, WeeklyGrowth
 from .database import get_db, DatabaseManager
 from .dependencies import get_email_service
 from .services.email_service import EmailService
-from src.core.auth import get_current_active_user
+from .auth import get_current_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_dashboard_stats(
     email_service: EmailService = Depends(get_email_service),
-    current_user: str = Depends(get_current_active_user)
+    current_user: str = Depends(get_current_user)
 ):
     """
     Retrieve dashboard statistics including total emails, auto-labeled count,
