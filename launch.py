@@ -635,6 +635,51 @@ def handle_test_stage(args):
         logger.error("Some tests failed.")
         sys.exit(1)
 
+def print_system_info():
+    """Print detailed system, Python, and project configuration information."""
+    import platform
+    import sys
+
+    print("=== System Information ===")
+    print(f"OS: {platform.system()} {platform.release()}")
+    print(f"Architecture: {platform.machine()}")
+    print(f"Python Version: {sys.version}")
+    print(f"Python Executable: {sys.executable}")
+
+    print("\\n=== Project Information ===")
+    print(f"Project Root: {ROOT_DIR}")
+    print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
+
+    print("\\n=== Environment Status ===")
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
+        print(f"Virtual Environment: {venv_path} (exists)")
+        python_exe = get_venv_executable(venv_path, "python")
+        if python_exe.exists():
+            print(f"Venv Python: {python_exe}")
+        else:
+            print("Venv Python: Not found")
+    else:
+        print(f"Virtual Environment: {venv_path} (not created)")
+
+    conda_available = is_conda_available()
+    print(f"Conda Available: {conda_available}")
+    if conda_available:
+        conda_env = os.environ.get('CONDA_DEFAULT_ENV', 'None')
+        print(f"Current Conda Env: {conda_env}")
+
+    node_available = check_node_npm_installed()
+    print(f"Node.js/npm Available: {node_available}")
+
+    print("\\n=== Configuration Files ===")
+    config_files = [
+        "pyproject.toml", "requirements.txt", "requirements-dev.txt",
+        "package.json", "launch-user.env", ".env"
+    ]
+    for cf in config_files:
+        exists = (ROOT_DIR / cf).exists()
+        print(f"{cf}: {'Found' if exists else 'Not found'}")
+
 def main():
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
 
@@ -642,6 +687,8 @@ def main():
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
     parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
+    parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
+    parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
     parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
     parser.add_argument("--conda-env", type=str, help="Specify conda environment name to use.")
     parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching.")
@@ -767,8 +814,7 @@ def main():
         prepare_environment(args)
 
     if args.system_info:
-        # Placeholder for system_info function
-        logger.info("System Info command would be executed here.")
+        print_system_info()
         return
 
     # Stage-specific logic
