@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from .dependencies import get_ai_engine, get_db
 from .database import DatabaseManager
 from .models import AIAnalysisRequest, AIAnalysisResponse, AICategorizeRequest, AICategorizeResponse, EmailResponse, AIValidateRequest, AIValidateResponse
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -11,11 +12,14 @@ router = APIRouter()
 @router.post("/api/ai/analyze", response_model=AIAnalysisResponse)
 async def analyze_email(
     request: AIAnalysisRequest,
+    current_user: str = Depends(get_current_active_user),
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
     db: DatabaseManager = Depends(get_db),
 ):
     """
     Analyzes email content and returns AI-driven insights.
+    
+    Requires authentication.
     """
     try:
         default_models = {
@@ -36,11 +40,14 @@ async def analyze_email(
 @router.post("/api/ai/categorize", response_model=AICategorizeResponse)
 async def categorize_email(
     request: AICategorizeRequest,
+    current_user: str = Depends(get_current_active_user),
     db: DatabaseManager = Depends(get_db),
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
 ):
     """
     Categorizes an email, either automatically using AI or manually.
+    
+    Requires authentication.
     """
     email = await db.get_email_by_id(request.emailId)
     if not email:
@@ -103,10 +110,13 @@ async def categorize_email(
 @router.post("/api/ai/validate", response_model=AIValidateResponse)
 async def validate_analysis(
     request: AIValidateRequest,
+    current_user: str = Depends(get_current_active_user),
     db: DatabaseManager = Depends(get_db),
 ):
     """
     Validates AI analysis based on user feedback.
+    
+    Requires authentication.
     """
     logger.info(f"Received validation feedback for email {request.emailId}: {request.userFeedback}")
 
