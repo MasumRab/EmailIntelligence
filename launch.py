@@ -85,7 +85,7 @@ atexit.register(process_manager.cleanup)
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
-VENV_DIR = ".venv"
+VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 # --- Python Version Checking ---
@@ -158,7 +158,7 @@ def check_required_components() -> bool:
         issues.append(f"Python version {current_version} is not compatible. Required: 3.11-3.13")
 
     # Check key directories
-    required_dirs = ["backend", "client", "server", "shared", "tests"]
+    required_dirs = ["backend", "client", "shared", "tests"]
     for dir_name in required_dirs:
         if not (ROOT_DIR / dir_name).exists():
             issues.append(f"Required directory '{dir_name}' is missing.")
@@ -358,7 +358,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 
         run_command([python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
 
-def download_nltk_data():
+def download_nltk_data(venv_path=None):
     python_exe = get_python_executable()
 
     nltk_download_script = """
@@ -690,7 +690,6 @@ def main():
     parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
     parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
     parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
-    parser.add_argument("--conda-env", type=str, help="Specify conda environment name to use.")
     parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching.")
     parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test for PyTorch.")
     parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
@@ -772,11 +771,10 @@ def main():
 
     # Set conda environment name if specified
     global CONDA_ENV_NAME
-    if args.conda_env:
+    if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
         CONDA_ENV_NAME = args.conda_env
         args.use_conda = True  # Set flag when conda env is specified
-    else:
-        args.use_conda = False
+    # args.use_conda remains as set by command line argument
 
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
