@@ -112,7 +112,7 @@ def check_for_merge_conflicts() -> bool:
         "backend/python_backend/action_routes.py",
         "backend/python_backend/dashboard_routes.py",
         "backend/python_backend/workflow_routes.py",
-        "backend/python_backend/performance_monitor.py",
+        "src/core/performance_monitor.py",
         "backend/python_nlp/gmail_integration.py",
         "backend/python_nlp/gmail_service.py",
         "backend/python_nlp/smart_filters.py",
