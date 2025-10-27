@@ -6,6 +6,10 @@ EmailIntelligence is a full-stack application designed to provide intelligent em
 
 The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports both a standard web interface and a Gradio-based UI for scientific exploration and direct AI model interaction.
 
+## iFlow CLI Overview
+
+iFlow CLI is an interactive command-line interface agent designed to assist with software engineering tasks in the EmailIntelligence project. It specializes in helping developers with code understanding, refactoring, testing, and implementation while strictly following project conventions.
+
 ## Key Technologies
 
 - **Backend**: Python 3.11+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
@@ -31,12 +35,69 @@ EmailIntelligence/
 │       ├── nlp_engine.py   # Main NLP engine
 │       └── ...             # Analysis components (sentiment, topic, etc.)
 ├── client/                 # React frontend application
+├── src/                    # Main application entry point with Gradio UI
+├── modules/                # Modular functionality extensions
 ├── launch.py               # Unified launcher script
 ├── pyproject.toml          # Python project configuration
 ├── package.json            # Node.js project configuration
 ├── README.md               # Project documentation
 └── ...                     # Other configuration and documentation files
 ```
+
+## iFlow CLI Core Mandates
+
+### Conventions
+- Rigorously adhere to existing project conventions when reading or modifying code
+- Analyze surrounding code, tests, and configuration first before making changes
+- Mimic code style, framework choices, naming conventions, typing, and architectural patterns
+
+### Libraries/Frameworks
+- NEVER assume a library/framework is available without verifying its established usage
+- Check imports, configuration files, or neighboring files to confirm usage before employing any library
+
+### Style & Structure
+- Follow existing code style and structure strictly
+- Use existing libraries and utilities already established in the project
+- Follow existing architectural patterns
+
+### Idiomatic Changes
+- Understand local context (imports, functions/classes) to ensure changes integrate naturally
+- Make changes that are idiomatic to the existing codebase
+
+## iFlow CLI Task Management
+
+iFlow CLI uses a todo system to manage and plan tasks:
+
+```python
+# Example of using todo system
+todo_write([{
+    "id": "1", 
+    "task": "Implement new feature X", 
+    "status": "pending"
+}])
+```
+
+## iFlow CLI Software Engineering Workflow
+
+When performing software engineering tasks, iFlow CLI follows this sequence:
+
+1. **Understand**: Analyze the user's request and relevant codebase context
+2. **Plan**: Build a coherent plan based on understanding
+3. **Implement**: Use available tools to act on the plan
+4. **Verify (Tests)**: Run project's testing procedures
+5. **Verify (Standards)**: Execute project-specific build, linting and type-checking commands
+
+## iFlow CLI Tools Available
+
+iFlow CLI has access to various tools for software engineering tasks:
+
+- `read_file`: Read file contents
+- `write_file`: Write content to a file
+- `replace`: Replace text within a file
+- `search_file_content`: Search for patterns in files
+- `glob`: Find files matching patterns
+- `run_shell_command`: Execute shell commands
+- `todo_write`/`todo_read`: Task management
 
 ## Building and Running
 
@@ -114,7 +175,9 @@ Key environment variables:
 - Backend code is organized in `backend/python_backend/` with modular components
 - NLP models and analysis components are in `backend/python_nlp/`
 - Frontend code follows standard React patterns in `client/`
+- Core application logic is in `src/` with Gradio UI integration
 - Tests are located in `tests/`
+- AI models are organized in `models/` directory by type
 
 ### Python Development
 
@@ -165,3 +228,47 @@ The application includes a sophisticated node-based workflow system for creating
 EmailIntelligence supports an extension system for adding custom functionality:
 - Extensions can be managed using `launch.py`
 - Detailed documentation in `docs/extensions_guide.md`
+
+### Module System
+
+The platform uses a modular architecture:
+- Core functionality in `src/core/`
+- Features added via modules in `modules/`
+- Easy extension and maintenance
+
+## Development Commands
+
+### Python Backend
+- **Test all**: `pytest`
+- **Format**: `black .`
+- **Lint**: `flake8 . && pylint python_backend`
+- **Type check**: `mypy .`
+
+### TypeScript/React Frontend
+- **Build**: `cd client && npm run build`
+- **Lint**: `cd client && npm run lint`
+- **Dev server**: `cd client && npm run dev`
+
+## Code Style Guidelines
+
+### Python
+- **Line length**: 100 chars max
+- **Formatting**: Black
+- **Imports**: isort (black profile)
+- **Naming**: snake_case functions/vars, CapWords classes
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+
+### TypeScript/React
+- **Strict mode**: Enabled
+- **JSX**: react-jsx transform
+- **Components**: Default export functions, PascalCase naming
+- **Styling**: Tailwind CSS utilities
+
+## Critical Rules
+
+- Avoid circular dependencies
+- Never hard-code paths or expose secrets
+- Use dependency injection over global state
+- Check existing dependencies before adding new libraries
+- Follow security best practices
