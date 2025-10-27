@@ -4,9 +4,9 @@ from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
+from src.core.data.repository import EmailRepository, get_email_repository
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
-from src.core.data.repository import EmailRepository, get_email_repository
 from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
 from backend.node_engine.workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
@@ -25,8 +25,6 @@ async def get_emails(
     request: Request,
     category_id: Optional[int] = None,
     search: Optional[str] = None,
-    limit: int = 50,
-    offset: int = 0,
     is_unread: Optional[bool] = None,
     email_repo: EmailRepository = Depends(get_email_repository),
 ):
@@ -37,6 +35,8 @@ async def get_emails(
         request: The incoming request object.
         category_id: An optional category ID to filter emails.
         search: An optional search term to filter emails by subject, content, or sender.
+        is_unread: An optional flag to filter unread emails.
+        email_repo: The email repository dependency.
 
     Returns:
         A list of emails that match the filtering criteria.
@@ -46,11 +46,11 @@ async def get_emails(
     """
     try:
         if search:
-            emails = await email_repo.search_emails(search, limit)
+            emails = await email_repo.search_emails(search)
             if category_id is not None:
                 emails = [email for email in emails if email.get("category_id") == category_id]
         else:
-            emails = await email_repo.get_emails(limit=limit, offset=offset, category_id=category_id, is_unread=is_unread)
+            emails = await email_repo.get_emails(category_id=category_id, is_unread=is_unread)
 
         try:
             return [EmailResponse(**email) for email in emails]
@@ -64,17 +64,14 @@ async def get_emails(
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="get_email")
-async def get_email(
-    request: Request,
-    email_id: int,
-    email_repo: EmailRepository = Depends(get_email_repository),
-):
+async def get_email(request: Request, email_id: int, email_repo: EmailRepository = Depends(get_email_repository)):
     """
     Retrieves a specific email by its unique ID.
 
     Args:
         request: The incoming request object.
         email_id: The ID of the email to retrieve.
+        email_repo: The email repository dependency.
 
     Returns:
         The email object if found.
@@ -154,6 +151,7 @@ async def update_email(
         request: The incoming request object.
         email_id: The ID of the email to update.
         email_update: The email data to update.
+        email_repo: The email repository dependency.
 
     Returns:
         The updated email object.
