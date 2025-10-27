@@ -78,7 +78,12 @@ async def get_email_by_id(
     """
     try:
         email = await email_service.get_email_by_id(email_id)
+        if not email:
+            raise HTTPException(status_code=404, detail="Email not found")
         return EmailResponse(**email)
+    except Exception as e:
+        logger.error(f"Failed to get emails: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve emails")
     except HTTPException:
         raise
     except Exception as e:
@@ -142,6 +147,8 @@ async def update_email(
     """
     try:
         updated_email = await email_service.update_email(email_id, email_update)
+        if not updated_email:
+            raise HTTPException(status_code=404, detail="Email not found")
         return EmailResponse(**updated_email)
     except HTTPException:
         raise

@@ -88,6 +88,53 @@ PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
+# --- WSL Support ---
+def is_wsl():
+    """Check if running in WSL environment"""
+    try:
+        with open('/proc/version', 'r') as f:
+            content = f.read().lower()
+            return 'microsoft' in content or 'wsl' in content
+    except:
+        return False
+
+def setup_wsl_environment():
+    """Setup WSL-specific environment variables if in WSL"""
+    if not is_wsl():
+        return
+
+    # Set display for GUI applications
+    if 'DISPLAY' not in os.environ:
+        os.environ['DISPLAY'] = ':0'
+
+    # Set matplotlib backend for WSL
+    os.environ['MPLBACKEND'] = 'Agg'
+
+    # Optimize for WSL performance
+    os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
+    os.environ['PYTHONUNBUFFERED'] = '1'
+
+    # Set OpenGL for WSL
+    os.environ['LIBGL_ALWAYS_INDIRECT'] = '1'
+
+    logger.info("🐧 WSL environment detected - applied optimizations")
+
+def check_wsl_requirements():
+    """Check WSL-specific requirements and warn if needed"""
+    if not is_wsl():
+        return
+
+    # Check if X11 server is accessible (optional check)
+    try:
+        result = subprocess.run(['xset', '-q'],
+                              capture_output=True,
+                              timeout=2)
+        if result.returncode != 0:
+            logger.warning("X11 server not accessible - GUI applications may not work")
+            logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass  # Silently ignore X11 check failures
+
 # --- Python Version Checking ---
 def check_python_version():
     """Check if the current Python version is compatible."""
@@ -752,6 +799,10 @@ def main():
     parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
 
     args = parser.parse_args()
+
+    # Setup WSL environment if applicable (early setup)
+    setup_wsl_environment()
+    check_wsl_requirements()
 
     check_python_version()
 
