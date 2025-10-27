@@ -7,7 +7,6 @@ vite.config.ts.*
 *.tar.gz
 
 # Python virtual environment
-.venv/
 venv/
 .env
 .env.*

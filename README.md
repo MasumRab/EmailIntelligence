@@ -166,7 +166,7 @@ The application will typically be available at http://localhost:5173.
 
 **Environment Options:**
 - **Conda users**: The launcher automatically detects conda environments. Use `--conda-env <name>` to specify a particular environment
-- **Virtual environment**: Created automatically in `.venv/` if conda is not available
+- **Virtual environment**: Created automatically in `venv/` if conda is not available
 - **System Python**: Use `--no-venv` to skip environment creation (not recommended)
 
 **Important Next Steps:**
