@@ -14,6 +14,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from ..python_nlp.ai_training import ModelConfig
 from .performance_monitor import log_performance
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -24,12 +25,17 @@ training_jobs: Dict[str, Dict[str, Any]] = {}
 
 @router.post("/api/training/start")
 @log_performance(operation="start_training")
-async def start_training(model_config: ModelConfig, background_tasks: BackgroundTasks):
+async def start_training(
+    model_config: ModelConfig,
+    current_user: str = Depends(get_current_active_user),
+    background_tasks: BackgroundTasks,
+):
     """
     Start training a model with the given configuration.
 
     Args:
         model_config: Configuration for the model to train
+        current_user: The authenticated user making the request
         background_tasks: FastAPI background tasks
 
     Returns:
@@ -56,12 +62,16 @@ async def start_training(model_config: ModelConfig, background_tasks: Background
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-async def get_training_status(job_id: str):
+async def get_training_status(
+    job_id: str,
+    current_user: str = Depends(get_current_active_user)
+):
     """
     Get the status of a training job.
 
     Args:
         job_id: The ID of the training job
+        current_user: The authenticated user making the request
 
     Returns:
         Dict with job status information
