@@ -49,17 +49,25 @@ class SyncCheckpoint:
     next_page_token: Optional[str]
     errors_count: int
 
+
+class SmartRetrievalManager:
+    def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
         self.logger = logging.getLogger(__name__)
         self.checkpoint_db_path = checkpoint_db_path
         self.gmail_service = None
         self._init_checkpoint_db()
         creds = self._load_credentials() or self._authenticate()
         if creds and creds.valid:
-        if os.path.exists(TOKEN_JSON_PATH):
-            return Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
+            if os.path.exists(TOKEN_JSON_PATH):
+                return Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
         return None
 
     def _store_credentials(self, creds: Credentials):
+        try:
+        with open(TOKEN_JSON_PATH, "w") as token_file:
+            token_file.write(creds.to_json())
+        self.logger.info("Credentials stored successfully.")
+        except Exception as e:
             self.logger.error(
                 f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
             )
@@ -86,8 +94,7 @@ class SyncCheckpoint:
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
 
-            )
-            row = cursor.fetchone()
+        row = cursor.fetchone()
             if row:
                 return SyncCheckpoint(
                     strategy_name, datetime.fromisoformat(row[0]), row[1], 0, None, 0

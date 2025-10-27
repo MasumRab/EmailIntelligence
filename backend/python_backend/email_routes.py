@@ -49,10 +49,20 @@ async def get_emails(
         if search:
             result = await email_service.search_emails(search, limit)
         else:
+            result = await email_service.get_emails(category_id, limit, offset, is_unread)
+        return [EmailResponse(**email) for email in result]
+    except Exception as e:
+        logger.error(f"Failed to get emails: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve emails")
 
 
 @router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @log_performance(operation="get_email")
+async def get_email_by_id(
+    email_id: int,
+    request: Request,
+    email_service: EmailService = Depends(get_email_service),
+):
     """
     Retrieves a specific email by its unique ID.
 
@@ -67,6 +77,8 @@ async def get_emails(
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
+        email = await email_service.get_email_by_id(email_id)
+        return EmailResponse(**email)
     except HTTPException:
         raise
     except Exception as e:
@@ -129,6 +141,8 @@ async def update_email(
         HTTPException: If the email is not found, or if a database or validation error occurs.
     """
     try:
+        updated_email = await email_service.update_email(email_id, email_update)
+        return EmailResponse(**updated_email)
     except HTTPException:
         raise
     except Exception as e:

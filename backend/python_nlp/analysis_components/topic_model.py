@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 class TopicModel:
     """A basic topic model for demonstration purposes."""
 
+    def __init__(self):
         logger.info("TopicModel instance created.")
-        self.model = topic_model
+        self.model = None  # Placeholder for future model
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """

@@ -18,6 +18,10 @@ router = APIRouter()
 
 @router.get("/api/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories")
+async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
+    try:
+        categories = db.get_all_categories()
+        return [CategoryResponse(**cat) for cat in categories]
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while fetching categories",
@@ -27,7 +31,7 @@ router = APIRouter()
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Database service unavailable.")
+        raise DatabaseError(detail="Failed to create category.")
 
 
 @router.post("/api/categories", response_model=CategoryResponse)
@@ -52,6 +56,8 @@ async def create_category(
         HTTPException: If there is a database error or any other failure.
     """
     try:
+        new_category = await category_service.create_category(category)
+        return CategoryResponse(**new_category)
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while creating category",
@@ -61,3 +67,4 @@ async def create_category(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
+        raise DatabaseError(detail="Failed to create category.")
