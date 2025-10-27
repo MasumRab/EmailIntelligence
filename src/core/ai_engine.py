@@ -82,19 +82,13 @@ class BaseAIEngine(ABC):
         """
         pass
 
-<<<<<<< HEAD
     @abstractmethod
     def train_models(self, training_data: Optional[Dict[str, Any]] = None):
         """
         Trains or retrains the AI models using provided training data.
-
-        Args:
-            training_data: Optional dictionary containing training data for different models.
         """
         pass
 
-=======
->>>>>>> main
 
 # A placeholder for the active AI engine. In a real application, this would
 # be managed by a service locator or dependency injection system.

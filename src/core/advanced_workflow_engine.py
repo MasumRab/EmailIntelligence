@@ -575,20 +575,34 @@ class WorkflowManager:
             logger.error(f"Failed to save workflow: {str(e)}")
             return False
 
-    def load_workflow(self, filepath: Union[str, Path]) -> Optional[Workflow]:
+    def load_workflow(self, workflow_filename: Union[str, Path]) -> Optional[Workflow]:
         """Load a workflow from file"""
         try:
-            filepath = Path(filepath)
-            with open(filepath, "r", encoding="utf-8") as f:
+            # Always join the user-provided filename with the workflows_dir, then normalize & check it's inside
+            candidate_path = self.workflows_dir / workflow_filename
+            fullpath = candidate_path.resolve()
+            workflows_dir_resolved = self.workflows_dir.resolve()
+            try:
+                # This will raise ValueError if fullpath is not inside workflows_dir_resolved
+                fullpath.relative_to(workflows_dir_resolved)
+            except ValueError:
+                logger.error(f"Access to file outside workflow directory is not allowed: {fullpath}")
+                return None
+
+            if not fullpath.is_file():
+                logger.error(f"Workflow file does not exist: {fullpath}")
+                return None
+
+            with open(fullpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             workflow = Workflow.from_dict(data)
             self._workflows[workflow.workflow_id] = workflow
-            logger.info(f"Workflow loaded from {filepath}")
+            logger.info(f"Workflow loaded from {fullpath}")
             return workflow
 
         except Exception as e:
-            logger.error(f"Failed to load workflow from {filepath}: {str(e)}")
+            logger.error(f"Failed to load workflow from {workflow_filename}: {str(e)}")
             return None
 
     def list_workflows(self) -> List[str]:
@@ -745,6 +759,14 @@ def initialize_workflow_system() -> WorkflowManager:
 
 def get_workflow_manager() -> WorkflowManager:
     """Get the global workflow manager instance"""
+    import warnings
+
+    warnings.warn(
+        "get_workflow_manager from src.core.advanced_workflow_engine is deprecated. "
+        "Use backend.node_engine.workflow_manager.workflow_manager instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if not workflow_manager:
         # Initialize with default configuration
         return initialize_workflow_system()

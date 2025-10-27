@@ -13,19 +13,20 @@ from functools import partial
 from typing import Any, Dict, List, Literal, Optional
 
 from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
-
-# NOTE: These dependencies will be moved to the core framework as well.
-# For now, we are assuming they will be available in the new location.
+from .data_source import DataSource
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
-# Centralized data directory at the project root
+# Globalized data directory at the project root
 DATA_DIR = "data"
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+
+# TODO(P1, 6h): Refactor global state management to use dependency injection
+# TODO(P2, 4h): Make data directory configurable via environment variables or settings
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -45,10 +46,7 @@ FIELD_COLOR = "color"
 FIELD_COUNT = "count"
 FIELD_TIME = "time"
 FIELD_CONTENT = "content"
-<<<<<<< HEAD
 FIELD_SUBJECT = "subject"
-=======
->>>>>>> main
 FIELD_SENDER = "sender"
 FIELD_SENDER_EMAIL = "sender_email"
 HEAVY_EMAIL_FIELDS = [FIELD_CONTENT, "content_html"]
@@ -59,7 +57,7 @@ FIELD_CATEGORY_NAME = "categoryName"
 FIELD_CATEGORY_COLOR = "categoryColor"
 
 
-class DatabaseManager:
+class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
@@ -89,6 +87,9 @@ class DatabaseManager:
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
 
+    # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
+    # TODO(P2, 6h): Implement proper dependency injection for database manager instance
+
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
@@ -116,6 +117,9 @@ class DatabaseManager:
             await self._load_data()
             self._build_indexes()
             self._initialized = True
+
+    # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
+    # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
@@ -170,11 +174,7 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-<<<<<<< HEAD
     @log_performance(operation="save_data_to_file")
-=======
-    @log_performance("save_data_to_file")
->>>>>>> main
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -450,6 +450,24 @@ class DatabaseManager:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
 
+
+# --- Singleton Instance Management ---
+_db_manager_instance: Optional[DatabaseManager] = None
+_db_init_lock = asyncio.Lock()
+
+async def get_db() -> DatabaseManager:
+    """
+    Provides the singleton instance of the DatabaseManager, ensuring it is initialized.
+    This function is used for dependency injection in FastAPI routes.
+    """
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        async with _db_init_lock:
+            if _db_manager_instance is None:
+                _db_manager_instance = DatabaseManager()
+                await _db_manager_instance._ensure_initialized()
+    return _db_manager_instance
+
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
@@ -524,6 +542,10 @@ class DatabaseManager:
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
 
+    # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
+    # TODO(P2, 4h): Implement search indexing to improve query performance
+    # TODO(P3, 3h): Add support for search result caching
+
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
@@ -577,18 +599,3 @@ class DatabaseManager:
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
-
-
-# Singleton instance
-_db_manager_instance = None
-
-
-async def get_db() -> DatabaseManager:
-    """
-    Provides the singleton instance of the DatabaseManager.
-    """
-    global _db_manager_instance
-    if _db_manager_instance is None:
-        _db_manager_instance = DatabaseManager()
-        await _db_manager_instance._ensure_initialized()
-    return _db_manager_instance

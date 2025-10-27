@@ -1,3 +1,6 @@
+# DEPRECATED: This file is part of the deprecated `backend` package.
+# It will be removed in a future release.
+
 # No additional dependencies required for this extension
 # If you need to add dependencies, list them here, one per line
 # Example:

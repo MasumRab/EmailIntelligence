@@ -12,28 +12,8 @@ from typing import Any, Dict, Optional
 
 @dataclass
 class ModelConfig:
-<<<<<<< HEAD
-    """Configuration for AI models."""
-=======
-    """
-    Holds the configuration for an AI model.
-
-    Attributes:
-        model_name: The name of the model.
-        model_type: The type of model (e.g., 'classification', 'ner').
-        parameters: A dictionary of hyperparameters for the model.
-        training_data_path: The file path to the training data.
-    """
->>>>>>> main
 
     model_name: str = "default"
     model_type: str = "classification"
     parameters: Dict[str, Any] = field(default_factory=dict)
     training_data_path: Optional[str] = None
-<<<<<<< HEAD
-
-    def __post_init__(self):
-        if self.parameters is None:
-            self.parameters = {}
-=======
->>>>>>> main

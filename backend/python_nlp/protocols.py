@@ -2,12 +2,8 @@
 Protocol definitions to avoid circular dependencies between modules.
 """
 
-<<<<<<< HEAD
-=======
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
->>>>>>> main
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from ..python_backend.ai_engine import AdvancedAIEngine

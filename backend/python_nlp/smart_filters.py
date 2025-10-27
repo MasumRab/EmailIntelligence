@@ -16,10 +16,11 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
-# Define the project's root directory
-# This assumes the script is in backend/python_nlp, so we go up two levels
+# Define paths for data storage
+# Use the project's data directory for database files to avoid cluttering the root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DEFAULT_DB_PATH = os.path.join(PROJECT_ROOT, "smart_filters.db")
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
 
 @dataclass
@@ -87,23 +88,28 @@ class FilterPerformance:
 
 
 class SmartFilterManager:
-<<<<<<< HEAD
-    """Intelligent email filter management with performance optimization
-=======
     """
     Manages the lifecycle of smart email filters.
->>>>>>> main
 
     This class handles the creation, storage, application, and optimization
     of email filters, using a SQLite database for persistence.
     """
 
-<<<<<<< HEAD
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-=======
-    def __init__(self, db_path: str = "smart_filters.db"):
-        """Initializes the SmartFilterManager."""
->>>>>>> main
+    def __init__(self, db_path: str = None):
+        """
+        Initializes the SmartFilterManager.
+
+        Args:
+            db_path: Path to the SQLite database file. If None, uses the default
+                     path in the project's data directory. Relative paths are
+                     resolved relative to the project's data directory to prevent
+                     path traversal attacks and ensure consistent behavior.
+        """
+        if db_path is None:
+            db_path = DEFAULT_DB_PATH
+        elif not os.path.isabs(db_path):
+            # Resolve relative paths relative to the data directory to prevent path traversal
+            db_path = os.path.join(DATA_DIR, os.path.basename(db_path))
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None
@@ -127,7 +133,6 @@ class SmartFilterManager:
         if conn is not self.conn:
             conn.close()
 
-<<<<<<< HEAD
     def _db_execute(self, query: str, params: tuple = (), retries: int = 3):
         """Execute a query (INSERT, UPDATE, DELETE) with retry logic for robustness."""
         for attempt in range(retries):
@@ -153,18 +158,6 @@ class SmartFilterManager:
                 raise
             finally:
                 self._close_db_connection(conn)
-=======
-    def _db_execute(self, query: str, params: tuple = ()):
-        """Executes a write query (INSERT, UPDATE, DELETE) on the database."""
-        conn = self._get_db_connection()
-        try:
-            conn.execute(query, params)
-            conn.commit()
-        except sqlite3.Error as e:
-            self.logger.error(f"Database error on execute: {e}")
-        finally:
-            self._close_db_connection(conn)
->>>>>>> main
 
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Executes a read query and fetches a single row."""

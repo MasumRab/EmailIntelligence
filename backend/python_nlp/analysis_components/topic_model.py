@@ -11,11 +11,6 @@ logger = logging.getLogger(__name__)
 class TopicModel:
     """A basic topic model for demonstration purposes."""
 
-<<<<<<< HEAD
-    def __init__(self, topic_model=None):
-=======
-    def __init__(self):
->>>>>>> main
         logger.info("TopicModel instance created.")
         self.model = topic_model
 

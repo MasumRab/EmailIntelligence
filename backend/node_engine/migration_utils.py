@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Migration Utilities for the Email Intelligence Platform.
 
 This module provides utilities to convert legacy workflow formats
@@ -281,9 +284,7 @@ class WorkflowMigrationManager:
                 # Migrate individual file
                 result = self.migration_service.migrate_workflow_file(str(workflow_file))
                 summary["successful_migrations"] += 1
-                summary["migrated_files"].append(
-                    {"original": str(workflow_file), "result": result}
-                )
+                summary["migrated_files"].append({"original": str(workflow_file), "result": result})
                 self.logger.info(f"Successfully migrated: {workflow_file.name}")
             except Exception as e:
                 summary["failed_migrations"] += 1

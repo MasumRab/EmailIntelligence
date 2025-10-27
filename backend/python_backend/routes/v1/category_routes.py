@@ -1,7 +1,11 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Version 1 API routes for category operations
 Following the new architectural patterns with service layer and API versioning
 """
+
 from typing import List
 import logging
 from fastapi import APIRouter, Depends, Request
@@ -16,11 +20,11 @@ logger = logging.getLogger(__name__)
 # Create router with API version prefix
 router = APIRouter(prefix="/v1")
 
+
 @router.get("/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories_v1")
 async def get_categories_v1(
-    request: Request,
-    category_service: CategoryService = Depends(get_category_service)
+    request: Request, category_service: CategoryService = Depends(get_category_service)
 ):
     """
     Retrieves a list of all categories.
@@ -33,7 +37,7 @@ async def get_categories_v1(
         A list of all categories.
     """
     result = await category_service.get_all_categories()
-    
+
     if result.success:
         # For this endpoint, we return the list directly rather than wrapping in BaseResponse
         # since the response model is List[CategoryResponse]
@@ -41,6 +45,7 @@ async def get_categories_v1(
     else:
         # Handle error case - in a complete implementation, we'd have specific error handling
         from fastapi import HTTPException
+
         raise HTTPException(status_code=500, detail=result.error)
 
 
@@ -49,7 +54,7 @@ async def get_categories_v1(
 async def create_category_v1(
     request: Request,
     category: CategoryCreate,
-    category_service: CategoryService = Depends(get_category_service)
+    category_service: CategoryService = Depends(get_category_service),
 ):
     """
     Create a new category.
@@ -64,16 +69,18 @@ async def create_category_v1(
     """
     # Convert CategoryCreate to dict for service layer
     category_data = category.model_dump()
-    
+
     result = await category_service.create_category(category_data)
-    
+
     if result.success:
         # Create a successful response
         from pydantic import BaseModel
-        # Since CategoryResponse would be the proper model, 
+
+        # Since CategoryResponse would be the proper model,
         # for now we'll use the returned data directly
         return result.data
     else:
         # Handle error case
         from fastapi import HTTPException
+
         raise HTTPException(status_code=500, detail=result.error)
