@@ -160,9 +160,6 @@ class Workflow:
         return len(errors) == 0, errors
 
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-
 class WorkflowRunner:
     """
     Executes a workflow by processing its nodes in the correct topological order.
@@ -247,7 +244,6 @@ class WorkflowRunner:
             self.execution_stats["total_execution_time"] = execution_time
             
             # Track final memory usage
-            current_process = psutil.Process()
             final_memory = current_process.memory_info().rss / 1024 / 1024  # MB
             memory_used = final_memory - initial_memory
             self.execution_stats["memory_usage_peak"] = max(self.execution_stats["memory_usage_peak"], final_memory)
@@ -361,6 +357,7 @@ class WorkflowRunner:
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
         """Execute workflow nodes in parallel where possible"""
+        import asyncio
         # Create a queue of nodes that are ready to execute
         ready_nodes = []
         completed_nodes = set()
@@ -547,28 +544,6 @@ class WorkflowRunner:
                     cleanup_schedule[node_id].append(prev_node_id)
         
         return cleanup_schedule
-
-    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
-        """
-        Build the context for a specific node based on connections and available data.
-        """
-        # Start with the main execution context
-        node_context = self.execution_context.copy()
-        
-        # Find all incoming connections to this node
-        for conn in self.workflow.connections:
-            if conn["to"]["node_id"] == node_id:
-                source_node_id = conn["from"]["node_id"]
-                source_output = conn["from"]["output"]
-                target_input = conn["to"]["input"]
-                
-                # If we have results from the source node, add them to the context
-                if source_node_id in self.node_results:
-                    source_results = self.node_results[source_node_id]
-                    if source_output in source_results:
-                        node_context[target_input] = source_results[source_output]
-        
-        return node_context
     
     def _evaluate_condition(self, condition: str) -> bool:
         """
