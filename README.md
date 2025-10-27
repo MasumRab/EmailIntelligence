@@ -1,3 +1,4 @@
+# EmailIntelligence - Unified Development Environment
 
 ## Table of Contents
 
@@ -21,6 +22,9 @@
 
 ## Project Overview
 
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+
+The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
 
 The Gradio UI acts as a full-featured client to the FastAPI backend.
 
@@ -46,10 +50,6 @@ Gradio UI (gradio_app.py)
     ├── Calls GET /health ───────────> Displays system health
     └── Calls GET /api/gmail/performance -> Displays performance metrics
 ```
-
-## Project Overview
-
-To successfully set up and run EmailIntelligence, you will need the following:
 
 ## Prerequisites
 
@@ -93,8 +93,8 @@ Use `python launch.py --help` to see all available options.
     ### Core Components:
     - **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
     - **src/core/security.py**: Enterprise-grade security framework
-    - **backend/python_backend/workflow_editor_ui.py**: Visual workflow editor UI
-    - **backend/python_backend/advanced_workflow_routes.py**: API endpoints for workflow management
+    - **modules/workflows/ui.py**: Visual workflow editor UI
+    - **src/main.py**: Main application with integrated API endpoints for workflow management
 
     ### Key Features:
     - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
@@ -272,7 +272,7 @@ When deploying or running this application, please consider the following:
 *   **API Authentication:** Implement proper API security for sensitive operations. (Note: Current state might have basic or no auth for some dev routes).
 *   **Secret Management:** Securely manage `GMAIL_CREDENTIALS_JSON` (or `credentials.json`) and `token.json`. Use environment variables or a secret manager. Do not commit secrets to Git.
 *   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
-*   **CORS Policy:** Restrict CORS policy in `backend/python_backend/main.py` for production.
+*   **CORS Policy:** Restrict CORS policy in the FastAPI application for production.
 *   **Input Validation:** Validate and sanitize all user-supplied and external data.
 
 ## Gmail API Integration Setup
