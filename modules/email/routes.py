@@ -12,7 +12,7 @@ from src.core.models import (
     EmailResponse,
     EmailUpdate,
 )
-from backend.python_backend.performance_monitor import log_performance
+from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
