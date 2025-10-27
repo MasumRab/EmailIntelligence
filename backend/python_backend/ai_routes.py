@@ -1,7 +1,7 @@
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException
-from .dependencies import get_ai_engine, get_db
+from .dependencies import get_ai_engine, get_db, AdvancedAIEngine
 from .database import DatabaseManager
 from .models import AIAnalysisRequest, AIAnalysisResponse, AICategorizeRequest, AICategorizeResponse, EmailResponse, AIValidateRequest, AIValidateResponse
 

@@ -20,4 +20,5 @@ class ModelManager:
         """Check model manager health. Stub implementation."""
         return True
 
+model_manager = ModelManager()
 

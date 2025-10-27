@@ -164,6 +164,13 @@ class AIAnalysisRequest(BaseModel):
     content: str
 
 
+class ActionItem(BaseModel):
+    """Model representing a single action item extracted from an email."""
+    description: str = Field(..., description="The description of the action item.")
+    due_date: Optional[datetime] = Field(None, description="The due date for the action item.")
+    completed: bool = Field(False, description="Whether the action item is completed.")
+
+
 class AIAnalysisResponse(BaseModel):
     """Model representing the detailed output of an AI email analysis."""
 
@@ -180,8 +187,6 @@ class AIAnalysisResponse(BaseModel):
     riskFlags: List[str] = Field(alias="risk_flags")
     actionItems: List[ActionItem] = Field(default_factory=list)
     categoryId: Optional[int] = None
-    isImportant: bool = False
-    actionItems: List[ActionItem] = Field(default_factory=list)
 
     class Config:
         allow_population_by_field_name = True
