@@ -5,8 +5,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 # Updated imports to use the new core framework components
-from src.core.data_source import DataSource
-from src.core.database import DatabaseManager
+from src.core.data.factory import get_data_source
+from src.core.data.data_source import DataSource
 from src.core.exceptions import DatabaseError
 from src.core.factory import get_data_source
 from src.core.models import CategoryCreate, CategoryResponse
@@ -49,8 +49,7 @@ async def create_category(
     Requires authentication.
     """
     try:
-        created_category_coro = db.create_category(category.model_dump())
-        created_category_dict = await created_category_coro
+        created_category_dict = await db.create_category(category.model_dump())
         return CategoryResponse(**created_category_dict)
     except Exception as e:
         logger.error(f"Failed to create category: {e}", exc_info=True)
