@@ -168,7 +168,8 @@ class Workflow:
                 target_node = self.nodes[to_node_id]
                 if expected_input not in target_node.inputs:
                     errors.append(
-                        f"Connection from {from_node_id} to {to_node_id}: Input '{expected_input}' does not exist in target node"
+                    f"Connection from {from_node_id} to {to_node_id}: "
+                        f"Input '{expected_input}' does not exist in target node"
                     )
 
         return len(errors) == 0, errors
@@ -224,7 +225,8 @@ class WorkflowRunner:
     ):
         """
         Executes the workflow with proper topological sorting of nodes to determine execution order.
-        Enhanced with comprehensive error handling and recovery, memory optimization, and optional parallel execution.
+        Enhanced with comprehensive error handling and recovery, memory optimization,
+        and optional parallel execution.
         """
         import time
 
@@ -256,7 +258,7 @@ class WorkflowRunner:
 
             # Get execution order using topological sort
             execution_order = self.workflow.get_execution_order()
-            logger.info(f"Execution order: {execution_order}")
+            logger.info(f"Execution order: {execution_order}")  # noqa: E501
 
             # If memory optimization is enabled, pre-calculate which nodes' results can be cleaned up
             cleanup_schedule = {}
@@ -361,10 +363,14 @@ class WorkflowRunner:
 
                     if retry_count <= self.max_retries:
                         logger.warning(
-                            f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}"
+                        f"Node {node.name} failed, retrying "
+                            f"({retry_count}/{self.max_retries}): {str(e)}"
                         )
                     else:
-                        error_msg = f"Node {node.name} ({node_id}) failed after {self.max_retries} retries: {str(e)}"
+                        error_msg = (
+                            f"Node {node.name} ({node_id}) failed after "
+                            f"{self.max_retries} retries: {str(e)}"
+                        )
                         logger.error(error_msg, exc_info=True)
                         self.execution_stats["errors"].append(error_msg)
                         self.execution_stats["nodes_failed"] += 1
@@ -390,8 +396,9 @@ class WorkflowRunner:
                     if node_to_cleanup in self.node_results:
                         del self.node_results[node_to_cleanup]
                         logger.debug(
-                            f"Cleaned up results for node {node_to_cleanup} to optimize memory"
-                        )
+                        f"Cleaned up results for node "
+                            f"{node_to_cleanup} to optimize memory"
+                                )
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
         """Execute workflow nodes in parallel where possible"""
@@ -485,13 +492,14 @@ class WorkflowRunner:
                     if node_id in cleanup_schedule:
                         for node_to_cleanup in cleanup_schedule[node_id]:
                             if (
-                                node_to_cleanup in self.node_results
-                                and node_to_cleanup not in running_tasks
-                                and node_to_cleanup not in ready_nodes
+                            node_to_cleanup in self.node_results and
+                            node_to_cleanup not in running_tasks and
+                            node_to_cleanup not in ready_nodes
                             ):
                                 del self.node_results[node_to_cleanup]
                                 logger.debug(
-                                    f"Cleaned up results for node {node_to_cleanup} to optimize memory"
+                                f"Cleaned up results for node "
+                                    f"{node_to_cleanup} to optimize memory"
                                 )
 
     async def _execute_single_node(self, node_id: str):
@@ -527,7 +535,8 @@ class WorkflowRunner:
 
                 if retry_count <= self.max_retries:
                     logger.warning(
-                        f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}"
+                    f"Node {node.name} failed, retrying "
+                        f"({retry_count}/{self.max_retries}): {str(e)}"
                     )
                 else:
                     raise e  # Re-raise the exception after max retries
