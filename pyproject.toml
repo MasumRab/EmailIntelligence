@@ -84,3 +84,7 @@ exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 100
+
+# Preserve uv index for PyTorch CPU builds
+[tool.uv.index]
+pytorch-cpu = { url = "https://download.pytorch.org/whl/cpu" }

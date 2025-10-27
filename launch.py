@@ -143,6 +143,83 @@ def validate_environment() -> bool:
     return True
 
 
+# --- Conda Environment Support ---
+def is_conda_available() -> bool:
+    """Check if conda is available on the system."""
+    try:
+        result = subprocess.run(
+            ["conda", "--version"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def get_conda_env_info() -> dict:
+    """Get information about the current conda environment."""
+    info = {
+        "is_active": False,
+        "env_name": None,
+        "python_exe": None
+    }
+
+    # Check if we're in a conda environment
+    conda_env = os.environ.get("CONDA_DEFAULT_ENV")
+    if conda_env:
+        info["is_active"] = True
+        info["env_name"] = conda_env
+
+        # Try to find the Python executable
+        conda_prefix = os.environ.get("CONDA_PREFIX")
+        if conda_prefix:
+            python_exe = os.path.join(conda_prefix, "bin", "python")
+            if platform.system() == "Windows":
+                python_exe = os.path.join(conda_prefix, "python.exe")
+            if os.path.exists(python_exe):
+                info["python_exe"] = python_exe
+
+    return info
+
+
+def activate_conda_env(env_name: str = None) -> bool:
+    """Activate a conda environment."""
+    # Validate environment name to prevent command injection
+    import re
+    if env_name and not re.match(r'^[a-zA-Z0-9_-]+$', env_name):
+        logger.error(f"Invalid conda environment name: {env_name}. Only alphanumeric characters, hyphens, and underscores are allowed.")
+        return False
+
+    env_name = env_name or "base"
+
+    if not is_conda_available():
+        logger.debug("Conda not available, skipping environment activation.")
+        return False
+
+    conda_info = get_conda_env_info()
+    if conda_info["is_active"]:
+        logger.info(f"Already in conda environment: {conda_info['env_name']}")
+        return True
+
+    try:
+        # Try to activate the specified environment
+        logger.info(f"Activating conda environment: {env_name}")
+        result = subprocess.run(
+            ["conda", "activate", env_name],
+            shell=True,  # shell=True is needed for conda activate
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        logger.info(f"Successfully activated conda environment: {env_name}")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"Failed to activate conda environment {env_name}: {e}")
+        return False
+
+
 # --- Input Validation ---
 def validate_port(port: int) -> int:
     """Validate port number is within valid range."""
@@ -291,14 +368,6 @@ def check_python_version():
         )
         sys.exit(1)
     logger.info(f"Python version {sys.version} is compatible.")
-
-
-def get_venv_executable(venv_path: Path, executable: str) -> Path:
-    """Get the path to a specific executable in the virtual environment."""
-    if platform.system() == "Windows":
-        return venv_path / "Scripts" / f"{executable}.exe"
-    else:
-        return venv_path / "bin" / executable
 
 
 def get_venv_executable(venv_path: Path, executable_name: str) -> Path:
