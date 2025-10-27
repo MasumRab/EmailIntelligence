@@ -77,16 +77,23 @@ def check_package_availability():
     print("\n" + "=" * 80)
     print(f"📊 Summary: {len(system_available)} system, {len(venv_available)} venv, {len(not_available)} missing")
     
-    # Check virtual environment
-    venv_path = Path('./emailintelligence_venv')
-    if venv_path.exists():
-        print(f"✅ Virtual environment found: {venv_path.absolute()}")
-        
-        # Check pip packages in venv
-        success, output = run_command("source ./emailintelligence_venv/bin/activate && pip list --format=freeze | wc -l")
-        if success:
-            print(f"📦 Virtual environment has {output} packages installed")
-    else:
+    # Check virtual environment (try both possible names)
+    venv_names = ['./emailintelligence_env', './emailintelligence_venv', './venv']
+    venv_found = False
+
+    for venv_name in venv_names:
+        venv_path = Path(venv_name)
+        if venv_path.exists():
+            print(f"✅ Virtual environment found: {venv_path.absolute()}")
+            venv_found = True
+
+            # Check pip packages in venv
+            success, output = run_command(f"source {venv_name}/bin/activate && pip list --format=freeze | wc -l")
+            if success:
+                print(f"📦 Virtual environment has {output} packages installed")
+            break
+
+    if not venv_found:
         print("⚠️  Virtual environment not found")
     
     # Check system packages

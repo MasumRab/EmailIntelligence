@@ -115,8 +115,8 @@ The launch script now includes better process management capabilities:
        
        # Check Python version
        current_version = sys.version_info[:2]
-       if not ((3, 11) <= current_version <= (3, 13)):
-           issues.append(f"Python version {current_version} is not compatible. Required: 3.11-3,13")
+        if not ((3, 12) <= current_version <= (3, 13)):
+            issues.append(f"Python version {current_version} is not compatible. Required: 3.12-3.13")
        
        # Check key directories
        required_dirs = ["backend", "client", "server", "shared", "tests"]
