@@ -8,7 +8,7 @@ The application uses a modular architecture with a unified launcher system (`lau
 
 ## Key Technologies
 
-- **Backend**: Python 3.11+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
+- **Backend**: Python 3.12+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
 - **Frontend**: React (Vite), TypeScript
 - **NLP/AI**: Custom NLP engine with sentiment, topic, intent, and urgency analysis models
 - **Database**: SQLite (default)
@@ -42,7 +42,7 @@ EmailIntelligence/
 
 ### Prerequisites
 
-- Python 3.11 or later
+- Python 3.12 or later
 - Node.js 18 or later
 - Git
 

@@ -55,7 +55,7 @@ To successfully set up and run EmailIntelligence, you will need the following:
 
 To successfully set up and run EmailIntelligence, you will need the following:
 
-- **Python 3.11+**: Required for the backend services
+- **Python 3.12+**: Required for the backend services
 - **Node.js 16+**: Required for the frontend (optional if running API-only)
 - **Conda (optional)**: For conda environment management (venv is used by default)
 
@@ -169,7 +169,7 @@ The application now uses SQLite. The database file (e.g., `sqlite.db`) will typi
 # For Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev
 
-# For Linux/macOS (ensure Python 3.11+ is available)
+# For Linux/macOS (ensure Python 3.12+ is available)
 chmod +x launch.sh
 ./launch.sh --stage dev
 
