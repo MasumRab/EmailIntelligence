@@ -14,6 +14,7 @@ from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -28,10 +29,12 @@ async def get_emails(
     limit: int = 50,
     offset: int = 0,
     is_unread: Optional[bool] = None,
+    current_user: str = Depends(get_current_active_user),
     email_repo: EmailRepository = Depends(get_email_repository),
 ):
     """
     Retrieves a list of emails, with optional filtering by category and search term.
+    Requires authentication.
 
     Args:
         request: The incoming request object.
@@ -67,10 +70,12 @@ async def get_emails(
 async def get_email(
     request: Request,
     email_id: int,
+    current_user: str = Depends(get_current_active_user),
     email_repo: EmailRepository = Depends(get_email_repository),
 ):
     """
     Retrieves a specific email by its unique ID.
+    Requires authentication.
 
     Args:
         request: The incoming request object.
@@ -110,10 +115,12 @@ async def create_email(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
+    current_user: str = Depends(get_current_active_user),
     email_repo: EmailRepository = Depends(get_email_repository),
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
-    """Create new email with AI analysis using the active workflow."""
+    """Create new email with AI analysis using the active workflow.
+    Requires authentication."""
     try:
         # Run the active workflow to process the email data
         processed_data = await workflow_engine.run_workflow(email.model_dump())
@@ -145,10 +152,12 @@ async def update_email(
     request: Request,
     email_id: int,
     email_update: EmailUpdate,
+    current_user: str = Depends(get_current_active_user),
     email_repo: EmailRepository = Depends(get_email_repository),
 ):
     """
     Updates an existing email by its ID.
+    Requires authentication.
 
     Args:
         request: The incoming request object.
