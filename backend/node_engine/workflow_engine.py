@@ -128,8 +128,8 @@ class WorkflowEngine:
                 # Validate inputs
                 validation_result = node.validate_inputs()
                 if not validation_result["valid"]:
-                    error_msg = f"Node {node_id} input validation failed: {
-                        ', '.join(validation_result['errors'])}"
+                    error_msg = f"Node {node_id} input validation failed: "
+                    f"{', '.join(validation_result['errors'])}"
                     context.add_error(node_id, error_msg)
                     raise WorkflowExecutionException(error_msg)
 
@@ -178,9 +178,8 @@ class WorkflowEngine:
             context.metadata["status"] = "completed"
 
             self.logger.info(
-                f"Workflow {
-                    workflow.name} completed successfully in {
-                    context.metadata['execution_duration']:.2f}s"
+            f"Workflow {workflow.name} completed successfully in "
+            f"{context.metadata['execution_duration']:.2f}s"
             )
 
         except Exception as e:

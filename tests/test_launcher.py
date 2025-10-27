@@ -91,17 +91,10 @@ class TestVirtualEnvironment:
     @patch("launch.venv.create")
     @patch("launch.Path.exists")
     def test_create_venv_recreate(self, mock_exists, mock_venv_create, mock_rmtree):
-<<<<<<< HEAD
-    """Test venv recreation when forced."""
-    # Mock exists to return True initially, then False after rmtree
-    mock_exists.side_effect = [True, False]
-    venv_path = ROOT_DIR / "venv"
-=======
         """Test venv recreation when forced."""
         # Mock exists to return True initially, then False after rmtree
         mock_exists.side_effect = [True, False]
         venv_path = ROOT_DIR / "venv"
->>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
         with patch("launch.logger") as mock_logger:
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
