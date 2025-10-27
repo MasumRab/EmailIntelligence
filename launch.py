@@ -267,6 +267,12 @@ def activate_conda_env(env_name: str = None) -> bool:
     """Activate a conda environment."""
     env_name = env_name or CONDA_ENV_NAME
 
+    # Validate environment name to prevent command injection
+    import re
+    if not re.match(r'^[a-zA-Z0-9_-]+$', env_name):
+        logger.error(f"Invalid conda environment name: {env_name}. Only alphanumeric characters, hyphens, and underscores are allowed.")
+        return False
+
     if not is_conda_available():
         logger.debug("Conda not available, skipping environment activation.")
         return False
