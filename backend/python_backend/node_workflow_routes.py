@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 API routes for node-based workflows in the Email Intelligence Platform.
 
 This module provides API endpoints for managing and executing node-based workflows
@@ -27,7 +30,7 @@ from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
 from .dependencies import get_db
 from .model_manager import model_manager
-from .workflow_engine import WorkflowEngine  # Original workflow engine
+from backend.node_engine.workflow_engine import WorkflowEngine  # Node engine
 
 router = APIRouter()
 

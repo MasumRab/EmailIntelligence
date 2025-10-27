@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Database management for Gmail AI email processing
 JSON file storage implementation.
 """
@@ -76,10 +79,7 @@ class DatabaseManager:
     """
 
     def __init__(self):
-<<<<<<< HEAD
-=======
         """Initializes the DatabaseManager, setting up file paths and data caches."""
->>>>>>> main
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
@@ -180,11 +180,7 @@ class DatabaseManager:
                 )
                 setattr(self, data_list_attr, [])
 
-<<<<<<< HEAD
     @log_performance(operation="save_data_to_file")
-=======
-    @log_performance("save_data_to_file")
->>>>>>> main
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
@@ -221,8 +217,6 @@ class DatabaseManager:
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
-<<<<<<< HEAD
-=======
         """
         Generates a new unique integer ID for a record.
 
@@ -232,14 +226,11 @@ class DatabaseManager:
         Returns:
             A new unique integer ID.
         """
->>>>>>> main
         if not data_list:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
     def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
-<<<<<<< HEAD
-=======
         """
         Parses fields in a data row that are stored as JSON strings.
 
@@ -250,7 +241,6 @@ class DatabaseManager:
         Returns:
             The modified data record with parsed fields.
         """
->>>>>>> main
         if not row:
             return row
         for field in row:
@@ -379,6 +369,59 @@ class DatabaseManager:
         await self._save_data(DATA_TYPE_CATEGORIES)
         return category_record
 
+    async def update_category(self, category_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update a category by its ID."""
+        if category_id not in self.categories_by_id:
+            logger.warning(f"Category with {FIELD_ID} {category_id} not found for update.")
+            return None
+
+        category_to_update = self.categories_by_id[category_id]
+        changed_fields = False
+        
+        # Update allowed fields
+        for key, value in update_data.items():
+            # Skip ID field as it shouldn't be changed
+            if key == FIELD_ID:
+                continue
+            # Update the field if it's different
+            if key in category_to_update and category_to_update[key] != value:
+                category_to_update[key] = value
+                changed_fields = True
+            elif key not in category_to_update:
+                category_to_update[key] = value
+                changed_fields = True
+
+        # If any fields were changed, save the data
+        if changed_fields:
+            # Update indexes
+            category_name_lower = category_to_update[FIELD_NAME].lower()
+            self.categories_by_name[category_name_lower] = category_to_update
+            await self._save_data(DATA_TYPE_CATEGORIES)
+            
+        return category_to_update
+
+    async def delete_category(self, category_id: int) -> bool:
+        """Delete a category by its ID."""
+        if category_id not in self.categories_by_id:
+            logger.warning(f"Category with {FIELD_ID} {category_id} not found for deletion.")
+            return False
+
+        # Remove from all indexes
+        category_to_delete = self.categories_by_id[category_id]
+        category_name_lower = category_to_delete[FIELD_NAME].lower()
+        
+        # Remove from data list
+        self.categories_data = [cat for cat in self.categories_data if cat.get(FIELD_ID) != category_id]
+        
+        # Remove from indexes
+        self.categories_by_id.pop(category_id, None)
+        self.categories_by_name.pop(category_name_lower, None)
+        self.category_counts.pop(category_id, None)
+        
+        # Save the updated data
+        await self._save_data(DATA_TYPE_CATEGORIES)
+        return True
+
     async def _update_category_count(
         self, category_id: int, increment: bool = False, decrement: bool = False
     ) -> None:
@@ -463,12 +506,8 @@ class DatabaseManager:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
 
             self.emails_by_id[email_id] = email_to_update
-<<<<<<< HEAD
-            self.emails_by_message_id[message_id] = email_to_update
-=======
             if email_to_update.get(FIELD_MESSAGE_ID):
                 self.emails_by_message_id[email_to_update[FIELD_MESSAGE_ID]] = email_to_update
->>>>>>> main
             idx = next(
                 (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
             )
@@ -500,10 +539,7 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-<<<<<<< HEAD
-=======
         """Retrieves all emails with pagination."""
->>>>>>> main
         return await self.get_emails(limit=limit, offset=offset)
 
     async def get_emails_by_category(
@@ -631,8 +667,6 @@ _db_manager_instance = None
 
 
 async def get_db() -> DatabaseManager:
-<<<<<<< HEAD
-=======
     """
     Provides the singleton instance of the DatabaseManager.
 
@@ -644,7 +678,6 @@ async def get_db() -> DatabaseManager:
     Returns:
         The singleton DatabaseManager instance.
     """
->>>>>>> main
     global _db_manager_instance
     if _db_manager_instance is None:
         # This should ideally not be reached if startup event is properly set

@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Node Library for the Email Intelligence Platform.
 
 This module provides a library of available nodes that can be consumed

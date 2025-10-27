@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 API routes for advanced workflow features: node-based workflows, advanced processing,
 and enterprise workflow management
 """
@@ -20,7 +23,7 @@ from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
 from .dependencies import get_db
 from .model_manager import model_manager
-from .workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_engine import WorkflowEngine
 
 
 class WorkflowExecutionResult:

@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Editor UI for Email Intelligence Platform
 
 Implements a Gradio-based node editor interface for creating and managing
@@ -11,12 +14,8 @@ from typing import Any, Dict, List, Optional
 import gradio as gr
 
 from backend.plugins.plugin_manager import plugin_manager
-from src.core.advanced_workflow_engine import (
-    Connection,
-    Workflow,
-    get_workflow_manager,
-    initialize_workflow_system,
-)
+from backend.node_engine.node_base import Connection, Workflow
+from backend.node_engine.workflow_manager import get_workflow_manager
 
 # Try to import security manager if available
 try:

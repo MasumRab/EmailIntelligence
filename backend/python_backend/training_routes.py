@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Training Routes for AI Model Training
 
 This module provides API endpoints for training AI models used in email analysis.

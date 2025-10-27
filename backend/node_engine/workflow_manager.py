@@ -1,4 +1,7 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
+
 Workflow Manager for the Email Intelligence Platform.
 
 This module provides functionality for managing, storing, and retrieving
@@ -43,7 +46,11 @@ class WorkflowManager:
         """
         workflow_data = self._workflow_to_dict(workflow)
         filename = f"{workflow.workflow_id}.json"
-        filepath = os.path.join(self.workflows_dir, filename)
+        raw_filepath = os.path.join(self.workflows_dir, filename)
+        filepath = os.path.normpath(raw_filepath)
+        # Validate that the workflow file resides within self.workflows_dir
+        if not filepath.startswith(os.path.abspath(self.workflows_dir) + os.sep):
+            raise ValueError("Invalid workflow_id resulting in unsafe file path")
 
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(workflow_data, f, indent=2, default=str)
@@ -62,7 +69,11 @@ class WorkflowManager:
             The loaded workflow or None if not found
         """
         filename = f"{workflow_id}.json"
-        filepath = os.path.join(self.workflows_dir, filename)
+        raw_filepath = os.path.join(self.workflows_dir, filename)
+        filepath = os.path.normpath(raw_filepath)
+        if not filepath.startswith(os.path.abspath(self.workflows_dir) + os.sep):
+            self.logger.warning(f"Attempted file access outside workflows_dir: {filepath}")
+            return None
 
         if not os.path.exists(filepath):
             self.logger.warning(f"Workflow file not found: {filepath}")
@@ -122,7 +133,11 @@ class WorkflowManager:
             True if deletion was successful, False otherwise
         """
         filename = f"{workflow_id}.json"
-        filepath = os.path.join(self.workflows_dir, filename)
+        raw_filepath = os.path.join(self.workflows_dir, filename)
+        filepath = os.path.normpath(raw_filepath)
+        if not filepath.startswith(os.path.abspath(self.workflows_dir) + os.sep):
+            self.logger.warning(f"Attempted deletion of file outside workflows_dir: {filepath}")
+            return False
 
         if os.path.exists(filepath):
             try:
