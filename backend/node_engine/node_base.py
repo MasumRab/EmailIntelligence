@@ -225,17 +225,15 @@ class Workflow:
         source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
         if not source_port_exists:
             raise ValueError(
-                f"Source port {
-                    connection.source_port} does not exist on node {
-                    connection.source_node_id}"
+            f"Source port {connection.source_port} does not exist on node "
+            f"{connection.source_node_id}"
             )
 
         target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
         if not target_port_exists:
             raise ValueError(
-                f"Target port {
-                    connection.target_port} does not exist on node {
-                    connection.target_node_id}"
+            f"Target port {connection.target_port} does not exist on node "
+            f"{connection.target_node_id}"
             )
 
         self.connections.append(connection)
