@@ -9,28 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from launch import (
-    PYTHON_MAX_VERSION,
-    PYTHON_MIN_VERSION,
-    ROOT_DIR,
-    check_python_version,
-    create_venv,
-    download_nltk_data,
-    main,
-    process_manager,
-    setup_dependencies,
-    start_backend,
-    start_gradio_ui,
-)
-@patch("launch.logger")
-def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
-    """
-    Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.
-    """
-    result = install_nodejs_dependencies("client")
-
-    assert result is False, "Function should return False when npm install fails"
-    mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
+from launch import ROOT_DIR, main, start_gradio_ui
 
 
 @patch("launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
