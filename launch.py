@@ -201,8 +201,8 @@ def check_required_components() -> bool:
 
     # Check Python version
     current_version = sys.version_info[:2]
-    if not ((3, 11) <= current_version <= (3, 13)):
-        issues.append(f"Python version {current_version} is not compatible. Required: 3.11-3.13")
+    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
+        issues.append(f"Python version {current_version} is not compatible. Required: {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]}-{PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}")
 
     # Check key directories
     required_dirs = ["backend", "client", "shared", "tests"]
@@ -857,12 +857,10 @@ def main():
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
             sys.exit(1)
-
-        if not get_conda_env_info()["is_active"]:
-            if not activate_conda_env(args.conda_env):
-                logger.error(f"Failed to activate Conda environment: {args.conda_env}")
-                sys.exit(1)
-        else:
+        if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
+            logger.error(f"Failed to activate Conda environment: {args.conda_env}")
+            sys.exit(1)
+        elif get_conda_env_info()["is_active"]:
             logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
 
     if not args.skip_prepare and not args.use_conda:
