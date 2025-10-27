@@ -78,7 +78,7 @@ ignore-imports=yes
 """
 
     # Create pyproject.toml for Black and isort
-    pyproject_toml = """[tool.black]
+    pyproject_toml = r"""[tool.black]
 line-length = 100
 target-version = ['py311']
 include = '\.pyi?$'
@@ -93,12 +93,7 @@ exclude = '''
   | buck-out
   | build
   | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
-line_length = 100
+)'''
 """
 
     # Write configuration files
