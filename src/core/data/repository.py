@@ -1,63 +1,91 @@
-from typing import List, Dict, Any
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
+
 from .data_source import DataSource
-from .database_source import get_database_data_source
 
-class EmailRepository:
-    """
-    A repository for managing emails from various data sources.
-    """
 
-    def __init__(self, data_source: DataSource):
-        self.data_source = data_source
+class EmailRepository(ABC):
+    """Abstract base class for email repository operations."""
 
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
-        """
-        Fetches a list of emails from the current data source.
-        """
-        return await self.data_source.get_emails(limit=limit, offset=offset, category_id=category_id, is_unread=is_unread)
+    @abstractmethod
+    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Creates a new email record."""
+        pass
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Creates a new email in the current data source.
-        """
-        return await self.data_source.create_email(email_data)
+    @abstractmethod
+    async def get_email_by_id(self, email_id: int, include_content: bool = True) -> Optional[Dict[str, Any]]:
+        """Retrieves an email by its ID."""
+        pass
 
-    async def update_email(self, email_id: Any, email_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Updates an existing email in the current data source.
-        """
-        return await self.data_source.update_email(email_id, email_data)
+    @abstractmethod
+    async def get_emails(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        category_id: Optional[int] = None,
+        is_unread: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
+        """Retrieves emails with filtering and pagination."""
+        pass
 
-    async def get_email_by_id(self, email_id: Any) -> Dict[str, Any]:
-        """
-        Fetches a single email by its ID from the current data source.
-        """
-        return await self.data_source.get_email_by_id(email_id)
+    @abstractmethod
+    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Searches emails by term."""
+        pass
 
-    async def search_emails(self, query: str) -> List[Dict[str, Any]]:
-        """
-        Searches for emails matching a query in the current data source.
-        """
-        return await self.data_source.search_emails(query)
+    @abstractmethod
+    async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Updates an email by its ID."""
+        pass
 
-    async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
-        """
-        Adds tags to an email in the current data source.
-        """
-        return await self.data_source.add_tags(email_id, tags)
+    @abstractmethod
+    async def shutdown(self) -> None:
+        """Performs any necessary cleanup."""
+        pass
 
-    async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
-        """
-        Removes tags from an email in the current data source.
-        """
-        return await self.data_source.remove_tags(email_id, tags)
+
+class DatabaseEmailRepository(EmailRepository):
+    """Email repository implementation using DatabaseManager."""
+
+    def __init__(self, db_manager: DataSource):
+        self.db_manager = db_manager
+
+    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        return await self.db_manager.create_email(email_data)
+
+    async def get_email_by_id(self, email_id: int, include_content: bool = True) -> Optional[Dict[str, Any]]:
+        return await self.db_manager.get_email_by_id(email_id, include_content)
+
+    async def get_emails(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        category_id: Optional[int] = None,
+        is_unread: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
+        return await self.db_manager.get_emails(limit, offset, category_id, is_unread)
+
+    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+        return await self.db_manager.search_emails(search_term, limit)
+
+    async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        return await self.db_manager.update_email(email_id, update_data)
+
+    async def shutdown(self) -> None:
+        await self.db_manager.shutdown()
+
+
+# Factory function
+_email_repo_instance: Optional[EmailRepository] = None
+
 
 async def get_email_repository() -> EmailRepository:
     """
-    Provides a singleton instance of the EmailRepository, configured with the
-    appropriate data source.
+    Provides the singleton instance of the EmailRepository.
     """
-    # This is where the logic to select the data source would go.
-    # For now, we'll hardcode it to use the DatabaseDataSource.
-    database_data_source = await get_database_data_source()
-    return EmailRepository(data_source=database_data_source)
+    global _email_repo_instance
+    if _email_repo_instance is None:
+        from .factory import get_data_source
+        data_source = await get_data_source()
+        _email_repo_instance = DatabaseEmailRepository(data_source)
+    return _email_repo_instance
