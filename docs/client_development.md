@@ -41,12 +41,7 @@ You can run the frontend in development mode using:
 npm run dev
 ```
 
-Or using the unified launcher:
-
-```bash
-# From the project root
-python launch.py --frontend-only
-```
+**Note:** Use `npm run dev` directly for frontend development. The launcher focuses on full-stack development.
 
 ### Building for Production
 

@@ -1,9 +1,10 @@
-import gradio as gr
-import requests
+import asyncio
 import json
 import os
-import asyncio
 from datetime import datetime, timedelta
+
+import gradio as gr
+import requests
 
 from src.core.database import DatabaseManager
 
@@ -13,7 +14,7 @@ SAVED_FILTERS_FILE = "saved_filters.json"
 def get_saved_filters():
     if not os.path.exists(SAVED_FILTERS_FILE):
         return []
-    with open(SAVED_FILTERS_FILE, "r") as f:
+    with open(SAVED_FILTERS_FILE, "r", encoding="utf-8") as f:
         filters = [json.loads(line) for line in f]
     return filters
 
@@ -58,18 +59,19 @@ def save_filter(
         "category": category,
         "has_attachment": has_attachment,
     }
-    with open(SAVED_FILTERS_FILE, "a") as f:
+    with open(SAVED_FILTERS_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(filter_data) + "\n")
     return f"Filter '{name}' saved successfully!"
 
 
 def get_categories():
     try:
-        response = requests.get("http://127.0.0.1:8000/api/categories")
+        response = requests.get("http://127.0.0.1:8000/api/categories", timeout=10)
         if response.status_code == 200:
             return [c["name"] for c in response.json()]
         return []
-    except Exception:
+    except (requests.RequestException, ValueError) as e:
+        print(f"Error fetching categories: {e}")
         return ["uncategorized", "work", "personal"]
 
 
@@ -139,6 +141,7 @@ async def retrieve_emails_and_save(
             "queryFilter": query_filter.strip(),
             "includeAIAnalysis": True,
         },
+        timeout=30,
     )
 
     if response.status_code == 200:
@@ -152,7 +155,7 @@ async def retrieve_emails_and_save(
         await db.shutdown()
 
         if download_format == "JSON":
-            with open("retrieved_emails.json", "w") as f:
+            with open("retrieved_emails.json", "w", encoding="utf-8") as f:
                 json.dump(emails, f)
             return (
                 f"Successfully retrieved and saved {len(emails)} emails. Saved to retrieved_emails.json",
@@ -192,6 +195,7 @@ def test_filter(
     response = requests.post(
         "http://127.0.0.1:8000/api/gmail/sync",
         json={"maxEmails": 0, "queryFilter": query_filter.strip(), "includeAIAnalysis": False},
+        timeout=30,
     )
 
     if response.status_code == 200:

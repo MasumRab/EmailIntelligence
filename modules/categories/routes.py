@@ -10,7 +10,7 @@ from src.core.database import DatabaseManager
 from src.core.exceptions import DatabaseError
 from src.core.factory import get_data_source
 from src.core.models import CategoryCreate, CategoryResponse
-from src.core.performance_monitor import log_performance
+from backend.python_backend.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

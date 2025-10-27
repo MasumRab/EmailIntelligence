@@ -74,5 +74,4 @@ async def test_create_and_activate_new_workflow(client, mock_workflow_engine):
     assert response_activate.json()["message"] == "Active workflow set to 'my_brand_new_workflow'."
 
     # 3. Verify the mocks were called as expected
-    )
     mock_workflow_engine.set_active_workflow.assert_called_with("my_brand_new_workflow")
