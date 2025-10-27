@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 
 from .models import DashboardStats, WeeklyGrowth
-from .database import get_db
+from .database import get_db, DatabaseManager
 from .dependencies import get_email_service
 from .services.email_service import EmailService
 from .auth import get_current_user
