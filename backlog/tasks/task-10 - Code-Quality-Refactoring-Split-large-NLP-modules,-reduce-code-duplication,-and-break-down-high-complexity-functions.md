@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-25 04:50'
+updated_date: '2025-10-27 00:36'
 labels:
   - refactoring
   - quality
@@ -27,3 +28,10 @@ Address identified code quality issues: large modules, duplication, and high com
 - [ ] #5 Refactor migrate_sqlite_to_json function (complexity: 17)
 - [ ] #6 Refactor run function in email_filter_node.py (complexity: 16)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+---
+**Migration Context:** This task is part of the larger [Backend Migration to src/ (task-18)](backlog/tasks/task-18 - Backend-Migration-to-src.md) effort. Refer to the [Backend Migration Guide](docs/backend_migration_guide.md) for overall strategy and details.
+<!-- SECTION:NOTES:END -->
