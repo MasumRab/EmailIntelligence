@@ -228,8 +228,8 @@ class ExecutionSandbox:
             if port_name in inputs:
                 if not isinstance(inputs[port_name], expected_type):
                     self.logger.error(
-                        f"Input validation failed: {port_name} expected {
-                                      expected_type}, got {type(inputs[port_name])}"
+                    f"Input validation failed: {port_name} expected "
+                    f"{expected_type}, got {type(inputs[port_name])}"
                     )
                     return False
         return True
@@ -262,8 +262,8 @@ class AuditLogger:
     def log_workflow_end(self, workflow_id: str, status: str, duration: float, user_id: str = None):
         """Log workflow execution end."""
         self.logger.info(
-            f"WORKFLOW_END: id={workflow_id}, status={
-                         status}, duration={duration}s, user={user_id}"
+        f"WORKFLOW_END: id={workflow_id}, status={status}, "
+        f"duration={duration}s, user={user_id}"
         )
 
     def log_node_execution(
