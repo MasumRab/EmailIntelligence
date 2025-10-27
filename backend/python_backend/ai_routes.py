@@ -18,6 +18,7 @@ async def analyze_email(
 ):
     """
     Analyzes email content and returns AI-driven insights.
+    
     Requires authentication.
     """
     try:
@@ -45,6 +46,7 @@ async def categorize_email(
 ):
     """
     Categorizes an email, either automatically using AI or manually.
+    
     Requires authentication.
     """
     email = await db.get_email_by_id(request.emailId)
@@ -113,6 +115,7 @@ async def validate_analysis(
 ):
     """
     Validates AI analysis based on user feedback.
+    
     Requires authentication.
     """
     logger.info(f"Received validation feedback for email {request.emailId}: {request.userFeedback}")

@@ -1,17 +1,10 @@
 ---
 id: task-17
 title: Implement proper API authentication for sensitive operations
-<<<<<<< HEAD
-status: Completed
+status: Done
 assignee: []
 created_date: '2025-10-26 14:24'
-updated_date: '2025-10-28 23:47'
-=======
-status: Completed
-assignee: []
-created_date: '2025-10-26 14:24'
-updated_date: '2025-10-28 23:47'
->>>>>>> 3ada49d19f051c2c8072ad6bb3b625a2ef4a9830
+updated_date: '2025-10-28 03:30'
 labels: []
 dependencies: []
 priority: high
