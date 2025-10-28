@@ -191,8 +191,8 @@ iFlow CLI uses a todo system to manage and plan tasks:
 ```python
 # Example of using todo system
 todo_write([{
-    "id": "1", 
-    "task": "Implement new feature X", 
+    "id": "1",
+    "task": "Implement new feature X",
     "status": "pending"
 }])
 ```
