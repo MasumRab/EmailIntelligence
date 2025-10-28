@@ -86,30 +86,18 @@ class TestDependencyManagement:
 
     @patch("launch.subprocess.run")
     def test_setup_dependencies_success(self, mock_subprocess_run):
-<<<<<<< HEAD
-    """Test successful dependency setup."""
-    mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-    venv_path = ROOT_DIR / "venv"
-=======
         """Test successful dependency setup."""
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         venv_path = ROOT_DIR / "venv"
->>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
         setup_dependencies(venv_path)
         mock_subprocess_run.assert_called_once()
 
 
     @patch("launch.subprocess.run")
     def test_download_nltk_success(self, mock_subprocess_run):
-<<<<<<< HEAD
-    """Test successful NLTK data download."""
-    mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-    venv_path = ROOT_DIR / "venv"
-=======
         """Test successful NLTK data download."""
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         venv_path = ROOT_DIR / "venv"
->>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
         download_nltk_data(venv_path)
         assert mock_subprocess_run.call_count == 2
 
