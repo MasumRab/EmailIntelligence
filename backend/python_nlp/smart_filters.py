@@ -95,16 +95,21 @@ class SmartFilterManager:
     of email filters, using a SQLite database for persistence.
     """
 
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
+    def __init__(self, db_path: str = None):
         """
         Initializes the SmartFilterManager.
 
         Args:
             db_path: Path to the SQLite database file. If None, uses the default
-                    path in the project's data directory. Relative paths are
-                    resolved relative to the project's data directory to prevent
-                    path traversal attacks and ensure consistent behavior.
+                     path in the project's data directory. Relative paths are
+                     resolved relative to the project's data directory to prevent
+                     path traversal attacks and ensure consistent behavior.
         """
+        if db_path is None:
+            db_path = DEFAULT_DB_PATH
+        elif not os.path.isabs(db_path):
+            # Resolve relative paths relative to the data directory to prevent path traversal
+            db_path = os.path.join(DATA_DIR, os.path.basename(db_path))
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None

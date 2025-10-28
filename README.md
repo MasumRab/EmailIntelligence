@@ -1,3 +1,4 @@
+# EmailIntelligence - Unified Development Environment
 
 ## Table of Contents
 
@@ -21,6 +22,9 @@
 
 ## Project Overview
 
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+
+The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
 
 The Gradio UI acts as a full-featured client to the FastAPI backend.
 
@@ -47,15 +51,11 @@ Gradio UI (gradio_app.py)
     └── Calls GET /api/gmail/performance -> Displays performance metrics
 ```
 
-## Project Overview
-
-To successfully set up and run EmailIntelligence, you will need the following:
-
 ## Prerequisites
 
 To successfully set up and run EmailIntelligence, you will need the following:
 
-- **Python 3.11+**: Required for the backend services
+- **Python 3.12+**: Required for the backend services
 - **Node.js 16+**: Required for the frontend (optional if running API-only)
 - **Conda (optional)**: For conda environment management (venv is used by default)
 
@@ -93,8 +93,8 @@ Use `python launch.py --help` to see all available options.
     ### Core Components:
     - **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
     - **src/core/security.py**: Enterprise-grade security framework
-    - **backend/python_backend/workflow_editor_ui.py**: Visual workflow editor UI
-    - **backend/python_backend/advanced_workflow_routes.py**: API endpoints for workflow management
+    - **modules/workflows/ui.py**: Visual workflow editor UI
+    - **src/main.py**: Main application with integrated API endpoints for workflow management
 
     ### Key Features:
     - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
@@ -169,7 +169,7 @@ The application now uses SQLite. The database file (e.g., `sqlite.db`) will typi
 # For Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev
 
-# For Linux/macOS (ensure Python 3.11+ is available)
+# For Linux/macOS (ensure Python 3.12+ is available)
 chmod +x launch.sh
 ./launch.sh --stage dev
 
@@ -189,6 +189,7 @@ The application will typically be available at http://localhost:5173.
 - **Conda users**: The launcher automatically detects conda environments. Use `--conda-env <name>` to specify a particular environment
 - **Virtual environment**: Created automatically in `venv/` if conda is not available
 - **System Python**: Use `--no-venv` to skip environment creation (not recommended)
+- **CPU-only setup**: For systems without NVIDIA GPUs, see [CPU_SETUP.md](CPU_SETUP.md) for NVIDIA-free installation
 
 **Important Next Steps:**
 - **AI Models:** The Quick Start will get the application running, but AI features require trained models. Please see the [AI Models Setup](#ai-models-setup) section below for critical information.
@@ -271,7 +272,7 @@ When deploying or running this application, please consider the following:
 *   **API Authentication:** Implement proper API security for sensitive operations. (Note: Current state might have basic or no auth for some dev routes).
 *   **Secret Management:** Securely manage `GMAIL_CREDENTIALS_JSON` (or `credentials.json`) and `token.json`. Use environment variables or a secret manager. Do not commit secrets to Git.
 *   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
-*   **CORS Policy:** Restrict CORS policy in `backend/python_backend/main.py` for production.
+*   **CORS Policy:** Restrict CORS policy in the FastAPI application for production.
 *   **Input Validation:** Validate and sanitize all user-supplied and external data.
 
 ## Gmail API Integration Setup
