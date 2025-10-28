@@ -197,6 +197,14 @@ todo_write([{
 }])
 ```
 
+## Session Documentation and Tracking
+
+For documented development sessions, iFlow CLI follows the workflow outlined in `docs/iflow_development_workflow.md`. Session logs are stored in the `backlog/sessions/` directory with the naming convention `IFLOW-YYYYMMDD-XXX.md`.
+
+- Main session log: `SESSION_LOG.md`
+- Individual session logs: `backlog/sessions/IFLOW-YYYYMMDD-XXX.md`
+- Development workflow guide: `docs/iflow_development_workflow.md`
+
 ## iFlow CLI Software Engineering Workflow
 
 When performing software engineering tasks, iFlow CLI follows this sequence:
