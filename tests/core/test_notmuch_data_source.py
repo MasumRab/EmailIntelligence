@@ -6,6 +6,8 @@ which provides a mock implementation of the DataSource interface for Notmuch.
 """
 
 import pytest
+from unittest.mock import patch, MagicMock, AsyncMock
+from typing import Dict, List, Any, Optional
 
 from src.core.notmuch_data_source import NotmuchDataSource
 

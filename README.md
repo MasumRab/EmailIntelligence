@@ -83,7 +83,7 @@ Use `python launch.py --help` to see all available options.
 ## Development Notes
 
 -   **Python Environment:** The launcher automatically detects and uses conda environments if available, otherwise creates and manages a virtual environment in the `./venv` directory. You do not need to activate environments manually.
--   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv` (or Poetry). All Node.js dependencies are defined in the `package.json` files.
+-   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` files.
 -   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside your active environment (conda or venv).
 -   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root. The data directory is now configurable via the `DATA_DIR` environment variable.
 -   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
@@ -178,7 +178,7 @@ python launch.py --stage dev
 ```
 This command will:
 - Automatically detect and use conda environments if available, otherwise create/use a virtual environment
-- Install Python dependencies using uv (or Poetry if specified)
+- Install Python dependencies using uv
 - Download necessary NLTK data
 - Create placeholder AI model files if actual models are not found (see [AI Models Setup](#ai-models-setup) for crucial next steps)
 - Start the Python FastAPI AI server (default: port 8000) and the React frontend development server (default: port 5173)
@@ -222,18 +222,12 @@ npm install
 
 **3. Set up Python Environment**
 
-The launcher supports multiple dependency management systems. Choose one:
+The launcher uses uv for dependency management:
 
-- **Using uv (default, recommended for speed):**
-  ```bash
-  python launch.py --setup
-  ```
-  This creates a virtual environment in `venv/`, installs Python dependencies from `pyproject.toml`, and downloads NLTK data.
-
-- **Using Poetry:**
-  ```bash
-  python launch.py --setup --use-poetry
-  ```
+```bash
+python launch.py --setup
+```
+This creates a virtual environment in `venv/`, installs Python dependencies from `pyproject.toml`, and downloads NLTK data.
 
 - **Using Conda:**
   ```bash

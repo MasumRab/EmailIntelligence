@@ -6,7 +6,7 @@ ensuring proper dependency injection and singleton behavior.
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 
 from src.core.factory import get_data_source, get_ai_engine
 from src.core.data_source import DataSource

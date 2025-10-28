@@ -6,6 +6,7 @@ This script validates that the project uses consistent dependency management
 and prevents mixed usage of uv and Poetry.
 """
 
+import os
 import sys
 from pathlib import Path
 
