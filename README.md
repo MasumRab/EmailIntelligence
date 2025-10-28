@@ -273,7 +273,7 @@ When deploying or running this application, please consider the following:
 *   **API Authentication:** JWT-based authentication has been implemented for all sensitive API endpoints. Users must authenticate using the `/api/auth/login` or `/token` endpoints to obtain an access token.
 *   **Secret Management:** Securely manage `GMAIL_CREDENTIALS_JSON` (or `credentials.json`) and `token.json`. Use environment variables or a secret manager. Do not commit secrets to Git.
 *   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
-*   **CORS Policy:** Restrict CORS policy in `backend/python_backend/main.py` for production.
+*   **CORS Policy:** Restrict CORS policy in the FastAPI application for production.
 *   **Input Validation:** Validate and sanitize all user-supplied and external data.
 
 ## Gmail API Integration Setup

@@ -103,6 +103,17 @@ class SmartGmailRetriever:
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
 
+<<<<<<< HEAD
+=======
+        """
+        Execute smart retrieval using the provided strategies.
+
+        Args:
+            strategies: A list of strategies to execute. If None, uses default optimized strategies.
+            max_api_calls: The maximum number of API calls to make.
+            time_budget_minutes: The time limit in minutes for the retrieval process.
+
+>>>>>>> origin/feature-dashboard-stats-endpoint
         Returns:
             A dictionary with retrieval results.
         """
@@ -110,7 +121,11 @@ class SmartGmailRetriever:
         return {"status": "not_implemented"}
 
     def _load_checkpoint(self, strategy_name: str) -> Optional[SyncCheckpoint]:
+<<<<<<< HEAD
     """Load checkpoint for a strategy from the database."""
+=======
+        """Load checkpoint for a strategy from the database."""
+>>>>>>> origin/feature-dashboard-stats-endpoint
         try:
             with sqlite3.connect(self.checkpoint_db_path) as conn:
                 cursor = conn.cursor()
@@ -125,6 +140,18 @@ class SmartGmailRetriever:
                     )
         except Exception as e:
             self.logger.error(f"Failed to load checkpoint for {strategy_name}: {e}")
+<<<<<<< HEAD
+=======
+        return None
+                )
+                row = cursor.fetchone()
+                if row:
+                    return SyncCheckpoint(
+                        strategy_name, datetime.fromisoformat(row[0]), row[1], 0, None, 0
+                    )
+        except Exception as e:
+            self.logger.error(f"Error loading checkpoint for {strategy_name}: {e}")
+>>>>>>> origin/feature-dashboard-stats-endpoint
         return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):

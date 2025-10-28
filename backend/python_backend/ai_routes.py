@@ -3,8 +3,13 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from .dependencies import get_ai_engine, get_db
 from .database import DatabaseManager
+from . import models
 from .models import AIAnalysisRequest, AIAnalysisResponse, AICategorizeRequest, AICategorizeResponse, EmailResponse, AIValidateRequest, AIValidateResponse
+<<<<<<< HEAD
 from src.core.auth import get_current_active_user
+=======
+from .ai_engine import AdvancedAIEngine
+>>>>>>> origin/feature-dashboard-stats-endpoint
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

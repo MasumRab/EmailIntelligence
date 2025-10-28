@@ -191,12 +191,18 @@ iFlow CLI uses a todo system to manage and plan tasks:
 ```python
 # Example of using todo system
 todo_write([{
+<<<<<<< HEAD
     "id": "1", 
     "task": "Implement new feature X", 
+=======
+    "id": "1",
+    "task": "Implement new feature X",
+>>>>>>> origin/feature-dashboard-stats-endpoint
     "status": "pending"
 }])
 ```
 
+<<<<<<< HEAD
 ## Session Documentation and Tracking
 
 For documented development sessions, iFlow CLI follows the workflow outlined in `docs/iflow_development_workflow.md`. Session logs are stored in the `backlog/sessions/` directory with the naming convention `IFLOW-YYYYMMDD-XXX.md`.
@@ -205,6 +211,8 @@ For documented development sessions, iFlow CLI follows the workflow outlined in 
 - Individual session logs: `backlog/sessions/IFLOW-YYYYMMDD-XXX.md`
 - Development workflow guide: `docs/iflow_development_workflow.md`
 
+=======
+>>>>>>> origin/feature-dashboard-stats-endpoint
 ## iFlow CLI Software Engineering Workflow
 
 When performing software engineering tasks, iFlow CLI follows this sequence:
@@ -226,6 +234,7 @@ iFlow CLI has access to various tools for software engineering tasks:
 - `glob`: Find files matching patterns
 - `run_shell_command`: Execute shell commands
 - `todo_write`/`todo_read`: Task management
+<<<<<<< HEAD
 
 ## Automated Code Review
 
@@ -237,6 +246,8 @@ The EmailIntelligence project includes a Multi-Agent Code Review System that aut
 - Architectural inconsistencies
 
 The system is integrated into the development workflow and can be run manually or automatically during pre-commit hooks. See `docs/multi_agent_code_review.md` for detailed information.
+=======
+>>>>>>> origin/feature-dashboard-stats-endpoint
 
 ## Advanced Features
 

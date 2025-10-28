@@ -91,10 +91,23 @@ class TestVirtualEnvironment:
     @patch("launch.venv.create")
     @patch("launch.Path.exists")
     def test_create_venv_recreate(self, mock_exists, mock_venv_create, mock_rmtree):
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    """Test venv recreation when forced."""
+    # Mock exists to return True initially, then False after rmtree
+    mock_exists.side_effect = [True, False]
+    venv_path = ROOT_DIR / "venv"
+=======
+>>>>>>> origin/feature-dashboard-stats-endpoint
         """Test venv recreation when forced."""
         # Mock exists to return True initially, then False after rmtree
         mock_exists.side_effect = [True, False]
         venv_path = ROOT_DIR / "venv"
+<<<<<<< HEAD
+=======
+>>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
+>>>>>>> origin/feature-dashboard-stats-endpoint
         with patch("launch.logger") as mock_logger:
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
@@ -107,18 +120,42 @@ class TestDependencyManagement:
 
     @patch("launch.subprocess.run")
     def test_setup_dependencies_success(self, mock_subprocess_run):
+<<<<<<< HEAD
         """Test successful dependency setup."""
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         venv_path = ROOT_DIR / "venv"
+=======
+<<<<<<< HEAD
+    """Test successful dependency setup."""
+    mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+    venv_path = ROOT_DIR / "venv"
+=======
+        """Test successful dependency setup."""
+        mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        venv_path = ROOT_DIR / "venv"
+>>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
+>>>>>>> origin/feature-dashboard-stats-endpoint
         setup_dependencies(venv_path)
         mock_subprocess_run.assert_called_once()
 
 
     @patch("launch.subprocess.run")
     def test_download_nltk_success(self, mock_subprocess_run):
+<<<<<<< HEAD
         """Test successful NLTK data download."""
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         venv_path = ROOT_DIR / "venv"
+=======
+<<<<<<< HEAD
+    """Test successful NLTK data download."""
+    mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+    venv_path = ROOT_DIR / "venv"
+=======
+        """Test successful NLTK data download."""
+        mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        venv_path = ROOT_DIR / "venv"
+>>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
+>>>>>>> origin/feature-dashboard-stats-endpoint
         download_nltk_data(venv_path)
         assert mock_subprocess_run.call_count == 2
 
@@ -132,7 +169,15 @@ class TestServiceStartup:
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
+<<<<<<< HEAD
         venv_path = ROOT_DIR / "venv"
+=======
+<<<<<<< HEAD
+    venv_path = ROOT_DIR / "venv"
+=======
+        venv_path = ROOT_DIR / "venv"
+>>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
+>>>>>>> origin/feature-dashboard-stats-endpoint
         with patch.object(process_manager, "add_process") as mock_add_process:
             start_backend(venv_path, "127.0.0.1", 8000)
             mock_popen.assert_called_once()
@@ -144,7 +189,15 @@ class TestServiceStartup:
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
+<<<<<<< HEAD
         venv_path = ROOT_DIR / "venv"
+=======
+<<<<<<< HEAD
+    venv_path = ROOT_DIR / "venv"
+=======
+        venv_path = ROOT_DIR / "venv"
+>>>>>>> 9c4d9a4 (feat: WSL optimization and NVIDIA-free setup)
+>>>>>>> origin/feature-dashboard-stats-endpoint
         with patch.object(process_manager, "add_process") as mock_add_process:
             start_gradio_ui(venv_path, "127.0.0.1", 7860, False, False)
             mock_popen.assert_called_once()

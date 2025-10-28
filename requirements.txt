@@ -43,6 +43,9 @@ bleach>=6.0.0
 python-dotenv>=1.1.0
 pydantic-settings>=2.0.0
 psutil>=6.0.0
+<<<<<<< HEAD
 PyJWT>=2.10.1
+=======
+>>>>>>> origin/feature-dashboard-stats-endpoint
 aiosqlite>=0.19.0
 RestrictedPython>=8.0

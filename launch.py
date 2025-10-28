@@ -60,14 +60,17 @@ ROOT_DIR = find_project_root()
 class ProcessManager:
     """Manages child processes for the application."""
     def __init__(self):
+        """Initialize the ProcessManager with an empty process list and thread lock."""
         self.processes = []
         self.lock = threading.Lock()  # Add lock for thread safety
         
     def add_process(self, process):
+        """Add a process to the managed processes list."""
         with self.lock:
             self.processes.append(process)
             
     def cleanup(self):
+        """Perform explicit resource cleanup for all managed processes."""
         logger.info("Performing explicit resource cleanup...")
         # Create a copy of the list to avoid modifying while iterating
         with self.lock:
@@ -85,6 +88,7 @@ class ProcessManager:
         logger.info("Resource cleanup completed.")
         
     def shutdown(self):
+        """Shutdown all managed processes and exit the application."""
         logger.info("Received shutdown signal, cleaning up processes...")
         self.cleanup()
         sys.exit(0)
@@ -99,12 +103,24 @@ VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 # --- WSL Support ---
-def is_wsl():
-    """Check if running in WSL environment"""
+def is_wsl(file_reader=None):
+    """Check if running in WSL environment.
+    
+    Args:
+        file_reader: Function to read files (for dependency injection in tests)
+        
+    Returns:
+        bool: True if running in WSL, False otherwise
+    """
+    if file_reader is None:
+        def default_file_reader(path):
+            with open(path, 'r') as f:
+                return f.read()
+        file_reader = default_file_reader
+        
     try:
-        with open('/proc/version', 'r') as f:
-            content = f.read().lower()
-            return 'microsoft' in content or 'wsl' in content
+        content = file_reader('/proc/version').lower()
+        return 'microsoft' in content or 'wsl' in content
     except:
         return False
 
@@ -155,8 +171,44 @@ def check_python_version():
     logger.info(f"Python version {platform.python_version()} is compatible.")
 
 # --- Environment Validation ---
-def check_for_merge_conflicts() -> bool:
-    """Check for unresolved merge conflict markers in critical files."""
+def _check_file_for_conflicts(file_path, full_path, conflict_markers, file_reader):
+    """Check a single file for merge conflicts.
+    
+    Args:
+        file_path: Relative path of the file
+        full_path: Full path to the file
+        conflict_markers: List of conflict markers to check for
+        file_reader: Function to read files
+        
+    Returns:
+        bool: True if conflicts found, False otherwise
+    """
+    if not full_path.exists():
+        return False
+        
+    try:
+        content = file_reader(full_path)
+        for marker in conflict_markers:
+            if marker in content:
+                logger.error(
+                    f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
+                )
+                return True
+    except Exception as e:
+        logger.warning(f"Could not check {file_path} for conflicts: {e}")
+    
+    return False
+
+
+def check_for_merge_conflicts(file_reader=None) -> bool:
+    """Check for unresolved merge conflict markers in critical files.
+    
+    Args:
+        file_reader: Function to read files (for dependency injection in tests)
+        
+    Returns:
+        bool: True if no conflicts found, False otherwise
+    """
     conflict_markers = ["<<<<<<< ", "======= ", ">>>>>>> "]
     critical_files = [
         "backend/python_backend/main.py",
@@ -181,21 +233,17 @@ def check_for_merge_conflicts() -> bool:
         "requirements-dev.txt",
     ]
 
+    if file_reader is None:
+        def default_file_reader(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return f.read()
+        file_reader = default_file_reader
+
     conflicts_found = False
     for file_path in critical_files:
         full_path = ROOT_DIR / file_path
-        if full_path.exists():
-            try:
-                with open(full_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-                    for marker in conflict_markers:
-                        if marker in content:
-                            logger.error(
-                                f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
-                            )
-                            conflicts_found = True
-            except Exception as e:
-                logger.warning(f"Could not check {file_path} for conflicts: {e}")
+        if _check_file_for_conflicts(file_path, full_path, conflict_markers, file_reader):
+            conflicts_found = True
 
     if conflicts_found:
         logger.error("Please resolve all merge conflicts before proceeding.")
@@ -397,6 +445,12 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
 
 # --- Setup Functions ---
 def create_venv(venv_path: Path, recreate: bool = False):
+    """Create a Python virtual environment.
+    
+    Args:
+        venv_path: Path where the virtual environment should be created
+        recreate: Whether to recreate the environment if it already exists
+    """
     if venv_path.exists() and recreate:
         logger.info("Removing existing virtual environment.")
         shutil.rmtree(venv_path)
@@ -404,11 +458,25 @@ def create_venv(venv_path: Path, recreate: bool = False):
         logger.info("Creating virtual environment.")
         venv.create(venv_path, with_pip=True, upgrade_deps=True)
 
+
 def install_package_manager(venv_path: Path, manager: str):
+    """Install a Python package manager in the virtual environment.
+    
+    Args:
+        venv_path: Path to the virtual environment
+        manager: Name of the package manager to install
+    """
     python_exe = get_venv_executable(venv_path, "python")
     run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
 
+
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
+    """Set up project dependencies in the virtual environment.
+    
+    Args:
+        venv_path: Path to the virtual environment
+        use_poetry: Whether to use Poetry for dependency management
+    """
     python_exe = get_python_executable()
 
     if use_poetry:
@@ -429,6 +497,11 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
 
 def download_nltk_data(venv_path=None):
+    """Download required NLTK data for the application.
+    
+    Args:
+        venv_path: Path to the virtual environment (optional)
+    """
     python_exe = get_python_executable()
 
     nltk_download_script = """
@@ -534,6 +607,13 @@ def start_server_ts():
 
 # --- Service Startup Functions ---
 def start_backend(host: str, port: int, debug: bool = False):
+    """Start the Python backend server.
+    
+    Args:
+        host: Host address to bind the server to
+        port: Port number to run the server on
+        debug: Whether to run in debug mode
+    """
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
     if debug:
@@ -563,6 +643,14 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
 
 def start_gradio_ui(host, port, share, debug):
+    """Start the Gradio UI server.
+    
+    Args:
+        host: Host address to bind the server to
+        port: Port number to run the server on
+        share: Whether to create a public URL
+        debug: Whether to run in debug mode
+    """
     logger.info("Starting Gradio UI...")
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "src.main"] # Assuming Gradio is launched from main
@@ -571,7 +659,7 @@ def start_gradio_ui(host, port, share, debug):
     if debug:
         cmd.append("--debug")
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR.resolve())
+    env["PYTHONPATH"] = str(ROOT_DIR)
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
 
@@ -775,10 +863,12 @@ def reinstall_torch(cpu_only=False):
         return False
 
 
-def main():
-    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
-
-    # Environment Setup
+def add_environment_setup_arguments(parser):
+    """Add environment setup arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
     parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
@@ -793,10 +883,22 @@ def main():
     parser.add_argument("--skip-prepare", action="store_true", help="Skip all environment preparation steps.")
     parser.add_argument("--loglevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help="Set the logging level.")
 
-    # Application Stage
+
+def add_application_stage_arguments(parser):
+    """Add application stage arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--stage", choices=['dev', 'test'], default='dev', help="Specify the application mode.")
 
-    # Server Configuration
+
+def add_server_configuration_arguments(parser):
+    """Add server configuration arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
     parser.add_argument("--frontend-port", type=int, default=5173, help="Specify the frontend port to run on.")
@@ -805,7 +907,13 @@ def main():
     parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server.")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
 
-    # Testing Options
+
+def add_testing_arguments(parser):
+    """Add testing arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests.")
     parser.add_argument("--unit", action="store_true", help="Run unit tests.")
     parser.add_argument("--integration", action="store_true", help="Run integration tests.")
@@ -813,7 +921,13 @@ def main():
     parser.add_argument("--performance", action="store_true", help="Run performance tests.")
     parser.add_argument("--security", action="store_true", help="Run security tests.")
 
-    # Extensions and Models
+
+def add_extensions_and_models_arguments(parser):
+    """Add extensions and models arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
     parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
     parser.add_argument("--install-extension", type=str, help="Install an extension from a Git repository.")
@@ -826,22 +940,80 @@ def main():
     parser.add_argument("--list-models", action="store_true", help="List all models.")
     parser.add_argument("--delete-model", type=str, help="Delete a model.")
 
-    # Advanced Options
+
+def add_advanced_options_arguments(parser):
+    """Add advanced options arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models.")
     parser.add_argument("--force-cpu", action="store_true", help="Force CPU mode even if GPU is available.")
     parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode.")
     parser.add_argument("--system-info", action="store_true", help="Print detailed system, Python, and project configuration information then exit.")
 
-    # Networking Options
+
+def add_networking_options_arguments(parser):
+    """Add networking options arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
     parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
     parser.add_argument("--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region.")
 
-    # Environment Configuration
+
+def add_environment_configuration_arguments(parser):
+    """Add environment configuration arguments to the parser.
+    
+    Args:
+        parser: ArgumentParser instance
+    """
     parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
 
-    args = parser.parse_args()
 
+def parse_arguments():
+    """Parse command line arguments for the launcher.
+    
+    Returns:
+        argparse.Namespace: Parsed command line arguments
+    """
+    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
+
+    # Environment Setup
+    add_environment_setup_arguments(parser)
+    
+    # Application Stage
+    add_application_stage_arguments(parser)
+
+    # Server Configuration
+    add_server_configuration_arguments(parser)
+
+    # Testing Options
+    add_testing_arguments(parser)
+
+    # Extensions and Models
+    add_extensions_and_models_arguments(parser)
+
+    # Advanced Options
+    add_advanced_options_arguments(parser)
+
+    # Networking Options
+    add_networking_options_arguments(parser)
+
+    # Environment Configuration
+    add_environment_configuration_arguments(parser)
+
+    return parser.parse_args()
+
+
+def setup_environment_variables(args):
+    """Setup environment variables based on parsed arguments.
+    
+    Args:
+        args: Parsed command line arguments
+    """
     # Setup WSL environment if applicable (early setup)
     setup_wsl_environment()
     check_wsl_requirements()
@@ -873,23 +1045,44 @@ def main():
         args.use_conda = True  # Set flag when conda env is specified
     # args.use_conda remains as set by command line argument
 
+
+def handle_torch_management(args):
+    """Handle PyTorch management based on arguments.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
     # Handle PyTorch management
     if args.reinstall_torch:
         logger.info("Reinstalling PyTorch...")
         cpu_only = args.force_cpu or is_wsl()  # Default to CPU-only on WSL or if forced
-        if reinstall_torch(cpu_only=cpu_only):
-            logger.info("PyTorch reinstalled successfully")
-        else:
+        if not reinstall_torch(cpu_only=cpu_only):
             logger.error("Failed to reinstall PyTorch")
-            sys.exit(1)
+            return False
+        logger.info("PyTorch reinstalled successfully")
 
     if not args.skip_torch_cuda_test:
         logger.info("Checking PyTorch CUDA availability...")
         check_torch_cuda()
+    
+    return True
 
+
+def validate_and_prepare_environment(args):
+    """Validate environment and prepare dependencies.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
-        sys.exit(1)
+        return False
 
     # Validate input arguments
     try:
@@ -899,6 +1092,25 @@ def main():
             args.frontend_port = validate_port(args.frontend_port)
     except ValueError as e:
         logger.error(f"Input validation failed: {e}")
+        return False
+
+    return True
+
+
+def main():
+    """Main entry point for the EmailIntelligence launcher.
+    
+    This function parses command line arguments, sets up the environment,
+    and starts the appropriate services based on the provided options.
+    """
+    args = parse_arguments()
+    
+    setup_environment_variables(args)
+    
+    if not handle_torch_management(args):
+        sys.exit(1)
+    
+    if not validate_and_prepare_environment(args):
         sys.exit(1)
 
     if args.setup:
