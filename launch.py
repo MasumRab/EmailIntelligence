@@ -586,8 +586,8 @@ def handle_setup(args, venv_path):
     else:
         # Use venv
         create_venv(venv_path, args.force_recreate_venv)
-        install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
-        setup_dependencies(venv_path, args.use_poetry)
+        install_package_manager(venv_path, "uv")
+        setup_dependencies(venv_path, False)
         if not args.no_download_nltk:
             download_nltk_data(venv_path)
 
@@ -604,7 +604,7 @@ def prepare_environment(args):
             venv_path = ROOT_DIR / VENV_DIR
             create_venv(venv_path)
         if args.update_deps:
-            setup_dependencies(ROOT_DIR / VENV_DIR, args.use_poetry)
+            setup_dependencies(ROOT_DIR / VENV_DIR, False)
     if not args.no_download_nltk:
         download_nltk_data()
 
@@ -781,7 +781,7 @@ def main():
     # Environment Setup
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
-    parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
+    
     parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
     parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
     parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
