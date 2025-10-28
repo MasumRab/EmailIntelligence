@@ -1,3 +1,4 @@
+# EmailIntelligence - Unified Development Environment
 
 ## Table of Contents
 
@@ -21,6 +22,9 @@
 
 ## Project Overview
 
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+
+The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
 
 The Gradio UI acts as a full-featured client to the FastAPI backend.
 
@@ -47,15 +51,11 @@ Gradio UI (gradio_app.py)
     └── Calls GET /api/gmail/performance -> Displays performance metrics
 ```
 
-## Project Overview
-
-To successfully set up and run EmailIntelligence, you will need the following:
-
 ## Prerequisites
 
 To successfully set up and run EmailIntelligence, you will need the following:
 
-- **Python 3.11+**: Required for the backend services
+- **Python 3.12+**: Required for the backend services
 - **Node.js 16+**: Required for the frontend (optional if running API-only)
 - **Conda (optional)**: For conda environment management (venv is used by default)
 
@@ -83,7 +83,7 @@ Use `python launch.py --help` to see all available options.
 ## Development Notes
 
 -   **Python Environment:** The launcher automatically detects and uses conda environments if available, otherwise creates and manages a virtual environment in the `./venv` directory. You do not need to activate environments manually.
--   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv` (or Poetry). All Node.js dependencies are defined in the `package.json` files.
+-   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` files.
 -   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside your active environment (conda or venv).
 -   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root. The data directory is now configurable via the `DATA_DIR` environment variable.
 -   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
@@ -93,8 +93,9 @@ Use `python launch.py --help` to see all available options.
     ### Core Components:
     - **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
     - **src/core/security.py**: Enterprise-grade security framework
-    - **backend/python_backend/workflow_editor_ui.py**: Visual workflow editor UI
-    - **backend/python_backend/advanced_workflow_routes.py**: API endpoints for workflow management
+    - **modules/workflows/ui.py**: Visual workflow editor UI
+    - **src/main.py**: Main application with integrated API endpoints for workflow management
+    - **src/core/notmuch_data_source.py**: AI-enhanced data source with automatic analysis, filtering, and workflow integration
 
     ### Key Features:
     - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
@@ -102,6 +103,7 @@ Use `python launch.py --help` to see all available options.
     - **Extensibility**: Plugin system for adding new node types
     - **Performance Monitoring**: Built-in metrics collection and monitoring
     - **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
+    - **AI-Enhanced Data Source**: Automatic sentiment analysis, topic classification, intent recognition, and urgency detection for all emails
 
     ### API Endpoints:
     - `POST /api/workflows/advanced/workflows` - Create new workflows
@@ -169,7 +171,7 @@ The application now uses SQLite. The database file (e.g., `sqlite.db`) will typi
 # For Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev
 
-# For Linux/macOS (ensure Python 3.11+ is available)
+# For Linux/macOS (ensure Python 3.12+ is available)
 chmod +x launch.sh
 ./launch.sh --stage dev
 
@@ -178,7 +180,7 @@ python launch.py --stage dev
 ```
 This command will:
 - Automatically detect and use conda environments if available, otherwise create/use a virtual environment
-- Install Python dependencies using uv (or Poetry if specified)
+- Install Python dependencies using uv
 - Download necessary NLTK data
 - Create placeholder AI model files if actual models are not found (see [AI Models Setup](#ai-models-setup) for crucial next steps)
 - Start the Python FastAPI AI server (default: port 8000) and the React frontend development server (default: port 5173)
@@ -189,11 +191,96 @@ The application will typically be available at http://localhost:5173.
 - **Conda users**: The launcher automatically detects conda environments. Use `--conda-env <name>` to specify a particular environment
 - **Virtual environment**: Created automatically in `venv/` if conda is not available
 - **System Python**: Use `--no-venv` to skip environment creation (not recommended)
+- **CPU-only setup**: For systems without NVIDIA GPUs, see [CPU_SETUP.md](CPU_SETUP.md) for NVIDIA-free installation
 
 **Important Next Steps:**
 - **AI Models:** The Quick Start will get the application running, but AI features require trained models. Please see the [AI Models Setup](#ai-models-setup) section below for critical information.
 
 This starts the application in a local development mode. For comprehensive setup instructions, alternative methods, and details on deploying to Docker, staging, or production environments, please refer to the [Launcher Guide](docs/launcher_guide.md) and the [Deployment Guide](docs/deployment_guide.md).
+
+## Local Development Setup
+
+For a more controlled setup process, especially for new contributors or clean environments, follow these detailed steps to set up your local development environment:
+
+### Prerequisites
+
+- **Python 3.12+**: Required for the backend services
+- **Node.js 16+**: Required for the frontend (optional if running API-only)
+- **Git**: For cloning the repository
+- **Conda (optional)**: For conda environment management (venv is used by default)
+
+### Step-by-Step Setup
+
+**1. Clone and Navigate**
+```bash
+git clone https://github.com/MasumRab/EmailIntelligence.git
+cd EmailIntelligence
+```
+
+**2. Install Node.js Dependencies**
+```bash
+npm install
+```
+
+**3. Set up Python Environment**
+
+The launcher uses uv for dependency management:
+
+```bash
+python launch.py --setup
+```
+This creates a virtual environment in `venv/`, installs Python dependencies from `pyproject.toml`, and downloads NLTK data.
+
+- **Using Conda:**
+  ```bash
+  python launch.py --setup --use-conda --conda-env emailintelligence
+  ```
+  (Replace `emailintelligence` with your preferred environment name)
+
+**4. Verify Setup**
+```bash
+python launch.py --system-info
+```
+This prints detailed information about your system, Python environment, and project configuration.
+
+**5. Start Development Services**
+```bash
+# Windows
+launch.bat --stage dev
+
+# Linux/macOS
+./launch.sh --stage dev
+
+# Or directly
+python launch.py --stage dev
+```
+
+### Troubleshooting Common Issues
+
+- **Python Version Error**: Ensure Python 3.12+ is installed and in PATH
+- **Node.js Missing**: Install Node.js 16+ from nodejs.org
+- **Permission Errors**: On Linux/macOS, ensure scripts are executable: `chmod +x launch.sh`
+- **Port Conflicts**: Use `--port` and `--frontend-port` to specify different ports
+- **Conda Issues**: If conda is not detected, the launcher falls back to venv
+
+### Testing the Setup
+
+To test your setup in a clean environment:
+1. Create a new directory
+2. Clone the repository fresh
+3. Follow the steps above
+4. Verify services start without errors
+5. Check that http://localhost:5173 loads the frontend
+6. Confirm API endpoints respond at http://localhost:8000/docs
+
+### Development Workflow
+
+After initial setup:
+- Use `python launch.py --stage dev` to start all services
+- Code changes auto-reload in development mode
+- Access frontend at http://localhost:5173
+- API documentation at http://localhost:8000/docs
+- Gradio UI at http://localhost:7860 (if enabled)
 
 ## Documentation
 
@@ -211,14 +298,12 @@ This project includes comprehensive documentation in the `docs/` directory:
 
 The primary method for setting up EmailIntelligence for development is using the sequence described in the [Quick Start](#quick-start):
 1.  Clone the repository.
-2.  Install development dependencies:
-    - For Ubuntu/WSL environments, run `./setup_environment_wsl.sh` (requires sudo) to install all necessary system packages and create the Python virtual environment.
-    - For other environments, install Node.js dependencies (`npm install`).
+2.  Install Node.js dependencies (`npm install`).
 3.  Set up the PostgreSQL database (e.g., using `npm run db:setup` with Docker or configuring an existing instance).
 4.  Run the unified launcher script (`launch.py` via `launch.bat` or `launch.sh`) with the `--stage dev` flag.
 
 The launcher script (`launch.py`) handles:
-- Python virtual environment activation (if created with setup_environment_wsl.sh).
+- Python virtual environment creation.
 - Python dependency installation from `requirements.txt`.
 - NLTK data download.
 - Creation of placeholder AI model files if they don't exist (this requires follow-up, see below).
@@ -270,11 +355,20 @@ Consult the respective guides in `docs/` for component-specific configurations.
 ## Security Considerations
 
 When deploying or running this application, please consider the following:
-*   **API Authentication:** JWT-based authentication has been implemented for all sensitive API endpoints. Users must authenticate using the `/api/auth/login` or `/api/token` endpoints to obtain an access token.
+*   **API Authentication:** JWT-based authentication has been implemented for all sensitive API endpoints. Users must authenticate using the `/api/auth/login` or `/token` endpoints to obtain an access token.
 *   **Secret Management:** Securely manage `GMAIL_CREDENTIALS_JSON` (or `credentials.json`) and `token.json`. Use environment variables or a secret manager. Do not commit secrets to Git.
 *   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
 *   **CORS Policy:** Restrict CORS policy in `backend/python_backend/main.py` for production.
 *   **Input Validation:** Validate and sanitize all user-supplied and external data.
+*   **Security Headers:** The application includes security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, HSTS, CSP) to protect against common web vulnerabilities.
+*   **Error Handling:** Generic error messages are returned to prevent information disclosure.
+*   **Database Security:** SQLite database paths are configurable via environment variables to prevent path traversal attacks.
+*   **Common Pitfalls to Avoid:**
+    - Never hardcode secrets in source code
+    - Always use HTTPS in production
+    - Regularly rotate API keys and tokens
+    - Implement rate limiting for API endpoints
+    - Keep dependencies updated to patch security vulnerabilities
 
 ## Gmail API Integration Setup
 
@@ -282,9 +376,10 @@ To connect to your Gmail account, configure Gmail API access:
 
 1.  **Google Cloud Console:** Enable Gmail API, create OAuth 2.0 Client ID (Desktop app), and download credentials JSON.
 2.  **Provide Credentials:**
-    *   Set `GMAIL_CREDENTIALS_JSON` environment variable (recommended).
-    *   Or, place downloaded JSON as `credentials.json` in project root. (Ensure it's gitignored).
-3.  **One-Time Authorization:** The application will guide you through browser authorization when you first try to access Gmail features, creating `token.json` (or the path specified by `GMAIL_TOKEN_PATH`).
+    *   Set `GMAIL_CREDENTIALS_JSON` environment variable (recommended for production).
+    *   Or, place downloaded JSON as `credentials.json` in the `jsons/` directory (recommended for development). (The `jsons/` directory is gitignored).
+    *   Legacy: Place in project root as `credentials.json` (not recommended).
+3.  **One-Time Authorization:** The application will guide you through browser authorization when you first try to access Gmail features, creating `token.json` in the `jsons/` directory (or the path specified by `GMAIL_TOKEN_PATH`).
 4.  **Scopes Used:** `https://www.googleapis.com/auth/gmail.readonly`.
 
 ## Running the Application
