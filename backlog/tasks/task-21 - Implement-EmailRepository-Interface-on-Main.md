@@ -1,9 +1,10 @@
 ---
 id: task-21
 title: Implement EmailRepository Interface on Main
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-10-27 15:22'
+updated_date: '2025-10-28 05:30'
 labels: []
 dependencies: []
 ---
@@ -16,7 +17,7 @@ Create EmailRepository ABC in src/core/data/repository.py with email-specific me
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Define interface
-- [ ] #2 Implement DatabaseEmailRepository
-- [ ] #3 Add factory
+- [x] #1 Define interface
+- [x] #2 Implement DatabaseEmailRepository
+- [x] #3 Add factory
 <!-- AC:END -->
