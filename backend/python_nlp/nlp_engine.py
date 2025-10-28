@@ -161,6 +161,9 @@ class NLPEngine:
         }
         logger.info("Regex patterns compiled successfully.")
 
+    def _load_model(self, model_path: str):
+        """
+        Load a model from the specified path.
 
         Args:
             model_path: Path to the model file
@@ -1237,7 +1240,7 @@ def _handle_backward_compatible_cli_invocation(
         if len(argv) < 3:  # Script name, subject, (optional) content
             # Allow content to be empty for old style, but subject must be there if any arg is given
             err_msg = {
-                "error": 'Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py "<subject>" "[content]"'
+                "error": "Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py \"<subject>\" \"[content]\""
             }
             if args.output_format == "json":
                 print(json.dumps(err_msg))
