@@ -37,7 +37,7 @@ python launch.py --stage dev
 
 - `--setup`: Run environment setup.
 - `--force-recreate-venv`: Force recreation of the venv.
-- `--use-poetry`: Use Poetry for dependency management.
+
 - `--use-conda`: Use Conda environment instead of venv.
 - `--conda-env NAME`: Conda environment name to use (default: base).
 - `--no-venv`: Don't create or use a virtual environment.
