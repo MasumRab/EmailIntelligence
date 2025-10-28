@@ -43,8 +43,11 @@ class NotmuchDataSource(DataSource):
 
         # Initialize AI engine
         if self.ai_engine is None:
-            from .factory import get_ai_engine
-            self.ai_engine = get_ai_engine()
+            # For NotmuchDataSource, we create the engine directly
+            # since we're not in a FastAPI dependency injection context
+            from .ai_engine import ModernAIEngine
+            self.ai_engine = ModernAIEngine()
+            self.ai_engine.initialize()
 
         # Initialize smart filter manager
         if self.filter_manager is None:
