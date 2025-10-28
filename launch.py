@@ -502,6 +502,18 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
 
 def start_backend(host: str, port: int, debug: bool = False):
     """Start the Python FastAPI backend."""
+    # Security: Validate host and port to prevent command injection
+    import ipaddress
+    try:
+        # Allow localhost, 127.0.0.1, 0.0.0.0, or valid IP
+        if host not in ['localhost', '127.0.0.1', '0.0.0.0']:
+            ipaddress.ip_address(host)  # Validate IP format
+        if not (1 <= port <= 65535):
+            raise ValueError("Invalid port range")
+    except ValueError:
+        logger.error(f"Invalid host '{host}' or port '{port}' provided")
+        return None
+
     if not check_uvicorn_installed():
         logger.error(
             "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
@@ -537,6 +549,17 @@ def start_gradio_ui(
     venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
 ):
     """Start the Gradio UI."""
+    # Security: Validate host and port
+    import ipaddress
+    try:
+        if host not in ['localhost', '127.0.0.1', '0.0.0.0']:
+            ipaddress.ip_address(host)
+        if port and not (1 <= port <= 65535):
+            raise ValueError("Invalid port range")
+    except ValueError:
+        logger.error(f"Invalid host '{host}' or port '{port}' provided")
+        return None
+
     gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
 
     cmd = [str(venv_python), str(gradio_path), "--host", host]
