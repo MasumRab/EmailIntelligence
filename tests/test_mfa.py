@@ -2,6 +2,10 @@
 Test suite for MFA implementation
 """
 
+<<<<<<< HEAD
+=======
+import asyncio
+>>>>>>> 4ec509d3 (Implement multi-factor authentication (MFA) support)
 import pytest
 from src.core.mfa import MFAService
 from src.core.database import DatabaseManager
