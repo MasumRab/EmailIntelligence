@@ -5,13 +5,14 @@ status: To Do
 assignee:
   - '@amp'
 created_date: '2025-10-28 08:49'
-updated_date: '2025-10-28 08:49'
+updated_date: '2025-10-28 08:56'
 labels:
   - plugins
   - architecture
   - extensibility
 dependencies: []
 parent_task_id: task-high
+priority: low
 ---
 
 ## Description

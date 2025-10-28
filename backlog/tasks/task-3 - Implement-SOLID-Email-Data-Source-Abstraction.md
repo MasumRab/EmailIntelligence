@@ -4,11 +4,12 @@ title: Implement SOLID Email Data Source Abstraction
 status: To Do
 assignee: []
 created_date: '2025-10-25 04:46'
-updated_date: '2025-10-28 08:16'
+updated_date: '2025-10-28 08:54'
 labels:
   - architecture
   - solid
 dependencies: []
+priority: low
 ---
 
 ## Description
