@@ -111,6 +111,10 @@ class DatabaseManager(DataSource):
                 logger.error(f"Error loading content for email {email_id}: {e}")
         return full_email
 
+    async def initialize(self) -> None:
+        """Initialize the database manager."""
+        await self._ensure_initialized()
+
     async def _ensure_initialized(self) -> None:
         """Ensure data is loaded and indexes are built."""
         if not self._initialized:
