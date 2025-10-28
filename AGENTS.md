@@ -11,8 +11,7 @@
 - **Code quality**: `pylint src modules`
 
 ### Dependency Management
-- **uv (default)**: `python launch.py --setup` - Uses uv for fast, reliable installs
-- **Poetry**: `python launch.py --use-poetry --setup` - Alternative Poetry-based setup
+- **uv**: `python launch.py --setup` - Uses uv for fast, reliable Python package installs
 - **Update deps**: `python launch.py --update-deps` - Updates all dependencies
 - **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
 - **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
