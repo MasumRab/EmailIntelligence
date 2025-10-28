@@ -11,6 +11,8 @@ import logging
 from typing import Any, Dict, List, Optional, Set
 from datetime import datetime, timezone
 
+import notmuch
+
 from .data_source import DataSource
 from .database import DatabaseManager
 from backend.python_nlp.smart_filters import SmartFilterManager
@@ -23,13 +25,22 @@ class NotmuchDataSource(DataSource):
     """
     Enhanced data source that integrates AI analysis, smart filtering,
     and workflow processing for comprehensive email intelligence.
+    This implementation combines Notmuch database access with AI capabilities.
     """
 
-    def __init__(self):
+    def __init__(self, db_path: Optional[str] = None):
+        self.notmuch_db = None
         self.db = None
         self.ai_engine = None
         self.filter_manager = None
         self._initialized = False
+        
+        # Initialize Notmuch database
+        try:
+            self.notmuch_db = notmuch.Database(db_path)
+        except Exception as e:
+            logger.error(f"Error opening notmuch database: {e}")
+            self.notmuch_db = None
 
     async def _ensure_initialized(self):
         """Ensure all components are properly initialized."""
@@ -185,11 +196,58 @@ class NotmuchDataSource(DataSource):
             logger.error(f"Error retrieving email {email_id}: {e}")
             return None
 
+    async def get_email_by_message_id(
+        self, message_id: str, include_content: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """Retrieves an email by its notmuch message ID."""
+        if not self.notmuch_db:
+            return None
+
+        try:
+            query = self.notmuch_db.create_query(f"id:{message_id}")
+            messages = query.search_messages()
+
+            message_list = list(messages)
+            if not message_list:
+                return None
+
+            message = message_list[0]
+            email_data = {
+                "id": message.get_message_id(),
+                "message_id": message.get_message_id(),
+                "subject": message.get_header("subject"),
+                "sender": message.get_header("from"),
+                "recipients": message.get_header("to"),
+                "date": message.get_date(),
+                "tags": list(message.get_tags()),
+            }
+
+            if include_content:
+                try:
+                    content = ""
+                    for part in message.get_message_parts():
+                        if part.get_content_type() == "text/plain":
+                            content = part.get_payload(decode=True).decode("utf-8", errors="ignore")
+                            break
+                    if not content:  # fallback to first part if no text/plain
+                        content = message.get_message_parts()[0].get_payload(decode=True).decode(
+                            "utf-8", errors="ignore"
+                        )
+                    email_data["body"] = content
+                except Exception as e:
+                    email_data["body"] = f"Error decoding content: {e}"
+
+            return email_data
+        except Exception as e:
+            logger.error(f"Error retrieving email by message ID {message_id}: {e}")
+            return None
+
     async def get_all_categories(self) -> List[Dict[str, Any]]:
         """Get all categories with usage statistics."""
         await self._ensure_initialized()
 
         try:
+            # First try to get categories from our database
             categories = await self.db.get_all_categories()
 
             # Enhance with email counts
@@ -203,6 +261,13 @@ class NotmuchDataSource(DataSource):
             return categories
         except Exception as e:
             logger.error(f"Error retrieving categories: {e}")
+            # Fallback to notmuch tags
+            if self.notmuch_db:
+                try:
+                    tags = self.notmuch_db.get_all_tags()
+                    return [{"name": tag, "id": tag} for tag in tags]
+                except Exception as e2:
+                    logger.error(f"Error retrieving notmuch tags: {e2}")
             return []
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -255,18 +320,6 @@ class NotmuchDataSource(DataSource):
             return await self.db.update_email_by_message_id(message_id, update_data)
         except Exception as e:
             logger.error(f"Error updating email {message_id}: {e}")
-            return None
-
-    async def get_email_by_message_id(
-        self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
-        """Get an email by message ID."""
-        await self._ensure_initialized()
-
-        try:
-            return await self.db.get_email_by_message_id(message_id, include_content)
-        except Exception as e:
-            logger.error(f"Error retrieving email {message_id}: {e}")
             return None
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
@@ -377,6 +430,9 @@ class NotmuchDataSource(DataSource):
         logger.info("Shutting down NotmuchDataSource")
 
         try:
+            if self.notmuch_db:
+                self.notmuch_db.close()
+                self.notmuch_db = None
             if self.db:
                 await self.db.close()
             if self.filter_manager:
