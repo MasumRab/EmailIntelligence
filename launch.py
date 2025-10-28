@@ -62,17 +62,17 @@ class ProcessManager:
     def __init__(self):
         self.processes = []
         self.lock = threading.Lock()  # Add lock for thread safety
-        
+
     def add_process(self, process):
         with self.lock:
             self.processes.append(process)
-            
+
     def cleanup(self):
         logger.info("Performing explicit resource cleanup...")
         # Create a copy of the list to avoid modifying while iterating
         with self.lock:
             processes_copy = self.processes[:]
-            
+
         for p in processes_copy:
             if p.poll() is None:
                 logger.info(f"Terminating process {p.pid}...")
@@ -83,7 +83,7 @@ class ProcessManager:
                     logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                     p.kill()
         logger.info("Resource cleanup completed.")
-        
+
     def shutdown(self):
         logger.info("Received shutdown signal, cleaning up processes...")
         self.cleanup()
@@ -571,7 +571,7 @@ def start_gradio_ui(host, port, share, debug):
     if debug:
         cmd.append("--debug")
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR.resolve())
+    env["PYTHONPATH"] = str(ROOT_DIR)
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
 
@@ -693,88 +693,6 @@ def print_system_info():
         exists = (ROOT_DIR / cf).exists()
         print(f"{cf}: {'Found' if exists else 'Not found'}")
 
-
-# --- PyTorch Management ---
-def check_torch_cuda():
-    """Check PyTorch CUDA availability and version info"""
-    try:
-        import torch
-        cuda_available = torch.cuda.is_available()
-        cuda_version = torch.version.cuda if cuda_available else "N/A"
-        device_count = torch.cuda.device_count() if cuda_available else 0
-
-        print("PyTorch CUDA Check:")
-        print(f"  CUDA Available: {cuda_available}")
-        print(f"  CUDA Version: {cuda_version}")
-        print(f"  GPU Count: {device_count}")
-
-        if cuda_available:
-            for i in range(device_count):
-                props = torch.cuda.get_device_properties(i)
-                print(f"  GPU {i}: {props.name} ({props.total_memory // 1024 // 1024} MB)")
-        else:
-            print("  Running on CPU mode")
-
-        return cuda_available
-    except ImportError:
-        print("PyTorch not installed")
-        return False
-    except Exception as e:
-        print(f"Error checking PyTorch CUDA: {e}")
-        return False
-
-
-def reinstall_torch(cpu_only=False):
-    """Reinstall PyTorch with CPU-only or CUDA support"""
-    try:
-        import subprocess
-        import sys
-
-        # Uninstall existing torch packages
-        packages_to_remove = ["torch", "torchvision", "torchaudio", "torchtext"]
-        for package in packages_to_remove:
-            try:
-                subprocess.check_call([
-                    sys.executable, "-m", "pip", "uninstall", "-y", package
-                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                print(f"Uninstalled {package}")
-            except subprocess.CalledProcessError:
-                pass  # Package not installed
-
-        # Install PyTorch
-        if cpu_only:
-            # CPU-only version
-            torch_packages = [
-                "torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu"
-            ]
-        else:
-            # CUDA version (auto-detect)
-            torch_packages = [
-                "torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121"
-            ]
-
-        for package_spec in torch_packages:
-            print(f"Installing {package_spec}...")
-            result = subprocess.run([
-                sys.executable, "-m", "pip", "install", "--upgrade"
-            ] + package_spec.split(), capture_output=True, text=True)
-
-            if result.returncode == 0:
-                print(f"Successfully installed {package_spec}")
-            else:
-                print(f"Failed to install {package_spec}")
-                print(f"Error: {result.stderr}")
-                return False
-
-        # Verify installation
-        check_torch_cuda()
-        return True
-
-    except Exception as e:
-        print(f"Error reinstalling PyTorch: {e}")
-        return False
-
-
 def main():
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
 
@@ -872,20 +790,6 @@ def main():
         CONDA_ENV_NAME = args.conda_env
         args.use_conda = True  # Set flag when conda env is specified
     # args.use_conda remains as set by command line argument
-
-    # Handle PyTorch management
-    if args.reinstall_torch:
-        logger.info("Reinstalling PyTorch...")
-        cpu_only = args.force_cpu or is_wsl()  # Default to CPU-only on WSL or if forced
-        if reinstall_torch(cpu_only=cpu_only):
-            logger.info("PyTorch reinstalled successfully")
-        else:
-            logger.error("Failed to reinstall PyTorch")
-            sys.exit(1)
-
-    if not args.skip_torch_cuda_test:
-        logger.info("Checking PyTorch CUDA availability...")
-        check_torch_cuda()
 
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
