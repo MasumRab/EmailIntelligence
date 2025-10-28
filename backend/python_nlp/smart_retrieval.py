@@ -64,15 +64,15 @@ class SmartGmailRetriever:
         return None
 
     def _store_credentials(self, creds: Credentials):
-        try:
+    try:
         with open(TOKEN_JSON_PATH, "w") as token_file:
-            token_file.write(creds.to_json())
+        token_file.write(creds.to_json())
         self.logger.info("Credentials stored successfully.")
-    except Exception as e:
-            self.logger.error(
-                f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
-            )
-            return None
+        except Exception as e:
+    self.logger.error(
+    f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
+    )
+    return None
 
     def get_optimized_retrieval_strategies(self) -> List[RetrievalStrategy]:
         """Get optimized retrieval strategies."""
@@ -103,14 +103,6 @@ class SmartGmailRetriever:
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
 
-        """
-        Execute smart retrieval using the provided strategies.
-
-        Args:
-            strategies: A list of strategies to execute. If None, uses default optimized strategies.
-            max_api_calls: The maximum number of API calls to make.
-            time_budget_minutes: The time limit in minutes for the retrieval process.
-
         Returns:
             A dictionary with retrieval results.
         """
@@ -118,7 +110,7 @@ class SmartGmailRetriever:
         return {"status": "not_implemented"}
 
     def _load_checkpoint(self, strategy_name: str) -> Optional[SyncCheckpoint]:
-        """Load checkpoint for a strategy from the database."""
+    """Load checkpoint for a strategy from the database."""
         try:
             with sqlite3.connect(self.checkpoint_db_path) as conn:
                 cursor = conn.cursor()
@@ -133,15 +125,6 @@ class SmartGmailRetriever:
                     )
         except Exception as e:
             self.logger.error(f"Failed to load checkpoint for {strategy_name}: {e}")
-        return None
-                )
-                row = cursor.fetchone()
-                if row:
-                    return SyncCheckpoint(
-                        strategy_name, datetime.fromisoformat(row[0]), row[1], 0, None, 0
-                    )
-        except Exception as e:
-            self.logger.error(f"Error loading checkpoint for {strategy_name}: {e}")
         return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
@@ -162,10 +145,10 @@ class SmartGmailRetriever:
 
 
 async def main_cli():
-"""Provides a command-line interface for the SmartGmailRetriever."""
-parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
-# TODO: Implement CLI logic
-    pass
+    """Provides a command-line interface for the SmartGmailRetriever."""
+    parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
+    # TODO: Implement CLI logic
+pass
 
 
 if __name__ == "__main__":
