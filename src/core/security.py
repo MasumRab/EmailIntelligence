@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import json
 import logging
+import re
 import secrets
 import time
 from abc import ABC, abstractmethod
@@ -123,11 +124,19 @@ class DataSanitizer:
         Sanitize output data to prevent information disclosure
         """
         if isinstance(data, str):
-            # Remove potential secrets from strings
-            sanitized = data.replace("password:", "password: [REDACTED]").replace(
-                "token:", "token: [REDACTED]"
-            )
-            return sanitized
+            # Improved sanitization to redact sensitive key-value pairs
+            # This regex looks for common sensitive keys followed by a colon and captures the value.
+            sensitive_keys = ["password", "token", "key", "secret", "auth"]
+            for key in sensitive_keys:
+                # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
+                # It handles optional whitespace and stops at the next comma or end of string.
+                data = re.sub(
+                    rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
+                    r'\1[REDACTED]',
+                    data,
+                    flags=re.IGNORECASE
+                )
+            return data
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
