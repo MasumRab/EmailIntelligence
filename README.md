@@ -380,9 +380,10 @@ To connect to your Gmail account, configure Gmail API access:
 
 1.  **Google Cloud Console:** Enable Gmail API, create OAuth 2.0 Client ID (Desktop app), and download credentials JSON.
 2.  **Provide Credentials:**
-    *   Set `GMAIL_CREDENTIALS_JSON` environment variable (recommended).
-    *   Or, place downloaded JSON as `credentials.json` in project root. (Ensure it's gitignored).
-3.  **One-Time Authorization:** The application will guide you through browser authorization when you first try to access Gmail features, creating `token.json` (or the path specified by `GMAIL_TOKEN_PATH`).
+    *   Set `GMAIL_CREDENTIALS_JSON` environment variable (recommended for production).
+    *   Or, place downloaded JSON as `credentials.json` in the `jsons/` directory (recommended for development). (The `jsons/` directory is gitignored).
+    *   Legacy: Place in project root as `credentials.json` (not recommended).
+3.  **One-Time Authorization:** The application will guide you through browser authorization when you first try to access Gmail features, creating `token.json` in the `jsons/` directory (or the path specified by `GMAIL_TOKEN_PATH`).
 4.  **Scopes Used:** `https://www.googleapis.com/auth/gmail.readonly`.
 
 ## Running the Application
