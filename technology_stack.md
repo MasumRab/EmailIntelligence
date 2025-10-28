@@ -1,383 +1,168 @@
-# Technology Stack Assessment
-
-## Overview
-This document provides a comprehensive assessment of the technologies used in the EmailIntelligence platform, including frameworks, libraries, tools, and their purposes within the system.
+# Technology Stack Overview
 
 ## Backend Technologies
 
-### Python 3.12+ (Core Runtime)
-- **Purpose**: Primary application runtime
-- **Version Requirement**: 3.12 or later
-- **Key Features Used**:
-  - Async/await patterns for concurrent operations
-  - Type hints for code reliability
-  - Context managers for resource management
-  - Dataclasses for structured data
+### Core Framework
+- **FastAPI**: High-performance web framework for building APIs with Python 3.7+ based on standard Python type hints
+- **Uvicorn**: Lightning-fast ASGI server implementation, using uvloop and httptools
+- **Python 3.12+**: Primary programming language
 
-### FastAPI (Web Framework)
-- **Version**: >=0.115.12
-- **Purpose**: Main web framework for API development
-- **Key Features**:
-  - Automatic API documentation generation (Swagger/OpenAPI)
-  - Type validation with Pydantic
-  - Asynchronous request handling
-  - Dependency injection system
-  - Built-in support for WebSockets
+### Database and Storage
+- **Custom JSON Storage**: File-based storage with gzip compression and in-memory caching
+- **Notmuch** (optional): Email indexing and search engine (alternative backend)
 
-### Pydantic (Data Validation)
-- **Version**: >=2.11.5
-- **Purpose**: Data validation and settings management
-- **Key Features**:
-  - Type validation for API inputs/outputs
-  - Automatic serialization/deserialization
-  - Settings management with environment variable support
-  - Performance optimization through compiled validators
+### AI and NLP
+- **NLTK**: Natural language processing toolkit
+- **scikit-learn**: Machine learning library for data mining and data analysis
+- **PyTorch**: Deep learning framework
+- **Transformers**: State-of-the-art Natural Language Processing for Pytorch
+- **SentencePiece**: Unsupervised text tokenizer
+- **TextBlob**: Simplified text processing library
+- **Joblib**: Lightweight pipelining in Python
 
-### Uvicorn (ASGI Server)
-- **Version**: >=0.34.3
-- **Purpose**: Production-ready ASGI server
-- **Key Features**:
-  - High-performance event loop
-  - ASGI compliance for async frameworks
-  - Automatic reload during development
-  - Configuration for production deployment
+### Authentication and Security
+- **JWT**: JSON Web Tokens for authentication
+- **bcrypt**: Password hashing
+- **python-multipart**: Multipart form data parsing
+- **pydantic**: Data validation and settings management using Python type hints
 
-### Gradio (Scientific UI)
-- **Version**: >=4.0.0
-- **Purpose**: Scientific exploration and prototyping interface
-- **Key Features**:
-  - Rapid UI prototyping
-  - Built-in sharing capabilities
-  - Support for complex data types
-  - Integration with Python data science stack
+### Utilities and Tools
+- **Google APIs Client Library**: Integration with Gmail and other Google services
+- **psutil**: Cross-platform library for retrieving information on running processes
+- **matplotlib/seaborn/plotly**: Data visualization libraries
+- **pandas**: Data manipulation and analysis library
+- **numpy**: Fundamental package for scientific computing
+- **scipy**: Scientific computing and technical computing
 
-## Database and Data Storage Technologies
-
-### JSON File Storage (Primary Storage)
-- **Purpose**: Primary data storage mechanism
-- **Features**:
-  - Gzip compression for space efficiency
-  - In-memory caching for performance
-  - Write-behind caching strategy
-  - Separation of metadata and content
-  - Index-based lookups
-
-### Notmuch (Alternative Email Indexing)
-- **Purpose**: Alternative email storage and indexing system
-- **Features**:
-  - Queryable email database
-  - Tag-based organization
-  - Fast search capabilities
-  - Integration with maildir formats
-
-## AI and Machine Learning Technologies
-
-### Transformers (Hugging Face)
-- **Version**: >=4.40.0
-- **Purpose**: State-of-the-art NLP models
-- **Key Features**:
-  - Pre-trained models for various tasks
-  - Transfer learning capabilities
-  - Model optimization tools
-  - Pipeline abstractions
-
-### Scikit-learn
-- **Version**: >=1.5.0
-- **Purpose**: Traditional ML models and preprocessing
-- **Key Features**:
-  - Classification and regression models
-  - Preprocessing tools
-  - Model evaluation metrics
-  - Pipeline construction
-
-### NLTK (Natural Language Toolkit)
-- **Version**: >=3.9.1
-- **Purpose**: Text processing and linguistic analysis
-- **Key Features**:
-  - Tokenization and stemming
-  - Part-of-speech tagging
-  - Sentiment analysis
-  - Corpus access
-
-### TextBlob
-- **Version**: >=0.19.0
-- **Purpose**: Simplified text processing
-- **Key Features**:
-  - Sentiment analysis
-  - Part-of-speech tagging
-  - Noun phrase extraction
-  - Translation and language detection
-
-### Accelerate
-- **Version**: >=0.30.0
-- **Purpose**: Hardware acceleration management
-- **Key Features**:
-  - Multi-GPU support
-  - Mixed precision training
-  - Cross-platform compatibility
-  - Memory optimization
+### Development and Testing
+- **pytest**: Testing framework
+- **pytest-asyncio**: Pytest plugin for asyncio support
+- **black**: Code formatter
+- **isort**: Import sorter
+- **mypy**: Static type checker
+- **pylint**: Python linting tool
+- **flake8**: Style guide enforcement
 
 ## Frontend Technologies
 
-### React (UI Framework)
-- **Purpose**: Main frontend framework
-- **Key Features**:
-  - Component-based architecture
-  - Virtual DOM for performance
-  - Hooks for state management
-  - Ecosystem of libraries
+### Core Framework
+- **React**: JavaScript library for building user interfaces
+- **TypeScript**: Typed superset of JavaScript
+- **Vite**: Next generation frontend tooling
 
-### TypeScript
-- **Purpose**: Type safety for JavaScript
-- **Key Features**:
-  - Static type checking
-  - Better IDE support
-  - Refactoring safety
-  - Gradual typing adoption
+### UI Components and Styling
+- **Radix UI**: Unstyled, accessible components for building high-quality design systems
+- **Tailwind CSS**: Utility-first CSS framework
+- **Tailwind CSS Animate**: Animation utilities for Tailwind CSS
+- **clsx**: Utility for constructing className strings conditionally
+- **class-variance-authority**: Create class variants
 
-### Vite (Build Tool)
-- **Purpose**: Modern build tool and dev server
-- **Key Features**:
-  - Fast hot module replacement
-  - ES module-based architecture
-  - Zero-config setup for common use cases
-  - Plugin ecosystem
+### State Management and Data Fetching
+- **React Query**: Data synchronization and state management
+- **Zod**: TypeScript-first schema declaration and validation
 
-### Tailwind CSS (Styling)
-- **Purpose**: Utility-first CSS framework
-- **Key Features**:
-  - Atomic CSS classes
-  - Responsive design utilities
-  - Custom design system support
-  - Purging unused styles
+### UI Libraries and Components
+- **React Hook Form**: Performant, flexible forms with easy validation
+- **React Icons**: Popular icons as React components
+- **React Resizable Panels**: Resizable panel component for React
+- **Recharts**: Charting library built on D3
+- **Framer Motion**: Production-ready motion library for React
+- **Date-fns**: Modern JavaScript date utility library
+- **Embla Carousel**: Lightweight carousel library
 
-### Radix UI (Component Primitives)
-- **Version**: Various
-- **Purpose**: Accessible UI primitives
-- **Key Features**:
-  - Unstyled, accessible components
-  - Flexible styling with CSS
-  - Composable component APIs
-  - Focus management
+### Development Tools
+- **ESLint**: Pluggable JavaScript linter
+- **PostCSS**: Tool for transforming CSS with JavaScript
+- **Autoprefixer**: Parse CSS and add vendor prefixes
 
-## Development and Testing Technologies
+## Infrastructure and DevOps
 
-### uv (Dependency Manager)
-- **Purpose**: Python dependency management
-- **Key Features**:
-  - Fast dependency resolution
-  - PEP 582 compatibility
-  - Lock file generation
-  - Virtual environment management
-
-### Pytest (Testing Framework)
-- **Version**: >=8.4.0
-- **Purpose**: Testing framework for Python
-- **Key Features**:
-  - Fixtures for test setup
-  - Parametrized testing
-  - Plugin architecture
-  - Async test support
-
-### Black (Code Formatter)
-- **Version**: >=25.1.0
-- **Purpose**: Code formatting tool
-- **Key Features**:
-  - Opinionated formatting
-  - Consistent code style
-  - Integration with editors
-  - Fast processing
-
-### MyPy (Static Type Checker)
-- **Version**: >=1.16.0
-- **Purpose**: Static type checking
-- **Key Features**:
-  - Gradual typing adoption
-  - Rich type system support
-  - Integration with editors
-  - Plugin architecture
-
-### Pylint (Code Analysis)
-- **Version**: >=3.3.7
-- **Purpose**: Code quality checking
-- **Key Features**:
-  - Error detection
-  - Refactoring suggestions
-  - Coding standard enforcement
-  - Plugin system
-
-## DevOps Technologies
-
-### Docker (Containerization)
-- **Purpose**: Application containerization
-- **Key Features**:
-  - Isolated application environments
-  - Consistent deployment across platforms
-  - Resource isolation
-  - Orchestration capabilities
-
-### Git (Version Control)
-- **Purpose**: Source code version control
-- **Key Features**:
-  - Distributed development
-  - Branching and merging
-  - Repository history tracking
-  - Collaboration support
-
-### Launch System (`launch.py`)
-- **Purpose**: Unified application launcher
-- **Key Features**:
-  - Environment setup automation
-  - Service orchestration
-  - Dependency management
-  - Development workflow integration
-
-## Integration Technologies
-
-### Google APIs
-- **Libraries**:
-  - google-api-python-client (>=2.172.0)
-  - google-auth (>=2.40.3)
-  - google-auth-oauthlib (>=1.2.2)
-- **Purpose**: Gmail API integration
-- **Features**:
-  - OAuth2 authentication
-  - Email retrieval and management
-  - Calendar integration
-  - Security best practices
-
-### Email Validation
-- **Library**: email-validator (>=2.2.0)
-- **Purpose**: Email address validation
-- **Features**:
-  - Syntax validation
-  - Domain validation
-  - Internationalized domain support
-  - RFC compliance
-
-## Performance and Monitoring Technologies
-
-### Asyncio (Concurrency)
-- **Purpose**: Asynchronous programming in Python
-- **Key Features**:
-  - Event loop management
-  - Concurrent operations
-  - Non-blocking I/O
-  - Resource efficiency
-
-### Logging
-- **Purpose**: Application monitoring and debugging
-- **Key Features**:
-  - Structured logging
-  - Different log levels
-  - File and console output
-  - Performance monitoring
-
-### Performance Monitoring
-- **Custom**: `backend/python_backend/performance_monitor.py`
-- **Purpose**: API performance tracking
-- **Features**:
-  - Operation timing
-  - Resource usage tracking
-  - Bottleneck identification
-
-## Security Technologies
-
-### JWT (JSON Web Tokens)
-- **Purpose**: Authentication token management
-- **Features**:
-  - Stateful authentication
-  - Token expiration
-  - Secure signing
-  - Cross-origin compatibility
-
-### Python Security Best Practices
-- **Features**:
-  - Input validation
-  - Output sanitization
-  - Secure session management
-  - Protection against common vulnerabilities
-
-## Data Science and Visualization
-
-### Pandas
-- **Version**: >=2.0.0
-- **Purpose**: Data manipulation and analysis
-- **Features**:
-  - Data structures for data analysis
-  - Data import/export capabilities
-  - Data cleaning and transformation
-  - Time series functionality
-
-### NumPy
-- **Version**: >=1.26.0
-- **Purpose**: Numerical computing
-- **Features**:
-  - Multi-dimensional arrays
-  - Mathematical functions
-  - Linear algebra operations
-  - Random number generation
-
-### Matplotlib/Seaborn
-- **Purpose**: Data visualization
-- **Features**:
-  - Static plots
-  - Statistical visualizations
-  - Customizable styling
-  - Publication-quality output
-
-### Plotly
-- **Version**: >=5.18.0
-- **Purpose**: Interactive data visualization
-- **Features**:
-  - Interactive plots
-  - Web-ready visualizations
-  - 3D plotting capabilities
-  - Dash integration
-
-## Deployment Technologies
+### Package Management
+- **uv**: Extremely fast Python package installer and resolver
+- **npm**: Package manager for JavaScript
+- **Poetry** (optional): Dependency management and packaging
 
 ### Environment Management
-- **Python-dotenv**: Environment variable management
-- **Pydantic-settings**: Settings management with validation
-- **Features**:
-  - Configuration management
-  - Environment-specific settings
-  - Secure credential handling
+- **dotenv**: Environment variable management
+- **pydantic-settings**: Settings management using Pydantic
 
-## Technology Stack Rationale
+### Process Management
+- **subprocess**: Python standard library for process management
+- **threading**: Python standard library for thread-based parallelism
 
-### Architecture Decisions
-1. **Python Backend**: Rich ecosystem for AI/ML applications
-2. **FastAPI**: Modern, fast, and well-documented
-3. **React Frontend**: Component-based architecture with strong ecosystem
-4. **JSON Storage**: Simple, scalable for initial development
-5. **Gradio Integration**: Enables rapid scientific experimentation
+### Deployment
+- **Docker** (planned): Containerization platform
+- **Docker Compose**: Tool for defining and running multi-container Docker applications
 
-### Scalability Considerations
-1. **Async Architecture**: Supports high concurrency
-2. **Caching Strategy**: Performance optimization
-3. **Modular Design**: Easy to extend and maintain
-4. **Dependency Management**: Automated and consistent
+## Scientific and Research Tools
 
-### Security Considerations
-1. **Input Validation**: Comprehensive validation at all layers
-2. **Authentication**: JWT-based secure authentication
-3. **Dependency Updates**: Regular updates and security scanning
-4. **Best Practices**: Following security guidelines
+### Interactive UI
+- **Gradio**: Library for building machine learning and data science demos
 
-## Future Technology Considerations
+### Data Analysis
+- **Jupyter** (notebooks): Interactive computing environment
+- **pandas**: Data manipulation and analysis
+- **matplotlib**: Plotting library
+- **seaborn**: Statistical data visualization
+- **plotly**: Interactive graphing library
 
-### Potential Upgrades
-1. **Database Migration**: Moving to PostgreSQL for production
-2. **Cache Layer**: Adding Redis for improved performance
-3. **Message Queue**: Adding Celery for background tasks
-4. **Monitoring**: Enhanced observability with tools like Prometheus
+## Integration Points
 
-### Emerging Technologies
-1. **LLM Integration**: More advanced AI models
-2. **Real-time Features**: WebSocket support for live updates
-3. **Container Orchestration**: Kubernetes for scaling
-4. **API Gateway**: Advanced routing and security features
+### External APIs
+- **Gmail API**: Email synchronization and management
+- **Hugging Face Transformers**: Pre-trained models for NLP tasks
 
-This technology stack provides a solid foundation for the EmailIntelligence platform, balancing modern development practices with performance, security, and maintainability requirements.
+### File Formats
+- **JSON**: Primary data storage format
+- **gzip**: Compression for data files
+- **CSV**: Data import/export (where applicable)
+
+## Development Environment
+
+### Version Control
+- **Git**: Distributed version control system
+
+### Operating Systems
+- **Linux/WSL**: Primary development environment
+- **Windows/macOS**: Supported development environments
+
+### Editors and IDEs
+- **VS Code**: Recommended editor with Python and TypeScript extensions
+- **PyCharm**: Professional Python IDE
+- **WebStorm**: Professional JavaScript/TypeScript IDE
+
+## Testing Strategy
+
+### Backend Testing
+- **Unit Tests**: pytest for individual function and class testing
+- **Integration Tests**: Testing API endpoints and module interactions
+- **Mocking**: unittest.mock for isolating components during testing
+
+### Frontend Testing
+- **Unit Tests**: Jest for component and utility testing
+- **Integration Tests**: Testing user interactions and API calls
+- **End-to-End Tests**: Cypress or Playwright for full application testing
+
+### AI/NLP Testing
+- **Model Validation**: Testing model accuracy and performance
+- **Data Quality**: Ensuring training data integrity
+- **Edge Cases**: Handling unusual or malformed input
+
+## Performance Considerations
+
+### Caching
+- **In-Memory Caching**: DatabaseManager uses in-memory storage for frequently accessed data
+- **File Caching**: gzip compression for stored data
+
+### Asynchronous Processing
+- **Async/Await**: Non-blocking I/O operations
+- **Threading**: Parallel processing where appropriate
+
+### Memory Management
+- **Resource Cleanup**: Proper disposal of resources through ProcessManager
+- **Garbage Collection**: Python's automatic memory management
+
+### Scalability
+- **Horizontal Scaling**: FastAPI's stateless nature allows for easy scaling
+- **Load Balancing**: Can be deployed behind load balancers
+- **Database Scaling**: Current JSON implementation suitable for small to medium datasets
