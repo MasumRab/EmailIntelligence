@@ -6,7 +6,7 @@ This module implements JWT-based authentication for API endpoints and integrates
 
 import logging
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
 
@@ -16,7 +16,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
 from .database import get_db
-from .settings import settings
+from backend.python_backend.settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission
@@ -27,12 +27,25 @@ logger = logging.getLogger(__name__)
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
     username: Optional[str] = None
+    role: Optional[str] = "user"
+
+
+from enum import Enum
+
+
+class UserRole(str, Enum):
+    """User roles for role-based access control"""
+    ADMIN = "admin"
+    USER = "user"
+    GUEST = "guest"
 
 
 class User(BaseModel):
     """User model for authentication"""
     username: str
     hashed_password: str
+    role: UserRole = UserRole.USER
+    permissions: Optional[List[str]] = []
 
 
 # Initialize security scheme
@@ -164,7 +177,7 @@ async def verify_token(
         credentials: HTTP authorization credentials containing the bearer token
         
     Returns:
-        TokenData containing the username from the token
+        TokenData containing the username and role from the token
         
     Raises:
         HTTPException: If token is invalid or expired
@@ -181,9 +194,10 @@ async def verify_token(
             algorithms=[settings.algorithm]
         )
         username: str = payload.get("sub")
+        role: str = payload.get("role", "user")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = TokenData(username=username, role=role)
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -198,7 +212,7 @@ async def verify_token(
     return token_data
 
 
-def get_current_active_user(token_data: TokenData = Depends(verify_token)) -> str:
+def get_current_active_user(token_data: TokenData = Depends(verify_token)) -> TokenData:
     """
     Get the current authenticated user from the token.
     
@@ -208,11 +222,55 @@ def get_current_active_user(token_data: TokenData = Depends(verify_token)) -> st
         token_data: Token data from verified JWT token
         
     Returns:
-        Username of the authenticated user
+        TokenData containing username and role of the authenticated user
     """
     # In a real implementation, you would fetch user details from a database
-    # For now, we just return the username from the token
-    return token_data.username
+    # For now, we just return the token data
+    return token_data
+
+
+def require_role(required_role: UserRole):
+    """
+    Dependency to require a specific role for accessing an endpoint.
+    
+    Args:
+        required_role: The role required to access the endpoint
+        
+    Returns:
+        A dependency function that checks the user's role
+    """
+    def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
+        # In a real implementation, you would check the user's actual role from the database
+        # For now, we'll check the role from the token
+        if token_data.role != required_role.value:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. {required_role.value} role required."
+            )
+        return token_data
+    return role_checker
+
+
+def require_any_role(required_roles: List[UserRole]):
+    """
+    Dependency to require any of the specified roles for accessing an endpoint.
+    
+    Args:
+        required_roles: List of roles that can access the endpoint
+        
+    Returns:
+        A dependency function that checks the user's role
+    """
+    def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
+        # In a real implementation, you would check the user's actual role from the database
+        # For now, we'll check the role from the token
+        if token_data.role not in [role.value for role in required_roles]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required."
+            )
+        return token_data
+    return role_checker
 
 
 def create_security_context_for_user(username: str) -> SecurityContext:

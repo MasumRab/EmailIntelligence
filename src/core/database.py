@@ -474,6 +474,11 @@ class DatabaseManager(DataSource):
             "id": new_id,
             "username": user_data["username"],
             "hashed_password": user_data["hashed_password"],
+            "role": user_data.get("role", "user"),
+            "permissions": user_data.get("permissions", []),
+            "mfa_enabled": user_data.get("mfa_enabled", False),
+            "mfa_secret": user_data.get("mfa_secret", None),
+            "mfa_backup_codes": user_data.get("mfa_backup_codes", []),
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         
