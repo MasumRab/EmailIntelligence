@@ -1,0 +1,529 @@
+0eb4a6e2 commit plan
+38ff3fc8 Complete merge on scientific branch
+34de9c6a Merge remote-tracking branch 'origin/scientific' into scientific and resolve setup/launch.py conflict
+e1142967 fix: Update managed files lists to include launch.py and test files
+2b2a5064 Merge remote-tracking branch 'origin/scientific' into scientific and resolve jules_mcp_schedule.json conflict
+1d3f3c93 feat: Complete Git hook loop prevention and worktree/subtree detection
+e5555dfe Apply stashed changes from scientific branch, excluding orchestration-specific files
+141819b8 feat: Update jules_mcp_schedule.json and tasks_invalid.json with task_7 and task_8 status
+79a4dcea Fix merge artifacts in Git hooks
+b4e2c57c Fix subprocess security vulnerabilities in setup modules
+2300551c Fix type annotations in agent files and add task expansion summary
+a45930fe Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a5aaaffb feat: Reorganize agent files into dedicated agents directory
+0d15e300 Update setup files and add new command structure
+de0d9b1f Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+3f82188d Address Sourcery AI review comments: fix security path validation and email extraction
+b91d8c1e feat: Pull latest changes from scientific branch
+88fd1e63 Merge pull request #192 from MasumRab/migration-completion-branch
+104e71fc Address Sourcery AI review comments: move database manager initialization to constructor and fix string concatenation
+bf6374ba Merge pull request #162 from MasumRab/docs/comprehensive-documentation
+b268613a Merge remote-tracking branch 'origin/scientific' into docs/comprehensive-documentation
+c6290f24 Fix JSON syntax error in sync_config.json after conflict resolution
+8b99eb7a Resolve merge conflicts in PR #162 - comprehensive documentation
+a7fe26c1 feat: Complete backlog task migration to Task Master
+08a991b3 Apply main.py with updated import paths from feature branch
+986e4b13 Fix import paths: change src.backend to backend in all files
+a24f6a26 Apply import path updates from feature branch migration
+7885bfd1 Apply enhanced NotmuchDataSource with proper dependency injection from feature branch
+b9d68766 Complete backend migration and Task Master consolidation
+3161fb7d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+51d82e06 Update Jules MCP schedule with validated task completion status
+bc36e845 Recover lost backend modules: Restore performance_monitor.py from Git history and update recovery documentation
+83631b6d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+c9473516 Add Jules MCP coordination schedule for Email Intelligence development
+0c272f8e Merge pull request #190 from MasumRab/refactor-notmuch-datasource
+45d55040 Merge pull request #191 from MasumRab/feature-repository-analysis-script
+2679ddd8 feat: Create comprehensive repository analysis script
+41c1e366 refactor: Decouple NotmuchDataSource from concrete SQLiteManager
+3241dda0 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+0d20f4c6 docs: add command pattern and orchestration workflow docs, clean up old session files
+ec8dab05 Fix merge conflicts in database.py and performance_monitor.py
+c68112f9 docs: update test migration assessment - scientific branch has superior tests
+1f71563a feat: implement random SECRET_KEY generation for testing
+861db56c Add comprehensive orchestration status monitoring dashboard
+3d9aec5d feat: Add Jules backlog task completion prompt template to scientific branch
+6288cb55 Update CRUSH.md
+531e2072 clean
+391d5597 Merge comprehensive documentation from all branches
+26b1c98a Add orchestration setup files from orchestration-tools branch
+a55053e3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+c4bf5071 Fix: Add missing ResourceLimits definition to security_manager.py
+6399537f Fix: Add missing BaseAppException import to main.py in scientific branch
+463be422 docs: Add IFLOW development session tracking for 2025-11-02
+a1ef8c66 Consolidate backlog tasks: merge docs/project-management/backlog/tasks/ into main backlog/tasks/, archive duplicates, remove redundant location
+b9f4d54b Remove duplicate task files from docs/ that exist in root backlog/tasks/
+fd2bd74a Remove task-42
+e70b6945 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+4d042df7 Apply stash: analysis artifacts
+a6cbb993 Apply stash: Auto stash before merge of worktree-workflow-system and origin/worktree-workflow-system
+a6a0712f Remove launch-setup-fixes submodule
+135ca987 Update worktrees structure and add hooks
+b833950d Revert "Fix: Ignore worktree files and hook source files"
+db05c6c7 Fix: Ignore worktree files and hook source files
+1d2a29c1 Add .branch_docs/ to .gitignore for temporary documentation
+28571f34 Feat: Create epic task for Overall Security Enhancement
+482707fb Refactor: Re-establish backlog task folder structure for human readability
+50b74ab0 Refactor: Revert backlog task folder structure to flat for CLI compatibility
+359b8412 Refactor: Group backlog tasks into thematic folders
+90dc4a72 Refactor: Rename backlog task files to resolve ID conflicts and follow naming conventions
+965cf4a3 Apply stash and resolve conflict for task-42
+271da167 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+890203f4 feat: Update worktree-workflow-system submodule
+fd2aebdf Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a487227e docs: Complete feature branch alignment task for notmuch-tagging-1
+d3c29919 feat: Complete security audit and technical debt improvements
+a8d4a537 Merge remote scientific branch
+1e4f6128 feat: Eliminate global singleton pattern in database.py
+b5139832 Merge pull request #181 from MasumRab/align-feature-notmuch-tagging-1
+38450416 feat(notmuch): Integrate security validation and enhance NotmuchDataSource with full CRUD functionality
+e985893f Align feature-notmuch-tagging-1 with scientific branch: Integrate enhanced NotmuchDataSource with AI analysis and tagging
+5585f845 Add technical debt tasks from codebase TODOs
+d756d114 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+2f806533 notmuch
+4c701fc8 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+cc54d508 Implement _save_checkpoint method and CLI logic for SmartRetrievalManager
+161ca125 Implement worktree-based setup integration
+7fda626d feat(tasks): Resolve duplicate task IDs on scientific branch
+674420c9 feat(tasks): Add and update tasks for scientific branch
+e21e15ae Add task-118: Test Branch Task Migration (Scientific Branch)
+9193958f Update alignment task template with branch-specific format
+d30a616e Add feature branch alignment tasks for scientific and main branches
+ec513838 Enhance post-checkout hook to automatically install Git hooks
+769fc86a Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+5e024a02 Fix backlog merge driver issues and malformed task file
+9be2c41d clean
+7190cdfb Merge remote-tracking branch 'origin/scientific' into scientific
+2bd63618 Merge remote-tracking branch 'origin/scientific' into scientific
+ed880a47 Merge documentation from main branch
+c064c54e Add scientific branch alignment plan and tasks
+1f236b94 Add task for addressing node engine security improvements
+b16bc517 Add task for addressing database module technical debt
+01a84c52 Add backlog tasks for scientific branch architecture alignment
+2392a20c Merge remote-tracking branch 'refs/remotes/origin/scientific' into scientific
+d3182955 Complete import fixes task: Update status and document PR implementation
+a4ec3c73 Remove management scripts from scientific branch - centralized in worktree-workflow-system
+049e44a1 Sync scripts from master branch
+77f609a5 docs: Update actionable insights and sync scripts
+bb16e642 Add necessary JSON config files for worktree documentation workflow
+be08c901 feat: Add worktree documentation inheritance system
+1db168d4 Complete dashboard test updates: add comprehensive test coverage for ConsolidatedDashboardStats model, authentication, error conditions, and edge cases
+6217c0ec Merge remote changes and resolve conflicts
+0f2c14a3 Update task progress: added import fixes and validation
+cb757e0a Merge remote-tracking branch 'origin/scientific'
+f46e680d Security fix: Add input validation to prevent command injection in subprocess.Popen calls
+6480f1a3 Merge branch 'scientific' into current branch after resolving conflicts.
+c6e43feb Fix import compatibility issues: pydantic v1/v2, field constraints, uvicorn import placement
+75822e6d fix: Replace bare except clauses with specific exception handling
+d961fa4c fix: Resolve syntax errors in verify_packages.py
+9f18adb0 docs: Add comprehensive security policy and vulnerability disclosure guidelines
+f5a767de fix: Add proper exception chaining with 'from err' in route handlers
+3ec2c34e security: Fix unsafe server binding and reload configuration
+8f0d5b8d security: Fix subprocess command injection vulnerability
+4dd35239 feat: Update setup requirements.txt with argon2 dependency
+5f98917e security: Fix critical security vulnerabilities
+5fa3adef docs: Implement PR 168 review suggestions
+b786d7b4 feat: Implement PR 173 review suggestions
+eecb92da Implement Sourcery AI suggestions for PR #177
+d9662b0a Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+97ae0f37 Fix syntax errors and indentation issues in codebase
+f5f324da Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+23af903a Apply stashes on scientific: analysis artifacts and auto stash before merge
+e18f4e3d Merge branch 'feature/syntax-error-fixes-from-stable' of https://github.com/MasumRab/EmailIntelligence into scientific
+bf18b1ba Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+4f1516d7 Mark Task 41 as completed - Background job processing implementation finished
+186f7dc7 Implement RQ-based background job processing for dashboard - Task 41 Phase 2.2
+d72dcd29 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+99a114ff feat(backlog): update task-main-15 to Done
+c60d1f0e Merge rate limiting security fix
+a184e64b Fix security vulnerability: Add rate limiting to catch-all route
+74cfe6a8 Implement Redis caching for dashboard statistics - Task 40 Phase 2.1
+4cccaaa5 Organize dashboard backlog tasks into structured phase subfolders
+718efedb Restructure dashboard backlog tasks with improved priorities and dependencies
+f55f6b52 feat: Add comprehensive migration plan for distributed worktree framework
+6ee3de0e feat: Relocate backlog system from docs/ to root directory
+ec82ec0f docs: Add workflow configuration files to scientific branch
+d7b05a4a fix: Add missing List import and improve error handling in merge strategist
+9cfa2fa7 docs update
+5cef9895 docs: add test document to verify workflow system
+36f6fd06 docs: Add missing documentation files from main branch
+a7936f71 docs: Create placeholders for main-only documentation files
+cb032e74 docs: Merge consolidated documentation structure into scientific
+f6d25f3f docs: Update README to reflect single documentation structure
+e5557f9d docs: Reorganize documentation into proper folder structure
+a37c6bc2 feat: Create clean shared documentation branch
+4c37b1c2 Merge remote-tracking branch 'origin/scientific' into scientific
+673195e3 Add hook installer for automatic environment setup on branch checkout
+2300ff4f docs(enhancements): add cross-branch documentation improvements
+99214bc9 Fix notmuch dependency version to >=0.29 for compatibility
+bc6f9664 Integrate setup subtree changes into scientific branch
+a4c9efdf Squashed 'setup/' changes from cd39f02..d2da0e7
+8575337f feat: Implement micro-task decomposition system for parallel documentation workflows
+ffd55b06 fix: Resolve critical import path issues in launch.py and create missing server infrastructure
+c7cb3d98 Fix setup directory: create proper setup directory with only essential launch and setup files, replace overly complex subtree
+faeffeb2 Update testing task with scientific branch implementation details
+2f508c80 Update task files for completed subtree integration in scientific branch
+acd60d9d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+ba21dd9e Implement subtree integration for scientific branch: move launch/setup files to setup/ subtree with wrapper scripts for backward compatibility
+690f2daf Squashed 'setup/' content from commit cd39f02
+2a4dc84e Merge commit '690f2daf2fb6abf3e89aa7f3446bd5d95afcc68c' as 'setup'
+75c44147 docs(tasks): update task 72 status to completed
+4c531646 docs(merge): complete Task 73 - Update Alignment Strategy for scientific branch
+3b7e42bf Format code with black and isort
+dc2ee135 Add duplicate subtree integration script for scientific branch
+f37009e4 Merge remote-tracking branch 'origin/scientific-consolidated' into scientific
+c42d9ea1 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a30f92ad Add subtree testing guide and complete final validation task
+b7066f9a feat(database): implement proper dependency injection for database management
+3a950e8e Add subtree integration documentation for scientific branch
+77876e79 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a5dd5a8c Complete Task 71: Align NotmuchDataSource Implementation with Functional Requirements
+d9a4c1cb docs: Update documentation for repository pattern integration with dashboard statistics - mark task as completed
+826f233d Remove generated pip install log files and add to .gitignore
+59b8380f Merge remote and resolve conflicts - =* files already removed
+07c7d01c docs: Update task 70 status - completed performance verification
+3a79c33c Merge branch 'fix-gitignore-version-files' into docs/comprehensive-documentation
+c5d66059 Merge remote-tracking branch 'origin/scientific' into scientific
+0006e94f docs: Update task 70 status - completed testing
+20af7b70 Merge remote scientific branch and resolve .gitignore conflict
+27d818f3 fix: Remove generated pip install log files and add to .gitignore
+49b7af4a docs: Update task 70 status - completed caching layer implementation
+f1fa84f8 feat: Add caching layer to repository for dashboard statistics
+c16e8f78 docs: Update task 70 status - completed initial repository pattern integration
+d73171c4 feat: Complete repository pattern integration with dashboard statistics
+20da9684 docs: Add final alignment strategy task documenting that scientific branch contains most improvements
+90d003ba Resolve merge conflicts from applying stash
+489cfe07 feat: Add backlog tasks for architectural alignment between backup-branch and scientific branch
+2f416a71 Merge pull request #164 from MasumRab/feature-dashboard-stats-endpoint
+c0a6ba17 Add architecture review and algorithm analysis documentation
+2d97300a feat: Add organized backlog tasks for TODO comment resolution
+efafc67d feat: complete branch alignment phases 2, 3, and 4
+2dcde5a0 docs: Update branch analysis report and post-merge validation task
+a60469f3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+421dae25 feat: enhance dashboard module with authentication and performance improvements
+63c5d048 chore: Add emailintelligence_env to .gitignore
+fb6c4ce4 Merge remote-tracking branch 'origin/scientific' into scientific
+612c8f2b feat: Add backlog tasks for branch alignment and PR creation
+e036b1fc fix: add missing PathValidator class to security module
+6259452e chore: format code and update task status
+4905ce8e Fix textblob version check in setup script
+d3b2e2ef Merge main: inherit core enhancements (security, database, performance)
+f31e8bd2 feat: Complete Phase 1.3-1.4 dashboard consolidation
+f9dc5a8b Add get_category_breakdown method to DataSource interface and implementations
+4fb7d5f8 Fix venv creation: update setup scripts to use 'venv' instead of 'emailintelligence_env'
+d6016e55 feat: Add get_dashboard_aggregates() method to DataSource interface
+bbd5f202 docs: Add branch ownership and file zone guide
+37ec95a5 feat: Add Phase 3 AI integration tasks
+7e9817a7 feat: Add Phase 2 performance optimization tasks
+79ae22b0 feat: Complete Documentation Improvement Initiative
+bd74661c docs: Complete IMAP Box Management Documentation
+eeab75d5 feat: Complete Phase 1 dashboard consolidation tasks
+8d5a3d85 docs: Complete Notmuch Integration Documentation
+73f9185a docs: Complete Email Retrieval Module Documentation
+afa55860 feat: Add Phase 1 dashboard consolidation tasks
+67af0edd docs: Add dashboard consolidation planning
+07221de3 docs: Complete Plugin Management Module Documentation
+bd0ef92a docs: Complete Model Management Module Documentation
+e923112f docs: Complete System Status Module Documentation
+24dee9d7 feat: Complete documentation improvement planning phase
+2f9051a6 Merge scientific branch - migrate to latest architecture
+3c0eb1db Merge branch 'scientific-minimal-rebased' into docs/comprehensive-documentation
+ef846b7a fix: Resolve dashboard integration issues
+ae5b55b6 Add conda environment support to launch.py and restore launch.bat.new
+68888407 Fix syntax errors and missing function calls in launch.py
+27587919 style: Clean up security module imports and formatting
+1a2595bd fix: Check all ACs for task-3 SOLID Email Data Source Abstraction
+b85d4cea fix: Complete security module implementation for path validation
+aef5af4b docs: Add branch cleanup documentation
+8b966e64 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific-minimal-rebased
+18f67428 Merge remote-tracking branch 'origin/scientific' into scientific-minimal-rebased
+773f0397 feat: Update backlog tasks with standardized Acceptance Criteria format
+7c17b587 docs: update session file with completed activities
+9e2b7a69 docs: add branch management recommendations
+29975c6e docs: establish documented development sessions with IFLOW.md integration
+d9d7550a docs: analysis comprehensive branch classification and cleanup recommendations
+e2b9627e docs: Add comprehensive documentation for work-in-progress extensions
+70ca292c feat: Integrate work-in-progress extensions on top of scientific branch
+109d0b3b consolidate: feature branch improvements summary
+198aaafe fix: consolidate syntax error fixes
+85fd0dc6 docs: workflow establish documentation management guidelines
+a634a6f4 docs: comprehensive project documentation consolidation
+84e81112 fix: Restore security module functionality and fix merge conflicts
+e0be9c28 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+97c50649 fix: Resolve merge conflicts and syntax errors
+52aa7ce5 fix: integrate plugin routes and complete dependency standardization
+eb40a65c feat: Improve backlog system to prevent task completion loss during merges
+6d418081 Merge branch with resolved conflicts - recovered backlog task completions and architectural changes
+d1ac970f feat: Complete task verification framework and fix security module
+6d9a923a Add textblob dependency and improve NLTK download logic
+cd06f659 Complete security hardening and production readiness implementation
+b02754b2 Fix setup scripts to follow project guidelines
+d9035ee9 Fix virtual environment to include system site packages
+f4e1aa7b Fix setup_environment_wsl.sh: move verification after package installation
+6b13362c Update setup_environment_system.sh with optimizations from WSL script
+bacdb7be Update README to include instructions for setup_environment_wsl.sh
+f2a4ae1a Add virtual environment directory to .gitignore
+2aa31d01 Optimize setup_environment_wsl.sh: fix package names and add system packages
+383c786b Complete Error Handling Standardization task
+7349d923 feat: Add NotmuchDataSource and Gradio UI
+b8a34709 Add pseudo code for database optimization TODOs including global state refactoring, lazy loading, and search performance improvements
+cd04c6df feat: Complete medium priority tasks and Node Engine enhancements
+90aa835c Resolve merge conflicts - accept incoming changes
+07acf16d Implement multi-factor authentication (MFA) support
+10e108f7 feat: implement comprehensive SOTA Plugin Manager System
+74a17727 feat: convert actionable insights into backlog tasks
+7710a242 docs: add comprehensive architecture analysis and documentation
+20c8943c feat: implement documented development sessions with IFLOW.md integration
+446c3d68 Add dynamic AI model management system with comprehensive registry and API routes
+6f242741 Implement repository pattern and refactor database manager with proper initialization method
+65cfd3a1 amp changes
+37d5fe5d fix: update NotmuchDataSource to use ModernAIEngine directly
+6355efe7 feat: implement SOTA AI engine with async generator dependency injection
+ed2d1d01 feat: reorder scientific branch tasks by SOTA (State-Of-The-Art) priority
+eebc901f fix: update .venv to venv in doc-and-setup-fixes-1
+d3e635d2 feat: enhance NotmuchDataSource with AI integration
+f85e7f24 feat: complete 6 HIGH priority tasks
+ee5066cf Resolve additional merge conflicts - accept incoming changes
+9ad0212b feat: implement /api/dashboard/stats endpoint
+27639bf3 feat: reorder scientific branch task priorities to minimize merge conflicts
+bf110650 feat: add missing scientific branch tasks identified from documentation review
+b6c9d949 refactor: remove main branch tasks from scientific branch
+35dfee53 feat: add detailed implementation plans to main backlog tasks
+94a409b1 docs: enhance backlog tasks with detailed descriptions and acceptance criteria
+8d74de7b feat: update Gmail API to use jsons/ directory for credentials
+76568c43 feat: implement local development setup, basic security, and performance monitoring foundations
+92c29e34 Fix circular import in constants.py by defining FIELD constants locally
+d377cd70 Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+0e5461ac Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+2ece6a8e Resolve merge conflicts - accept incoming changes
+6640e327 Enhance workflow engine with topological sorting, error handling, validation, conditional execution, memory optimization, parallel execution, and monitoring
+0aa05d85 Implement WSL optimization and NVIDIA-free setup - add check_torch_cuda and reinstall_torch utilities with CLI integration
+db380aef Fix syntax errors in f-strings and indentation for Black compatibility
+6c96f032 Fix remaining E501 line length violations in workflow_engine.py
+1e6da696 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+95d0912c Implement workflow engine enhancements in scientific branch
+81e5764b Update CRUSH.md
+3f1fb0ee Fix issue #108: Gate server binding and reload by environment variables for security
+2a894c60 Fix issue #113: Address code review feedback - align constants keys, secure PYTHONPATH, add error handling
+103557d7 Add backlog tasks for EmailRepository and NotmuchDataSource implementation on both main and scientific branches
+9491a4b3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+19bb4629 Implement dashboard stats endpoint and API authentication for scientific branch
+45770cb2 docs: add LLXPRT project overview and unimplemented code analysis documentation
+f8640e20 Fix code review issues in launch.py
+74a9683c Optimize environment setup for Python 3.12+ and CPU-only PyTorch
+2475e02f Fix critical issues in launch.py: duplicate function calls, conda activation, thread safety, and duplicate implementations
+13f8e654 Remove duplicate iflow.md file and update project summary
+d9362560 feat: WSL optimization and NVIDIA-free setup
+388d7149 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+57d001a0 fix: address security issues in PR #136
+d1488586 Update documentation to reflect current modular architecture and remove references to deprecated components
+684f8a99 feat: Implement PromptEngineer and document backend migration
+991b5901 fix: implement proper path resolution to prevent SQLite path traversal attacks
+a881d7d8 Refactor backend to use SQLite via aiosqlite
+b44e3e98 feat: Migrate to SQLite, update tests, and standardize DB path
+a431282b feat: Migrate application to use SQLite and update related configurations
+325f03c8 Fix README.md merge conflicts and update documentation
+36685cd1 This commit refactors the entire application into a modular, extensible architecture inspired by established AI/ML frameworks.
+e0936516 feat: Analyze git history and report on lost features
+e0fa1276 Fix Python interpreter discovery and test suite
+2ec7130d Initial attempt and reset after failed approach.
+2c53b202 Feat: Optimize backend performance with caching and indexing
+dbf446c7 Fix: Address 5 critical issues
+bb9ba4d1 I've run code formatters and import sorters for you.
+1dfc128c Refactor: Improve modularity and readability of backend services.
+938c134d I've been working on refactoring your Python backend to improve its modularity and clarity.
+830c7da4 ,
+7a717e05 feat: Implement comprehensive API tests for Python backend
+f7cef2e3 Add textblob dependency and improve NLTK download logic
+a37943f5 docs: Complete documentation improvements for onboarding
+2a89e4bf Merge branch with caching and security improvements
+73a8d172 Complete security hardening and production readiness implementation
+4fbd6bea Fix setup scripts to follow project guidelines
+5ea6b5f4 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+2e8b04ef Complete Error Handling Standardization task
+3646ed5d Merge branch 'main' into scientific
+ea45dbde Merge branch 'main' into scientific
+5451d0be Merge main branch changes into scientific branch
+5f5c2b6e Merge main branch changes into scientific branch
+6961d3ca Fix virtual environment to include system site packages
+9f433f66 Fix virtual environment to include system site packages
+439b76ac Fix setup_environment_wsl.sh: move verification after package installation
+f57e2d45 Fix setup_environment_wsl.sh: move verification after package installation
+0b92ffc7 Update setup_environment_system.sh with optimizations from WSL script
+918da951 Update setup_environment_system.sh with optimizations from WSL script
+ef7e9205 Update README to include instructions for setup_environment_wsl.sh
+ea30a2ec Update README to include instructions for setup_environment_wsl.sh
+8fa6eecc Add virtual environment directory to .gitignore
+e1fefe09 Add virtual environment directory to .gitignore
+3d8f4819 Optimize setup_environment_wsl.sh: fix package names and add system packages
+8e0e3049 Optimize setup_environment_wsl.sh: fix package names and add system packages
+32440953 Merge remote scientific branch and resolve conflicts
+b0461e8f Merge remote scientific branch and resolve conflicts
+dca3613d Merge branch 'main' into scientific
+9f31a000 Merge branch 'main' into scientific
+ac9d6739 Add pseudo code for database optimization TODOs including global state refactoring, lazy loading, and search performance improvements
+015020c4 Add pseudo code for database optimization TODOs including global state refactoring, lazy loading, and search performance improvements
+0cfe934a Merge remote-tracking branch 'origin/scientific' into scientific
+9dcbc79e Merge remote-tracking branch 'origin/scientific' into scientific
+25b50db1 Merge feature-notmuch-integration into scientific branch
+e3e09afa Merge feature-notmuch-integration into scientific branch
+eb6de506 feat: Complete medium priority tasks and Node Engine enhancements
+b448b354 feat: Complete medium priority tasks and Node Engine enhancements
+abaa9437 Refactor: Introduce EmailService, WorkflowEngine, and AdvancedAIEngine; update performance monitoring and documentation.
+cafdba94 Refactor: Introduce EmailService, WorkflowEngine, and AdvancedAIEngine; update performance monitoring and documentation.
+e9e68922 Merge remote-tracking branch 'origin/scientific' into scientific
+3a88f00a Merge remote-tracking branch 'origin/scientific' into scientific
+3a2bef10 feat: implement comprehensive SOTA Plugin Manager System
+db23191c feat: implement comprehensive SOTA Plugin Manager System
+4f66311b feat: Add NotmuchDataSource and Gradio UI
+1dc92bb6 feat: Add NotmuchDataSource and Gradio UI
+b5af952f Implement multi-factor authentication (MFA) support
+4ec509d3 Implement multi-factor authentication (MFA) support
+52521035 feat: convert actionable insights into backlog tasks
+e19473f9 feat: convert actionable insights into backlog tasks
+765f3b41 docs: add comprehensive architecture analysis and documentation
+cbddb535 docs: add comprehensive architecture analysis and documentation
+34248575 feat: implement documented development sessions with IFLOW.md integration
+97ae1d39 feat: implement documented development sessions with IFLOW.md integration
+e819808f Add dynamic AI model management system with comprehensive registry and API routes
+01324c6d Add dynamic AI model management system with comprehensive registry and API routes
+eae3238b Merge remote-tracking branch 'origin/scientific' into scientific
+fca5705e Merge remote-tracking branch 'origin/scientific' into scientific
+798e1316 amp changes
+db0b488d amp changes
+893af988 Implement repository pattern and refactor database manager with proper initialization method
+1c489815 Implement repository pattern and refactor database manager with proper initialization method
+e1645d9a fix: update NotmuchDataSource to use ModernAIEngine directly
+0a16b2de fix: update NotmuchDataSource to use ModernAIEngine directly
+fc199b0d feat: implement SOTA AI engine with async generator dependency injection
+2ae4415e feat: implement SOTA AI engine with async generator dependency injection
+6ad2cd7f feat: reorder scientific branch tasks by SOTA (State-Of-The-Art) priority
+548d7f74 feat: reorder scientific branch tasks by SOTA (State-Of-The-Art) priority
+41d1b70f Merge branch 'origin/scientific' - resolved README.md conflicts
+08acf63f Merge branch 'origin/scientific' - resolved README.md conflicts
+4cb09249 feat: enhance NotmuchDataSource with AI integration
+22634d2f feat: enhance NotmuchDataSource with AI integration
+39850cdb Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+8689feb3 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+729a19ab Merge branch 'origin/feat/modular-ai-platform' into scientific - resolved conflicts, kept comprehensive HEAD documentation with inclusive Python version requirements
+e3490050 Merge branch 'origin/feat/modular-ai-platform' into scientific - resolved conflicts, kept comprehensive HEAD documentation with inclusive Python version requirements
+0e8299a5 feat: complete 6 HIGH priority tasks
+c51e307b feat: complete 6 HIGH priority tasks
+14aa602c Merge remote-tracking branch 'origin/scientific' into scientific
+09c04fd9 Merge remote-tracking branch 'origin/scientific' into scientific
+a4a2c012 feat: reorder scientific branch task priorities to minimize merge conflicts
+7c2dcbca feat: reorder scientific branch task priorities to minimize merge conflicts
+ba957a6d Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+11e0318b Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+9d009a17 Resolve merge conflicts after pulling latest scientific
+f895628c Resolve merge conflicts after pulling latest scientific
+87f861a8 feat: add missing scientific branch tasks identified from documentation review
+981f6167 feat: add missing scientific branch tasks identified from documentation review
+c86c270a Merge branch 'origin/feature-dashboard-stats-endpoint' into scientific
+e8eb4224 Merge branch 'origin/feature-dashboard-stats-endpoint' into scientific
+9355205c refactor: remove main branch tasks from scientific branch
+65860f97 refactor: remove main branch tasks from scientific branch
+f35e539f feat: add detailed implementation plans to main backlog tasks
+0f515540 feat: add detailed implementation plans to main backlog tasks
+b637668c docs: enhance backlog tasks with detailed descriptions and acceptance criteria
+5cfdc420 docs: enhance backlog tasks with detailed descriptions and acceptance criteria
+1dffdb9e feat: update Gmail API to use jsons/ directory for credentials
+7ace1f90 feat: update Gmail API to use jsons/ directory for credentials
+b4b3b830 feat: implement local development setup, basic security, and performance monitoring foundations
+c3fe17f4 feat: implement local development setup, basic security, and performance monitoring foundations
+79c632f6 Fix circular import in constants.py by defining FIELD constants locally
+efcf105d Fix circular import in constants.py by defining FIELD constants locally
+954e27dc feat: Implement /api/dashboard/stats endpoint
+2cf3e673 feat: Implement /api/dashboard/stats endpoint
+df0e77ec Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+164963ab Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+df4eae23 Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+75150347 Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+e96413af WIP on scientific: dad0072 Implement WSL optimization and NVIDIA-free setup - add check_torch_cuda and reinstall_torch utilities with CLI integration
+c6422abf Merge remote-tracking branch 'origin/scientific' into scientific
+ac0a165a Merge remote-tracking branch 'origin/scientific' into scientific
+f6fd55dc index on scientific: dad0072 Implement WSL optimization and NVIDIA-free setup - add check_torch_cuda and reinstall_torch utilities with CLI integration
+dad00727 Implement WSL optimization and NVIDIA-free setup - add check_torch_cuda and reinstall_torch utilities with CLI integration
+3c82ea8a Implement WSL optimization and NVIDIA-free setup - add check_torch_cuda and reinstall_torch utilities with CLI integration
+df6f3589 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+0ff94a19 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+9a8bb517 Enhance workflow engine with topological sorting, error handling, validation, conditional execution, memory optimization, parallel execution, and monitoring
+2d69e26a Enhance workflow engine with topological sorting, error handling, validation, conditional execution, memory optimization, parallel execution, and monitoring
+b13c054b Merge remote changes and resolve conflicts
+90094aaa Merge remote changes and resolve conflicts
+78707c67 Implement API authentication for sensitive operations in scientific branch
+a68e1cac Implement API authentication for sensitive operations in scientific branch
+fd80aaf6 Fix syntax errors in f-strings and indentation for Black compatibility
+6077bccd Fix syntax errors in f-strings and indentation for Black compatibility
+35f3924c Fix remaining E501 line length violations in workflow_engine.py
+dfaf5a9b Fix remaining E501 line length violations in workflow_engine.py
+2f2a6b63 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+daddda26 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+4e0f4cbe Merge remote-tracking branch 'origin/scientific' into scientific
+24db2b4c Merge remote-tracking branch 'origin/scientific' into scientific
+06e8453e Update CRUSH.md
+9a4aafb0 Update CRUSH.md
+898e2877 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a02cd7c8 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+ba4d0a6c Implement workflow engine enhancements in scientific branch
+f4b2f62d Implement workflow engine enhancements in scientific branch
+ed3e69ee Fix issue #108: Gate server binding and reload by environment variables for security
+dfd25134 Fix issue #108: Gate server binding and reload by environment variables for security
+fb646021 Fix issue #113: Address code review feedback - align constants keys, secure PYTHONPATH, add error handling
+ae92bccf Fix issue #113: Address code review feedback - align constants keys, secure PYTHONPATH, add error handling
+39c5ca38 Merge remote-tracking branch 'origin/scientific' into scientific
+ba6a693c Merge remote-tracking branch 'origin/scientific' into scientific
+157d5e52 Resolve merge conflict in requirements.txt and add PyJWT
+57b20e0f Resolve merge conflict in requirements.txt and add PyJWT
+eecfc3df Implement dashboard stats endpoint and API authentication for scientific branch
+97ea968d Implement dashboard stats endpoint and API authentication for scientific branch
+0f43f0dc docs: add LLXPRT project overview and unimplemented code analysis documentation
+00d069e7 docs: add LLXPRT project overview and unimplemented code analysis documentation
+9c042b64 Add backlog tasks for EmailRepository and NotmuchDataSource implementation on both main and scientific branches
+5043ef7b Add backlog tasks for EmailRepository and NotmuchDataSource implementation on both main and scientific branches
+7c4e7743 feat: implement /api/dashboard/stats endpoint
+a8741c46 feat: implement /api/dashboard/stats endpoint
+281f0af2 Merge remote-tracking branch 'origin/scientific' into scientific
+80576835 Merge remote-tracking branch 'origin/scientific' into scientific
+763e880b Fix critical issues in launch.py: duplicate function calls, conda activation, thread safety, and duplicate implementations
+7b3b6886 Fix critical issues in launch.py: duplicate function calls, conda activation, thread safety, and duplicate implementations
+262f8b63 Fix code review issues in launch.py
+af40dbcf Fix code review issues in launch.py
+27586714 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+1fbbb032 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+fa063212 Optimize environment setup for Python 3.12+ and CPU-only PyTorch
+673e6bbd Optimize environment setup for Python 3.12+ and CPU-only PyTorch
+c68e37fa Remove duplicate iflow.md file and update project summary
+c1fedf53 Remove duplicate iflow.md file and update project summary
+f2d01261 Merge remote-tracking branch 'origin/scientific' into scientific
+bcdfdc7b Merge remote-tracking branch 'origin/scientific' into scientific
+c0313f90 Update documentation to reflect current modular architecture and remove references to deprecated components
+efcbb2ef Update documentation to reflect current modular architecture and remove references to deprecated components
+b7b07677 chore: Remove temporary file '100'
+bc9e039d chore: Remove temporary file '100'
+5ef44532 feat: WSL optimization and NVIDIA-free setup
+4c373331 feat: WSL optimization and NVIDIA-free setup
+a77ca1da fix: address security issues in PR #136
+47f49460 fix: address security issues in PR #136
+02a9baf7 Merge branch 'main' into scientific
+b278a03c Merge branch 'main' into scientific
+aa034d9e Merge branch 'main' into scientific
+57da720d Merge branch 'main' into scientific
+a9af1496 feat: Implement PromptEngineer and document backend migration
+cd986828 feat: Implement PromptEngineer and document backend migration
+4b5edb44 Merge pull request #153 from MasumRab/feature/major-platform-enhancements
+8a429590 Merge pull request #153 from MasumRab/feature/major-platform-enhancements
+1e25ecb1 Merge PR #153: Fix README.md merge conflicts and update documentation
+2dc3bbed Merge PR #153: Fix README.md merge conflicts and update documentation
+b930e8da Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+ae9c980a Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+4169c9bd fix: implement proper path resolution to prevent SQLite path traversal attacks
+bccbed7b fix: implement proper path resolution to prevent SQLite path traversal attacks
+4652e85d Merge branch 'feat/modular-ai-platform' of https://github.com/MasumRab/EmailIntelligence into feat/modular-ai-platform
+e2cb2b13 Merge branch 'feat/modular-ai-platform' of https://github.com/MasumRab/EmailIntelligence into feat/modular-ai-platform
+aa1efe5b fix: update .venv to venv in doc-and-setup-fixes-1
+20016f94 fix: update .venv to venv in doc-and-setup-fixes-1
+446d3ce4 fix: update .venv to venv in doc-and-setup-fixes-1
+84491367 fix: update .venv to venv in doc-and-setup-fixes-1
+c4ab1c6b Fix README.md merge conflicts and update documentation
+1dd4659a Fix README.md merge conflicts and update documentation

@@ -1,0 +1,20 @@
+0eb4a6e2 commit plan
+38ff3fc8 Complete merge on scientific branch
+34de9c6a Merge remote-tracking branch 'origin/scientific' into scientific and resolve setup/launch.py conflict
+e1142967 fix: Update managed files lists to include launch.py and test files
+2b2a5064 Merge remote-tracking branch 'origin/scientific' into scientific and resolve jules_mcp_schedule.json conflict
+1d3f3c93 feat: Complete Git hook loop prevention and worktree/subtree detection
+e5555dfe Apply stashed changes from scientific branch, excluding orchestration-specific files
+141819b8 feat: Update jules_mcp_schedule.json and tasks_invalid.json with task_7 and task_8 status
+79a4dcea Fix merge artifacts in Git hooks
+b4e2c57c Fix subprocess security vulnerabilities in setup modules
+2300551c Fix type annotations in agent files and add task expansion summary
+a45930fe Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a5aaaffb feat: Reorganize agent files into dedicated agents directory
+0d15e300 Update setup files and add new command structure
+de0d9b1f Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+3f82188d Address Sourcery AI review comments: fix security path validation and email extraction
+b91d8c1e feat: Pull latest changes from scientific branch
+88fd1e63 Merge pull request #192 from MasumRab/migration-completion-branch
+104e71fc Address Sourcery AI review comments: move database manager initialization to constructor and fix string concatenation
+bf6374ba Merge pull request #162 from MasumRab/docs/comprehensive-documentation

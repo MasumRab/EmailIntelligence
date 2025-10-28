@@ -2,7 +2,6 @@
 
 import pytest
 import sys
-import os
 from pathlib import Path
 
 # Add src to path for imports
@@ -15,11 +14,9 @@ from context_control import (
     detect_branch,
     get_current_branch,
     is_git_repository,
-    ContextProfile,
-    AgentContext,
-    ContextValidationResult
+    AgentContext
 )
-from context_control.exceptions import ContextNotFoundError, ContextValidationError
+from context_control.exceptions import ContextNotFoundError
 
 
 class TestContextControl:

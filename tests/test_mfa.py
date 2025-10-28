@@ -2,7 +2,6 @@
 Test suite for MFA implementation
 """
 
-import asyncio
 import pytest
 from src.core.mfa import MFAService
 from src.core.database import DatabaseManager

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
 
-from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
+from .constants import DEFAULT_CATEGORY_COLOR
 from .data_source import DataSource
 from backend.python_backend.performance_monitor import log_performance
 

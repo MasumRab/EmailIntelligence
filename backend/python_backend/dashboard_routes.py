@@ -5,12 +5,10 @@ This module defines the API routes for the dashboard endpoints,
 including statistics and metrics for the Email Intelligence platform.
 """
 
-from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 
-from .models import DashboardStats, WeeklyGrowth
-from .database import get_db, DatabaseManager
+from .models import DashboardStats
 from .dependencies import get_email_service
 from .services.email_service import EmailService
 from src.core.auth import get_current_active_user

@@ -6,14 +6,13 @@ API routes for managing both legacy and node-based workflows.
 """
 
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 # Import node-based workflow components
 from backend.node_engine.node_base import Workflow as NodeWorkflow
-from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 
 from .dependencies import get_workflow_engine

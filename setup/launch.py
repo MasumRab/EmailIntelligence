@@ -20,7 +20,7 @@ from setup.validation import (
     validate_environment, validate_port, validate_host
 )
 from setup.services import (
-    start_services, start_backend, start_node_service, start_gradio_ui, validate_services
+    start_services, start_backend, start_node_service, start_gradio_ui
 )
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
@@ -32,13 +32,11 @@ from setup.test_stages import test_stages
 
 # Standard library imports
 import argparse
-import atexit
 import os
 import platform
 import shutil
 import subprocess
 import sys
-import threading
 import time
 import venv
 from pathlib import Path
@@ -52,7 +50,7 @@ try:
     from setup.commands.command_factory import get_command_factory
     from setup.container import get_container, initialize_all_services
     COMMAND_PATTERN_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     # Command pattern not available, will use legacy mode
     get_command_factory = None
     get_container = None
@@ -79,7 +77,6 @@ logger = logging.getLogger("launcher")
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import process_manager
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)

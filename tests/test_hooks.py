@@ -3,7 +3,6 @@ Tests for Git hook functionality in orchestration-tools.
 """
 
 import os
-import pytest
 from pathlib import Path
 
 

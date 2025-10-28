@@ -1,6 +1,5 @@
 import argparse
 import subprocess
-import os
 import sys
 
 # Define paths to docker-compose files

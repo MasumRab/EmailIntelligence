@@ -1,0 +1,251 @@
+# Scientific Branch Rebase - Calculated Commit Reordering
+# Phase 1: Critical Infrastructure (Security & Import Fixes)
+
+# SECURITY FIXES - Apply immediately for protection
+pick 5f98917e security: Fix critical security vulnerabilities
+pick 3ec2c34e security: Fix unsafe server binding and reload configuration
+pick 3f1fb0ee Fix issue #108: Gate server binding and reload by environment variables for security
+pick dfd25134 Fix issue #108: Gate server binding and reload by environment variables for security
+pick ed3e69ee Fix issue #108: Gate server binding and reload by environment variables for security
+pick b4e2c57c Fix subprocess security vulnerabilities in setup modules
+pick 3f82188d Address Sourcery AI review comments: fix security path validation and email extraction
+pick c4bf5071 Fix: Add missing ResourceLimits definition to security_manager.py
+pick d3c29919 feat: Complete security audit and technical debt improvements
+pick f46e680d Security fix: Add input validation to prevent command injection in subprocess.Popen calls
+pick 8f0d5b8d security: Fix subprocess command injection vulnerability
+pick a184e64b Fix security vulnerability: Add rate limiting to catch-all route
+pick c60d1f0e Merge rate limiting security fix
+pick e036b1fc fix: add missing PathValidator class to security module
+pick b85d4cea fix: Complete security module implementation for path validation
+pick 84e81112 fix: Restore security module functionality and fix merge conflicts
+pick cd06f659 Complete security hardening and production readiness implementation
+pick 73a8d172 Complete security hardening and production readiness implementation
+pick 76568c43 feat: implement local development setup, basic security, and performance monitoring foundations
+pick b4b3b830 feat: implement local development setup, basic security, and performance monitoring foundations
+pick c3fe17f4 feat: implement local development setup, basic security, and performance monitoring foundations
+pick 57d001a0 fix: address security issues in PR #136
+pick a77ca1da fix: address security issues in PR #136
+pick 47f49460 fix: address security issues in PR #136
+pick 28571f34 Feat: Create epic task for Overall Security Enhancement
+pick 38450416 feat(notmuch): Integrate security validation and enhance NotmuchDataSource with full CRUD functionality
+pick 1f236b94 Add task for addressing node engine security improvements
+pick 9f18adb0 docs: Add comprehensive security policy and vulnerability disclosure guidelines
+pick 27587919 style: Clean up security module imports and formatting
+pick d1ac970f feat: Complete task verification framework and fix security module
+
+# IMPORT PATH CORRECTIONS - Critical for subsequent commits
+pick ffd55b06 fix: Resolve critical import path issues in launch.py and create missing server infrastructure
+pick 986e4b13 Fix import paths: change src.backend to backend in all files
+pick 08a991b3 Apply main.py with updated import paths from feature branch
+pick a24f6a26 Apply import path updates from feature branch migration
+pick c6e43feb Fix import compatibility issues: pydantic v1/v2, field constraints, uvicorn import placement
+pick 6399537f Fix: Add missing BaseAppException import to main.py in scientific branch
+pick d7b05a4a fix: Add missing List import and improve error handling in merge strategist
+pick 92c29e34 Fix circular import in constants.py by defining FIELD constants locally
+pick 79c632f6 Fix circular import in constants.py by defining FIELD constants locally
+pick efcf105d Fix circular import in constants.py by defining FIELD constants locally
+
+# SYNTAX ERROR FIXES - Foundation stability
+pick d961fa4c fix: Resolve syntax errors in verify_packages.py
+pick c6290f24 Fix JSON syntax error in sync_config.json after conflict resolution
+pick 97ae0f37 Fix syntax errors and indentation issues in codebase
+pick 68888407 Fix syntax errors and missing function calls in launch.py
+pick 198aaafe fix: consolidate syntax error fixes
+pick 97c50649 fix: Resolve merge conflicts and syntax errors
+pick d377cd70 Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+pick 0e5461ac Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+pick db380aef Fix syntax errors in f-strings and indentation for Black compatibility
+pick 1e6da696 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+pick 79c632f6 Fix circular import in constants.py by defining FIELD constants locally
+pick df0e77ec Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+pick 164963ab Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+pick df4eae23 Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+pick 75150347 Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+pick fd80aaf6 Fix syntax errors in f-strings and indentation for Black compatibility
+pick 6077bccd Fix syntax errors in f-strings and indentation for Black compatibility
+pick 2f2a6b63 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+pick daddda26 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+
+# CORE ARCHITECTURE - Database and system foundation
+pick ec8dab05 Fix merge conflicts in database.py and performance_monitor.py
+pick 104e71fc Address Sourcery AI review comments: move database manager initialization to constructor and fix string concatenation
+
+# MERGE COMMIT CONSOLIDATION - Squash to reduce conflict surface
+squash 38ff3fc8 Complete merge on scientific branch
+squash 34de9c6a Merge remote-tracking branch 'origin/scientific' into scientific and resolve setup/launch.py conflict
+squash 2b2a5064 Merge remote-tracking branch 'origin/scientific' into scientific and resolve jules_mcp_schedule.json conflict
+squash a45930fe Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash de0d9b1f Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 3161fb7d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 83631b6d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 3241dda0 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash a55053e3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash e70b6945 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 271da167 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash fd2aebdf Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash a8d4a537 Merge remote scientific branch
+squash d756d114 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 4c701fc8 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 769fc86a Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 7190cdfb Merge remote-tracking branch 'origin/scientific' into scientific
+squash 2bd63618 Merge remote-tracking branch 'origin/scientific' into scientific
+squash cb757e0a Merge remote-tracking branch 'origin/scientific'
+squash 6480f1a3 Merge branch 'scientific' into current branch after resolving conflicts.
+squash d9662b0a Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash f5f324da Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash bf18b1ba Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash d72dcd29 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 4c37b1c2 Merge remote-tracking branch 'origin/scientific' into scientific
+squash acd60d9d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash c42d9ea1 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 77876e79 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash c5d66059 Merge remote-tracking branch 'origin/scientific' into scientific
+squash a60469f3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash fb6c4ce4 Merge remote-tracking branch 'origin/scientific' into scientific
+squash d3b2e2ef Merge main: inherit core enhancements (security, database, performance)
+squash 2f9051a6 Merge scientific branch - migrate to latest architecture
+squash 9491a4b3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 388d7149 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 2a89e4bf Merge branch with caching and security improvements
+squash 5ea6b5f4 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash 32440953 Merge remote scientific branch and resolve conflicts
+squash b0461e6f Merge remote scientific branch and resolve conflicts
+squash 0cfe934a Merge remote-tracking branch 'origin/scientific' into scientific
+squash 9dcbc79e Merge remote-tracking branch 'origin/scientific' into scientific
+squash e9e68922 Merge remote-tracking branch 'origin/scientific' into scientific
+squash 3a88f00a Merge remote-tracking branch 'origin/scientific' into scientific
+squash eae3238b Merge remote-tracking branch 'origin/scientific' into scientific
+squash fca5705e Merge remote-tracking branch 'origin/scientific' into scientific
+squash 39850cdb Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash 8689feb3 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash 14aa602c Merge remote-tracking branch 'origin/scientific' into scientific
+squash 09c04fd9 Merge remote-tracking branch 'origin/scientific' into scientific
+squash ba957a6d Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash 11e0318b Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash c6422abf Merge remote-tracking branch 'origin/scientific' into scientific
+squash ac0a165a Merge remote-tracking branch 'origin/scientific' into scientific
+squash df6f3589 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 0ff94a19 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash b13c054b Merge remote changes and resolve conflicts
+squash 90094aaa Merge remote changes and resolve conflicts
+squash 4e0f4cbe Merge remote-tracking branch 'origin/scientific' into scientific
+squash 24db2b4c Merge remote-tracking branch 'origin/scientific' into scientific
+squash 898e2877 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash a02cd7c8 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+squash 39c5ca38 Merge remote-tracking branch 'origin/scientific' into scientific
+squash ba6a693c Merge remote-tracking branch 'origin/scientific' into scientific
+squash 281f0af2 Merge remote-tracking branch 'origin/scientific' into scientific
+squash 80576835 Merge remote-tracking branch 'origin/scientific' into scientific
+squash 27586714 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash 1fbbb032 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash f2d01261 Merge remote-tracking branch 'origin/scientific' into scientific
+squash bcdfdc7b Merge remote-tracking branch 'origin/scientific' into scientific
+squash b930e8da Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+squash ae9c980a Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+
+# VALIDATION CHECKPOINT
+exec python -m py_compile launch.py
+exec python -c "import src.main; print('Infrastructure validation OK')"
+
+# Phase 2: Feature Integration (remaining commits in dependency order)
+# Note: This is a simplified version - full feature mapping would require more detailed analysis
+pick 0eb4a6e2 commit plan
+pick 38ff3fc8 Complete merge on scientific branch
+pick 34de9c6a Merge remote-tracking branch 'origin/scientific' into scientific and resolve setup/launch.py conflict
+pick e1142967 fix: Update managed files lists to include launch.py and test files
+pick 2b2a5064 Merge remote-tracking branch 'origin/scientific' into scientific and resolve jules_mcp_schedule.json conflict
+pick 1d3f3c93 feat: Complete Git hook loop prevention and worktree/subtree detection
+pick e5555dfe Apply stashed changes from scientific branch, excluding orchestration-specific files
+pick 141819b8 feat: Update jules_mcp_schedule.json and tasks_invalid.json with task_7 and task_8 status
+pick 79a4dcea Fix merge artifacts in Git hooks
+pick b4e2c57c Fix subprocess security vulnerabilities in setup modules
+pick 2300551c Fix type annotations in agent files and add task expansion summary
+pick a45930fe Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick a5aaaffb feat: Reorganize agent files into dedicated agents directory
+pick 0d15e300 Update setup files and add new command structure
+pick de0d9b1f Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick 3f82188d Address Sourcery AI review comments: fix security path validation and email extraction
+pick b91d8c1e feat: Pull latest changes from scientific branch
+pick 88fd1e63 Merge pull request #192 from MasumRab/migration-completion-branch
+pick 104e71fc Address Sourcery AI review comments: move database manager initialization to constructor and fix string concatenation
+pick bf6374ba Merge pull request #162 from MasumRab/docs/comprehensive-documentation
+pick b268613a Merge remote-tracking branch 'origin/scientific' into docs/comprehensive-documentation
+pick c6290f24 Fix JSON syntax error in sync_config.json after conflict resolution
+pick 8b99eb7a Resolve merge conflicts in PR #162 - comprehensive documentation
+pick a7fe26c1 feat: Complete backlog task migration to Task Master
+pick 08a991b3 Apply main.py with updated import paths from feature branch
+pick 986e4b13 Fix import paths: change src.backend to backend in all files
+pick a24f6a26 Apply import path updates from feature branch migration
+pick 7885bfd1 Apply enhanced NotmuchDataSource with proper dependency injection from feature branch
+pick b9d68766 Complete backend migration and Task Master consolidation
+pick 3161fb7d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick 51d82e06 Update Jules MCP schedule with validated task completion status
+pick bc36e845 Recover lost backend modules: Restore performance_monitor.py from Git history and update recovery documentation
+pick 83631b6d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick c9473516 Add Jules MCP coordination schedule for Email Intelligence development
+pick 0c272f8e Merge pull request #190 from MasumRab/refactor-notmuch-datasource
+pick 45d55040 Merge pull request #191 from MasumRab/feature-repository-analysis-script
+pick 2679ddd8 feat: Create comprehensive repository analysis script
+pick 41c1e366 refactor: Decouple NotmuchDataSource from concrete SQLiteManager
+pick 3241dda0 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick 0d20f4c6 docs: add command pattern and orchestration workflow docs, clean up old session files
+pick ec8dab05 Fix merge conflicts in database.py and performance_monitor.py
+pick c68112f9 docs: update test migration assessment - scientific branch has superior tests
+pick 1f71563a feat: implement random SECRET_KEY generation for testing
+pick 861db56c Add comprehensive orchestration status monitoring dashboard
+pick 3d9aec5d feat: Add Jules backlog task completion prompt template to scientific branch
+pick 6288cb55 Update CRUSH.md
+pick 531e2072 clean
+pick 391d5597 Merge comprehensive documentation from all branches
+pick 26b1c98a Add orchestration setup files from orchestration-tools branch
+pick a55053e3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick c4bf5071 Fix: Add missing ResourceLimits definition to security_manager.py
+pick 6399537f Fix: Add missing BaseAppException import to main.py in scientific branch
+pick 463be422 docs: Add IFLOW development session tracking for 2025-11-02
+pick a1ef8c66 Consolidate backlog tasks: merge docs/project-management/backlog/tasks/ into main backlog/tasks/, archive duplicates, remove redundant location
+pick b9f4d54b Remove duplicate task files from docs/ that exist in root backlog/tasks/
+pick fd2bd74a Remove task-42
+pick e70b6945 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick 4d042df7 Apply stash: analysis artifacts
+pick a6cbb993 Apply stash: Auto stash before merge of worktree-workflow-system and origin/worktree-workflow-system
+pick a6a0712f Remove launch-setup-fixes submodule
+pick 135ca987 Update worktrees structure and add hooks
+pick b833950d Revert "Fix: Ignore worktree files and hook source files"
+pick db05c6c7 Fix: Ignore worktree files and hook source files
+pick 1d2a29c1 Add .branch_docs/ to .gitignore for temporary documentation
+pick 28571f34 Feat: Create epic task for Overall Security Enhancement
+pick 482707fb Refactor: Re-establish backlog task folder structure for human readability
+pick 50b74ab0 Refactor: Revert backlog task folder structure to flat for CLI compatibility
+pick 359b8412 Refactor: Group backlog tasks into thematic folders
+pick 90dc4a72 Refactor: Rename backlog task files to resolve ID conflicts and follow naming conventions
+pick 965cf4a3 Apply stash and resolve conflict for task-42
+pick 271da167 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick 890203f4 feat: Update worktree-workflow-system submodule
+pick fd2aebdf Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick a487227e docs: Complete feature branch alignment task for notmuch-tagging-1
+pick d3c29919 feat: Complete security audit and technical debt improvements
+pick a8d4a537 Merge remote scientific branch
+pick 1e4f6128 feat: Eliminate global singleton pattern in database.py
+pick b5139832 Merge pull request #181 from MasumRab/align-feature-notmuch-tagging-1
+pick 38450416 feat(notmuch): Integrate security validation and enhance NotmuchDataSource with full CRUD functionality
+pick e985893f Align feature-notmuch-tagging-1 with scientific branch: Integrate enhanced NotmuchDataSource with AI analysis and tagging
+pick 5585f845 Add technical debt tasks from codebase TODOs
+pick d756d114 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick 2f806533 notmuch
+pick 4c701fc8 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick cc54d508 Implement _save_checkpoint method and CLI logic for SmartRetrievalManager
+pick 161ca125 Implement worktree-based setup integration
+pick 7fda626d feat(tasks): Resolve duplicate task IDs on scientific branch
+pick 674420c9 feat(tasks): Add and update tasks for scientific branch
+pick e21e15ae Add task-118: Test Branch Task Migration (Scientific Branch)
+pick 9193958f Update alignment task template with branch-specific format
+pick d30a616e Add feature branch alignment tasks for scientific and main branches
+pick ec513838 Enhance post-checkout hook to automatically install Git hooks
+pick 769fc86a Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+pick 5e024a02 Fix backlog merge driver issues and malformed task file
+pick 9be2c41d clean
+pick 7190cdfb Merge remote-tracking branch 'origin/scientific' into scientific
+pick 2bd63618 Merge remote-tracking branch 'origin/scientific' into scientific
+pick ed880a47 Merge documentation from main branch
+pick c064c54e Add scientific branch alignment plan and tasks
+pick 1f236b94 Add task for addressing node engine security improvements

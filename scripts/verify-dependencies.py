@@ -18,9 +18,7 @@ import sys
 import subprocess
 import importlib
 import platform
-import os
 from typing import Dict, List, Set, Tuple
-from pathlib import Path
 
 class DependencyVerifier:
     """Verify and test project dependencies for system-managed Python environments."""

@@ -7,11 +7,9 @@ and lifecycle management for extensible plugin functionality.
 
 import abc
 import asyncio
-import hashlib
 import importlib.util
 import inspect
 import logging
-import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path

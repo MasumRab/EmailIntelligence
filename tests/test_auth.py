@@ -1,11 +1,7 @@
 """
 Tests for authentication functionality
 """
-import pytest
 from fastapi.testclient import TestClient
-from fastapi import FastAPI
-from fastapi.security import HTTPAuthorizationCredentials
-from src.core.auth import get_current_active_user, verify_token
 from backend.python_backend.main import app
 
 

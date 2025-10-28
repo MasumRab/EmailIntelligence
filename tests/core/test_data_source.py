@@ -6,8 +6,7 @@ and its implementations, ensuring proper interface compliance and functionality.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, List, Any, Optional
+from unittest.mock import AsyncMock
 
 from src.core.data_source import DataSource
 from src.core.notmuch_data_source import NotmuchDataSource
@@ -230,7 +229,7 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_default(self, monkeypatch):
         """Test get_data_source with default configuration."""
-        from src.core.factory import get_data_source, _data_source_instance
+        from src.core.factory import get_data_source
 
         # Reset global instance
         import src.core.factory
@@ -252,7 +251,7 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_notmuch(self, monkeypatch):
         """Test get_data_source with notmuch configuration."""
-        from src.core.factory import get_data_source, _data_source_instance
+        from src.core.factory import get_data_source
 
         # Reset global instance
         import src.core.factory
@@ -267,7 +266,7 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_singleton(self, monkeypatch):
         """Test that get_data_source returns singleton instance."""
-        from src.core.factory import get_data_source, _data_source_instance
+        from src.core.factory import get_data_source
 
         # Reset global instance
         import src.core.factory

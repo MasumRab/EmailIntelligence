@@ -1,0 +1,32 @@
+b4e2c57c Fix subprocess security vulnerabilities in setup modules
+3f82188d Address Sourcery AI review comments: fix security path validation and email extraction
+c4bf5071 Fix: Add missing ResourceLimits definition to security_manager.py
+28571f34 Feat: Create epic task for Overall Security Enhancement
+d3c29919 feat: Complete security audit and technical debt improvements
+38450416 feat(notmuch): Integrate security validation and enhance NotmuchDataSource with full CRUD functionality
+1f236b94 Add task for addressing node engine security improvements
+f46e680d Security fix: Add input validation to prevent command injection in subprocess.Popen calls
+9f18adb0 docs: Add comprehensive security policy and vulnerability disclosure guidelines
+3ec2c34e security: Fix unsafe server binding and reload configuration
+8f0d5b8d security: Fix subprocess command injection vulnerability
+5f98917e security: Fix critical security vulnerabilities
+c60d1f0e Merge rate limiting security fix
+a184e64b Fix security vulnerability: Add rate limiting to catch-all route
+e036b1fc fix: add missing PathValidator class to security module
+d3b2e2ef Merge main: inherit core enhancements (security, database, performance)
+27587919 style: Clean up security module imports and formatting
+b85d4cea fix: Complete security module implementation for path validation
+84e81112 fix: Restore security module functionality and fix merge conflicts
+d1ac970f feat: Complete task verification framework and fix security module
+cd06f659 Complete security hardening and production readiness implementation
+76568c43 feat: implement local development setup, basic security, and performance monitoring foundations
+3f1fb0ee Fix issue #108: Gate server binding and reload by environment variables for security
+57d001a0 fix: address security issues in PR #136
+2a89e4bf Merge branch with caching and security improvements
+73a8d172 Complete security hardening and production readiness implementation
+b4b3b830 feat: implement local development setup, basic security, and performance monitoring foundations
+c3fe17f4 feat: implement local development setup, basic security, and performance monitoring foundations
+ed3e69ee Fix issue #108: Gate server binding and reload by environment variables for security
+dfd25134 Fix issue #108: Gate server binding and reload by environment variables for security
+a77ca1da fix: address security issues in PR #136
+47f49460 fix: address security issues in PR #136

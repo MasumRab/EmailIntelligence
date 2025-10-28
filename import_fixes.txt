@@ -1,0 +1,32 @@
+c6290f24 Fix JSON syntax error in sync_config.json after conflict resolution
+08a991b3 Apply main.py with updated import paths from feature branch
+986e4b13 Fix import paths: change src.backend to backend in all files
+a24f6a26 Apply import path updates from feature branch migration
+6399537f Fix: Add missing BaseAppException import to main.py in scientific branch
+d3182955 Complete import fixes task: Update status and document PR implementation
+0f2c14a3 Update task progress: added import fixes and validation
+c6e43feb Fix import compatibility issues: pydantic v1/v2, field constraints, uvicorn import placement
+d961fa4c fix: Resolve syntax errors in verify_packages.py
+97ae0f37 Fix syntax errors and indentation issues in codebase
+d7b05a4a fix: Add missing List import and improve error handling in merge strategist
+ffd55b06 fix: Resolve critical import path issues in launch.py and create missing server infrastructure
+68888407 Fix syntax errors and missing function calls in launch.py
+27587919 style: Clean up security module imports and formatting
+198aaafe fix: consolidate syntax error fixes
+97c50649 fix: Resolve merge conflicts and syntax errors
+92c29e34 Fix circular import in constants.py by defining FIELD constants locally
+d377cd70 Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+0e5461ac Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+db380aef Fix syntax errors in f-strings and indentation for Black compatibility
+1e6da696 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+bb9ba4d1 I've run code formatters and import sorters for you.
+79c632f6 Fix circular import in constants.py by defining FIELD constants locally
+efcf105d Fix circular import in constants.py by defining FIELD constants locally
+df0e77ec Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+164963ab Fix major syntax errors: parameter order, f-string breaks, merge conflicts, indentation
+df4eae23 Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+75150347 Fix syntax errors and merge conflicts in smart_retrieval.py and test_launcher.py
+fd80aaf6 Fix syntax errors in f-strings and indentation for Black compatibility
+6077bccd Fix syntax errors in f-strings and indentation for Black compatibility
+2f2a6b63 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports
+daddda26 Fix consistency issues in merged workflow engine files - add missing import, remove unused variables, clean up imports

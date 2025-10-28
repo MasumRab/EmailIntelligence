@@ -8,12 +8,8 @@ dependency configurations.
 """
 
 import json
-import time
 import subprocess
-import sys
-from pathlib import Path
 from typing import Dict, List, Any
-import requests
 
 
 class PerformanceTester:

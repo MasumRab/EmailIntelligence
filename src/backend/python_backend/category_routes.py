@@ -2,14 +2,14 @@ import json
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 
 from .database import DatabaseManager, get_db
 from .dependencies import get_category_service
 from .exceptions import DatabaseError
 from .models import CategoryCreate, CategoryResponse
 from .performance_monitor import log_performance
-from .utils import create_log_data, handle_pydantic_validation
+from .utils import create_log_data
 from .services.category_service import CategoryService
 from src.core.auth import get_current_active_user
 

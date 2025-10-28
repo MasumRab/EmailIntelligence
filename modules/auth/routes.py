@@ -6,7 +6,6 @@ This module provides authentication endpoints for the new modular architecture.
 
 import logging
 from datetime import timedelta
-from typing import Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel

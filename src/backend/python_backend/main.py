@@ -13,8 +13,7 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from ..plugins.plugin_manager import plugin_manager
@@ -23,8 +22,21 @@ from backend.python_nlp.gmail_service import GmailAIService
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from backend.python_nlp.smart_filters import SmartFilterManager
 
+from . import (
+    action_routes,
+    ai_routes,
+    category_routes,
+    dashboard_routes,
+    email_routes,
+    filter_routes,
+    gmail_routes,
+    training_routes,
+    workflow_routes,
+    model_routes,
+    performance_routes,
+)
 from .ai_engine import AdvancedAIEngine
-from .exceptions import AppException, BaseAppException
+from .exceptions import AppException
 
 # Import new components
 from .model_manager import model_manager
@@ -174,17 +186,6 @@ app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
 app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
 
 # Include legacy routers for backward compatibility
-from . import action_routes
-from . import ai_routes
-from . import category_routes
-from . import dashboard_routes
-from . import email_routes
-from . import filter_routes
-from . import gmail_routes
-from . import training_routes
-from . import workflow_routes
-from . import model_routes
-from . import performance_routes
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)

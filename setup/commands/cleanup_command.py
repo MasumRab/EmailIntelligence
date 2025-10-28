@@ -5,7 +5,6 @@ Handles manual cleanup of resources and processes.
 """
 
 import logging
-from argparse import Namespace
 
 from .command_interface import Command
 

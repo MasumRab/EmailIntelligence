@@ -15,7 +15,6 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
-from .database import get_db
 from .settings import settings
 
 # Import the security framework components

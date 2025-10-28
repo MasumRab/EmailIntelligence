@@ -6,8 +6,6 @@ Configuration management for the Email Intelligence Platform
 Using Pydantic Settings for environment-based configuration
 """
 
-import os
-from typing import Optional
 
 from pydantic import Field
 from pydantic import validator

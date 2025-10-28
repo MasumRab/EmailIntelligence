@@ -5,14 +5,10 @@ It will be removed in a future release.
 
 import gradio as gr
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 import json
 import requests
-from typing import Dict, Any, List
 
 from backend.python_nlp.nlp_engine import NLPEngine
 

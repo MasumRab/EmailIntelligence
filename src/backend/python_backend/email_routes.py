@@ -4,16 +4,13 @@ from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
-from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
-from .ai_engine import AdvancedAIEngine
-from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine, get_email_service
+from .dependencies import get_workflow_engine, get_email_service
 from backend.node_engine.workflow_engine import WorkflowEngine
-from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
+from .exceptions import DatabaseError
 from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
-from .utils import create_log_data, handle_pydantic_validation
+from .utils import create_log_data
 from .services.email_service import EmailService
 from src.core.auth import get_current_active_user
 

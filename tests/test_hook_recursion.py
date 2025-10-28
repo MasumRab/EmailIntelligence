@@ -3,7 +3,6 @@ Tests for Git hook recursion prevention and infinite loop protection.
 """
 
 import os
-import pytest
 from pathlib import Path
 
 

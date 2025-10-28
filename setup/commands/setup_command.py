@@ -6,7 +6,6 @@ dependency installation, and system configuration.
 """
 
 import logging
-from argparse import Namespace
 from pathlib import Path
 
 from .command_interface import Command
@@ -111,7 +110,6 @@ class SetupCommand(Command):
     def _is_system_python(self) -> bool:
         """Check if we're using system-installed Python."""
         import sys
-        from pathlib import Path
 
         python_path = Path(sys.executable)
 

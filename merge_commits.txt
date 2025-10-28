@@ -1,0 +1,117 @@
+34de9c6a Merge remote-tracking branch 'origin/scientific' into scientific and resolve setup/launch.py conflict
+2b2a5064 Merge remote-tracking branch 'origin/scientific' into scientific and resolve jules_mcp_schedule.json conflict
+a45930fe Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+de0d9b1f Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+88fd1e63 Merge pull request #192 from MasumRab/migration-completion-branch
+bf6374ba Merge pull request #162 from MasumRab/docs/comprehensive-documentation
+b268613a Merge remote-tracking branch 'origin/scientific' into docs/comprehensive-documentation
+3161fb7d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+83631b6d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+0c272f8e Merge pull request #190 from MasumRab/refactor-notmuch-datasource
+45d55040 Merge pull request #191 from MasumRab/feature-repository-analysis-script
+3241dda0 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+391d5597 Merge comprehensive documentation from all branches
+a55053e3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+e70b6945 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+271da167 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+fd2aebdf Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a8d4a537 Merge remote scientific branch
+b5139832 Merge pull request #181 from MasumRab/align-feature-notmuch-tagging-1
+d756d114 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+4c701fc8 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+769fc86a Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+7190cdfb Merge remote-tracking branch 'origin/scientific' into scientific
+2bd63618 Merge remote-tracking branch 'origin/scientific' into scientific
+ed880a47 Merge documentation from main branch
+2392a20c Merge remote-tracking branch 'refs/remotes/origin/scientific' into scientific
+6217c0ec Merge remote changes and resolve conflicts
+cb757e0a Merge remote-tracking branch 'origin/scientific'
+6480f1a3 Merge branch 'scientific' into current branch after resolving conflicts.
+d9662b0a Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+f5f324da Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+e18f4e3d Merge branch 'feature/syntax-error-fixes-from-stable' of https://github.com/MasumRab/EmailIntelligence into scientific
+bf18b1ba Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+d72dcd29 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+c60d1f0e Merge rate limiting security fix
+4c37b1c2 Merge remote-tracking branch 'origin/scientific' into scientific
+acd60d9d Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+2a4dc84e Merge commit '690f2daf2fb6abf3e89aa7f3446bd5d95afcc68c' as 'setup'
+f37009e4 Merge remote-tracking branch 'origin/scientific-consolidated' into scientific
+c42d9ea1 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+77876e79 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+59b8380f Merge remote and resolve conflicts - =* files already removed
+3a79c33c Merge branch 'fix-gitignore-version-files' into docs/comprehensive-documentation
+c5d66059 Merge remote-tracking branch 'origin/scientific' into scientific
+20af7b70 Merge remote scientific branch and resolve .gitignore conflict
+2f416a71 Merge pull request #164 from MasumRab/feature-dashboard-stats-endpoint
+a60469f3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+fb6c4ce4 Merge remote-tracking branch 'origin/scientific' into scientific
+d3b2e2ef Merge main: inherit core enhancements (security, database, performance)
+2f9051a6 Merge scientific branch - migrate to latest architecture
+3c0eb1db Merge branch 'scientific-minimal-rebased' into docs/comprehensive-documentation
+8b966e64 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific-minimal-rebased
+18f67428 Merge remote-tracking branch 'origin/scientific' into scientific-minimal-rebased
+e0be9c28 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+6d418081 Merge branch with resolved conflicts - recovered backlog task completions and architectural changes
+9491a4b3 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+388d7149 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+2a89e4bf Merge branch with caching and security improvements
+5ea6b5f4 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+3646ed5d Merge branch 'main' into scientific
+ea45dbde Merge branch 'main' into scientific
+5451d0be Merge main branch changes into scientific branch
+5f5c2b6e Merge main branch changes into scientific branch
+32440953 Merge remote scientific branch and resolve conflicts
+b0461e8f Merge remote scientific branch and resolve conflicts
+dca3613d Merge branch 'main' into scientific
+9f31a000 Merge branch 'main' into scientific
+0cfe934a Merge remote-tracking branch 'origin/scientific' into scientific
+9dcbc79e Merge remote-tracking branch 'origin/scientific' into scientific
+25b50db1 Merge feature-notmuch-integration into scientific branch
+e3e09afa Merge feature-notmuch-integration into scientific branch
+e9e68922 Merge remote-tracking branch 'origin/scientific' into scientific
+3a88f00a Merge remote-tracking branch 'origin/scientific' into scientific
+eae3238b Merge remote-tracking branch 'origin/scientific' into scientific
+fca5705e Merge remote-tracking branch 'origin/scientific' into scientific
+41d1b70f Merge branch 'origin/scientific' - resolved README.md conflicts
+08acf63f Merge branch 'origin/scientific' - resolved README.md conflicts
+39850cdb Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+8689feb3 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+729a19ab Merge branch 'origin/feat/modular-ai-platform' into scientific - resolved conflicts, kept comprehensive HEAD documentation with inclusive Python version requirements
+e3490050 Merge branch 'origin/feat/modular-ai-platform' into scientific - resolved conflicts, kept comprehensive HEAD documentation with inclusive Python version requirements
+14aa602c Merge remote-tracking branch 'origin/scientific' into scientific
+09c04fd9 Merge remote-tracking branch 'origin/scientific' into scientific
+ba957a6d Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+11e0318b Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+c86c270a Merge branch 'origin/feature-dashboard-stats-endpoint' into scientific
+e8eb4224 Merge branch 'origin/feature-dashboard-stats-endpoint' into scientific
+c6422abf Merge remote-tracking branch 'origin/scientific' into scientific
+ac0a165a Merge remote-tracking branch 'origin/scientific' into scientific
+df6f3589 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+0ff94a19 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+b13c054b Merge remote changes and resolve conflicts
+90094aaa Merge remote changes and resolve conflicts
+4e0f4cbe Merge remote-tracking branch 'origin/scientific' into scientific
+24db2b4c Merge remote-tracking branch 'origin/scientific' into scientific
+898e2877 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+a02cd7c8 Merge branch 'scientific' of https://github.com/MasumRab/EmailIntelligence into scientific
+39c5ca38 Merge remote-tracking branch 'origin/scientific' into scientific
+ba6a693c Merge remote-tracking branch 'origin/scientific' into scientific
+281f0af2 Merge remote-tracking branch 'origin/scientific' into scientific
+80576835 Merge remote-tracking branch 'origin/scientific' into scientific
+27586714 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+1fbbb032 Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+f2d01261 Merge remote-tracking branch 'origin/scientific' into scientific
+bcdfdc7b Merge remote-tracking branch 'origin/scientific' into scientific
+02a9baf7 Merge branch 'main' into scientific
+b278a03c Merge branch 'main' into scientific
+aa034d9e Merge branch 'main' into scientific
+57da720d Merge branch 'main' into scientific
+4b5edb44 Merge pull request #153 from MasumRab/feature/major-platform-enhancements
+8a429590 Merge pull request #153 from MasumRab/feature/major-platform-enhancements
+1e25ecb1 Merge PR #153: Fix README.md merge conflicts and update documentation
+2dc3bbed Merge PR #153: Fix README.md merge conflicts and update documentation
+b930e8da Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+ae9c980a Merge branch 'scientific' of github.com:MasumRab/EmailIntelligence into scientific
+4652e85d Merge branch 'feat/modular-ai-platform' of https://github.com/MasumRab/EmailIntelligence into feat/modular-ai-platform
+e2cb2b13 Merge branch 'feat/modular-ai-platform' of https://github.com/MasumRab/EmailIntelligence into feat/modular-ai-platform
