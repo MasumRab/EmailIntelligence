@@ -158,17 +158,18 @@ class ActivityResponse(ActivityBase):
     createdAt: datetime
 
 
+class ActionItem(BaseModel):
+    """Represents an actionable item identified in an email."""
+
+    description: str = Field(..., description="The description of the action item.")
+    due_date: Optional[datetime] = Field(None, description="The due date for the action item.")
+    completed: bool = Field(False, description="Whether the action item is completed.")
+
+
 # AI Analysis Models
 class AIAnalysisRequest(BaseModel):
     subject: str
     content: str
-
-
-class ActionItem(BaseModel):
-    """Model representing a single action item extracted from an email."""
-    description: str = Field(..., description="The description of the action item.")
-    due_date: Optional[datetime] = Field(None, description="The due date for the action item.")
-    completed: bool = Field(False, description="Whether the action item is completed.")
 
 
 class AIAnalysisResponse(BaseModel):

@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-25 04:50'
+updated_date: '2025-10-27 00:35'
 labels:
   - architecture
   - workflow
@@ -27,3 +28,10 @@ Consolidate workflow systems by enhancing Node Engine with Advanced Core feature
 - [ ] #4 Migrate EmailInputNode, NLPProcessorNode, EmailOutputNode
 - [ ] #5 Add topological sorting with cycle detection
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+---
+**Migration Context:** This task is part of the larger [Backend Migration to src/ (task-18)](backlog/tasks/task-18 - Backend-Migration-to-src.md) effort. Refer to the [Backend Migration Guide](docs/backend_migration_guide.md) for overall strategy and details.
+<!-- SECTION:NOTES:END -->
