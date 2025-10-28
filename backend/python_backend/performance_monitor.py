@@ -325,9 +325,10 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 
@@ -348,9 +349,10 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 
