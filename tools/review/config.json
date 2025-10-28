@@ -1,0 +1,58 @@
+{
+  "review_agents": {
+    "security": {
+      "name": "Security Review Agent",
+      "description": "Analyzes code for security vulnerabilities and potential exploits",
+      "enabled": true,
+      "priority": "high"
+    },
+    "performance": {
+      "name": "Performance Review Agent",
+      "description": "Identifies performance bottlenecks and optimization opportunities",
+      "enabled": true,
+      "priority": "medium"
+    },
+    "quality": {
+      "name": "Code Quality Review Agent",
+      "description": "Evaluates code quality, maintainability, and best practices",
+      "enabled": true,
+      "priority": "medium"
+    },
+    "architecture": {
+      "name": "Architecture Review Agent",
+      "description": "Reviews architectural consistency and design patterns",
+      "enabled": true,
+      "priority": "high"
+    }
+  },
+  "trigger_events": {
+    "pre_commit": true,
+    "post_merge": true,
+    "significant_changes": true
+  },
+  "file_patterns": {
+    "include": [
+      "**/*.py",
+      "client/src/**/*.ts",
+      "client/src/**/*.tsx"
+    ],
+    "exclude": [
+      "node_modules/**",
+      "venv/**",
+      "**/*.test.py",
+      "**/test_*.py",
+      "**/__pycache__/**"
+    ]
+  },
+  "output_formats": {
+    "console": true,
+    "markdown": true,
+    "json": true
+  },
+  "thresholds": {
+    "critical": 0,
+    "high": 1,
+    "medium": 5,
+    "low": 10
+  }
+}

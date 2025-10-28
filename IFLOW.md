@@ -227,6 +227,17 @@ iFlow CLI has access to various tools for software engineering tasks:
 - `run_shell_command`: Execute shell commands
 - `todo_write`/`todo_read`: Task management
 
+## Automated Code Review
+
+The EmailIntelligence project includes a Multi-Agent Code Review System that automatically analyzes code for:
+
+- Security vulnerabilities
+- Performance bottlenecks
+- Code quality issues
+- Architectural inconsistencies
+
+The system is integrated into the development workflow and can be run manually or automatically during pre-commit hooks. See `docs/multi_agent_code_review.md` for detailed information.
+
 ## Advanced Features
 
 ### Node-Based Workflow Engine

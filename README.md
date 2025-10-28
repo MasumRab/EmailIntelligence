@@ -207,6 +207,7 @@ This project includes comprehensive documentation in the `docs/` directory:
 - **[Launcher Guide](docs/launcher_guide.md)**: Comprehensive information about the unified launcher system (`launch.py`) and its command-line options.
 - **[Extensions Guide](docs/extensions_guide.md)**: Information on how to use and develop extensions.
 - **[Python Style Guide](docs/python_style_guide.md)**: Coding standards for Python code in the project.
+- **[Multi-Agent Code Review Guide](docs/multi_agent_code_review.md)**: Information about the automated code review system that analyzes security, performance, quality, and architectural aspects.
 
 ## Setup
 
