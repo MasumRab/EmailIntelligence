@@ -30,7 +30,7 @@ The Gradio UI acts as a full-featured client to the FastAPI backend.
 
 ```
 Gradio UI (gradio_app.py)
-==========================
+=========================
 |
 ├── 📈 Dashboard Tab
 |   └── Calls GET /api/dashboard/stats ──> Displays key metrics & charts
@@ -55,12 +55,11 @@ Gradio UI (gradio_app.py)
 
 To successfully set up and run EmailIntelligence, you will need the following:
 
-- **Python 3.12+**: Required for the backend services
-- **Node.js 16+**: Required for the frontend (optional if running API-only)
+- **Python 3.11.x or 3.12.x**: Required for the backend services
+- **Node.js 16+** (18.x or 20.x recommended): Required for the frontend (optional if running API-only)
 - **Conda (optional)**: For conda environment management (venv is used by default)
 
 You can run any combination of services by using the launcher scripts:
-
 -   **Run only the Python backend and Gradio UI:**
     ```bash
     python launch.py --no-client --no-server-ts
@@ -90,61 +89,60 @@ Use `python launch.py --help` to see all available options.
 -   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
 -   **New Node-Based Workflow System:** The platform has been enhanced with a sophisticated node-based workflow system:
 
-    ### Core Components:
-    - **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
-    - **src/core/security.py**: Enterprise-grade security framework
-    - **modules/workflows/ui.py**: Visual workflow editor UI
-    - **src/main.py**: Main application with integrated API endpoints for workflow management
+*   **AI-Powered Email Analysis**: Automatically analyzes email content for topic, sentiment, intent, and urgency.
+*   **Smart Categorization**: Suggests and applies categories to emails based on AI analysis.
+*   **Intelligent Filtering**: Provides a system for creating and managing smart filters to automate email workflows.
+*   **Local Data Storage**: Uses a combination of JSON files and SQLite for easy setup and data management.
+*   **Comprehensive API**: A FastAPI backend provides a rich set of endpoints for managing emails, categories, and AI operations.
+*   **Modern Frontend**: A responsive user interface built with React, TypeScript, and Vite.
+*   **Unified Launcher**: A single `launch.py` script handles environment setup, dependency installation, and application startup.
 
-    ### Key Features:
-    - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
-    - **Security Framework**: Multi-layer security with authentication, authorization, and audit logging
-    - **Extensibility**: Plugin system for adding new node types
-    - **Performance Monitoring**: Built-in metrics collection and monitoring
-    - **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
+## Project Architecture
 
-    ### API Endpoints:
-    - `POST /api/workflows/advanced/workflows` - Create new workflows
-    - `GET /api/workflows/advanced/workflows` - List available workflows
-    - `GET /api/workflows/advanced/workflows/{id}` - Get specific workflow
-    - `PUT /api/workflows/advanced/workflows/{id}` - Update workflow
-    - `DELETE /api/workflows/advanced/workflows/{id}` - Delete workflow
-    - `POST /api/workflows/advanced/workflows/{id}/execute` - Execute workflow
-    - `GET /api/workflows/advanced/nodes` - List available node types
-    - `GET /api/workflows/advanced/execution/status` - Get execution status
-    - `POST /api/workflows/advanced/execution/cancel/{id}` - Cancel execution
+The repository is organized into the following main directories:
 
--   **Enhanced Filtering System:** Advanced email filtering capabilities with multiple criteria types:
+*   `backend/`: Contains the Python backend, including the FastAPI application (`python_backend/`) and the core NLP logic (`python_nlp/`).
+*   `client/`: The frontend React/Vite application.
+*   `server/`: Contains TypeScript code related to the server, such as routes and services.
+*   `shared/`: Holds shared code, such as Zod schemas, used by both the frontend and backend.
+*   `tests/`: Contains tests for the various parts of the application.
 
-    ### New Filtering Features:
-    - **Multi-Criteria Filtering**: Support for keyword, sender, recipient, category, date/time, and size-based filtering
-    - **Complex Boolean Logic**: AND, OR, and NOT operations for creating complex filtering rules
-    - **UI Component**: AdvancedFilterPanel for creating and managing filters through an intuitive interface
-    - **Node Integration**: Enhanced FilterNode compatible with the existing workflow engine
-    - **API Integration**: Filter criteria can be passed through the workflow system for processing emails according to user-defined rules
+## Prerequisites
 
-    ### Filtering Capabilities:
-    - Required/excluded keywords in subject or content
-    - Required/excluded senders and recipients
-    - Category-based filtering
-    - Date/time range filtering
-    - Size-based filtering
-    - Priority-based filtering
-    - Custom boolean logic operations
+*   **Python:** Version 3.11.x or 3.12.x is required.
+*   **Node.js:** A recent LTS version (e.g., 18.x or 20.x) is recommended.
+*   **Git:** For cloning the repository.
 
-    For more details on the enhanced filtering system, see [Advanced Filtering Documentation](docs/advanced_filtering_system.md)
+## Getting Started
 
--   **Performance Monitoring:** The `@log_performance` decorator has been refactored for improved flexibility and direct logging to a file.
--   **Dependency Management:** Enhanced testing for Node.js dependency installation ensures more robust setup.
--   **Special Components:**
-    - **Model Manager**: Handles dynamic loading/unloading of AI models
-    - **Workflow Engine**: Manages configurable email processing workflows
-    - **Performance Monitor**: Tracks system performance metrics
-    - **Plugin Manager**: Enables extensible functionality
-    - **Security Manager**: Provides enterprise-grade security
-    - **Smart Filters**: Provides advanced email filtering capabilities
+1.  **Clone the Repository:**
+    ```bash
+    git clone <your_repo_url>
+    cd <repository_name>
+    ```
 
-## Quick Start
+2.  **Run the Launcher Script:**
+    This script automates the entire setup and launch process.
+
+    *   For Linux/macOS:
+        ```bash
+        ./launch.sh
+        ```
+    *   For Windows:
+        ```bash
+        python launch.py
+        ```
+
+    The `launch.py` script will perform the following steps:
+    *   Check your Python version and find a compatible interpreter.
+    *   Create a Python virtual environment in the `./venv` directory.
+    *   Install the required Python dependencies from `requirements.txt`.
+    *   Download necessary NLTK data files for text processing.
+    *   Install Node.js dependencies for the client application by running `npm install` in the `client/` directory.
+    *   Start the Python backend server (FastAPI/Uvicorn), which by default runs on `http://127.0.0.1:8000`.
+    *   Start the Vite development server for the frontend, which by default runs on `http://127.0.0.1:5173`.
+
+## Data Storage
 
 The fastest way to get EmailIntelligence running locally for development is by using the unified launcher. This process involves a few key steps:
 
