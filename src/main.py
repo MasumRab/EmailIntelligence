@@ -1,3 +1,6 @@
+import configparser
+configparser.SafeConfigParser = configparser.ConfigParser
+
 import argparse
 import logging
 
