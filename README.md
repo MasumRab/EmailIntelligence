@@ -53,11 +53,107 @@ Gradio UI (gradio_app.py)
 
 ## Prerequisites
 
-To successfully set up and run EmailIntelligence, you will need the following:
+## Getting Started
 
-- **Python 3.11.x or 3.12.x**: Required for the backend services
-- **Node.js 16+** (18.x or 20.x recommended): Required for the frontend (optional if running API-only)
-- **Conda (optional)**: For conda environment management (venv is used by default)
+A single script, `launch.py`, manages the entire development environment, from installing dependencies to running services.
+
+### 1. First-Time Setup
+
+Clone the repository and run the setup command. This will create a Python virtual environment, install all Python and Node.js dependencies, and download necessary machine learning model data.
+
+```bash
+git clone <your-repo-url>
+cd <repository-name>
+python3 launch.py --setup
+```
+
+**Alternative: Using Poetry**
+
+If you prefer Poetry for Python dependency management:
+
+```bash
+python3 launch.py --use-poetry --setup
+```
+
+**Note:** The setup installs CPU-only PyTorch for lightweight deployment. If you need GPU support, modify the PyTorch installation manually.
+
+### 2. Running the Application
+
+After the one-time setup, use the same script to launch all services:
+
+```bash
+python3 launch.py
+```
+
+This command will start:
+- **Python FastAPI Backend** on `http://127.0.0.1:8000`
+- **Gradio UI** on `http://127.0.0.1:7860` (or the next available port)
+- **Node.js TypeScript Backend** (port managed by `npm`)
+- **React Frontend** on `http://127.0.0.1:5173` (or the next available port)
+
+Press `Ctrl+C` in the terminal to gracefully shut down all running services.
+
+## Project Architecture
+
+The application is composed of five main, interconnected services:
+
+1.  **Python Backend (FastAPI):**
+    -   Located in `backend/python_backend/`.
+    -   Serves the primary REST API for core application logic, data processing, and AI/NLP tasks.
+    -   Manages data storage (JSON files and SQLite databases).
+
+    -   Located in `backend/python_backend/gradio_app.py`.
+    -   Provides a rich, interactive interface for scientific development, model testing, and data visualization. Intended for developers and data scientists.
+
+3.  **Node-Based Workflow Engine:**
+    -   Located in `backend/node_engine/`.
+    -   Provides a modular, extensible architecture for creating complex email processing workflows.
+
+4.  **TypeScript Backend (Node.js):**
+    -   Located in `server/`.
+    -   A secondary backend that handles specific API routes, demonstrating a polyglot microservice architecture.
+
+5.  **React Frontend (Vite):**
+    -   Located in `client/`.
+    -   The main user-facing web application for end-users to interact with the Email Intelligence service.
+
+## Directory Structure
+
+```
+.
+├── backend/
+│   ├── node_engine/      # Node-based workflow engine and specialized email nodes
+│   ├── python_backend/   # Main Python FastAPI application and Gradio UI
+│   └── python_nlp/       # NLP-specific modules and utilities
+├── client/               # React/Vite frontend application
+├── server/               # TypeScript/Node.js backend application
+├── shared/               # Code/types shared between services
+│
+├── launch.py             # 🚀 Unified script to set up, manage, and run the project
+├── pyproject.toml        # Python dependency definitions (for uv)
+├── package.json          # Node.js workspace configuration
+│
+└── ...
+```
+
+## Launcher Usage
+
+The `launch.py` script is the single entry point for all development tasks.
+
+### Environment Management
+
+-   **Force a clean setup:** Delete and recreate the environment from scratch.
+    ```bash
+    python3 launch.py --setup --force-recreate-venv
+    ```
+-   **Update all dependencies:**
+    ```bash
+    python3 launch.py --setup --update-deps
+    ```
+
+### Running Specific Services
+
+You can run any combination of services by using the `--no-<service>` flags.
 
 You can run any combination of services by using the launcher scripts:
 -   **Run only the Python backend and Gradio UI:**
@@ -81,60 +177,13 @@ Use `python launch.py --help` to see all available options.
 
 ## Development Notes
 
--   **Python Environment:** The launcher automatically detects and uses conda environments if available, otherwise creates and manages a virtual environment in the `./venv` directory. You do not need to activate environments manually.
--   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` files.
--   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside your active environment (conda or venv).
--   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root. The data directory is now configurable via the `DATA_DIR` environment variable.
--   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
--   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
--   **New Node-Based Workflow System:** The platform has been enhanced with a sophisticated node-based workflow system:
+-   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
+-   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
+-   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
+-   **Data Storage:** This version uses local file-based storage, primarily located in `backend/python_backend/data/`. SQLite databases (`.db` files) are created in the project root.
+-   **Node-based Workflows:** The new node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
 
-    ### Core Components:
-    - **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
-    - **src/core/security.py**: Enterprise-grade security framework
-    - **modules/workflows/ui.py**: Visual workflow editor UI
-    - **src/main.py**: Main application with integrated API endpoints for workflow management
-    - **src/core/notmuch_data_source.py**: AI-enhanced data source with automatic analysis, filtering, and workflow integration
-
-    ### Key Features:
-    - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
-    - **Security Framework**: Multi-layer security with authentication, authorization, and audit logging
-    - **Extensibility**: Plugin system for adding new node types
-    - **Performance Monitoring**: Built-in metrics collection and monitoring
-    - **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
-    - **AI-Enhanced Data Source**: Automatic sentiment analysis, topic classification, intent recognition, and urgency detection for all emails
-
-*   **AI-Powered Email Analysis**: Automatically analyzes email content for topic, sentiment, intent, and urgency.
-*   **Smart Categorization**: Suggests and applies categories to emails based on AI analysis.
-*   **Intelligent Filtering**: Provides a system for creating and managing smart filters to automate email workflows.
-*   **Local Data Storage**: Uses a combination of JSON files and SQLite for easy setup and data management.
-*   **Comprehensive API**: A FastAPI backend provides a rich set of endpoints for managing emails, categories, and AI operations.
-*   **Modern Frontend**: A responsive user interface built with React, TypeScript, and Vite.
-*   **Unified Launcher**: A single `launch.py` script handles environment setup, dependency installation, and application startup.
-
-## Project Architecture
-
-The repository is organized into the following main directories:
-
-*   `backend/`: Contains the Python backend, including the FastAPI application (`python_backend/`) and the core NLP logic (`python_nlp/`).
-*   `client/`: The frontend React/Vite application.
-*   `server/`: Contains TypeScript code related to the server, such as routes and services.
-*   `shared/`: Holds shared code, such as Zod schemas, used by both the frontend and backend.
-*   `tests/`: Contains tests for the various parts of the application.
-
-## Prerequisites
-
-*   **Python:** Version 3.11.x or 3.12.x is required.
-*   **Node.js:** A recent LTS version (e.g., 18.x or 20.x) is recommended.
-*   **Git:** For cloning the repository.
-
-## Getting Started
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone <your_repo_url>
-    cd <repository_name>
-    ```
+## Troubleshooting
 
 2.  **Run the Launcher Script:**
     This script automates the entire setup and launch process.

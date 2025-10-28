@@ -14,6 +14,13 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+try:
+    import networkx as nx
+    NETWORKX_AVAILABLE = True
+except ImportError:
+    NETWORKX_AVAILABLE = False
+    nx = None
+
 
 class DataType(Enum):
     """Enum for supported data types in node connections."""
@@ -27,6 +34,18 @@ class DataType(Enum):
     STRING = "string"
     OBJECT = "object"
     ANY = "any"  # For dynamic typing when specific type is not known
+
+
+class SecurityContext:
+    """Security context for node execution."""
+
+    def __init__(self, user_id: Optional[str] = None, permissions: List[str] = None,
+                 resource_limits: Optional[Dict[str, Any]] = None):
+        self.user_id = user_id
+        self.permissions = permissions or []
+        self.resource_limits = resource_limits or {}
+        self.execution_start_time = None
+        self.audit_trail: List[Dict[str, Any]] = []
 
 
 class NodePort:
@@ -65,12 +84,13 @@ class Connection:
 class ExecutionContext:
     """Maintains execution context during workflow execution."""
 
-    def __init__(self):
+    def __init__(self, security_context: Optional[SecurityContext] = None):
         self.node_outputs: Dict[str, Dict[str, Any]] = {}
         self.shared_state: Dict[str, Any] = {}
         self.execution_path: List[str] = []
         self.errors: List[Dict[str, Any]] = []
         self.metadata: Dict[str, Any] = {}
+        self.security_context = security_context
 
     def set_node_output(self, node_id: str, output: Dict[str, Any]):
         """Store the output of a node."""
@@ -263,7 +283,36 @@ class Workflow:
         return downstream
 
     def get_execution_order(self) -> List[str]:
-        """Calculate the execution order of nodes using topological sort."""
+        """Calculate the execution order of nodes using NetworkX topological sort."""
+        if NETWORKX_AVAILABLE and nx:
+            return self._get_execution_order_networkx()
+        else:
+            return self._get_execution_order_manual()
+
+    def _get_execution_order_networkx(self) -> List[str]:
+        """Calculate execution order using NetworkX for better performance and cycle detection."""
+        # Create directed graph
+        graph = nx.DiGraph()
+
+        # Add all nodes
+        for node_id in self.nodes.keys():
+            graph.add_node(node_id)
+
+        # Add edges (dependencies: target depends on source)
+        for conn in self.connections:
+            graph.add_edge(conn.source_node_id, conn.target_node_id)
+
+        try:
+            # Perform topological sort
+            return list(nx.topological_sort(graph))
+        except nx.NetworkXError as e:
+            if "cycle" in str(e).lower():
+                raise ValueError("Workflow has circular dependencies") from e
+            else:
+                raise
+
+    def _get_execution_order_manual(self) -> List[str]:
+        """Fallback manual topological sort implementation."""
         # Build adjacency list of dependencies
         dependencies = {node_id: [] for node_id in self.nodes.keys()}
 

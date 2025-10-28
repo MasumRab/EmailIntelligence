@@ -178,8 +178,8 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-app.include_router(action_routes.router)
-app.include_router(dashboard_routes.router)
+# app.include_router(action_routes.router) # Removed
+# app.include_router(dashboard_routes.router) # Removed
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
