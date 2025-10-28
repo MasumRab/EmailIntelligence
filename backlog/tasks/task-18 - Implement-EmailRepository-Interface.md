@@ -4,8 +4,10 @@ title: Implement EmailRepository Interface
 status: To Do
 assignee: []
 created_date: '2025-10-27 15:19'
+updated_date: '2025-10-28 08:55'
 labels: []
 dependencies: []
+priority: low
 ---
 
 ## Description
