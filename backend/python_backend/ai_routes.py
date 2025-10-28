@@ -3,7 +3,9 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from .dependencies import get_ai_engine, get_db
 from .database import DatabaseManager
+from . import models
 from .models import AIAnalysisRequest, AIAnalysisResponse, AICategorizeRequest, AICategorizeResponse, EmailResponse, AIValidateRequest, AIValidateResponse
+from .ai_engine import AdvancedAIEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

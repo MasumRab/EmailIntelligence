@@ -19,7 +19,6 @@ from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db
-from .main import app
 from .models import (
     ActivityCreate,
     ActivityResponse,
