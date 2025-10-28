@@ -2,242 +2,261 @@
 
 ## Overview
 
-EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration.
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The system combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration.
 
-## Architecture Diagram
+## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Client Layer                                   │
+│                              CLIENT LAYER                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────────────────┐  │
-│  │   React     │    │   Gradio    │    │        FastAPI Server           │  │
-│  │  Frontend   │    │     UI      │    │                                 │  │
-│  │             │    │             │    │  ┌────────────────────────────┐ │  │
-│  │             │    │             │    │  │     Module Manager         │ │  │
-│  │             │    │             │    │  └────────────────────────────┘ │  │
-│  └─────────────┘    └─────────────┘    │  ┌────────────────────────────┐ │  │
-│                    │                   │  │        Modules             │ │  │
-│                    │ API Calls         │  │  ┌─────────────────────┐   │ │  │
-│                    └───────────────────┼──┼─▶│   Auth Module       │   │ │  │
-│                                        │  │  ├─────────────────────┤   │ │  │
-│                                        │  │  │   Email Module      │   │ │  │
-│                                        │  │  ├─────────────────────┤   │ │  │
-│                                        │  │  │  Dashboard Module   │   │ │  │
-│                                        │  │  ├─────────────────────┤   │ │  │
-│                                        │  │  │   Category Module   │   │ │  │
-│                                        │  │  ├─────────────────────┤   │ │  │
-│                                        │  │  │    ...              │   │ │  │
-│                                        │  │  └─────────────────────┘   │ │  │
-│                                        │  └────────────────────────────┘ │  │
-└────────────────────────────────────────┼─────────────────────────────────┘  │
-                                         │                                  │
-┌────────────────────────────────────────┼────────────────────────────────────┐
-│           Data Layer                   │                                    │
-├────────────────────────────────────────┼────────────────────────────────────┤
-│  ┌─────────────────────────────────┐   │                                    │
-│  │      Data Sources               │   │                                    │
-│  │  ┌──────────────────────────┐   │   │                                    │
-│  │  │   Database Manager       │   │   │                                    │
-│  │  │ (JSON file storage with  │   │   │                                    │
-│  │  │  in-memory caching)      │   │   │                                    │
-│  │  └──────────────────────────┘   │   │                                    │
-│  │  ┌──────────────────────────┐   │   │                                    │
-│  │  │   Notmuch Data Source    │   │   │                                    │
-│  │  │ (Alternative backend)    │   │   │                                    │
-│  │  └──────────────────────────┘   │   │                                    │
-│  └─────────────────────────────────┘   │                                    │
-└────────────────────────────────────────┘                                    │
-                                         │                                    │
-┌────────────────────────────────────────┼────────────────────────────────────┐
-│           AI/NLP Layer                 │                                    │
-├────────────────────────────────────────┼────────────────────────────────────┤
-│  ┌─────────────────────────────────┐   │                                    │
-│  │      NLP Components             │   │                                    │
-│  │  ┌──────────────────────────┐   │   │                                    │
-│  │  │   Sentiment Analysis     │   │   │                                    │
-│  │  ├──────────────────────────┤   │   │                                    │
-│  │  │   Topic Classification   │   │   │                                    │
-│  │  ├──────────────────────────┤   │   │                                    │
-│  │  │   Intent Recognition     │   │   │                                    │
-│  │  ├──────────────────────────┤   │   │                                    │
-│  │  │   Urgency Detection      │   │   │                                    │
-│  │  └──────────────────────────┘   │   │                                    │
-│  └─────────────────────────────────┘   │                                    │
-└────────────────────────────────────────┘                                    │
-                                         │                                    │
-┌────────────────────────────────────────┼────────────────────────────────────┐
-│           Infrastructure Layer         │                                    │
-├────────────────────────────────────────┼────────────────────────────────────┤
-│  ┌─────────────────────────────────┐   │                                    │
-│  │        Launch System            │   │                                    │
-│  │  ┌──────────────────────────┐   │   │                                    │
-│  │  │       launch.py          │   │   │                                    │
-│  │  │ (Unified launcher for    │   │   │                                    │
-│  │  │  all components)         │   │   │                                    │
-│  │  └──────────────────────────┘   │   │                                    │
-│  └─────────────────────────────────┘   │                                    │
-└────────────────────────────────────────┘                                    │
+│  ┌────────────────┐  ┌──────────────────┐  ┌─────────────────────────────┐  │
+│  │   React UI     │  │   Gradio UI      │  │   TypeScript Backend        │  │
+│  │  (Frontend)    │  │  (Scientific UI) │  │        (Node.js)            │  │
+│  └────────────────┘  └──────────────────┘  └─────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                              API LAYER                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │                           FastAPI Server                              │ │
+│  │                           (Python 3.12+)                              │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │ │
+│  │  │   Module    │  │   Module    │  │   Module    │  │   Module    │    │ │
+│  │  │   System    │  │   Router    │  │   Auth      │  │   Email     │    │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                           BUSINESS LOGIC LAYER                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐            │
+│  │  AI Engine      │  │  Data Access    │  │  Workflow       │            │
+│  │  (NLP Models)   │  │  (Repository)   │  │  Engine         │            │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                           DATA ACCESS LAYER                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐            │
+│  │  Data Sources   │  │  Data Sources   │  │  Data Sources   │            │
+│  │  (Database)     │  │  (Notmuch)      │  │  (Gmail API)    │            │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘            │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Component Relationships
+## Core Components
 
-### 1. Core Application Structure
-
-**Main Entry Point**: `src/main.py`
-- Creates FastAPI application
-- Initializes Gradio UI with tabbed interface
-- Loads modules via ModuleManager
-- Mounts Gradio UI to FastAPI app
-
-**Module Manager**: `src/core/module_manager.py`
-- Discovers and loads modules from `modules/` directory
-- Each module must have an `__init__.py` with a `register()` function
-- Registers API routes and UI components
-
-### 2. Module System
-
-**Module Structure**:
-```
-modules/
-├── auth/
-│   ├── __init__.py          # register() function
-│   └── routes.py            # API endpoints
-├── email/
-│   ├── __init__.py          # register() function
-│   └── routes.py            # API endpoints
-├── dashboard/
-│   ├── __init__.py          # register() function
-│   ├── routes.py            # API endpoints
-│   └── models.py            # Data models
-└── ...                      # Other modules
-```
-
-**Registration Process**:
-1. ModuleManager scans `modules/` directory
-2. For each directory with `__init__.py`, imports the module
-3. Calls `module.register(app, gradio_app)` to register components
-4. Modules add API routes to FastAPI app and UI components to Gradio
-
-### 3. Data Layer
-
-**Data Source Abstraction**: `src/core/data_source.py`
-- Abstract base class defining data access interface
-- Methods for email operations, categories, search, etc.
-
-**Implementations**:
-- `DatabaseManager`: JSON file storage with caching
-- `NotmuchDataSource`: Alternative backend implementation
-
-**Factory Pattern**: `src/core/factory.py`
-- Singleton pattern for data source instantiation
-- Environment variable configurable (`DATA_SOURCE_TYPE`)
-
-### 4. AI/NLP Components
-
-Located in `backend/python_nlp/`:
-- Modular analysis components (sentiment, topic, intent, urgency)
-- NLP engine for processing emails
-- Integration with Hugging Face transformers
-
-### 5. Infrastructure
-
-**Launcher**: `launch.py`
-- Unified setup and management of all components
+### 1. Launcher System (`launch.py`)
+The unified launcher is the entry point for the entire application. It handles:
 - Environment setup and dependency management
-- Process management for backend, frontend, and UI
+- Virtual environment creation (venv/conda)
+- Python and Node.js dependency installation
+- Service orchestration (backend, frontend, Gradio UI)
+- Testing framework integration
+
+### 2. Backend Architecture
+
+#### Core Directory (`src/core/`)
+Contains the main application logic with a modular design:
+- **Dependency Injection**: Factory pattern for managing service instances
+- **Data Access Layer**: Repository pattern for data operations
+- **AI Engine**: Abstract interface for NLP models
+- **Module Manager**: Dynamic module loading system
+- **Security**: Authentication and authorization components
+
+#### Legacy Backend (`backend/python_backend/`)
+Legacy FastAPI application with:
+- Direct API route implementations
+- Database management
+- AI analysis engine
+- Workflow systems
+
+#### NLP Components (`backend/python_nlp/`)
+Core NLP models and analysis components:
+- Sentiment analysis
+- Topic classification
+- Intent recognition
+- Urgency detection
+- Smart filtering systems
+
+### 3. Frontend Architecture (`client/`)
+Modern React application with:
+- TypeScript for type safety
+- Vite for build tooling
+- Tailwind CSS for styling
+- Radix UI components
+- React Query for data fetching
+
+### 4. Module System (`modules/`)
+Extensible architecture with modular functionality:
+- Email management
+- Category handling
+- Dashboard components
+- AI engine integration
+- Workflow systems
+
+### 5. Data Layer
+
+#### Repository Pattern (`src/core/data/`)
+Abstraction layer for data operations:
+- `EmailRepository` interface
+- `DatabaseEmailRepository` implementation
+- Pluggable data source architecture
+
+#### Data Sources (`src/core/`)
+Multiple data source implementations:
+- `DatabaseManager`: JSON file storage with caching
+- `NotmuchDataSource`: Integration with Notmuch email indexing
+- Abstract `DataSource` interface
+
+### 6. AI/NLP Engine (`src/core/ai_engine.py`)
+Standardized interface for AI analysis:
+- `BaseAIEngine` abstract class
+- `AIAnalysisResult` standardized data structure
+- Support for multiple model backends
+- Health checking and lifecycle management
+
+## Key Architectural Patterns
+
+### 1. Dependency Injection
+The system uses a factory-based dependency injection pattern:
+- `src/core/factory.py` provides singleton instances
+- Async context managers for resource management
+- Lazy initialization of services
+
+### 2. Repository Pattern
+Data access is abstracted through the repository pattern:
+- Interface segregation with `EmailRepository`
+- Multiple implementations possible
+- Decoupling of business logic from data storage
+
+### 3. Module System
+Dynamic module loading enables extensibility:
+- Convention-based module discovery
+- Registration pattern for API routes and UI components
+- Isolated module functionality
+
+### 4. Layered Architecture
+Clear separation of concerns:
+- Presentation layer (UI/API)
+- Business logic layer (Services/Engine)
+- Data access layer (Repository/DataSource)
+- External integrations (Gmail, Notmuch)
 
 ## Technology Stack
 
 ### Backend
-- **Framework**: FastAPI (Python 3.12+)
-- **Web Server**: Uvicorn
-- **Database**: Custom JSON file storage with caching
-- **AI/NLP**: NLTK, scikit-learn, PyTorch, Transformers
-- **Dependency Management**: uv, pyproject.toml
+- **Language**: Python 3.12+
+- **Framework**: FastAPI
+- **AI/NLP**: Transformers, scikit-learn, NLTK
+- **Database**: JSON file storage with in-memory caching
+- **Dependency Management**: uv with pyproject.toml
 
 ### Frontend
-- **Framework**: React (Vite)
-- **Language**: TypeScript
-- **UI Components**: Radix UI, Tailwind CSS
-- **State Management**: React Query
+- **Language**: TypeScript/JavaScript
+- **Framework**: React with Vite
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI
 - **Build Tool**: Vite
 
 ### Scientific UI
 - **Framework**: Gradio
-- **Integration**: Mounted on FastAPI at `/ui` endpoint
+- **Integration**: Embedded in FastAPI application
+
+### DevOps
+- **Environment Management**: Virtual environments (venv/conda)
+- **Launcher**: Unified Python script
+- **Testing**: pytest with multiple test types
+- **Linting**: black, isort, mypy, pylint
 
 ## Data Flow
 
-1. **Email Processing**:
-   - Emails ingested via various sources (Gmail, files, etc.)
-   - Stored in JSON files with metadata
-   - AI/NLP analysis applied to extract insights
-   - Results stored with email data
+1. **Email Ingestion**:
+   - Emails received via Gmail API or file import
+   - Stored in JSON files with metadata separation
+   - Content indexed for search
 
-2. **API Access**:
-   - React frontend makes REST API calls to FastAPI endpoints
-   - Modules register their routes with the main application
-   - Data retrieved through DataSource abstraction
+2. **AI Analysis**:
+   - Email content processed by NLP models
+   - Results standardized in `AIAnalysisResult`
+   - Metadata stored with email record
 
-3. **UI Interaction**:
-   - Gradio UI provides scientific exploration interface
-   - Direct integration with FastAPI backend
-   - Real-time data visualization and analysis
+3. **Data Access**:
+   - Repository pattern abstracts data operations
+   - Multiple data source implementations
+   - Caching layer for performance
 
-## Key Design Patterns
+4. **API Consumption**:
+   - FastAPI routes handle HTTP requests
+   - Authentication and authorization applied
+   - Data transformed for client consumption
 
-1. **Modular Architecture**:
-   - Pluggable modules with registration system
-   - Loose coupling between components
-   - Easy extension and maintenance
-
-2. **Dependency Injection**:
-   - Factory pattern for data source instantiation
-   - FastAPI's dependency injection for route handlers
-
-3. **Abstract Data Access**:
-   - DataSource abstraction layer
-   - Multiple backend implementations possible
-
-4. **Singleton Pattern**:
-   - Single data source instance per application
-   - Process manager for resource cleanup
+5. **UI Presentation**:
+   - React frontend fetches data via API
+   - Gradio UI provides scientific exploration
+   - Real-time updates through reactive components
 
 ## Scalability Considerations
 
-1. **Horizontal Scaling**:
-   - Stateless FastAPI services can be scaled
-   - Shared data store required for multiple instances
+### Current Architecture
+- **Horizontal Scaling**: Limited due to file-based storage
+- **Vertical Scaling**: Supported through caching and optimization
+- **Concurrency**: Async/await patterns throughout
 
-2. **Performance**:
-   - In-memory caching in DatabaseManager
-   - Asynchronous operations where possible
-   - Performance monitoring hooks
+### Potential Improvements
+- Database migration to PostgreSQL/MySQL
+- Redis caching layer
+- Message queue for background processing
+- Microservice decomposition
 
-3. **Extensibility**:
-   - Module system allows easy addition of features
-   - Data source abstraction supports different backends
-   - AI components can be updated independently
+## Security Features
 
-## Maintenance Insights
+- Authentication and authorization
+- Input validation and sanitization
+- Secure error handling
+- CORS policy configuration
+- Security headers middleware
+- Dependency on secure libraries
 
-1. **Module System**:
-   - New features can be added as modules
-   - Follow existing patterns in `__init__.py` and `routes.py`
-   - Register with ModuleManager automatically
+## Development Practices
 
-2. **Data Layer**:
-   - Consider migration to proper database for production
-   - Current JSON implementation suitable for development
-   - Caching layer provides performance benefits
+### Code Organization
+- Clear separation of concerns
+- Consistent naming conventions
+- Comprehensive documentation
+- Type hints throughout Python code
 
-3. **AI/NLP**:
-   - Model files organized by type in `models/` directory
-   - Training and inference separated
-   - Easy to update models without code changes
+### Testing Strategy
+- Unit tests for core components
+- Integration tests for API endpoints
+- End-to-end tests for critical workflows
+- Performance and security testing
 
-4. **Frontend**:
-   - Component-based architecture
-   - TypeScript provides type safety
-   - Modern build tooling with Vite
+### Quality Assurance
+- Code formatting with black/isort
+- Static analysis with mypy/pylint
+- Continuous integration setup
+- Dependency security scanning
+
+## Deployment Architecture
+
+### Local Development
+- Unified launcher for all services
+- Hot reloading for development
+- Environment variable configuration
+- Debugging support
+
+### Production Deployment
+- Docker containerization support
+- Environment-specific configurations
+- Health checks and monitoring
+- Logging and error reporting
+
+## Future Architecture Improvements
+
+1. **Database Migration**: Move from JSON files to proper database
+2. **Caching Layer**: Implement Redis for improved performance
+3. **Message Queue**: Add background job processing
+4. **Microservices**: Decompose monolithic backend
+5. **Observability**: Enhanced monitoring and tracing
+6. **Security**: Advanced authentication and authorization
+
+This architecture provides a solid foundation for the EmailIntelligence platform while maintaining flexibility for future growth and improvements.
