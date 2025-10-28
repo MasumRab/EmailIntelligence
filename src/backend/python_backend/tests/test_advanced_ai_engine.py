@@ -1,4 +1,5 @@
-from unittest.mock import AsyncMock, MagicMock
+import os
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult

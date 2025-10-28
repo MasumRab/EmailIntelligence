@@ -81,4 +81,7 @@ diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
+<<<<<<< HEAD
 emailintelligence_env/
+=======
+>>>>>>> cafdba94 (Refactor: Introduce EmailService, WorkflowEngine, and AdvancedAIEngine; update performance monitoring and documentation.)

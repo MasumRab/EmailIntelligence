@@ -1,7 +1,11 @@
 """
 Tests for AI model training routes.
 """
+<<<<<<< HEAD:src/backend/python_backend/tests/test_training_routes.py
 from unittest.mock import patch
+=======
+from unittest.mock import MagicMock, patch
+>>>>>>> cafdba94 (Refactor: Introduce EmailService, WorkflowEngine, and AdvancedAIEngine; update performance monitoring and documentation.):backend/python_backend/tests/test_training_routes.py
 
 import numpy as np
 import pandas as pd
