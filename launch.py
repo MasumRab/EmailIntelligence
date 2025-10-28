@@ -62,17 +62,17 @@ class ProcessManager:
     def __init__(self):
         self.processes = []
         self.lock = threading.Lock()  # Add lock for thread safety
-        
+
     def add_process(self, process):
         with self.lock:
             self.processes.append(process)
-            
+
     def cleanup(self):
         logger.info("Performing explicit resource cleanup...")
         # Create a copy of the list to avoid modifying while iterating
         with self.lock:
             processes_copy = self.processes[:]
-            
+
         for p in processes_copy:
             if p.poll() is None:
                 logger.info(f"Terminating process {p.pid}...")
@@ -83,7 +83,7 @@ class ProcessManager:
                     logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                     p.kill()
         logger.info("Resource cleanup completed.")
-        
+
     def shutdown(self):
         logger.info("Received shutdown signal, cleaning up processes...")
         self.cleanup()
