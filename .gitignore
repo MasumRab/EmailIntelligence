@@ -81,4 +81,3 @@ diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
-emailintelligence_env/
