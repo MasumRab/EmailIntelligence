@@ -13,12 +13,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from urllib.request import urlopen
+import json
 import zipfile
 import tempfile
 import shutil
 
 from .plugin_base import (
-    PluginRegistry, PluginMetadata,
+    PluginRegistry, PluginInterface, PluginMetadata,
     PluginInstance, PluginStatus, PluginSecurityLevel,
     HookSystem, SecuritySandbox
 )
