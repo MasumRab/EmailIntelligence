@@ -95,6 +95,7 @@ Use `python launch.py --help` to see all available options.
     - **src/core/security.py**: Enterprise-grade security framework
     - **modules/workflows/ui.py**: Visual workflow editor UI
     - **src/main.py**: Main application with integrated API endpoints for workflow management
+    - **src/core/notmuch_data_source.py**: AI-enhanced data source with automatic analysis, filtering, and workflow integration
 
     ### Key Features:
     - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
@@ -102,6 +103,7 @@ Use `python launch.py --help` to see all available options.
     - **Extensibility**: Plugin system for adding new node types
     - **Performance Monitoring**: Built-in metrics collection and monitoring
     - **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
+    - **AI-Enhanced Data Source**: Automatic sentiment analysis, topic classification, intent recognition, and urgency detection for all emails
 
     ### API Endpoints:
     - `POST /api/workflows/advanced/workflows` - Create new workflows
