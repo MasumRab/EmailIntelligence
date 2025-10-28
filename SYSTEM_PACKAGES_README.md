@@ -118,9 +118,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 # Install other packages
 pip install -r requirements.txt  # If you have a requirements.txt
 # OR
-uv sync  # If using uv
-# OR
-poetry install  # If using Poetry
+uv sync  # Standard dependency management
 ```
 
 ## Important Notes
