@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from pydantic import BaseModel, Field
 
 from .dynamic_model_manager import DynamicModelManager
-from .model_registry import ModelType
+from .model_registry import ModelType, ModelMetadata
 
 logger = logging.getLogger(__name__)
 
