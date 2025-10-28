@@ -6,10 +6,8 @@ from .data_source import DataSource
 from .database import DatabaseManager
 from .notmuch_data_source import NotmuchDataSource
 from .ai_engine import ModernAIEngine
-from .data.repository import DatabaseEmailRepository, EmailRepository
 
 _data_source_instance = None
-_email_repository_instance = None
 
 
 @asynccontextmanager
@@ -61,16 +59,5 @@ async def get_data_source() -> DataSource:
             _data_source_instance = NotmuchDataSource()
         else:
             _data_source_instance = DatabaseManager()
-            await _data_source_instance.initialize()
+            await _data_source_instance._ensure_initialized()
     return _data_source_instance
-
-
-async def get_email_repository() -> EmailRepository:
-    """
-    Provides the singleton instance of the EmailRepository.
-    """
-    global _email_repository_instance
-    if _email_repository_instance is None:
-        data_source = await get_data_source()
-        _email_repository_instance = DatabaseEmailRepository(data_source)
-    return _email_repository_instance
