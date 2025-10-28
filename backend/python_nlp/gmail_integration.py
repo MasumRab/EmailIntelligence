@@ -37,8 +37,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CACHE_PATH = PROJECT_ROOT / "email_cache.db"
 
 # Path for token.json, configurable via environment variable
-TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
-CREDENTIALS_PATH = "credentials.json"
+TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "jsons/token.json")
+CREDENTIALS_PATH = "jsons/credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 

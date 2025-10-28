@@ -18,8 +18,8 @@ from googleapiclient.errors import HttpError
 
 load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
-TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
-CREDENTIALS_PATH = "credentials.json"
+TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "jsons/token.json")
+CREDENTIALS_PATH = "jsons/credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 # Define the project's root directory and default path for the checkpoint database
