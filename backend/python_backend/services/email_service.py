@@ -145,3 +145,43 @@ class EmailService(BaseService):
             )
         except Exception as e:
             return await self.handle_error(e, "search_emails")
+
+    async def get_total_emails_count(self) -> int:
+        """Get the total count of emails in the system."""
+        try:
+            db = await self.get_db()
+            count = await db.get_total_emails_count()
+            return count
+        except Exception:
+            # Return a default value in case of error
+            return 0
+
+    async def get_auto_labeled_count(self) -> int:
+        """Get the count of emails that have been auto-labeled."""
+        try:
+            db = await self.get_db()
+            count = await db.get_auto_labeled_count()
+            return count
+        except Exception:
+            # Return a default value in case of error
+            return 0
+
+    async def get_categories_count(self) -> int:
+        """Get the total number of categories."""
+        try:
+            db = await self.get_db()
+            count = await db.get_categories_count()
+            return count
+        except Exception:
+            # Return a default value in case of error
+            return 0
+
+    async def get_weekly_growth(self) -> Dict[str, Any]:
+        """Get the weekly growth statistics."""
+        try:
+            db = await self.get_db()
+            growth_data = await db.get_weekly_growth()
+            return growth_data
+        except Exception:
+            # Return default values in case of error
+            return {"emails": 0, "percentage": 0.0}

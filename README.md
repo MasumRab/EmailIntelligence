@@ -196,6 +196,96 @@ The application will typically be available at http://localhost:5173.
 
 This starts the application in a local development mode. For comprehensive setup instructions, alternative methods, and details on deploying to Docker, staging, or production environments, please refer to the [Launcher Guide](docs/launcher_guide.md) and the [Deployment Guide](docs/deployment_guide.md).
 
+## Local Development Setup
+
+For a more controlled setup process, especially for new contributors or clean environments, follow these detailed steps to set up your local development environment:
+
+### Prerequisites
+
+- **Python 3.12+**: Required for the backend services
+- **Node.js 16+**: Required for the frontend (optional if running API-only)
+- **Git**: For cloning the repository
+- **Conda (optional)**: For conda environment management (venv is used by default)
+
+### Step-by-Step Setup
+
+**1. Clone and Navigate**
+```bash
+git clone https://github.com/MasumRab/EmailIntelligence.git
+cd EmailIntelligence
+```
+
+**2. Install Node.js Dependencies**
+```bash
+npm install
+```
+
+**3. Set up Python Environment**
+
+The launcher supports multiple dependency management systems. Choose one:
+
+- **Using uv (default, recommended for speed):**
+  ```bash
+  python launch.py --setup
+  ```
+  This creates a virtual environment in `venv/`, installs Python dependencies from `pyproject.toml`, and downloads NLTK data.
+
+- **Using Poetry:**
+  ```bash
+  python launch.py --setup --use-poetry
+  ```
+
+- **Using Conda:**
+  ```bash
+  python launch.py --setup --use-conda --conda-env emailintelligence
+  ```
+  (Replace `emailintelligence` with your preferred environment name)
+
+**4. Verify Setup**
+```bash
+python launch.py --system-info
+```
+This prints detailed information about your system, Python environment, and project configuration.
+
+**5. Start Development Services**
+```bash
+# Windows
+launch.bat --stage dev
+
+# Linux/macOS
+./launch.sh --stage dev
+
+# Or directly
+python launch.py --stage dev
+```
+
+### Troubleshooting Common Issues
+
+- **Python Version Error**: Ensure Python 3.12+ is installed and in PATH
+- **Node.js Missing**: Install Node.js 16+ from nodejs.org
+- **Permission Errors**: On Linux/macOS, ensure scripts are executable: `chmod +x launch.sh`
+- **Port Conflicts**: Use `--port` and `--frontend-port` to specify different ports
+- **Conda Issues**: If conda is not detected, the launcher falls back to venv
+
+### Testing the Setup
+
+To test your setup in a clean environment:
+1. Create a new directory
+2. Clone the repository fresh
+3. Follow the steps above
+4. Verify services start without errors
+5. Check that http://localhost:5173 loads the frontend
+6. Confirm API endpoints respond at http://localhost:8000/docs
+
+### Development Workflow
+
+After initial setup:
+- Use `python launch.py --stage dev` to start all services
+- Code changes auto-reload in development mode
+- Access frontend at http://localhost:5173
+- API documentation at http://localhost:8000/docs
+- Gradio UI at http://localhost:7860 (if enabled)
+
 ## Documentation
 
 This project includes comprehensive documentation in the `docs/` directory:
@@ -269,11 +359,20 @@ Consult the respective guides in `docs/` for component-specific configurations.
 ## Security Considerations
 
 When deploying or running this application, please consider the following:
-*   **API Authentication:** Implement proper API security for sensitive operations. (Note: Current state might have basic or no auth for some dev routes).
+*   **API Authentication:** JWT-based authentication has been implemented for all sensitive API endpoints. Users must authenticate using the `/api/auth/login` or `/token` endpoints to obtain an access token.
 *   **Secret Management:** Securely manage `GMAIL_CREDENTIALS_JSON` (or `credentials.json`) and `token.json`. Use environment variables or a secret manager. Do not commit secrets to Git.
 *   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
-*   **CORS Policy:** Restrict CORS policy in the FastAPI application for production.
+*   **CORS Policy:** Restrict CORS policy in `backend/python_backend/main.py` for production.
 *   **Input Validation:** Validate and sanitize all user-supplied and external data.
+*   **Security Headers:** The application includes security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, HSTS, CSP) to protect against common web vulnerabilities.
+*   **Error Handling:** Generic error messages are returned to prevent information disclosure.
+*   **Database Security:** SQLite database paths are configurable via environment variables to prevent path traversal attacks.
+*   **Common Pitfalls to Avoid:**
+    - Never hardcode secrets in source code
+    - Always use HTTPS in production
+    - Regularly rotate API keys and tokens
+    - Implement rate limiting for API endpoints
+    - Keep dependencies updated to patch security vulnerabilities
 
 ## Gmail API Integration Setup
 
@@ -281,9 +380,10 @@ To connect to your Gmail account, configure Gmail API access:
 
 1.  **Google Cloud Console:** Enable Gmail API, create OAuth 2.0 Client ID (Desktop app), and download credentials JSON.
 2.  **Provide Credentials:**
-    *   Set `GMAIL_CREDENTIALS_JSON` environment variable (recommended).
-    *   Or, place downloaded JSON as `credentials.json` in project root. (Ensure it's gitignored).
-3.  **One-Time Authorization:** The application will guide you through browser authorization when you first try to access Gmail features, creating `token.json` (or the path specified by `GMAIL_TOKEN_PATH`).
+    *   Set `GMAIL_CREDENTIALS_JSON` environment variable (recommended for production).
+    *   Or, place downloaded JSON as `credentials.json` in the `jsons/` directory (recommended for development). (The `jsons/` directory is gitignored).
+    *   Legacy: Place in project root as `credentials.json` (not recommended).
+3.  **One-Time Authorization:** The application will guide you through browser authorization when you first try to access Gmail features, creating `token.json` in the `jsons/` directory (or the path specified by `GMAIL_TOKEN_PATH`).
 4.  **Scopes Used:** `https://www.googleapis.com/auth/gmail.readonly`.
 
 ## Running the Application
