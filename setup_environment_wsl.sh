@@ -249,15 +249,6 @@ try:
 except Exception as e:
     print(f'Warning: NLTK download failed: {e}')
 
-# Verify sentencepiece installation
-try:
-    import sentencepiece
-    print(f'sentencepiece version: {getattr(sentencepiece, "__version__", "unknown")}')
-except ImportError:
-    # sentencepiece might not have __version__ attribute
-    import sentencepiece as spm
-    print('sentencepiece imported successfully')
-"
 
 # Verify system package versions
 
