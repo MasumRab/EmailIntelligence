@@ -174,25 +174,25 @@ log_success "Virtual environment created and activated"
 
 # Upgrade pip with better error handling
 log_info "⬆️ Upgrading pip..."
-pip install --upgrade pip --quiet
+pip install --upgrade pip --timeout 120
 
 # Install PyTorch CPU with WSL optimizations
 log_info "🧠 Installing PyTorch CPU version (optimized for WSL)..."
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --quiet
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --timeout 300
 
 # Verify PyTorch installation
+log_info "🔍 Verifying PyTorch installation..."
 python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
 
 # Install core packages first (for better dependency resolution)
 log_info "📚 Installing core Python packages..."
-pip install --quiet \
-    pydantic-settings>=2.0.0
+pip install pydantic-settings>=2.0.0 --timeout 120
 
 # Install AI/ML packages
 log_info "🤖 Installing AI/ML packages..."
-pip install --quiet \
-    transformers>=4.40.0 \
-    accelerate>=0.30.0
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install transformers>=4.40.0 accelerate>=0.30.0 --timeout 600
 # Note: sentencepiece installed via system packages
 
 # Install data science packages (remaining pip-only packages)
@@ -218,11 +218,8 @@ print(f'textblob version: {textblob.__version__}')
 
 # Install web and API packages
 log_info "🌐 Installing web and API packages..."
-pip install --quiet \
-    fastapi>=0.100.0 \
-    gradio>=4.0.0 \
-    pyngrok>=0.7.0 \
-    email-validator>=2.2.0
+log_info "   ⏳ This may take a few minutes depending on your internet connection..."
+pip install fastapi>=0.100.0 gradio>=4.0.0 pyngrok>=0.7.0 email-validator>=2.2.0 --timeout 300
 
 # Install Google API packages
 log_info "🔐 Installing Google API packages..."
@@ -231,8 +228,8 @@ sudo apt install -y \
     python3-google-auth \
     python3-google-auth-httplib2 \
     python3-google-auth-oauthlib
-pip install --quiet \
-    google-api-python-client>=2.172.0
+log_info "   ⏳ Installing Google API client (this may take a minute)..."
+pip install google-api-python-client>=2.172.0 --timeout 300
 # Note: google-auth, google-auth-oauthlib installed via system packages
 
 # Verify Google packages versions
@@ -253,10 +250,7 @@ sudo apt install -y \
 
 # Install development tools (remaining pip-only packages)
 log_info "🔧 Installing development tools..."
-pip install --quiet \
-    black>=23.0.0 \
-    pylint>=2.15.0 \
-    fastapi>=0.100.0
+pip install black>=23.0.0 pylint>=2.15.0 fastapi>=0.100.0 --timeout 300
 # Note: flake8, isort, mypy, pytest, pytest-asyncio, plotly, seaborn installed via system packages
 
 # Download NLTK data with error handling

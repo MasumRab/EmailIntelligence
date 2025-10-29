@@ -123,16 +123,21 @@ python3 -m venv --system-site-packages "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 # Upgrade pip in virtual environment
-pip install --upgrade pip --quiet
+log_info "⬆️ Upgrading pip..."
+pip install --upgrade pip --timeout 120
 
 # Install packages that are not available in Ubuntu system repos
 log_info "🤖 Installing specialized AI/ML packages (pip only)..."
 
 # PyTorch CPU (not available in Ubuntu repos)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --quiet
+log_info "🧠 Installing PyTorch CPU version..."
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --timeout 300
 
 # Hugging Face ecosystem
-pip install transformers accelerate --quiet
+log_info "🤖 Installing AI/ML packages..."
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install transformers accelerate --timeout 600
 # Note: sentencepiece installed via system packages
 
 # NLP packages
@@ -145,7 +150,9 @@ pip install textblob --quiet
 sudo apt install -y \
     python3-plotly \
     python3-seaborn
-pip install gradio pyngrok fastapi --quiet
+log_info "🌐 Installing web and API packages..."
+log_info "   ⏳ This may take a few minutes depending on your internet connection..."
+pip install gradio pyngrok fastapi --timeout 300
 # Note: plotly, seaborn, email-validator installed via system packages
 
 # Google API packages
@@ -154,11 +161,13 @@ sudo apt install -y \
     python3-google-auth \
     python3-google-auth-httplib2 \
     python3-google-auth-oauthlib
-pip install google-api-python-client --quiet
+log_info "🔐 Installing Google API client..."
+log_info "   ⏳ This may take a minute..."
+pip install google-api-python-client --timeout 300
 # Note: google-auth, google-auth-oauthlib installed via system packages
 
 # Security and specialized packages
-pip install pydantic-settings --quiet
+pip install pydantic-settings --timeout 120
 # Note: RestrictedPython, aiosqlite installed via system packages
 
 # Verify system package versions
