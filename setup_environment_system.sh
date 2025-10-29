@@ -119,7 +119,7 @@ if [[ -d "$VENV_DIR" ]]; then
     rm -rf "$VENV_DIR"
 fi
 
-python3 -m venv "$VENV_DIR"
+python3 -m venv --system-site-packages "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 # Upgrade pip in virtual environment
