@@ -124,7 +124,7 @@ source "$VENV_DIR/bin/activate"
 
 # Upgrade pip in virtual environment
 log_info "⬆️ Upgrading pip..."
-pip install --upgrade pip --timeout 120
+pip install --upgrade pip --timeout 120 --quiet
 
 # Install packages that are not available in Ubuntu system repos
 log_info "🤖 Installing specialized AI/ML packages (pip only)..."
@@ -132,12 +132,12 @@ log_info "🤖 Installing specialized AI/ML packages (pip only)..."
 # PyTorch CPU (not available in Ubuntu repos)
 log_info "🧠 Installing PyTorch CPU version..."
 log_info "   ⏳ This may take several minutes depending on your internet connection..."
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --timeout 300
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --timeout 300 --quiet
 
 # Hugging Face ecosystem
 log_info "🤖 Installing AI/ML packages..."
 log_info "   ⏳ This may take several minutes depending on your internet connection..."
-pip install transformers accelerate --timeout 600
+pip install transformers accelerate --timeout 600 --quiet
 # Note: sentencepiece installed via system packages
 
 # NLP packages
@@ -152,7 +152,7 @@ sudo apt install -y \
     python3-seaborn
 log_info "🌐 Installing web and API packages..."
 log_info "   ⏳ This may take a few minutes depending on your internet connection..."
-pip install gradio pyngrok fastapi --timeout 300
+pip install gradio pyngrok fastapi --timeout 300 --quiet
 # Note: plotly, seaborn, email-validator installed via system packages
 
 # Google API packages
@@ -163,11 +163,11 @@ sudo apt install -y \
     python3-google-auth-oauthlib
 log_info "🔐 Installing Google API client..."
 log_info "   ⏳ This may take a minute..."
-pip install google-api-python-client --timeout 300
+pip install google-api-python-client --timeout 300 --quiet
 # Note: google-auth, google-auth-oauthlib installed via system packages
 
 # Security and specialized packages
-pip install pydantic-settings --timeout 120
+pip install pydantic-settings --timeout 120 --quiet
 # Note: RestrictedPython, aiosqlite installed via system packages
 
 # Verify system package versions
