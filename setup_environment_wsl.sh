@@ -161,7 +161,7 @@ if [[ -d "$VENV_DIR" ]]; then
     rm -rf "$VENV_DIR"
 fi
 
-$PYTHON_CMD -m venv "$VENV_DIR"
+$PYTHON_CMD -m venv --system-site-packages "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 # Verify virtual environment
