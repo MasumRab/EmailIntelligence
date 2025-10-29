@@ -183,22 +183,6 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 # Verify PyTorch installation
 python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
 
-# Verify system package versions
-log_info "🔍 Verifying system package versions..."
-python -c "
-import nltk
-import plotly
-import seaborn
-import email_validator
-import aiosqlite
-import RestrictedPython
-print(f'nltk version: {nltk.__version__}')
-print(f'plotly version: {plotly.__version__}')
-print(f'seaborn version: {seaborn.__version__}')
-print(f'aiosqlite version: {aiosqlite.__version__}')
-print(f'RestrictedPython version: {RestrictedPython.__version__ if hasattr(RestrictedPython, \"__version__\") else \"unknown\"}')
-"
-
 # Install core packages first (for better dependency resolution)
 log_info "📚 Installing core Python packages..."
 pip install --quiet \
@@ -297,6 +281,22 @@ except ImportError:
     # sentencepiece might not have __version__ attribute
     import sentencepiece as spm
     print('sentencepiece imported successfully')
+"
+
+# Verify system package versions
+log_info "🔍 Verifying system package versions..."
+python -c "
+import nltk
+import plotly
+import seaborn
+import email_validator
+import aiosqlite
+import RestrictedPython
+print(f'nltk version: {nltk.__version__}')
+print(f'plotly version: {plotly.__version__}')
+print(f'seaborn version: {seaborn.__version__}')
+print(f'aiosqlite version: {aiosqlite.__version__}')
+print(f'RestrictedPython version: {RestrictedPython.__version__ if hasattr(RestrictedPython, \"__version__\") else \"unknown\"}')
 "
 
 # Create activation script for future use
