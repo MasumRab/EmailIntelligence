@@ -179,11 +179,11 @@ import seaborn
 import email_validator
 import aiosqlite
 import RestrictedPython
-print(f'nltk version: {nltk.__version__}')
-print(f'plotly version: {plotly.__version__}')
-print(f'seaborn version: {seaborn.__version__}')
-print(f'aiosqlite version: {aiosqlite.__version__}')
-print(f'RestrictedPython version: {RestrictedPython.__version__ if hasattr(RestrictedPython, \"__version__\") else \"unknown\"}')
+print(f'nltk version: {getattr(nltk, "__version__", "unknown")}')
+print(f'plotly version: {getattr(plotly, "__version__", "unknown")}')
+print(f'seaborn version: {getattr(seaborn, "__version__", "unknown")}')
+print(f'aiosqlite version: {getattr(aiosqlite, "__version__", "unknown")}')
+print(f'RestrictedPython version: {getattr(RestrictedPython, "__version__", "unknown")}')
 "
 
 # Download NLTK data
@@ -203,7 +203,7 @@ except Exception as e:
 # Verify sentencepiece installation
 try:
     import sentencepiece
-    print(f'sentencepiece version: {sentencepiece.__version__}')
+    print(f'sentencepiece version: {getattr(sentencepiece, "__version__", "unknown")}')
 except ImportError:
     # sentencepiece might not have __version__ attribute
     import sentencepiece as spm
