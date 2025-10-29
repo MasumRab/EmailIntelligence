@@ -57,7 +57,20 @@ class SecurityManager:
         self._api_call_counts = {}
 
     # TODO(P1, 3h): Implement comprehensive security policies with RBAC support
+    # Pseudo code for RBAC security policies:
+    # - Create Role-Based Access Control system
+    # - Define roles: admin, user, guest with different permissions
+    # - Implement permission checking for node execution
+    # - Add user context to security validation
+    # - Support role hierarchies and permission inheritance
+
     # TODO(P1, 4h): Add rate limiting for different user roles and node types
+    # Pseudo code for rate limiting:
+    # - Implement token bucket or sliding window algorithms
+    # - Different limits for different user roles (admin: 1000/min, user: 100/min)
+    # - Per-node-type rate limiting (expensive nodes: lower limits)
+    # - Add rate limit headers to responses
+    # - Implement rate limit bypass for trusted operations
 
     def register_trusted_node_type(self, node_type: str):
         """Register a node type as trusted."""
@@ -82,7 +95,20 @@ class SecurityManager:
         return True
 
     # TODO(P1, 5h): Implement comprehensive node validation with static analysis of config parameters
+    # Pseudo code for static analysis validation:
+    # - Parse config parameters for potentially dangerous patterns
+    # - Check for SQL injection, XSS, command injection vulnerabilities
+    # - Validate URLs, file paths, and external service calls
+    # - Implement AST analysis for code/script parameters
+    # - Add whitelist/blacklist validation for allowed operations
+
     # TODO(P2, 3h): Add support for dynamic security policies based on user context
+    # Pseudo code for dynamic security policies:
+    # - Load security policies based on user identity and context
+    # - Support time-based policies (different rules during business hours)
+    # - Implement location-based restrictions
+    # - Add session-based security levels
+    # - Support emergency override policies for critical operations
 
     def check_api_call_limit(self, workflow_id: str, node_id: str) -> bool:
         """Check if API call limits are exceeded."""
@@ -162,7 +188,20 @@ class InputSanitizer:
         return sanitized
 
     # TODO(P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
+    # Pseudo code for additional content type sanitization:
+    # - Add Markdown sanitization with allowed elements (headers, links, lists)
+    # - Implement CSV sanitization to prevent formula injection
+    # - Add XML sanitization with schema validation
+    # - Support YAML sanitization with type safety checks
+    # - Implement binary data sanitization for file uploads
+
     # TODO(P2, 2h): Add configurable sanitization policies based on security levels
+    # Pseudo code for configurable sanitization policies:
+    # - Create SanitizationPolicy class with different security levels
+    # - Level 1 (Strict): Minimal allowed content, maximum security
+    # - Level 2 (Standard): Balanced security and functionality
+    # - Level 3 (Permissive): Maximum functionality, reduced security
+    # - Allow per-user or per-operation policy selection
 
     @staticmethod
     def sanitize_json(value: str) -> Dict[str, Any]:
