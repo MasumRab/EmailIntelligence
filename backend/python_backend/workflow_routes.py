@@ -67,9 +67,7 @@ async def list_workflows(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Lists all available workflows (both legacy and node-based).
-    
-    Requires authentication.
-    """
+    Requires authentication."""
     try:
         # Get legacy workflows
         legacy_workflows = (
@@ -111,9 +109,7 @@ async def create_workflow(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Creates and persists a new workflow (either legacy or node-based).
-    
-    Requires authentication.
-    """
+    Requires authentication."""
     try:
         if workflow_data.workflow_type == "node_based":
             # Handle node-based workflow creation
@@ -187,9 +183,7 @@ async def get_active_workflow(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Gets information about the currently active workflow.
-    
-    Requires authentication.
-    """
+    Requires authentication."""
     result = {}
 
     # Check for active legacy workflow
