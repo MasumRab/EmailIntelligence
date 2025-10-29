@@ -123,16 +123,21 @@ python3 -m venv --system-site-packages "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 # Upgrade pip in virtual environment
-pip install --upgrade pip --quiet
+log_info "⬆️ Upgrading pip..."
+pip install --upgrade pip --timeout 120 --quiet
 
 # Install packages that are not available in Ubuntu system repos
 log_info "🤖 Installing specialized AI/ML packages (pip only)..."
 
 # PyTorch CPU (not available in Ubuntu repos)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --quiet
+log_info "🧠 Installing PyTorch CPU version..."
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --timeout 300 --quiet
 
 # Hugging Face ecosystem
-pip install transformers accelerate --quiet
+log_info "🤖 Installing AI/ML packages..."
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install transformers accelerate --timeout 600 --quiet
 # Note: sentencepiece installed via system packages
 
 # NLP packages
@@ -145,7 +150,9 @@ pip install textblob --quiet
 sudo apt install -y \
     python3-plotly \
     python3-seaborn
-pip install gradio pyngrok fastapi --quiet
+log_info "🌐 Installing web and API packages..."
+log_info "   ⏳ This may take a few minutes depending on your internet connection..."
+pip install gradio pyngrok fastapi --timeout 300 --quiet
 # Note: plotly, seaborn, email-validator installed via system packages
 
 # Google API packages
@@ -154,28 +161,16 @@ sudo apt install -y \
     python3-google-auth \
     python3-google-auth-httplib2 \
     python3-google-auth-oauthlib
-pip install google-api-python-client --quiet
+log_info "🔐 Installing Google API client..."
+log_info "   ⏳ This may take a minute..."
+pip install google-api-python-client --timeout 300 --quiet
 # Note: google-auth, google-auth-oauthlib installed via system packages
 
 # Security and specialized packages
-pip install pydantic-settings --quiet
+pip install pydantic-settings --timeout 120 --quiet
 # Note: RestrictedPython, aiosqlite installed via system packages
 
 # Verify system package versions
-log_info "🔍 Verifying system package versions..."
-python -c "
-import nltk
-import plotly
-import seaborn
-import email_validator
-import aiosqlite
-import RestrictedPython
-print(f'nltk version: {nltk.__version__}')
-print(f'plotly version: {plotly.__version__}')
-print(f'seaborn version: {seaborn.__version__}')
-print(f'aiosqlite version: {aiosqlite.__version__}')
-print(f'RestrictedPython version: {RestrictedPython.__version__ if hasattr(RestrictedPython, \"__version__\") else \"unknown\"}')
-"
 
 # Download NLTK data
 log_info "📖 Downloading NLTK data..."
@@ -194,7 +189,7 @@ except Exception as e:
 # Verify sentencepiece installation
 try:
     import sentencepiece
-    print(f'sentencepiece version: {sentencepiece.__version__}')
+    print(f'sentencepiece version: {getattr(sentencepiece, "__version__", "unknown")}')
 except ImportError:
     # sentencepiece might not have __version__ attribute
     import sentencepiece as spm
@@ -231,12 +226,12 @@ import sys
 print(f'System Python: {sys.version}')
 try:
     import torch
-    print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()})')
+    print(f'PyTorch: {getattr(torch, "__version__", "unknown")} (CUDA: {torch.cuda.is_available()})')
 except ImportError:
     print('PyTorch: Not available')
 try:
     import numpy
-    print(f'NumPy: {numpy.__version__}')
+    print(f'NumPy: {getattr(numpy, "__version__", "unknown")}')
 except ImportError:
     print('NumPy: Not available')
 "
@@ -273,6 +268,37 @@ try:
     print('✅ Transformers (venv) import test passed')
 except ImportError as e:
     print(f'❌ Transformers import failed: {e}')
+"
+
+# Final compatibility check
+# Verification checks for installed packages
+log_info "🔍 Verifying installed packages..."
+
+# Verify system package versions
+python -c "
+import nltk
+import plotly
+import seaborn
+import email_validator
+import aiosqlite
+import RestrictedPython
+print(f'nltk version: {getattr(nltk, \"__version__\", \"unknown\")}')
+print(f'plotly version: {getattr(plotly, \"__version__\", \"unknown\")}')
+print(f'seaborn version: {getattr(seaborn, \"__version__\", \"unknown\")}')
+print(f'aiosqlite version: {getattr(aiosqlite, \"__version__\", \"unknown\")}')
+print(f'RestrictedPython version: {getattr(RestrictedPython, \"__version__\", \"unknown\")}')
+print(f'email_validator version: {getattr(email_validator, \"__version__\", \"unknown\")}')
+"
+
+# Verify sentencepiece installation
+python -c "
+try:
+    import sentencepiece
+    print(f'sentencepiece version: {getattr(sentencepiece, \"__version__\", \"unknown\")}')
+except ImportError:
+    # sentencepiece might not have __version__ attribute
+    import sentencepiece as spm
+    print('sentencepiece imported successfully')
 "
 
 # Final compatibility check
