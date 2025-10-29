@@ -183,7 +183,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 # Verify PyTorch installation
 log_info "🔍 Verifying PyTorch installation..."
-python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
+python -c "import torch; print(f'PyTorch version: {getattr(torch, \"__version__\", \"unknown\")}'); print(f'CUDA available: {torch.cuda.is_available()}')"
 
 # Install core packages first (for better dependency resolution)
 log_info "📚 Installing core Python packages..."
@@ -212,7 +212,7 @@ log_info "🔍 Verifying NLP package versions..."
 python -c "
 import nltk
 import textblob
-print(f'nltk version: {nltk.__version__}')
+print(f'nltk version: {getattr(nltk, "__version__", "unknown")}')
 print(f'textblob version: {getattr(textblob, "__version__", "unknown")}')
 "
 
@@ -270,7 +270,7 @@ except Exception as e:
 # Verify sentencepiece installation
 try:
     import sentencepiece
-    print(f'sentencepiece version: {sentencepiece.__version__}')
+    print(f'sentencepiece version: {getattr(sentencepiece, "__version__", "unknown")}')
 except ImportError:
     # sentencepiece might not have __version__ attribute
     import sentencepiece as spm
@@ -326,7 +326,7 @@ import sys
 print(f'Python: {sys.version}')
 try:
     import torch
-    print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()})')
+    print(f'PyTorch: {getattr(torch, "__version__", "unknown")} (CUDA: {torch.cuda.is_available()})')
 except ImportError:
     print('PyTorch: Not available')
 "

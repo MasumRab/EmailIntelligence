@@ -240,12 +240,12 @@ import sys
 print(f'System Python: {sys.version}')
 try:
     import torch
-    print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()})')
+    print(f'PyTorch: {getattr(torch, "__version__", "unknown")} (CUDA: {torch.cuda.is_available()})')
 except ImportError:
     print('PyTorch: Not available')
 try:
     import numpy
-    print(f'NumPy: {numpy.__version__}')
+    print(f'NumPy: {getattr(numpy, "__version__", "unknown")}')
 except ImportError:
     print('NumPy: Not available')
 "
