@@ -3,9 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from .dependencies import get_ai_engine, get_db
 from .database import DatabaseManager
-from . import models
 from .models import AIAnalysisRequest, AIAnalysisResponse, AICategorizeRequest, AICategorizeResponse, EmailResponse, AIValidateRequest, AIValidateResponse
-from .ai_engine import AdvancedAIEngine
 from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
@@ -20,7 +18,6 @@ async def analyze_email(
 ):
     """
     Analyzes email content and returns AI-driven insights.
-    
     Requires authentication.
     """
     try:
@@ -48,7 +45,6 @@ async def categorize_email(
 ):
     """
     Categorizes an email, either automatically using AI or manually.
-    
     Requires authentication.
     """
     email = await db.get_email_by_id(request.emailId)
@@ -117,7 +113,6 @@ async def validate_analysis(
 ):
     """
     Validates AI analysis based on user feedback.
-    
     Requires authentication.
     """
     logger.info(f"Received validation feedback for email {request.emailId}: {request.userFeedback}")
