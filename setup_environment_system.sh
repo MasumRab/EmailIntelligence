@@ -171,20 +171,6 @@ pip install pydantic-settings --timeout 120 --quiet
 # Note: RestrictedPython, aiosqlite installed via system packages
 
 # Verify system package versions
-log_info "🔍 Verifying system package versions..."
-python -c "
-import nltk
-import plotly
-import seaborn
-import email_validator
-import aiosqlite
-import RestrictedPython
-print(f'nltk version: {getattr(nltk, "__version__", "unknown")}')
-print(f'plotly version: {getattr(plotly, "__version__", "unknown")}')
-print(f'seaborn version: {getattr(seaborn, "__version__", "unknown")}')
-print(f'aiosqlite version: {getattr(aiosqlite, "__version__", "unknown")}')
-print(f'RestrictedPython version: {getattr(RestrictedPython, "__version__", "unknown")}')
-"
 
 # Download NLTK data
 log_info "📖 Downloading NLTK data..."
