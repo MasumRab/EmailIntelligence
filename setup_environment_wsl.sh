@@ -97,8 +97,9 @@ sudo apt install -y \
     python3-pandas \
     python3-seaborn \
     python3-plotly \
-    python3-scikit-learn \
-    python3-joblib
+    python3-sklearn \
+    python3-joblib \
+    python3-sentencepiece
 
 # Graphics and imaging libraries
 sudo apt install -y \
@@ -114,7 +115,6 @@ sudo apt install -y \
 
 # Web framework and utilities (system packages)
 sudo apt install -y \
-    python3-fastapi \
     python3-uvicorn \
     python3-pydantic \
     python3-multipart \
@@ -123,17 +123,18 @@ sudo apt install -y \
     python3-bleach \
     python3-psutil \
     python3-plotly \
-    python3-seaborn
+    python3-seaborn \
+    python3-email-validator
+# Note: python3-fastapi installed via pip
 
 # Development tools (system packages)
 sudo apt install -y \
-    python3-black \
     python3-flake8 \
     python3-isort \
     python3-mypy \
-    python3-pylint \
     python3-pytest \
     python3-pytest-asyncio
+# Note: python3-black, python3-pylint installed via pip
 
 # Additional WSL-specific packages
 sudo apt install -y \
@@ -160,7 +161,7 @@ if [[ -d "$VENV_DIR" ]]; then
     rm -rf "$VENV_DIR"
 fi
 
-$PYTHON_CMD -m venv "$VENV_DIR"
+$PYTHON_CMD -m venv --system-site-packages "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 # Verify virtual environment
@@ -173,60 +174,66 @@ log_success "Virtual environment created and activated"
 
 # Upgrade pip with better error handling
 log_info "⬆️ Upgrading pip..."
-pip install --upgrade pip --quiet
+pip install --upgrade pip --timeout 120
 
 # Install PyTorch CPU with WSL optimizations
 log_info "🧠 Installing PyTorch CPU version (optimized for WSL)..."
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --quiet
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --timeout 300 --quiet
 
-# Verify PyTorch installation
-python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
+
 
 # Install core packages first (for better dependency resolution)
 log_info "📚 Installing core Python packages..."
-pip install --quiet \
-    pydantic-settings>=2.0.0
+pip install pydantic-settings>=2.0.0 --timeout 120 --quiet
 
 # Install AI/ML packages
 log_info "🤖 Installing AI/ML packages..."
-pip install --quiet \
-    transformers>=4.40.0 \
-    accelerate>=0.30.0 \
-    sentencepiece>=0.2.0
+log_info "   ⏳ This may take several minutes depending on your internet connection..."
+pip install transformers>=4.40.0 accelerate>=0.30.0 --timeout 600 --quiet
+# Note: sentencepiece installed via system packages
 
 # Install data science packages (remaining pip-only packages)
 log_info "📊 Installing data science packages..."
-# Note: pandas, numpy, matplotlib, seaborn, scipy, plotly installed via system packages
+# Note: pandas, numpy, matplotlib, scipy, plotly, seaborn installed via system packages
 
 # Install NLP packages
 log_info "📖 Installing NLP packages..."
+sudo apt install -y \
+    python3-nltk
 pip install --quiet \
-    nltk>=3.9.1 \
     textblob>=0.19.0
+# Note: nltk installed via system packages
+
 
 # Install web and API packages
 log_info "🌐 Installing web and API packages..."
-pip install --quiet \
-    gradio>=4.0.0 \
-    pyngrok>=0.7.0 \
-    email-validator>=2.2.0
+log_info "   ⏳ This may take a few minutes depending on your internet connection..."
+pip install fastapi>=0.100.0 gradio>=4.0.0 pyngrok>=0.7.0 email-validator>=2.2.0 --timeout 300 --quiet
 
 # Install Google API packages
 log_info "🔐 Installing Google API packages..."
-pip install --quiet \
-    google-api-python-client>=2.172.0 \
-    google-auth>=2.40.3 \
-    google-auth-oauthlib>=1.2.2
+sudo apt install -y \
+    python3-googleapi \
+    python3-google-auth \
+    python3-google-auth-httplib2 \
+    python3-google-auth-oauthlib
+log_info "   ⏳ Installing Google API client (this may take a minute)..."
+pip install google-api-python-client>=2.172.0 --timeout 300 --quiet
+# Note: google-auth, google-auth-oauthlib installed via system packages
+
 
 # Install utility packages (remaining pip-only packages)
 log_info "🛠️ Installing utility packages..."
-pip install --quiet \
-    aiosqlite>=0.19.0 \
-    RestrictedPython>=8.0
+sudo apt install -y \
+    python3-aiosqlite \
+    python3-restrictedpython
+# Note: aiosqlite, RestrictedPython installed via system packages
 
 # Install development tools (remaining pip-only packages)
 log_info "🔧 Installing development tools..."
-# Note: black, flake8, isort, mypy, pylint, pytest, pytest-asyncio installed via system packages
+pip install black>=23.0.0 pylint>=2.15.0 fastapi>=0.100.0 --timeout 300 --quiet
+# Note: flake8, isort, mypy, pytest, pytest-asyncio, plotly, seaborn installed via system packages
 
 # Download NLTK data with error handling
 log_info "📖 Downloading NLTK data..."
@@ -241,7 +248,9 @@ try:
     print('NLTK data downloaded successfully')
 except Exception as e:
     print(f'Warning: NLTK download failed: {e}')
-"
+
+
+# Verify system package versions
 
 # Create activation script for future use
 cat > activate_env.sh << 'ACTIVATE_EOF'
@@ -276,7 +285,7 @@ import sys
 print(f'Python: {sys.version}')
 try:
     import torch
-    print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()})')
+    print(f'PyTorch: {getattr(torch, "__version__", "unknown")} (CUDA: {torch.cuda.is_available()})')
 except ImportError:
     print('PyTorch: Not available')
 "
@@ -337,6 +346,144 @@ try:
 except ImportError as e:
     print(f'❌ Transformers import failed: {e}')
     sys.exit(1)
+"
+
+# Verification checks for installed packages
+log_info "🔍 Verifying installed packages..."
+# Verify PyTorch installation
+python -c "import torch; print(f'PyTorch version: {getattr(torch, \"__version__\", \"unknown\")}'); print(f'CUDA available: {torch.cuda.is_available()}')"
+
+# Verify NLP package versions
+python -c "
+import nltk
+import textblob
+print(f'nltk version: {getattr(nltk, \"__version__\", \"unknown\")}')
+print(f'textblob version: {getattr(textblob, \"__version__\", \"unknown\")}')
+"
+
+# Verify Google packages versions
+python -c "
+import google.auth
+import google.auth.transport.requests
+import google.oauth2.credentials
+print(f'google-auth version: {getattr(google.auth, \"__version__\", \"unknown\")}')
+"
+
+# Verify system package versions
+python -c "
+import plotly
+import seaborn
+import email_validator
+import aiosqlite
+import RestrictedPython
+print(f'plotly version: {getattr(plotly, \"__version__\", \"unknown\")}')
+print(f'seaborn version: {getattr(seaborn, \"__version__\", \"unknown\")}')
+print(f'aiosqlite version: {getattr(aiosqlite, \"__version__\", \"unknown\")}')
+print(f'RestrictedPython version: {getattr(RestrictedPython, \"__version__\", \"unknown\")}')
+print(f'email_validator version: {getattr(email_validator, \"__version__\", \"unknown\")}')
+"
+
+# Verify sentencepiece installation
+python -c "
+try:
+    import sentencepiece
+    print(f'sentencepiece version: {getattr(sentencepiece, \"__version__\", \"unknown\")}')
+except ImportError:
+    # sentencepiece might not have __version__ attribute
+    import sentencepiece as spm
+    print('sentencepiece imported successfully')
+"
+
+# Final compatibility check
+log_info "🔍 Running final compatibility check..."
+python -c "
+import sys
+success = True
+
+# Check core packages
+try:
+    import torch
+    print('✅ PyTorch import: OK')
+except ImportError:
+    print('❌ PyTorch import: FAILED')
+    success = False
+
+try:
+    import fastapi
+    print('✅ FastAPI import: OK')
+except ImportError:
+    print('❌ FastAPI import: FAILED')
+    success = False
+
+try:
+    import transformers
+    print('✅ Transformers import: OK')
+except ImportError:
+    print('❌ Transformers import: FAILED')
+    success = False
+
+# Check system packages
+try:
+    import nltk
+    print('✅ NLTK import: OK')
+except ImportError:
+    print('❌ NLTK import: FAILED')
+    success = False
+
+try:
+    import plotly
+    print('✅ Plotly import: OK')
+except ImportError:
+    print('❌ Plotly import: FAILED')
+    success = False
+
+try:
+    import seaborn
+    print('✅ Seaborn import: OK')
+except ImportError:
+    print('❌ Seaborn import: FAILED')
+    success = False
+
+try:
+    import aiosqlite
+    print('✅ Aiosqlite import: OK')
+except ImportError:
+    print('❌ Aiosqlite import: FAILED')
+    success = False
+
+try:
+    import RestrictedPython
+    print('✅ RestrictedPython import: OK')
+except ImportError:
+    print('❌ RestrictedPython import: FAILED')
+    success = False
+
+try:
+    import sentencepiece
+    print('✅ SentencePiece import: OK')
+except ImportError:
+    print('❌ SentencePiece import: FAILED')
+    success = False
+
+try:
+    import google.auth
+    print('✅ Google Auth import: OK')
+except ImportError:
+    print('❌ Google Auth import: FAILED')
+    success = False
+
+try:
+    import email_validator
+    print('✅ Email Validator import: OK')
+except ImportError:
+    print('❌ Email Validator import: FAILED')
+    success = False
+
+if not success:
+    print('⚠️  Some packages failed to import, check installation logs.')
+    sys.exit(1)
+else:
+    print('✅ All packages imported successfully!')
 "
 
 log_success "🎉 Environment setup complete!"
