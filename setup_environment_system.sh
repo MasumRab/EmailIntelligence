@@ -285,6 +285,37 @@ except ImportError as e:
 "
 
 # Final compatibility check
+# Verification checks for installed packages
+log_info "🔍 Verifying installed packages..."
+
+# Verify system package versions
+python -c "
+import nltk
+import plotly
+import seaborn
+import email_validator
+import aiosqlite
+import RestrictedPython
+print(f'nltk version: {getattr(nltk, \"__version__\", \"unknown\")}')
+print(f'plotly version: {getattr(plotly, \"__version__\", \"unknown\")}')
+print(f'seaborn version: {getattr(seaborn, \"__version__\", \"unknown\")}')
+print(f'aiosqlite version: {getattr(aiosqlite, \"__version__\", \"unknown\")}')
+print(f'RestrictedPython version: {getattr(RestrictedPython, \"__version__\", \"unknown\")}')
+print(f'email_validator version: {getattr(email_validator, \"__version__\", \"unknown\")}')
+"
+
+# Verify sentencepiece installation
+python -c "
+try:
+    import sentencepiece
+    print(f'sentencepiece version: {getattr(sentencepiece, \"__version__\", \"unknown\")}')
+except ImportError:
+    # sentencepiece might not have __version__ attribute
+    import sentencepiece as spm
+    print('sentencepiece imported successfully')
+"
+
+# Final compatibility check
 log_info "🔍 Running final compatibility check..."
 python -c "
 import sys
