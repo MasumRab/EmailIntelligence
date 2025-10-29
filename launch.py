@@ -62,8 +62,6 @@ def check_for_merge_conflicts() -> bool:
         "backend/python_nlp/ai_training.py",
         "README.md",
         "pyproject.toml",
-        "requirements.txt",
-        "requirements-dev.txt",
     ]
 
     conflicts_found = False
@@ -100,13 +98,13 @@ def check_required_components() -> bool:
         issues.append(f"Python version {current_version} is not compatible. Required: 3.11-3.13")
 
     # Check key directories
-    required_dirs = ["backend", "client", "server", "shared", "tests"]
+    required_dirs = ["backend", "client", "shared", "tests"]
     for dir_name in required_dirs:
         if not (ROOT_DIR / dir_name).exists():
             issues.append(f"Required directory '{dir_name}' is missing.")
 
     # Check key files
-    required_files = ["pyproject.toml", "README.md", "requirements.txt"]
+    required_files = ["pyproject.toml", "README.md"]
     for file_name in required_files:
         if not (ROOT_DIR / file_name).exists():
             issues.append(f"Required file '{file_name}' is missing.")
