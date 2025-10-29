@@ -205,14 +205,6 @@ pip install --quiet \
     textblob>=0.19.0
 # Note: nltk installed via system packages
 
-# Verify NLP package versions
-log_info "🔍 Verifying NLP package versions..."
-python -c "
-import nltk
-import textblob
-print(f'nltk version: {getattr(nltk, "__version__", "unknown")}')
-print(f'textblob version: {getattr(textblob, "__version__", "unknown")}')
-"
 
 # Install web and API packages
 log_info "🌐 Installing web and API packages..."
@@ -230,14 +222,6 @@ log_info "   ⏳ Installing Google API client (this may take a minute)..."
 pip install google-api-python-client>=2.172.0 --timeout 300 --quiet
 # Note: google-auth, google-auth-oauthlib installed via system packages
 
-# Verify Google packages versions
-log_info "🔍 Verifying Google packages versions..."
-python -c "
-import google.auth
-import google.auth.transport.requests
-import google.oauth2.credentials
-print(f'google-auth version: {getattr(google.auth, \"__version__\", \"unknown\")}')
-"
 
 # Install utility packages (remaining pip-only packages)
 log_info "🛠️ Installing utility packages..."
@@ -276,20 +260,6 @@ except ImportError:
 "
 
 # Verify system package versions
-log_info "🔍 Verifying system package versions..."
-python -c "
-import nltk
-import plotly
-import seaborn
-import email_validator
-import aiosqlite
-import RestrictedPython
-print(f'nltk version: {getattr(nltk, "__version__", "unknown")}')
-print(f'plotly version: {getattr(plotly, "__version__", "unknown")}')
-print(f'seaborn version: {getattr(seaborn, "__version__", "unknown")}')
-print(f'aiosqlite version: {getattr(aiosqlite, "__version__", "unknown")}')
-print(f'RestrictedPython version: {getattr(RestrictedPython, "__version__", "unknown")}')
-"
 
 # Create activation script for future use
 cat > activate_env.sh << 'ACTIVATE_EOF'
@@ -410,6 +380,8 @@ print(f'google-auth version: {getattr(google.auth, \"__version__\", \"unknown\")
 
 # Verify system package versions
 python -c "
+import plotly
+import seaborn
 import email_validator
 import aiosqlite
 import RestrictedPython
