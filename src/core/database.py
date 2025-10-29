@@ -12,9 +12,11 @@ from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
 
-from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
-from .data_source import DataSource
-from backend.python_backend.performance_monitor import log_performance
+# NOTE: These dependencies will be moved to the core framework as well.
+# For now, we are assuming they will be available in the new location.
+from .performance_monitor import log_performance
+from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from .data.data_source import DataSource
 
 logger = logging.getLogger(__name__)
 
@@ -636,3 +638,42 @@ async def get_db() -> DatabaseManager:
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
+
+    async def add_tags(self, email_id: int, tags: List[str]) -> bool:
+        """Adds tags to an email."""
+        email = await self.get_email_by_id(email_id)
+        if not email:
+            return False
+
+        existing_tags = email.get("tags", [])
+        new_tags = list(set(existing_tags + tags))
+
+        updated_email = await self.update_email(email_id, {"tags": new_tags})
+        return updated_email is not None
+
+    async def remove_tags(self, email_id: int, tags: List[str]) -> bool:
+        """Removes tags from an email."""
+        email = await self.get_email_by_id(email_id)
+        if not email:
+            return False
+
+        existing_tags = email.get("tags", [])
+        updated_tags = [tag for tag in existing_tags if tag not in tags]
+
+        updated_email = await self.update_email(email_id, {"tags": updated_tags})
+        return updated_email is not None
+
+
+# Singleton instance
+_db_manager_instance = None
+
+
+async def get_db() -> DatabaseManager:
+    """
+    Provides the singleton instance of the DatabaseManager.
+    """
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        _db_manager_instance = DatabaseManager()
+        await _db_manager_instance._ensure_initialized()
+    return _db_manager_instance
