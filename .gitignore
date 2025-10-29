@@ -13,6 +13,10 @@ venv/
 *.env
 !.env.example
 
+# Python dependency management
+poetry.lock
+poetry.toml
+
 # Credentials and sensitive data
 token.json
 credentials.json
@@ -76,3 +80,5 @@ __pycache__/
 diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
+models/*.pkl
+emailintelligence_env/
