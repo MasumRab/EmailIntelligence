@@ -77,8 +77,8 @@ def check_package_availability():
     print("\n" + "=" * 80)
     print(f"📊 Summary: {len(system_available)} system, {len(venv_available)} venv, {len(not_available)} missing")
 
-    # Check virtual environment (try both possible names)
-    venv_names = ['./emailintelligence_env', './emailintelligence_venv', './venv']
+    # Check virtual environment (try standard names)
+    venv_names = ['./venv', './emailintelligence_env', './emailintelligence_venv']
     venv_found = False
 
     for venv_name in venv_names:
