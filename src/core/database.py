@@ -26,7 +26,18 @@ CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
 
 # TODO(P1, 6h): Refactor global state management to use dependency injection
+# Pseudo code for dependency injection:
+# - Create a DatabaseConfig class to hold configuration (data_dir, file_paths, etc.)
+# - Modify DatabaseManager.__init__ to accept DatabaseConfig instance
+# - Update get_db() to be a factory function that takes config and returns initialized instance
+# - In FastAPI app, create config from env vars and inject via Depends(get_db_factory(config))
+# - Remove global _db_manager_instance and _db_init_lock
 # TODO(P2, 4h): Make data directory configurable via environment variables or settings
+# Pseudo code for configurable data directory:
+# - Add DATA_DIR environment variable support: os.getenv('DATA_DIR', 'data')
+# - Update DatabaseConfig to accept data_dir parameter
+# - Modify file path construction to use config.data_dir
+# - Add validation to ensure directory exists or can be created
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -88,7 +99,20 @@ class DatabaseManager(DataSource):
         os.makedirs(self.email_content_dir, exist_ok=True)
 
     # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
+    # Pseudo code for eliminating global state:
+    # - Remove singleton pattern entirely
+    # - Make DatabaseManager a regular class that can be instantiated multiple times if needed
+    # - Use FastAPI's dependency injection system to provide instances
+    # - Store instance in request state or application state instead of global
+    # - Add proper lifecycle management (startup/shutdown events)
     # TODO(P2, 6h): Implement proper dependency injection for database manager instance
+    # Pseudo code for dependency injection:
+    # - Create async def get_database_manager(config: DatabaseConfig) -> DatabaseManager:
+    #   manager = DatabaseManager(config)
+    #   await manager.initialize()
+    #   return manager
+    # - In FastAPI routes: async def endpoint(db: DatabaseManager = Depends(get_database_manager)):
+    # - Use lifespan events to handle initialization and shutdown
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
@@ -123,7 +147,20 @@ class DatabaseManager(DataSource):
             self._initialized = True
 
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
+    # Pseudo code for removing hidden side effects:
+    # - Make _ensure_initialized() a public async initialize() method
+    # - Require explicit initialization before use
+    # - Add _is_initialized property to check state
+    # - Remove automatic initialization from methods - raise error if not initialized
+    # - Make initialization idempotent but explicit
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
+    # Pseudo code for lazy loading:
+    # - Add LazyLoader class to handle on-demand data loading
+    # - Implement load_emails_lazy(), load_categories_lazy() methods
+    # - Use asyncio.Lock to prevent concurrent loading
+    # - Add _loaded_data: set[str] to track what data types are loaded
+    # - Make _load_data() private and called only by lazy loaders
+    # - Add tests to verify loading behavior
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
@@ -575,8 +612,29 @@ async def get_db() -> DatabaseManager:
         return result_emails
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
+    # Pseudo code for optimizing search performance:
+    # - Pre-index searchable fields (subject, sender, sender_email) in memory
+    # - Create inverted index: Dict[str, Set[int]] for word -> email_ids
+    # - Use asyncio.to_thread for content search to avoid blocking
+    # - Implement batched content loading for multiple emails
+    # - Add search result pagination to limit memory usage
+    # - Use mmap or memory-mapped files for large content searches
     # TODO(P2, 4h): Implement search indexing to improve query performance
+    # Pseudo code for search indexing:
+    # - Create SearchIndex class with build_index() and search() methods
+    # - Index structure: {word: {email_id: positions}} for phrase search
+    # - Support fuzzy matching with difflib or similar
+    # - Add index persistence to avoid rebuild on restart
+    # - Implement incremental index updates on email changes
+    # - Add stemming/lemmatization for better matching
     # TODO(P3, 3h): Add support for search result caching
+    # Pseudo code for search result caching:
+    # - Add LRU cache: Dict[str, List[Dict]] with max size limit
+    # - Cache key: f"{search_term}:{limit}:{include_content}"
+    # - Invalidate cache on email updates/deletes
+    # - Add cache TTL for time-based expiration
+    # - Implement cache warming for common searches
+    # - Add cache statistics (hits, misses) for monitoring
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
