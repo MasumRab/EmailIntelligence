@@ -31,7 +31,8 @@ class PromptEngineer:
     to use them in addition to the existing local models.
     """
     
-    def __init__(self):
+    def __init__(self, template: str = None):
+        self.template = template
         self.templates = {}
         self.defaults = {
             "system_prompt": "You are an AI assistant specialized in email analysis and management. You help users categorize emails, identify important information, and suggest actions.",
@@ -64,6 +65,22 @@ class PromptEngineer:
             return template.format(**kwargs)
         except KeyError as e:
             raise ValueError(f"Missing required variable {e} for template '{template_name}'")
+
+    def fill(self, **kwargs) -> str:
+        """
+        Fill the template with provided variables (backward compatibility method).
+        """
+        if self.template:
+            return self.template.format(**kwargs)
+        else:
+            raise ValueError("No template provided to PromptEngineer")
+
+    def execute(self, **kwargs) -> str:
+        """
+        Execute the prompt by filling template and adding execution prefix (backward compatibility method).
+        """
+        filled = self.fill(**kwargs)
+        return f"Executing prompt: {filled}"
     
     def create_email_categorization_prompt(self, subject: str, content: str, categories: List[str]) -> str:
         """

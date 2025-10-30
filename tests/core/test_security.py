@@ -199,10 +199,10 @@ def test_validate_database_path_invalid():
 
     with pytest.raises(ValueError):
         PathValidator.validate_database_path("/nonexistent/path/../../../etc/passwd")
-=======
-            # Absolute path component
-            result = secure_path_join(temp_dir, "/etc", "passwd")
-            assert result is None
+
+    # Absolute path component
+    result = secure_path_join(temp_dir, "/etc", "passwd")
+    assert result is None
 
     def test_secure_path_join_empty_components(self):
         """Test secure path joining with empty or invalid components."""
