@@ -26,7 +26,8 @@ dependencies = [
     "seaborn>=0.13.0",
     "google-api-python-client>=2.172.0",
     "google-auth>=2.40.3",
-    "google-auth-oauthlib>=1.2.2"
+    "google-auth-oauthlib>=1.2.2",
+    "notmuch>=0.38"
 ]
 
 [project.optional-dependencies]
