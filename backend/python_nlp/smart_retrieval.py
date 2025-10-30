@@ -107,8 +107,6 @@ class SmartRetrievalManager:
 async def main_cli():
     """Provides a command-line interface for the SmartGmailRetriever."""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
-<<<<<<< HEAD
-
     # TODO: Implement CLI logic
     # Pseudo code for CLI implementation:
     # parser.add_argument("--strategies", nargs="+", help="Retrieval strategies to use")

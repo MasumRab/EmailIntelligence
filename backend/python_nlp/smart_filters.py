@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
+from src.core.security import PathValidator
+
 # Define paths for data storage
 # Use the project's data directory for database files to avoid cluttering the root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -108,9 +110,12 @@ class SmartFilterManager:
         if db_path is None:
             db_path = DEFAULT_DB_PATH
         elif not os.path.isabs(db_path):
-            # Resolve relative paths relative to the data directory to prevent path traversal
-            db_path = os.path.join(DATA_DIR, os.path.basename(db_path))
-        self.db_path = db_path
+            # Secure path validation to prevent directory traversal
+            filename = PathValidator.sanitize_filename(os.path.basename(db_path))
+            db_path = os.path.join(DATA_DIR, filename)
+
+        # Validate the final path
+        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":

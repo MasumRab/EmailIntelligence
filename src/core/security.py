@@ -16,7 +16,8 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -406,3 +407,104 @@ def create_default_security_context() -> SecurityContext:
         security_level=SecurityLevel.INTERNAL,
         allowed_resources=["*"],
     )
+
+
+class PathValidator:
+    """Secure path validation to prevent directory traversal attacks"""
+
+    @staticmethod
+    def is_safe_path(base_path: Union[str, Path], requested_path: Union[str, Path]) -> bool:
+        """
+        Check if a requested path is safe (doesn't escape the base directory)
+
+        Args:
+            base_path: The base directory that should not be escaped
+            requested_path: The path to validate
+
+        Returns:
+            True if the path is safe, False otherwise
+        """
+        try:
+            base_path = Path(base_path).resolve()
+            requested_path = Path(requested_path).resolve()
+
+            # Check if the resolved path starts with the base path
+            return requested_path.is_relative_to(base_path)
+        except (ValueError, OSError):
+            return False
+
+    @staticmethod
+    def sanitize_filename(filename: str) -> str:
+        """
+        Sanitize a filename to prevent path traversal and other attacks
+
+        Args:
+            filename: The filename to sanitize
+
+        Returns:
+            Sanitized filename safe for use
+        """
+        if not filename:
+            return "default.db"
+
+        # Remove any path separators and dangerous characters
+        sanitized = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '', filename)
+
+        # Remove leading/trailing dots and spaces
+        sanitized = sanitized.strip(' .')
+
+        # Ensure it's not empty and doesn't start with dangerous patterns
+        if not sanitized or sanitized.startswith('.') or '..' in sanitized:
+            return "default.db"
+
+        # Limit length
+        if len(sanitized) > 255:
+            sanitized = sanitized[:255]
+
+        return sanitized
+
+    @staticmethod
+    def validate_database_path(db_path: Union[str, Path], allowed_dir: Optional[Union[str, Path]] = None) -> Path:
+        """
+        Validate and sanitize a database path
+
+        Args:
+            db_path: The database path to validate
+            allowed_dir: Optional base directory that the path must be within
+
+        Returns:
+            Validated and resolved Path object
+
+        Raises:
+            ValueError: If the path is not safe
+        """
+        if not db_path:
+            raise ValueError("Database path cannot be empty")
+
+        # Handle special in-memory database
+        if str(db_path) == ":memory:":
+            return Path(":memory:")
+
+        path = Path(db_path)
+
+        # Sanitize filename if it's just a filename
+        if not path.is_absolute() and len(path.parts) == 1:
+            path = Path(PathValidator.sanitize_filename(str(path)))
+
+        # Resolve the path
+        try:
+            resolved_path = path.resolve()
+        except (OSError, RuntimeError) as e:
+            raise ValueError(f"Invalid path: {e}")
+
+        # Check against allowed directory if specified
+        if allowed_dir:
+            allowed_dir = Path(allowed_dir).resolve()
+            if not resolved_path.is_relative_to(allowed_dir):
+                raise ValueError(f"Database path escapes allowed directory: {allowed_dir}")
+
+        # Additional security checks
+        if any(part.startswith('.') for part in resolved_path.parts):
+            raise ValueError("Database path contains hidden files/directories")
+
+        return resolved_path
