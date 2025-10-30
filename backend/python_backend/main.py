@@ -16,12 +16,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
-<<<<<<< HEAD
-=======
 from starlette.middleware.base import BaseHTTPMiddleware
 import uuid
 import time
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 from ..plugins.plugin_manager import plugin_manager
 from backend.python_nlp.gmail_service import GmailAIService
@@ -55,19 +52,14 @@ from .exceptions import AppException
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
-<<<<<<< HEAD
-=======
 from collections import defaultdict
 import threading
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
-=======
 # Error rate monitoring
 error_counts = defaultdict(int)
 error_lock = threading.Lock()
@@ -99,7 +91,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             # Track error rate
             with error_lock:
-                error_counts[status_code] += 1
+                error_counts[500] += 1  # Default to 500 for unhandled exceptions
                 # Alert if error rate is high (simple threshold)
                 total_errors = sum(error_counts.values())
                 if total_errors > 10:  # Simple threshold
@@ -146,8 +138,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 headers={"X-Request-ID": request_id}
             )
 
-
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,
@@ -190,7 +180,6 @@ async def shutdown_event():
     await db_manager.close()
 
 
-<<<<<<< HEAD
 @app.exception_handler(AppException)
 
 async def app_exception_handler(request: Request, exc: AppException):
@@ -223,16 +212,9 @@ async def base_app_exception_handler(request: Request, exc: BaseAppException):
         },
 
     )
-=======
 # Exception handlers removed - now handled by ErrorHandlingMiddleware
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
-
-
-
-
 
 @app.exception_handler(ValidationError)
-
 async def validation_exception_handler(request: Request, exc: ValidationError):
 
     """Handle Pydantic validation errors with detailed 422 responses."""
@@ -252,12 +234,9 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
     )
 
 
-<<<<<<< HEAD
-=======
 # Add error handling middleware
 app.add_middleware(ErrorHandlingMiddleware)
 
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 # Configure CORS using settings
 app.add_middleware(
     CORSMiddleware,
@@ -405,8 +384,6 @@ async def health_check(request: Request):
         )
 
 
-<<<<<<< HEAD
-=======
 @app.get("/api/error-stats")
 async def get_error_stats():
     """Get error statistics for monitoring."""
@@ -417,7 +394,6 @@ async def get_error_stats():
         }
 
 
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 if __name__ == "__main__":
     import uvicorn
 

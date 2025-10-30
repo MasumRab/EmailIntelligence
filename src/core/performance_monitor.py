@@ -1,15 +1,13 @@
 """
-<<<<<<< HEAD
 Performance Monitoring for Email Intelligence Platform
 
 Implements performance monitoring with logging for processing times,
 model usage, memory consumption, and error rates.
-=======
-Optimized Performance Monitoring for Email Intelligence Platform
 
-Provides efficient performance metrics collection with minimal overhead,
-asynchronous processing, and configurable sampling rates.
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
+Also includes the optimized version features:
+- Efficient performance metrics collection with minimal overhead
+- Asynchronous processing
+- Configurable sampling rates
 """
 
 import asyncio
@@ -17,7 +15,6 @@ import json
 import logging
 import threading
 import time
-<<<<<<< HEAD
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import wraps
@@ -180,7 +177,8 @@ def _create_decorator(func, op_name):
             return result
 
         return sync_wrapper
-=======
+
+# Enhanced performance monitoring system with additional features
 from collections import defaultdict, deque
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
@@ -465,4 +463,4 @@ def record_metric(*args, **kwargs):
 def time_function(*args, **kwargs):
     """Convenience function to time functions."""
     return performance_monitor.time_function(*args, **kwargs)
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
+

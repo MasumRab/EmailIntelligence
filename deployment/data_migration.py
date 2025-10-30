@@ -25,13 +25,11 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-<<<<<<< HEAD
-=======
+
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from core.security import validate_path_safety
 
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -543,10 +541,6 @@ def main():
 
     args = parser.parse_args()
 
-<<<<<<< HEAD
-    data_dir = Path(args.data_dir)
-    db_path = Path(args.db_path)
-=======
     # Validate paths for security
     data_dir_str = args.data_dir
     db_path_str = args.db_path
@@ -561,7 +555,6 @@ def main():
 
     data_dir = Path(data_dir_str)
     db_path = Path(db_path_str)
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
     # Execute the command
     if args.command == "json-to-sqlite":

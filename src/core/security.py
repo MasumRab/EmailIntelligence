@@ -1,11 +1,14 @@
 """
-<<<<<<< HEAD
 Security Framework for Email Intelligence Platform
 
 Implements enterprise-grade security features for the node-based workflow system,
 including access controls, data sanitization, execution sandboxing, and audit logging.
+
+Also includes security utilities for path validation and sanitization.
 """
 
+import os
+import pathlib
 import asyncio
 import hashlib
 import hmac
@@ -17,22 +20,13 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
-=======
-Security utilities for path validation and sanitization.
-"""
-
-import os
 import pathlib
-from typing import Optional, Union
-import logging
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
 class SecurityLevel(Enum):
     """Security levels for different operations and data access"""
 
@@ -83,7 +77,27 @@ class SecurityValidator:
 
         # Check expiration
         if time.time() > context.expires_at:
-=======
+            return False
+
+        return True
+
+    @staticmethod
+    def validate_data_access(context: SecurityContext, data: Dict[str, Any]) -> bool:
+        """
+        Validate if the security context can access the provided data
+        """
+        # Check for sensitive fields in the data
+        sensitive_fields = ["password", "token", "key", "secret", "auth"]
+
+        for key in data.keys():
+            if any(sensitive in key.lower() for sensitive in sensitive_fields):
+                # For sensitive data, check for elevated permissions
+                if Permission.ADMIN not in context.permissions:
+                    logger.warning(f"Access denied to sensitive field: {key}")
+                    return False
+
+        return True
+
 def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> bool:
     """
     Validate that a path is safe and doesn't contain directory traversal attempts.
@@ -95,6 +109,8 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
     Returns:
         True if path is safe, False otherwise
     """
+    import pathlib
+    
     try:
         path_obj = pathlib.Path(path).resolve()
 
@@ -121,28 +137,46 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
         # Additional safety checks
         if any(char in path_str for char in ['<', '>', '|', '?', '*']):
             logger.warning(f"Potentially dangerous characters detected in path: {path}")
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
             return False
 
         return True
+    except Exception as e:
+        logger.warning(f"Error during path validation: {e}")
+        return False
 
-<<<<<<< HEAD
-    @staticmethod
-    def validate_data_access(context: SecurityContext, data: Dict[str, Any]) -> bool:
-        """
-        Validate if the security context can access the provided data
-        """
-        # Check for sensitive fields in the data
-        sensitive_fields = ["password", "token", "key", "secret", "auth"]
-
-        for key in data.keys():
-            if any(sensitive in key.lower() for sensitive in sensitive_fields):
-                # For sensitive data, check for elevated permissions
-                if Permission.ADMIN not in context.permissions:
-                    logger.warning(f"Access denied to sensitive field: {key}")
-                    return False
-
-        return True
+def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
+    """
+    Sanitize a path by removing or encoding potentially dangerous characters.
+    
+    Args:
+        path: The path to sanitize
+        
+    Returns:
+        Sanitized path string or None if path is invalid
+    """
+    import pathlib
+    
+    try:
+        # Convert to string if it's a Path object
+        path_str = str(path)
+        
+        # Basic sanitization - remove dangerous sequences
+        path_str = path_str.replace('../', '').replace('..\\', '')
+        path_str = path_str.replace('<!--', '').replace('-->', '')  # Prevent comment injection
+        path_str = path_str.replace('<script', '').replace('script>', '')  # Prevent script injection
+        
+        # Normalize path separators
+        path_str = path_str.replace('\\', '/')
+        
+        # Additional checks to ensure validity
+        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
+            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
+            return None
+        
+        return path_str
+    except Exception as e:
+        logger.warning(f"Error during path sanitization: {e}")
+        return None
 
 
 class DataSanitizer:
@@ -457,43 +491,87 @@ def create_default_security_context() -> SecurityContext:
         security_level=SecurityLevel.INTERNAL,
         allowed_resources=["*"],
     )
-=======
+
+
+def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> bool:
+    """
+    Validate that a path is safe and doesn't contain directory traversal attempts.
+
+    Args:
+        path: The path to validate
+        base_dir: Optional base directory to resolve relative to
+
+    Returns:
+        True if path is safe, False otherwise
+    """
+    import pathlib
+    
+    try:
+        path_obj = pathlib.Path(path).resolve()
+
+        # Check for directory traversal patterns
+        path_str = str(path_obj)
+
+        # Common directory traversal patterns
+        traversal_patterns = ['..', '\\', '//', '/./', '\\./']
+        for pattern in traversal_patterns:
+            if pattern in str(path):
+                logger.warning(f"Potential directory traversal detected in path: {path}")
+                return False
+
+        # If base_dir is specified, ensure path is within base_dir
+        if base_dir:
+            base_obj = pathlib.Path(base_dir).resolve()
+            try:
+                # Check if path is within base_dir
+                path_obj.relative_to(base_obj)
+            except ValueError:
+                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
+                return False
+
+        # Additional safety checks
+        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
+            logger.warning(f"Potentially dangerous characters detected in path: {path}")
+            return False
+
+        return True
     except Exception as e:
         logger.error(f"Error validating path {path}: {e}")
         return False
 
 
-def sanitize_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> Optional[pathlib.Path]:
+def sanitize_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> Optional[str]:
     """
-    Sanitize a path by resolving it and ensuring it's safe.
-
+    Sanitize a path by removing or encoding potentially dangerous characters.
+    
     Args:
         path: The path to sanitize
-        base_dir: Optional base directory to resolve relative to
-
+        
     Returns:
-        Sanitized Path object, or None if path is unsafe
+        Sanitized path string or None if path is invalid
     """
-    if not validate_path_safety(path, base_dir):
-        return None
-
+    import pathlib
+    
     try:
-        path_obj = pathlib.Path(path).resolve()
-
-        # If base_dir is specified, ensure we return a path relative to base_dir
-        if base_dir:
-            base_obj = pathlib.Path(base_dir).resolve()
-            try:
-                relative_path = path_obj.relative_to(base_obj)
-                return base_obj / relative_path
-            except ValueError:
-                # Path is not within base_dir, return None
-                return None
-
-        return path_obj
-
+        # Convert to string if it's a Path object
+        path_str = str(path)
+        
+        # Basic sanitization - remove dangerous sequences
+        path_str = path_str.replace('../', '').replace('..\\', '')
+        path_str = path_str.replace('<!--', '').replace('-->', '')  # Prevent comment injection
+        path_str = path_str.replace('<script', '').replace('script>', '')  # Prevent script injection
+        
+        # Normalize path separators
+        path_str = path_str.replace('\\', '/')
+        
+        # Additional checks to ensure validity
+        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
+            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
+            return None
+        
+        return path_str
     except Exception as e:
-        logger.error(f"Error sanitizing path {path}: {e}")
+        logger.warning(f"Error during path sanitization: {e}")
         return None
 
 
@@ -508,6 +586,8 @@ def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, path
     Returns:
         Joined path if safe, None otherwise
     """
+    import pathlib
+    
     try:
         # Start with base directory
         result_path = pathlib.Path(base_dir)
@@ -536,4 +616,3 @@ def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, path
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2

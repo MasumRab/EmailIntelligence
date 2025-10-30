@@ -643,4 +643,173 @@ Descriptions support literal newlines; shell examples may show escaped `\\n`, bu
 
 Full help available: `backlog --help`
 
+---
+
+## 11. Merge Conflict Resolution Guidelines (High Priority)
+
+### Priority-Based Resolution Order
+
+When merge conflicts occur in backlog task files, **always resolve with this priority order**:
+
+1. **Done > In Progress > To Do** - Choose the version with the most advanced completion status
+2. **More checked acceptance criteria** - Prefer versions with more completed ACs
+3. **Implementation notes present** - Choose versions with detailed implementation notes
+4. **Current working directory** - If all else equal, preserve the working directory version
+
+### Step-by-Step Resolution Process
+
+#### Automatic Resolution (Recommended)
+The custom merge driver (`backlog-merge-driver.sh`) automatically handles most conflicts:
+
+```bash
+# The driver is configured to run automatically during merges
+# It analyzes both versions and chooses the best one based on priority rules
+```
+
+#### Manual Resolution (When Needed)
+If conflicts persist or you need manual control:
+
+1. **Examine both versions:**
+   ```bash
+   git log --oneline --merge
+   git show MERGE_HEAD:backlog/tasks/task-42.md  # Other branch version
+   git show HEAD:backlog/tasks/task-42.md        # Current branch version
+   ```
+
+2. **Apply priority rules:**
+   - **Status priority**: Done > In Progress > To Do
+   - **Progress priority**: More checked ACs wins
+   - **Detail priority**: Implementation notes present wins
+
+3. **Resolve using CLI:**
+   ```bash
+   # Choose the winning version and update via CLI
+   backlog task edit 42 -s "Done" --check-ac 1 --check-ac 2 --notes "Merged resolution"
+   ```
+
+4. **Mark resolution complete:**
+   ```bash
+   git add backlog/tasks/task-42.md
+   git commit
+   ```
+
+### Prevention Strategies
+
+- **Frequent commits**: Commit changes immediately after task completion
+- **Pull regularly**: `git pull` before starting work on tasks
+- **Work in feature branches**: Use short-lived branches for task work
+- **Coordinate with team**: Communicate when working on shared tasks
+
+---
+
+## 12. Custom Git Merge Driver (Medium Priority)
+
+### Overview
+The `backlog-merge-driver.sh` script automatically resolves merge conflicts in backlog task files by analyzing:
+
+- **Completion status** (Done > In Progress > To Do)
+- **Acceptance criteria progress** (more checked ACs preferred)
+- **Implementation notes** (detailed notes preferred)
+- **Assignee information** (preserved when possible)
+
+### Configuration
+The driver is configured in:
+- **`.gitattributes`**: Specifies which files use the driver
+- **`.git/config`**: Defines the driver command
+
+### How It Works
+1. **Analysis Phase**: Extracts status, AC count, and notes presence from both versions
+2. **Decision Phase**: Applies priority rules to choose the winning version
+3. **Resolution Phase**: Writes the chosen version to the working directory
+
+### Manual Override
+If you disagree with the automatic resolution:
+```bash
+# Manually resolve and commit
+backlog task edit <id> [resolution commands]
+git add backlog/tasks/task-<id>.md
+git commit
+```
+
+---
+
+## 13. Development Workflow Updates (Medium Priority)
+
+### Recommended Workflow
+
+To minimize merge conflicts and improve collaboration:
+
+#### Daily Workflow
+```bash
+# 1. Start day: Sync with remote
+git pull origin scientific
+
+# 2. Identify work
+backlog task list -s "To Do" --plain
+
+# 3. Start task: Create feature branch
+git checkout -b feature/task-42-fix-auth
+backlog task edit 42 -s "In Progress" -a @yourname
+
+# 4. Work: Frequent commits
+# ... make changes ...
+git add .
+git commit -m "Progress on task 42"
+
+# 5. Complete: Update task status
+backlog task edit 42 --check-ac 1 --check-ac 2 --notes "Implementation complete"
+backlog task edit 42 -s "Done"
+
+# 6. Push immediately
+git push origin feature/task-42-fix-auth
+
+# 7. Merge to main branch
+git checkout scientific
+git pull origin scientific  # Get latest
+git merge feature/task-42-fix-auth
+git push origin scientific
+```
+
+#### Key Principles
+- **Pull before starting work** to reduce conflict windows
+- **Use feature branches** for all task work
+- **Commit immediately** after task completion
+- **Push frequently** to share progress
+- **Coordinate with team** on overlapping tasks
+
+### Team Coordination
+- **Communicate intent**: Mention which tasks you're working on
+- **Review conflicts together**: Don't resolve alone if team members are affected
+- **Document decisions**: Add notes about conflict resolutions
+
+---
+
+## 14. Enhanced Documentation (Low Priority)
+
+### 📖 Key Changes Made
+
+• **Priority-based resolution**: The merge driver automatically chooses the version with higher completion status
+• **Metadata preservation**: Maintains assignees, dates, and implementation details
+• **Conflict prevention**: Workflow changes reduce likelihood of parallel completion conflicts
+• **Documentation**: Clear guidelines for manual resolution when needed
+
+### 🛡️ Protection Against Future Issues
+
+The system now automatically handles most merge conflicts in backlog files, ensuring that:
+
+• **Completed tasks stay completed**
+• **Implementation notes are preserved**
+• **Acceptance criteria progress is maintained**
+• **Team coordination is improved**
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Driver not working | Check `.gitattributes` and `.git/config` configuration |
+| Wrong resolution chosen | Manually resolve using CLI commands |
+| Conflicts still occur | Review workflow and consider shorter task cycles |
+
+---
+
 <!-- BACKLOG.MD GUIDELINES END -->
