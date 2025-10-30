@@ -19,7 +19,7 @@ from .database import get_db
 from backend.python_backend.settings import settings
 
 # Import the security framework components
-from .security import SecurityContext, Permission
+from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
@@ -295,10 +295,8 @@ def create_security_context_for_user(username: str) -> SecurityContext:
     context = SecurityContext(
         user_id=username,
         permissions=permissions,
-        security_level="internal",  # Using string instead of enum for compatibility
-        session_token=session_token,
-        created_at=time.time(),
-        expires_at=time.time() + (8 * 3600),  # 8 hours
+        security_level=SecurityLevel.INTERNAL,
+        session_id=session_token,
         allowed_resources=["*"],  # All resources allowed for now
     )
     
