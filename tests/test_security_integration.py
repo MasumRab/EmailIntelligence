@@ -259,4 +259,3 @@ class TestSecurityCompliance:
 
         for header in required_headers:
             assert header in response.headers, f"Missing security header: {header}"</content>
-</xai:function_call: <parameter name="path">/home/masum/github/EmailIntelligence/tests/test_security_integration.py
