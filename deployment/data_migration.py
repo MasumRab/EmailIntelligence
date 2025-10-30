@@ -25,9 +25,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.core.security import PathValidator
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+from src.core.security import PathValidator
 from core.security import validate_path_safety
 
 # Configure logging

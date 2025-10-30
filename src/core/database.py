@@ -94,8 +94,14 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
-    def __init__(self, enable_redis_cache: Optional[bool] = None, redis_url: Optional[str] = None):
+    def __init__(self, config: DatabaseConfig, enable_redis_cache: Optional[bool] = None, redis_url: Optional[str] = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
+
+        self.config = config
+        self.emails_file = config.emails_file
+        self.categories_file = config.categories_file
+        self.users_file = config.users_file
+        self.email_content_dir = config.email_content_dir
 
         # Check environment variables for Redis configuration
         if enable_redis_cache is None:

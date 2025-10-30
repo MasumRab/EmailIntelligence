@@ -1,6 +1,11 @@
 #!/bin/bash
 # EmailIntelligence Environment Setup Script
+<<<<<<< HEAD
 # This script sets up the development environment with proper system and Python packages
+=======
+# This script sets up the development environment following project guidelines
+# Uses uv for fast, reliable Python package management
+>>>>>>> 6d9a923ad91f7f3ddcc272640534a65ec8b92d5a
 
 set -e  # Exit on any error
 
@@ -45,6 +50,7 @@ sudo apt install -y \
 
 echo "✅ System packages installed successfully!"
 
+<<<<<<< HEAD
 # Create virtual environment
 echo "🐍 Creating Python virtual environment..."
 python3 -m venv emailintelligence_env
@@ -102,6 +108,16 @@ pip install \
     pylint>=3.3.7 \
     pytest>=8.4.0 \
     pytest-asyncio>=0.23.0
+=======
+# Install uv package manager
+echo "📦 Installing uv package manager..."
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# Use the project's standard setup
+echo "🐍 Setting up Python environment with uv..."
+python launch.py --setup
+>>>>>>> 6d9a923ad91f7f3ddcc272640534a65ec8b92d5a
 
 # Download NLTK data
 echo "📖 Downloading NLTK data..."
@@ -110,8 +126,10 @@ python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
 echo "🎉 Environment setup complete!"
 echo ""
 echo "To activate the virtual environment in future sessions:"
-echo "  source emailintelligence_env/bin/activate"
+echo "  source venv/bin/activate"
 echo ""
 echo "To run the application:"
-echo "  source emailintelligence_env/bin/activate"
 echo "  python launch.py"
+echo ""
+echo "For development:"
+echo "  python launch.py --dev"
