@@ -90,6 +90,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
+<<<<<<< HEAD
     async def get_dashboard_aggregates(self) -> Dict[str, Any]:
         """Retrieves aggregated dashboard statistics for efficient server-side calculations.
 
@@ -116,6 +117,8 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
+=======
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
     async def shutdown(self) -> None:
         """Performs any necessary cleanup."""
         pass

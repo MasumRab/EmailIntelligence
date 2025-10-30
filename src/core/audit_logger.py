@@ -5,6 +5,7 @@ Provides comprehensive event tracking, security monitoring, and compliance loggi
 with structured JSON output and configurable log levels.
 """
 
+<<<<<<< HEAD
 import atexit
 import json
 import logging
@@ -15,6 +16,20 @@ from enum import Enum
 from pathlib import Path
 from queue import Queue
 from typing import Any, Dict, Optional
+=======
+import json
+import logging
+import threading
+import time
+from dataclasses import dataclass, asdict
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from queue import Queue
+import atexit
+
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +103,13 @@ class AuditEvent:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         data = asdict(self)
+<<<<<<< HEAD
         data["event_type"] = self.event_type.value
         data["severity"] = self.severity.value
+=======
+        data['event_type'] = self.event_type.value
+        data['severity'] = self.severity.value
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         return data
 
 
@@ -103,7 +123,11 @@ class AuditLogger:
         log_file: str = "logs/audit.log",
         json_file: str = "logs/audit.jsonl",
         max_queue_size: int = 1000,
+<<<<<<< HEAD
         flush_interval: int = 5,
+=======
+        flush_interval: int = 5
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
     ):
         self.log_file = Path(log_file)
         self.json_file = Path(json_file)
@@ -120,7 +144,13 @@ class AuditLogger:
 
         # Start background processing thread
         self._processing_thread = threading.Thread(
+<<<<<<< HEAD
             target=self._process_events, daemon=True, name="AuditLogger"
+=======
+            target=self._process_events,
+            daemon=True,
+            name="AuditLogger"
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         )
         self._processing_thread.start()
 
@@ -133,7 +163,11 @@ class AuditLogger:
         """Log an audit event asynchronously."""
         try:
             self._event_queue.put_nowait(event)
+<<<<<<< HEAD
         except asyncio.QueueFull:
+=======
+        except:
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
             # If queue is full, log immediately to prevent data loss
             logger.warning(f"Audit queue full, logging synchronously: {event.event_id}")
             self._write_event_immediate(event)
@@ -150,7 +184,11 @@ class AuditLogger:
         action: str = "",
         result: str = "success",
         details: Optional[Dict[str, Any]] = None,
+<<<<<<< HEAD
         metadata: Optional[Dict[str, Any]] = None,
+=======
+        metadata: Optional[Dict[str, Any]] = None
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
     ):
         """Log a security-related event with automatic metadata collection."""
         import uuid
@@ -168,7 +206,11 @@ class AuditLogger:
             action=action,
             result=result,
             details=details or {},
+<<<<<<< HEAD
             metadata=metadata or {},
+=======
+            metadata=metadata or {}
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         )
 
         self.log_event(event)
@@ -181,7 +223,11 @@ class AuditLogger:
         execution_id: Optional[str] = None,
         node_name: Optional[str] = None,
         duration: Optional[float] = None,
+<<<<<<< HEAD
         error_message: Optional[str] = None,
+=======
+        error_message: Optional[str] = None
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
     ):
         """Log workflow-related events."""
         details = {
@@ -189,7 +235,11 @@ class AuditLogger:
             "execution_id": execution_id,
             "node_name": node_name,
             "duration_seconds": duration,
+<<<<<<< HEAD
             "error_message": error_message,
+=======
+            "error_message": error_message
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         }
 
         severity = AuditSeverity.LOW
@@ -203,7 +253,11 @@ class AuditLogger:
             resource=f"workflow:{workflow_name}",
             action=f"workflow_{event_type.value}",
             result="failure" if "error" in event_type.value else "success",
+<<<<<<< HEAD
             details=details,
+=======
+            details=details
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         )
 
     def log_api_access(
@@ -214,7 +268,11 @@ class AuditLogger:
         ip_address: str,
         status_code: int,
         response_time: float,
+<<<<<<< HEAD
         user_agent: Optional[str] = None,
+=======
+        user_agent: Optional[str] = None
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
     ):
         """Log API access events."""
         severity = AuditSeverity.LOW
@@ -234,8 +292,13 @@ class AuditLogger:
                 "method": method,
                 "endpoint": endpoint,
                 "status_code": status_code,
+<<<<<<< HEAD
                 "response_time_seconds": response_time,
             },
+=======
+                "response_time_seconds": response_time
+            }
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         )
 
     def _process_events(self):
@@ -249,7 +312,11 @@ class AuditLogger:
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
+<<<<<<< HEAD
             except asyncio.TimeoutError:
+=======
+            except:
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
                 pass  # No events available
 
             # Write events
@@ -270,6 +337,7 @@ class AuditLogger:
             if event.details:
                 log_line += f" details={event.details}"
 
+<<<<<<< HEAD
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_line + "\n")
 
@@ -277,6 +345,15 @@ class AuditLogger:
             with open(self.json_file, "a", encoding="utf-8") as f:
                 json.dump(event.to_dict(), f, ensure_ascii=False)
                 f.write("\n")
+=======
+            with open(self.log_file, 'a', encoding='utf-8') as f:
+                f.write(log_line + '\n')
+
+            # Write to JSON log
+            with open(self.json_file, 'a', encoding='utf-8') as f:
+                json.dump(event.to_dict(), f, ensure_ascii=False)
+                f.write('\n')
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
 
         except Exception as e:
             logger.error(f"Failed to write audit event {event.event_id}: {e}")
@@ -293,7 +370,11 @@ class AuditLogger:
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
+<<<<<<< HEAD
         except asyncio.TimeoutError:
+=======
+        except:
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
             pass
 
         if self._processing_thread.is_alive():

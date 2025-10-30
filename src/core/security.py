@@ -1,4 +1,5 @@
 """
+<<<<<<< HEAD
 Security Framework for Email Intelligence Platform
 
 Implements enterprise-grade security features for the node-based workflow system,
@@ -20,28 +21,54 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 from pathlib import Path
+=======
+Security utilities for path validation and sanitization.
+"""
+
+import os
+import pathlib
+from typing import Optional, Union
+import logging
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
 
 logger = logging.getLogger(__name__)
 
 
-class SecurityLevel(Enum):
-    """Security levels for different operations and data access"""
+def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> bool:
+    """
+    Validate that a path is safe and doesn't contain directory traversal attempts.
 
-    PUBLIC = "public"
-    INTERNAL = "internal"
-    CONFIDENTIAL = "confidential"
-    RESTRICTED = "restricted"
+    Args:
+        path: The path to validate
+        base_dir: Optional base directory to resolve relative to
 
+    Returns:
+        True if path is safe, False otherwise
+    """
+    try:
+        path_obj = pathlib.Path(path).resolve()
 
-class Permission(Enum):
-    """Permission types for fine-grained access control"""
+        # Check for directory traversal patterns
+        path_str = str(path_obj)
 
-    READ = "read"
-    WRITE = "write"
-    EXECUTE = "execute"
-    ADMIN = "admin"
+        # Common directory traversal patterns
+        traversal_patterns = ['..', '\\', '//', '/./', '\\./']
+        for pattern in traversal_patterns:
+            if pattern in str(path):
+                logger.warning(f"Potential directory traversal detected in path: {path}")
+                return False
 
+        # If base_dir is specified, ensure path is within base_dir
+        if base_dir:
+            base_obj = pathlib.Path(base_dir).resolve()
+            try:
+                # Check if path is within base_dir
+                path_obj.relative_to(base_obj)
+            except ValueError:
+                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
+                return False
 
+<<<<<<< HEAD
 @dataclass
 class SecurityContext:
     """Holds security information for an execution context"""
@@ -76,28 +103,21 @@ class SecurityValidator:
 
         # Check expiration
         if time.time() > context.expires_at:
+=======
+        # Additional safety checks
+        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
+            logger.warning(f"Potentially dangerous characters detected in path: {path}")
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
             return False
 
         return True
 
-    @staticmethod
-    def validate_data_access(context: SecurityContext, data: Dict[str, Any]) -> bool:
-        """
-        Validate if the security context can access the provided data
-        """
-        # Check for sensitive fields in the data
-        sensitive_fields = ["password", "token", "key", "secret", "auth"]
-
-        for key in data.keys():
-            if any(sensitive in key.lower() for sensitive in sensitive_fields):
-                # For sensitive data, check for elevated permissions
-                if Permission.ADMIN not in context.permissions:
-                    logger.warning(f"Access denied to sensitive field: {key}")
-                    return False
-
-        return True
+    except Exception as e:
+        logger.error(f"Error validating path {path}: {e}")
+        return False
 
 
+<<<<<<< HEAD
 def validate_path_safety(
     path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
 ) -> bool:
@@ -359,10 +379,23 @@ class ExecutionSandbox:
 
 
 class SecurityManager:
+=======
+def sanitize_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> Optional[pathlib.Path]:
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
     """
-    Centralized security manager for the Email Intelligence Platform
-    """
+    Sanitize a path by resolving it and ensuring it's safe.
 
+    Args:
+        path: The path to sanitize
+        base_dir: Optional base directory to resolve relative to
+
+    Returns:
+        Sanitized Path object, or None if path is unsafe
+    """
+    if not validate_path_safety(path, base_dir):
+        return None
+
+<<<<<<< HEAD
     def __init__(self):
         self.validator = SecurityValidator()
         self.sanitizer = DataSanitizer()
@@ -371,132 +404,48 @@ class SecurityManager:
         self.secret_key = secrets.token_urlsafe(
             32
         )  # In production, load from secure storage
+=======
+    try:
+        path_obj = pathlib.Path(path).resolve()
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
 
-    def create_session(
-        self,
-        user_id: str,
-        permissions: List[Permission],
-        security_level: SecurityLevel,
-        allowed_resources: Optional[List[str]] = None,
-        duration_hours: float = 8.0,
-        ip_address: Optional[str] = None,
-        origin: Optional[str] = None,
-    ) -> SecurityContext:
-        """Create a new security session"""
-        session_token = secrets.token_urlsafe(32)
-
-        context = SecurityContext(
-            user_id=user_id,
-            permissions=permissions,
-            security_level=security_level,
-            session_token=session_token,
-            created_at=time.time(),
-            expires_at=time.time() + (duration_hours * 3600),
-            allowed_resources=allowed_resources or [],
-            ip_address=ip_address,
-            origin=origin,
-        )
-
-        self.active_sessions[session_token] = context
-        return context
-
-    def validate_session(self, session_token: str) -> Optional[SecurityContext]:
-        """Validate a session token and return the context"""
-        if session_token not in self.active_sessions:
-            return None
-
-        context = self.active_sessions[session_token]
-
-        if time.time() > context.expires_at:
-            # Clean up expired session
-            del self.active_sessions[session_token]
-            return None
-
-        return context
-
-    def generate_signed_token(self, data: Dict[str, Any]) -> str:
-        """Generate a signed token for secure data transmission"""
-        json_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
-        signature = hmac.new(
-            self.secret_key.encode(), json_data.encode(), hashlib.sha256
-        ).hexdigest()
-        return f"{json_data}.{signature}"
-
-    def verify_signed_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verify a signed token and return the data"""
-        if "." not in token:
-            return None
-
-        try:
-            json_part, signature_part = token.rsplit(".", 1)
-            expected_signature = hmac.new(
-                self.secret_key.encode(), json_part.encode(), hashlib.sha256
-            ).hexdigest()
-
-            if not hmac.compare_digest(expected_signature, signature_part):
+        # If base_dir is specified, ensure we return a path relative to base_dir
+        if base_dir:
+            base_obj = pathlib.Path(base_dir).resolve()
+            try:
+                relative_path = path_obj.relative_to(base_obj)
+                return base_obj / relative_path
+            except ValueError:
+                # Path is not within base_dir, return None
                 return None
 
-            return json.loads(json_part)
-        except (json.JSONDecodeError, ValueError):
-            return None
+        return path_obj
 
-    def cleanup_expired_sessions(self):
-        """Remove expired sessions from memory"""
-        current_time = time.time()
-        expired_tokens = [
-            token
-            for token, context in self.active_sessions.items()
-            if current_time > context.expires_at
-        ]
-
-        for token in expired_tokens:
-            del self.active_sessions[token]
-
-        if expired_tokens:
-            logger.info(f"Cleaned up {len(expired_tokens)} expired sessions")
-
-    async def secure_execute_node(
-        self, session_token: str, node_type: str, inputs: Dict[str, Any], execute_func
-    ) -> Dict[str, Any]:
-        """Securely execute a node with full security checks"""
-        context = self.validate_session(session_token)
-        if not context:
-            raise PermissionError("Invalid or expired session")
-
-        # Validate access to execute this node type
-        if not self.validator.validate_access(context, node_type, Permission.EXECUTE):
-            self.audit_logger.log_access_attempt(
-                context,
-                node_type,
-                Permission.EXECUTE,
-                False,
-                "Insufficient permissions to execute node",
-            )
-            raise PermissionError(f"Insufficient permissions to execute {node_type}")
-
-        # Validate data access
-        if not self.validator.validate_data_access(context, inputs):
-            self.audit_logger.log_security_violation(
-                context,
-                "DATA_ACCESS_VIOLATION",
-                f"Attempted to access sensitive data through {node_type}",
-            )
-            raise PermissionError("Attempted to access sensitive data")
-
-        # Create sandbox and execute
-        sandbox = ExecutionSandbox(context)
-        return await sandbox.execute_with_security(execute_func, **inputs)
+    except Exception as e:
+        logger.error(f"Error sanitizing path {path}: {e}")
+        return None
 
 
-# Global security manager instance
-security_manager = SecurityManager()
+def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]) -> Optional[pathlib.Path]:
+    """
+    Securely join paths, preventing directory traversal attacks.
 
+    Args:
+        base_dir: Base directory
+        *paths: Path components to join
 
-def get_security_manager() -> SecurityManager:
-    """Get the global security manager instance"""
-    return security_manager
+    Returns:
+        Joined path if safe, None otherwise
+    """
+    try:
+        # Start with base directory
+        result_path = pathlib.Path(base_dir)
 
+        # Join each path component securely
+        for path_component in paths:
+            component_path = pathlib.Path(path_component)
 
+<<<<<<< HEAD
 def create_default_security_context() -> SecurityContext:
     """Create a default security context for internal operations"""
     return security_manager.create_session(
@@ -729,19 +678,32 @@ def secure_path_join(
         for path_component in paths:
             component_path = pathlib.Path(path_component)
 
+=======
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
             # Check each component for traversal
             if not validate_path_safety(component_path):
                 return None
 
             # Only allow simple filenames/directories (no absolute paths or traversal)
+<<<<<<< HEAD
             if component_path.is_absolute() or ".." in str(component_path):
+=======
+            if component_path.is_absolute() or '..' in str(component_path):
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
                 logger.warning(f"Unsafe path component: {path_component}")
                 return None
 
             result_path = result_path / component_path
 
         # Final validation
+<<<<<<< HEAD
         return result_path if validate_path_safety(result_path, base_dir) else None
+=======
+        if validate_path_safety(result_path, base_dir):
+            return result_path
+
+        return None
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
 
     except Exception as e:
         logger.error(f"Error joining paths: {e}")

@@ -5,10 +5,18 @@ Implements token bucket algorithm for API endpoint rate limiting with Redis back
 """
 
 import asyncio
+<<<<<<< HEAD
 import logging
 import time
 from dataclasses import dataclass
 from typing import Dict, Tuple
+=======
+import time
+import logging
+from dataclasses import dataclass
+from typing import Dict, Optional, Tuple
+from collections import defaultdict
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
 
 logger = logging.getLogger(__name__)
 
@@ -58,14 +66,25 @@ class RateLimiter:
 
             if state is None:
                 # First request for this key
+<<<<<<< HEAD
                 state = RateLimitState(tokens=self.config.burst_limit, last_refill=now)
+=======
+                state = RateLimitState(
+                    tokens=self.config.burst_limit,
+                    last_refill=now
+                )
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
                 self._limits[key] = state
 
             # Refill tokens based on time passed
             time_passed = now - state.last_refill
+<<<<<<< HEAD
             refill_amount = time_passed * (
                 self.config.requests_per_minute / self.config.window_seconds
             )
+=======
+            refill_amount = time_passed * (self.config.requests_per_minute / self.config.window_seconds)
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
             state.tokens = min(self.config.burst_limit, state.tokens + refill_amount)
             state.last_refill = now
 
@@ -80,7 +99,11 @@ class RateLimiter:
             headers = {
                 "X-RateLimit-Limit": self.config.requests_per_minute,
                 "X-RateLimit-Remaining": max(0, int(state.tokens)),
+<<<<<<< HEAD
                 "X-RateLimit-Reset": int(now + self.config.window_seconds),
+=======
+                "X-RateLimit-Reset": int(now + self.config.window_seconds)
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
             }
 
             return allowed, headers
@@ -94,9 +117,13 @@ class RateLimiter:
         # Calculate current tokens (refill if needed)
         now = time.time()
         time_passed = now - state.last_refill
+<<<<<<< HEAD
         refill_amount = time_passed * (
             self.config.requests_per_minute / self.config.window_seconds
         )
+=======
+        refill_amount = time_passed * (self.config.requests_per_minute / self.config.window_seconds)
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         current_tokens = min(self.config.burst_limit, state.tokens + refill_amount)
 
         return max(0, int(current_tokens))
@@ -121,9 +148,13 @@ class APIRateLimiter:
             self._limiters[endpoint] = RateLimiter(self._default_config)
         return self._limiters[endpoint]
 
+<<<<<<< HEAD
     async def check_rate_limit(
         self, endpoint: str, client_key: str
     ) -> Tuple[bool, Dict[str, int]]:
+=======
+    async def check_rate_limit(self, endpoint: str, client_key: str) -> Tuple[bool, Dict[str, int]]:
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
         """
         Check rate limit for an endpoint and client.
 
@@ -142,6 +173,7 @@ class APIRateLimiter:
 api_rate_limiter = APIRateLimiter()
 
 # Pre-configure some common endpoints
+<<<<<<< HEAD
 api_rate_limiter.add_endpoint_limit(
     "/api/emails", RateLimitConfig(requests_per_minute=120, burst_limit=20)
 )
@@ -151,3 +183,8 @@ api_rate_limiter.add_endpoint_limit(
 api_rate_limiter.add_endpoint_limit(
     "/api/models", RateLimitConfig(requests_per_minute=20, burst_limit=3)
 )
+=======
+api_rate_limiter.add_endpoint_limit("/api/emails", RateLimitConfig(requests_per_minute=120, burst_limit=20))
+api_rate_limiter.add_endpoint_limit("/api/workflows", RateLimitConfig(requests_per_minute=30, burst_limit=5))
+api_rate_limiter.add_endpoint_limit("/api/models", RateLimitConfig(requests_per_minute=20, burst_limit=3))
+>>>>>>> 73a8d172 (Complete security hardening and production readiness implementation)
