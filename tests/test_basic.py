@@ -32,5 +32,4 @@ async def test_mock_database_manager(mock_db_manager):
     # Test calling a mock method
     mock_db_manager.get_all_categories.return_value = [{"id": 1, "name": "Test"}]
     result = await mock_db_manager.get_all_categories()
-    assert result == [{"id": 1, "name": "Test"}]</content>
-</xai:function_call: <parameter name="path">/home/masum/github/EmailIntelligence/tests/test_basic.py
+    assert result == [{"id": 1, "name": "Test"}]

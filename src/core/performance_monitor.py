@@ -684,3 +684,21 @@ def record_metric(*args, **kwargs):
 def time_function(*args, **kwargs):
     """Convenience function to time functions."""
     return performance_monitor.time_function(*args, **kwargs)
+
+def log_performance(operation: str):
+    """
+    Decorator to log performance of operations.
+
+    This provides backward compatibility with existing code that uses @log_performance.
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with performance_monitor.time_function(
+                f"operation_{operation}",
+                tags={"operation": operation, "function": func.__name__},
+                sample_rate=0.5  # Sample 50% of operations to reduce overhead
+            ):
+                return func(*args, **kwargs)
+        return wrapper
+    return decorator
