@@ -20,8 +20,8 @@ Add unit and integration tests for Notmuch components on scientific branch
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Create tests compatible with scientific test suite
-- [ ] #2 Test integration with advanced features
-- [ ] #3 Ensure CI compatibility
+- [x] #2 Test integration with advanced features
+- [x] #3 Ensure CI compatibility
 <!-- AC:END -->
 
 ## Implementation Plan

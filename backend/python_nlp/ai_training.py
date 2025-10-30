@@ -23,17 +23,66 @@ class PromptEngineer:
     """
     A class for engineering prompts for Large Language Models (LLMs).
     """
+<<<<<<< HEAD
 
     def __init__(self, template: str):
         self.template = template
 
     def fill(self, **kwargs) -> str:
+=======
+    
+    def __init__(self, template: str = None):
+        self.template = template
+        self.templates = {}
+        self.defaults = {
+            "system_prompt": "You are an AI assistant specialized in email analysis and management. You help users categorize emails, identify important information, and suggest actions.",
+            "email_analysis_template": "Analyze the following email:\nSubject: {subject}\nContent: {content}\n\nProvide: 1) Topic, 2) Sentiment, 3) Intent, 4) Urgency level, 5) Key action items."
+        }
+        
+    def register_template(self, name: str, template: str):
+        """Register a new prompt template."""
+        self.templates[name] = template
+        
+    def generate_prompt(self, template_name: str, **kwargs) -> str:
+>>>>>>> d1ac970f (feat: Complete task verification framework and fix security module)
         """
         Fills the prompt template with the given keyword arguments.
         """
+<<<<<<< HEAD
         return self.template.format(**kwargs)
 
     def execute(self, **kwargs) -> str:
+=======
+        if template_name in self.templates:
+            template = self.templates[template_name]
+        elif template_name in self.defaults:
+            template = self.defaults[template_name]
+        else:
+            raise ValueError(f"Template '{template_name}' not found")
+            
+        try:
+            return template.format(**kwargs)
+        except KeyError as e:
+            raise ValueError(f"Missing required variable {e} for template '{template_name}'")
+
+    def fill(self, **kwargs) -> str:
+        """
+        Fill the template with provided variables (backward compatibility method).
+        """
+        if self.template:
+            return self.template.format(**kwargs)
+        else:
+            raise ValueError("No template provided to PromptEngineer")
+
+    def execute(self, **kwargs) -> str:
+        """
+        Execute the prompt by filling template and adding execution prefix (backward compatibility method).
+        """
+        filled = self.fill(**kwargs)
+        return f"Executing prompt: {filled}"
+    
+    def create_email_categorization_prompt(self, subject: str, content: str, categories: List[str]) -> str:
+>>>>>>> d1ac970f (feat: Complete task verification framework and fix security module)
         """
         Fills the template and executes the prompt against an LLM.
         NOTE: This is a placeholder for LLM interaction.

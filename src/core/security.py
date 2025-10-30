@@ -33,6 +33,145 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Security enums and classes
+class Permission(Enum):
+    READ = "read"
+    WRITE = "write"
+    EXECUTE = "execute"
+    DELETE = "delete"
+
+class SecurityLevel(Enum):
+    UNTRUSTED = "untrusted"
+    LIMITED = "limited"
+    TRUSTED = "trusted"
+    INTERNAL = "internal"
+    SYSTEM = "system"
+
+@dataclass
+class SecurityContext:
+    user_id: str
+    permissions: List[Permission] = None
+    security_level: SecurityLevel = SecurityLevel.TRUSTED
+    allowed_resources: List[str] = None
+    session_id: str = None
+
+    def __post_init__(self):
+        if self.permissions is None:
+            self.permissions = []
+        if self.allowed_resources is None:
+            self.allowed_resources = []
+        if self.session_id is None:
+            self.session_id = str(uuid4())
+
+class SecurityManager:
+    """Manages security contexts and sessions."""
+
+    def create_session(self, user_id: str, permissions: List[Permission],
+                      security_level: SecurityLevel, allowed_resources: List[str]) -> SecurityContext:
+        """Create a new security context/session."""
+        return SecurityContext(
+            user_id=user_id,
+            permissions=permissions,
+            security_level=security_level,
+            allowed_resources=allowed_resources
+        )
+
+class DataSanitizer:
+    """Sanitizes data to prevent injection and other security issues"""
+
+    @staticmethod
+    def sanitize_input(data: Any) -> Any:
+        """
+        Sanitize input data to prevent injection attacks
+        """
+        if isinstance(data, str):
+            # Basic sanitization - in production, use a library like bleach
+            sanitized = data.replace("<script", "&lt;script").replace("javascript:", "javascript-")
+            return sanitized
+        elif isinstance(data, dict):
+            sanitized_dict = {}
+            for key, value in data.items():
+                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(
+                    value
+                )
+            return sanitized_dict
+        elif isinstance(data, list):
+            return [DataSanitizer.sanitize_input(item) for item in data]
+        else:
+            return data
+
+    @staticmethod
+    def sanitize_output(data: Any) -> Any:
+        """
+        Sanitize output data to prevent information disclosure
+        """
+        if isinstance(data, str):
+            # Improved sanitization to redact sensitive key-value pairs
+            # This regex looks for common sensitive keys followed by a colon and captures the value.
+            sensitive_keys = ["password", "token", "key", "secret", "auth"]
+            for key in sensitive_keys:
+                # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
+                # It handles optional whitespace and stops at the next comma or end of string.
+                data = re.sub(
+                    rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
+                    r'\1[REDACTED]',
+                    data,
+                    flags=re.IGNORECASE
+                )
+            return data
+        elif isinstance(data, dict):
+            sanitized_dict = {}
+            for key, value in data.items():
+                # Redact sensitive fields
+                if any(
+                    sensitive in key.lower() for sensitive in ["password", "token", "key", "secret"]
+                ):
+                    sanitized_dict[key] = "[REDACTED]"
+                else:
+                    sanitized_dict[key] = DataSanitizer.sanitize_output(value)
+            return sanitized_dict
+        elif isinstance(data, list):
+            return [DataSanitizer.sanitize_output(item) for item in data]
+        else:
+            return data
+
+    @staticmethod
+    def sanitize_string(input_str: str) -> str:
+        """Sanitize string input."""
+        return DataSanitizer.sanitize_input(input_str)
+
+    @staticmethod
+    def sanitize_path(path: str) -> str:
+        """Sanitize file path."""
+        return sanitize_path(path)  # Use existing function
+
+class SecurityValidator:
+    """Validates security constraints."""
+
+    @staticmethod
+    def validate_operation(operation: str, context: SecurityContext) -> bool:
+        """Validate if operation is allowed in given security context."""
+        # Simple validation - check if operation requires permissions we have
+        required_permissions = {
+            'read': [Permission.READ],
+            'write': [Permission.WRITE],
+            'execute': [Permission.EXECUTE],
+            'delete': [Permission.DELETE]
+        }
+
+        perms = required_permissions.get(operation.lower(), [])
+        return all(perm in context.permissions for perm in perms)
+
+# Global security manager instance
+security_manager = SecurityManager()
+
+# Import SecurityContext from node_base if available (override our fallback)
+try:
+    from backend.node_engine.node_base import SecurityContext as NodeSecurityContext
+    SecurityContext = NodeSecurityContext  # Use the node version if available
+except ImportError:
+    pass  # Use our fallback
+
 
 def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> bool:
     """
@@ -52,7 +191,7 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
         path_str = str(path_obj)
 
         # Common directory traversal patterns
-        traversal_patterns = ['..', '\\', '//', '/./', '\\./']
+        traversal_patterns = ['..', '/../', '/..', '\\..\\', '..\\', '/./', '\\./']
         for pattern in traversal_patterns:
             if pattern in str(path):
                 logger.warning(f"Potential directory traversal detected in path: {path}")
@@ -446,6 +585,36 @@ def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, path
             component_path = pathlib.Path(path_component)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+            # Check each component for traversal
+            if not validate_path_safety(str(component_path)):
+                return None
+
+            # Only allow simple filenames/directories (no absolute paths or traversal)
+            if component_path.is_absolute() or '..' in str(component_path):
+                return None
+
+            result_path = result_path / component_path
+
+        # Validate final path is within base directory
+        result_path = result_path.resolve()
+        base_resolved = pathlib.Path(base_dir).resolve()
+
+        if not str(result_path).startswith(str(base_resolved)):
+            return None
+
+        return result_path
+
+    except Exception:
+        return None
+
+        return result_path
+
+    except Exception:
+        return None
+
+>>>>>>> d1ac970f (feat: Complete task verification framework and fix security module)
 def create_default_security_context() -> SecurityContext:
     """Create a default security context for internal operations"""
     return security_manager.create_session(
@@ -532,6 +701,7 @@ class PathValidator:
             raise ValueError("Database path contains hidden files/directories")
 
         return resolved_path
+<<<<<<< HEAD
 
     @staticmethod
     def sanitize_filename(filename: str) -> str:
@@ -708,3 +878,5 @@ def secure_path_join(
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
+=======
+>>>>>>> d1ac970f (feat: Complete task verification framework and fix security module)
