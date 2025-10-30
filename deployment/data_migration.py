@@ -25,6 +25,8 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from src.core.security import PathValidator
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -71,7 +73,9 @@ def write_gzipped_json(file_path: Path, data: Any) -> bool:
 def connect_sqlite(db_path: Path) -> Optional[sqlite3.Connection]:
     """Connect to SQLite database."""
     try:
-        conn = sqlite3.connect(db_path)
+        # Validate the database path for security
+        validated_path = PathValidator.validate_database_path(db_path)
+        conn = sqlite3.connect(validated_path)
         conn.row_factory = sqlite3.Row
         return conn
     except Exception as e:

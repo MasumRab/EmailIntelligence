@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Literal, Optional
 from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 from .data.data_source import DataSource
+from .caching import get_cache_manager, CacheConfig, CacheBackend
 
 logger = logging.getLogger(__name__)
 
@@ -74,12 +75,25 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
-    def __init__(self):
+    def __init__(self, enable_redis_cache: Optional[bool] = None, redis_url: Optional[str] = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
         self.emails_file = EMAILS_FILE
         self.categories_file = CATEGORIES_FILE
         self.users_file = USERS_FILE
         self.email_content_dir = EMAIL_CONTENT_DIR
+
+        # Check environment variables for Redis configuration
+        if enable_redis_cache is None:
+            enable_redis_cache = os.getenv("ENABLE_REDIS_CACHE", "false").lower() == "true"
+        if redis_url is None:
+            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+
+        # Initialize cache manager
+        cache_config = CacheConfig(
+            backend=CacheBackend.REDIS if enable_redis_cache else CacheBackend.MEMORY,
+            redis_url=redis_url
+        )
+        self.cache = get_cache_manager() if not enable_redis_cache else init_cache_manager(cache_config)
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -146,6 +160,10 @@ class DatabaseManager(DataSource):
         if not self._initialized:
             await self._load_data()
             self._build_indexes()
+
+            # Start cache warming in background
+            await self.cache.warm_cache(self.warm_email_cache, "email_warming")
+
             self._initialized = True
 
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
@@ -417,6 +435,15 @@ class DatabaseManager(DataSource):
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
+        # Create cache key based on parameters
+        cache_key = f"emails:limit={limit}:offset={offset}:category={category_id}:unread={is_unread}"
+
+        # Try to get from cache first
+        cached_result = await self.cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        # Compute result
         filtered_emails = self.emails_data
         if category_id is not None:
             filtered_emails = [
@@ -439,7 +466,45 @@ class DatabaseManager(DataSource):
             )
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
+
+        # Cache the result with tags for invalidation
+        tags = ["emails"]
+        if category_id is not None:
+            tags.append(f"category:{category_id}")
+
+        await self.cache.set(cache_key, result_emails, ttl=300, tags=tags)  # 5 minute TTL
         return result_emails
+
+    async def warm_email_cache(self):
+        """Warm cache with frequently accessed email data"""
+        # Warm cache with common email queries
+        warming_data = {}
+
+        # Cache recent emails
+        recent_emails = await self.get_emails(limit=100, offset=0)
+        warming_data["emails:limit=100:offset=0:category=None:unread=None"] = recent_emails
+
+        # Cache unread emails
+        unread_emails = await self.get_emails(limit=50, offset=0, is_unread=True)
+        warming_data["emails:limit=50:offset=0:category=None:unread=True"] = unread_emails
+
+        # Cache categories with counts
+        categories = await self.get_categories_with_counts()
+        warming_data["categories_with_counts"] = categories
+
+        return warming_data
+
+    async def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache performance statistics"""
+        stats = await self.cache.get_stats()
+        return {
+            "hits": stats.hits,
+            "misses": stats.misses,
+            "hit_rate": stats.hit_rate,
+            "sets": stats.sets,
+            "deletes": stats.deletes,
+            "evictions": stats.evictions
+        }
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
@@ -484,6 +549,13 @@ class DatabaseManager(DataSource):
             if idx != -1:
                 self.emails_data[idx] = email_to_update
             await self._save_data(DATA_TYPE_EMAILS)
+
+            # Invalidate email caches
+            await self.cache.invalidate_tags(["emails"])
+            if original_category_id is not None:
+                await self.cache.invalidate_tags([f"category:{original_category_id}"])
+            if new_category_id is not None and new_category_id != original_category_id:
+                await self.cache.invalidate_tags([f"category:{new_category_id}"])
 
             new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
             if original_category_id != new_category_id:

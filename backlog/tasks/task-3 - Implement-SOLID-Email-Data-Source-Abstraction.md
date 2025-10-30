@@ -1,10 +1,11 @@
 ---
 id: task-3
 title: Implement SOLID Email Data Source Abstraction
-status: Done
-assignee: []
+status: In Progress
+assignee:
+  - '@masum'
 created_date: '2025-10-25 04:46'
-updated_date: '2025-10-28 05:30'
+updated_date: '2025-10-29 22:23'
 labels:
   - architecture
   - solid
