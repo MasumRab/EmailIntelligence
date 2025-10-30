@@ -1,3 +1,6 @@
 * text=auto
 *.sh text eol=lf
 *.ps1 text eol=crlf
+
+# Backlog task files use custom merge driver to preserve completion status
+backlog/tasks/*.md merge=backlog-merge
