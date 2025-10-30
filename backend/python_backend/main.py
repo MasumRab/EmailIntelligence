@@ -39,10 +39,12 @@ from . import (
     model_routes,
     performance_routes,
 )
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from src.core import plugin_routes
+from .auth import create_access_token, get_current_user, TokenData
+from src.core.auth import authenticate_user
+from .settings import settings
+from fastapi.security import HTTPBearer
+from fastapi import Depends, HTTPException, status
+from datetime import timedelta
 from .ai_engine import AdvancedAIEngine
 from .exceptions import AppException
 
@@ -89,7 +91,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             # Track error rate
             with error_lock:
-                error_counts[status_code] += 1
+                error_counts[500] += 1  # Default to 500 for unhandled exceptions
                 # Alert if error rate is high (simple threshold)
                 total_errors = sum(error_counts.values())
                 if total_errors > 10:  # Simple threshold
@@ -136,7 +138,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 headers={"X-Request-ID": request_id}
             )
 
-
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,
@@ -179,14 +180,41 @@ async def shutdown_event():
     await db_manager.close()
 
 
+@app.exception_handler(AppException)
+
+async def app_exception_handler(request: Request, exc: AppException):
+
+    return JSONResponse(
+
+        status_code=exc.status_code,
+
+        content=exc.detail,
+
+    )
+
+
+@app.exception_handler(BaseAppException)
+
+async def base_app_exception_handler(request: Request, exc: BaseAppException):
+
+    return JSONResponse(
+
+        status_code=500,
+
+        content={
+
+            "success": False,
+
+            "message": "An internal error occurred",
+
+            "error_code": "INTERNAL_ERROR",
+            "details": str(exc),
+        },
+
+    )
 # Exception handlers removed - now handled by ErrorHandlingMiddleware
 
-
-
-
-
 @app.exception_handler(ValidationError)
-
 async def validation_exception_handler(request: Request, exc: ValidationError):
 
     """Handle Pydantic validation errors with detailed 422 responses."""
@@ -255,9 +283,8 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-    app.include_router(plugin_routes.router)
-# app.include_router(action_routes.router) # Removed
-# app.include_router(dashboard_routes.router) # Removed
+app.include_router(action_routes.router)
+app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
@@ -291,6 +318,35 @@ except ImportError:
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
+
+
+# Authentication endpoints
+@app.post("/token")
+async def login(username: str, password: str):
+    """Login endpoint to get access token"""
+    # Use the new authentication system
+    db = await get_db()
+    user = await authenticate_user(username, password, db)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Try to get the settings if possible
+    try:
+        from .settings import settings
+        access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    except ImportError:
+        # Use a default if settings are not available
+        access_token_expires = timedelta(minutes=30)
+    
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # Health check endpoint (usually kept in main.py)
