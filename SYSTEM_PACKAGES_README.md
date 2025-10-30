@@ -108,7 +108,6 @@ The following Python packages should be installed in a virtual environment, NOT 
 sudo apt update
 sudo apt install python3-dev python3-pip python3-venv build-essential libssl-dev libffi-dev libblas-dev liblapack-dev libfreetype6-dev libpng-dev git curl wget
 
-<<<<<<< HEAD
 # Set up environment using the project's standard launcher
 python launch.py --setup
 
