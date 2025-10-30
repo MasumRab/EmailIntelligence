@@ -40,10 +40,38 @@ from src.core.factory import get_data_source
 @pytest.fixture(scope="session", autouse=True)
 def download_nltk_data():
     """Download NLTK data before running tests."""
-    packages = ["punkt", "stopwords"]
-    for package in packages:
-        subprocess.run([sys.executable, "-m", "nltk.downloader", package], check=True)
-    subprocess.run([sys.executable, "-m", "textblob.download_corpora"], check=True)
+    try:
+        import nltk
+        # Use NLTK's programmatic download for better reliability
+        packages = ["punkt", "punkt_tab", "stopwords", "wordnet", "averaged_perceptron_tagger"]
+        for package in packages:
+            try:
+                nltk.download(package, quiet=True)
+            except Exception as e:
+                # Some packages might fail, continue with others
+                pass
+    except ImportError:
+        # NLTK not available, skip
+        pass
+
+    # Download TextBlob corpora if textblob is available
+    try:
+        import textblob
+        try:
+            # Use textblob's programmatic download
+            from textblob import download_corpora
+            download_corpora()
+        except Exception as e:
+            # Try command line approach as fallback
+            try:
+                subprocess.run([sys.executable, "-c", "from textblob import download_corpora; download_corpora()"],
+                             check=True, timeout=60)
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+                # TextBlob corpora download failed - skip silently
+                pass
+    except ImportError:
+        # TextBlob not available, skip
+        pass
 
 
 @pytest.fixture
