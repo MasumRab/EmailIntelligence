@@ -197,15 +197,31 @@ This starts the application in a local development mode. For comprehensive setup
 
 ## Documentation
 
-This project includes comprehensive documentation in the `docs/` directory:
+This project includes comprehensive documentation:
 
-- **[Client Development Guide](docs/client_development.md)**: Information about the frontend application, structure, and development.
-- **[Server Development Guide](docs/server_development.md)**: Details about the backend components, structure, and development.
-- **[Deployment Guide](docs/deployment_guide.md)**: Comprehensive guide covering all deployment environments (local, Docker, staging, production), setup, configuration, deployment strategies, and operational procedures.
-- **[Environment Management Guide](docs/env_management.md)**: Details about the Python environment management system, `launch.py`, and related features.
-- **[Launcher Guide](docs/launcher_guide.md)**: Comprehensive information about the unified launcher system (`launch.py`) and its command-line options.
-- **[Extensions Guide](docs/extensions_guide.md)**: Information on how to use and develop extensions.
-- **[Python Style Guide](docs/python_style_guide.md)**: Coding standards for Python code in the project.
+### Getting Started
+- **[Getting Started Guide](docs/getting_started.md)**: Complete setup guide for new developers (under 30 minutes)
+- **[Quick Start](#quick-start)**: Fast setup for experienced developers
+
+### Development Guides
+- **[Client Development Guide](docs/client_development.md)**: Frontend application structure and development
+- **[Server Development Guide](docs/server_development.md)**: Backend components and development
+- **[Contributing Guide](CONTRIBUTING.md)**: How to contribute to the project
+
+### Architecture & Design
+- **[Architecture Overview](docs/architecture_overview.md)**: System architecture and design principles
+- **[Architecture Decision Records](docs/adr/)**: Key design decisions and their rationale
+- **[API Documentation](http://localhost:8000/docs)**: Interactive API documentation (when running)
+
+### Deployment & Operations
+- **[Deployment Guide](docs/deployment_guide.md)**: All deployment environments and strategies
+- **[Environment Management Guide](docs/env_management.md)**: Python environment management
+- **[Launcher Guide](docs/launcher_guide.md)**: Unified launcher system details
+
+### Development Tools
+- **[Extensions Guide](docs/extensions_guide.md)**: Using and developing extensions
+- **[Python Style Guide](docs/python_style_guide.md)**: Code standards and conventions
+- **[Testing Guide](docs/testing_guide.md)**: Testing strategies and tools
 
 ## Setup
 
