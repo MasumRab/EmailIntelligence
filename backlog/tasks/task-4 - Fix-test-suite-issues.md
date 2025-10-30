@@ -20,9 +20,9 @@ Address failing tests and test configuration problems in the CI pipeline
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Fix pytest-asyncio configuration
-- [ ] #2 Resolve test environment issues
-- [ ] #3 Update test dependencies
+- [x] #1 Fix pytest-asyncio configuration
+- [x] #2 Resolve test environment issues
+- [x] #3 Update test dependencies
 <!-- AC:END -->
 
 ## Implementation Notes

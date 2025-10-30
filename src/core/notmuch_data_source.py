@@ -425,6 +425,38 @@ class NotmuchDataSource(DataSource):
             logger.error(f"Error updating email {email_id}: {e}")
             return None
 
+    async def delete_email(self, email_id: int) -> bool:
+        """Delete an email by its internal ID."""
+        await self._ensure_initialized()
+
+        try:
+            # Get the email first to check if it exists and get message_id
+            email = await self.db.get_email_by_id(email_id)
+            if not email:
+                logger.warning(f"Email with ID {email_id} not found for deletion")
+                return False
+
+            message_id = email.get("message_id")
+            if message_id:
+                # Remove from notmuch database
+                try:
+                    query = self.notmuch_db.create_query(f"id:{message_id}")
+                    messages = query.search_messages()
+                    for message in messages:
+                        message.remove_all_tags()
+                        message.add_tag("deleted")
+                    self.notmuch_db.close()
+                    self.notmuch_db = self.notmuch.open(self.db_path)
+                except Exception as e:
+                    logger.warning(f"Failed to mark message as deleted in notmuch: {e}")
+
+            # Delete from our database
+            return await self.db.delete_email(email_id)
+
+        except Exception as e:
+            logger.error(f"Error deleting email {email_id}: {e}")
+            return False
+
     async def shutdown(self) -> None:
         """Gracefully shutdown the data source and clean up resources."""
         logger.info("Shutting down NotmuchDataSource")

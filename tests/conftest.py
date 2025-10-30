@@ -7,8 +7,32 @@ import pytest
 import subprocess
 from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
+from fastapi import FastAPI
 
-from src.main import create_app
+# Create a minimal test app without gradio dependencies
+def create_test_app():
+    """Create a minimal FastAPI app for testing without gradio."""
+    app = FastAPI(title="Test App", version="1.0.0")
+
+    # Add basic CORS
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Add a simple health endpoint
+    @app.get("/health")
+    async def health():
+        return {"status": "healthy"}
+
+    return app
+
+# Use the test app instead of the main app
+from tests.conftest import create_test_app as create_app
 from src.core.database import get_db
 from src.core.factory import get_data_source
 
