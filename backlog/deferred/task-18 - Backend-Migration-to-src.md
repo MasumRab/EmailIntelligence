@@ -1,16 +1,14 @@
 ---
 id: task-18
 title: Backend Migration to src/
-status: In Progress
-assignee:
-  - '@masum'
+status: Deferred
+assignee: []
 created_date: '2025-10-27 00:25'
-updated_date: '2025-10-27 00:51'
+updated_date: '2025-10-30 05:30'
 labels:
   - migration
-  - architecture
+- architecture
 dependencies: []
-priority: high
 ---
 
 ## Description
