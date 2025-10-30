@@ -4,7 +4,6 @@ from typing import AsyncGenerator
 
 from .data_source import DataSource
 from .database import DatabaseManager
-from .notmuch_data_source import NotmuchDataSource
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, EmailRepository
 
@@ -58,6 +57,8 @@ async def get_data_source() -> DataSource:
     if _data_source_instance is None:
         source_type = os.environ.get("DATA_SOURCE_TYPE", "default")
         if source_type == "notmuch":
+            # Import only when needed to avoid requiring notmuch in test environments
+            from .notmuch_data_source import NotmuchDataSource
             _data_source_instance = NotmuchDataSource()
         else:
             _data_source_instance = DatabaseManager()
