@@ -67,14 +67,6 @@ cd <repository-name>
 python3 launch.py --setup
 ```
 
-**Alternative: Using Poetry**
-
-If you prefer Poetry for Python dependency management:
-
-```bash
-python3 launch.py --use-poetry --setup
-```
-
 **Note:** The setup installs CPU-only PyTorch for lightweight deployment. If you need GPU support, modify the PyTorch installation manually.
 
 ### 2. Running the Application
