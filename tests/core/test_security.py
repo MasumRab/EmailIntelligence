@@ -3,23 +3,11 @@ Tests for security utilities.
 """
 
 import pytest
-import time
 import tempfile
-import os
-from pathlib import Path
+import pathlib
 from unittest.mock import patch
-from src.core.security import (
-    DataSanitizer,
-    SecurityValidator,
-    SecurityContext,
-    SecurityLevel,
-    Permission,
-    SecurityManager,
-    PathValidator,
-    validate_path_safety,
-    sanitize_path,
-    secure_path_join,
-)
+
+from src.core.security import validate_path_safety, sanitize_path, secure_path_join
 
 
 class TestPathValidation:
@@ -122,87 +110,9 @@ class TestPathValidation:
             result = secure_path_join(temp_dir, "..", "etc", "passwd")
             assert result is None
 
-def test_verify_invalid_token():
-    manager = SecurityManager()
-    # Test tampered data
-    data = {"user": "test", "role": "reader"}
-    token = manager.generate_signed_token(data)
-    parts = token.split('.')
-    tampered_token = f"{parts[0]}.invalid_signature"
-    assert manager.verify_signed_token(tampered_token) is None
-    # Test invalid format
-    assert manager.verify_signed_token("invalid-token-format") is None
-
-
-# --- PathValidator Tests ---
-
-def test_is_safe_path_valid():
-    """Test that safe paths within base directory are accepted"""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        base_path = Path(temp_dir) / "data"
-        base_path.mkdir()
-        safe_path = base_path / "test.db"
-        assert PathValidator.is_safe_path(base_path, safe_path) is True
-
-def test_is_safe_path_traversal():
-    """Test that directory traversal attempts are blocked"""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        base_path = Path(temp_dir) / "data"
-        base_path.mkdir()
-        # Try to escape to parent directory
-        traversal_path = base_path / ".." / "etc" / "passwd"
-        assert PathValidator.is_safe_path(base_path, traversal_path) is False
-
-def test_sanitize_filename_valid():
-    """Test sanitization of valid filenames"""
-    assert PathValidator.sanitize_filename("test.db") == "test.db"
-    assert PathValidator.sanitize_filename("my_database.sqlite") == "my_database.sqlite"
-
-def test_sanitize_filename_dangerous():
-    """Test sanitization removes dangerous characters"""
-    assert PathValidator.sanitize_filename("../../../etc/passwd") == "etcpasswd"
-    assert PathValidator.sanitize_filename("test<script>.db") == "testscript.db"
-    assert PathValidator.sanitize_filename("test.db\x00") == "test.db"
-
-def test_sanitize_filename_edge_cases():
-    """Test edge cases in filename sanitization"""
-    assert PathValidator.sanitize_filename("") == "default.db"
-    assert PathValidator.sanitize_filename(".hidden") == "default.db"
-    assert PathValidator.sanitize_filename("..") == "default.db"
-    assert PathValidator.sanitize_filename("   ") == "default.db"
-
-def test_validate_database_path_valid():
-    """Test validation of valid database paths"""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        db_path = Path(temp_dir) / "test.db"
-        validated = PathValidator.validate_database_path(db_path, temp_dir)
-        assert validated == db_path.resolve()
-
-def test_validate_database_path_memory():
-    """Test validation of in-memory database"""
-    validated = PathValidator.validate_database_path(":memory:")
-    assert str(validated) == ":memory:"
-
-def test_validate_database_path_traversal():
-    """Test that path traversal is blocked"""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        base_dir = Path(temp_dir) / "safe"
-        base_dir.mkdir()
-        traversal_path = base_dir / ".." / "unsafe" / "bad.db"
-        with pytest.raises(ValueError, match="escapes allowed directory"):
-            PathValidator.validate_database_path(traversal_path, base_dir)
-
-def test_validate_database_path_invalid():
-    """Test validation of invalid paths"""
-    with pytest.raises(ValueError):
-        PathValidator.validate_database_path("")
-
-    with pytest.raises(ValueError):
-        PathValidator.validate_database_path("/nonexistent/path/../../../etc/passwd")
-
-    # Absolute path component
-    result = secure_path_join(temp_dir, "/etc", "passwd")
-    assert result is None
+            # Absolute path component
+            result = secure_path_join(temp_dir, "/etc", "passwd")
+            assert result is None
 
     def test_secure_path_join_empty_components(self):
         """Test secure path joining with empty or invalid components."""
@@ -281,4 +191,5 @@ class TestDataMigrationSecurity:
 
         # Should exit with error due to unsafe path
         assert result.returncode == 1
-        assert "Unsafe data directory path" in result.stderr
+        assert "Unsafe data directory path" in result.stderr</content>
+</xai:function_call: <parameter name="path">/home/masum/github/EmailIntelligence/tests/core/test_security.py

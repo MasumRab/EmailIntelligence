@@ -108,16 +108,18 @@ The following Python packages should be installed in a virtual environment, NOT 
 sudo apt update
 sudo apt install python3-dev python3-pip python3-venv build-essential libssl-dev libffi-dev libblas-dev liblapack-dev libfreetype6-dev libpng-dev git curl wget
 
-# Create virtual environment
-python3 -m venv emailintelligence_env
-source emailintelligence_env/bin/activate
+<<<<<<< HEAD
+# Set up environment using the project's standard launcher
+python launch.py --setup
 
-# Install PyTorch CPU
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# This creates a venv and installs all dependencies using uv
+# CPU PyTorch is automatically installed for lightweight deployment
 
-# Install other packages
-pip install -r requirements.txt  # If you have a requirements.txt
-# OR
+# Alternative manual setup (not recommended):
+# python3 -m venv venv
+# source venv/bin/activate
+# pip install uv
+uv pip install -e .
 uv sync  # Standard dependency management
 ```
 

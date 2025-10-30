@@ -1,10 +1,11 @@
 ---
 id: task-14
 title: Implement PromptEngineer class for LLM interaction or update README
-status: Completed
-assignee: []
+status: Done
+assignee:
+  - '@masum'
 created_date: '2025-10-26 14:22'
-updated_date: '2025-10-28 23:47'
+updated_date: '2025-10-27 00:47'
 labels: []
 dependencies: []
 priority: high
