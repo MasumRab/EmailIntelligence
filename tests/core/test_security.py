@@ -191,5 +191,4 @@ class TestDataMigrationSecurity:
 
         # Should exit with error due to unsafe path
         assert result.returncode == 1
-        assert "Unsafe data directory path" in result.stderr</content>
-</xai:function_call: <parameter name="path">/home/masum/github/EmailIntelligence/tests/core/test_security.py
+        assert "Unsafe data directory path" in result.stderr
