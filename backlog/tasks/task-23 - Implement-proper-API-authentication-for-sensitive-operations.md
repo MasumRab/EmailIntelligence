@@ -1,10 +1,11 @@
 ---
 id: task-23
 title: Implement proper API authentication for sensitive operations
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-10-30 09:24'
 updated_date: '2025-10-30 09:25'
+
 labels: []
 dependencies: []
 ---
@@ -17,12 +18,12 @@ The README.md's 'Security Considerations' section notes that the 'Current state 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Identify all sensitive API endpoints in the backend that require authentication.
-- [ ] #2 Implement an authentication mechanism (e.g., OAuth2, JWT) for these endpoints.
-- [ ] #3 Integrate the authentication mechanism with existing user management or create a new one if necessary.
-- [ ] #4 Ensure all sensitive operations are protected by the implemented authentication.
-- [ ] #5 Update relevant documentation (e.g., API docs, security guide) to reflect the new authentication requirements and usage.
-- [ ] #6 Add unit and integration tests for the authentication mechanism.
+- [x] #1 Identify all sensitive API endpoints in the backend that require authentication.
+- [x] #2 Implement an authentication mechanism (e.g., OAuth2, JWT) for these endpoints.
+- [x] #3 Integrate the authentication mechanism with existing user management or create a new one if necessary.
+- [x] #4 Ensure all sensitive operations are protected by the implemented authentication.
+- [x] #5 Update relevant documentation (e.g., API docs, security guide) to reflect the new authentication requirements and usage.
+- [x] #6 Add unit and integration tests for the authentication mechanism.
 <!-- AC:END -->
 
 ## Implementation Notes

@@ -169,11 +169,21 @@ def test_parallel_execution():
     def dummy_operation(x):
         return x + 1
 
+<<<<<<< HEAD
+=======
+    def combine_operation(x, y):
+        return x + y
+
+>>>>>>> refs/remotes/origin/scientific
     # Create nodes that can run in parallel after A: A -> B, A -> C, then B,C -> D
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
     node_b = Node("B", "Node B", dummy_operation, ["input"], ["output"])
     node_c = Node("C", "Node C", dummy_operation, ["input"], ["output"])
+<<<<<<< HEAD
     node_d = Node("D", "Node D", dummy_operation, ["input1", "input2"], ["output"])
+=======
+    node_d = Node("D", "Node D", combine_operation, ["input1", "input2"], ["output"])
+>>>>>>> refs/remotes/origin/scientific
 
     connections = [
         {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},

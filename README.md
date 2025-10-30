@@ -53,11 +53,100 @@ Gradio UI (gradio_app.py)
 
 ## Prerequisites
 
-To successfully set up and run EmailIntelligence, you will need the following:
+## Getting Started
 
-- **Python 3.11.x or 3.12.x**: Required for the backend services
-- **Node.js 16+** (18.x or 20.x recommended): Required for the frontend (optional if running API-only)
-- **Conda (optional)**: For conda environment management (venv is used by default)
+A single script, `launch.py`, manages the entire development environment, from installing dependencies to running services.
+
+### 1. First-Time Setup
+
+Clone the repository and run the setup command. This will create a Python virtual environment, install all Python and Node.js dependencies, and download necessary machine learning model data.
+
+```bash
+git clone <your-repo-url>
+cd <repository-name>
+python3 launch.py --setup
+```
+
+**Note:** The setup installs CPU-only PyTorch for lightweight deployment. If you need GPU support, modify the PyTorch installation manually.
+
+### 2. Running the Application
+
+After the one-time setup, use the same script to launch all services:
+
+```bash
+python3 launch.py
+```
+
+This command will start:
+- **Python FastAPI Backend** on `http://127.0.0.1:8000`
+- **Gradio UI** on `http://127.0.0.1:7860` (or the next available port)
+- **Node.js TypeScript Backend** (port managed by `npm`)
+- **React Frontend** on `http://127.0.0.1:5173` (or the next available port)
+
+Press `Ctrl+C` in the terminal to gracefully shut down all running services.
+
+## Project Architecture
+
+The application is composed of five main, interconnected services:
+
+1.  **Python Backend (FastAPI):**
+    -   Located in `backend/python_backend/`.
+    -   Serves the primary REST API for core application logic, data processing, and AI/NLP tasks.
+    -   Manages data storage (JSON files and SQLite databases).
+
+    -   Located in `backend/python_backend/gradio_app.py`.
+    -   Provides a rich, interactive interface for scientific development, model testing, and data visualization. Intended for developers and data scientists.
+
+3.  **Node-Based Workflow Engine:**
+    -   Located in `backend/node_engine/`.
+    -   Provides a modular, extensible architecture for creating complex email processing workflows.
+
+4.  **TypeScript Backend (Node.js):**
+    -   Located in `server/`.
+    -   A secondary backend that handles specific API routes, demonstrating a polyglot microservice architecture.
+
+5.  **React Frontend (Vite):**
+    -   Located in `client/`.
+    -   The main user-facing web application for end-users to interact with the Email Intelligence service.
+
+## Directory Structure
+
+```
+.
+├── backend/
+│   ├── node_engine/      # Node-based workflow engine and specialized email nodes
+│   ├── python_backend/   # Main Python FastAPI application and Gradio UI
+│   └── python_nlp/       # NLP-specific modules and utilities
+├── client/               # React/Vite frontend application
+├── server/               # TypeScript/Node.js backend application
+├── shared/               # Code/types shared between services
+│
+├── launch.py             # 🚀 Unified script to set up, manage, and run the project
+├── pyproject.toml        # Python dependency definitions (for uv)
+├── package.json          # Node.js workspace configuration
+│
+└── ...
+```
+
+## Launcher Usage
+
+The `launch.py` script is the single entry point for all development tasks.
+
+### Environment Management
+
+-   **Force a clean setup:** Delete and recreate the environment from scratch.
+    ```bash
+    python3 launch.py --setup --force-recreate-venv
+    ```
+-   **Update all dependencies:**
+    ```bash
+    python3 launch.py --setup --update-deps
+    ```
+
+### Running Specific Services
+
+You can run any combination of services by using the `--no-<service>` flags.
+
 
 You can run any combination of services by using the launcher scripts:
 -   **Run only the Python backend and Gradio UI:**
@@ -81,6 +170,7 @@ Use `python launch.py --help` to see all available options.
 
 ## Development Notes
 
+<<<<<<< HEAD
 -   **Python Environment:** The launcher automatically detects and uses conda environments if available, otherwise creates and manages a virtual environment in the `./venv` directory. You do not need to activate environments manually.
 -   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` files.
 -   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside your active environment (conda or venv).
@@ -157,6 +247,37 @@ The repository is organized into the following main directories:
     *   Start the Python backend server (FastAPI/Uvicorn), which by default runs on `http://127.0.0.1:8000`.
     *   Start the Vite development server for the frontend, which by default runs on `http://127.0.0.1:5173`.
 
+=======
+-   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
+-   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
+-   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
+-   **Data Storage:** This version uses local file-based storage, primarily located in `backend/python_backend/data/`. SQLite databases (`.db` files) are created in the project root.
+-   **Node-based Workflows:** The new node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
+
+## Troubleshooting
+
+2.  **Run the Launcher Script:**
+    This script automates the entire setup and launch process.
+
+    *   For Linux/macOS:
+        ```bash
+        ./launch.sh
+        ```
+    *   For Windows:
+        ```bash
+        python launch.py
+        ```
+
+    The `launch.py` script will perform the following steps:
+    *   Check your Python version and find a compatible interpreter.
+    *   Create a Python virtual environment in the `./venv` directory.
+    *   Install the required Python dependencies from `requirements.txt`.
+    *   Download necessary NLTK data files for text processing.
+    *   Install Node.js dependencies for the client application by running `npm install` in the `client/` directory.
+    *   Start the Python backend server (FastAPI/Uvicorn), which by default runs on `http://127.0.0.1:8000`.
+    *   Start the Vite development server for the frontend, which by default runs on `http://127.0.0.1:5173`.
+
+>>>>>>> refs/remotes/origin/scientific
 ## Data Storage
 
 The fastest way to get EmailIntelligence running locally for development is by using the unified launcher. This process involves a few key steps:
@@ -309,12 +430,14 @@ This project includes comprehensive documentation in the `docs/` directory:
 
 The primary method for setting up EmailIntelligence for development is using the sequence described in the [Quick Start](#quick-start):
 1.  Clone the repository.
-2.  Install Node.js dependencies (`npm install`).
+2.  Install development dependencies:
+    - For Ubuntu/WSL environments, run `./setup_environment_wsl.sh` (requires sudo) to install all necessary system packages and create the Python virtual environment.
+    - For other environments, install Node.js dependencies (`npm install`).
 3.  Set up the PostgreSQL database (e.g., using `npm run db:setup` with Docker or configuring an existing instance).
 4.  Run the unified launcher script (`launch.py` via `launch.bat` or `launch.sh`) with the `--stage dev` flag.
 
 The launcher script (`launch.py`) handles:
-- Python virtual environment creation.
+- Python virtual environment activation (if created with setup_environment_wsl.sh).
 - Python dependency installation from `requirements.txt`.
 - NLTK data download.
 - Creation of placeholder AI model files if they don't exist (this requires follow-up, see below).
@@ -357,7 +480,7 @@ This section details important environment variables used by the application. Th
 *   **`DATABASE_URL`**: Connection string for the database. For SQLite, this might be `sqlite:sqlite.db` or similar if used, though the application may default to a hardcoded path.
 *   **`GMAIL_CREDENTIALS_JSON`**: JSON content of OAuth 2.0 Client ID credentials for Gmail API.
 *   **`credentials.json` (File Alternative)**: Alternative to `GMAIL_CREDENTIALS_JSON`, placed in project root. Ensure this file is in `.gitignore` if used.
-*   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `token.json`). Ensure this file is in `.gitignore`.
+*   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `jsons/token.json`). Ensure this file is in `.gitignore`.
 *   **`NLP_MODEL_DIR`**: Directory for trained NLP models (default: `backend/python_nlp/`).
 *   **`PORT`**: Port for the Python FastAPI server (default: `8000`).
 

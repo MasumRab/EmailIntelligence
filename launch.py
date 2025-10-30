@@ -429,32 +429,59 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
 
 def download_nltk_data(venv_path=None):
-    python_exe = get_python_executable()
+python_exe = get_python_executable()
 
+# Updated NLTK download script with better error handling and more packages
     nltk_download_script = """
-import nltk
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('vader_lexicon')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
+try:
+    import nltk
+    # Download essential NLTK packages
+    packages = ['punkt', 'punkt_tab', 'stopwords', 'wordnet', 'averaged_perceptron_tagger', 'vader_lexicon', 'omw-1.4']
+    for package in packages:
+        try:
+            nltk.download(package, quiet=True)
+            print(f"Downloaded NLTK package: {package}")
+        except Exception as e:
+        print(f"Failed to download {package}: {e}")
 print("NLTK data download completed.")
+except ImportError:
+print("NLTK not available, skipping download.")
+except Exception as e:
+print(f"NLTK download failed: {e}")
 """
 
-    logger.info("Downloading NLTK data...")
-    result = subprocess.run(
+logger.info("Downloading NLTK data...")
+result = subprocess.run(
         [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
-    )
-    if result.returncode != 0:
+)
+if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
         # This might fail in some environments but it's not critical for basic operation
         logger.warning("NLTK data download failed, but continuing setup...")
     else:
         logger.info("NLTK data downloaded successfully.")
 
-    # Download TextBlob corpora
-    run_command([python_exe, "-m", "textblob.download_corpora"], "Downloading TextBlob corpora")
+    # Download TextBlob corpora with improved error handling
+    textblob_download_script = """
+try:
+    from textblob import download_corpora
+    download_corpora()
+    print("TextBlob corpora download completed.")
+except ImportError:
+    print("TextBlob not available, skipping corpora download.")
+except Exception as e:
+    print(f"TextBlob corpora download failed: {e}")
+"""
+
+    logger.info("Downloading TextBlob corpora...")
+    result = subprocess.run(
+        [python_exe, "-c", textblob_download_script], cwd=ROOT_DIR, capture_output=True, text=True, timeout=120
+    )
+    if result.returncode != 0:
+        logger.warning(f"TextBlob corpora download failed: {result.stderr}")
+        logger.warning("Continuing setup without TextBlob corpora...")
+    else:
+        logger.info("TextBlob corpora downloaded successfully.")
 
 
 def check_uvicorn_installed() -> bool:
@@ -572,6 +599,7 @@ def start_gradio_ui(host, port, share, debug):
         cmd.append("--debug")
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR.resolve())
+
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
 

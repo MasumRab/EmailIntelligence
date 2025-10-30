@@ -11,6 +11,8 @@ import logging
 from typing import Any, Dict, List, Optional, Set
 from datetime import datetime, timezone
 
+import notmuch
+
 from .data_source import DataSource
 from .database import DatabaseManager
 from backend.python_nlp.smart_filters import SmartFilterManager
@@ -25,11 +27,20 @@ class NotmuchDataSource(DataSource):
     and workflow processing for comprehensive email intelligence.
     """
 
-    def __init__(self):
-        self.db = None
+    def __init__(self, db_path: Optional[str] = None):
+        self.db = None  # This will be the DatabaseManager instance
         self.ai_engine = None
         self.filter_manager = None
         self._initialized = False
+        self.notmuch_db = None # Notmuch database instance
+
+        # Initialize notmuch database if db_path is provided
+        if db_path:
+            try:
+                self.notmuch_db = notmuch.Database(db_path)
+            except Exception as e:
+                logger.error(f"Error opening notmuch database at {db_path}: {e}")
+                self.notmuch_db = None
 
     async def _ensure_initialized(self):
         """Ensure all components are properly initialized."""
@@ -215,36 +226,6 @@ class NotmuchDataSource(DataSource):
             logger.error(f"Error creating category: {e}")
             return None
 
-    @log_performance(operation="get_emails_filtered")
-    async def get_emails(
-        self,
-        limit: int = 50,
-        offset: int = 0,
-        category_id: Optional[int] = None,
-        is_unread: Optional[bool] = None,
-    ) -> List[Dict[str, Any]]:
-        """Get emails with intelligent filtering and sorting."""
-        await self._ensure_initialized()
-
-        try:
-            emails = await self.db.get_emails(limit, offset, category_id, is_unread)
-
-            # Enhance emails with analysis insights
-            for email in emails:
-                analysis = email.get("analysis_metadata", {})
-                if analysis:
-                    # Add analysis summary for quick access
-                    email["analysis_summary"] = {
-                        "sentiment": analysis.get("sentiment", {}).get("label"),
-                        "urgency": analysis.get("urgency", {}).get("level"),
-                        "has_filters": bool(analysis.get("smart_filters"))
-                    }
-
-            return emails
-        except Exception as e:
-            logger.error(f"Error retrieving emails: {e}")
-            return []
-
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
@@ -349,6 +330,35 @@ class NotmuchDataSource(DataSource):
 
         return score
 
+    async def get_emails(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        category_id: Optional[int] = None,
+        is_unread: Optional[bool] = None,
+    ) -> List[Dict[str, Any]]:
+        """Get emails with intelligent filtering and sorting."""
+        await self._ensure_initialized()
+
+        try:
+            emails = await self.db.get_emails(limit, offset, category_id, is_unread)
+
+            # Enhance emails with analysis insights
+            for email in emails:
+                analysis = email.get("analysis_metadata", {})
+                if analysis:
+                    # Add analysis summary for quick access
+                    email["analysis_summary"] = {
+                        "sentiment": analysis.get("sentiment", {}).get("label"),
+                        "urgency": analysis.get("urgency", {}).get("level"),
+                        "has_filters": bool(analysis.get("smart_filters"))
+                    }
+
+            return emails
+        except Exception as e:
+            logger.error(f"Error retrieving emails: {e}")
+            return []
+
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
@@ -372,6 +382,38 @@ class NotmuchDataSource(DataSource):
             logger.error(f"Error updating email {email_id}: {e}")
             return None
 
+    async def delete_email(self, email_id: int) -> bool:
+        """Delete an email by its internal ID."""
+        await self._ensure_initialized()
+
+        try:
+            # Get the email first to check if it exists and get message_id
+            email = await self.db.get_email_by_id(email_id)
+            if not email:
+                logger.warning(f"Email with ID {email_id} not found for deletion")
+                return False
+
+            message_id = email.get("message_id")
+            if message_id:
+                # Remove from notmuch database
+                try:
+                    query = self.notmuch_db.create_query(f"id:{message_id}")
+                    messages = query.search_messages()
+                    for message in messages:
+                        message.remove_all_tags()
+                        message.add_tag("deleted")
+                    self.notmuch_db.close()
+                    self.notmuch_db = self.notmuch.open(self.db_path)
+                except Exception as e:
+                    logger.warning(f"Failed to mark message as deleted in notmuch: {e}")
+
+            # Delete from our database
+            return await self.db.delete_email(email_id)
+
+        except Exception as e:
+            logger.error(f"Error deleting email {email_id}: {e}")
+            return False
+
     async def shutdown(self) -> None:
         """Gracefully shutdown the data source and clean up resources."""
         logger.info("Shutting down NotmuchDataSource")
@@ -381,6 +423,8 @@ class NotmuchDataSource(DataSource):
                 await self.db.close()
             if self.filter_manager:
                 await self.filter_manager.cleanup()
+            if self.notmuch_db:
+                self.notmuch_db.close()
 
         except Exception as e:
             logger.error(f"Error during NotmuchDataSource shutdown: {e}")

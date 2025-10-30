@@ -4,9 +4,18 @@ from typing import AsyncGenerator
 
 from .data_source import DataSource
 from .database import DatabaseManager
-from .notmuch_data_source import NotmuchDataSource
+<<<<<<< HEAD
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, EmailRepository
+
+# Optional import for NotmuchDataSource
+try:
+    from .notmuch_data_source import NotmuchDataSource
+    NOTMUCH_AVAILABLE = True
+except ImportError:
+    NOTMUCH_AVAILABLE = False
+    NotmuchDataSource = None
+
 
 _data_source_instance = None
 _email_repository_instance = None
@@ -58,6 +67,8 @@ async def get_data_source() -> DataSource:
     if _data_source_instance is None:
         source_type = os.environ.get("DATA_SOURCE_TYPE", "default")
         if source_type == "notmuch":
+            if not NOTMUCH_AVAILABLE:
+                raise ImportError("NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch")
             _data_source_instance = NotmuchDataSource()
         else:
             _data_source_instance = DatabaseManager()

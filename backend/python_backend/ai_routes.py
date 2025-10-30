@@ -8,6 +8,7 @@ from .models import AIAnalysisRequest, AIAnalysisResponse, AICategorizeRequest, 
 from .ai_engine import AdvancedAIEngine
 from src.core.auth import get_current_active_user
 
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 

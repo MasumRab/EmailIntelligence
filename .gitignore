@@ -73,6 +73,9 @@ config/llm_guidelines.local.json
 !.semgrep/
 !.gitignore
 
+# Ignore files starting with equals
+=*
+
 # Python cache
 __pycache__/
 
@@ -80,3 +83,5 @@ __pycache__/
 diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
+models/*.pkl
+emailintelligence_env/
