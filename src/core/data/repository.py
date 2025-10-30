@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, AsyncGenerator
+=======
+from typing import Any, Dict, List, Optional
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 from .data_source import DataSource
 
@@ -44,6 +48,7 @@ class EmailRepository(ABC):
         """Performs any necessary cleanup."""
         pass
 
+<<<<<<< HEAD
     # Caching methods
     @abstractmethod
     async def cache_get(self, key: str) -> Optional[Any]:
@@ -78,12 +83,15 @@ class EmailRepository(ABC):
         """Deletes multiple emails in a single operation."""
         pass
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 class DatabaseEmailRepository(EmailRepository):
     """Email repository implementation using DatabaseManager."""
 
     def __init__(self, db_manager: DataSource):
         self.db_manager = db_manager
+<<<<<<< HEAD
         # Simple in-memory cache using a dictionary
         self._cache: Dict[str, tuple] = {}  # key -> (value, expiry_timestamp)
 
@@ -103,6 +111,14 @@ class DatabaseEmailRepository(EmailRepository):
         if result:
             await self.cache_set(cache_key, result, ttl=300)  # Cache for 5 minutes
         return result
+=======
+
+    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        return await self.db_manager.create_email(email_data)
+
+    async def get_email_by_id(self, email_id: int, include_content: bool = True) -> Optional[Dict[str, Any]]:
+        return await self.db_manager.get_email_by_id(email_id, include_content)
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
     async def get_emails(
         self,
@@ -111,6 +127,7 @@ class DatabaseEmailRepository(EmailRepository):
         category_id: Optional[int] = None,
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
+<<<<<<< HEAD
         # Create a cache key based on parameters
         cache_key = f"emails:{limit}:{offset}:{category_id}:{is_unread}"
         cached_result = await self.cache_get(cache_key)
@@ -138,10 +155,20 @@ class DatabaseEmailRepository(EmailRepository):
         # Clear relevant cache entries when updating an email
         await self._invalidate_cache_for_email_operations()
         return result
+=======
+        return await self.db_manager.get_emails(limit, offset, category_id, is_unread)
+
+    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+        return await self.db_manager.search_emails(search_term, limit)
+
+    async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        return await self.db_manager.update_email(email_id, update_data)
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
     async def shutdown(self) -> None:
         await self.db_manager.shutdown()
 
+<<<<<<< HEAD
     async def cache_get(self, key: str) -> Optional[Any]:
         """Retrieves a value from cache by key."""
         import time
@@ -219,6 +246,8 @@ class DatabaseEmailRepository(EmailRepository):
         # In a production system, we'd want to be more strategic about what to invalidate
         self._cache.clear()
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 # Factory function
 _email_repo_instance: Optional[EmailRepository] = None

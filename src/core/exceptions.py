@@ -1,5 +1,6 @@
 """
 Custom exceptions for the Email Intelligence Platform.
+<<<<<<< HEAD
 Standardized error handling with consistent error codes and structures.
 """
 
@@ -121,11 +122,31 @@ class ForbiddenException(BaseAppException):
             error_code="FORBIDDEN",
             request_id=request_id
         )
+=======
+"""
+
+
+class BaseAppException(Exception):
+    """Base exception class for the application."""
+
+    def __init__(self, status_code: int, detail: str):
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(detail)
+
+
+class DatabaseError(BaseAppException):
+    """Exception for database related errors."""
+
+    def __init__(self, detail: str = "A database error occurred."):
+        super().__init__(status_code=503, detail=detail)
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 
 class AIAnalysisError(BaseAppException):
     """Exception for AI analysis related errors."""
 
+<<<<<<< HEAD
     def __init__(self, detail: str = "An error occurred during AI analysis.", request_id: Optional[str] = None):
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -133,12 +154,17 @@ class AIAnalysisError(BaseAppException):
             error_code="AI_ANALYSIS_ERROR",
             request_id=request_id
         )
+=======
+    def __init__(self, detail: str = "An error occurred during AI analysis."):
+        super().__init__(status_code=500, detail=detail)
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 
 class GmailServiceError(BaseAppException):
     """Exception for Gmail service related errors."""
 
     def __init__(
+<<<<<<< HEAD
         self, 
         detail: str = "An error occurred with the Gmail service.", 
         status_code: int = status.HTTP_502_BAD_GATEWAY,
@@ -174,3 +200,8 @@ class ModelLoadError(BaseAppException):
             error_code="MODEL_LOAD_ERROR",
             request_id=request_id
         )
+=======
+        self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
+    ):
+        super().__init__(status_code=status_code, detail=detail)
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2

@@ -24,7 +24,11 @@ GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 # Define the project's root directory and default path for the checkpoint database
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+<<<<<<< HEAD
 DEFAULT_CHECKPOINT_DB_PATH = os.path.join(PROJECT_ROOT, "data", "sync_checkpoints.db")
+=======
+DEFAULT_CHECKPOINT_DB_PATH = os.path.join(PROJECT_ROOT, "sync_checkpoints.db")
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 
 @dataclass
@@ -50,6 +54,7 @@ class SyncCheckpoint:
     errors_count: int
 
 
+<<<<<<< HEAD
 class GmailRetrievalService:
     """
     Service for retrieving emails from Gmail using the Gmail API.
@@ -402,6 +407,8 @@ if __name__ == '__main__':
     asyncio.run(main())
 
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 class SmartRetrievalManager:
     def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
         self.logger = logging.getLogger(__name__)
@@ -460,7 +467,10 @@ async def main_cli():
     """Provides a command-line interface for the SmartGmailRetriever."""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
     # TODO: Implement CLI logic
     # Pseudo code for CLI implementation:
     # parser.add_argument("--strategies", nargs="+", help="Retrieval strategies to use")

@@ -16,6 +16,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+<<<<<<< HEAD
+=======
+from starlette.middleware.base import BaseHTTPMiddleware
+import uuid
+import time
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 from ..plugins.plugin_manager import plugin_manager
 from backend.python_nlp.gmail_service import GmailAIService
@@ -49,12 +55,99 @@ from .exceptions import AppException
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
+<<<<<<< HEAD
+=======
+from collections import defaultdict
+import threading
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
+=======
+# Error rate monitoring
+error_counts = defaultdict(int)
+error_lock = threading.Lock()
+
+
+class ErrorHandlingMiddleware(BaseHTTPMiddleware):
+    """Middleware for consistent error handling and response formatting."""
+
+    async def dispatch(self, request: Request, call_next):
+        # Add request ID for tracking
+        request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
+        request.state.start_time = time.time()
+
+        try:
+            response = await call_next(request)
+            # Add request ID to successful responses
+            if hasattr(response, 'headers'):
+                response.headers['X-Request-ID'] = request_id
+            return response
+        except Exception as exc:
+            # Log error with context
+            duration = time.time() - request.state.start_time
+            logger.error(
+                f"Request failed: {request.method} {request.url} "
+                f"Duration: {duration:.2f}s RequestID: {request_id} Error: {str(exc)}",
+                exc_info=True
+            )
+
+            # Track error rate
+            with error_lock:
+                error_counts[status_code] += 1
+                # Alert if error rate is high (simple threshold)
+                total_errors = sum(error_counts.values())
+                if total_errors > 10:  # Simple threshold
+                    logger.warning(f"High error rate detected: {total_errors} errors in session")
+
+            # Format error response consistently
+            if isinstance(exc, AppException):
+                # Already formatted, add request_id
+                error_response = exc.detail
+                if isinstance(error_response, dict):
+                    error_response["request_id"] = request_id
+                status_code = exc.status_code
+            elif isinstance(exc, BaseAppException):
+                error_response = {
+                    "success": False,
+                    "message": "An internal error occurred",
+                    "error_code": "INTERNAL_ERROR",
+                    "details": str(exc),
+                    "request_id": request_id
+                }
+                status_code = exc.status_code
+            elif isinstance(exc, ValidationError):
+                error_response = {
+                    "success": False,
+                    "message": "Validation error",
+                    "error_code": "VALIDATION_ERROR",
+                    "details": str(exc),
+                    "request_id": request_id
+                }
+                status_code = 422
+            else:
+                error_response = {
+                    "success": False,
+                    "message": "An unexpected error occurred",
+                    "error_code": "INTERNAL_ERROR",
+                    "details": str(exc) if settings.debug else None,
+                    "request_id": request_id
+                }
+                status_code = 500
+
+            return JSONResponse(
+                status_code=status_code,
+                content=error_response,
+                headers={"X-Request-ID": request_id}
+            )
+
+
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,
@@ -97,6 +190,7 @@ async def shutdown_event():
     await db_manager.close()
 
 
+<<<<<<< HEAD
 @app.exception_handler(AppException)
 
 async def app_exception_handler(request: Request, exc: AppException):
@@ -129,6 +223,9 @@ async def base_app_exception_handler(request: Request, exc: BaseAppException):
         },
 
     )
+=======
+# Exception handlers removed - now handled by ErrorHandlingMiddleware
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 
 
@@ -155,6 +252,12 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
     )
 
 
+<<<<<<< HEAD
+=======
+# Add error handling middleware
+app.add_middleware(ErrorHandlingMiddleware)
+
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 # Configure CORS using settings
 app.add_middleware(
     CORSMiddleware,
@@ -302,6 +405,19 @@ async def health_check(request: Request):
         )
 
 
+<<<<<<< HEAD
+=======
+@app.get("/api/error-stats")
+async def get_error_stats():
+    """Get error statistics for monitoring."""
+    with error_lock:
+        return {
+            "error_counts": dict(error_counts),
+            "total_errors": sum(error_counts.values())
+        }
+
+
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 if __name__ == "__main__":
     import uvicorn
 

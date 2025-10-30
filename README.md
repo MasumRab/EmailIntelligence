@@ -261,7 +261,11 @@ This section details important environment variables used by the application. Th
 *   **`DATABASE_URL`**: Connection string for the database. For SQLite, this might be `sqlite:sqlite.db` or similar if used, though the application may default to a hardcoded path.
 *   **`GMAIL_CREDENTIALS_JSON`**: JSON content of OAuth 2.0 Client ID credentials for Gmail API.
 *   **`credentials.json` (File Alternative)**: Alternative to `GMAIL_CREDENTIALS_JSON`, placed in project root. Ensure this file is in `.gitignore` if used.
+<<<<<<< HEAD
 *   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `token.json`). Ensure this file is in `.gitignore`.
+=======
+*   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `jsons/token.json`). Ensure this file is in `.gitignore`.
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 *   **`NLP_MODEL_DIR`**: Directory for trained NLP models (default: `backend/python_nlp/`).
 *   **`PORT`**: Port for the Python FastAPI server (default: `8000`).
 

@@ -8,18 +8,25 @@ import gzip
 import json
 import logging
 import os
+<<<<<<< HEAD
 import shutil
 from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
 import hashlib
 import aiofiles
+=======
+from datetime import datetime, timezone
+from functools import partial
+from typing import Any, Dict, List, Literal, Optional
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 from .data.data_source import DataSource
+<<<<<<< HEAD
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +60,50 @@ CURRENT_SCHEMA_VERSION = "1.0"
 # - Update DatabaseConfig to accept data_dir parameter
 # - Modify file path construction to use config.data_dir
 # - Add validation to ensure directory exists or can be created
+=======
+from .security import validate_path_safety, sanitize_path
+
+logger = logging.getLogger(__name__)
+
+class DatabaseConfig:
+    """Configuration for the DatabaseManager."""
+
+    def __init__(
+        self,
+        data_dir: Optional[str] = None,
+        emails_file: Optional[str] = None,
+        categories_file: Optional[str] = None,
+        users_file: Optional[str] = None,
+        email_content_dir: Optional[str] = None,
+    ):
+        # Make data directory configurable via environment variable
+        self.data_dir = data_dir or os.getenv("DATA_DIR", "data")
+
+        # Validate data directory path
+        if not validate_path_safety(self.data_dir):
+            raise ValueError(f"Unsafe data directory path: {self.data_dir}")
+
+        self.emails_file = emails_file or os.path.join(self.data_dir, "emails.json.gz")
+        self.categories_file = categories_file or os.path.join(self.data_dir, "categories.json.gz")
+        self.users_file = users_file or os.path.join(self.data_dir, "users.json.gz")
+        self.email_content_dir = email_content_dir or os.path.join(self.data_dir, "email_content")
+
+        # Validate all file paths
+        for path_attr in ['emails_file', 'categories_file', 'users_file', 'email_content_dir']:
+            path_value = getattr(self, path_attr)
+            if not validate_path_safety(path_value, self.data_dir):
+                raise ValueError(f"Unsafe {path_attr} path: {path_value}")
+
+        # Ensure directories exist
+        os.makedirs(self.email_content_dir, exist_ok=True)
+
+# COMPLETED: Refactored global state management to use dependency injection
+# - Created DatabaseConfig class to hold configuration
+# - Modified DatabaseManager.__init__ to accept DatabaseConfig instance
+# - Created create_database_manager factory function
+# - Removed global _db_manager_instance and _db_init_lock (replaced with backward compatible version)
+# - Made data directory configurable via DATA_DIR environment variable
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -87,6 +138,7 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
+<<<<<<< HEAD
     def __init__(self, data_dir: Optional[str] = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
         # Allow configurable data directory
@@ -97,6 +149,15 @@ class DatabaseManager(DataSource):
         self.email_content_dir = os.path.join(self.data_dir, "email_content")
         self.backup_dir = os.path.join(self.data_dir, "backups")
         self.schema_version_file = os.path.join(self.data_dir, "schema_version.json")
+=======
+    def __init__(self, config: DatabaseConfig):
+        """Initializes the DatabaseManager, setting up file paths and data caches."""
+        self.config = config
+        self.emails_file = config.emails_file
+        self.categories_file = config.categories_file
+        self.users_file = config.users_file
+        self.email_content_dir = config.email_content_dir
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -116,6 +177,7 @@ class DatabaseManager(DataSource):
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
+<<<<<<< HEAD
         os.makedirs(self.backup_dir, exist_ok=True)
 
     # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
@@ -133,6 +195,14 @@ class DatabaseManager(DataSource):
     #   return manager
     # - In FastAPI routes: async def endpoint(db: DatabaseManager = Depends(get_database_manager)):
     # - Use lifespan events to handle initialization and shutdown
+=======
+
+    # COMPLETED: Implemented dependency injection for database manager instance
+    # - DatabaseManager now accepts DatabaseConfig in __init__
+    # - create_database_manager factory function handles initialization
+    # - Backward compatible get_db() provided for existing code
+    # - Global singleton replaced with factory pattern
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
@@ -162,13 +232,17 @@ class DatabaseManager(DataSource):
     async def _ensure_initialized(self) -> None:
         """Ensure data is loaded and indexes are built."""
         if not self._initialized:
+<<<<<<< HEAD
             # Perform schema migration if needed
             await self.migrate_schema()
             
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
             await self._load_data()
             self._build_indexes()
             self._initialized = True
 
+<<<<<<< HEAD
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # Pseudo code for removing hidden side effects:
     # - Make _ensure_initialized() a public async initialize() method
@@ -184,6 +258,12 @@ class DatabaseManager(DataSource):
     # - Add _loaded_data: set[str] to track what data types are loaded
     # - Make _load_data() private and called only by lazy loaders
     # - Add tests to verify loading behavior
+=======
+    # PARTIALLY COMPLETED: Initialization is now explicit via factory function
+    # - create_database_manager ensures initialization
+    # - Backward compatible get_db maintains implicit initialization for existing code
+    # - TODO: Consider making initialization more explicit in future refactoring
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
@@ -267,6 +347,23 @@ class DatabaseManager(DataSource):
         """Marks data as dirty for write-behind saving."""
         self._dirty_data.add(data_type)
 
+<<<<<<< HEAD
+=======
+    async def delete_email(self, email_id: int) -> bool:
+        """Delete an email by its internal ID."""
+        for i, email in enumerate(self.emails_data):
+            if email.get(FIELD_ID) == email_id:
+                deleted_email = self.emails_data.pop(i)
+                self._dirty_data.add(DATA_TYPE_EMAILS)
+                # Update category count if email had a category
+                if FIELD_CATEGORY_ID in deleted_email:
+                    await self._update_category_count(deleted_email[FIELD_CATEGORY_ID], decrement=True)
+                logger.info(f"Deleted email with ID {email_id}")
+                return True
+        logger.warning(f"Email with ID {email_id} not found for deletion")
+        return False
+
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
     async def shutdown(self) -> None:
         """Saves all dirty data to files before shutting down."""
         logger.info("DatabaseManager shutting down. Saving dirty data...")
@@ -275,6 +372,7 @@ class DatabaseManager(DataSource):
         self._dirty_data.clear()
         logger.info("Shutdown complete.")
 
+<<<<<<< HEAD
     # Data validation methods
     def _validate_email_data(self, email_data: Dict[str, Any]) -> bool:
         """Validates email data before storage."""
@@ -515,6 +613,8 @@ class DatabaseManager(DataSource):
         logger.info("Data integrity verification completed")
         return results
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
         """
         Generates a new unique integer ID for a record.
@@ -557,11 +657,14 @@ class DatabaseManager(DataSource):
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
+<<<<<<< HEAD
         # Validate data before creating
         if not self._validate_email_data(email_data):
             logger.warning(f"Email data validation failed: {email_data}")
             return None
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
@@ -640,11 +743,14 @@ class DatabaseManager(DataSource):
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
+<<<<<<< HEAD
         # Validate data before creating
         if not self._validate_category_data(category_data):
             logger.warning(f"Category data validation failed: {category_data}")
             return None
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
             logger.warning(
@@ -773,11 +879,14 @@ class DatabaseManager(DataSource):
 
     async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new user and save to the users data."""
+<<<<<<< HEAD
         # Validate data before creating
         if not self._validate_user_data(user_data):
             logger.warning(f"User data validation failed: {user_data}")
             return None
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
         # Check if user already exists
         existing_user = await self.get_user_by_username(user_data.get("username", ""))
         if existing_user:
@@ -816,6 +925,7 @@ class DatabaseManager(DataSource):
         else:
             return self._add_category_details(email_light.copy())
 
+<<<<<<< HEAD
 
 # --- Singleton Instance Management ---
 _db_manager_instance: Optional[DatabaseManager] = None
@@ -835,6 +945,8 @@ async def get_db() -> DatabaseManager:
     return _db_manager_instance
 
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """
         Retrieves all emails with pagination.
@@ -847,6 +959,10 @@ async def get_db() -> DatabaseManager:
         """Get emails by category"""
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
     @log_performance(operation="search_emails")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails. Searches subject/sender in-memory, and content on-disk."""
@@ -998,6 +1114,7 @@ async def get_db() -> DatabaseManager:
         return updated_email is not None
 
 
+<<<<<<< HEAD
 # Singleton instance
 _db_manager_instance = None
 
@@ -1011,3 +1128,34 @@ async def get_db() -> DatabaseManager:
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
     return _db_manager_instance
+=======
+async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
+    """
+    Factory function to create and initialize a DatabaseManager instance.
+    This replaces the global singleton pattern with dependency injection.
+    """
+    manager = DatabaseManager(config)
+    await manager.initialize()
+    return manager
+
+
+# Backward compatibility: default get_db using default config
+_db_manager_instance: Optional[DatabaseManager] = None
+_db_init_lock = asyncio.Lock()
+
+async def get_db() -> DatabaseManager:
+    """
+    Provides a default singleton instance for backward compatibility.
+    TODO: Replace with proper dependency injection in application.
+    """
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        async with _db_init_lock:
+            if _db_manager_instance is None:
+                config = DatabaseConfig()
+                _db_manager_instance = await create_database_manager(config)
+    return _db_manager_instance
+
+
+
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
