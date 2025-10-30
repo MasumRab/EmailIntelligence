@@ -15,6 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from .core.module_manager import ModuleManager
+from .core.middleware import create_security_middleware, create_security_headers_middleware
+from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
+from .core.performance_monitor import performance_monitor
 
 # Configure logging
 logging.basicConfig(
@@ -567,7 +570,11 @@ def create_app():
         allow_headers=["*"],
     )
 
-    # Add security headers middleware
+    # Add comprehensive security middleware
+    app.add_middleware(create_security_middleware(app))
+    app.add_middleware(create_security_headers_middleware(app))
+
+    # Add security headers middleware (additional layer)
     @app.middleware("http")
     async def add_security_headers(request, call_next):
         response = await call_next(request)
@@ -629,6 +636,45 @@ def create_app():
 
             with gr.TabItem("Admin Dashboard (C)"):
                 gr.Markdown("## Power-User Dashboard\nThis is the placeholder for the admin and power-user dashboard for managing models, users, and system performance.")
+
+    # Add startup and shutdown event handlers for security components
+    @app.on_event("startup")
+    async def startup_event():
+        """Initialize security components on application startup."""
+        audit_logger.log_security_event(
+            event_type=AuditEventType.SYSTEM_STARTUP,
+            severity=AuditSeverity.LOW,
+            action="application_startup",
+            details={
+                "version": "3.0.0",
+                "security_components": ["audit_logger", "rate_limiter", "performance_monitor", "security_middleware"],
+                "message": "Email Intelligence Platform started with comprehensive security"
+            }
+        )
+
+        performance_monitor.record_metric(
+            "application_startup",
+            1,
+            "event",
+            tags={"component": "application", "version": "3.0.0"}
+        )
+
+        logger.info("Security components initialized successfully")
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        """Clean up security components on application shutdown."""
+        audit_logger.log_security_event(
+            event_type=AuditEventType.SYSTEM_SHUTDOWN,
+            severity=AuditSeverity.LOW,
+            action="application_shutdown",
+            details={"message": "Email Intelligence Platform shutting down"}
+        )
+
+        # Shutdown performance monitor
+        performance_monitor.shutdown()
+
+        logger.info("Security components shut down successfully")
 
     # Initialize the Module Manager
     module_manager = ModuleManager(app, gradio_app)
