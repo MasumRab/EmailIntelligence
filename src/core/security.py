@@ -7,22 +7,12 @@ including access controls, data sanitization, execution sandboxing, and audit lo
 Also includes security utilities for path validation and sanitization.
 """
 
-import os
-import pathlib
-import asyncio
-import hashlib
-import hmac
-import json
 import logging
-import re
-import secrets
+import pathlib
 import time
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
-from uuid import uuid4
-import pathlib
+from typing import Any, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +88,10 @@ class SecurityValidator:
 
         return True
 
-def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> bool:
+
+def validate_path_safety(
+    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
+) -> bool:
     """
     Validate that a path is safe and doesn't contain directory traversal attempts.
 
@@ -110,7 +103,7 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
         True if path is safe, False otherwise
     """
     import pathlib
-    
+
     try:
         path_obj = pathlib.Path(path)
         original_path = str(path)
@@ -122,7 +115,13 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
             path_obj = path_obj.resolve()
 
         # Check for directory traversal patterns
-        if ('../' in original_path or '..\\' in original_path or '/./' in original_path or '\\./' in original_path or original_path.startswith('\\\\') ):
+        if (
+            "../" in original_path
+            or "..\\" in original_path
+            or "/./" in original_path
+            or "\\./" in original_path
+            or original_path.startswith("\\\\")
+        ):
             logger.warning(f"Directory traversal detected in path: {path}")
             return False
         # If base_dir is specified, ensure path is within base_dir
@@ -137,7 +136,7 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
 
         # Additional safety checks
         resolved_str = str(path_obj)
-        if any(char in resolved_str for char in ['<', '>', '|', '?', '*']):
+        if any(char in resolved_str for char in ["<", ">", "|", "?", "*"]):
             logger.warning(f"Potentially dangerous characters detected in path: {path}")
             return False
 
@@ -147,7 +146,9 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
         return False
 
 
-def sanitize_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> Optional[pathlib.Path]:
+def sanitize_path(
+    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
+) -> Optional[pathlib.Path]:
     """
     Sanitize a path by validating it and returning the resolved path if safe.
 
@@ -175,7 +176,9 @@ def sanitize_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, 
         return None
 
 
-def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]) -> Optional[pathlib.Path]:
+def secure_path_join(
+    base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]
+) -> Optional[pathlib.Path]:
     """
     Securely join paths, preventing directory traversal attacks.
 
@@ -187,7 +190,7 @@ def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, path
         Joined path if safe, None otherwise
     """
     import pathlib
-    
+
     try:
         # Start with base directory
         result_path = pathlib.Path(base_dir)
@@ -201,7 +204,7 @@ def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, path
                 return None
 
             # Only allow simple filenames/directories (no absolute paths or traversal)
-            if component_path.is_absolute() or '..' in str(component_path):
+            if component_path.is_absolute() or ".." in str(component_path):
                 logger.warning(f"Unsafe path component: {path_component}")
                 return None
 
