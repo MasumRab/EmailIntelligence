@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
-import pathlib
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -497,6 +497,100 @@ def create_default_security_context() -> SecurityContext:
         security_level=SecurityLevel.INTERNAL,
         allowed_resources=["*"],
     )
+
+
+class PathValidator:
+    """Secure path validation to prevent directory traversal attacks"""
+
+    @staticmethod
+    def is_safe_path(base_path: Union[str, Path], requested_path: Union[str, Path]) -> bool:
+        """
+        Check if a requested path is safe (doesn't escape the base directory)
+
+        Args:
+            base_path: The base directory that should not be escaped
+            requested_path: The path to validate
+
+        Returns:
+            True if the path is safe, False otherwise
+        """
+        try:
+            base_path = Path(base_path).resolve()
+            requested_path = Path(requested_path).resolve()
+
+            # Check if the resolved path starts with the base path
+            return requested_path.is_relative_to(base_path)
+        except ValueError:
+            # If the path is not relative to base (or other path resolution issues)
+            return False
+
+    @staticmethod
+    def validate_and_resolve_db_path(db_path: Union[str, Path], 
+                                   allowed_dir: Optional[Union[str, Path]] = None) -> Path:
+        """
+        Validate and resolve a database path with security checks
+
+        Args:
+            db_path: The database path to validate
+            allowed_dir: Optional base directory that the path must be within
+
+        Returns:
+            Validated and resolved Path object
+
+        Raises:
+            ValueError: If the path is not safe
+        """
+        if not db_path:
+            raise ValueError("Database path cannot be empty")
+
+        # Handle special in-memory database
+        if str(db_path) == ":memory:":
+            return Path(":memory:")
+
+        path = Path(db_path)
+
+        # Sanitize filename if it's just a filename
+        if not path.is_absolute() and len(path.parts) == 1:
+            path = Path(PathValidator.sanitize_filename(str(path)))
+
+        # Resolve the path
+        try:
+            resolved_path = path.resolve()
+        except (OSError, RuntimeError) as e:
+            raise ValueError(f"Invalid path: {e}")
+
+        # Check against allowed directory if specified
+        if allowed_dir:
+            allowed_dir = Path(allowed_dir).resolve()
+            if not resolved_path.is_relative_to(allowed_dir):
+                raise ValueError(f"Database path escapes allowed directory: {allowed_dir}")
+
+        # Additional security checks
+        if any(part.startswith('.') for part in resolved_path.parts):
+            raise ValueError("Database path contains hidden files/directories")
+
+        return resolved_path
+
+    @staticmethod
+    def sanitize_filename(filename: str) -> str:
+        """
+        Sanitize a filename by removing dangerous characters
+
+        Args:
+            filename: The filename to sanitize
+
+        Returns:
+            Sanitized filename
+        """
+        # Remove any path traversal attempts and dangerous characters
+        sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        
+        # Also avoid names that might be problematic on various systems
+        if sanitized.upper() in ['CON', 'PRN', 'AUX', 'NUL'] or \
+           sanitized.upper().startswith(('COM', 'LPT')):
+            sanitized = f"_{sanitized}"
+            
+        return sanitized
 
 
 def validate_path_safety(
