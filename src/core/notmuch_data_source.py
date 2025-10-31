@@ -236,6 +236,20 @@ class NotmuchDataSource(DataSource):
                 "weekly_growth": {"emails": 0, "percentage": 0.0}
             }
 
+    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
+        """Retrieves category breakdown statistics with configurable limit."""
+        # For Notmuch, categories would need to be mapped from tags or external metadata
+        # This is a simplified implementation that returns empty results
+        # In a full implementation, this would query Notmuch tags and map them to categories
+
+        try:
+            # Placeholder implementation - Notmuch doesn't have built-in categories
+            # This would need to be implemented based on tag-to-category mapping
+            return {}  # Return empty dict as Notmuch doesn't have category concept
+        except Exception as e:
+            # Return empty dict on error
+            return {}
+
     async def shutdown(self) -> None:
         if self.db:
             self.db.close()

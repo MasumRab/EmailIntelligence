@@ -814,6 +814,20 @@ class DatabaseManager(DataSource):
             "weekly_growth": weekly_growth
         }
 
+    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
+        """Retrieves category breakdown statistics with configurable limit."""
+        await self._ensure_initialized()
+
+        # Count emails by category
+        category_counts = {}
+        for email in self.emails_data:
+            category = email.get('category', 'Uncategorized')
+            category_counts[category] = category_counts.get(category, 0) + 1
+
+        # Sort by count descending and apply limit
+        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+        return dict(sorted_categories[:limit])
+
 
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     """
