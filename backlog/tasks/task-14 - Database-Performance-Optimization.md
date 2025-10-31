@@ -16,10 +16,12 @@ JSON file storage with indexing.
 4. Consider database sharding for large datasets
 
 ## Acceptance Criteria
-- Complex queries execute efficiently
-- Pagination works well with large datasets
-- Database connections are properly pooled
-- System scales well with large datasets
+<!-- AC:BEGIN -->
+- [ ] #1 Add query optimization for complex searches
+- [ ] #2 Implement pagination optimization
+- [ ] #3 Add database connection pooling
+- [ ] #4 Consider database sharding for large datasets
+<!-- AC:END -->
 
 ## Estimated Effort
 20 hours
