@@ -82,6 +82,20 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
+    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
+        """Retrieves aggregated dashboard statistics for efficient server-side calculations.
+
+        Returns:
+            Dict containing:
+            - total_emails: int - Total number of emails
+            - auto_labeled: int - Number of auto-labeled emails
+            - categories_count: int - Total number of categories
+            - unread_count: int - Number of unread emails
+            - weekly_growth: Dict[str, Any] - Weekly growth metrics
+        """
+        pass
+
+    @abstractmethod
     async def shutdown(self) -> None:
         """Performs any necessary cleanup."""
         pass

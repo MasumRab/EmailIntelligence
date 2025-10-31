@@ -194,6 +194,48 @@ class NotmuchDataSource(DataSource):
             logger.error(f"Error deleting email {email_id}: {e}")
             return False
 
+    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
+        """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
+        # For Notmuch, we need to query the database for counts
+        # This is a simplified implementation - in production would use optimized queries
+
+        try:
+            # Get total emails
+            query = notmuch.Query(self.db, "*")
+            total_emails = query.count_messages()
+
+            # Get unread count
+            unread_query = notmuch.Query(self.db, "tag:unread")
+            unread_count = unread_query.count_messages()
+
+            # For auto_labeled and categories, Notmuch doesn't have built-in categories
+            # This would need to be implemented based on tags or external category mapping
+            auto_labeled = 0  # Placeholder
+            categories_count = 0  # Placeholder
+
+            # Weekly growth - simplified calculation
+            weekly_growth = {
+                "emails": total_emails,  # Placeholder
+                "percentage": 0.0
+            }
+
+            return {
+                "total_emails": total_emails,
+                "auto_labeled": auto_labeled,
+                "categories_count": categories_count,
+                "unread_count": unread_count,
+                "weekly_growth": weekly_growth
+            }
+        except Exception as e:
+            # Return default values on error
+            return {
+                "total_emails": 0,
+                "auto_labeled": 0,
+                "categories_count": 0,
+                "unread_count": 0,
+                "weekly_growth": {"emails": 0, "percentage": 0.0}
+            }
+
     async def shutdown(self) -> None:
         if self.db:
             self.db.close()
