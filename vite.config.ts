@@ -10,12 +10,7 @@ const viteConfig = defineViteConfig({
     tsconfigPaths(),
     react(),
   ],
-  resolve: {
-    alias: {
-      "@": path.resolve('.', "client", "src"),
-      "@assets": path.resolve('.', "attached_assets"),
-    },
-  },
+
   root: path.resolve('.', "client"),
   build: {
     outDir: path.resolve('.', "dist/public"),
