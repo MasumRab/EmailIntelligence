@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-31 14:12'
+updated_date: '2025-10-31 14:30'
 labels: []
 dependencies: []
 ---
@@ -13,7 +14,7 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Enable multi-tenant architecture for dashboard deployment, allowing multiple organizations to use isolated dashboard instances with proper data segregation and tenant-specific configurations.
+Enable multi-tenant architecture for dashboard deployment, allowing multiple organizations to use isolated dashboard instances with proper data segregation and tenant-specific configurations. NOTE: This task should be implemented in the scientific branch as it adds new multi-tenant capabilities.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

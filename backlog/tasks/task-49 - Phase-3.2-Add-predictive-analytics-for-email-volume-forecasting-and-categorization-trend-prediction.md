@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-31 14:02'
+updated_date: '2025-10-31 14:29'
 labels: []
 dependencies: []
 ---
@@ -13,7 +14,7 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Implement predictive analytics capabilities for forecasting email volume trends and predicting categorization patterns using time-series analysis and machine learning models
+Implement predictive analytics capabilities for forecasting email volume trends and predicting categorization patterns using time-series analysis and machine learning models. NOTE: This task should be implemented in the scientific branch as it builds on existing AI capabilities.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-31 14:11'
+updated_date: '2025-10-31 14:29'
 labels: []
 dependencies: []
 ---
@@ -13,7 +14,7 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Add intelligent alerting capabilities to notify users of important dashboard events, metric thresholds, and system anomalies. This includes email notifications, in-app alerts, and configurable alert rules.
+Add intelligent alerting capabilities to notify users of important dashboard events, metric thresholds, and system anomalies. This includes email notifications, in-app alerts, and configurable alert rules. NOTE: This task should be implemented in the scientific branch as it enhances existing basic alerting capabilities.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

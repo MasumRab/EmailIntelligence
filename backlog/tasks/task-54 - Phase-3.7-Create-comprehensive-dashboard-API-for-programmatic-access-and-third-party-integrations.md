@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-31 14:12'
+updated_date: '2025-10-31 14:30'
 labels: []
 dependencies: []
 ---
@@ -13,7 +14,7 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Develop a robust REST API for dashboard functionality, enabling programmatic access to dashboard data, third-party integrations, and automated workflows.
+Develop a robust REST API for dashboard functionality, enabling programmatic access to dashboard data, third-party integrations, and automated workflows. NOTE: This task should be implemented in the scientific branch as it adds new API capabilities.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

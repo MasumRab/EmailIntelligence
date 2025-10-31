@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-31 14:11'
+updated_date: '2025-10-31 14:30'
 labels: []
 dependencies: []
 ---
@@ -13,7 +14,7 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Create a comprehensive A/B testing system to experiment with dashboard features, measure user engagement, and optimize the user experience through data-driven decisions.
+Create a comprehensive A/B testing system to experiment with dashboard features, measure user engagement, and optimize the user experience through data-driven decisions. NOTE: This task should be implemented in the scientific branch as it adds new experimentation capabilities.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
