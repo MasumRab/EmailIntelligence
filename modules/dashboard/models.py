@@ -10,7 +10,7 @@ class ConsolidatedDashboardStats(BaseModel):
     """Comprehensive dashboard statistics model that consolidates both modular and legacy implementations."""
 
     # Core email statistics
-    total_emails: int = Field(alias="totalEmails")
+    total_emails: int
 
     # Category-related statistics
     categorized_emails: Optional[Dict[str, int]] = None  # From modular implementation
@@ -18,18 +18,19 @@ class ConsolidatedDashboardStats(BaseModel):
 
     # Email processing statistics
     unread_emails: Optional[int] = None  # From modular implementation
-    auto_labeled: Optional[int] = Field(default=None, alias="autoLabeled")  # From legacy implementation
+    auto_labeled: Optional[int] = None  # From legacy implementation
 
     # Time and productivity metrics
-    time_saved: Optional[str] = Field(default=None, alias="timeSaved")  # From legacy implementation
+    time_saved: Optional[str] = None  # From legacy implementation
 
     # Growth and trend analysis
-    weekly_growth: Optional[WeeklyGrowth] = Field(default=None, alias="weeklyGrowth")  # From legacy implementation
+    weekly_growth: Optional[WeeklyGrowth] = None  # From legacy implementation
 
     # Performance monitoring
     performance_metrics: Optional[Dict[str, float]] = None  # From modular implementation
 
     class Config:
+        # Allow both field names and aliases during validation
         allow_population_by_field_name = True
         validate_assignment = True
 
@@ -40,3 +41,4 @@ class DashboardStats(BaseModel):
     categorized_emails: Dict[str, int]
     unread_emails: int
     performance_metrics: Dict[str, float]
+    time_saved: str = "0h 0m"  # Time saved from auto-labeling (Xh Ym format)

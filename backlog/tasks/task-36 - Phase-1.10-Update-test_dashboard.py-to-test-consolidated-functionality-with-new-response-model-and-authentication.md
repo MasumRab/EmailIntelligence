@@ -3,10 +3,11 @@ id: task-36
 title: >-
   Phase 1.10: Update test_dashboard.py to test consolidated functionality with
   new response model and authentication
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@agent'
 created_date: '2025-10-31 13:51'
-updated_date: '2025-10-31 14:52'
+updated_date: '2025-10-31 15:59'
 labels: []
 dependencies: []
 priority: high

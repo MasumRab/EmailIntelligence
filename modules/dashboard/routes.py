@@ -5,33 +5,57 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.data_source import DataSource
 from src.core.factory import get_data_source
-from .models import DashboardStats
+from src.core.auth import get_current_active_user
+from .models import DashboardStats, ConsolidatedDashboardStats, WeeklyGrowth
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Use absolute path for performance log file
-LOG_FILE = Path(__file__).resolve().parent.parent.parent.parent / "performance_metrics_log.jsonl"
+LOG_FILE = Path(__file__).resolve().parent.parent.parent / "performance_metrics_log.jsonl"
 
-@router.get("/stats", response_model=DashboardStats)
-async def get_dashboard_stats(db: DataSource = Depends(get_data_source)):
+@router.get("/stats", response_model=ConsolidatedDashboardStats)
+async def get_dashboard_stats(
+    db: DataSource = Depends(get_data_source),
+    current_user: str = Depends(get_current_active_user)
+):
     """
-    Retrieve dashboard statistics.
+    Retrieve consolidated dashboard statistics using efficient server-side aggregations.
+
+    Requires authentication. Returns comprehensive aggregate statistics for the authenticated user,
+    consolidating both modular and legacy dashboard features.
     """
     try:
-        # Email statistics
-        # TODO: Consider optimizing by using database aggregation queries instead of fetching all emails
-        emails = await db.get_all_emails(limit=10000)  # Assuming a large limit to get all emails
-        total_emails = len(emails)
-        unread_emails = sum(1 for email in emails if not email.get('is_read'))
+        # Log user access for audit purposes
+        logger.info(f"Dashboard stats requested by user: {current_user}")
 
-        categorized_emails = defaultdict(int)
-        for email in emails:
-            category = email.get('category', 'Uncategorized')
-            categorized_emails[category] += 1
+        # Get efficient server-side aggregations
+        aggregates = await db.get_dashboard_aggregates()
+        categorized_emails = await db.get_category_breakdown(limit=10)
 
-        # Performance metrics
+        # Extract values from aggregates
+        total_emails = aggregates.get('total_emails', 0)
+        unread_emails = aggregates.get('unread_count', 0)
+        auto_labeled = aggregates.get('auto_labeled', 0)
+        categories_count = aggregates.get('categories_count', 0)
+        weekly_growth_data = aggregates.get('weekly_growth')
+
+        # Calculate time_saved (2 minutes per auto-labeled email, matching legacy implementation)
+        time_saved_minutes = auto_labeled * 2
+        time_saved_hours = time_saved_minutes // 60
+        time_saved_remaining_minutes = time_saved_minutes % 60
+        time_saved = f"{time_saved_hours}h {time_saved_remaining_minutes}m"
+
+        # Parse weekly growth data
+        weekly_growth = None
+        if weekly_growth_data:
+            weekly_growth = WeeklyGrowth(
+                emails=weekly_growth_data.get('emails', 0),
+                percentage=weekly_growth_data.get('percentage', 0.0)
+            )
+
+        # Performance metrics (keep existing logic for now)
         performance_metrics = defaultdict(lambda: {'total_duration': 0, 'count': 0})
         try:
             with open(LOG_FILE, "r", encoding="utf-8") as f:
@@ -51,14 +75,19 @@ async def get_dashboard_stats(db: DataSource = Depends(get_data_source)):
         avg_performance_metrics = {
             op: data['total_duration'] / data['count']
             for op, data in performance_metrics.items()
+            if data['count'] > 0  # Avoid division by zero
         }
 
-        return DashboardStats(
+        return ConsolidatedDashboardStats(
             total_emails=total_emails,
-            categorized_emails=dict(categorized_emails),
+            categorized_emails=categorized_emails,
             unread_emails=unread_emails,
+            auto_labeled=auto_labeled,
+            categories=categories_count,
+            time_saved=time_saved,
+            weekly_growth=weekly_growth,
             performance_metrics=avg_performance_metrics,
         )
     except Exception as e:
-        logger.error(f"Error fetching dashboard stats: {e}", exc_info=True)
+        logger.error(f"Error fetching dashboard stats for user {current_user}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error fetching dashboard stats.")
