@@ -18,7 +18,7 @@ def nlp_engine_with_mocks():
     """
     # Patch all external dependencies and methods that perform heavy lifting or I/O
     with (
-        patch("backend.python_nlp.nlp_engine.joblib.load", MagicMock(return_value=MagicMock())),
+        patch("joblib.load", MagicMock(return_value=MagicMock())),
         patch("backend.python_nlp.nlp_engine.HAS_NLTK", True),
         patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True),
         patch(

@@ -197,6 +197,22 @@ todo_write([{
 }])
 ```
 
+## Documented Development Sessions
+
+iFlow CLI supports documented development sessions to track progress and maintain context:
+
+- **Session Tracking Directory**: `/backlog/sessions/`
+- **Session File Naming**: `IFLOW-YYYYMMDD-XXX.md` (e.g., `IFLOW-20251028-001.md`)
+- **Session Structure**:
+  - Session Information (date, ID, context)
+  - Session Goals
+  - Initial Context
+  - Activities and Progress
+  - Next Steps
+  - Notes
+
+All development activities should be properly recorded in session tracking files to maintain project history and context.
+
 ## iFlow CLI Software Engineering Workflow
 
 When performing software engineering tasks, iFlow CLI follows this sequence:

@@ -12,9 +12,11 @@ from backend.node_engine.workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
 from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
+from .workflow_engine import WorkflowEngine
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
 from .services.email_service import EmailService
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -29,6 +31,7 @@ async def get_emails(
     limit: int = 50,
     offset: int = 0,
     is_unread: Optional[bool] = None,
+    current_user: str = Depends(get_current_active_user),
     email_service: EmailService = Depends(get_email_service),
 ):
     """
@@ -38,6 +41,7 @@ async def get_emails(
         request: The incoming request object.
         category_id: An optional category ID to filter emails.
         search: An optional search term to filter emails by subject, content, or sender.
+        current_user: The authenticated user making the request.
 
     Returns:
         A list of emails that match the filtering criteria.
@@ -61,6 +65,7 @@ async def get_emails(
 async def get_email_by_id(
     email_id: int,
     request: Request,
+    current_user: str = Depends(get_current_active_user),
     email_service: EmailService = Depends(get_email_service),
 ):
     """
@@ -69,6 +74,7 @@ async def get_email_by_id(
     Args:
         request: The incoming request object.
         email_id: The ID of the email to retrieve.
+        current_user: The authenticated user making the request.
 
     Returns:
         The email object if found.
@@ -103,10 +109,14 @@ async def create_email(
     request: Request,
     email: EmailCreate,
     background_tasks: BackgroundTasks,
+    current_user: str = Depends(get_current_active_user),
     email_service: EmailService = Depends(get_email_service),
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
-    """Create new email with AI analysis using the active workflow."""
+    """Create new email with AI analysis using the active workflow.
+
+    Requires authentication.
+    """
     try:
         # Run the active workflow to process the email data
         processed_data = await workflow_engine.run_workflow(email.model_dump())
@@ -129,6 +139,7 @@ async def update_email(
     request: Request,
     email_id: int,
     email_update: EmailUpdate,
+    current_user: str = Depends(get_current_active_user),
     email_service: EmailService = Depends(get_email_service),
 ):
     """
@@ -138,6 +149,7 @@ async def update_email(
         request: The incoming request object.
         email_id: The ID of the email to update.
         email_update: The email data to update.
+        current_user: The authenticated user making the request.
 
     Returns:
         The updated email object.

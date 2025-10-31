@@ -25,6 +25,13 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# Add src to path for imports (calculate relative to this script's location)
+script_dir = Path(__file__).parent
+project_root = script_dir.parent
+src_path = project_root / "src"
+sys.path.insert(0, str(src_path))
+from src.core.security import PathValidator, validate_path_safety
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -71,7 +78,9 @@ def write_gzipped_json(file_path: Path, data: Any) -> bool:
 def connect_sqlite(db_path: Path) -> Optional[sqlite3.Connection]:
     """Connect to SQLite database."""
     try:
-        conn = sqlite3.connect(db_path)
+        # Validate the database path for security
+        validated_path = PathValidator.validate_database_path(db_path)
+        conn = sqlite3.connect(validated_path)
         conn.row_factory = sqlite3.Row
         return conn
     except Exception as e:
@@ -536,8 +545,20 @@ def main():
 
     args = parser.parse_args()
 
-    data_dir = Path(args.data_dir)
-    db_path = Path(args.db_path)
+    # Validate paths for security
+    data_dir_str = args.data_dir
+    db_path_str = args.db_path
+
+    if not validate_path_safety(data_dir_str):
+        logger.error(f"Unsafe data directory path: {data_dir_str}")
+        sys.exit(1)
+
+    if not validate_path_safety(db_path_str):
+        logger.error(f"Unsafe database path: {db_path_str}")
+        sys.exit(1)
+
+    data_dir = Path(data_dir_str)
+    db_path = Path(db_path_str)
 
     # Execute the command
     if args.command == "json-to-sqlite":

@@ -11,6 +11,7 @@ from .models import CategoryCreate, CategoryResponse
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
 from .services.category_service import CategoryService
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -18,7 +19,16 @@ router = APIRouter()
 
 @router.get("/api/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories")
-async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)):
+async def get_categories(
+    request: Request,
+    current_user: str = Depends(get_current_active_user),
+    db: DatabaseManager = Depends(get_db)
+):
+    """
+    Retrieves all categories from the database.
+    
+    Requires authentication.
+    """
     try:
         categories = await db.get_all_categories()
         return [CategoryResponse(**cat) for cat in categories]
@@ -39,6 +49,7 @@ async def get_categories(request: Request, db: DatabaseManager = Depends(get_db)
 async def create_category(
     request: Request,
     category: CategoryCreate,
+    current_user: str = Depends(get_current_active_user),
     category_service: CategoryService = Depends(get_category_service),
 ):
     """
@@ -47,6 +58,7 @@ async def create_category(
     Args:
         request (Request): The incoming request object.
         category (CategoryCreate): The category data for creation.
+        current_user: The authenticated user making the request.
         db (DatabaseManager): The database manager dependency.
 
     Returns:

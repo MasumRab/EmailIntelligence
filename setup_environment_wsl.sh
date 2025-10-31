@@ -97,8 +97,9 @@ sudo apt install -y \
     python3-pandas \
     python3-seaborn \
     python3-plotly \
-    python3-scikit-learn \
-    python3-joblib
+    python3-sklearn \
+    python3-joblib \
+    python3-sentencepiece
 
 # Graphics and imaging libraries
 sudo apt install -y \
@@ -114,7 +115,6 @@ sudo apt install -y \
 
 # Web framework and utilities (system packages)
 sudo apt install -y \
-    python3-fastapi \
     python3-uvicorn \
     python3-pydantic \
     python3-multipart \
@@ -123,17 +123,18 @@ sudo apt install -y \
     python3-bleach \
     python3-psutil \
     python3-plotly \
-    python3-seaborn
+    python3-seaborn \
+    python3-email-validator
+# Note: python3-fastapi installed via pip
 
 # Development tools (system packages)
 sudo apt install -y \
-    python3-black \
     python3-flake8 \
     python3-isort \
     python3-mypy \
-    python3-pylint \
     python3-pytest \
     python3-pytest-asyncio
+# Note: python3-black, python3-pylint installed via pip
 
 # Additional WSL-specific packages
 sudo apt install -y \
@@ -160,7 +161,7 @@ if [[ -d "$VENV_DIR" ]]; then
     rm -rf "$VENV_DIR"
 fi
 
-$PYTHON_CMD -m venv "$VENV_DIR"
+$PYTHON_CMD -m venv --system-site-packages "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 # Verify virtual environment
@@ -191,42 +192,72 @@ pip install --quiet \
 log_info "🤖 Installing AI/ML packages..."
 pip install --quiet \
     transformers>=4.40.0 \
-    accelerate>=0.30.0 \
-    sentencepiece>=0.2.0
+    accelerate>=0.30.0
+# Note: sentencepiece installed via system packages
 
 # Install data science packages (remaining pip-only packages)
 log_info "📊 Installing data science packages..."
-# Note: pandas, numpy, matplotlib, seaborn, scipy, plotly installed via system packages
+# Note: pandas, numpy, matplotlib, scipy, plotly, seaborn installed via system packages
 
 # Install NLP packages
 log_info "📖 Installing NLP packages..."
+sudo apt install -y \
+    python3-nltk
 pip install --quiet \
-    nltk>=3.9.1 \
     textblob>=0.19.0
+# Note: nltk installed via system packages
+
+# Verify NLP package versions
+log_info "🔍 Verifying NLP package versions..."
+python -c "
+import nltk
+import textblob
+print(f'nltk version: {nltk.__version__}')
+print(f'textblob version: {textblob.__version__}')
+"
 
 # Install web and API packages
 log_info "🌐 Installing web and API packages..."
 pip install --quiet \
+    fastapi>=0.100.0 \
     gradio>=4.0.0 \
     pyngrok>=0.7.0 \
     email-validator>=2.2.0
 
 # Install Google API packages
 log_info "🔐 Installing Google API packages..."
+sudo apt install -y \
+    python3-googleapi \
+    python3-google-auth \
+    python3-google-auth-httplib2 \
+    python3-google-auth-oauthlib
 pip install --quiet \
-    google-api-python-client>=2.172.0 \
-    google-auth>=2.40.3 \
-    google-auth-oauthlib>=1.2.2
+    google-api-python-client>=2.172.0
+# Note: google-auth, google-auth-oauthlib installed via system packages
+
+# Verify Google packages versions
+log_info "🔍 Verifying Google packages versions..."
+python -c "
+import google.auth
+import google.auth.transport.requests
+import google.oauth2.credentials
+print(f'google-auth version: {google.auth.__version__ if hasattr(google.auth, \"__version__\") else \"unknown\"}')
+"
 
 # Install utility packages (remaining pip-only packages)
 log_info "🛠️ Installing utility packages..."
-pip install --quiet \
-    aiosqlite>=0.19.0 \
-    RestrictedPython>=8.0
+sudo apt install -y \
+    python3-aiosqlite \
+    python3-restrictedpython
+# Note: aiosqlite, RestrictedPython installed via system packages
 
 # Install development tools (remaining pip-only packages)
 log_info "🔧 Installing development tools..."
-# Note: black, flake8, isort, mypy, pylint, pytest, pytest-asyncio installed via system packages
+pip install --quiet \
+    black>=23.0.0 \
+    pylint>=2.15.0 \
+    fastapi>=0.100.0
+# Note: flake8, isort, mypy, pytest, pytest-asyncio, plotly, seaborn installed via system packages
 
 # Download NLTK data with error handling
 log_info "📖 Downloading NLTK data..."
@@ -241,6 +272,31 @@ try:
     print('NLTK data downloaded successfully')
 except Exception as e:
     print(f'Warning: NLTK download failed: {e}')
+
+# Verify sentencepiece installation
+try:
+    import sentencepiece
+    print(f'sentencepiece version: {sentencepiece.__version__}')
+except ImportError:
+    # sentencepiece might not have __version__ attribute
+    import sentencepiece as spm
+    print('sentencepiece imported successfully')
+"
+
+# Verify system package versions
+log_info "🔍 Verifying system package versions..."
+python -c "
+import nltk
+import plotly
+import seaborn
+import email_validator
+import aiosqlite
+import RestrictedPython
+print(f'nltk version: {nltk.__version__}')
+print(f'plotly version: {plotly.__version__}')
+print(f'seaborn version: {seaborn.__version__}')
+print(f'aiosqlite version: {aiosqlite.__version__}')
+print(f'RestrictedPython version: {RestrictedPython.__version__ if hasattr(RestrictedPython, \"__version__\") else \"unknown\"}')
 "
 
 # Create activation script for future use
@@ -337,6 +393,98 @@ try:
 except ImportError as e:
     print(f'❌ Transformers import failed: {e}')
     sys.exit(1)
+"
+
+# Final compatibility check
+log_info "🔍 Running final compatibility check..."
+python -c "
+import sys
+success = True
+
+# Check core packages
+try:
+    import torch
+    print('✅ PyTorch import: OK')
+except ImportError:
+    print('❌ PyTorch import: FAILED')
+    success = False
+
+try:
+    import fastapi
+    print('✅ FastAPI import: OK')
+except ImportError:
+    print('❌ FastAPI import: FAILED')
+    success = False
+
+try:
+    import transformers
+    print('✅ Transformers import: OK')
+except ImportError:
+    print('❌ Transformers import: FAILED')
+    success = False
+
+# Check system packages
+try:
+    import nltk
+    print('✅ NLTK import: OK')
+except ImportError:
+    print('❌ NLTK import: FAILED')
+    success = False
+
+try:
+    import plotly
+    print('✅ Plotly import: OK')
+except ImportError:
+    print('❌ Plotly import: FAILED')
+    success = False
+
+try:
+    import seaborn
+    print('✅ Seaborn import: OK')
+except ImportError:
+    print('❌ Seaborn import: FAILED')
+    success = False
+
+try:
+    import aiosqlite
+    print('✅ Aiosqlite import: OK')
+except ImportError:
+    print('❌ Aiosqlite import: FAILED')
+    success = False
+
+try:
+    import RestrictedPython
+    print('✅ RestrictedPython import: OK')
+except ImportError:
+    print('❌ RestrictedPython import: FAILED')
+    success = False
+
+try:
+    import sentencepiece
+    print('✅ SentencePiece import: OK')
+except ImportError:
+    print('❌ SentencePiece import: FAILED')
+    success = False
+
+try:
+    import google.auth
+    print('✅ Google Auth import: OK')
+except ImportError:
+    print('❌ Google Auth import: FAILED')
+    success = False
+
+try:
+    import email_validator
+    print('✅ Email Validator import: OK')
+except ImportError:
+    print('❌ Email Validator import: FAILED')
+    success = False
+
+if not success:
+    print('⚠️  Some packages failed to import, check installation logs.')
+    sys.exit(1)
+else:
+    print('✅ All packages imported successfully!')
 "
 
 log_success "🎉 Environment setup complete!"

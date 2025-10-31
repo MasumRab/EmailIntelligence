@@ -1,21 +1,268 @@
 ================================================================================
 EMAIL INTELLIGENCE PLATFORM - CODEBASE ANALYSIS REPORT
 ================================================================================
-Analysis Date: 2025-10-24 23:52:49
-Total Issues Identified: 9
+Analysis Date: 2025-10-29 04:30:41
+Total Issues Identified: 44
 
-Architecture Concern (2 issues)
+Security Vulnerability (2 issues)
 --------------------------------------------------
-  MEDIUM Risk (2 issues):
-    • Large module (1071 lines)
-      File: backend/python_nlp/smart_retrieval.py
-      Impact: Maintainability and readability
-      Remediation: Split into smaller, focused modules
-      Timeline: 1-2 months
-      Effort: 3-7 days
+  HIGH Risk (2 issues):
+    • Hardcoded API Key/Secret found
+      File: tests/test_auth.py
+      Impact: Security breach risk
+      Remediation: Use environment variables or secure configuration management
+      Timeline: 1-2 weeks
+      Effort: 2-8 hours
 
-    • Large module (1287 lines)
-      File: backend/python_nlp/smart_filters.py
+    • Hardcoded Potential Secret found
+      File: tests/test_mfa.py
+      Impact: Security breach risk
+      Remediation: Use environment variables or secure configuration management
+      Timeline: 1-2 weeks
+      Effort: 2-8 hours
+
+
+Technical Debt (29 issues)
+--------------------------------------------------
+  MEDIUM Risk (29 issues):
+    • TODO: Add LLM interaction logic here
+      File: backend/python_nlp/ai_training.py
+      Line: 42
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: Implement CLI logic
+      File: backend/python_nlp/smart_retrieval.py
+      Line: 150
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 2h): Enhance type validation to support more complex type relationships
+      File: backend/node_engine/workflow_engine.py
+      Line: 281
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 3h): Add support for optional input ports with default values
+      File: backend/node_engine/workflow_engine.py
+      Line: 282
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P3, 4h): Implement input transformation pipeline for incompatible but convertible types
+      File: backend/node_engine/workflow_engine.py
+      Line: 283
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 4h): Expand type compatibility rules to support all defined DataType combinations
+      File: backend/node_engine/workflow_engine.py
+      Line: 307
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 3h): Add support for generic types and type parameters
+      File: backend/node_engine/workflow_engine.py
+      Line: 308
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P3, 2h): Implement type coercion for compatible but distinct types
+      File: backend/node_engine/workflow_engine.py
+      Line: 309
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 3h): Implement comprehensive security policies with RBAC support
+      File: backend/node_engine/security_manager.py
+      Line: 59
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 4h): Add rate limiting for different user roles and node types
+      File: backend/node_engine/security_manager.py
+      Line: 60
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 5h): Implement comprehensive node validation with static analysis of config parameters
+      File: backend/node_engine/security_manager.py
+      Line: 84
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 3h): Add support for dynamic security policies based on user context
+      File: backend/node_engine/security_manager.py
+      Line: 85
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
+      File: backend/node_engine/security_manager.py
+      Line: 164
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 2h): Add configurable sanitization policies based on security levels
+      File: backend/node_engine/security_manager.py
+      Line: 165
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 8h): Implement comprehensive execution sandboxing with resource isolation
+      File: backend/node_engine/security_manager.py
+      Line: 214
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 4h): Add support for custom execution environments based on node security levels
+      File: backend/node_engine/security_manager.py
+      Line: 215
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 3h): Fix bare except clauses in test files per CODEREVIEW_REPORT.md
+      File: backend/node_engine/test_security.py
+      Line: 29
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 2h): Add missing type hints to all test functions
+      File: backend/node_engine/test_security.py
+      Line: 30
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 4h): Add comprehensive test coverage for all security features
+      File: backend/node_engine/test_security.py
+      Line: 57
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 2h): Implement negative test cases for security validation
+      File: backend/node_engine/test_security.py
+      Line: 58
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 6h): Refactor global state management to use dependency injection
+      File: src/core/database.py
+      Line: 28
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 4h): Make data directory configurable via environment variables or settings
+      File: src/core/database.py
+      Line: 29
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
+      File: src/core/database.py
+      Line: 90
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 6h): Implement proper dependency injection for database manager instance
+      File: src/core/database.py
+      Line: 91
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
+      File: src/core/database.py
+      Line: 125
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 3h): Implement lazy loading strategy that is more predictable and testable
+      File: src/core/database.py
+      Line: 126
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
+      File: src/core/database.py
+      Line: 582
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 4h): Implement search indexing to improve query performance
+      File: src/core/database.py
+      Line: 583
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P3, 3h): Add support for search result caching
+      File: src/core/database.py
+      Line: 584
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+
+Architecture Concern (1 issues)
+--------------------------------------------------
+  MEDIUM Risk (1 issues):
+    • Large module (1003 lines)
+      File: backend/python_nlp/nlp_engine.py
       Impact: Maintainability and readability
       Remediation: Split into smaller, focused modules
       Timeline: 1-2 months
@@ -40,25 +287,39 @@ Performance Bottleneck (2 issues)
       Effort: 3-5 days
 
 
-Maintainability Issue (5 issues)
+Maintainability Issue (10 issues)
 --------------------------------------------------
-  MEDIUM Risk (5 issues):
-    • Code duplication (165 occurrences)
-      File: modules/default_ai_engine/engine.py
+  MEDIUM Risk (10 issues):
+    • Code duplication (6 occurrences)
+      File: 
       Impact: Maintenance overhead
       Remediation: Extract common code into reusable functions/classes
       Timeline: 2-4 weeks
       Effort: 1-3 days
 
-    • Code duplication (195 occurrences)
-      File: modules/default_ai_engine/nlp_engine.py
+    • Code duplication (279 occurrences)
+      File: modules/email/routes.py
       Impact: Maintenance overhead
       Remediation: Extract common code into reusable functions/classes
       Timeline: 2-4 weeks
       Effort: 1-3 days
 
-    • High complexity function 'setup_dependencies' (cyclomatic complexity: 21)
+    • Code duplication (325 occurrences)
+      File: modules/system_status/__init__.py
+      Impact: Maintenance overhead
+      Remediation: Extract common code into reusable functions/classes
+      Timeline: 2-4 weeks
+      Effort: 1-3 days
+
+    • High complexity function 'main' (cyclomatic complexity: 28)
       File: launch.py
+      Impact: Code readability and testability
+      Remediation: Refactor into smaller, simpler functions
+      Timeline: 1-2 months
+      Effort: 2-5 days
+
+    • High complexity function 'create_ai_lab_tab' (cyclomatic complexity: 16)
+      File: src/main.py
       Impact: Code readability and testability
       Remediation: Refactor into smaller, simpler functions
       Timeline: 1-2 months
@@ -78,10 +339,32 @@ Maintainability Issue (5 issues)
       Timeline: 1-2 months
       Effort: 2-5 days
 
+    • High complexity function '_matches_criteria' (cyclomatic complexity: 44)
+      File: backend/node_engine/email_nodes.py
+      Impact: Code readability and testability
+      Remediation: Refactor into smaller, simpler functions
+      Timeline: 1-2 months
+      Effort: 2-5 days
+
+    • High complexity function '_run_sequential' (cyclomatic complexity: 17)
+      File: src/core/workflow_engine.py
+      Impact: Code readability and testability
+      Remediation: Refactor into smaller, simpler functions
+      Timeline: 1-2 months
+      Effort: 2-5 days
+
+    • High complexity function '_evaluate_condition' (cyclomatic complexity: 18)
+      File: src/core/workflow_engine.py
+      Impact: Code readability and testability
+      Remediation: Refactor into smaller, simpler functions
+      Timeline: 1-2 months
+      Effort: 2-5 days
+
 
 SUMMARY BY RISK LEVEL
 ------------------------------
-MEDIUM: 9 issues
+HIGH: 2 issues
+MEDIUM: 42 issues
 
 RECOMMENDATIONS
 --------------------
