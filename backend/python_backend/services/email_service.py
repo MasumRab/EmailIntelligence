@@ -146,6 +146,19 @@ class EmailService(BaseService):
         except Exception as e:
             return await self.handle_error(e, "search_emails")
 
+    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> BaseResponse:
+        """Search emails within a specific category"""
+        try:
+            db = await self.get_db()
+            emails = await db.search_emails_by_category(search_term, category_id, limit, offset)
+            return BaseResponse(
+                success=True,
+                message=f"Found {len(emails)} emails matching '{search_term}' in category {category_id}",
+                data=emails,
+            )
+        except Exception as e:
+            return await self.handle_error(e, "search_emails_by_category")
+
     async def get_total_emails_count(self) -> int:
         """Get the total count of emails in the system."""
         try:

@@ -70,6 +70,11 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
+    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Searches emails within a specific category."""
+        pass
+
+    @abstractmethod
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:

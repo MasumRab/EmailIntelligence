@@ -10,6 +10,7 @@ def mock_db_manager():
     mock.get_emails = AsyncMock(return_value=[{"id": 1, "subject": "Test Email"}])
     mock.get_email_by_id = AsyncMock(return_value={"id": 1, "subject": "Test Email"})
     mock.search_emails = AsyncMock(return_value=[{"id": 1, "subject": "Test Email"}])
+    mock.search_emails_by_category = AsyncMock(return_value=[{"id": 1, "subject": "Test Email"}])
     mock.create_email = AsyncMock(return_value={"id": 2, "subject": "New Email"})
     mock.update_email = AsyncMock(return_value={"id": 1, "subject": "Updated Email"})
     return mock
@@ -41,6 +42,12 @@ async def test_search_emails(email_repository, mock_db_manager):
     """Test that search_emails calls the data source correctly."""
     await email_repository.search_emails("test")
     mock_db_manager.search_emails.assert_called_once_with("test")
+
+@pytest.mark.asyncio
+async def test_search_emails_by_category(email_repository, mock_db_manager):
+    """Test that search_emails_by_category calls the data source correctly."""
+    await email_repository.search_emails_by_category("test", 1, 50, 0)
+    mock_db_manager.search_emails_by_category.assert_called_once_with("test", 1, 50, 0)
 
 @pytest.mark.asyncio
 async def test_create_email(email_repository, mock_db_manager):

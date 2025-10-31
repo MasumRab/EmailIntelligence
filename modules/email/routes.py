@@ -24,19 +24,23 @@ router = APIRouter()
 async def get_emails(
 current_user: str = Depends(get_current_active_user),
 db: DataSource = Depends(get_data_source),
-category: str = Query(None),
+category_id: int = Query(None),
     search: str = Query(None),
+    limit: int = Query(50),
+    offset: int = Query(0),
 ):
     """
     Retrieve all emails, optionally filtered by category or search query.
     """
     try:
-        if search:
-            emails = await db.search_emails(search)
-        elif category:
-            emails = await db.get_emails_by_category(category)
+        if search and category_id is not None:
+            emails = await db.search_emails_by_category(search, category_id, limit, offset)
+        elif search:
+            emails = await db.search_emails(search, limit)
+        elif category_id is not None:
+            emails = await db.get_emails_by_category(category_id, limit, offset)
         else:
-            emails = await db.get_all_emails()
+            emails = await db.get_all_emails(limit, offset)
         return emails
     except DatabaseError as e:
         logger.error(f"Database error while fetching emails: {e}", exc_info=True)

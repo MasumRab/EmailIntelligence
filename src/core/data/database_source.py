@@ -45,6 +45,12 @@ class DatabaseDataSource(DataSource):
         """
         return await self.db.search_emails(query)
 
+    async def search_emails_by_category(self, query: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Searches for emails matching a query within a specific category in the database.
+        """
+        return await self.db.search_emails_by_category(query, category_id, limit, offset)
+
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
         """
         Adds tags to an email in the database.

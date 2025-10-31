@@ -71,6 +71,11 @@ class EmailRepository(ABC):
         pass
 
     @abstractmethod
+    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Searches emails within a specific category."""
+        pass
+
+    @abstractmethod
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
@@ -137,6 +142,10 @@ class DatabaseEmailRepository(EmailRepository):
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Searches emails."""
         return await self.data_source.search_emails(search_term, limit)
+
+    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Searches emails within a specific category."""
+        return await self.data_source.search_emails_by_category(search_term, category_id, limit, offset)
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]

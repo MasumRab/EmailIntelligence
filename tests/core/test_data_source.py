@@ -35,6 +35,7 @@ class TestDataSourceInterface:
             'get_email_by_message_id',
             'get_all_emails',
             'search_emails',
+            'search_emails_by_category',
             'get_emails_by_category',
             'update_email',
             'delete_email'

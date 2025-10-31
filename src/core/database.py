@@ -686,6 +686,64 @@ class DatabaseManager(DataSource):
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
 
+    @log_performance(operation="search_emails_by_category")
+    async def search_emails_by_category(self, search_term: str, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Search emails within a specific category."""
+        if not search_term:
+            return await self.get_emails_by_category(category_id, limit=limit, offset=offset)
+        
+        search_term_lower = search_term.lower()
+        
+        # First, filter by category
+        category_emails = [
+            email for email in self.emails_data if email.get(FIELD_CATEGORY_ID) == category_id
+        ]
+        
+        # Then, filter by search term
+        filtered_emails = []
+        logger.info(
+            f"Starting email search for term: '{search_term_lower}' in category: {category_id}. This may be slow if searching content."
+        )
+        for email_light in category_emails:
+            found_in_light = (
+                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+            )
+            if found_in_light:
+                filtered_emails.append(email_light)
+                continue
+            email_id = email_light.get(FIELD_ID)
+            content_path = self._get_email_content_path(email_id)
+            if os.path.exists(content_path):
+                try:
+                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                        heavy_data = json.load(f)
+                        content = heavy_data.get(FIELD_CONTENT, "")
+                        if isinstance(content, str) and search_term_lower in content.lower():
+                            filtered_emails.append(email_light)
+                except (IOError, json.JSONDecodeError) as e:
+                    logger.error(f"Could not search content for email {email_id}: {e}")
+        
+        # Sort results
+        try:
+            sorted_emails = sorted(
+                filtered_emails,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            logger.warning(
+                f"Sorting search results by {FIELD_TIME} failed. Using '{FIELD_CREATED_AT}'."
+            )
+            sorted_emails = sorted(
+                filtered_emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+        
+        paginated_emails = sorted_emails[offset : offset + limit]
+        result_emails = [self._add_category_details(email) for email in paginated_emails]
+        return result_emails
+
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # Pseudo code for optimizing search performance:
     # - Pre-index searchable fields (subject, sender, sender_email) in memory
