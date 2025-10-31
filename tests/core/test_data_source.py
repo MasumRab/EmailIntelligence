@@ -37,7 +37,8 @@ class TestDataSourceInterface:
             'search_emails',
             'get_emails_by_category',
             'update_email',
-            'delete_email'
+            'delete_email',
+            'get_dashboard_aggregates'
         ]
 
         for method_name in required_methods:
@@ -162,6 +163,22 @@ class TestNotmuchDataSource:
             else:
                 assert result is None or isinstance(result, dict)
 
+    @pytest.mark.asyncio
+    async def test_notmuch_get_dashboard_aggregates(self, notmuch_ds):
+        """Test NotmuchDataSource get_dashboard_aggregates method."""
+        result = await notmuch_ds.get_dashboard_aggregates()
+
+        # Should return a dictionary with expected keys
+        assert isinstance(result, dict)
+        expected_keys = ["total_emails", "auto_labeled", "categories_count", "unread_count", "weekly_growth"]
+        for key in expected_keys:
+            assert key in result
+
+        # weekly_growth should be a dict
+        assert isinstance(result["weekly_growth"], dict)
+        assert "emails" in result["weekly_growth"]
+        assert "percentage" in result["weekly_growth"]
+
 
 class TestDatabaseManagerDataSource:
     """Test DatabaseManager as a DataSource implementation."""
@@ -185,7 +202,7 @@ class TestDatabaseManagerDataSource:
             'create_email', 'get_email_by_id', 'get_all_categories', 'create_category',
             'get_emails', 'update_email_by_message_id', 'get_email_by_message_id',
             'get_all_emails', 'search_emails', 'get_emails_by_category',
-            'update_email', 'delete_email'
+            'update_email', 'delete_email', 'get_dashboard_aggregates'
         ]
 
         for method_name in required_methods:
@@ -222,6 +239,28 @@ class TestDatabaseManagerDataSource:
 
         mock_db_manager._db.get_email_by_id.assert_called_once_with(1, False)
         assert result == {"id": 1, "subject": "Test"}
+
+    @pytest.mark.asyncio
+    async def test_database_manager_get_dashboard_aggregates(self, mock_db_manager):
+        """Test DatabaseManager get_dashboard_aggregates method."""
+        # Mock the data attributes
+        mock_db_manager.emails_data = [
+            {"id": 1, "category_id": 1, "is_read": True},
+            {"id": 2, "category_id": None, "is_read": False},
+            {"id": 3, "category_id": 2, "is_read": False}
+        ]
+        mock_db_manager.categories_data = [{"id": 1}, {"id": 2}]
+
+        result = await mock_db_manager.get_dashboard_aggregates()
+
+        expected = {
+            "total_emails": 3,
+            "auto_labeled": 2,  # emails with category_id
+            "categories_count": 2,
+            "unread_count": 2,  # emails where is_read is False
+            "weekly_growth": {"emails": 3, "percentage": 0.0}
+        }
+        assert result == expected
 
 
 class TestDataSourceFactory:
