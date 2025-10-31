@@ -6,8 +6,8 @@ This document provides a summary of the Python Environment Management implementa
 
 The primary method for setting up and managing the Python environment for EmailIntelligence is through the main launcher script, `launch.py`. This script automates several key processes:
 
-*   **Virtual Environment Creation**: Automatically creates a Python virtual environment (named `venv` by default) to isolate project dependencies.
-*   **Dependency Installation**: Installs required Python packages from predefined requirements files.
+*   **Environment Management**: Automatically detects and uses conda environments if available, otherwise creates a Python virtual environment (named `venv` by default) to isolate project dependencies.
+*   **Dependency Installation**: Installs required Python packages from predefined requirements files using uv or Poetry.
 *   **NLTK Data Download**: Ensures necessary NLTK (Natural Language Toolkit) data is available.
 *   **Application Launching**: Serves as the main entry point to run the application, tests, and other utilities.
 
@@ -29,9 +29,10 @@ The shell script `scripts/setup_python.sh` is **DEPRECATED** and should no longe
 
 `launch.py` directly manages the Python environment to ensure consistency:
 
-- **Virtual Environment Management**:
-    - Creates a virtual environment named `venv` in the project root if it doesn't exist (unless `--no-venv` is used).
-    - Activates this venv for application execution.
+- **Environment Detection and Management**:
+    - **Conda Support**: Automatically detects conda environments and uses them if available. Use `--conda-env <name>` to specify a particular environment.
+    - **Virtual Environment Fallback**: Creates a virtual environment named `venv` in the project root if conda is not available and `--no-venv` is not used.
+    - **System Python**: Uses system Python if both conda and venv are disabled (not recommended).
 - **Dependency Management Strategy**:
     - **Base Dependencies**:
         - `launch.py` first looks for `requirements_versions.txt`. If found, dependencies listed here (expected to be pinned versions) are installed.
@@ -40,7 +41,7 @@ The shell script `scripts/setup_python.sh` is **DEPRECATED** and should no longe
         - For `dev` stage (`--stage dev`): After base dependencies, packages from `requirements-dev.txt` are installed (if the file exists).
         - For `test` stage (`--stage test`): After base dependencies, packages from `requirements-test.txt` are installed (if the file exists).
     - The `--update-deps` flag forces an update (upgrade) of existing packages during installation.
-- **Python Version Checking**: Ensures the Python version being used is within the supported range. Notably, `launch.py` now enforces the use of Python 3.11+ for the environment, aligning with the project's dependencies and configurations as specified in `pyproject.toml`.
+- **Python Version Checking**: Ensures the Python version being used is within the supported range. Notably, `launch.py` now enforces the use of Python 3.12+ for the environment, aligning with the project's dependencies and configurations as specified in `pyproject.toml`.
 - **NLTK Data Download**: Actively manages and automatically attempts to download required NLTK datasets (such as 'punkt', 'stopwords', 'wordnet') upon initial setup. If a download fails, an error will be logged. This can be skipped using the `--no-download-nltk` flag.
 - **System Information**: The `--system-info` flag provides detailed diagnostics about the Python environment, OS, hardware, and project configuration.
 - **Log Level Control**: The `--loglevel` flag allows users to set the verbosity of the launcher script (e.g., DEBUG, INFO, WARNING, ERROR).
@@ -111,13 +112,14 @@ While `launch.py` automates the installation of Python packages listed in the re
 `launch.py` offers several command-line arguments to control its behavior regarding environment setup:
 
 - **`--no-venv`**: Skips virtual environment creation/use and all Python dependency installations.
+- **`--force-recreate-venv`**: Deletes and recreates the virtual environment before setup.
 - **`--update-deps`**: Forces an update of dependencies during installation.
-- **`--skip-python-version-check`**: Bypasses the Python version compatibility check.
 - **`--no-download-nltk`**: Skips the automatic download of NLTK data.
-- **`--system-info`**: Prints detailed system and environment information and exits.
-- **`--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}`**: Sets the logging verbosity for the launcher.
+- **`--use-poetry`**: Use Poetry instead of uv for dependency management.
+- **`--use-conda`**: Use Conda environment instead of venv.
+- **`--conda-env`**: Specify Conda environment name (default: base).
 
-*(For a full list of launcher arguments, see \`launcher_guide.md\` or run \`python launch.py --help\`)*
+*(For a full list of launcher arguments, run `python launch.py --help`)*
 
 <!-- The section below is intentionally commented out as env_manager.py no longer exists and its functionalities are integrated into launch.py -->
 <!--

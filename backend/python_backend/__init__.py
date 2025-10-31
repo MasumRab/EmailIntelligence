@@ -1,14 +1,24 @@
 """
 Python Backend for Gmail AI Email Management
 Optimized FastAPI backend with comprehensive NLP integration
+
+DEPRECATED: This module is deprecated and will be removed in a future version.
+Use the modular architecture in src/ and modules/ instead.
 """
+
+import warnings
+
+warnings.warn(
+    "backend.python_backend is deprecated. Use src.main:create_app() for the new modular architecture.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db
-from .main import app
 from .models import (
     ActivityCreate,
     ActivityResponse,
@@ -24,14 +34,11 @@ from .models import (
     GmailSyncResponse,
     SmartRetrievalRequest,
 )
-from .performance_monitor import PerformanceMonitor
 
 __version__ = "2.0.0"
 
 __all__ = [
-    "app",
     "DatabaseManager",
-    "get_db",
     "EmailCreate",
     "EmailUpdate",
     "EmailResponse",
@@ -50,5 +57,4 @@ __all__ = [
     "AIAnalysisResult",
     "SmartFilterManager",
     "EmailFilter",
-    "PerformanceMonitor",
 ]
