@@ -212,8 +212,13 @@ log_info "🔍 Verifying NLP package versions..."
 python -c "
 import nltk
 import textblob
+try:
+    import pkg_resources
+    tb_version = pkg_resources.get_distribution('textblob').version
+except:
+    tb_version = 'unknown'
 print(f'nltk version: {nltk.__version__}')
-print(f'textblob version: {textblob.__version__}')
+print(f'textblob version: {tb_version}')
 "
 
 # Install web and API packages
