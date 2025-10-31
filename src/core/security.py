@@ -82,11 +82,10 @@ class SecurityValidator:
         sensitive_fields = ["password", "token", "key", "secret", "auth"]
 
         for key in data.keys():
-            if any(sensitive in key.lower() for sensitive in sensitive_fields):
-                # For sensitive data, check for elevated permissions
-                if Permission.ADMIN not in context.permissions:
-                    logger.warning(f"Access denied to sensitive field: {key}")
-                    return False
+            # For sensitive data, check for elevated permissions
+            if any(sensitive in key.lower() for sensitive in sensitive_fields) and Permission.ADMIN not in context.permissions:
+                logger.warning(f"Access denied to sensitive field: {key}")
+                return False
 
         return True
 

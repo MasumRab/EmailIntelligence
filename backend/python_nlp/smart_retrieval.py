@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sqlite3
 import sys
 from dataclasses import asdict, dataclass
@@ -77,21 +78,7 @@ class GmailRetrievalService:
             if self.creds and self.creds.expired and self.creds.refresh_token:
                 self.creds.refresh(Request())
             elif (creds_json := os.getenv(GMAIL_CREDENTIALS_ENV_VAR)):
-                # Use credentials from environment variable if available
-                import tempfile
-                
-                # Write credentials to a temporary file
-                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
-                    temp_file.write(creds_json)
-                    temp_creds_path = temp_file.name
-                
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    temp_creds_path, SCOPES
-                )
-                self.creds = flow.run_local_server(port=0)
-                
-                # Clean up temporary file
-                os.unlink(temp_creds_path)
+                self._authenticate_with_env_credentials(creds_json)
             else:
                 # Use credentials file from disk
                 flow = InstalledAppFlow.from_client_secrets_file(
@@ -104,6 +91,23 @@ class GmailRetrievalService:
                 token.write(self.creds.to_json())
     
         self.service = build('gmail', 'v1', credentials=self.creds)
+        
+    def _authenticate_with_env_credentials(self, creds_json: str):
+        """Authenticate using credentials from environment variable."""
+        import tempfile
+        
+        # Write credentials to a temporary file
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
+            temp_file.write(creds_json)
+            temp_creds_path = temp_file.name
+        
+        flow = InstalledAppFlow.from_client_secrets_file(
+            temp_creds_path, SCOPES
+        )
+        self.creds = flow.run_local_server(port=0)
+        
+        # Clean up temporary file
+        os.unlink(temp_creds_path)
         
     def _init_checkpoint_db(self):
         """Initialize the checkpoint database if it doesn't exist."""
@@ -131,7 +135,7 @@ class GmailRetrievalService:
             'SELECT * FROM sync_checkpoints WHERE strategy_name = ?',
             (strategy_name,)
         )
-        if row := cursor.fetchone():
+        if (row := cursor.fetchone()) is not None:
             return SyncCheckpoint(
                 strategy_name=row[0],
                 last_sync_date=datetime.fromisoformat(row[1]) if row[1] else None,
@@ -225,59 +229,39 @@ class GmailRetrievalService:
         # Get any existing checkpoint for this strategy
         checkpoint = self.get_checkpoint(strategy.name)
         
+        # Construct query
+        query = self._construct_query(strategy, checkpoint)
+        
+        # Retrieve messages using the query
+        emails = self._retrieve_messages(query, strategy, checkpoint, max_to_retrieve)
+            
+        return emails
+    
+    def _retrieve_messages(self, query: str, strategy: RetrievalStrategy, 
+                          checkpoint: Optional[SyncCheckpoint], max_to_retrieve: int) -> List[Dict[str, Any]]:
+        """Retrieve messages from Gmail API based on query and strategy."""
         emails = []
         page_token = None
         total_retrieved = 0
         
-        # Construct query
-        query = self._construct_query(strategy, checkpoint)
-        
         try:
             while total_retrieved < max_to_retrieve:
-                # Construct the API call
-                api_call = self.service.users().messages().list(
-                    userId='me',
-                    q=query,
-                    maxResults=min(strategy.batch_size, max_to_retrieve - total_retrieved),
-                    pageToken=page_token
-                )
+                # Get batch of messages
+                messages, next_page_token = self._get_message_batch(query, strategy, max_to_retrieve, total_retrieved, page_token)
                 
-                response = api_call.execute()
-                
-                # Process messages in this batch
-                messages = response.get('messages', [])
                 if not messages:
                     # No more messages available
                     break
                 
-                # Get detailed information for each message
-                for msg in messages:
-                    try:
-                        # Get full message details
-                        full_msg = self.service.users().messages().get(
-                            userId='me', 
-                            id=msg['id']
-                        ).execute()
-                        
-                        # Convert to our internal format
-                        email_data = self._parse_gmail_message(full_msg)
-                        emails.append(email_data)
-                        total_retrieved += 1
-                        
-                        # Update checkpoint with the latest history ID
-                        self._update_checkpoint_with_history(checkpoint, strategy, full_msg)
-                        
-                        if total_retrieved >= max_to_retrieve:
-                            break
-                            
-                    except HttpError as e:
-                        self.logger.error(f"Error retrieving message {msg['id']}: {e}")
-                        if checkpoint:
-                            checkpoint.errors_count += 1
-                            self.save_checkpoint(checkpoint)
+                # Process each message in the batch
+                processed_count = self._process_message_batch(messages, emails, strategy, checkpoint, max_to_retrieve, total_retrieved)
+                total_retrieved += processed_count
+                
+                if total_retrieved >= max_to_retrieve:
+                    break
                 
                 # Check for next page
-                page_token = response.get('nextPageToken')
+                page_token = next_page_token
                 if not page_token:
                     # No more pages
                     break
@@ -287,6 +271,56 @@ class GmailRetrievalService:
             raise
             
         return emails
+    
+    def _get_message_batch(self, query: str, strategy: RetrievalStrategy, max_to_retrieve: int, 
+                          total_retrieved: int, page_token: Optional[str]) -> tuple[List[Dict[str, Any]], Optional[str]]:
+        """Get a batch of messages from Gmail API."""
+        # Construct the API call
+        api_call = self.service.users().messages().list(
+            userId='me',
+            q=query,
+            maxResults=min(strategy.batch_size, max_to_retrieve - total_retrieved),
+            pageToken=page_token
+        )
+        
+        response = api_call.execute()
+        messages = response.get('messages', [])
+        next_page_token = response.get('nextPageToken')
+        
+        return messages, next_page_token
+    
+    def _process_message_batch(self, messages: List[Dict[str, Any]], emails: List[Dict[str, Any]], 
+                              strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint], 
+                              max_to_retrieve: int, total_retrieved: int) -> int:
+        """Process a batch of messages and return the count of processed messages."""
+        processed_count = 0
+        
+        for msg in messages:
+            try:
+                # Get full message details
+                full_msg = self.service.users().messages().get(
+                    userId='me', 
+                    id=msg['id']
+                ).execute()
+                
+                # Convert to our internal format
+                email_data = self._parse_gmail_message(full_msg)
+                emails.append(email_data)
+                processed_count += 1
+                
+                # Update checkpoint with the latest history ID
+                self._update_checkpoint_with_history(checkpoint, strategy, full_msg)
+                
+                if total_retrieved + processed_count >= max_to_retrieve:
+                    break
+                    
+            except HttpError as e:
+                self.logger.error(f"Error retrieving message {msg['id']}: {e}")
+                if checkpoint:
+                    checkpoint.errors_count += 1
+                    self.save_checkpoint(checkpoint)
+        
+        return processed_count
     
     def _parse_gmail_message(self, gmail_msg: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -298,6 +332,8 @@ class GmailRetrievalService:
         Returns:
             A dictionary with our internal email format
         """
+        import base64
+        
         # Extract headers
         headers = {h['name'].lower(): h['value'] for h in gmail_msg.get('payload', {}).get('headers', [])}
         
@@ -308,23 +344,17 @@ class GmailRetrievalService:
         
         # Look for the text/plain part
         for part in parts:
-            if part.get('mimeType') == 'text/plain':
-                import base64
-                data = part.get('body', {}).get('data')
-                if data:
-                    # Decode base64 encoded body
-                    body = base64.urlsafe_b64decode(data).decode('utf-8')
+            if part.get('mimeType') == 'text/plain' and (data := part.get('body', {}).get('data')):
+                # Decode base64 encoded body
+                body = base64.urlsafe_b64decode(data).decode('utf-8')
                 break
         else:
             # If no text/plain part found, look for body in the payload itself
-            if payload.get('mimeType') == 'text/plain':
-                import base64
-                data = payload.get('body', {}).get('data')
-                if data:
-                    body = base64.urlsafe_b64decode(data).decode('utf-8')
+            if payload.get('mimeType') == 'text/plain' and (data := payload.get('body', {}).get('data')):
+                body = base64.urlsafe_b64decode(data).decode('utf-8')
         
         # Construct our email format
-        email_data = {
+        return {
             'id': gmail_msg.get('id'),
             'thread_id': gmail_msg.get('threadId'),
             'label_ids': gmail_msg.get('labelIds', []),
@@ -340,8 +370,6 @@ class GmailRetrievalService:
             'history_id': gmail_msg.get('historyId'),
             'internal_date': gmail_msg.get('internalDate'),
         }
-        
-        return email_data
     
     def _extract_email(self, from_header: str) -> str:
         """
@@ -353,7 +381,6 @@ class GmailRetrievalService:
         Returns:
             The extracted email address
         """
-        import re
         # Pattern to match email addresses in the form 'Name <email>' or just 'email'
         pattern = r'<([^>]+)>|([^<>\s]+@[^<>\s]+)'
         if match := re.search(pattern, from_header):
@@ -444,7 +471,8 @@ class SmartRetrievalManager(GmailRetrievalService):
         """
         # Using the credential management from parent class
         # This method is preserved as a placeholder for potential custom logic
-        super()._store_credentials(creds)  # assuming parent has a method
+        # Note: Parent class doesn't have this method, so we're just documenting the intent
+        pass
 
     def get_optimized_retrieval_strategies(self) -> List[RetrievalStrategy]:
         """
