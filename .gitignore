@@ -1,28 +1,57 @@
-# Node.js
+# General
+.DS_Store
+Thumbs.db
+generated-icon.png
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node / frontend
 node_modules/
 dist/
-.DS_Store
-server/public/
 vite.config.ts.*
-*.tar.gz
+pnpm-lock.yaml
+package-lock.json
+uv.lock
 
-# Python virtual environment
+# Python caches and artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.cache/
+htmlcov/
+
+# Virtual environments
 venv/
+.venv/
+env/
+ENV/
+.Python
+emailintelligence_env/
+
+# Environment & secret files
 .env
 .env.*
-*.env
 !.env.example
-
-# Python dependency management
-poetry.lock
-poetry.toml
-
-# Credentials and sensitive data
 token.json
 credentials.json
 apikey.json
 jsons/
 jsons/*
+jsons/client_id.json
+jsons/apikey.json
+config/llm_guidelines.local.json
+config/*.local.*
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
 
 # Build / packaging artifacts
 build/
@@ -43,10 +72,10 @@ pip-wheel-metadata/
 coverage.xml
 coverage/
 *.cover
-.pytest_cache/
 
 # IDEs / editor-specific
 .vscode/
+.vscode/settings.json
 .idea/
 *.iml
 *.sublime-project
@@ -55,30 +84,10 @@ coverage/
 
 # Misc
 diagnosis_message.txt
+performance_metrics_log.jsonl
+models/*.pkl
 
-# Ignore configuration and local environment files
-*.local.config
-*.local.json
-*.local.yaml
-*.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
-config.local.*
-config/llm_guidelines.local.json
-
-# Ignore hidden files and directories, with exceptions
-.*
+# Keep the docs placeholder
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
-
-# Python cache
-__pycache__/
-
-# Miscellaneous
-diagnosis_message.txt
-performance_metrics_log.jsonl
-config/llm_guidelines.local.json
-models/*.pkl
-emailintelligence_env/
