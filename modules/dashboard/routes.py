@@ -1,7 +1,8 @@
 import logging
 import json
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException
 from src.core.data_source import DataSource
 from src.core.factory import get_data_source
 from .models import DashboardStats
@@ -10,7 +11,8 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-LOG_FILE = "performance_metrics_log.jsonl"
+# Use absolute path for performance log file
+LOG_FILE = Path(__file__).resolve().parent.parent.parent.parent / "performance_metrics_log.jsonl"
 
 @router.get("/stats", response_model=DashboardStats)
 async def get_dashboard_stats(db: DataSource = Depends(get_data_source)):
@@ -19,6 +21,7 @@ async def get_dashboard_stats(db: DataSource = Depends(get_data_source)):
     """
     try:
         # Email statistics
+        # TODO: Consider optimizing by using database aggregation queries instead of fetching all emails
         emails = await db.get_all_emails(limit=10000)  # Assuming a large limit to get all emails
         total_emails = len(emails)
         unread_emails = sum(1 for email in emails if not email.get('is_read'))
