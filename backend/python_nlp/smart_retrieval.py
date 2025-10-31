@@ -76,32 +76,29 @@ class GmailRetrievalService:
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
                 self.creds.refresh(Request())
-            else:
+            elif (creds_json := os.getenv(GMAIL_CREDENTIALS_ENV_VAR)):
                 # Use credentials from environment variable if available
-                creds_json = os.getenv(GMAIL_CREDENTIALS_ENV_VAR)
-                if creds_json:
-                    import tempfile
-                    import json as json_std
-                    
-                    # Write credentials to a temporary file
-                    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
-                        temp_file.write(creds_json)
-                        temp_creds_path = temp_file.name
-                    
-                    flow = InstalledAppFlow.from_client_secrets_file(
-                        temp_creds_path, SCOPES
-                    )
-                    self.creds = flow.run_local_server(port=0)
-                    
-                    # Clean up temporary file
-                    os.unlink(temp_creds_path)
-                else:
-                    # Use credentials file from disk
-                    flow = InstalledAppFlow.from_client_secrets_file(
-                        self.credentials_path, SCOPES
-                    )
-                    self.creds = flow.run_local_server(port=0)
-            
+                import tempfile
+                
+                # Write credentials to a temporary file
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as temp_file:
+                    temp_file.write(creds_json)
+                    temp_creds_path = temp_file.name
+                
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    temp_creds_path, SCOPES
+                )
+                self.creds = flow.run_local_server(port=0)
+                
+                # Clean up temporary file
+                os.unlink(temp_creds_path)
+            else:
+                # Use credentials file from disk
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    self.credentials_path, SCOPES
+                )
+                self.creds = flow.run_local_server(port=0)
+        
             # Save credentials for next run
             with open(self.token_path, 'w') as token:
                 token.write(self.creds.to_json())
@@ -134,9 +131,7 @@ class GmailRetrievalService:
             'SELECT * FROM sync_checkpoints WHERE strategy_name = ?',
             (strategy_name,)
         )
-        row = cursor.fetchone()
-        
-        if row:
+        if row := cursor.fetchone():
             return SyncCheckpoint(
                 strategy_name=row[0],
                 last_sync_date=datetime.fromisoformat(row[1]) if row[1] else None,
@@ -167,6 +162,48 @@ class GmailRetrievalService:
         ))
         self._db_conn.commit()
         
+    def _update_checkpoint_with_history(self, checkpoint: Optional[SyncCheckpoint], 
+                                       strategy: RetrievalStrategy, full_msg: Dict[str, Any]):
+        """Update checkpoint with history ID from a message."""
+        if 'historyId' not in full_msg:
+            return
+            
+        if checkpoint:
+            checkpoint.last_history_id = full_msg['historyId']
+            checkpoint.processed_count += 1
+            self.save_checkpoint(checkpoint)
+        else:
+            new_checkpoint = SyncCheckpoint(
+                strategy_name=strategy.name,
+                last_sync_date=datetime.now(),
+                last_history_id=full_msg['historyId'],
+                processed_count=1
+            )
+            self.save_checkpoint(new_checkpoint)
+        
+    def _construct_query(self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint]) -> str:
+        """Construct the Gmail search query based on strategy and checkpoint."""
+        # Determine query based on strategy and checkpoint
+        query_parts = [strategy.query_filter] if strategy.query_filter else []
+        
+        # Add date range if specified
+        if strategy.date_range_days:
+            from datetime import datetime, timedelta
+            start_date = datetime.now() - timedelta(days=strategy.date_range_days)
+            query_parts.append(f"after:{start_date.strftime('%Y/%m/%d')}")
+        
+        return ' '.join(query_parts)
+        
+    def _process_message_batch(self, strategy: RetrievalStrategy, max_to_retrieve: int,
+                              total_retrieved: int, checkpoint: Optional[SyncCheckpoint]) -> tuple[List[Dict[str, Any]], int]:
+        """Process a batch of messages and return emails and updated count."""
+        emails = []
+        current_count = total_retrieved
+        
+        # This is a placeholder - in the real implementation, we would process messages here
+        # For now, we'll just return empty results
+        return emails, current_count
+        
     def retrieve_emails(self, strategy: RetrievalStrategy, 
                        max_emails: Optional[int] = None) -> List[Dict[str, Any]]:
         """
@@ -192,16 +229,8 @@ class GmailRetrievalService:
         page_token = None
         total_retrieved = 0
         
-        # Determine query based on strategy and checkpoint
-        query_parts = [strategy.query_filter] if strategy.query_filter else []
-        
-        # Add date range if specified
-        if strategy.date_range_days:
-            from datetime import datetime, timedelta
-            start_date = datetime.now() - timedelta(days=strategy.date_range_days)
-            query_parts.append(f"after:{start_date.strftime('%Y/%m/%d')}")
-        
-        query = ' '.join(query_parts)
+        # Construct query
+        query = self._construct_query(strategy, checkpoint)
         
         try:
             while total_retrieved < max_to_retrieve:
@@ -236,19 +265,7 @@ class GmailRetrievalService:
                         total_retrieved += 1
                         
                         # Update checkpoint with the latest history ID
-                        if 'historyId' in full_msg:
-                            if checkpoint:
-                                checkpoint.last_history_id = full_msg['historyId']
-                                checkpoint.processed_count += 1
-                                self.save_checkpoint(checkpoint)
-                            else:
-                                new_checkpoint = SyncCheckpoint(
-                                    strategy_name=strategy.name,
-                                    last_sync_date=datetime.now(),
-                                    last_history_id=full_msg['historyId'],
-                                    processed_count=1
-                                )
-                                self.save_checkpoint(new_checkpoint)
+                        self._update_checkpoint_with_history(checkpoint, strategy, full_msg)
                         
                         if total_retrieved >= max_to_retrieve:
                             break
@@ -339,8 +356,7 @@ class GmailRetrievalService:
         import re
         # Pattern to match email addresses in the form 'Name <email>' or just 'email'
         pattern = r'<([^>]+)>|([^<>\s]+@[^<>\s]+)'
-        match = re.search(pattern, from_header)
-        if match:
+        if match := re.search(pattern, from_header):
             # Group 1 is for <email> format, group 2 is for plain email format
             return match.group(1) or match.group(2)
         return from_header
@@ -559,39 +575,3 @@ async def main_cli():
     # TODO: Implement CLI logic
     # Pseudo code for CLI implementation:
     # parser.add_argument("--strategies", nargs="+", help="Retrieval strategies to use")
-    # parser.add_argument("--max-api-calls", type=int, default=100, help="Maximum API calls")
-    # parser.add_argument("--time-budget", type=int, default=30, help="Time budget in minutes")
-    # parser.add_argument("--output", help="Output file path")
-    # parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-
-    # args = parser.parse_args()
-
-    # try:
-    #     # Initialize SmartGmailRetriever
-    #     # retriever = SmartGmailRetriever()
-    #
-    #     # Execute smart retrieval
-    #     # result = await retriever.execute_smart_retrieval(
-    #     #     strategies=args.strategies,
-    #     #     max_api_calls=args.max_api_calls,
-    #     #     time_budget_minutes=args.time_budget
-    #     # )
-    #
-    #     # Handle output (JSON, CSV, etc.)
-    #     # if args.output:
-    #     #     # Save to file
-    #     # else:
-    #     #     # Print to console
-    #
-    # except Exception as e:
-    #     # Handle errors
-    #     # print(f"Error: {e}", file=sys.stderr)
-    #     # sys.exit(1)
-
-    # Placeholder implementation
-    print("CLI not yet implemented. Use the API instead.")
-    pass
-
-
-if __name__ == "__main__":
-    asyncio.run(main_cli())

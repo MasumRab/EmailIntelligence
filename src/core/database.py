@@ -19,7 +19,7 @@ import hashlib
 from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 from .data.data_source import DataSource
-
+from .caching import get_cache_manager, CacheConfig, CacheBackend
 from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
@@ -785,6 +785,18 @@ class DatabaseManager(DataSource):
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
+        # Create cache key based on parameters
+        cache_key = f"emails:limit={limit}:offset={offset}:category={category_id}:unread={is_unread}"
+        cache_manager = get_cache_manager()
+        
+        # Try to get from cache first
+        cached_result = await cache_manager.get(cache_key)
+        if cached_result is not None:
+            logger.debug(f"Cache hit for {cache_key}")
+            return cached_result
+        
+        logger.debug(f"Cache miss for {cache_key}, calculating result")
+        
         filtered_emails = self.emails_data
         if category_id is not None:
             filtered_emails = [
@@ -807,6 +819,10 @@ class DatabaseManager(DataSource):
             )
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
+        
+        # Set result in cache with TTL
+        await cache_manager.set(cache_key, result_emails, ttl=300)  # Cache for 5 minutes
+        
         return result_emails
 
     async def update_email_by_message_id(
