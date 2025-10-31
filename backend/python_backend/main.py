@@ -77,8 +77,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
             # Add request ID to successful responses
-            if hasattr(response, 'headers'):
-                response.headers['X-Request-ID'] = request_id
+            if hasattr(response, "headers"):
+                response.headers["X-Request-ID"] = request_id
             return response
         except Exception as exc:
             # Log error with context
@@ -86,7 +86,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             logger.error(
                 f"Request failed: {request.method} {request.url} "
                 f"Duration: {duration:.2f}s RequestID: {request_id} Error: {str(exc)}",
-                exc_info=True
+                exc_info=True,
             )
 
             # Track error rate
@@ -110,7 +110,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "message": "An internal error occurred",
                     "error_code": "INTERNAL_ERROR",
                     "details": str(exc),
-                    "request_id": request_id
+                    "request_id": request_id,
                 }
                 status_code = exc.status_code
             elif isinstance(exc, ValidationError):
@@ -119,7 +119,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "message": "Validation error",
                     "error_code": "VALIDATION_ERROR",
                     "details": str(exc),
-                    "request_id": request_id
+                    "request_id": request_id,
                 }
                 status_code = 422
             else:
@@ -128,15 +128,16 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "message": "An unexpected error occurred",
                     "error_code": "INTERNAL_ERROR",
                     "details": str(exc) if settings.debug else None,
-                    "request_id": request_id
+                    "request_id": request_id,
                 }
                 status_code = 500
 
             return JSONResponse(
                 status_code=status_code,
                 content=error_response,
-                headers={"X-Request-ID": request_id}
+                headers={"X-Request-ID": request_id},
             )
+
 
 # Initialize FastAPI app with settings
 app = FastAPI(
@@ -181,56 +182,41 @@ async def shutdown_event():
 
 
 @app.exception_handler(AppException)
-
 async def app_exception_handler(request: Request, exc: AppException):
 
     return JSONResponse(
-
         status_code=exc.status_code,
-
         content=exc.detail,
-
     )
 
 
 @app.exception_handler(BaseAppException)
-
 async def base_app_exception_handler(request: Request, exc: BaseAppException):
 
     return JSONResponse(
-
         status_code=500,
-
         content={
-
             "success": False,
-
             "message": "An internal error occurred",
-
             "error_code": "INTERNAL_ERROR",
             "details": str(exc),
         },
-
     )
+
+
 # Exception handlers removed - now handled by ErrorHandlingMiddleware
+
 
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
-
     """Handle Pydantic validation errors with detailed 422 responses."""
 
     return JSONResponse(
-
         status_code=422,
-
         content={
-
             "detail": exc.errors(),
-
             "message": "Validation error with provided data.",
-
         },
-
     )
 
 
@@ -327,25 +313,24 @@ async def login(username: str, password: str):
     # Use the new authentication system
     db = await get_db()
     user = await authenticate_user(username, password, db)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Try to get the settings if possible
     try:
         from .settings import settings
+
         access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     except ImportError:
         # Use a default if settings are not available
         access_token_expires = timedelta(minutes=30)
-    
-    access_token = create_access_token(
-        data={"sub": username}, expires_delta=access_token_expires
-    )
+
+    access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -388,10 +373,7 @@ async def health_check(request: Request):
 async def get_error_stats():
     """Get error statistics for monitoring."""
     with error_lock:
-        return {
-            "error_counts": dict(error_counts),
-            "total_errors": sum(error_counts.values())
-        }
+        return {"error_counts": dict(error_counts), "total_errors": sum(error_counts.values())}
 
 
 if __name__ == "__main__":
