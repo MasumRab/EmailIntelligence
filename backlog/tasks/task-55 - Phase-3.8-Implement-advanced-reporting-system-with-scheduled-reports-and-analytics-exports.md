@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-31 14:12'
+updated_date: '2025-10-31 14:30'
 labels: []
 dependencies: []
 ---
@@ -13,7 +14,7 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Build a comprehensive reporting system that generates scheduled reports, custom analytics exports, and business intelligence dashboards for stakeholders.
+Build a comprehensive reporting system that generates scheduled reports, custom analytics exports, and business intelligence dashboards for stakeholders. NOTE: This task should be implemented in the scientific branch as it adds new reporting capabilities.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

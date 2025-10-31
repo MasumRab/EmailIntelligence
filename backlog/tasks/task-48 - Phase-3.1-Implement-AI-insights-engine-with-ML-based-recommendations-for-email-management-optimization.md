@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-31 14:01'
+updated_date: '2025-10-31 14:29'
 labels: []
 dependencies: []
 ---
@@ -13,7 +14,7 @@ dependencies: []
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Implement an AI insights engine that uses machine learning to provide intelligent recommendations for email management optimization, such as categorization improvements and workflow suggestions
+Implement an AI insights engine that uses machine learning to provide intelligent recommendations for email management optimization, such as categorization improvements and workflow suggestions. NOTE: This task should be implemented in the scientific branch as it builds on existing AI analysis capabilities.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
