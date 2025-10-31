@@ -112,463 +112,19 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
     import pathlib
     
     try:
-        path_obj = pathlib.Path(path).resolve()
-
-        # Check for directory traversal patterns
-        path_str = str(path_obj)
-
-        # Common directory traversal patterns
-        traversal_patterns = ['..', '\\', '//', '/./', '\\./']
-        for pattern in traversal_patterns:
-            if pattern in str(path):
-                logger.warning(f"Potential directory traversal detected in path: {path}")
-                return False
-
-        # If base_dir is specified, ensure path is within base_dir
-        if base_dir:
-            base_obj = pathlib.Path(base_dir).resolve()
-            try:
-                # Check if path is within base_dir
-                path_obj.relative_to(base_obj)
-            except ValueError:
-                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
-                return False
-
-        # Additional safety checks
-        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
-            logger.warning(f"Potentially dangerous characters detected in path: {path}")
-            return False
-
-        return True
-    except Exception as e:
-        logger.warning(f"Error during path validation: {e}")
-        return False
-
-def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
-    """
-    Sanitize a path by removing or encoding potentially dangerous characters.
-    
-    Args:
-        path: The path to sanitize
-        
-    Returns:
-        Sanitized path string or None if path is invalid
-    """
-    import pathlib
-    
-    try:
-        # Convert to string if it's a Path object
-        path_str = str(path)
-        
-        # Basic sanitization - remove dangerous sequences
-        path_str = path_str.replace('../', '').replace('..\\', '')
-        path_str = path_str.replace('<!--', '').replace('-->', '')  # Prevent comment injection
-        path_str = path_str.replace('<script', '').replace('script>', '')  # Prevent script injection
-        
-        # Normalize path separators
-        path_str = path_str.replace('\\', '/')
-        
-        # Additional checks to ensure validity
-        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
-            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
-            return None
-        
-        return path_str
-    except Exception as e:
-        logger.warning(f"Error during path sanitization: {e}")
-        return None
-
-
-class DataSanitizer:
-    """Sanitizes data to prevent injection and other security issues"""
-
-    @staticmethod
-    def sanitize_input(data: Any) -> Any:
-        """
-        Sanitize input data to prevent injection attacks
-        """
-        if isinstance(data, str):
-            # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace("<script", "&lt;script").replace("javascript:", "javascript-")
-            return sanitized
-        elif isinstance(data, dict):
-            sanitized_dict = {}
-            for key, value in data.items():
-                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(
-                    value
-                )
-            return sanitized_dict
-        elif isinstance(data, list):
-            return [DataSanitizer.sanitize_input(item) for item in data]
-        else:
-            return data
-
-    @staticmethod
-    def sanitize_output(data: Any) -> Any:
-        """
-        Sanitize output data to prevent information disclosure
-        """
-        if isinstance(data, str):
-            # Improved sanitization to redact sensitive key-value pairs
-            # This regex looks for common sensitive keys followed by a colon and captures the value.
-            sensitive_keys = ["password", "token", "key", "secret", "auth"]
-            for key in sensitive_keys:
-                # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
-                # It handles optional whitespace and stops at the next comma or end of string.
-                data = re.sub(
-                    rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
-                    r'\1[REDACTED]',
-                    data,
-                    flags=re.IGNORECASE
-                )
-            return data
-        elif isinstance(data, dict):
-            sanitized_dict = {}
-            for key, value in data.items():
-                # Redact sensitive fields
-                if any(
-                    sensitive in key.lower() for sensitive in ["password", "token", "key", "secret"]
-                ):
-                    sanitized_dict[key] = "[REDACTED]"
-                else:
-                    sanitized_dict[key] = DataSanitizer.sanitize_output(value)
-            return sanitized_dict
-        elif isinstance(data, list):
-            return [DataSanitizer.sanitize_output(item) for item in data]
-        else:
-            return data
-
-
-class AuditLogger:
-    """Logs security-related events for audit purposes"""
-
-    def __init__(self):
-        self.logger = logging.getLogger("security.audit")
-
-    def log_access_attempt(
-        self,
-        context: SecurityContext,
-        resource: str,
-        permission: Permission,
-        success: bool,
-        details: str = "",
-    ):
-        """Log an access attempt to a resource"""
-        log_entry = {
-            "timestamp": time.time(),
-            "user_id": context.user_id,
-            "session_token": context.session_token,
-            "resource": resource,
-            "permission": permission.value,
-            "success": success,
-            "ip_address": context.ip_address,
-            "details": details,
-        }
-        self.logger.info(f"ACCESS_ATTEMPT: {json.dumps(log_entry)}")
-
-    def log_execution(
-        self,
-        context: SecurityContext,
-        node_type: str,
-        inputs: Dict[str, Any],
-        outputs: Dict[str, Any],
-    ):
-        """Log a node execution for audit purposes"""
-        log_entry = {
-            "timestamp": time.time(),
-            "user_id": context.user_id,
-            "session_token": context.session_token,
-            "node_type": node_type,
-            "execution_id": str(uuid4()),
-            "ip_address": context.ip_address,
-            "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
-        }
-        self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
-
-    def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
-        """Log a security violation"""
-        log_entry = {
-            "timestamp": time.time(),
-            "user_id": context.user_id,
-            "session_token": context.session_token,
-            "violation_type": violation_type,
-            "details": details,
-            "ip_address": context.ip_address,
-        }
-        self.logger.warning(f"SECURITY_VIOLATION: {json.dumps(log_entry)}")
-
-
-class ExecutionSandbox:
-    """Provides a secure execution environment for nodes"""
-
-    def __init__(self, context: SecurityContext):
-        self.context = context
-        self.audit_logger = AuditLogger()
-
-    async def execute_with_security(self, execute_func, *args, **kwargs):
-        """
-        Execute a function with security checks and monitoring
-        """
-        # Log the execution attempt
-        self.audit_logger.log_execution(
-            context=self.context,
-            node_type=execute_func.__name__ if hasattr(execute_func, "__name__") else "unknown",
-            inputs=kwargs,
-            outputs={},
-        )
-
-        # Perform security checks
-        if time.time() > self.context.expires_at:
-            self.audit_logger.log_security_violation(
-                self.context,
-                "EXPIRED_SESSION",
-                f"Attempted execution with expired session (expired at {self.context.expires_at})",
-            )
-            raise PermissionError("Session has expired")
-
-        # Sanitize inputs
-        sanitized_args = [DataSanitizer.sanitize_input(arg) for arg in args]
-        sanitized_kwargs = {k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()}
-
-        try:
-            # Execute the function in a controlled environment
-            result = await execute_func(*sanitized_args, **sanitized_kwargs)
-
-            # Sanitize outputs
-            sanitized_result = DataSanitizer.sanitize_output(result)
-
-            return sanitized_result
-
-        except Exception as e:
-            self.audit_logger.log_security_violation(
-                self.context, "EXECUTION_ERROR", f"Error during execution: {str(e)}"
-            )
-            raise
-
-
-class PathValidator:
-    """Validates and sanitizes file paths and database paths"""
-
-    @staticmethod
-    def sanitize_filename(filename: str) -> str:
-        """
-        Sanitize a filename by removing dangerous characters.
-
-        Args:
-            filename: The filename to sanitize
-
-        Returns:
-            Sanitized filename
-        """
-        if not filename:
-            return filename
-
-        # Remove or replace dangerous characters
-        sanitized = filename.replace('/', '_').replace('\\', '_').replace(':', '_')
-        sanitized = sanitized.replace('*', '_').replace('?', '_').replace('"', '_')
-        sanitized = sanitized.replace('<', '_').replace('>', '_').replace('|', '_')
-
-        # Remove control characters
-        sanitized = ''.join(c for c in sanitized if ord(c) >= 32)
-
-        return sanitized.strip()
-
-    @staticmethod
-    def validate_database_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> pathlib.Path:
-        """
-        Validate a database path and return it as a Path object if safe.
-
-        Args:
-            path: The database path to validate
-            base_dir: Optional base directory to validate against
-
-        Returns:
-            Validated Path object
-
-        Raises:
-            ValueError: If path is invalid or unsafe
-        """
         path_obj = pathlib.Path(path)
+        original_path = str(path)
 
-        if not validate_path_safety(path_obj, base_dir):
-            raise ValueError(f"Unsafe database path: {path}")
-
-        return path_obj
-
-
-class SecurityManager:
-    """
-    Centralized security manager for the Email Intelligence Platform
-    """
-
-    def __init__(self):
-        self.validator = SecurityValidator()
-        self.sanitizer = DataSanitizer()
-        self.audit_logger = AuditLogger()
-        self.active_sessions: Dict[str, SecurityContext] = {}
-        self.secret_key = secrets.token_urlsafe(32)  # In production, load from secure storage
-
-    def create_session(
-        self,
-        user_id: str,
-        permissions: List[Permission],
-        security_level: SecurityLevel,
-        allowed_resources: Optional[List[str]] = None,
-        duration_hours: float = 8.0,
-        ip_address: Optional[str] = None,
-        origin: Optional[str] = None,
-    ) -> SecurityContext:
-        """Create a new security session"""
-        session_token = secrets.token_urlsafe(32)
-
-        context = SecurityContext(
-            user_id=user_id,
-            permissions=permissions,
-            security_level=security_level,
-            session_token=session_token,
-            created_at=time.time(),
-            expires_at=time.time() + (duration_hours * 3600),
-            allowed_resources=allowed_resources or [],
-            ip_address=ip_address,
-            origin=origin,
-        )
-
-        self.active_sessions[session_token] = context
-        return context
-
-    def validate_session(self, session_token: str) -> Optional[SecurityContext]:
-        """Validate a session token and return the context"""
-        if session_token not in self.active_sessions:
-            return None
-
-        context = self.active_sessions[session_token]
-
-        if time.time() > context.expires_at:
-            # Clean up expired session
-            del self.active_sessions[session_token]
-            return None
-
-        return context
-
-    def generate_signed_token(self, data: Dict[str, Any]) -> str:
-        """Generate a signed token for secure data transmission"""
-        json_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
-        signature = hmac.new(
-            self.secret_key.encode(), json_data.encode(), hashlib.sha256
-        ).hexdigest()
-        return f"{json_data}.{signature}"
-
-    def verify_signed_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verify a signed token and return the data"""
-        if "." not in token:
-            return None
-
-        try:
-            json_part, signature_part = token.rsplit(".", 1)
-            expected_signature = hmac.new(
-                self.secret_key.encode(), json_part.encode(), hashlib.sha256
-            ).hexdigest()
-
-            if not hmac.compare_digest(expected_signature, signature_part):
-                return None
-
-            return json.loads(json_part)
-        except (json.JSONDecodeError, ValueError):
-            return None
-
-    def cleanup_expired_sessions(self):
-        """Remove expired sessions from memory"""
-        current_time = time.time()
-        expired_tokens = [
-            token
-            for token, context in self.active_sessions.items()
-            if current_time > context.expires_at
-        ]
-
-        for token in expired_tokens:
-            del self.active_sessions[token]
-
-        if expired_tokens:
-            logger.info(f"Cleaned up {len(expired_tokens)} expired sessions")
-
-    async def secure_execute_node(
-        self, session_token: str, node_type: str, inputs: Dict[str, Any], execute_func
-    ) -> Dict[str, Any]:
-        """Securely execute a node with full security checks"""
-        context = self.validate_session(session_token)
-        if not context:
-            raise PermissionError("Invalid or expired session")
-
-        # Validate access to execute this node type
-        if not self.validator.validate_access(context, node_type, Permission.EXECUTE):
-            self.audit_logger.log_access_attempt(
-                context,
-                node_type,
-                Permission.EXECUTE,
-                False,
-                "Insufficient permissions to execute node",
-            )
-            raise PermissionError(f"Insufficient permissions to execute {node_type}")
-
-        # Validate data access
-        if not self.validator.validate_data_access(context, inputs):
-            self.audit_logger.log_security_violation(
-                context,
-                "DATA_ACCESS_VIOLATION",
-                f"Attempted to access sensitive data through {node_type}",
-            )
-            raise PermissionError("Attempted to access sensitive data")
-
-        # Create sandbox and execute
-        sandbox = ExecutionSandbox(context)
-        return await sandbox.execute_with_security(execute_func, **inputs)
-
-
-# Global security manager instance
-security_manager = SecurityManager()
-
-
-def get_security_manager() -> SecurityManager:
-    """Get the global security manager instance"""
-    return security_manager
-
-
-def create_default_security_context() -> SecurityContext:
-    """Create a default security context for internal operations"""
-    return security_manager.create_session(
-        user_id="system",
-        permissions=[Permission.READ, Permission.WRITE, Permission.EXECUTE],
-        security_level=SecurityLevel.INTERNAL,
-        allowed_resources=["*"],
-    )
-
-
-def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> bool:
-    """
-    Validate that a path is safe and doesn't contain directory traversal attempts.
-
-    Args:
-        path: The path to validate
-        base_dir: Optional base directory to resolve relative to
-
-    Returns:
-        True if path is safe, False otherwise
-    """
-    import pathlib
-    
-    try:
-        path_obj = pathlib.Path(path).resolve()
+        # If base_dir is provided and path is relative, resolve relative to base_dir
+        if base_dir and not path_obj.is_absolute():
+            path_obj = (pathlib.Path(base_dir) / path_obj).resolve()
+        else:
+            path_obj = path_obj.resolve()
 
         # Check for directory traversal patterns
-        path_str = str(path_obj)
-
-        # Common directory traversal patterns
-        traversal_patterns = ['..', '\\', '//', '/./', '\\./']
-        for pattern in traversal_patterns:
-            if pattern in str(path):
-                logger.warning(f"Potential directory traversal detected in path: {path}")
-                return False
-
+        if ('../' in original_path or '..\\' in original_path or '/./' in original_path or '\\./' in original_path or original_path.startswith('\\\\') ):
+            logger.warning(f"Directory traversal detected in path: {path}")
+            return False
         # If base_dir is specified, ensure path is within base_dir
         if base_dir:
             base_obj = pathlib.Path(base_dir).resolve()
@@ -580,7 +136,8 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
                 return False
 
         # Additional safety checks
-        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
+        resolved_str = str(path_obj)
+        if any(char in resolved_str for char in ['<', '>', '|', '?', '*']):
             logger.warning(f"Potentially dangerous characters detected in path: {path}")
             return False
 
@@ -590,36 +147,29 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
         return False
 
 
-def sanitize_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> Optional[str]:
+def sanitize_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> Optional[pathlib.Path]:
     """
-    Sanitize a path by removing or encoding potentially dangerous characters.
-    
+    Sanitize a path by validating it and returning the resolved path if safe.
+
     Args:
         path: The path to sanitize
-        
+        base_dir: Optional base directory for validation
+
     Returns:
-        Sanitized path string or None if path is invalid
+        Resolved Path object if safe, None if unsafe
     """
     import pathlib
-    
+
     try:
-        # Convert to string if it's a Path object
-        path_str = str(path)
-        
-        # Basic sanitization - remove dangerous sequences
-        path_str = path_str.replace('../', '').replace('..\\', '')
-        path_str = path_str.replace('<!--', '').replace('-->', '')  # Prevent comment injection
-        path_str = path_str.replace('<script', '').replace('script>', '')  # Prevent script injection
-        
-        # Normalize path separators
-        path_str = path_str.replace('\\', '/')
-        
-        # Additional checks to ensure validity
-        if any(char in path_str for char in ['<', '>', '|', '?', '*']):
-            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
+        path_obj = pathlib.Path(path)
+
+        # First validate the path
+        if not validate_path_safety(path, base_dir):
             return None
-        
-        return path_str
+
+        # Return the resolved path
+        return path_obj.resolve()
+
     except Exception as e:
         logger.warning(f"Error during path sanitization: {e}")
         return None
