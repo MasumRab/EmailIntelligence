@@ -8,6 +8,7 @@ vite.config.ts.*
 
 # Python virtual environment
 venv/
+emailintelligence_env/
 .env
 .env.*
 *.env
