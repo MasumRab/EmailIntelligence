@@ -16,10 +16,12 @@ Basic data storage without encryption.
 4. Implement data retention policies
 
 ## Acceptance Criteria
-- Sensitive data is encrypted when stored
-- Encryption keys are securely managed
-- Test data can be anonymized
-- Data retention policies are enforced
+<!-- AC:BEGIN -->
+- [ ] #1 Implement data encryption for sensitive information
+- [ ] #2 Add secure key management system
+- [ ] #3 Add data anonymization for testing environments
+- [ ] #4 Implement data retention policies
+<!-- AC:END -->
 
 ## Estimated Effort
 16 hours
