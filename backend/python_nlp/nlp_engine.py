@@ -136,6 +136,7 @@ class NLPEngine:
         # Initialize stop words if NLTK is available
         if HAS_NLTK:
             try:
+                import nltk
                 nltk.data.find("corpora/stopwords")
             except LookupError:
                 logger.info("NLTK 'stopwords' resource not found. Downloading...")
@@ -160,7 +161,28 @@ class NLPEngine:
         }
         logger.info("Regex patterns compiled successfully.")
 
+    def _load_model(self, model_path: str):
+        """
+        Load a model from the specified path.
 
+        Args:
+            model_path: Path to the model file
+
+        Returns:
+            Loaded model object or None if loading fails
+        """
+        try:
+            if os.path.exists(model_path):
+                import joblib
+                model = joblib.load(model_path)
+                logger.info(f"Successfully loaded model from {model_path}")
+                return model
+
+            logger.warning(f"Model file not found at {model_path}. This model will be unavailable.")
+            return None
+        except Exception as e:
+            logger.error(f"Error loading model from {model_path}: {e}")
+            return None
 
     def _preprocess_text(self, text: str) -> str:
         """
@@ -1218,7 +1240,7 @@ def _handle_backward_compatible_cli_invocation(
         if len(argv) < 3:  # Script name, subject, (optional) content
             # Allow content to be empty for old style, but subject must be there if any arg is given
             err_msg = {
-                "error": 'Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py "<subject>" "[content]"'
+                "error": "Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py \"<subject>\" \"[content]\""
             }
             if args.output_format == "json":
                 print(json.dumps(err_msg))

@@ -59,39 +59,41 @@ sudo apt install -y \
     python3-scipy \
     python3-matplotlib \
     python3-pandas \
-    python3-seaborn \
-    python3-plotly \
-    python3-scikit-learn \
+    python3-sklearn \
     python3-joblib \
-    python3-psutil
+    python3-psutil \
+    python3-sentencepiece
 
 # Install Python web framework packages
 log_info "🌐 Installing Python web framework packages..."
 sudo apt install -y \
-    python3-fastapi \
     python3-uvicorn \
     python3-pydantic \
     python3-multipart \
     python3-httpx \
-    python3-dotenv
+    python3-dotenv \
+    python3-email-validator
+# Note: python3-fastapi installed via pip as system package is outdated
 
 # Install Python utility packages
 log_info "🛠️ Installing Python utility packages..."
 sudo apt install -y \
     python3-bleach \
     python3-aiofiles \
-    python3-sqlite3
+    python3-sqlite3 \
+    python3-aiosqlite \
+    python3-restrictedpython
+# Note: aiosqlite, RestrictedPython installed via system packages
 
 # Install development tools
 log_info "🔧 Installing development tools..."
 sudo apt install -y \
-    python3-black \
     python3-flake8 \
     python3-isort \
     python3-mypy \
-    python3-pylint \
     python3-pytest \
     python3-pytest-asyncio
+# Note: python3-black, python3-pylint installed via pip as system packages are outdated
 
 # Install additional system libraries needed for pip packages
 log_info "📚 Installing additional system libraries..."
@@ -117,7 +119,7 @@ if [[ -d "$VENV_DIR" ]]; then
     rm -rf "$VENV_DIR"
 fi
 
-python3 -m venv "$VENV_DIR"
+python3 -m venv --system-site-packages "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
 # Upgrade pip in virtual environment
@@ -130,30 +132,73 @@ log_info "🤖 Installing specialized AI/ML packages (pip only)..."
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --quiet
 
 # Hugging Face ecosystem
-pip install transformers accelerate sentencepiece --quiet
+pip install transformers accelerate --quiet
+# Note: sentencepiece installed via system packages
 
 # NLP packages
-pip install nltk textblob --quiet
+sudo apt install -y \
+    python3-nltk
+pip install textblob --quiet
+# Note: nltk installed via system packages
 
-# Web/API packages not in Ubuntu repos
-pip install gradio pyngrok email-validator --quiet
+# Web/API packages
+sudo apt install -y \
+    python3-plotly \
+    python3-seaborn
+pip install gradio pyngrok fastapi --quiet
+# Note: plotly, seaborn, email-validator installed via system packages
 
 # Google API packages
-pip install google-api-python-client google-auth google-auth-oauthlib --quiet
+sudo apt install -y \
+    python3-googleapi \
+    python3-google-auth \
+    python3-google-auth-httplib2 \
+    python3-google-auth-oauthlib
+pip install google-api-python-client --quiet
+# Note: google-auth, google-auth-oauthlib installed via system packages
 
 # Security and specialized packages
-pip install RestrictedPython pydantic-settings aiosqlite --quiet
+pip install pydantic-settings --quiet
+# Note: RestrictedPython, aiosqlite installed via system packages
+
+# Verify system package versions
+log_info "🔍 Verifying system package versions..."
+python -c "
+import nltk
+import plotly
+import seaborn
+import email_validator
+import aiosqlite
+import RestrictedPython
+print(f'nltk version: {nltk.__version__}')
+print(f'plotly version: {plotly.__version__}')
+print(f'seaborn version: {seaborn.__version__}')
+print(f'aiosqlite version: {aiosqlite.__version__}')
+print(f'RestrictedPython version: {RestrictedPython.__version__ if hasattr(RestrictedPython, \"__version__\") else \"unknown\"}')
+"
 
 # Download NLTK data
 log_info "📖 Downloading NLTK data..."
 python -c "
 import nltk
+import ssl
 try:
+    # Handle SSL issues in some environments
+    ssl._create_default_https_context = ssl._create_unverified_context
     nltk.download('punkt', quiet=True)
     nltk.download('stopwords', quiet=True)
     print('NLTK data downloaded successfully')
 except Exception as e:
     print(f'Warning: NLTK download failed: {e}')
+
+# Verify sentencepiece installation
+try:
+    import sentencepiece
+    print(f'sentencepiece version: {sentencepiece.__version__}')
+except ImportError:
+    # sentencepiece might not have __version__ attribute
+    import sentencepiece as spm
+    print('sentencepiece imported successfully')
 "
 
 # Create activation script
@@ -228,6 +273,98 @@ try:
     print('✅ Transformers (venv) import test passed')
 except ImportError as e:
     print(f'❌ Transformers import failed: {e}')
+"
+
+# Final compatibility check
+log_info "🔍 Running final compatibility check..."
+python -c "
+import sys
+success = True
+
+# Check core packages
+try:
+    import torch
+    print('✅ PyTorch import: OK')
+except ImportError:
+    print('❌ PyTorch import: FAILED')
+    success = False
+
+try:
+    import fastapi
+    print('✅ FastAPI import: OK')
+except ImportError:
+    print('❌ FastAPI import: FAILED')
+    success = False
+
+try:
+    import transformers
+    print('✅ Transformers import: OK')
+except ImportError:
+    print('❌ Transformers import: FAILED')
+    success = False
+
+# Check system packages
+try:
+    import nltk
+    print('✅ NLTK import: OK')
+except ImportError:
+    print('❌ NLTK import: FAILED')
+    success = False
+
+try:
+    import plotly
+    print('✅ Plotly import: OK')
+except ImportError:
+    print('❌ Plotly import: FAILED')
+    success = False
+
+try:
+    import seaborn
+    print('✅ Seaborn import: OK')
+except ImportError:
+    print('❌ Seaborn import: FAILED')
+    success = False
+
+try:
+    import aiosqlite
+    print('✅ Aiosqlite import: OK')
+except ImportError:
+    print('❌ Aiosqlite import: FAILED')
+    success = False
+
+try:
+    import RestrictedPython
+    print('✅ RestrictedPython import: OK')
+except ImportError:
+    print('❌ RestrictedPython import: FAILED')
+    success = False
+
+try:
+    import sentencepiece
+    print('✅ SentencePiece import: OK')
+except ImportError:
+    print('❌ SentencePiece import: FAILED')
+    success = False
+
+try:
+    import google.auth
+    print('✅ Google Auth import: OK')
+except ImportError:
+    print('❌ Google Auth import: FAILED')
+    success = False
+
+try:
+    import email_validator
+    print('✅ Email Validator import: OK')
+except ImportError:
+    print('❌ Email Validator import: FAILED')
+    success = False
+
+if not success:
+    print('⚠️  Some packages failed to import, check installation logs.')
+    sys.exit(1)
+else:
+    print('✅ All packages imported successfully!')
 "
 
 log_success "🎉 Environment setup complete!"
