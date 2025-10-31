@@ -3,7 +3,8 @@
 This directory contains documented development sessions tracked by iFlow CLI. Each session file follows the naming convention `IFLOW-YYYYMMDD-XXX.md` and documents the goals, activities, and outcomes of development work.
 
 ## Session Files
-- `IFLOW-20251028-005.md` - Current session: Documented development sessions with IFLOW.md integration
+- `IFLOW-20251031-001.md` - Current session: Documented development sessions with IFLOW.md integration
+- `IFLOW-20251028-005.md` - Previous session: Documented development sessions with IFLOW.md integration
 
 ## Purpose
 These session files serve to:
