@@ -155,7 +155,7 @@ log_success "System packages installed successfully!"
 
 # Create virtual environment with specific Python version
 log_info "🐍 Creating Python virtual environment..."
-VENV_DIR="emailintelligence_env"
+VENV_DIR="venv"
 if [[ -d "$VENV_DIR" ]]; then
     log_warning "Virtual environment already exists. Removing..."
     rm -rf "$VENV_DIR"
@@ -306,7 +306,7 @@ cat > activate_env.sh << 'ACTIVATE_EOF'
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$SCRIPT_DIR/emailintelligence_env"
+VENV_DIR="$SCRIPT_DIR/venv"
 
 # Check if virtual environment exists
 if [[ ! -d "$VENV_DIR" ]]; then
@@ -502,7 +502,7 @@ echo "║                                                              ║"
 echo "║  For WSL GUI applications, ensure X11 server is running     ║"
 echo "║  on Windows (VcXsrv, MobaXterm, etc.)                        ║"
 echo "║                                                              ║"
-echo "║  Virtual environment: ./emailintelligence_env/              ║"
+echo "║  Virtual environment: ./venv/              ║"
 echo "║  Configuration: ./wsl_config.sh                              ║"
 echo "║                                                              ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
