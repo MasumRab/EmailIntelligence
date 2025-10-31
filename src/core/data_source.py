@@ -96,6 +96,18 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
+    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
+        """Retrieves category breakdown statistics with configurable limit.
+
+        Args:
+            limit: Maximum number of categories to return (top N by email count)
+
+        Returns:
+            Dict mapping category names to email counts, sorted by count descending
+        """
+        pass
+
+    @abstractmethod
     async def shutdown(self) -> None:
         """Performs any necessary cleanup."""
         pass

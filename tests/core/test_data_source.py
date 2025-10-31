@@ -38,7 +38,8 @@ class TestDataSourceInterface:
             'get_emails_by_category',
             'update_email',
             'delete_email',
-            'get_dashboard_aggregates'
+            'get_dashboard_aggregates',
+            'get_category_breakdown'
         ]
 
         for method_name in required_methods:
@@ -160,6 +161,8 @@ class TestNotmuchDataSource:
             # Result should be of expected type (None for single items, list for collections)
             if method_name in ['get_all_categories', 'get_emails', 'get_all_emails', 'search_emails', 'get_emails_by_category']:
                 assert isinstance(result, list)
+            elif method_name in ['get_dashboard_aggregates', 'get_category_breakdown']:
+                assert isinstance(result, dict)
             else:
                 assert result is None or isinstance(result, dict)
 
@@ -178,6 +181,16 @@ class TestNotmuchDataSource:
         assert isinstance(result["weekly_growth"], dict)
         assert "emails" in result["weekly_growth"]
         assert "percentage" in result["weekly_growth"]
+
+    @pytest.mark.asyncio
+    async def test_notmuch_get_category_breakdown(self, notmuch_ds):
+        """Test NotmuchDataSource get_category_breakdown method."""
+        result = await notmuch_ds.get_category_breakdown(limit=5)
+
+        # Should return a dictionary (empty for Notmuch since it doesn't have categories)
+        assert isinstance(result, dict)
+        # For Notmuch implementation, this returns empty dict
+        assert result == {}
 
 
 class TestDatabaseManagerDataSource:
@@ -202,7 +215,7 @@ class TestDatabaseManagerDataSource:
             'create_email', 'get_email_by_id', 'get_all_categories', 'create_category',
             'get_emails', 'update_email_by_message_id', 'get_email_by_message_id',
             'get_all_emails', 'search_emails', 'get_emails_by_category',
-            'update_email', 'delete_email', 'get_dashboard_aggregates'
+            'update_email', 'delete_email', 'get_dashboard_aggregates', 'get_category_breakdown'
         ]
 
         for method_name in required_methods:
@@ -261,6 +274,36 @@ class TestDatabaseManagerDataSource:
             "weekly_growth": {"emails": 3, "percentage": 0.0}
         }
         assert result == expected
+
+    @pytest.mark.asyncio
+    async def test_database_manager_get_category_breakdown(self, mock_db_manager):
+        """Test DatabaseManager get_category_breakdown method."""
+        # Mock the data attributes
+        mock_db_manager.emails_data = [
+            {"id": 1, "category": "Work", "is_read": True},
+            {"id": 2, "category": "Personal", "is_read": False},
+            {"id": 3, "category": "Work", "is_read": False},
+            {"id": 4, "category": "Work", "is_read": True},
+            {"id": 5, "category": "Spam", "is_read": True},
+            {"id": 6},  # No category - should be "Uncategorized"
+        ]
+
+        result = await mock_db_manager.get_category_breakdown(limit=3)
+
+        expected = {
+            "Work": 3,
+            "Personal": 1,
+            "Spam": 1
+        }
+        assert result == expected
+
+        # Test with limit
+        result_limited = await mock_db_manager.get_category_breakdown(limit=2)
+        expected_limited = {
+            "Work": 3,
+            "Personal": 1
+        }
+        assert result_limited == expected_limited
 
 
 class TestDataSourceFactory:
