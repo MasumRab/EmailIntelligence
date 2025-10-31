@@ -1,30 +1,31 @@
 """
-Text Processing Utilities for NLP.
-
-This module provides common utility functions for cleaning and normalizing
-text data, preparing it for natural language processing tasks.
+Text utility functions for NLP processing.
 """
+
 import re
+from typing import Optional
 
 
-def clean_text(text: str) -> str:
+def clean_text(text: Optional[str]) -> str:
     """
-    Cleans input text by lowercasing, stripping, and normalizing whitespace.
-
-    This function performs a series of basic cleaning operations to produce a
-    more uniform text representation for NLP analysis.
+    Clean and normalize text for NLP processing.
 
     Args:
-        text: The input string to be cleaned.
+        text: Input text to clean
 
     Returns:
-        The cleaned and normalized string. Returns an empty string if the
-        input is not a string.
+        Cleaned text string
     """
-    if not isinstance(text, str):
+    if not text:
         return ""
+
+    # Convert to lowercase
     text = text.lower()
-    text = text.strip()
-    text = re.sub(r"[^a-zA-Z0-9\s.,?!']", "", text)
-    text = re.sub(r"\s+", " ", text)
+
+    # Remove extra whitespace
+    text = re.sub(r"\s+", " ", text.strip())
+
+    # Remove special characters but keep basic punctuation
+    text = re.sub(r"[^\w\s.,!?-]", "", text)
+
     return text

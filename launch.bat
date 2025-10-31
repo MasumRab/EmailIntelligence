@@ -1,66 +1,63 @@
 @echo off
-setlocal
+REM EmailIntelligence Launcher for Windows
+REM Enhanced launcher with path resolution, conda support, and error handling
 
-:: EmailIntelligence Launcher for Windows
-:: This script identifies a Python interpreter and executes launch.py.
-:: All environment setup (venv, dependencies) is handled by launch.py.
+setlocal enabledelayedexpansion
 
-:: Ensure launch.py exists
-if not exist "launch.py" (
-    echo Error: launch.py not found in the current directory.
+REM Get the directory where this batch file is located
+set "SCRIPT_DIR=%~dp0"
+set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+REM Change to the script directory to ensure consistent execution
+cd /d "%SCRIPT_DIR%"
+
+REM Check if python is available
+where python >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: Python is not found in PATH. Please install Python 3.12+ and add it to your PATH.
+    echo You can download Python from: https://python.org
     pause
-    exit /B 1
+    exit /b 1
 )
 
-set "PYTHON_TO_RUN="
-set "PYTHON_ARGS="
-
-:: 1. Try py -3.11
-where py >nul 2>&1
-if %errorlevel% equ 0 (
-    py -3.11 --version >nul 2>&1
-    if %errorlevel% equ 0 (
-        set "PYTHON_TO_RUN=py"
-        set "PYTHON_ARGS=-3.11"
-    )
+REM Check Python version
+python -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)" >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+    echo WARNING: Python version might be older than 3.12. Some features may not work correctly.
 )
 
-:: 2. Fallback to python3.11 if py -3.11 not successful
-if not defined PYTHON_TO_RUN (
-    where python3.11 >nul 2>&1
-    if %errorlevel% equ 0 (
-        set "PYTHON_TO_RUN=python3.11"
-    )
-)
-
-:: 3. Fallback to python if python3.11 not successful
-if not defined PYTHON_TO_RUN (
-    where python >nul 2>&1
-    if %errorlevel% equ 0 (
-        set "PYTHON_TO_RUN=python"
-    )
-)
-
-if not defined PYTHON_TO_RUN (
-    echo Error: Python (3.11 recommended) not found.
-    echo Please install Python 3.11 and ensure it's in PATH (accessible via 'py -3.11', 'python3.11', or 'python').
-    pause
-    exit /B 1
-)
-
-echo Using Python interpreter: %PYTHON_TO_RUN% %PYTHON_ARGS%
-if defined PYTHON_ARGS (
-    %PYTHON_TO_RUN% %PYTHON_ARGS% launch.py %*
+REM Check for conda
+where conda >nul 2>nul
+if %ERRORLEVEL% equ 0 (
+    echo Conda detected. The launcher will handle environment activation automatically.
 ) else (
-    %PYTHON_TO_RUN% launch.py %*
+    echo No conda detected. Using virtual environment or system Python.
 )
 
-set "EXIT_CODE=%errorlevel%"
-if %EXIT_CODE% neq 0 (
+echo Starting EmailIntelligence Launcher...
+echo Working directory: %SCRIPT_DIR%
+echo Command: python launch.py %*
+
+REM Execute launch.py with all arguments, properly handling paths with spaces
+python launch.py %*
+
+REM Capture the exit code
+set LAUNCH_EXIT_CODE=%ERRORLEVEL%
+
+if %LAUNCH_EXIT_CODE% neq 0 (
     echo.
-    echo The application exited with error code: %EXIT_CODE%.
+    echo ERROR: Launcher exited with code %LAUNCH_EXIT_CODE%
+    echo Check the output above for error details.
+    echo.
+    echo Common issues:
+    echo - Missing dependencies: Run 'python launch.py --setup'
+    echo - Port conflicts: Use --port option to specify different port
+    echo - Permission issues: Run as administrator if needed
+    echo.
     pause
+) else (
+    echo.
+    echo EmailIntelligence launcher completed successfully.
 )
 
-endlocal
-exit /B %EXIT_CODE%
+exit /b %LAUNCH_EXIT_CODE%

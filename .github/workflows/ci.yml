@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
     
     steps:
@@ -30,7 +31,7 @@ jobs:
           
       - name: Run tests
         run: |
-          uv run pytest backend/ -v --tb=short --cov=backend --cov-report=xml
+          uv run pytest backend/ src/ modules/ -v --tb=short --cov=backend --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
           
       - name: Run linting
         run: |
