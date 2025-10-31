@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Add src to path for imports (calculate relative to this script's location)
+# Add src to path for imports (calculate relative to this script\'s location)
 script_dir = Path(__file__).parent
 project_root = script_dir.parent
 src_path = project_root / "src"

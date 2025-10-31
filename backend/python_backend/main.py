@@ -89,6 +89,16 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             # Track error rate
             with error_lock:
+                # Ensure status_code is defined before use
+                if isinstance(exc, AppException):
+                    status_code = exc.status_code
+                elif isinstance(exc, BaseAppException):
+                    status_code = exc.status_code
+                elif isinstance(exc, ValidationError):
+                    status_code = 422
+                else:
+                    status_code = 500 # Default to 500 for unhandled exceptions
+
                 error_counts[status_code] += 1
                 # Alert if error rate is high (simple threshold)
                 total_errors = sum(error_counts.values())
@@ -136,7 +146,10 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 headers={"X-Request-ID": request_id}
             )
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> f92b72e (feat: Enhance core system with security, database backups, and performance improvements)
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,
@@ -179,14 +192,13 @@ async def shutdown_event():
     await db_manager.close()
 
 
-# Exception handlers removed - now handled by ErrorHandlingMiddleware
+
 
 
 
 
 
 @app.exception_handler(ValidationError)
-
 async def validation_exception_handler(request: Request, exc: ValidationError):
 
     """Handle Pydantic validation errors with detailed 422 responses."""

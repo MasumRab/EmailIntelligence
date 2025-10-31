@@ -3,6 +3,8 @@ Optimized Performance Monitoring for Email Intelligence Platform
 
 Provides efficient performance metrics collection with minimal overhead,
 asynchronous processing, and configurable sampling rates.
+Implements performance monitoring with logging for processing times,
+model usage, memory consumption, and error rates.
 """
 
 import asyncio
