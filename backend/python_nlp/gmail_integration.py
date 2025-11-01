@@ -6,9 +6,9 @@ API, featuring smart batching, caching, rate limit management, and a
 pluggable authentication mechanism. It is designed to be resilient and
 efficient, even when dealing with large volumes of emails.
 """
-import dataclasses
-import dataclasses
+
 import asyncio
+import dataclasses
 import hashlib
 import json
 import logging
@@ -17,11 +17,9 @@ import re
 import sqlite3
 import time
 from collections import deque
-from pathlib import Path
 from dataclasses import dataclass
-
-from src.core.security import PathValidator
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
@@ -30,6 +28,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+from src.core.security import PathValidator
 
 load_dotenv()
 
@@ -148,7 +148,9 @@ class EmailCache:
     def __init__(self, cache_path: str = str(DEFAULT_CACHE_PATH)):
         """Initializes the EmailCache."""
         # Secure path validation
-        self.cache_path = str(PathValidator.validate_database_path(cache_path, Path(cache_path).parent))
+        self.cache_path = str(
+            PathValidator.validate_database_path(cache_path, Path(cache_path).parent)
+        )
         self.conn = sqlite3.connect(self.cache_path, check_same_thread=False)
         self._init_cache()
 

@@ -178,14 +178,16 @@ def _create_decorator(func, op_name):
 
         return sync_wrapper
 
+
+import atexit
+
 # Enhanced performance monitoring system with additional features
 from collections import defaultdict, deque
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
-import atexit
 
 logger = logging.getLogger(__name__)
 
@@ -234,7 +236,7 @@ class OptimizedPerformanceMonitor:
         log_file: str = "logs/performance_metrics.jsonl",
         aggregation_window: int = 60,  # seconds
         max_metrics_buffer: int = 10000,
-        flush_interval: int = 10
+        flush_interval: int = 10,
     ):
         self.log_file = Path(log_file)
         self.aggregation_window = aggregation_window
@@ -252,9 +254,7 @@ class OptimizedPerformanceMonitor:
         self._buffer_lock = threading.Lock()
         self._stop_event = threading.Event()
         self._processing_thread = threading.Thread(
-            target=self._process_metrics_background,
-            daemon=True,
-            name="PerformanceMonitor"
+            target=self._process_metrics_background, daemon=True, name="PerformanceMonitor"
         )
 
         # Start background processing
@@ -271,7 +271,7 @@ class OptimizedPerformanceMonitor:
         value: Union[int, float],
         unit: str = "ms",
         tags: Optional[Dict[str, str]] = None,
-        sample_rate: float = 1.0
+        sample_rate: float = 1.0,
     ):
         """
         Record a performance metric with optional sampling.
@@ -295,14 +295,16 @@ class OptimizedPerformanceMonitor:
             unit=unit,
             timestamp=time.time(),
             tags=tags or {},
-            sample_rate=sample_rate
+            sample_rate=sample_rate,
         )
 
         # Add to buffer (thread-safe)
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
 
-    def time_function(self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0):
+    def time_function(
+        self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
+    ):
         """
         Decorator/context manager to time function execution.
 
@@ -314,6 +316,7 @@ class OptimizedPerformanceMonitor:
             with monitor.time_function("my_operation"):
                 do_something()
         """
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -323,12 +326,9 @@ class OptimizedPerformanceMonitor:
                 finally:
                     duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
                     self.record_metric(
-                        name=name,
-                        value=duration,
-                        unit="ms",
-                        tags=tags,
-                        sample_rate=sample_rate
+                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
+
             return wrapper
 
         # Support both decorator and context manager usage
@@ -346,11 +346,7 @@ class OptimizedPerformanceMonitor:
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
                     self.record_metric(
-                        name=name,
-                        value=duration,
-                        unit="ms",
-                        tags=tags,
-                        sample_rate=sample_rate
+                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
             return TimerContext()
@@ -363,7 +359,11 @@ class OptimizedPerformanceMonitor:
             name: Specific metric name, or None for all metrics
         """
         if name:
-            return {name: self._aggregated_metrics.get(name)} if name in self._aggregated_metrics else {}
+            return (
+                {name: self._aggregated_metrics.get(name)}
+                if name in self._aggregated_metrics
+                else {}
+            )
         return self._aggregated_metrics.copy()
 
     def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
@@ -416,7 +416,7 @@ class OptimizedPerformanceMonitor:
                 p95=values_sorted[int(count * 0.95)] if count > 0 else 0,
                 p99=values_sorted[int(count * 0.99)] if count > 0 else 0,
                 timestamp=current_time,
-                tags={}  # Could be enhanced to include common tags
+                tags={},  # Could be enhanced to include common tags
             )
 
             self._aggregated_metrics[name] = aggregated
@@ -424,10 +424,10 @@ class OptimizedPerformanceMonitor:
     def _flush_to_disk(self):
         """Flush aggregated metrics to disk."""
         try:
-            with open(self.log_file, 'a', encoding='utf-8') as f:
+            with open(self.log_file, "a", encoding="utf-8") as f:
                 for metric in self._aggregated_metrics.values():
                     json.dump(asdict(metric), f, ensure_ascii=False)
-                    f.write('\n')
+                    f.write("\n")
 
             # Clear aggregated metrics after flushing
             self._aggregated_metrics.clear()
@@ -455,12 +455,13 @@ class OptimizedPerformanceMonitor:
 # Global performance monitor instance
 performance_monitor = OptimizedPerformanceMonitor()
 
+
 # Convenience functions
 def record_metric(*args, **kwargs):
     """Convenience function to record metrics."""
     performance_monitor.record_metric(*args, **kwargs)
 
+
 def time_function(*args, **kwargs):
     """Convenience function to time functions."""
     return performance_monitor.time_function(*args, **kwargs)
-

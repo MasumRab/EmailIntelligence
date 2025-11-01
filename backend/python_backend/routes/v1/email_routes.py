@@ -6,15 +6,16 @@ Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import List, Optional
 import logging
+from typing import List, Optional
+
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
-from backend.python_backend.models import EmailResponse, EmailCreate, EmailUpdate
-from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.dependencies import get_email_service
 from backend.python_backend.exceptions import EmailNotFoundException
+from backend.python_backend.models import EmailCreate, EmailResponse, EmailUpdate
 from backend.python_backend.performance_monitor import log_performance
+from backend.python_backend.services.email_service import EmailService
 
 logger = logging.getLogger(__name__)
 

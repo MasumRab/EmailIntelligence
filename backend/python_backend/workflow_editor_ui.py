@@ -13,9 +13,9 @@ from typing import Any, Dict, List, Optional
 
 import gradio as gr
 
-from backend.plugins.plugin_manager import plugin_manager
 from backend.node_engine.node_base import Connection, Workflow
 from backend.node_engine.workflow_manager import get_workflow_manager
+from backend.plugins.plugin_manager import plugin_manager
 
 # Try to import security manager if available
 try:

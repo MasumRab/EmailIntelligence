@@ -7,6 +7,7 @@ Provides consistent error handling across the application
 """
 
 from typing import Optional
+
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 

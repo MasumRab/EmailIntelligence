@@ -7,8 +7,10 @@ Provides common functionality for all services
 """
 
 from abc import ABC
-from typing import Any, Dict, List, Optional, TypeVar, Generic
+from typing import Any, Dict, Generic, List, Optional, TypeVar
+
 from pydantic import BaseModel
+
 from backend.python_backend.database import get_db
 from backend.python_backend.settings import settings
 

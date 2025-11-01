@@ -1,6 +1,8 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+from ..database import DatabaseManager, get_db
 from .data_source import DataSource
-from ..database import get_db, DatabaseManager
+
 
 class DatabaseDataSource(DataSource):
     """
@@ -15,11 +17,15 @@ class DatabaseDataSource(DataSource):
         db_manager = await get_db()
         return cls(db_manager)
 
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None
+    ) -> List[Dict[str, Any]]:
         """
         Fetches a list of emails from the database.
         """
-        return await self.db.get_emails(limit=limit, offset=offset, category_id=category_id, is_unread=is_unread)
+        return await self.db.get_emails(
+            limit=limit, offset=offset, category_id=category_id, is_unread=is_unread
+        )
 
     async def create_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -84,6 +90,7 @@ class DatabaseDataSource(DataSource):
         Creates a new category in the database.
         """
         return await self.db.create_category(category_data)
+
 
 async def get_database_data_source() -> DatabaseDataSource:
     """
