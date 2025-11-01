@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
-from src.core.factory import get_data_source
+from src.core.factory import get_email_repository
 from unittest.mock import AsyncMock, MagicMock, patch
 import json
 import sys
@@ -28,23 +28,23 @@ mock_performance_log = [
     {"operation": "create_email", "duration_seconds": 0.3},
 ]
 
-# Create a mock data source
-mock_data_source = MagicMock()
-mock_data_source.get_dashboard_aggregates = AsyncMock(return_value={
+# Create a mock repository
+mock_repository = MagicMock()
+mock_repository.get_dashboard_aggregates = AsyncMock(return_value={
     'total_emails': 4,
     'auto_labeled': 3,
     'categories_count': 3,
     'unread_count': 2,
     'weekly_growth': {'emails': 4, 'percentage': 0.0}
 })
-mock_data_source.get_category_breakdown = AsyncMock(return_value={
+mock_repository.get_category_breakdown = AsyncMock(return_value={
     "Work": 2,
     "Personal": 1,
     "Uncategorized": 1
 })
 
-async def override_get_data_source():
-    return mock_data_source
+async def override_get_email_repository():
+    return mock_repository
 
 # Mock authentication dependency
 async def mock_get_current_user():
@@ -53,7 +53,7 @@ async def mock_get_current_user():
 # Create a minimal FastAPI app for testing
 app = FastAPI()
 app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
-app.dependency_overrides[get_data_source] = override_get_data_source
+app.dependency_overrides[get_email_repository] = override_get_email_repository
 # Mock authentication for testing
 from src.core.auth import get_current_active_user
 app.dependency_overrides[get_current_active_user] = mock_get_current_user

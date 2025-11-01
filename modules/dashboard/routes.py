@@ -3,8 +3,8 @@ import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
-from src.core.data_source import DataSource
-from src.core.factory import get_data_source
+from src.core.data.repository import EmailRepository
+from src.core.factory import get_email_repository
 from src.core.auth import get_current_active_user
 from .models import DashboardStats, ConsolidatedDashboardStats, WeeklyGrowth
 from collections import defaultdict
@@ -17,7 +17,7 @@ LOG_FILE = Path(__file__).resolve().parent.parent.parent / "performance_metrics_
 
 @router.get("/stats", response_model=ConsolidatedDashboardStats)
 async def get_dashboard_stats(
-    db: DataSource = Depends(get_data_source),
+    repository: EmailRepository = Depends(get_email_repository),
     current_user: str = Depends(get_current_active_user)
 ):
     """
@@ -31,8 +31,8 @@ async def get_dashboard_stats(
         logger.info(f"Dashboard stats requested by user: {current_user}")
 
         # Get efficient server-side aggregations
-        aggregates = await db.get_dashboard_aggregates()
-        categorized_emails = await db.get_category_breakdown(limit=10)
+        aggregates = await repository.get_dashboard_aggregates()
+        categorized_emails = await repository.get_category_breakdown(limit=10)
 
         # Extract values from aggregates
         total_emails = aggregates.get('total_emails', 0)
