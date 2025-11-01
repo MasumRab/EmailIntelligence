@@ -24,7 +24,7 @@ The Email Intelligence Platform now features a modular, extensible node-based wo
 - Outputs: `processed_emails` (EMAIL_LIST), `stats` (JSON)
 
 #### `AIAnalysisNode`
-- Performs NLP and AI analysis (sentiment, topic)
+- Performs NLP and AI analysis (sentiment, topic, intent, urgency)
 - Outputs: `analysis_results` (JSON), `summary` (JSON)
 
 #### `FilterNode`
