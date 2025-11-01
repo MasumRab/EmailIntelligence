@@ -50,4 +50,11 @@ The testing guide includes:
 - Expected outcomes and troubleshooting guidance
 - Rollback plan if needed
 
+For the scientific branch specifically:
+- Successfully implemented subtree integration with git subtree add command
+- Created wrapper scripts that maintain backward compatibility
+- Created symbolic links for configuration files
+- Verified that all functionality continues to work as expected
+- All changes have been pushed to the remote scientific branch
+
 This documentation ensures that proper testing procedures are in place for the subtree integration methodology.
