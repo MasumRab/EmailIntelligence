@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 from .data_source import DataSource
 from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
-from .data.repository import DatabaseEmailRepository, EmailRepository
+from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 
 # Optional import for NotmuchDataSource
 try:
@@ -76,10 +76,11 @@ async def get_data_source() -> DataSource:
 
 async def get_email_repository() -> EmailRepository:
     """
-    Provides the singleton instance of the EmailRepository.
+    Provides the singleton instance of the EmailRepository with caching.
     """
     global _email_repository_instance
     if _email_repository_instance is None:
         data_source = await get_data_source()
-        _email_repository_instance = DatabaseEmailRepository(data_source)
+        base_repository = DatabaseEmailRepository(data_source)
+        _email_repository_instance = CachingEmailRepository(base_repository)
     return _email_repository_instance

@@ -230,26 +230,47 @@ Perform AI analysis on email content.
 #### Get Dashboard Stats
 **GET** `/api/dashboard/stats`
 
-Retrieve dashboard statistics.
+Retrieve consolidated dashboard statistics using repository pattern with caching.
+
+**Authentication Required:** Bearer token
 
 **Response:**
 ```json
 {
   "total_emails": 1250,
+  "categorized_emails": {
+    "Work": 500,
+    "Personal": 450,
+    "Social": 200,
+    "Other": 100
+  },
   "unread_emails": 45,
-  "categories": [
-    {"id": 1, "name": "Work", "count": 500},
-    {"id": 2, "name": "Personal", "count": 750}
-  ],
-  "recent_activity": [
-    {
-      "timestamp": "2024-01-01T12:00:00Z",
-      "action": "email_processed",
-      "details": "Processed 10 new emails"
-    }
-  ]
+  "auto_labeled": 320,
+  "categories": 4,
+  "time_saved": "10h 40m",
+  "weekly_growth": {
+    "emails": 1250,
+    "percentage": 5.2
+  },
+  "performance_metrics": {
+    "get_emails": 0.12,
+    "search_emails": 0.08,
+    "create_email": 0.25
+  }
 }
 ```
+
+**Response Fields:**
+- `total_emails` (int): Total number of emails in the system
+- `categorized_emails` (Dict[str, int]): Breakdown of emails by category
+- `unread_emails` (int): Number of unread emails
+- `auto_labeled` (int): Number of emails auto-labeled by AI
+- `categories` (int): Total number of categories
+- `time_saved` (str): Estimated time saved from auto-labeling (format: "Xh Ym")
+- `weekly_growth` (object): Weekly growth metrics
+  - `emails` (int): Number of emails processed
+  - `percentage` (float): Growth percentage
+- `performance_metrics` (Dict[str, float]): Performance metrics for operations (seconds)
 
 #### Performance Metrics
 **GET** `/metrics`
