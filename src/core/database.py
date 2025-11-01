@@ -8,16 +8,53 @@ import gzip
 import json
 import logging
 import os
+import shutil
 from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
+import hashlib
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 from .data.data_source import DataSource
-from .caching import get_cache_manager, CacheConfig, CacheBackend
+
+from .security import validate_path_safety, sanitize_path
+
+logger = logging.getLogger(__name__)
+
+# Globalized data directory at the project root
+DATA_DIR = os.environ.get("DATA_DIR", "data")
+EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
+EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
+CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
+USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+BACKUP_DIR = os.path.join(DATA_DIR, "backups")
+SCHEMA_VERSION_FILE = os.path.join(DATA_DIR, "schema_version.json")
+
+# Ensure directories exist
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(EMAIL_CONTENT_DIR, exist_ok=True)
+os.makedirs(BACKUP_DIR, exist_ok=True)
+
+# Schema version for migration tracking
+CURRENT_SCHEMA_VERSION = "1.0"
+
+# TODO(P1, 6h): Refactor global state management to use dependency injection
+# Pseudo code for dependency injection:
+# - Create a DatabaseConfig class to hold configuration (data_dir, file_paths, etc.)
+# - Modify DatabaseManager.__init__ to accept DatabaseConfig instance
+# - Update get_db() to be a factory function that takes config and returns initialized instance
+# - In FastAPI app, create config from env vars and inject via Depends(get_db_factory(config))
+# - Remove global _db_manager_instance and _db_init_lock
+# TODO(P2, 4h): Make data directory configurable via environment variables or settings
+# Pseudo code for configurable data directory:
+# - Add DATA_DIR environment variable support: os.getenv('DATA_DIR', 'data')
+# - Update DatabaseConfig to accept data_dir parameter
+# - Modify file path construction to use config.data_dir
+# - Add validation to ensure directory exists or can be created
+
 from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
@@ -59,7 +96,6 @@ class DatabaseConfig:
 # - Modified DatabaseManager.__init__ to accept DatabaseConfig instance
 # - Created create_database_manager factory function
 # - Removed global _db_manager_instance and _db_init_lock (replaced with backward compatible version)
-# - Made data directory configurable via DATA_DIR environment variable
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -94,27 +130,50 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
-    def __init__(self, config: DatabaseConfig, enable_redis_cache: Optional[bool] = None, redis_url: Optional[str] = None):
+    def __init__(self, config: DatabaseConfig = None, data_dir: Optional[str] = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
+        # Support both new config-based initialization and legacy initialization
+        if config is not None:
+            # New approach: Use provided DatabaseConfig
+            self.config = config
+            self.emails_file = config.emails_file
+            self.categories_file = config.categories_file
+            self.users_file = config.users_file
+            self.email_content_dir = config.email_content_dir
+            # Derive data_dir from config for backup and schema files if needed
+            if hasattr(config, 'data_dir') and config.data_dir:
+                self.data_dir = config.data_dir
+            else:
+                # Try to derive from file paths
+                self.data_dir = os.path.dirname(os.path.dirname(self.emails_file))
+        else:
+            # Legacy approach: Direct data directory initialization
+            self.data_dir = data_dir or DATA_DIR
+            self.emails_file = os.path.join(self.data_dir, "emails.json.gz")
+            self.categories_file = os.path.join(self.data_dir, "categories.json.gz")
+            self.users_file = os.path.join(self.data_dir, "users.json.gz")
+            self.email_content_dir = os.path.join(self.data_dir, "email_content")
+        
+        # Always ensure backup and schema directories are set
+        self.backup_dir = os.path.join(self.data_dir, "backups")
+        self.schema_version_file = os.path.join(self.data_dir, "schema_version.json")
 
-        self.config = config
-        self.emails_file = config.emails_file
-        self.categories_file = config.categories_file
-        self.users_file = config.users_file
-        self.email_content_dir = config.email_content_dir
+        # In-memory data stores
+        self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
+        self.categories_data: List[Dict[str, Any]] = []
+        self.users_data: List[Dict[str, Any]] = []
 
-        # Check environment variables for Redis configuration
-        if enable_redis_cache is None:
-            enable_redis_cache = os.getenv("ENABLE_REDIS_CACHE", "false").lower() == "true"
-        if redis_url is None:
-            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        # In-memory indexes
+        self.emails_by_id: Dict[int, Dict[str, Any]] = {}
+        self.emails_by_message_id: Dict[str, Dict[str, Any]] = {}
+        self.categories_by_id: Dict[int, Dict[str, Any]] = {}
+        self.categories_by_name: Dict[str, Dict[str, Any]] = {}
+        self.category_counts: Dict[int, int] = {}
 
-        # Initialize cache manager
-        cache_config = CacheConfig(
-            backend=CacheBackend.REDIS if enable_redis_cache else CacheBackend.MEMORY,
-            redis_url=redis_url
-        )
-        self.cache = get_cache_manager() if not enable_redis_cache else init_cache_manager(cache_config)
+        # State tracking
+        self._dirty_data: set[str] = set()
+        self._initialized: bool = False
+        self._init_lock = asyncio.Lock()
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -134,12 +193,24 @@ class DatabaseManager(DataSource):
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
+        # Create backup directory if using legacy approach
+        if hasattr(self, 'backup_dir'):
+            os.makedirs(self.backup_dir, exist_ok=True)
 
-    # COMPLETED: Implemented dependency injection for database manager instance
-    # - DatabaseManager now accepts DatabaseConfig in __init__
+    # Notes on refactor progress:
+    # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
+    # Pseudo code for eliminating global state:
+    # - Remove singleton pattern entirely
+    # - Make DatabaseManager a regular class that can be instantiated multiple times if needed
+    # - Use FastAPI's dependency injection system to provide instances
+    # - Store instance in request state or application state instead of global
+    # - Add proper lifecycle management (startup/shutdown events)
+    # 
+    # COMPLETED: Dependency injection approach implemented
+    # - DatabaseManager now supports both approaches (config-based and legacy)
     # - create_database_manager factory function handles initialization
     # - Backward compatible get_db() provided for existing code
-    # - Global singleton replaced with factory pattern
+    # - Global singleton approach preserved for compatibility but can be phased out
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
@@ -169,14 +240,28 @@ class DatabaseManager(DataSource):
     async def _ensure_initialized(self) -> None:
         """Ensure data is loaded and indexes are built."""
         if not self._initialized:
+            # Perform schema migration if needed (as part of initialization)
+            # await self.migrate_schema()  # Commented out for now, can be called explicitly if needed
             await self._load_data()
             self._build_indexes()
-
-            # Start cache warming in background
-            await self.cache.warm_cache(self.warm_email_cache, "email_warming")
-
             self._initialized = True
 
+    # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
+    # Pseudo code for removing hidden side effects:
+    # - Make _ensure_initialized() a public async initialize() method
+    # - Require explicit initialization before use
+    # - Add _is_initialized property to check state
+    # - Remove automatic initialization from methods - raise error if not initialized
+    # - Make initialization idempotent but explicit
+    # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
+    # Pseudo code for lazy loading:
+    # - Add LazyLoader class to handle on-demand data loading
+    # - Implement load_emails_lazy(), load_categories_lazy() methods
+    # - Use asyncio.Lock to prevent concurrent loading
+    # - Add _loaded_data: set[str] to track what data types are loaded
+    # - Make _load_data() private and called only by lazy loaders
+    # - Add tests to verify loading behavior
+    # 
     # PARTIALLY COMPLETED: Initialization is now explicit via factory function
     # - create_database_manager ensures initialization
     # - Backward compatible get_db maintains implicit initialization for existing code
@@ -277,7 +362,6 @@ class DatabaseManager(DataSource):
                 return True
         logger.warning(f"Email with ID {email_id} not found for deletion")
         return False
-
     async def shutdown(self) -> None:
         """Saves all dirty data to files before shutting down."""
         logger.info("DatabaseManager shutting down. Saving dirty data...")
@@ -285,6 +369,246 @@ class DatabaseManager(DataSource):
             await self._save_data_to_file(data_type)
         self._dirty_data.clear()
         logger.info("Shutdown complete.")
+
+    # Data validation methods (work-in-progress features)
+    def _validate_email_data(self, email_data: Dict[str, Any]) -> bool:
+        """Validates email data before storage."""
+        required_fields = {FIELD_MESSAGE_ID}  # messageId is required
+        if not all(field in email_data for field in required_fields):
+            logger.warning(f"Missing required fields in email data: {email_data}")
+            return False
+        
+        # Validate message ID format
+        message_id = email_data.get(FIELD_MESSAGE_ID)
+        if not isinstance(message_id, str) or not message_id.strip():
+            logger.warning(f"Invalid message ID format: {message_id}")
+            return False
+        
+        # Additional validation can be added here
+        return True
+
+    def _validate_category_data(self, category_data: Dict[str, Any]) -> bool:
+        """Validates category data before storage."""
+        required_fields = {FIELD_NAME}
+        if not all(field in category_data for field in required_fields):
+            logger.warning(f"Missing required fields in category data: {category_data}")
+            return False
+        
+        # Validate category name
+        name = category_data.get(FIELD_NAME)
+        if not isinstance(name, str) or not name.strip():
+            logger.warning(f"Invalid category name: {name}")
+            return False
+        
+        return True
+
+    def _validate_user_data(self, user_data: Dict[str, Any]) -> bool:
+        """Validates user data before storage."""
+        required_fields = {"username", "hashed_password"}
+        if not all(field in user_data for field in required_fields):
+            logger.warning(f"Missing required fields in user data: {user_data}")
+            return False
+        
+        # Validate username
+        username = user_data.get("username")
+        if not isinstance(username, str) or not username.strip():
+            logger.warning(f"Invalid username: {username}")
+            return False
+        
+        # Validate password hash
+        password_hash = user_data.get("hashed_password")
+        if not isinstance(password_hash, str) or len(password_hash) < 10:  # Basic check
+            logger.warning(f"Invalid password hash: {password_hash}")
+            return False
+        
+        return True
+
+    # Backup and recovery methods (work-in-progress features)
+    async def create_backup(self) -> str:
+        """Creates a backup of the current data files."""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_name = f"backup_{timestamp}"
+        backup_path = os.path.join(self.backup_dir, backup_name)
+        os.makedirs(backup_path, exist_ok=True)
+
+        # Copy data files to backup location
+        files_to_backup = [
+            (self.emails_file, os.path.join(backup_path, "emails.json.gz")),
+            (self.categories_file, os.path.join(backup_path, "categories.json.gz")),
+            (self.users_file, os.path.join(backup_path, "users.json.gz")),
+        ]
+
+        for source, dest in files_to_backup:
+            if os.path.exists(source):
+                shutil.copy2(source, dest)
+                logger.info(f"Backed up {source} to {dest}")
+
+        # Also backup email content directory
+        content_backup_path = os.path.join(backup_path, "email_content")
+        if os.path.exists(self.email_content_dir):
+            shutil.copytree(self.email_content_dir, content_backup_path)
+            logger.info(f"Backed up email content to {content_backup_path}")
+
+        logger.info(f"Backup created at {backup_path}")
+        return backup_path
+
+    async def restore_from_backup(self, backup_path: str) -> bool:
+        """Restores data from a backup."""
+        if not os.path.exists(backup_path):
+            logger.error(f"Backup path does not exist: {backup_path}")
+            return False
+
+        # Files to restore
+        files_to_restore = [
+            (os.path.join(backup_path, "emails.json.gz"), self.emails_file),
+            (os.path.join(backup_path, "categories.json.gz"), self.categories_file),
+            (os.path.join(backup_path, "users.json.gz"), self.users_file),
+        ]
+
+        try:
+            for source, dest in files_to_restore:
+                if os.path.exists(source):
+                    # Make a safety copy of current data before overwriting
+                    if os.path.exists(dest):
+                        shutil.copy2(dest, f"{dest}.restore_backup")
+                    
+                    shutil.copy2(source, dest)
+                    logger.info(f"Restored {source} to {dest}")
+
+            # Restore email content directory
+            content_source_path = os.path.join(backup_path, "email_content")
+            if os.path.exists(content_source_path):
+                # Remove current content and copy from backup
+                if os.path.exists(self.email_content_dir):
+                    shutil.rmtree(self.email_content_dir)
+                shutil.copytree(content_source_path, self.email_content_dir)
+                logger.info(f"Restored email content from {content_source_path}")
+
+            # Reload data after restore
+            await self._load_data()
+            self._build_indexes()
+            logger.info(f"Data restored from {backup_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Error during restore: {e}")
+            # Attempt to restore from safety copies if available
+            for source, dest in files_to_restore:
+                safety_copy = f"{dest}.restore_backup"
+                if os.path.exists(safety_copy):
+                    shutil.move(safety_copy, dest)
+            return False
+
+    # Schema migration methods (work-in-progress features)
+    def _get_schema_version(self) -> str:
+        """Gets the current schema version from file."""
+        if os.path.exists(self.schema_version_file):
+            try:
+                with open(self.schema_version_file, 'r') as f:
+                    data = json.load(f)
+                    return data.get('version', '1.0')
+            except Exception as e:
+                logger.warning(f"Could not read schema version file: {e}")
+                return '1.0'
+        return '1.0'
+
+    def _set_schema_version(self, version: str) -> None:
+        """Sets the schema version in file."""
+        with open(self.schema_version_file, 'w') as f:
+            json.dump({'version': version, 'updated_at': datetime.now().isoformat()}, f)
+        logger.info(f"Schema version set to {version}")
+
+    async def migrate_schema(self) -> bool:
+        """Performs database schema migration if needed."""
+        current_version = self._get_schema_version()
+        logger.info(f"Current schema version: {current_version}, target: {CURRENT_SCHEMA_VERSION}")
+
+        if current_version == CURRENT_SCHEMA_VERSION:
+            logger.info("Schema is up to date")
+            return True
+
+        logger.info(f"Starting migration from {current_version} to {CURRENT_SCHEMA_VERSION}")
+        
+        # Create backup before migration
+        backup_path = await self.create_backup()
+        logger.info(f"Created backup before migration at: {backup_path}")
+
+        # Perform migration steps here
+        # Currently just updating schema version, but in the future this can include 
+        # data transformations, index updates, etc.
+        try:
+            # Example: migrate data formats or structures if needed
+            # await self._migrate_emails_data()
+            # await self._migrate_categories_data()
+            # await self._migrate_users_data()
+
+            # Update schema version to current
+            self._set_schema_version(CURRENT_SCHEMA_VERSION)
+            logger.info("Schema migration completed successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Schema migration failed: {e}")
+            # Attempt to restore from backup
+            await self.restore_from_backup(backup_path)
+            return False
+
+    def _get_file_checksum(self, file_path: str) -> str:
+        """Calculates the checksum of a file for integrity verification."""
+        if not os.path.exists(file_path):
+            return ""
+        
+        hash_sha256 = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            # Read the file in chunks to handle large files efficiently
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_sha256.update(chunk)
+        return hash_sha256.hexdigest()
+
+    async def verify_data_integrity(self) -> Dict[str, Any]:
+        """Verifies the integrity of the data files."""
+        logger.info("Starting data integrity verification...")
+        
+        results = {}
+        
+        # Check each data file
+        files_to_check = [
+            ("emails", self.emails_file),
+            ("categories", self.categories_file),
+            ("users", self.users_file),
+        ]
+        
+        for name, file_path in files_to_check:
+            if os.path.exists(file_path):
+                try:
+                    # Check if the file can be loaded
+                    with gzip.open(file_path, "rt", encoding="utf-8") as f:
+                        data = json.load(f)
+                    
+                    # Verify it's a valid JSON structure
+                    is_valid = isinstance(data, list)  # Expecting list for our data types
+                    checksum = self._get_file_checksum(file_path)
+                    
+                    results[name] = {
+                        "exists": True,
+                        "valid": is_valid,
+                        "item_count": len(data) if is_valid else 0,
+                        "checksum": checksum
+                    }
+                except (IOError, json.JSONDecodeError) as e:
+                    logger.error(f"Integrity check failed for {name}: {e}")
+                    results[name] = {
+                        "exists": True,
+                        "valid": False,
+                        "error": str(e)
+                    }
+            else:
+                results[name] = {
+                    "exists": False,
+                    "valid": False,
+                    "error": "File does not exist"
+                }
+        
+        logger.info("Data integrity verification completed")
+        return results
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
         """
@@ -328,6 +652,12 @@ class DatabaseManager(DataSource):
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
+        # Validation functionality is preserved as a method
+        # Uncomment the next lines if validation is needed: 
+        # if not self._validate_email_data(email_data):
+        #     logger.warning(f"Email data validation failed: {email_data}")
+        #     return None
+
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
@@ -406,6 +736,12 @@ class DatabaseManager(DataSource):
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
+        # Validation functionality is preserved as a method
+        # Uncomment the next lines if validation is needed: 
+        # if not self._validate_category_data(category_data):
+        #     logger.warning(f"Category data validation failed: {category_data}")
+        #     return None
+
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
             logger.warning(
@@ -449,15 +785,6 @@ class DatabaseManager(DataSource):
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
-        # Create cache key based on parameters
-        cache_key = f"emails:limit={limit}:offset={offset}:category={category_id}:unread={is_unread}"
-
-        # Try to get from cache first
-        cached_result = await self.cache.get(cache_key)
-        if cached_result is not None:
-            return cached_result
-
-        # Compute result
         filtered_emails = self.emails_data
         if category_id is not None:
             filtered_emails = [
@@ -480,45 +807,7 @@ class DatabaseManager(DataSource):
             )
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
-
-        # Cache the result with tags for invalidation
-        tags = ["emails"]
-        if category_id is not None:
-            tags.append(f"category:{category_id}")
-
-        await self.cache.set(cache_key, result_emails, ttl=300, tags=tags)  # 5 minute TTL
         return result_emails
-
-    async def warm_email_cache(self):
-        """Warm cache with frequently accessed email data"""
-        # Warm cache with common email queries
-        warming_data = {}
-
-        # Cache recent emails
-        recent_emails = await self.get_emails(limit=100, offset=0)
-        warming_data["emails:limit=100:offset=0:category=None:unread=None"] = recent_emails
-
-        # Cache unread emails
-        unread_emails = await self.get_emails(limit=50, offset=0, is_unread=True)
-        warming_data["emails:limit=50:offset=0:category=None:unread=True"] = unread_emails
-
-        # Cache categories with counts
-        categories = await self.get_categories_with_counts()
-        warming_data["categories_with_counts"] = categories
-
-        return warming_data
-
-    async def get_cache_stats(self) -> Dict[str, Any]:
-        """Get cache performance statistics"""
-        stats = await self.cache.get_stats()
-        return {
-            "hits": stats.hits,
-            "misses": stats.misses,
-            "hit_rate": stats.hit_rate,
-            "sets": stats.sets,
-            "deletes": stats.deletes,
-            "evictions": stats.evictions
-        }
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
@@ -564,13 +853,6 @@ class DatabaseManager(DataSource):
                 self.emails_data[idx] = email_to_update
             await self._save_data(DATA_TYPE_EMAILS)
 
-            # Invalidate email caches
-            await self.cache.invalidate_tags(["emails"])
-            if original_category_id is not None:
-                await self.cache.invalidate_tags([f"category:{original_category_id}"])
-            if new_category_id is not None and new_category_id != original_category_id:
-                await self.cache.invalidate_tags([f"category:{new_category_id}"])
-
             new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
             if original_category_id != new_category_id:
                 if original_category_id is not None:
@@ -588,6 +870,12 @@ class DatabaseManager(DataSource):
 
     async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new user and save to the users data."""
+        # Validation functionality is preserved as a method
+        # Uncomment the next lines if validation is needed:
+        # if not self._validate_user_data(user_data):
+        #     logger.warning(f"User data validation failed: {user_data}")
+        #     return None
+
         # Check if user already exists
         existing_user = await self.get_user_by_username(user_data.get("username", ""))
         if existing_user:
@@ -625,6 +913,14 @@ class DatabaseManager(DataSource):
             return self._add_category_details(email_full)
         else:
             return self._add_category_details(email_light.copy())
+
+
+# Backward compatibility and advanced initialization
+# The following code provides both legacy singleton access and new factory approach
+
+
+# Backward compatibility and advanced initialization
+# The following code provides both legacy singleton access and new factory approach
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """
@@ -789,33 +1085,73 @@ class DatabaseManager(DataSource):
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return updated_email is not None
 
+    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
+        """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
+        await self._ensure_initialized()
 
+        # Get basic counts
+        total_emails = len(self.emails_data)
+        auto_labeled = sum(1 for email in self.emails_data if email.get(self.FIELD_CATEGORY_ID))
+        categories_count = len(self.categories_data)
+        unread_count = sum(1 for email in self.emails_data if not email.get('is_read', False))
+
+        # Calculate weekly growth (simplified - in production this would be more sophisticated)
+        # For now, return placeholder values
+        weekly_growth = {
+            "emails": total_emails,  # This should be emails added in the last week
+            "percentage": 0.0  # This should be week-over-week growth percentage
+        }
+
+        return {
+            "total_emails": total_emails,
+            "auto_labeled": auto_labeled,
+            "categories_count": categories_count,
+            "unread_count": unread_count,
+            "weekly_growth": weekly_growth
+        }
+
+    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
+        """Retrieves category breakdown statistics with configurable limit."""
+        await self._ensure_initialized()
+
+        # Count emails by category
+        category_counts = {}
+        for email in self.emails_data:
+            category = email.get('category', 'Uncategorized')
+            category_counts[category] = category_counts.get(category, 0) + 1
+
+        # Sort by count descending and apply limit
+        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+        return dict(sorted_categories[:limit])
+
+
+# Factory functions and configuration management (work-in-progress)
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     """
     Factory function to create and initialize a DatabaseManager instance.
-    This replaces the global singleton pattern with dependency injection.
+    This implements the dependency injection approach mentioned in the refactoring notes.
     """
-    manager = DatabaseManager(config)
+    manager = DatabaseManager(config=config)
     await manager.initialize()
     return manager
 
 
 # Backward compatibility: default get_db using default config
+# Preserves the original singleton pattern while allowing new approaches
 _db_manager_instance: Optional[DatabaseManager] = None
 _db_init_lock = asyncio.Lock()
 
 async def get_db() -> DatabaseManager:
     """
     Provides a default singleton instance for backward compatibility.
-    TODO: Replace with proper dependency injection in application.
+    For new implementations, consider using create_database_manager with explicit configuration.
     """
     global _db_manager_instance
     if _db_manager_instance is None:
         async with _db_init_lock:
             if _db_manager_instance is None:
+                # Use default configuration for backward compatibility
                 config = DatabaseConfig()
-                _db_manager_instance = await create_database_manager(config)
+                _db_manager_instance = DatabaseManager(config=config)
+                await _db_manager_instance.initialize()
     return _db_manager_instance
-
-
-
