@@ -16,10 +16,12 @@ Legacy components in backend/python_backend/ need to be migrated to modern archi
 4. Ensure all functionality is preserved
 
 ## Acceptance Criteria
-- Detailed migration plan is documented
-- Legacy components are migrated to modern architecture
-- All existing functionality is preserved
-- Migration is completed with minimal disruption
+<!-- AC:BEGIN -->
+- [ ] #1 Create migration plan with feature parity requirements
+- [ ] #2 Identify components that need to be migrated
+- [ ] #3 Implement migration with minimal disruption
+- [ ] #4 Ensure all functionality is preserved
+<!-- AC:END -->
 
 ## Estimated Effort
 40 hours

@@ -16,10 +16,12 @@ In-memory caching with write-behind strategy.
 4. Monitor cache hit rates and optimize accordingly
 
 ## Acceptance Criteria
-- Redis caching is implemented and configurable
-- Cache warming strategies are in place for key data
-- Cache invalidation works correctly when data changes
-- Cache hit rates are monitored and reported
+<!-- AC:BEGIN -->
+- [ ] #1 Add Redis-based distributed caching for multi-instance deployments
+- [ ] #2 Implement cache warming strategies for frequently accessed data
+- [ ] #3 Add cache invalidation policies
+- [ ] #4 Monitor cache hit rates and optimize accordingly
+<!-- AC:END -->
 
 ## Estimated Effort
 16 hours

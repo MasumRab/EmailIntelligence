@@ -16,10 +16,12 @@ Good documentation in IFLOW.md and component-specific documents.
 4. Create contribution guidelines and development workflow documentation
 
 ## Acceptance Criteria
-- New developers can set up the development environment in under 30 minutes
-- Architecture decision records are available for all major components
-- API documentation is automatically generated from code
-- Clear contribution guidelines are available
+<!-- AC:BEGIN -->
+- [ ] #1 Create comprehensive onboarding documentation for new developers
+- [ ] #2 Document architecture decisions and design rationale
+- [ ] #3 Implement API documentation generation from code comments
+- [ ] #4 Create contribution guidelines and development workflow documentation
+<!-- AC:END -->
 
 ## Estimated Effort
 20 hours

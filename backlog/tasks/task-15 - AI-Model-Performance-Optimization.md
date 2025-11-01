@@ -16,10 +16,12 @@ Transformer models with accelerator support.
 4. Add model performance monitoring
 
 ## Acceptance Criteria
-- Model inference is faster with quantization
-- Model loading is optimized for better startup times
-- Batch processing improves throughput
-- Model performance is monitored and reported
+<!-- AC:BEGIN -->
+- [ ] #1 Implement model quantization for faster inference
+- [ ] #2 Add model loading optimization (lazy loading, preloading)
+- [ ] #3 Implement batch processing for multiple emails
+- [ ] #4 Add model performance monitoring
+<!-- AC:END -->
 
 ## Estimated Effort
 16 hours

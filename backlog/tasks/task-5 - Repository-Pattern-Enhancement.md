@@ -16,10 +16,12 @@ Basic repository pattern with DataSource abstraction.
 4. Consider adding query builder for complex searches
 
 ## Acceptance Criteria
-- Repository implementations support caching
-- Transaction support is available for data operations
-- Bulk operations are implemented and performant
-- Query builder simplifies complex searches
+<!-- AC:BEGIN -->
+- [ ] #1 Add caching layer to repository implementation
+- [ ] #2 Implement transaction support for data operations
+- [ ] #3 Add bulk operation support for better performance
+- [ ] #4 Consider adding query builder for complex searches
+<!-- AC:END -->
 
 ## Estimated Effort
 20 hours

@@ -16,10 +16,12 @@ Well-organized with clear separation between core, modules, and legacy component
 4. Establish coding standards document for new contributors
 
 ## Acceptance Criteria
-- Code duplication is minimized
-- Clear migration path is established
-- Modules are well-documented
-- Coding standards are documented and enforced
+<!-- AC:BEGIN -->
+- [ ] #1 Consolidate legacy components in backend/python_backend/ to reduce code duplication
+- [ ] #2 Implement a clear migration path from legacy to modern components
+- [ ] #3 Add detailed module documentation with usage examples
+- [ ] #4 Establish coding standards document for new contributors
+<!-- AC:END -->
 
 ## Estimated Effort
 16 hours

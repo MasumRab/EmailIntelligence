@@ -16,10 +16,12 @@ Unified launcher system with setup automation.
 4. Create template projects for common module types
 
 ## Acceptance Criteria
-- Development environment can be validated automatically
-- Containerized environment is available for consistent development
-- Code quality checks are integrated into the development workflow
-- Templates are available for common development tasks
+<!-- AC:BEGIN -->
+- [ ] #1 Add development environment validation script
+- [ ] #2 Implement containerized development environment
+- [ ] #3 Add code quality checks to development workflow
+- [ ] #4 Create template projects for common module types
+<!-- AC:END -->
 
 ## Estimated Effort
 16 hours
