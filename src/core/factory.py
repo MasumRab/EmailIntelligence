@@ -69,8 +69,10 @@ async def get_data_source() -> DataSource:
                 raise ImportError("NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch")
             _data_source_instance = NotmuchDataSource()
         else:
-            _data_source_instance = DatabaseManager()
-            await _data_source_instance.initialize()
+            # Create DatabaseManager with proper configuration
+            from .database import DatabaseConfig, create_database_manager
+            config = DatabaseConfig()
+            _data_source_instance = await create_database_manager(config)
     return _data_source_instance
 
 
