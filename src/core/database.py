@@ -1085,45 +1085,6 @@ class DatabaseManager(DataSource):
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return updated_email is not None
 
-    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
-        """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
-        await self._ensure_initialized()
-
-        # Get basic counts
-        total_emails = len(self.emails_data)
-        auto_labeled = sum(1 for email in self.emails_data if email.get(self.FIELD_CATEGORY_ID))
-        categories_count = len(self.categories_data)
-        unread_count = sum(1 for email in self.emails_data if not email.get('is_read', False))
-
-        # Calculate weekly growth (simplified - in production this would be more sophisticated)
-        # For now, return placeholder values
-        weekly_growth = {
-            "emails": total_emails,  # This should be emails added in the last week
-            "percentage": 0.0  # This should be week-over-week growth percentage
-        }
-
-        return {
-            "total_emails": total_emails,
-            "auto_labeled": auto_labeled,
-            "categories_count": categories_count,
-            "unread_count": unread_count,
-            "weekly_growth": weekly_growth
-        }
-
-    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
-        """Retrieves category breakdown statistics with configurable limit."""
-        await self._ensure_initialized()
-
-        # Count emails by category
-        category_counts = {}
-        for email in self.emails_data:
-            category = email.get('category', 'Uncategorized')
-            category_counts[category] = category_counts.get(category, 0) + 1
-
-        # Sort by count descending and apply limit
-        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
-        return dict(sorted_categories[:limit])
-
 
 # Factory functions and configuration management (work-in-progress)
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:

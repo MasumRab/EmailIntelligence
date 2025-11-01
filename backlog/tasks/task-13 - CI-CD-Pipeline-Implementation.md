@@ -19,11 +19,13 @@ Implement comprehensive CI/CD pipeline with automated testing and deployment.
 5. Create deployment documentation and runbooks
 
 ## Acceptance Criteria
-- Automated tests run on every commit
-- Staging environment is automatically deployed
-- Production deployments use blue-green strategy
-- Rollback can be performed automatically
-- Deployment runbooks are available
+<!-- AC:BEGIN -->
+- [ ] #1 Implement CI/CD pipeline with automated testing
+- [ ] #2 Add staging environment for testing
+- [ ] #3 Implement blue-green deployment strategy
+- [ ] #4 Add automated rollback capabilities
+- [ ] #5 Create deployment documentation and runbooks
+<!-- AC:END -->
 
 ## Estimated Effort
 32 hours
