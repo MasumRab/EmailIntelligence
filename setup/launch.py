@@ -428,7 +428,22 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
-        run_command([python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]"], "Installing dependencies with uv", cwd=ROOT_DIR)
+        run_command([python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]", "--exclude", "notmuch"], "Installing dependencies with uv (excluding notmuch)", cwd=ROOT_DIR)
+
+        # Install notmuch with version matching system
+        install_notmuch_matching_system()
+
+def install_notmuch_matching_system():
+    try:
+        result = subprocess.run(["notmuch", "--version"], capture_output=True, text=True, check=True)
+        version_line = result.stdout.strip()
+        # Parse version, e.g., "notmuch 0.38.3"
+        version = version_line.split()[1]
+        major_minor = '.'.join(version.split('.')[:2])  # e.g., 0.38
+        python_exe = get_python_executable()
+        run_command([python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"], f"Installing notmuch {major_minor} to match system")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        logger.warning("notmuch not found on system, skipping version-specific install")
 
 def download_nltk_data(venv_path=None):
     python_exe = get_python_executable()
