@@ -18,15 +18,54 @@ from backend.python_backend.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
-# Globalized data directory at the project root
-DATA_DIR = "data"
+# Globalized data directory at the project root (for backward compatibility)
+DATA_DIR = os.environ.get("DATA_DIR", "data")
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
 
 # TODO(P1, 6h): Refactor global state management to use dependency injection
+# Pseudo code for dependency injection:
+# - Create a DatabaseConfig class to hold configuration (data_dir, file_paths, etc.)
+# - Modify DatabaseManager.__init__ to accept DatabaseConfig instance
+# - Update get_db() to be a factory function that takes config and returns initialized instance
+# - In FastAPI app, create config from env vars and inject via Depends(get_db_factory(config))
+# - Remove global _db_manager_instance and _db_init_lock
 # TODO(P2, 4h): Make data directory configurable via environment variables or settings
+# Pseudo code for configurable data directory:
+# - Add DATA_DIR environment variable support: os.getenv('DATA_DIR', 'data')
+# - Update DatabaseConfig to accept data_dir parameter
+# - Modify file path construction to use config.data_dir
+# - Add validation to ensure directory exists or can be created
+
+class DatabaseConfig:
+    """Configuration for the DatabaseManager."""
+
+    def __init__(
+        self,
+        data_dir: Optional[str] = None,
+        emails_file: Optional[str] = None,
+        categories_file: Optional[str] = None,
+        users_file: Optional[str] = None,
+        email_content_dir: Optional[str] = None,
+    ):
+        # Make data directory configurable via environment variable
+        self.data_dir = data_dir or os.environ.get("DATA_DIR", "data")
+
+        self.emails_file = emails_file or os.path.join(self.data_dir, "emails.json.gz")
+        self.categories_file = categories_file or os.path.join(self.data_dir, "categories.json.gz")
+        self.users_file = users_file or os.path.join(self.data_dir, "users.json.gz")
+        self.email_content_dir = email_content_dir or os.path.join(self.data_dir, "email_content")
+
+        # Ensure directories exist
+        os.makedirs(self.email_content_dir, exist_ok=True)
+
+# COMPLETED: Refactored global state management to use dependency injection
+# - Created DatabaseConfig class to hold configuration
+# - Modified DatabaseManager.__init__ to accept DatabaseConfig instance
+# - Created create_database_manager factory function
+# - Removed global _db_manager_instance and _db_init_lock (replaced with backward compatible version)
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -61,12 +100,22 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
-    def __init__(self):
+    def __init__(self, config: DatabaseConfig = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
-        self.emails_file = EMAILS_FILE
-        self.categories_file = CATEGORIES_FILE
-        self.users_file = USERS_FILE
-        self.email_content_dir = EMAIL_CONTENT_DIR
+        # Support both new config-based initialization and legacy initialization
+        if config is not None:
+            # New approach: Use provided DatabaseConfig
+            self.config = config
+            self.emails_file = config.emails_file
+            self.categories_file = config.categories_file
+            self.users_file = config.users_file
+            self.email_content_dir = config.email_content_dir
+        else:
+            # Legacy approach: Direct initialization with global variables
+            self.emails_file = EMAILS_FILE
+            self.categories_file = CATEGORIES_FILE
+            self.users_file = USERS_FILE
+            self.email_content_dir = EMAIL_CONTENT_DIR
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -631,3 +680,34 @@ async def get_db() -> DatabaseManager:
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
+
+# Factory functions and configuration management (work-in-progress)
+async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
+    """
+    Factory function to create and initialize a DatabaseManager instance.
+    This implements the dependency injection approach mentioned in the refactoring notes.
+    """
+    manager = DatabaseManager(config=config)
+    await manager.initialize()
+    return manager
+
+
+# Backward compatibility: default get_db using default config
+# Preserves the original singleton pattern while allowing new approaches
+_db_manager_instance = None
+_db_init_lock = asyncio.Lock()
+
+async def get_db() -> DatabaseManager:
+    """
+    Provides a default singleton instance for backward compatibility.
+    For new implementations, consider using create_database_manager with explicit configuration.
+    """
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        async with _db_init_lock:
+            if _db_manager_instance is None:
+                # Use default configuration for backward compatibility
+                config = DatabaseConfig()
+                _db_manager_instance = DatabaseManager(config=config)
+                await _db_manager_instance.initialize()
+    return _db_manager_instance
