@@ -16,12 +16,12 @@ from typing import Any, Dict, List, Optional
 
 from backend.node_engine.node_base import BaseNode, Connection, DataType, ExecutionContext, SecurityContext, Workflow
 from backend.node_engine.security_manager import (
+    SecurityManager, # Import the SecurityManager class
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,
     audit_logger,
-    resource_manager,
-    security_manager,
+    resource_manager
 )
 
 
@@ -34,11 +34,12 @@ class WorkflowExecutionException(Exception):
 class WorkflowEngine:
     """Manages execution of node-based workflows."""
 
-    def __init__(self):
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
-        self.active_executions: Dict[str, ExecutionContext] = {}
-        self.node_registry: Dict[str, type] = {}
-
+        def __init__(self, security_manager: Optional[SecurityManager] = None):
+            self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+            self.active_executions: Dict[str, ExecutionContext] = {}
+            self.node_registry: Dict[str, type] = {}
+            # Initialize with a default SecurityManager if not provided, for flexibility
+            self.security_manager = security_manager if security_manager else SecurityManager(user_roles={})
     def register_node_type(self, node_class: type):
         """Register a node type for workflow composition."""
         self.node_registry[node_class.__name__] = node_class
@@ -65,6 +66,23 @@ class WorkflowEngine:
         execution_id = workflow.workflow_id
         start_time = time.time()
         self.logger.info(f"Starting execution of workflow: {workflow.name} (ID: {execution_id})")
+
+        # --- SECURITY CHECK: VERIFY USER PERMISSION TO EXECUTE WORKFLOW ---
+        class MockUser:
+            def __init__(self, user_id: str):
+                self.id = user_id
+        
+        mock_user = MockUser(user_id) if user_id else MockUser("anonymous") # Use 'anonymous' for unauthenticated
+
+        if not self.security_manager.has_permission(mock_user, "execute", workflow):
+            error_msg = f"User {user_id or 'anonymous'} does not have permission to execute workflow {workflow.name} (ID: {workflow.workflow_id})."
+            self.logger.warning(error_msg)
+            audit_logger.log_security_event(
+                "WORKFLOW_EXECUTION_DENIED",
+                {"workflow_id": workflow.workflow_id, "user_id": user_id, "reason": "Insufficient permissions"},
+            )
+            raise WorkflowExecutionException(error_msg)
+        # --- END SECURITY CHECK ---
 
         # Create security context
         security_context = SecurityContext(user_id=user_id)
@@ -113,13 +131,13 @@ class WorkflowEngine:
             self.logger.debug(f"Execution order: {execution_order}")
 
             # Execute nodes in order
-            sandbox = ExecutionSandbox(security_manager)
+            sandbox = ExecutionSandbox(self.security_manager)
             for node_id in execution_order:
                 node = workflow.nodes[node_id]
 
                 # Validate node execution based on security policies
                 node_type = node.__class__.__name__
-                if not security_manager.validate_node_execution(
+                if not self.security_manager.validate_node_execution(
                     node_type, getattr(node, "config", {})
                 ):
                     error_msg = f"Security validation failed for node {node_id} ({node_type})"
@@ -149,7 +167,7 @@ class WorkflowEngine:
                 self.logger.debug(f"Executing node {node_id} ({node.name})")
                 try:
                     # Check API call limits
-                    if not security_manager.check_api_call_limit(workflow.workflow_id, node_id):
+                    if not self.security_manager.check_api_call_limit(workflow.workflow_id, node_id):
                         raise WorkflowExecutionException(
                             f"API call limit exceeded for node {node_id}"
                         )
@@ -385,4 +403,4 @@ class WorkflowEngine:
 
 
 # Global workflow engine instance
-workflow_engine = WorkflowEngine()
+workflow_engine = WorkflowEngine(SecurityManager(user_roles={})) # Instantiate with a default SecurityManager

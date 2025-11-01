@@ -1,60 +1,20 @@
-"""
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
-Security and Resource Management for the Node-Based Email Intelligence Platform.
-
-This module implements security measures and resource management for the node-based
-workflow system.
-"""
-
-import asyncio
-import json
-import logging
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from typing import Any, Callable, Dict, Optional
-
-# Import bleach for proper HTML sanitization
-try:
-    import bleach
-except ImportError:
-    bleach = None
-    import warnings
-
-    warnings.warn(
-        "bleach library not found. Install it using 'pip install bleach' for proper HTML sanitization."
-    )
-
-
-class SecurityLevel(Enum):
-    """Security levels for nodes and workflows."""
-
-    UNTRUSTED = "untrusted"
-    LIMITED = "limited"
-    TRUSTED = "trusted"
-    SYSTEM = "system"
-
-
-@dataclass
-class ResourceLimits:
-    """Resource limits for node execution."""
-
-    max_memory_mb: int = 100
-    max_execution_time_seconds: int = 30
-    max_api_calls: int = 10
-    max_file_size_bytes: int = 10 * 1024 * 1024  # 10MB
-
+from typing import List, Dict, Any
 
 class SecurityManager:
-    """Manages security and permissions for the node system."""
+    """
+    Manages security and authorization for workflow operations.
+    """
+    def __init__(self, user_roles: Dict[str, List[str]]):
+        self.user_roles = user_roles
 
-    def __init__(self):
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
-        self.trusted_node_types = set()
-        self.security_policies = {}
-        self._api_call_counts = {}
+    def has_permission(self, user: Any, action: str, resource: Any) -> bool:
+        """
+        Checks if a user has permission to perform an action on a resource.
+
+        Args:
+            user: The user object, expected to have an 'id' attribute.
+            action: The action being performed (e.g., "execute", "edit", "view").
+            resource: The resource being acted upon (e.g., a Workflow object).
 
     # TODO(P1, 3h): Implement comprehensive security policies with RBAC support
     # Pseudo code for RBAC security policies:
@@ -72,28 +32,54 @@ class SecurityManager:
     # - Add rate limit headers to responses
     # - Implement rate limit bypass for trusted operations
 
-    def register_trusted_node_type(self, node_type: str):
-        """Register a node type as trusted."""
-        self.trusted_node_types.add(node_type)
-        self.logger.info(f"Registered trusted node type: {node_type}")
+        Returns:
+            True if the user has permission, False otherwise.
+        """
+        user_id = getattr(user, 'id', None)
+        if not user_id:
+            return False # User must have an ID
 
-    def is_trusted_node(self, node_type: str) -> bool:
-        """Check if a node type is trusted."""
-        return node_type in self.trusted_node_types
+        roles = self.user_roles.get(user_id, ["guest"])
 
-    def validate_node_execution(self, node_type: str, config: Dict[str, Any]) -> bool:
-        """Validate if a node can be executed based on security policies."""
-        # Basic validation for potentially dangerous operations
-        if node_type not in self.trusted_node_types:
-            # Check for potentially unsafe configurations
-            if config.get("code", "") or config.get("script", ""):
-                self.logger.warning(
-                    f"Untrusted node {node_type} has code configuration - access denied"
-                )
-                return False
+        # Admins have all permissions
+        if "admin" in roles:
+            return True
 
-        return True
+        # Specific resource-based permissions
+        if hasattr(resource, '__tablename__') and resource.__tablename__ == 'workflows': # Assuming SQLAlchemy model
+            # For workflow execution
+            if action == "execute":
+                # Only allow execution of workflows marked as 'safe' for non-admins
+                # and if the user has 'editor' role or is the owner
+                is_owner = getattr(resource, 'owner_id', None) == user_id
+                return (getattr(resource, 'is_safe', False) and "editor" in roles) or is_owner
+            
+            # For workflow editing
+            if action == "edit":
+                # Only owner or admin can edit
+                return getattr(resource, 'owner_id', None) == user_id or "editor" in roles
+            
+            # For viewing workflows
+            if action == "view":
+                is_owner = getattr(resource, 'owner_id', None) == user_id
+                is_public = getattr(resource, 'is_public', False)
+                
+                # Admins and editors can view any workflow
+                if "admin" in roles or "editor" in roles:
+                    return True
+                
+                # Owners can view their own workflows
+                if is_owner:
+                    return True
+                
+                # Any authenticated user can view a public workflow
+                if "user" in roles and is_public:
+                    return True
+                
+                return False # Default to no permission
 
+        # Default to no permission if no specific rule matches
+        return False
     # TODO(P1, 5h): Implement comprehensive node validation with static analysis of config parameters
     # Pseudo code for static analysis validation:
     # - Parse config parameters for potentially dangerous patterns
@@ -310,7 +296,7 @@ class AuditLogger:
     ):
         """Log node execution."""
         self.logger.info(
-            f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={
+            f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={"
                          node_name}, status={status}, duration={duration}s"
         )
 
@@ -343,7 +329,7 @@ class ResourceManager:
         }
 
         self.logger.info(
-            f"Resources acquired for workflow {workflow_id}. Current: {
+            f"Resources acquired for workflow {workflow_id}. Current: {"
                          self.current_workflows}/{self.max_concurrent_workflows}"
         )
         return True
@@ -357,7 +343,7 @@ class ResourceManager:
             self.current_workflows -= 1
 
         self.logger.info(
-            f"Resources released for workflow {workflow_id}. Current: {
+            f"Resources released for workflow {workflow_id}. Current: {"
                          self.current_workflows}/{self.max_concurrent_workflows}"
         )
 

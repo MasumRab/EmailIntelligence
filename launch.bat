@@ -36,10 +36,67 @@ if %ERRORLEVEL% equ 0 (
 
 echo Starting EmailIntelligence Launcher...
 echo Working directory: %SCRIPT_DIR%
-echo Command: python launch.py %*
 
-REM Execute launch.py with all arguments, properly handling paths with spaces
-python launch.py %*
+REM Determine if conda should be used
+set "USE_CONDA_FLAG="
+set "CONDA_ENV_NAME_ARG="
+for %%A in (%*) do (
+    if /i "%%A"=="--use-conda" (
+        set "USE_CONDA_FLAG=true"
+    )
+    if /i "%%A"=="--conda-env" (
+        set "CONDA_ENV_NAME_ARG=true"
+    )
+)
+
+set "CONDA_COMMAND="
+if defined USE_CONDA_FLAG (
+    where conda >nul 2>nul
+    if %ERRORLEVEL% equ 0 (
+        echo Conda detected and --use-conda flag is present. Attempting to run via conda.
+        set "CONDA_ENV_TO_USE=base"
+        REM Extract conda environment name if specified
+        for /f "tokens=1,2" %%i in ("%*") do (
+            if /i "%%i"=="--conda-env" (
+                set "CONDA_ENV_TO_USE=%%j"
+            )
+        )
+        echo Using conda environment: %CONDA_ENV_TO_USE%
+        set "CONDA_COMMAND=conda run -n %CONDA_ENV_TO_USE% python launch.py %*"
+    ) else (
+        echo WARNING: --use-conda flag specified, but conda is not found. Falling back to standard python execution.
+    )
+) else if defined CONDA_ENV_NAME_ARG (
+    where conda >nul 2>nul
+    if %ERRORLEVEL% equ 0 (
+        echo Conda detected and --conda-env flag is present. Attempting to run via conda.
+        set "CONDA_ENV_TO_USE="
+        REM Extract conda environment name if specified
+        for /f "tokens=1,2" %%i in ("%*") do (
+            if /i "%%i"=="--conda-env" (
+                set "CONDA_ENV_TO_USE=%%j"
+            )
+        )
+        if not defined CONDA_ENV_TO_USE (
+            echo ERROR: --conda-env flag used without specifying an environment name. Falling back to standard python execution.
+            set "CONDA_COMMAND="
+        ) else (
+            echo Using conda environment: %CONDA_ENV_TO_USE%
+            set "CONDA_COMMAND=conda run -n %CONDA_ENV_TO_USE% python launch.py %*"
+        )
+    ) else (
+        echo WARNING: --conda-env flag specified, but conda is not found. Falling back to standard python execution.
+    )
+)
+
+if defined CONDA_COMMAND (
+    echo Command: %CONDA_COMMAND%
+    %CONDA_COMMAND%
+) else (
+    echo Command: python launch.py %*
+    REM Execute launch.py with all arguments, properly handling paths with spaces
+    python launch.py %*
+)
 
 REM Capture the exit code
 set LAUNCH_EXIT_CODE=%ERRORLEVEL%
