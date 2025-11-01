@@ -5,8 +5,8 @@ An example plugin that registers a new workflow.
 import logging
 from typing import Any, Dict
 
-from backend.python_backend.ai_engine import AdvancedAIEngine
-from backend.python_backend.database import DatabaseManager
+from src.core.ai_engine import AdvancedAIEngine
+from src.core.database import DatabaseManager
 from backend.python_nlp.smart_filters import SmartFilterManager
 
 # Note: Plugins need to import from the main application's modules.

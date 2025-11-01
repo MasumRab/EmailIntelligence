@@ -7,8 +7,8 @@ Handles all category-related business logic
 """
 
 from typing import List, Optional, Dict, Any
-from backend.python_backend.services.base_service import BaseService, BaseResponse
-from backend.python_backend.database import FIELD_ID
+from .base_service import BaseService, BaseResponse
+from src.core.database import FIELD_ID
 
 
 class CategoryService(BaseService):

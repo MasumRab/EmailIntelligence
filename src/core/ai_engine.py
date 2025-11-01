@@ -132,7 +132,7 @@ class ModernAIEngine(BaseAIEngine):
 
         try:
             # Import here to avoid circular dependencies
-            from backend.python_backend.model_manager import ModelManager
+            from .model_manager import ModelManager
 
             self._model_manager = ModelManager()
             # Note: ModelManager.discover_models() may not exist, handle gracefully
