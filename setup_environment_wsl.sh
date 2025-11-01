@@ -174,23 +174,25 @@ log_success "Virtual environment created and activated"
 
 # Upgrade pip with better error handling
 log_info "⬆️ Upgrading pip..."
-pip install --upgrade pip --timeout 120
+pip install --upgrade pip --quiet
 
 # Install PyTorch CPU with WSL optimizations
 log_info "🧠 Installing PyTorch CPU version (optimized for WSL)..."
-log_info "   ⏳ This may take several minutes depending on your internet connection..."
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --timeout 300 --quiet
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --quiet
 
-
+# Verify PyTorch installation
+python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
 
 # Install core packages first (for better dependency resolution)
 log_info "📚 Installing core Python packages..."
-pip install pydantic-settings>=2.0.0 --timeout 120 --quiet
+pip install --quiet \
+    pydantic-settings>=2.0.0
 
 # Install AI/ML packages
 log_info "🤖 Installing AI/ML packages..."
-log_info "   ⏳ This may take several minutes depending on your internet connection..."
-pip install transformers>=4.40.0 accelerate>=0.30.0 --timeout 600 --quiet
+pip install --quiet \
+    transformers>=4.40.0 \
+    accelerate>=0.30.0
 # Note: sentencepiece installed via system packages
 
 # Install data science packages (remaining pip-only packages)
@@ -205,11 +207,27 @@ pip install --quiet \
     textblob>=0.19.0
 # Note: nltk installed via system packages
 
+# Verify NLP package versions
+log_info "🔍 Verifying NLP package versions..."
+python -c "
+import nltk
+import textblob
+try:
+    import pkg_resources
+    tb_version = pkg_resources.get_distribution('textblob').version
+except:
+    tb_version = 'unknown'
+print(f'nltk version: {nltk.__version__}')
+print(f'textblob version: {tb_version}')
+"
 
 # Install web and API packages
 log_info "🌐 Installing web and API packages..."
-log_info "   ⏳ This may take a few minutes depending on your internet connection..."
-pip install fastapi>=0.100.0 gradio>=4.0.0 pyngrok>=0.7.0 email-validator>=2.2.0 --timeout 300 --quiet
+pip install --quiet \
+    fastapi>=0.100.0 \
+    gradio>=4.0.0 \
+    pyngrok>=0.7.0 \
+    email-validator>=2.2.0
 
 # Install Google API packages
 log_info "🔐 Installing Google API packages..."
@@ -218,10 +236,18 @@ sudo apt install -y \
     python3-google-auth \
     python3-google-auth-httplib2 \
     python3-google-auth-oauthlib
-log_info "   ⏳ Installing Google API client (this may take a minute)..."
-pip install google-api-python-client>=2.172.0 --timeout 300 --quiet
+pip install --quiet \
+    google-api-python-client>=2.172.0
 # Note: google-auth, google-auth-oauthlib installed via system packages
 
+# Verify Google packages versions
+log_info "🔍 Verifying Google packages versions..."
+python -c "
+import google.auth
+import google.auth.transport.requests
+import google.oauth2.credentials
+print(f'google-auth version: {google.auth.__version__ if hasattr(google.auth, \"__version__\") else \"unknown\"}')
+"
 
 # Install utility packages (remaining pip-only packages)
 log_info "🛠️ Installing utility packages..."
@@ -232,7 +258,10 @@ sudo apt install -y \
 
 # Install development tools (remaining pip-only packages)
 log_info "🔧 Installing development tools..."
-pip install black>=23.0.0 pylint>=2.15.0 fastapi>=0.100.0 --timeout 300 --quiet
+pip install --quiet \
+    black>=23.0.0 \
+    pylint>=2.15.0 \
+    fastapi>=0.100.0
 # Note: flake8, isort, mypy, pytest, pytest-asyncio, plotly, seaborn installed via system packages
 
 # Download NLTK data with error handling
@@ -249,8 +278,31 @@ try:
 except Exception as e:
     print(f'Warning: NLTK download failed: {e}')
 
+# Verify sentencepiece installation
+try:
+    import sentencepiece
+    print(f'sentencepiece version: {sentencepiece.__version__}')
+except ImportError:
+    # sentencepiece might not have __version__ attribute
+    import sentencepiece as spm
+    print('sentencepiece imported successfully')
+"
 
 # Verify system package versions
+log_info "🔍 Verifying system package versions..."
+python -c "
+import nltk
+import plotly
+import seaborn
+import email_validator
+import aiosqlite
+import RestrictedPython
+print(f'nltk version: {nltk.__version__}')
+print(f'plotly version: {plotly.__version__}')
+print(f'seaborn version: {seaborn.__version__}')
+print(f'aiosqlite version: {aiosqlite.__version__}')
+print(f'RestrictedPython version: {RestrictedPython.__version__ if hasattr(RestrictedPython, \"__version__\") else \"unknown\"}')
+"
 
 # Create activation script for future use
 cat > activate_env.sh << 'ACTIVATE_EOF'
@@ -285,7 +337,7 @@ import sys
 print(f'Python: {sys.version}')
 try:
     import torch
-    print(f'PyTorch: {getattr(torch, "__version__", "unknown")} (CUDA: {torch.cuda.is_available()})')
+    print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()})')
 except ImportError:
     print('PyTorch: Not available')
 "
@@ -346,52 +398,6 @@ try:
 except ImportError as e:
     print(f'❌ Transformers import failed: {e}')
     sys.exit(1)
-"
-
-# Verification checks for installed packages
-log_info "🔍 Verifying installed packages..."
-# Verify PyTorch installation
-python -c "import torch; print(f'PyTorch version: {getattr(torch, \"__version__\", \"unknown\")}'); print(f'CUDA available: {torch.cuda.is_available()}')"
-
-# Verify NLP package versions
-python -c "
-import nltk
-import textblob
-print(f'nltk version: {getattr(nltk, \"__version__\", \"unknown\")}')
-print(f'textblob version: {getattr(textblob, \"__version__\", \"unknown\")}')
-"
-
-# Verify Google packages versions
-python -c "
-import google.auth
-import google.auth.transport.requests
-import google.oauth2.credentials
-print(f'google-auth version: {getattr(google.auth, \"__version__\", \"unknown\")}')
-"
-
-# Verify system package versions
-python -c "
-import plotly
-import seaborn
-import email_validator
-import aiosqlite
-import RestrictedPython
-print(f'plotly version: {getattr(plotly, \"__version__\", \"unknown\")}')
-print(f'seaborn version: {getattr(seaborn, \"__version__\", \"unknown\")}')
-print(f'aiosqlite version: {getattr(aiosqlite, \"__version__\", \"unknown\")}')
-print(f'RestrictedPython version: {getattr(RestrictedPython, \"__version__\", \"unknown\")}')
-print(f'email_validator version: {getattr(email_validator, \"__version__\", \"unknown\")}')
-"
-
-# Verify sentencepiece installation
-python -c "
-try:
-    import sentencepiece
-    print(f'sentencepiece version: {getattr(sentencepiece, \"__version__\", \"unknown\")}')
-except ImportError:
-    # sentencepiece might not have __version__ attribute
-    import sentencepiece as spm
-    print('sentencepiece imported successfully')
 "
 
 # Final compatibility check

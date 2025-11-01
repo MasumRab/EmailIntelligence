@@ -90,8 +90,8 @@ python launch.py --setup
 # Update all dependencies
 python launch.py --update-deps
 
-# Setup with Poetry instead of uv
-python launch.py --use-poetry --setup
+# Setup with uv
+python launch.py --setup
 ```
 
 ### Development Commands

@@ -1,9 +1,11 @@
 ---
 id: task-42
 title: Rebase scientific branch onto main after core enhancements merge
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@amp'
 created_date: '2025-10-31 15:14'
+updated_date: '2025-10-31 15:25'
 labels: []
 dependencies: []
 ---

@@ -8,9 +8,9 @@ Handles all email-related business logic
 
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from backend.python_backend.services.base_service import BaseService, BaseResponse
-from backend.python_backend.models import EmailResponse, EmailCreate, EmailUpdate
-from backend.python_backend.database import FIELD_ID, FIELD_MESSAGE_ID
+from .base_service import BaseService, BaseResponse
+from src.core.models import EmailResponse, EmailCreate, EmailUpdate
+from src.core.database import FIELD_ID, FIELD_MESSAGE_ID
 
 
 class EmailService(BaseService):

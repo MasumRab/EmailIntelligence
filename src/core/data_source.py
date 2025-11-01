@@ -77,6 +77,37 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
+    async def delete_email(self, email_id: int) -> bool:
+        """Deletes an email by its internal ID."""
+        pass
+
+    @abstractmethod
+    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
+        """Retrieves aggregated dashboard statistics for efficient server-side calculations.
+
+        Returns:
+            Dict containing:
+            - total_emails: int - Total number of emails
+            - auto_labeled: int - Number of auto-labeled emails
+            - categories_count: int - Total number of categories
+            - unread_count: int - Number of unread emails
+            - weekly_growth: Dict[str, Any] - Weekly growth metrics
+        """
+        pass
+
+    @abstractmethod
+    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
+        """Retrieves category breakdown statistics with configurable limit.
+
+        Args:
+            limit: Maximum number of categories to return (top N by email count)
+
+        Returns:
+            Dict mapping category names to email counts, sorted by count descending
+        """
+        pass
+
+    @abstractmethod
     async def shutdown(self) -> None:
         """Performs any necessary cleanup."""
         pass

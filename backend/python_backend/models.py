@@ -158,6 +158,14 @@ class ActivityResponse(ActivityBase):
     createdAt: datetime
 
 
+class ActionItem(BaseModel):
+    """Represents an actionable item identified in an email."""
+
+    description: str = Field(..., description="The description of the action item.")
+    due_date: Optional[datetime] = Field(None, description="The due date for the action item.")
+    completed: bool = Field(False, description="Whether the action item is completed.")
+
+
 # AI Analysis Models
 class AIAnalysisRequest(BaseModel):
     subject: str
@@ -180,8 +188,6 @@ class AIAnalysisResponse(BaseModel):
     riskFlags: List[str] = Field(alias="risk_flags")
     actionItems: List[ActionItem] = Field(default_factory=list)
     categoryId: Optional[int] = None
-    isImportant: bool = False
-    actionItems: List[ActionItem] = Field(default_factory=list)
 
     class Config:
         allow_population_by_field_name = True

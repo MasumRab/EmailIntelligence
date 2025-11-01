@@ -11,8 +11,7 @@
 - **Code quality**: `pylint src modules`
 
 ### Dependency Management
-- **uv (default)**: `python launch.py --setup` - Uses uv for fast, reliable installs
-- **Poetry**: `python launch.py --use-poetry --setup` - Alternative Poetry-based setup
+- **uv**: `python launch.py --setup` - Uses uv for fast, reliable Python package installs
 - **Update deps**: `python launch.py --update-deps` - Updates all dependencies
 - **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
 - **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
@@ -62,6 +61,12 @@
 - **API**: Use api client from lib/api.ts for backend communication
 
 ## Troubleshooting
+
+### Architecture Overview
+- **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, Vite build system
+- **Backend**: Python with FastAPI for API endpoints and Gradio for UI
+- **AI Engine**: Python-based NLP models for sentiment and topic analysis
+- **Database**: SQLite for local storage and caching, JSON files for main application data
 
 ### Port Binding Errors (e.g., [Errno 10048])
 If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
@@ -628,6 +633,61 @@ Descriptions support literal newlines; shell examples may show escaped `\\n`, bu
 | AC won't check       | Use correct index: `backlog task 42 --plain` to see AC numbers     |
 | Changes not saving   | Ensure you're using CLI, not editing files                         |
 | Metadata out of sync | Re-edit via CLI to fix: `backlog task edit 42 -s <current-status>` |
+
+---
+
+## 11. Merge Conflict Resolution for Backlog Tasks
+
+When merging branches that contain parallel task completions, merge conflicts can occur in backlog task files. Follow these guidelines to resolve them properly:
+
+### Priority Order for Conflict Resolution
+Always prefer the version that shows **more progress**:
+1. **Done/Completed** > **In Progress** > **To Do**
+2. **More acceptance criteria checked** > fewer checked
+3. **More detailed implementation notes** > basic notes
+4. **Later updated_date** > earlier updated_date
+
+### Resolution Steps
+1. **Identify the conflict**: Look at both versions of the task file
+2. **Compare completion status**: Choose the version with higher completion status
+3. **Merge implementation details**: Combine notes from both versions if they complement each other
+4. **Preserve acceptance criteria**: Keep all checked items from both versions
+5. **Update metadata**: Use the most recent dates and assignees
+
+### Example Conflict Resolution
+```bash
+# If HEAD shows task as "Done" with full notes
+# And merge shows task as "In Progress" with partial notes
+# Choose HEAD version to preserve completion status
+```
+
+### Prevention Strategies
+- **Commit task completion immediately** when work is done
+- **Push changes frequently** to reduce parallel work conflicts
+- **Use feature branches** for task-specific work
+- **Coordinate** with team when working on the same tasks
+
+### Recommended Development Workflow
+1. **Pull latest changes** before starting work: `git pull origin main`
+2. **Create feature branch** for task: `git checkout -b feature/task-42-implementation`
+3. **Mark task in progress**: `backlog task edit 42 -s "In Progress" -a @yourname`
+4. **Work on task** and commit changes incrementally
+5. **Complete task**: Mark ACs complete, add implementation notes, set status to Done
+6. **Commit completion**: `git add . && git commit -m "feat: Complete task-42 - Implementation summary"`
+7. **Push immediately**: `git push origin feature/task-42-implementation`
+8. **Create PR** and merge promptly to avoid conflicts
+
+### Git Configuration (Recommended)
+Consider setting up a custom merge driver for backlog files:
+
+```bash
+# .gitattributes
+backlog/tasks/*.md merge=backlog-merge
+
+# .git/config
+[merge "backlog-merge"]
+    driver = /path/to/backlog-merge-driver.sh
+```
 
 ---
 

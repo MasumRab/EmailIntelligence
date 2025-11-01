@@ -137,6 +137,7 @@ export default function Dashboard() {
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-medium text-sm">JD</span>
                 </div>
+                <span className="text-gray-700">John Doe</span>
               </div>
             </div>
           </div>

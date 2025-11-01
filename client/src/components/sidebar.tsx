@@ -141,6 +141,14 @@ export function Sidebar({ categories }: SidebarProps) {
                 </li>
               );
             })}
+            <li>
+              <Link href="/profile">
+                <a className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                  <Settings className="h-5 w-5" />
+                  <span>Profile</span>
+                </a>
+              </Link>
+            </li>
           </ul>
         </div>
       </nav>

@@ -2,6 +2,7 @@
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 """
+
 import gradio as gr
 import pandas as pd
 import numpy as np
@@ -188,8 +189,11 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                             continue  # Skip invalid entries
                         subject = str(email["subject"])[:1000]  # Limit subject length
                         content = str(email["content"])[:10000]  # Limit content length
-                        result = nlp_engine.analyze_email(subject, content)
-                        results.append(result)
+                        try:
+                            result = nlp_engine.analyze_email(subject, content)
+                            results.append(result)
+                        except Exception as e:
+                            results.append({"error": f"Failed to analyze email: {str(e)}"})
                     df = pd.DataFrame(results)
                     stats = df.describe(include="all").to_dict()
                     return df, stats
