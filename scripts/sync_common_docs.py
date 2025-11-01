@@ -15,10 +15,11 @@ from typing import List, Optional
 class DocumentationSync:
     """Handles synchronization of common documentation across worktrees."""
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root: Path, conflict_strategy: str = "overwrite"):
         self.project_root = project_root
         self.worktrees_dir = project_root / "worktrees"
         self.inheritance_base = project_root / "docs"
+        self.conflict_strategy = conflict_strategy
 
     def print_status(self, message: str):
         print(f"[INFO] {message}")
@@ -50,7 +51,7 @@ class DocumentationSync:
             target_dir.mkdir(parents=True, exist_ok=True)
 
             try:
-                self._sync_directory(self.inheritance_base, target_dir)
+                self._sync_directory(self.inheritance_base, target_dir, self.conflict_strategy)
                 self.print_success("Synced to docs-main worktree")
             except Exception as e:
                 self.print_error(f"Failed to sync to docs-main: {e}")
@@ -66,7 +67,7 @@ class DocumentationSync:
             target_dir.mkdir(parents=True, exist_ok=True)
 
             try:
-                self._sync_directory(self.inheritance_base, target_dir)
+                self._sync_directory(self.inheritance_base, target_dir, self.conflict_strategy)
                 self.print_success("Synced to docs-scientific worktree")
             except Exception as e:
                 self.print_error(f"Failed to sync to docs-scientific: {e}")
@@ -101,7 +102,7 @@ class DocumentationSync:
         target_common.mkdir(parents=True, exist_ok=True)
 
         try:
-            self._sync_directory(source_common, target_common)
+            self._sync_directory(source_common, target_common, self.conflict_strategy)
             self.print_success(f"Synced common docs from {source} to {target}")
             return True
         except Exception as e:
@@ -135,9 +136,13 @@ class DocumentationSync:
         else:
             print("docs-scientific: NOT FOUND")
 
-    def _sync_directory(self, source: Path, target: Path):
-        """Sync contents of source directory to target directory."""
+    def _sync_directory(self, source: Path, target: Path, conflict_strategy: str = "overwrite"):
+        """Sync contents of source directory to target directory with conflict resolution."""
         import filecmp
+        from datetime import datetime
+
+        conflicts = []
+        updates = []
 
         # Walk through source directory
         for source_path in source.rglob("*"):
@@ -149,10 +154,72 @@ class DocumentationSync:
                 # Create target directory if needed
                 target_path.parent.mkdir(parents=True, exist_ok=True)
 
-                # Copy file if it doesn't exist or is different
-                if not target_path.exists() or not filecmp.cmp(source_path, target_path, shallow=False):
+                if target_path.exists():
+                    # File exists in target - check for conflicts
+                    if not filecmp.cmp(source_path, target_path, shallow=False):
+                        # Files differ - handle conflict
+                        conflict_handled = self._handle_conflict(
+                            source_path, target_path, relative_path, conflict_strategy
+                        )
+                        if conflict_handled:
+                            conflicts.append(str(relative_path))
+                        else:
+                            updates.append(str(relative_path))
+                    # If files are identical, do nothing
+                else:
+                    # File doesn't exist in target - copy it
                     shutil.copy2(source_path, target_path)
-                    print(f"  Updated: {relative_path}")
+                    updates.append(str(relative_path))
+
+        # Report results
+        if updates:
+            print(f"  Updated {len(updates)} files")
+        if conflicts:
+            print(f"  Resolved {len(conflicts)} conflicts")
+
+    def _handle_conflict(self, source_path: Path, target_path: Path, relative_path: Path, strategy: str) -> bool:
+        """Handle file conflicts based on the specified strategy.
+
+        Returns True if conflict was detected and handled, False if file was updated normally.
+        """
+        from datetime import datetime
+
+        if strategy == "overwrite":
+            # Always overwrite target with source
+            shutil.copy2(source_path, target_path)
+            return False  # Not really a conflict, just an update
+
+        elif strategy == "backup":
+            # Create backup of target before overwriting
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = target_path.with_suffix(f"{target_path.suffix}.backup_{timestamp}")
+            shutil.copy2(target_path, backup_path)
+            print(f"    Backed up conflicting file: {backup_path.name}")
+            shutil.copy2(source_path, target_path)
+            return True
+
+        elif strategy == "skip":
+            # Skip conflicting files
+            print(f"    Skipped conflicting file: {relative_path}")
+            return True
+
+        elif strategy == "newer":
+            # Overwrite only if source is newer
+            source_mtime = source_path.stat().st_mtime
+            target_mtime = target_path.stat().st_mtime
+
+            if source_mtime > target_mtime:
+                shutil.copy2(source_path, target_path)
+                print(f"    Updated newer file: {relative_path}")
+            else:
+                print(f"    Kept existing newer file: {relative_path}")
+            return True
+
+        else:
+            # Unknown strategy - default to overwrite
+            self.print_warning(f"Unknown conflict strategy '{strategy}', using 'overwrite'")
+            shutil.copy2(source_path, target_path)
+            return False
 
 def main():
     parser = argparse.ArgumentParser(
@@ -174,6 +241,12 @@ def main():
         action="store_true",
         help="Check worktree documentation status"
     )
+    parser.add_argument(
+        "--conflict-strategy", "-c",
+        choices=["overwrite", "backup", "skip", "newer"],
+        default="overwrite",
+        help="Strategy for handling file conflicts (default: overwrite)"
+    )
 
     args = parser.parse_args()
 
@@ -185,7 +258,7 @@ def main():
         print("[ERROR] Could not find project root")
         sys.exit(1)
 
-    sync = DocumentationSync(project_root)
+    sync = DocumentationSync(project_root, args.conflict_strategy)
 
     if args.sync_from_base:
         success = sync.sync_from_inheritance_base()
