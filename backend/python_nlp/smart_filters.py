@@ -8,12 +8,21 @@ includes logic for generating filters based on email patterns.
 
 import json
 import logging
+import os
 import re
 import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
+
+from src.core.security import PathValidator
+
+# Define paths for data storage
+# Use the project's data directory for database files to avoid cluttering the root
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
 
 @dataclass
@@ -35,6 +44,7 @@ class EmailFilter:
         false_positive_rate: The calculated false positive rate for the filter.
         performance_metrics: A dictionary of detailed performance metrics.
     """
+
     filter_id: str
     name: str
     description: str
@@ -66,6 +76,7 @@ class FilterPerformance:
         false_positives: The count of false positive matches.
         false_negatives: The count of false negative matches.
     """
+
     filter_id: str
     accuracy: float
     precision: float
@@ -86,9 +97,25 @@ class SmartFilterManager:
     of email filters, using a SQLite database for persistence.
     """
 
-    def __init__(self, db_path: str = "smart_filters.db"):
-        """Initializes the SmartFilterManager."""
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        """
+        Initializes the SmartFilterManager.
+
+        Args:
+            db_path: Path to the SQLite database file. If None, uses the default
+                     path in the project's data directory. Relative paths are
+                     resolved relative to the project's data directory to prevent
+                     path traversal attacks and ensure consistent behavior.
+        """
+        if db_path is None:
+            db_path = DEFAULT_DB_PATH
+        elif not os.path.isabs(db_path):
+            # Secure path validation to prevent directory traversal
+            filename = PathValidator.sanitize_filename(os.path.basename(db_path))
+            db_path = os.path.join(DATA_DIR, filename)
+
+        # Validate the final path
+        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
@@ -111,16 +138,31 @@ class SmartFilterManager:
         if conn is not self.conn:
             conn.close()
 
-    def _db_execute(self, query: str, params: tuple = ()):
-        """Executes a write query (INSERT, UPDATE, DELETE) on the database."""
-        conn = self._get_db_connection()
-        try:
-            conn.execute(query, params)
-            conn.commit()
-        except sqlite3.Error as e:
-            self.logger.error(f"Database error on execute: {e}")
-        finally:
-            self._close_db_connection(conn)
+    def _db_execute(self, query: str, params: tuple = (), retries: int = 3):
+        """Execute a query (INSERT, UPDATE, DELETE) with retry logic for robustness."""
+        for attempt in range(retries):
+            conn = self._get_db_connection()
+            try:
+                conn.execute(query, params)
+                conn.commit()
+                return
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < retries - 1:
+                    self.logger.warning(f"Database locked, retrying ({attempt + 1}/{retries}): {e}")
+                    import time
+
+                    time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    self.logger.error(
+                        f"Database error after {retries} attempts: {e} with query: {query[:100]}"
+                    )
+                    raise
+            except sqlite3.Error as e:
+                self.logger.error(f"Database error: {e} with query: {query[:100]}")
+                raise
+            finally:
+                self._close_db_connection(conn)
 
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Executes a read query and fetches a single row."""
@@ -177,8 +219,18 @@ class SmartFilterManager:
     def _load_filter_templates(self) -> Dict[str, Dict[str, Any]]:
         """Loads a set of predefined filter templates."""
         return {
-            "high_priority_work": {"criteria": {"subject_keywords": ["urgent", "important"]}, "actions": {"mark_important": True}, "priority": 9, "description": "High priority work"},
-            "financial_documents": {"criteria": {"subject_keywords": ["invoice", "statement"]}, "actions": {"add_label": "Finance"}, "priority": 7, "description": "Financial documents"},
+            "high_priority_work": {
+                "criteria": {"subject_keywords": ["urgent", "important"]},
+                "actions": {"mark_important": True},
+                "priority": 9,
+                "description": "High priority work",
+            },
+            "financial_documents": {
+                "criteria": {"subject_keywords": ["invoice", "statement"]},
+                "actions": {"add_label": "Finance"},
+                "priority": 7,
+                "description": "Financial documents",
+            },
         }
 
     def _load_pruning_criteria(self) -> Dict[str, Any]:
@@ -252,13 +304,33 @@ class SmartFilterManager:
 
     def _create_filter_from_template(self, name: str, template: Dict[str, Any]) -> EmailFilter:
         """Creates an EmailFilter object from a template."""
-        return EmailFilter(f"template_{name}", name, template["description"], template["criteria"], template["actions"], template["priority"], 0.0, datetime.now(), datetime.now(), 0, 0.0, {})
+        return EmailFilter(
+            f"template_{name}",
+            name,
+            template["description"],
+            template["criteria"],
+            template["actions"],
+            template["priority"],
+            0.0,
+            datetime.now(),
+            datetime.now(),
+            0,
+            0.0,
+            {},
+        )
 
     def _create_custom_filters(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
         """Creates custom filters based on frequently observed patterns."""
         return []  # Simplified
 
-    def add_custom_filter(self, name: str, description: str, criteria: Dict[str, Any], actions: Dict[str, Any], priority: int) -> EmailFilter:
+    def add_custom_filter(
+        self,
+        name: str,
+        description: str,
+        criteria: Dict[str, Any],
+        actions: Dict[str, Any],
+        priority: int,
+    ) -> EmailFilter:
         """
         Adds a new user-defined filter to the system.
 
@@ -273,7 +345,20 @@ class SmartFilterManager:
             The newly created `EmailFilter` object.
         """
         filter_id = f"custom_{name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        new_filter = EmailFilter(filter_id, name, description, criteria, actions, priority, 0.0, datetime.now(), datetime.now(), 0, 0.0, {})
+        new_filter = EmailFilter(
+            filter_id,
+            name,
+            description,
+            criteria,
+            actions,
+            priority,
+            0.0,
+            datetime.now(),
+            datetime.now(),
+            0,
+            0.0,
+            {},
+        )
         self._save_filter(new_filter)
         self.logger.info(f"Custom filter '{name}' added with ID: {filter_id}")
         return new_filter
@@ -294,29 +379,61 @@ class SmartFilterManager:
     def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
-        if "from_patterns" in criteria and not any(re.search(p, email.get("senderEmail", ""), re.IGNORECASE) for p in criteria["from_patterns"]):
+        if "from_patterns" in criteria and not any(
+            re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
+            for p in criteria["from_patterns"]
+        ):
             return False
-        if "subject_keywords" in criteria and not any(k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]):
+        if "subject_keywords" in criteria and not any(
+            k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
+        ):
             return False
         return True
 
     def _save_filter(self, filter_obj: EmailFilter):
         """Saves a filter to the database."""
-        query = "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        query = (
+            "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        )
         params = (
-            filter_obj.filter_id, filter_obj.name, filter_obj.description,
-            json.dumps(filter_obj.criteria), json.dumps(filter_obj.actions),
-            filter_obj.priority, filter_obj.effectiveness_score,
-            filter_obj.created_date.isoformat(), filter_obj.last_used.isoformat(),
-            filter_obj.usage_count, filter_obj.false_positive_rate,
-            json.dumps(filter_obj.performance_metrics), True
+            filter_obj.filter_id,
+            filter_obj.name,
+            filter_obj.description,
+            json.dumps(filter_obj.criteria),
+            json.dumps(filter_obj.actions),
+            filter_obj.priority,
+            filter_obj.effectiveness_score,
+            filter_obj.created_date.isoformat(),
+            filter_obj.last_used.isoformat(),
+            filter_obj.usage_count,
+            filter_obj.false_positive_rate,
+            json.dumps(filter_obj.performance_metrics),
+            True,
         )
         self._db_execute(query, params)
 
     def get_active_filters_sorted(self) -> List[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
-        rows = self._db_fetchall("SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC")
-        return [EmailFilter(row["filter_id"], row["name"], row["description"], json.loads(row["criteria"]), json.loads(row["actions"]), row["priority"], row["effectiveness_score"], datetime.fromisoformat(row["created_date"]), datetime.fromisoformat(row["last_used"]), row["usage_count"], row["false_positive_rate"], json.loads(row["performance_metrics"])) for row in rows]
+        rows = self._db_fetchall(
+            "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
+        )
+        return [
+            EmailFilter(
+                row["filter_id"],
+                row["name"],
+                row["description"],
+                json.loads(row["criteria"]),
+                json.loads(row["actions"]),
+                row["priority"],
+                row["effectiveness_score"],
+                datetime.fromisoformat(row["created_date"]),
+                datetime.fromisoformat(row["last_used"]),
+                row["usage_count"],
+                row["false_positive_rate"],
+                json.loads(row["performance_metrics"]),
+            )
+            for row in rows
+        ]
 
     def apply_filters_to_email_data(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -342,7 +459,9 @@ def main():
     filters = manager.create_intelligent_filters(sample_emails)
     print(f"Created {len(filters)} filters.")
     if filters:
-        print(f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}")
+        print(
+            f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}"
+        )
 
 
 if __name__ == "__main__":

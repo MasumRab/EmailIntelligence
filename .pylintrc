@@ -2,10 +2,13 @@
 disable=
     C0111, # missing-docstring
     C0103, # invalid-name
+    C0301, # line-too-long
     C0303, # trailing-whitespace
-    C0330, # bad-continuation
+    C0327, # mixed-line-endings
     C1801, # len-as-condition
     W0511, # fixme
+    W1203, # logging-fstring-interpolation
+    R0902, # too-many-instance-attributes
     R0903, # too-few-public-methods
     R0913, # too-many-arguments
 
