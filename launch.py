@@ -620,7 +620,7 @@ def handle_setup(args, venv_path):
 
         # Setup Node.js dependencies
         setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
-        setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
+        setup_node_dependencies(ROOT_DIR / "server", "TypeScript Backend")
     logger.info("Setup complete.")
 
 def prepare_environment(args):
@@ -641,7 +641,7 @@ def start_services(args):
 
     if not args.frontend_only:
         start_backend(args.host, args.port, args.debug)
-        start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
+        start_node_service(ROOT_DIR / "server", "TypeScript Backend", 8001, api_url)
 
     if not args.api_only:
         start_gradio_ui(args.host, 7860, args.share, args.debug)
