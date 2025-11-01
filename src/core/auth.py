@@ -16,7 +16,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
 from .database import get_db
-from backend.python_backend.settings import settings
+from .settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission, SecurityLevel
