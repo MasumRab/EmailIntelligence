@@ -1,6 +1,8 @@
 from typing import List, Dict, Any
 from .data_source import DataSource
-from ..database import get_db, DatabaseManager
+from ..database import DatabaseManager, create_database_manager, DatabaseConfig
+from ..factory import get_data_source
+from ..data_source import DataSource as DataSourceProtocol
 
 class DatabaseDataSource(DataSource):
     """
@@ -12,7 +14,8 @@ class DatabaseDataSource(DataSource):
 
     @classmethod
     async def create(cls):
-        db_manager = await get_db()
+        config = DatabaseConfig()
+        db_manager = await create_database_manager(config)
         return cls(db_manager)
 
     async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
@@ -89,4 +92,17 @@ async def get_database_data_source() -> DatabaseDataSource:
     """
     Provides a singleton instance of the DatabaseDataSource.
     """
-    return await DatabaseDataSource.create()
+    # Use the factory approach instead of the old singleton
+    from ..factory import get_data_source
+    data_source = await get_data_source()
+    # If it's already a DatabaseDataSource, return it
+    if isinstance(data_source, DatabaseDataSource):
+        return data_source
+    # Otherwise, create a new DatabaseDataSource with the DatabaseManager
+    elif hasattr(data_source, '_db'):  # DatabaseManager instance
+        return DatabaseDataSource(data_source)
+    else:
+        # Create a new DatabaseDataSource with proper configuration
+        config = DatabaseConfig()
+        db_manager = await create_database_manager(config)
+        return DatabaseDataSource(db_manager)

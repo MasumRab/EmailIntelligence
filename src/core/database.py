@@ -1140,7 +1140,18 @@ async def get_db() -> DatabaseManager:
     """
     Provides a default singleton instance for backward compatibility.
     For new implementations, consider using create_database_manager with explicit configuration.
+    
+    WARNING: This function uses a global singleton pattern which is deprecated.
+    Please migrate to using DatabaseConfig and create_database_manager for new code.
     """
+    import warnings
+    warnings.warn(
+        "get_db() uses a global singleton pattern which is deprecated. "
+        "Please migrate to using DatabaseConfig and create_database_manager for new code.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    
     global _db_manager_instance
     if _db_manager_instance is None:
         async with _db_init_lock:
