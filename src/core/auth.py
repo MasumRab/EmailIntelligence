@@ -15,7 +15,8 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
-from .database import get_db
+from .database_dependencies import DatabaseDep
+from .database import DatabaseManager
 from .settings import settings
 
 # Import the security framework components
@@ -94,7 +95,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
+async def authenticate_user(username: str, password: str, db: DatabaseManager) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
     
@@ -117,7 +118,7 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
         return None
 
 
-async def create_user(username: str, password: str, db) -> bool:
+async def create_user(username: str, password: str, db: DatabaseManager) -> bool:
     """
     Create a new user in the database.
     
