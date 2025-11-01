@@ -5,13 +5,14 @@ This module contains comprehensive unit tests for the DataSource abstract base c
 and its implementations, ensuring proper interface compliance and functionality.
 """
 
-import pytest
+from typing import Any, Dict, List, Optional
 from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, List, Any, Optional
+
+import pytest
 
 from src.core.data_source import DataSource
-from src.core.notmuch_data_source import NotmuchDataSource
 from src.core.database import DatabaseManager
+from src.core.notmuch_data_source import NotmuchDataSource
 
 
 class TestDataSourceInterface:
@@ -26,18 +27,18 @@ class TestDataSourceInterface:
         """Test that all required abstract methods are defined."""
         # Check that these methods exist and are abstract
         required_methods = [
-            'create_email',
-            'get_email_by_id',
-            'get_all_categories',
-            'create_category',
-            'get_emails',
-            'update_email_by_message_id',
-            'get_email_by_message_id',
-            'get_all_emails',
-            'search_emails',
-            'get_emails_by_category',
-            'update_email',
-            'delete_email'
+            "create_email",
+            "get_email_by_id",
+            "get_all_categories",
+            "create_category",
+            "get_emails",
+            "update_email_by_message_id",
+            "get_email_by_message_id",
+            "get_all_emails",
+            "search_emails",
+            "get_emails_by_category",
+            "update_email",
+            "delete_email",
         ]
 
         for method_name in required_methods:
@@ -134,16 +135,16 @@ class TestNotmuchDataSource:
         """Test that NotmuchDataSource properly implements DataSource interface."""
         # All methods should exist and be callable
         methods_to_test = [
-            ('create_email', [{"test": "data"}]),
-            ('get_email_by_id', [1]),
-            ('get_all_categories', []),
-            ('create_category', [{"name": "test"}]),
-            ('get_emails', []),
-            ('get_all_emails', []),
-            ('search_emails', ["query"]),
-            ('get_emails_by_category', ["test"]),
-            ('update_email', [1, {"test": "update"}]),
-            ('delete_email', [1]),
+            ("create_email", [{"test": "data"}]),
+            ("get_email_by_id", [1]),
+            ("get_all_categories", []),
+            ("create_category", [{"name": "test"}]),
+            ("get_emails", []),
+            ("get_all_emails", []),
+            ("search_emails", ["query"]),
+            ("get_emails_by_category", ["test"]),
+            ("update_email", [1, {"test": "update"}]),
+            ("delete_email", [1]),
         ]
 
         for method_name, args in methods_to_test:
@@ -157,7 +158,13 @@ class TestNotmuchDataSource:
                 result = await method()
 
             # Result should be of expected type (None for single items, list for collections)
-            if method_name in ['get_all_categories', 'get_emails', 'get_all_emails', 'search_emails', 'get_emails_by_category']:
+            if method_name in [
+                "get_all_categories",
+                "get_emails",
+                "get_all_emails",
+                "search_emails",
+                "get_emails_by_category",
+            ]:
                 assert isinstance(result, list)
             else:
                 assert result is None or isinstance(result, dict)
@@ -182,15 +189,25 @@ class TestDatabaseManagerDataSource:
         """Test that DatabaseManager properly implements DataSource interface."""
         # Should have all required methods
         required_methods = [
-            'create_email', 'get_email_by_id', 'get_all_categories', 'create_category',
-            'get_emails', 'update_email_by_message_id', 'get_email_by_message_id',
-            'get_all_emails', 'search_emails', 'get_emails_by_category',
-            'update_email', 'delete_email'
+            "create_email",
+            "get_email_by_id",
+            "get_all_categories",
+            "create_category",
+            "get_emails",
+            "update_email_by_message_id",
+            "get_email_by_message_id",
+            "get_all_emails",
+            "search_emails",
+            "get_emails_by_category",
+            "update_email",
+            "delete_email",
         ]
 
         for method_name in required_methods:
             assert hasattr(mock_db_manager, method_name), f"Missing method: {method_name}"
-            assert callable(getattr(mock_db_manager, method_name)), f"Method {method_name} is not callable"
+            assert callable(
+                getattr(mock_db_manager, method_name)
+            ), f"Method {method_name} is not callable"
 
     @pytest.mark.asyncio
     async def test_database_manager_create_email(self, mock_db_manager):
@@ -230,10 +247,10 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_default(self, monkeypatch):
         """Test get_data_source with default configuration."""
-        from src.core.factory import get_data_source, _data_source_instance
-
         # Reset global instance
         import src.core.factory
+        from src.core.factory import _data_source_instance, get_data_source
+
         src.core.factory._data_source_instance = None
 
         # Mock environment variable
@@ -252,10 +269,10 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_notmuch(self, monkeypatch):
         """Test get_data_source with notmuch configuration."""
-        from src.core.factory import get_data_source, _data_source_instance
-
         # Reset global instance
         import src.core.factory
+        from src.core.factory import _data_source_instance, get_data_source
+
         src.core.factory._data_source_instance = None
 
         # Mock environment variable
@@ -267,10 +284,10 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_singleton(self, monkeypatch):
         """Test that get_data_source returns singleton instance."""
-        from src.core.factory import get_data_source, _data_source_instance
-
         # Reset global instance
         import src.core.factory
+        from src.core.factory import _data_source_instance, get_data_source
+
         src.core.factory._data_source_instance = None
 
         # Mock environment variable
@@ -299,13 +316,13 @@ class TestDataSourceIntegration:
 
         # Check a few key methods
         sig_create = inspect.signature(ds.create_email)
-        assert 'email_data' in sig_create.parameters
+        assert "email_data" in sig_create.parameters
 
         sig_get_emails = inspect.signature(ds.get_emails)
-        assert 'limit' in sig_get_emails.parameters
-        assert 'offset' in sig_get_emails.parameters
-        assert 'category_id' in sig_get_emails.parameters
-        assert 'is_unread' in sig_get_emails.parameters
+        assert "limit" in sig_get_emails.parameters
+        assert "offset" in sig_get_emails.parameters
+        assert "category_id" in sig_get_emails.parameters
+        assert "is_unread" in sig_get_emails.parameters
 
     @pytest.mark.asyncio
     async def test_datasource_polymorphism(self):
@@ -314,7 +331,7 @@ class TestDataSourceIntegration:
         notmuch_ds = NotmuchDataSource()
 
         # Both should implement the same interface
-        methods = ['create_email', 'get_email_by_id', 'get_all_emails', 'search_emails']
+        methods = ["create_email", "get_email_by_id", "get_all_emails", "search_emails"]
 
         for method_name in methods:
             assert hasattr(notmuch_ds, method_name)

@@ -73,8 +73,10 @@ class NotmuchDataSource(DataSource):
                         content = part.get_payload(decode=True).decode("utf-8", errors="ignore")
                         break
                 if not content:  # fallback to first part if no text/plain
-                    content = message.get_message_parts()[0].get_payload(decode=True).decode(
-                        "utf-8", errors="ignore"
+                    content = (
+                        message.get_message_parts()[0]
+                        .get_payload(decode=True)
+                        .decode("utf-8", errors="ignore")
                     )
                 email_data["body"] = content
             except Exception as e:

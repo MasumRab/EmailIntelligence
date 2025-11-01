@@ -1,16 +1,18 @@
+import json
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from fastapi.testclient import TestClient
-from src.main import create_app
+
 from src.core.factory import get_data_source
-from unittest.mock import AsyncMock, MagicMock
-import json
+from src.main import create_app
 
 # Mock data
 mock_emails = [
-    {'is_read': True, 'category': 'Work'},
-    {'is_read': False, 'category': 'Personal'},
-    {'is_read': True, 'category': 'Work'},
-    {'is_read': False, 'category': 'Uncategorized'},
+    {"is_read": True, "category": "Work"},
+    {"is_read": False, "category": "Personal"},
+    {"is_read": True, "category": "Work"},
+    {"is_read": False, "category": "Uncategorized"},
 ]
 
 mock_performance_log = [
@@ -23,18 +25,22 @@ mock_performance_log = [
 mock_data_source = MagicMock()
 mock_data_source.get_all_emails = AsyncMock(return_value=mock_emails)
 
+
 async def override_get_data_source():
     return mock_data_source
+
 
 # Create the app with the mocked dependency
 app = create_app()
 app.dependency_overrides[get_data_source] = override_get_data_source
 client = TestClient(app)
 
+
 @pytest.fixture(scope="module", autouse=True)
 def setup_and_teardown_mock_log():
     # Setup: create a mock performance log file
     import os
+
     log_file = "performance_metrics_log.jsonl"
     with open(log_file, "w") as f:
         for entry in mock_performance_log:
@@ -46,6 +52,7 @@ def setup_and_teardown_mock_log():
 
     # Teardown: remove the mock log file
     os.remove(log_file)
+
 
 def test_get_dashboard_stats():
     response = client.get("/api/dashboard/stats")

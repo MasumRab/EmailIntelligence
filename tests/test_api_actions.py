@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from backend.python_backend.ai_engine import AIAnalysisResult
 
 

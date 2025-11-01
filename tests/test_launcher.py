@@ -22,6 +22,8 @@ from launch import (
     start_backend,
     start_gradio_ui,
 )
+
+
 @patch("launch.logger")
 def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
     """
@@ -61,9 +63,11 @@ def test_python_interpreter_discovery_avoids_substring_match(
 
     def test_compatible_version(self):
         """Test that compatible Python versions pass."""
-        with patch("launch.sys.version_info", (3, 12, 0)), \
-             patch("launch.sys.version", "3.12.0"), \
-             patch("launch.logger") as mock_logger:
+        with (
+            patch("launch.sys.version_info", (3, 12, 0)),
+            patch("launch.sys.version", "3.12.0"),
+            patch("launch.logger") as mock_logger,
+        ):
             check_python_version()
             mock_logger.info.assert_called_with("Python version 3.12.0 is compatible.")
 
@@ -103,7 +107,6 @@ class TestVirtualEnvironment:
 
 class TestDependencyManagement:
     """Test dependency installation and management."""
-
 
     @patch("launch.subprocess.run")
     def test_setup_dependencies_success(self, mock_subprocess_run):
@@ -165,7 +168,7 @@ class TestLauncherIntegration:
     def test_full_setup_workflow(self, mock_exists, mock_which, mock_run):
         """Test complete setup workflow."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-        pass # In a real scenario, you'd verify the final state
+        pass  # In a real scenario, you'd verify the final state
 
     def test_version_compatibility_matrix(self):
         """Test version compatibility for different Python versions."""

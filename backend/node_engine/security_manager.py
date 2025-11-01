@@ -1,43 +1,45 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 
 class SecurityManager:
     """
     Manages security and authorization for workflow operations.
     """
+
     def __init__(self, user_roles: Dict[str, List[str]]):
         self.user_roles = user_roles
 
     def has_permission(self, user: Any, action: str, resource: Any) -> bool:
         """
-        Checks if a user has permission to perform an action on a resource.
+            Checks if a user has permission to perform an action on a resource.
 
-        Args:
-            user: The user object, expected to have an 'id' attribute.
-            action: The action being performed (e.g., "execute", "edit", "view").
-            resource: The resource being acted upon (e.g., a Workflow object).
+            Args:
+                user: The user object, expected to have an 'id' attribute.
+                action: The action being performed (e.g., "execute", "edit", "view").
+                resource: The resource being acted upon (e.g., a Workflow object).
 
-    # TODO(P1, 3h): Implement comprehensive security policies with RBAC support
-    # Pseudo code for RBAC security policies:
-    # - Create Role-Based Access Control system
-    # - Define roles: admin, user, guest with different permissions
-    # - Implement permission checking for node execution
-    # - Add user context to security validation
-    # - Support role hierarchies and permission inheritance
+        # TODO(P1, 3h): Implement comprehensive security policies with RBAC support
+        # Pseudo code for RBAC security policies:
+        # - Create Role-Based Access Control system
+        # - Define roles: admin, user, guest with different permissions
+        # - Implement permission checking for node execution
+        # - Add user context to security validation
+        # - Support role hierarchies and permission inheritance
 
-    # TODO(P1, 4h): Add rate limiting for different user roles and node types
-    # Pseudo code for rate limiting:
-    # - Implement token bucket or sliding window algorithms
-    # - Different limits for different user roles (admin: 1000/min, user: 100/min)
-    # - Per-node-type rate limiting (expensive nodes: lower limits)
-    # - Add rate limit headers to responses
-    # - Implement rate limit bypass for trusted operations
+        # TODO(P1, 4h): Add rate limiting for different user roles and node types
+        # Pseudo code for rate limiting:
+        # - Implement token bucket or sliding window algorithms
+        # - Different limits for different user roles (admin: 1000/min, user: 100/min)
+        # - Per-node-type rate limiting (expensive nodes: lower limits)
+        # - Add rate limit headers to responses
+        # - Implement rate limit bypass for trusted operations
 
-        Returns:
-            True if the user has permission, False otherwise.
+            Returns:
+                True if the user has permission, False otherwise.
         """
-        user_id = getattr(user, 'id', None)
+        user_id = getattr(user, "id", None)
         if not user_id:
-            return False # User must have an ID
+            return False  # User must have an ID
 
         roles = self.user_roles.get(user_id, ["guest"])
 
@@ -46,40 +48,43 @@ class SecurityManager:
             return True
 
         # Specific resource-based permissions
-        if hasattr(resource, '__tablename__') and resource.__tablename__ == 'workflows': # Assuming SQLAlchemy model
+        if (
+            hasattr(resource, "__tablename__") and resource.__tablename__ == "workflows"
+        ):  # Assuming SQLAlchemy model
             # For workflow execution
             if action == "execute":
                 # Only allow execution of workflows marked as 'safe' for non-admins
                 # and if the user has 'editor' role or is the owner
-                is_owner = getattr(resource, 'owner_id', None) == user_id
-                return (getattr(resource, 'is_safe', False) and "editor" in roles) or is_owner
-            
+                is_owner = getattr(resource, "owner_id", None) == user_id
+                return (getattr(resource, "is_safe", False) and "editor" in roles) or is_owner
+
             # For workflow editing
             if action == "edit":
                 # Only owner or admin can edit
-                return getattr(resource, 'owner_id', None) == user_id or "editor" in roles
-            
+                return getattr(resource, "owner_id", None) == user_id or "editor" in roles
+
             # For viewing workflows
             if action == "view":
-                is_owner = getattr(resource, 'owner_id', None) == user_id
-                is_public = getattr(resource, 'is_public', False)
-                
+                is_owner = getattr(resource, "owner_id", None) == user_id
+                is_public = getattr(resource, "is_public", False)
+
                 # Admins and editors can view any workflow
                 if "admin" in roles or "editor" in roles:
                     return True
-                
+
                 # Owners can view their own workflows
                 if is_owner:
                     return True
-                
+
                 # Any authenticated user can view a public workflow
                 if "user" in roles and is_public:
                     return True
-                
-                return False # Default to no permission
+
+                return False  # Default to no permission
 
         # Default to no permission if no specific rule matches
         return False
+
     # TODO(P1, 5h): Implement comprehensive node validation with static analysis of config parameters
     # Pseudo code for static analysis validation:
     # - Parse config parameters for potentially dangerous patterns
@@ -253,8 +258,8 @@ class ExecutionSandbox:
             if port_name in inputs:
                 if not isinstance(inputs[port_name], expected_type):
                     self.logger.error(
-                    f"Input validation failed: {port_name} expected "
-                    f"{expected_type}, got {type(inputs[port_name])}"
+                        f"Input validation failed: {port_name} expected "
+                        f"{expected_type}, got {type(inputs[port_name])}"
                     )
                     return False
         return True
@@ -287,8 +292,8 @@ class AuditLogger:
     def log_workflow_end(self, workflow_id: str, status: str, duration: float, user_id: str = None):
         """Log workflow execution end."""
         self.logger.info(
-        f"WORKFLOW_END: id={workflow_id}, status={status}, "
-        f"duration={duration}s, user={user_id}"
+            f"WORKFLOW_END: id={workflow_id}, status={status}, "
+            f"duration={duration}s, user={user_id}"
         )
 
     def log_node_execution(
@@ -296,8 +301,8 @@ class AuditLogger:
     ):
         """Log node execution."""
         self.logger.info(
-            f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={"
-                         node_name}, status={status}, duration={duration}s"
+            f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={node_name}, "
+            f"status={status}, duration={duration}s"
         )
 
     def log_security_event(self, event_type: str, details: Dict[str, Any]):
@@ -329,8 +334,8 @@ class ResourceManager:
         }
 
         self.logger.info(
-            f"Resources acquired for workflow {workflow_id}. Current: {"
-                         self.current_workflows}/{self.max_concurrent_workflows}"
+            f"Resources acquired for workflow {workflow_id}. Current: "
+            f"{self.current_workflows}/{self.max_concurrent_workflows}"
         )
         return True
 
@@ -343,8 +348,8 @@ class ResourceManager:
             self.current_workflows -= 1
 
         self.logger.info(
-            f"Resources released for workflow {workflow_id}. Current: {"
-                         self.current_workflows}/{self.max_concurrent_workflows}"
+            f"Resources released for workflow {workflow_id}. Current: "
+            f"{self.current_workflows}/{self.max_concurrent_workflows}"
         )
 
     async def get_next_queued_workflow(self) -> Optional[str]:

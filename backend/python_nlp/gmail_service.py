@@ -332,7 +332,9 @@ class GmailAIService:
             failed_operations = self.stats.get("failed_sync_operations", 0)
 
             # Calculate success rate
-            success_rate = (successful_operations / total_operations * 100) if total_operations > 0 else 0
+            success_rate = (
+                (successful_operations / total_operations * 100) if total_operations > 0 else 0
+            )
 
             # Calculate average sync time
             total_sync_time = self.stats.get("total_sync_time_seconds", 0)
@@ -344,7 +346,9 @@ class GmailAIService:
 
             # Get resource usage
             emails_processed = self.stats.get("emails_processed", 0)
-            data_processed_mb = self.stats.get("data_processed_bytes", 0) / (1024 * 1024)  # Convert to MB
+            data_processed_mb = self.stats.get("data_processed_bytes", 0) / (
+                1024 * 1024
+            )  # Convert to MB
 
             # Build comprehensive performance metrics
             performance_metrics = {
@@ -368,17 +372,21 @@ class GmailAIService:
                     "peak_sync_duration_seconds": self.stats.get("peak_sync_duration", 0),
                 },
                 "error_analysis": {
-                    "error_rate_percent": round((failed_operations / max(total_operations, 1)) * 100, 2),
+                    "error_rate_percent": round(
+                        (failed_operations / max(total_operations, 1)) * 100, 2
+                    ),
                     "common_error_types": self.stats.get("error_types", {}),
                     "last_error_timestamp": self.stats.get("last_error_timestamp"),
                 },
                 "resource_usage": {
                     "bandwidth_used_mb": round(data_processed_mb, 2),
-                    "processing_efficiency": round(emails_processed / max(total_sync_time, 1), 2),  # emails/second
+                    "processing_efficiency": round(
+                        emails_processed / max(total_sync_time, 1), 2
+                    ),  # emails/second
                     "memory_peak_usage_mb": self.stats.get("memory_peak_mb", 0),
                 },
                 "timestamp": current_time.isoformat(),
-                "status": "active" if self.stats.get("service_active", True) else "inactive"
+                "status": "active" if self.stats.get("service_active", True) else "inactive",
             }
 
             return performance_metrics
@@ -388,7 +396,7 @@ class GmailAIService:
             return {
                 "error": f"Failed to retrieve performance metrics: {str(e)}",
                 "timestamp": datetime.now().isoformat(),
-                "status": "error"
+                "status": "error",
             }
 
     async def execute_smart_retrieval(
@@ -425,6 +433,7 @@ class GmailAIService:
         """
         # Implementation would go here
         return []
+
 
 async def main():
     """

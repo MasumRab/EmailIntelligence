@@ -5,9 +5,10 @@ This module contains comprehensive tests for the NotmuchDataSource class,
 which provides a mock implementation of the DataSource interface for Notmuch.
 """
 
+from typing import Any, Dict, List, Optional
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-from typing import Dict, List, Any, Optional
 
 from src.core.notmuch_data_source import NotmuchDataSource
 
@@ -43,7 +44,7 @@ class TestNotmuchDataSourceEmailOperations:
         email_data = {
             "subject": "Test Email",
             "content": "This is test content",
-            "sender": "test@example.com"
+            "sender": "test@example.com",
         }
 
         result = await data_source.create_email(email_data)
@@ -159,12 +160,7 @@ class TestNotmuchDataSourceSearchOperations:
     @pytest.mark.asyncio
     async def test_get_emails_with_filters(self, data_source, capsys):
         """Test get_emails method with various filters."""
-        result = await data_source.get_emails(
-            limit=20,
-            offset=5,
-            category_id=1,
-            is_unread=True
-        )
+        result = await data_source.get_emails(limit=20, offset=5, category_id=1, is_unread=True)
 
         assert isinstance(result, list)
         assert len(result) == 0
@@ -198,7 +194,7 @@ class TestNotmuchDataSourceCategoryOperations:
         category_data = {
             "name": "Important",
             "color": "#FF0000",
-            "description": "High priority emails"
+            "description": "High priority emails",
         }
 
         result = await data_source.create_category(category_data)
@@ -269,7 +265,7 @@ class TestNotmuchDataSourceIntegration:
             "subject": "Meeting Tomorrow",
             "content": "Don't forget our meeting at 2 PM",
             "sender": "boss@company.com",
-            "message_id": "<meeting123@company.com>"
+            "message_id": "<meeting123@company.com>",
         }
 
         result = await data_source.create_email(email_data)
@@ -299,7 +295,7 @@ class TestNotmuchDataSourceIntegration:
             data_source.get_all_emails(),
             data_source.get_all_categories(),
             data_source.search_emails("test"),
-            data_source.get_emails(limit=10)
+            data_source.get_emails(limit=10),
         ]
 
         # Execute all concurrently
@@ -377,11 +373,13 @@ class TestNotmuchDataSourcePerformance:
         # Create many concurrent operations
         tasks = []
         for i in range(50):
-            tasks.extend([
-                data_source.get_all_emails(),
-                data_source.search_emails(f"bulk_test_{i}"),
-                data_source.get_email_by_id(i)
-            ])
+            tasks.extend(
+                [
+                    data_source.get_all_emails(),
+                    data_source.search_emails(f"bulk_test_{i}"),
+                    data_source.get_email_by_id(i),
+                ]
+            )
 
         start_time = asyncio.get_event_loop().time()
         results = await asyncio.gather(*tasks)
@@ -413,7 +411,7 @@ class TestNotmuchDataSourceScientific:
             "conference presentation",
             "peer review process",
             "data sharing agreement",
-            "research methodology"
+            "research methodology",
         ]
 
         for query in scientific_queries:
@@ -449,7 +447,7 @@ class TestNotmuchDataSourceScientific:
             "professor@university.edu",
             "researcher@lab.org",
             "colleague@institute.com",
-            "editor@journal.com"
+            "editor@journal.com",
         ]
 
         # In a real implementation, these would be used for filtering
@@ -488,7 +486,7 @@ class TestNotmuchDataSourceScientific:
             "tags": ["research", "analysis", "urgent"],
             "attachments": ["results.pdf", "data.csv"],
             "thread_id": "<thread456@university.edu>",
-            "in_reply_to": "<original789@university.edu>"
+            "in_reply_to": "<original789@university.edu>",
         }
 
         # Create email with rich metadata

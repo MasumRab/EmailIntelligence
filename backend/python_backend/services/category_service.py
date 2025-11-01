@@ -6,9 +6,10 @@ Category service for the Email Intelligence Platform
 Handles all category-related business logic
 """
 
-from typing import List, Optional, Dict, Any
-from backend.python_backend.services.base_service import BaseService, BaseResponse
+from typing import Any, Dict, List, Optional
+
 from backend.python_backend.database import FIELD_ID
+from backend.python_backend.services.base_service import BaseResponse, BaseService
 
 
 class CategoryService(BaseService):
@@ -77,9 +78,7 @@ class CategoryService(BaseService):
             db = await self.get_db()
             deleted = await db.delete_category(category_id)
             if deleted:
-                return BaseResponse(
-                    success=True, message="Category deleted successfully"
-                )
+                return BaseResponse(success=True, message="Category deleted successfully")
             else:
                 return BaseResponse(
                     success=False,
