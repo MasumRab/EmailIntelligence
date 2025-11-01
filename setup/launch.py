@@ -27,6 +27,8 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
+# Add project root to sys.path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from deployment.test_stages import test_stages
 
 try:
@@ -47,7 +49,7 @@ logger = logging.getLogger("launcher")
 def find_project_root() -> Path:
     """Find the project root directory by looking for key files."""
     current = Path(__file__).resolve().parent
-    if (current / "pyproject.toml").exists():
+    if (current / "pyproject.toml").exists() and current.name != "setup":
         return current
     for parent in current.parents:
         if (parent / "pyproject.toml").exists():
