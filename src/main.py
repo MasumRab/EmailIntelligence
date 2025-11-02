@@ -559,6 +559,12 @@ def create_app():
         title="Email Intelligence Platform",
         description="A modular and extensible platform for email processing and analysis.",
         version="3.0.0",
+        openapi_tags=[
+            {
+                "name": "Dashboard Widgets",
+                "description": "Endpoints for managing and rendering dashboard widgets.",
+            },
+        ],
     )
 
     # Add CORS middleware

@@ -15,11 +15,12 @@ from .dependencies import get_email_service
 from .services.email_service import EmailService
 from src.core.auth import get_current_active_user
 from src.core.job_queue import get_job_queue, JobResult
+import warnings
 
-router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+router = APIRouter(prefix="/api/dashboard", tags=["dashboard"], deprecated=True)
 
 
-@router.get("/stats", response_model=Dict[str, Any])
+@router.get("/stats", response_model=Dict[str, Any], deprecated=True)
 async def get_dashboard_stats(
     email_service: EmailService = Depends(get_email_service),
     current_user: str = Depends(get_current_active_user)
@@ -31,6 +32,11 @@ async def get_dashboard_stats(
     Returns:
         DashboardStats: A model containing various dashboard statistics
     """
+    warnings.warn(
+        "This endpoint is deprecated and will be removed in a future version. "
+        "Please use the new consolidated dashboard endpoint at /api/dashboard/stats.",
+        DeprecationWarning,
+    )
     try:
         # Get total emails count
         total_emails = await email_service.get_total_emails_count()
