@@ -20,6 +20,26 @@
 - Number of resolved conflicts favoring scientific branch: [TO BE DETERMINED]
 - Number of resolved conflicts favoring feature branch: [TO BE DETERMINED]
 
+## Conflict Resolution Progress:
+- Conflicts resolved favoring feature branch: [TO BE DETERMINED]
+- Conflicts resolved favoring scientific branch: [TO BE DETERMINED]
+- Conflicts resolved with hybrid approach: [TO BE DETERMINED]
+- Pending conflicts: [TO BE DETERMINED]
+
+## Conflict Resolution Priorities:
+1. **Maximize conflict reduction** while minimizing changes to feature branch logic
+2. **Preserve import error fixes and security improvements** over general architectural changes
+3. **Favor solutions that maintain performance and security** of the import system
+4. **Use hybrid approaches** that incorporate improvements from both branches when possible
+5. **Document reasons** for each conflict resolution decision to maintain knowledge
+
+## Commit Analysis and Cherry-picking Strategy:
+1. **Analyze commit differences** between import-error-corrections and scientific branches
+2. **Identify selective cherry-picking opportunities** for specific improvements
+3. **Avoid cherry-picking commits** that reintroduce import errors or security vulnerabilities
+4. **Prioritize stable improvements** that don't conflict with import error fixes
+5. **Test each cherry-picked commit** to ensure it doesn't break existing functionality
+
 ## Description
 Systematically align feature branch `fix/import-error-corrections` with the scientific branch based on the established approach of bringing feature branches up to date with the comprehensive improvements in the scientific branch. This follows the documented strategy where the scientific branch contains the most advanced architectural improvements.
 
