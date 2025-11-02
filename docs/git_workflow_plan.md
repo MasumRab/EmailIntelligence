@@ -33,14 +33,14 @@ git diff
 #### If on Main Branch
 ```bash
 # Create a new feature branch for the documentation changes
-git checkout -b feature/workflow-documentation-analysis
+git checkout -b docs/workflow-documentation-analysis
 
 # Add and commit the new documentation files
 git add docs/workflow_system_analysis.md docs/project_structure_comparison.md docs/workflow_implementation_plan.md
 git commit -m "Add workflow system analysis, structure comparison, and implementation plan"
 
 # Push the new branch
-git push -u origin feature/workflow-documentation-analysis
+git push -u origin docs/workflow-documentation-analysis
 
 # Then create a pull request to merge into main
 ```
@@ -119,7 +119,7 @@ git cherry-pick <commit-hash>
 
 ### 1. Branch Strategy
 - Keep documentation changes in a separate branch from code feature changes where possible
-- Use descriptive branch names: `feature/workflow-documentation-analysis`
+- Use descriptive branch names: `docs/workflow-documentation-analysis`
 - Regularly sync with main branch to avoid conflicts
 
 ### 2. Commit Strategy
@@ -142,14 +142,14 @@ When conflicts occur during merge/rebase:
 
 ### Step 1: Create Documentation Branch
 ```bash
-git checkout -b feature/workflow-documentation-update
+git checkout -b docs/workflow-documentation-update
 git add docs/workflow_system_analysis.md docs/project_structure_comparison.md docs/workflow_implementation_plan.md
 git commit -m "Add comprehensive workflow system documentation based on analysis"
 ```
 
 ### Step 2: Push and Create PR
 ```bash
-git push -u origin feature/workflow-documentation-update
+git push -u origin docs/workflow-documentation-update
 ```
 
 ### Step 3: Review and Merge

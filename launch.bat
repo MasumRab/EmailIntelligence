@@ -1,15 +1,13 @@
 @echo off
 REM EmailIntelligence Launcher for Windows
-REM Enhanced launcher with path resolution, conda support, and error handling
-
-setlocal enabledelayedexpansion
+REM This script forwards to the actual launch.bat in the setup subtree
+REM It maintains backward compatibility for references to launch.bat in the root directory
 
 REM Get the directory where this batch file is located
 set "SCRIPT_DIR=%~dp0"
-set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
 
-REM Change to the script directory to ensure consistent execution
-cd /d "%SCRIPT_DIR%"
+REM Execute the actual launch.bat in the setup subtree with all arguments
+call "%SCRIPT_DIR%setup\launch.bat" %*
 
 REM Check if python is available
 where python >nul 2>nul
