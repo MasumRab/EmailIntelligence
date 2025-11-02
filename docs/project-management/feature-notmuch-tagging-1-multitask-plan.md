@@ -117,25 +117,41 @@ This multitask plan outlines the comprehensive approach for aligning the feature
 
 ## Priority Tiers for Integration
 
-### Tier 1: Critical - MUST PRESERVE (No Exceptions)
+### Tier 1: Critical - MAXIMUM CONFLICT REDUCTION, ZERO FEATURE CHANGES
 - AI-integrated email processing (sentiment, topic, intent, urgency analysis)
 - Asynchronous analysis architecture using `asyncio.create_task`
 - Tag management and re-analysis triggering (`update_tags_for_message` method)
 - Smart filtering integration during email processing
 - Event-driven UI updates and real-time refresh
 
-### Tier 2: Important - PRESERVE WITH MINIMAL CHANGES
+**Conflict Resolution Approach**:
+- Preserve feature branch implementation as primary
+- Adapt scientific branch code to match feature branch patterns
+- Maximize conflict reduction by minimizing scientific branch modifications
+- Zero tolerance for feature functionality changes
+
+### Tier 2: Important - CONFLICT REDUCTION FOCUSED, MINIMAL FEATURE CHANGES
 - UI components for interactive tag management
 - Notmuch database connection patterns
 - Search functionality with advanced query syntax
 - Data abstraction layer integration
 
-### Tier 3: Enhancement - SAFE TO INTEGRATE
+**Conflict Resolution Approach**:
+- Prioritize scientific branch adaptation over feature branch changes
+- Use extension patterns rather than replacement
+- Maintain all user workflows without disruption
+
+### Tier 3: Enhancement - OPTIMAL CONFLICT REDUCTION STRATEGY
 - Performance optimizations that don't change workflows
 - Error handling improvements
 - Logging enhancements
 - Utility functions that extend rather than replace
 - Documentation improvements
+
+**Conflict Resolution Approach**:
+- Focus on approaches that improve both branches
+- Prioritize solutions that reduce future conflicts
+- Maintain compatibility with existing feature branch logic
 
 ## Dependencies
 
