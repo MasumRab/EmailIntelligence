@@ -135,23 +135,39 @@ This document outlines the specific integration strategy for merging scientific 
 
 ## Conflict Resolution Protocol
 
+### Primary Principle: Maximize Conflict Reduction, Minimize Feature Changes
+All conflict resolution efforts prioritize approaches that:
+1. **Reduce overall conflicts** between branches
+2. **Minimize changes** to feature branch logic and functionality
+3. **Preserve existing business logic** with zero regression
+4. **Maintain user workflows** without disruption
+
 ### High-Risk Conflicts (Tier 1 Components)
-1. **Immediate Halt**: Stop integration if Tier 1 component is threatened
-2. **Rollback**: Revert any changes affecting Tier 1 components
-3. **Analysis**: Detailed analysis of conflict impact
-4. **Alternative Approach**: Develop alternative integration strategy
-5. **Approval**: Senior developer approval required before proceeding
+1. **Conflict Analysis**: Identify minimal change approach to resolve conflict
+2. **Feature Preservation**: Prioritize preserving feature branch implementation
+3. **Scientific Branch Adaptation**: Modify scientific branch code to match feature branch patterns
+4. **Selective Integration**: Only integrate non-conflicting improvements
+5. **Documentation**: Record all conflict resolution decisions
 
 ### Medium-Risk Conflicts (Tier 2 Components)
-1. **Assessment**: Evaluate impact on business logic workflows
-2. **Preservation**: Implement changes that preserve existing workflows
-3. **Testing**: Immediate testing of affected components
-4. **Documentation**: Record preservation decisions
+1. **Compatibility Focus**: Adapt scientific branch changes to work with existing patterns
+2. **Extension Over Replacement**: Extend rather than replace existing functionality
+3. **Backward Compatibility**: Ensure existing workflows continue to function
+4. **Performance Preservation**: Maintain current performance characteristics
 
 ### Low-Risk Conflicts (Tier 3 Components)
-1. **Integration**: Proceed with standard merge process
-2. **Review**: Code review for quality and compatibility
-3. **Testing**: Standard testing procedures
+1. **Optimal Integration**: Choose approach that reduces future conflicts
+2. **Enhancement Focus**: Prioritize improvements that enhance rather than change
+3. **Standard Practices**: Apply industry best practices where beneficial
+4. **Future Compatibility**: Ensure changes improve long-term maintainability
+
+### Conflict Resolution Hierarchy
+When resolving conflicts, follow this priority order:
+
+1. **Preserve Feature Branch Logic**: Keep feature branch implementation as primary
+2. **Adapt Scientific Branch**: Modify scientific branch code to work with feature branch
+3. **Selective Enhancement**: Integrate only non-conflicting improvements
+4. **Documentation**: Record all decisions for future reference
 
 ## Verification Process
 
