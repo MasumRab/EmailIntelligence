@@ -182,25 +182,23 @@ def test_job_progress():
         
         # Get initial progress
         progress = manager.get_job_progress(job_id)
-        assert progress['total_segments'] == 3, "Should have 3 total segments"
-        assert progress['completed_segments'] == 0, "Should have 0 completed segments"
+        assert progress['total_units'] == 3, "Should have 3 total units"
+        assert progress['completed_units'] == 0, "Should have 0 completed units"
         assert progress['progress_percentage'] == 0.0, "Progress should be 0%"
-        
+
         # Start the job
-        manager.start_translation_job(job_id, ["test-agent"])
-        
-        # Update one segment
+        manager.start_job_processing(job_id)
+
+        # Update one unit
         job = manager.get_translation_job(job_id)
         if job and job.translation_units:
-            success = manager.translate_segment(
-                job_id=job_id,
+            success = manager.complete_translation_unit(
                 unit_id=job.translation_units[0].unit_id,
-                agent_id="test-agent",
                 translated_text="Hola",
                 quality_score=0.8
             )
-            assert success, "Should update segment"
-        
+            assert success, "Should update unit"
+
         # Get updated progress
         updated_progress = manager.get_job_progress(job_id)
         assert updated_progress['completed_segments'] == 1, "Should have 1 completed segment"
