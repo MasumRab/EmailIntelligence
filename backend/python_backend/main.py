@@ -377,7 +377,7 @@ async def get_error_stats():
 
 
 if __name__ == "__main__":
-import uvicorn
+    import uvicorn
 
 port = int(os.getenv("PORT", 8000))
 env = os.getenv("NODE_ENV", "development")
