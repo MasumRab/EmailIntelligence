@@ -20,6 +20,19 @@
 - Number of resolved conflicts favoring scientific branch: [TO BE DETERMINED]
 - Number of resolved conflicts favoring feature branch: [TO BE DETERMINED]
 
+## Conflict Resolution Progress:
+- Conflicts resolved favoring feature branch: [TO BE DETERMINED]
+- Conflicts resolved favoring scientific branch: [TO BE DETERMINED]
+- Conflicts resolved with hybrid approach: [TO BE DETERMINED]
+- Pending conflicts: [TO BE DETERMINED]
+
+## Conflict Resolution Priorities:
+1. **Maximize conflict reduction** while minimizing changes to feature branch logic
+2. **Preserve setup and code quality improvements** over general architectural changes
+3. **Favor solutions that maintain performance and security** of the setup system
+4. **Use hybrid approaches** that incorporate improvements from both branches when possible
+5. **Document reasons** for each conflict resolution decision to maintain knowledge
+
 ## Description
 Systematically align feature branch `feature/merge-setup-improvements` with the scientific branch based on the established approach of bringing feature branches up to date with the comprehensive improvements in the scientific branch. This follows the documented strategy where the scientific branch contains the most advanced architectural improvements.
 
