@@ -369,7 +369,9 @@ class DatabaseManager:
         await self._save_data(DATA_TYPE_CATEGORIES)
         return category_record
 
-    async def update_category(self, category_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def update_category(
+        self, category_id: int, update_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Update a category by its ID."""
         if category_id not in self.categories_by_id:
             logger.warning(f"Category with {FIELD_ID} {category_id} not found for update.")
@@ -377,7 +379,7 @@ class DatabaseManager:
 
         category_to_update = self.categories_by_id[category_id]
         changed_fields = False
-        
+
         # Update allowed fields
         for key, value in update_data.items():
             # Skip ID field as it shouldn't be changed
@@ -397,7 +399,7 @@ class DatabaseManager:
             category_name_lower = category_to_update[FIELD_NAME].lower()
             self.categories_by_name[category_name_lower] = category_to_update
             await self._save_data(DATA_TYPE_CATEGORIES)
-            
+
         return category_to_update
 
     async def delete_category(self, category_id: int) -> bool:
@@ -409,15 +411,17 @@ class DatabaseManager:
         # Remove from all indexes
         category_to_delete = self.categories_by_id[category_id]
         category_name_lower = category_to_delete[FIELD_NAME].lower()
-        
+
         # Remove from data list
-        self.categories_data = [cat for cat in self.categories_data if cat.get(FIELD_ID) != category_id]
-        
+        self.categories_data = [
+            cat for cat in self.categories_data if cat.get(FIELD_ID) != category_id
+        ]
+
         # Remove from indexes
         self.categories_by_id.pop(category_id, None)
         self.categories_by_name.pop(category_name_lower, None)
         self.category_counts.pop(category_id, None)
-        
+
         # Save the updated data
         await self._save_data(DATA_TYPE_CATEGORIES)
         return True
@@ -465,9 +469,7 @@ class DatabaseManager:
             )
         paginated_emails = filtered_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
-        logger.info(
-            f"Email retrieval completed. Found {len(result_emails)} emails."
-        )
+        logger.info(f"Email retrieval completed. Found {len(result_emails)} emails.")
         return result_emails
 
     async def update_email_by_message_id(

@@ -9,23 +9,27 @@ Unified Python backend with optimized performance and integrated NLP
 import json
 import logging
 import os
-from datetime import datetime
+import threading
+import time
+import uuid
+from collections import defaultdict
+from datetime import datetime, timedelta
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
-import uuid
-import time
 
-from ..plugins.plugin_manager import plugin_manager
 from backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from backend.python_nlp.smart_filters import SmartFilterManager
+from src.core.auth import authenticate_user
 
+from ..plugins.plugin_manager import plugin_manager
 from . import (
     action_routes,
     ai_routes,
@@ -34,27 +38,20 @@ from . import (
     email_routes,
     filter_routes,
     gmail_routes,
-    training_routes,
-    workflow_routes,
     model_routes,
     performance_routes,
+    training_routes,
+    workflow_routes,
 )
-from .auth import create_access_token, get_current_user, TokenData
-from src.core.auth import authenticate_user
-from .settings import settings
-from fastapi.security import HTTPBearer
-from fastapi import Depends, HTTPException, status
-from datetime import timedelta
 from .ai_engine import AdvancedAIEngine
+from .auth import TokenData, create_access_token, get_current_user
+from .database import db_manager
 from .exceptions import AppException
 
 # Import new components
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
-from collections import defaultdict
-import threading
-from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -252,9 +249,10 @@ filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
+from .routes.v1.category_routes import router as category_router_v1
+
 # Include versioned API routers
 from .routes.v1.email_routes import router as email_router_v1
-from .routes.v1.category_routes import router as category_router_v1
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])

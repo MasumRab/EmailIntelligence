@@ -216,6 +216,8 @@ class DefaultWorkflow(BaseWorkflow):
             }
         )
         return processed_data
+
+
 class FileBasedWorkflow(BaseWorkflow):
     """A generic workflow configured by a JSON file."""
 
