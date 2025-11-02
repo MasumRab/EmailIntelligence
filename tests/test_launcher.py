@@ -116,6 +116,7 @@ class TestDependencyManagement:
         with patch("launch.logger") as mock_logger:
             setup_dependencies(venv_path)
             mock_logger.info.assert_any_call("Installing project dependencies with uv...")
+        mock_subprocess_run.assert_called_once()
 
     @patch("launch.subprocess.run")
     def test_download_nltk_success(self, mock_subprocess_run):
