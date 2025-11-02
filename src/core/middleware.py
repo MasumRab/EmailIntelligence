@@ -170,7 +170,7 @@ class SecurityMiddleware:
                         proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
                     ):
                         return real_ip
-                except:
+                except (ValueError, ipaddress.AddressValueError):
                     pass
 
             return client_ip

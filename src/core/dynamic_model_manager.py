@@ -10,12 +10,11 @@ import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager
+from typing import Any, Dict, List, Optional, AsyncGenerator
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, List, Optional
 
-from backend.python_backend.performance_monitor import log_performance
-
-from .model_registry import ModelInstance, ModelMetadata, ModelRegistry, ModelType
+from .model_registry import ModelRegistry, ModelMetadata, ModelType, ModelInstance
+from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +158,7 @@ class DynamicModelManager:
                 path=base_metadata.path / version,
                 framework=base_metadata.framework,
                 dependencies=base_metadata.dependencies.copy(),
-                config=base_metadata.config.copy(),
+                config=base_metadata.config.copy()
             )
 
             # Save the model object
@@ -201,7 +200,7 @@ class DynamicModelManager:
                 "type": model["type"],
                 "name": model["name"],
                 "loaded": model["loaded"],
-                "health_status": model["health_status"],
+                "health_status": model["health_status"]
             }
             for model in models
         ]
@@ -230,9 +229,7 @@ class DynamicModelManager:
 
         if not type_models:
             # Try to load one
-            unloaded_models = [
-                m for m in models if m["type"] == model_type.value and not m["loaded"]
-            ]
+            unloaded_models = [m for m in models if m["type"] == model_type.value and not m["loaded"]]
             if unloaded_models:
                 # Sort by usage count (prefer more used models)
                 unloaded_models.sort(key=lambda x: x.get("usage_count", 0), reverse=True)
@@ -256,7 +253,6 @@ class DynamicModelManager:
 
             if metadata.framework == "sklearn":
                 import joblib
-
                 model_file = model_dir / f"{metadata.model_id}.pkl"
                 joblib.dump(model_object, model_file)
                 metadata.size_bytes = model_file.stat().st_size
@@ -285,9 +281,7 @@ class DynamicModelManager:
                     try:
                         validation = await self.validate_model(model_id)
                         if not validation.get("valid", False):
-                            logger.warning(
-                                f"Model {model_id} failed health check: {validation.get('issues', [])}"
-                            )
+                            logger.warning(f"Model {model_id} failed health check: {validation.get('issues', [])}")
                     except Exception as e:
                         logger.error(f"Health check failed for model {model_id}: {e}")
 
@@ -324,14 +318,10 @@ class DynamicModelManager:
             "status": "healthy" if self._initialized else "initializing",
             "total_models": total_models,
             "loaded_models": loaded_models,
-            "memory_usage": sum(
-                inst.memory_usage for inst in self.registry._loaded_models.values()
-            ),
-            "gpu_memory_usage": sum(
-                inst.gpu_memory_usage for inst in self.registry._loaded_models.values()
-            ),
+            "memory_usage": sum(inst.memory_usage for inst in self.registry._loaded_models.values()),
+            "gpu_memory_usage": sum(inst.gpu_memory_usage for inst in self.registry._loaded_models.values()),
             "health_checks_enabled": self._health_monitor_task is not None,
-            "memory_optimization_enabled": self._memory_optimizer_task is not None,
+            "memory_optimization_enabled": self._memory_optimizer_task is not None
         }
 
     async def reload_model(self, model_id: str) -> bool:
@@ -380,7 +370,7 @@ class DynamicModelManager:
             "models_by_type": self._count_models_by_type(models),
             "models_by_framework": self._count_models_by_framework(models),
             "average_load_time": self._calculate_average_load_time(models),
-            "health_summary": self._get_health_summary(models),
+            "health_summary": self._get_health_summary(models)
         }
 
     def _count_models_by_type(self, models: List[Dict[str, Any]]) -> Dict[str, int]:

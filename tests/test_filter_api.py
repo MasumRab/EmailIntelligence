@@ -1,10 +1,8 @@
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
-
-from backend.python_backend.models import EmailFilterActions, EmailFilterCriteria, FilterRequest
+from unittest.mock import AsyncMock, patch, MagicMock
+from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
 from backend.python_nlp.smart_filters import EmailFilter
+from datetime import datetime
 
 
 @pytest.fixture

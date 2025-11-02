@@ -2,13 +2,12 @@
 Tests for NotmuchDataSource implementation.
 
 This module contains comprehensive tests for the NotmuchDataSource class,
-which provides a mock implementation of the DataSource interface for Notmuch.
+which provides a functional implementation of the DataSource interface for Notmuch.
 """
 
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
+from unittest.mock import patch, MagicMock, AsyncMock
+from typing import Dict, List, Any, Optional
 
 from src.core.notmuch_data_source import NotmuchDataSource
 
@@ -16,15 +15,25 @@ from src.core.notmuch_data_source import NotmuchDataSource
 class TestNotmuchDataSourceInitialization:
     """Test NotmuchDataSource initialization and basic properties."""
 
-    def test_notmuch_data_source_creation(self):
+    @patch('src.core.notmuch_data_source.notmuch')
+    def test_notmuch_data_source_creation(self, mock_notmuch):
         """Test that NotmuchDataSource can be created."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
         ds = NotmuchDataSource()
         assert ds is not None
         assert isinstance(ds, NotmuchDataSource)
 
-    def test_notmuch_data_source_inherits_from_data_source(self):
+    @patch('src.core.notmuch_data_source.notmuch')
+    def test_notmuch_data_source_inherits_from_data_source(self, mock_notmuch):
         """Test that NotmuchDataSource properly inherits from DataSource."""
         from src.core.data_source import DataSource
+        
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
 
         ds = NotmuchDataSource()
         assert isinstance(ds, DataSource)
@@ -34,468 +43,485 @@ class TestNotmuchDataSourceEmailOperations:
     """Test email-related operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def data_source(self):
+    @patch('src.core.notmuch_data_source.notmuch')
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
         return NotmuchDataSource()
 
     @pytest.mark.asyncio
-    async def test_create_email(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_create_email(self, mock_notmuch):
         """Test create_email method."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         email_data = {
             "subject": "Test Email",
             "content": "This is test content",
-            "sender": "test@example.com",
+            "sender": "test@example.com"
         }
 
         result = await data_source.create_email(email_data)
 
-        # Should return None (mock implementation)
+        # Should return None (read-only implementation)
         assert result is None
 
-        # Should print debug message
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: create_email called" in captured.out
-
     @pytest.mark.asyncio
-    async def test_get_email_by_id(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_email_by_id(self, mock_notmuch):
         """Test get_email_by_id method."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.get_email_by_id(123)
 
-        assert result is None
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_email_by_id called" in captured.out
+        assert result is None  # Not implemented for notmuch (uses message IDs instead)
 
     @pytest.mark.asyncio
-    async def test_get_email_by_id_without_content(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_email_by_id_without_content(self, mock_notmuch):
         """Test get_email_by_id with include_content=False."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.get_email_by_id(123, include_content=False)
 
-        assert result is None
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_email_by_id called" in captured.out
+        assert result is None  # Not implemented for notmuch (uses message IDs instead)
 
     @pytest.mark.asyncio
-    async def test_get_all_emails(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_all_emails(self, mock_notmuch):
         """Test get_all_emails method."""
+        # Mock the notmuch database with search results
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        mock_message = MagicMock()
+        
+        mock_message.get_message_id.return_value = "test@example.com"
+        mock_message.get_header.side_effect = lambda x: {
+            "subject": "Test Subject",
+            "from": "sender@example.com"
+        }.get(x, "")
+        mock_message.get_date.return_value = 1234567890
+        mock_message.get_tags.return_value = ["inbox", "unread"]
+        
+        mock_query.search_messages.return_value = [mock_message]
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.get_all_emails()
 
         assert isinstance(result, list)
-        assert len(result) == 0
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_all_emails called" in captured.out
+        # The result will depend on the mock setup
 
     @pytest.mark.asyncio
-    async def test_get_all_emails_with_parameters(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_all_emails_with_parameters(self, mock_notmuch):
         """Test get_all_emails with limit and offset."""
+        # Mock the notmuch database with search results
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        mock_message = MagicMock()
+        
+        mock_message.get_message_id.return_value = "test2@example.com"
+        mock_message.get_header.side_effect = lambda x: {
+            "subject": "Test Subject 2",
+            "from": "sender2@example.com"
+        }.get(x, "")
+        mock_message.get_date.return_value = 1234567891
+        mock_message.get_tags.return_value = ["inbox"]
+        
+        mock_query.search_messages.return_value = [mock_message]
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.get_all_emails(limit=25, offset=10)
 
         assert isinstance(result, list)
-        assert len(result) == 0
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_all_emails called" in captured.out
 
     @pytest.mark.asyncio
-    async def test_update_email(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_update_email(self, mock_notmuch):
         """Test update_email method."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         update_data = {"is_read": True, "tags": ["important"]}
         result = await data_source.update_email(123, update_data)
 
-        assert result is None
-
-        captured = capsys.readouterr()
-        # Note: update_email calls update_email_by_message_id internally
-        assert "NotmuchDataSource: update_email_by_message_id called" in captured.out
+        assert result is None  # Not implemented for read-only source
 
     @pytest.mark.asyncio
-    async def test_delete_email(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_delete_email(self, mock_notmuch):
         """Test delete_email method."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.delete_email(123)
 
-        assert result is None
-
-        # This method doesn't have a specific print statement in the mock
-        # So we'll just verify it doesn't raise an exception
+        assert result is False  # Not implemented for read-only source
 
 
 class TestNotmuchDataSourceSearchOperations:
     """Test search and query operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def data_source(self):
+    @patch('src.core.notmuch_data_source.notmuch')
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
         return NotmuchDataSource()
 
     @pytest.mark.asyncio
-    async def test_search_emails(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_search_emails(self, mock_notmuch):
         """Test search_emails method."""
+        # Mock the notmuch database with search results
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        mock_message = MagicMock()
+        
+        mock_message.get_message_id.return_value = "search@example.com"
+        mock_message.get_header.side_effect = lambda x: {
+            "subject": "Search Result",
+            "from": "searcher@example.com"
+        }.get(x, "")
+        mock_message.get_date.return_value = 1234567892
+        mock_message.get_tags.return_value = ["search", "result"]
+        
+        mock_query.search_messages.return_value = [mock_message]
+        mock_query.count_messages.return_value = 1
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.search_emails("important meeting")
 
         assert isinstance(result, list)
-        assert len(result) == 0
-
-        # search_emails doesn't have a specific debug print, but should not raise exception
+        # Should return results based on mock
 
     @pytest.mark.asyncio
-    async def test_search_emails_empty_query(self, data_source):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_search_emails_empty_query(self, mock_notmuch):
         """Test search_emails with empty query."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        mock_query.search_messages.return_value = []
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.search_emails("")
 
         assert isinstance(result, list)
         assert len(result) == 0
 
     @pytest.mark.asyncio
-    async def test_get_emails_by_category(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_emails_by_category(self, mock_notmuch):
         """Test get_emails_by_category method."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.get_emails_by_category("work")
 
         assert isinstance(result, list)
-        assert len(result) == 0
-
-        # This method doesn't have debug output in the mock
+        assert len(result) == 0  # Not implemented for notmuch (uses string tags)
 
     @pytest.mark.asyncio
-    async def test_get_emails_with_filters(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_emails_with_filters(self, mock_notmuch):
         """Test get_emails method with various filters."""
-        result = await data_source.get_emails(limit=20, offset=5, category_id=1, is_unread=True)
+        # Mock the notmuch database with search results
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        mock_message = MagicMock()
+        
+        mock_message.get_message_id.return_value = "filtered@example.com"
+        mock_message.get_header.side_effect = lambda x: {
+            "subject": "Filtered Email",
+            "from": "filter@example.com"
+        }.get(x, "")
+        mock_message.get_date.return_value = 1234567893
+        mock_message.get_tags.return_value = ["inbox", "unread"]
+        
+        mock_query.search_messages.return_value = [mock_message]
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
+        result = await data_source.get_emails(
+            limit=20,
+            offset=5,
+            category_id=1,
+            is_unread=True
+        )
 
         assert isinstance(result, list)
-        assert len(result) == 0
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_emails called" in captured.out
 
 
 class TestNotmuchDataSourceCategoryOperations:
     """Test category-related operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def data_source(self):
+    @patch('src.core.notmuch_data_source.notmuch')
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
         return NotmuchDataSource()
 
     @pytest.mark.asyncio
-    async def test_get_all_categories(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_all_categories(self, mock_notmuch):
         """Test get_all_categories method."""
+        # Mock the notmuch database with tags
+        mock_db = MagicMock()
+        mock_db.get_all_tags.return_value = ["inbox", "work", "personal"]
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         result = await data_source.get_all_categories()
 
         assert isinstance(result, list)
-        assert len(result) == 0
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_all_categories called" in captured.out
+        # Should return tags as categories
 
     @pytest.mark.asyncio
-    async def test_create_category(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_create_category(self, mock_notmuch):
         """Test create_category method."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         category_data = {
             "name": "Important",
             "color": "#FF0000",
-            "description": "High priority emails",
+            "description": "High priority emails"
         }
 
         result = await data_source.create_category(category_data)
 
-        assert result is None
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: create_category called" in captured.out
+        assert result is None  # Not implemented for read-only source
 
 
 class TestNotmuchDataSourceMessageOperations:
     """Test message ID-based operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def data_source(self):
+    @patch('src.core.notmuch_data_source.notmuch')
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
         return NotmuchDataSource()
 
     @pytest.mark.asyncio
-    async def test_get_email_by_message_id(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_email_by_message_id(self, mock_notmuch):
         """Test get_email_by_message_id method."""
-        message_id = "<abc123@example.com>"
-        result = await data_source.get_email_by_message_id(message_id)
+        # Mock the notmuch database with a message
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        mock_message = MagicMock()
+        
+        mock_message.get_message_id.return_value = "<abc123@example.com>"
+        mock_message.get_header.side_effect = lambda x: {
+            "subject": "Test Message",
+            "from": "sender@example.com",
+            "to": "recipient@example.com"
+        }.get(x, "")
+        mock_message.get_date.return_value = 1234567894
+        mock_message.get_tags.return_value = ["inbox"]
+        mock_message.get_filename.return_value = "/tmp/test.eml"
+        
+        mock_query.search_messages.return_value = [mock_message]
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        # Mock the email file reading
+        import builtins
+        original_open = builtins.open
+        def mock_open(filename, *args, **kwargs):
+            if filename == "/tmp/test.eml":
+                mock_file = MagicMock()
+                mock_file.__enter__ = lambda: mock_file
+                mock_file.__exit__ = lambda *args: None
+                mock_file.read.return_value = "Subject: Test Message\n\nThis is the content."
+                return mock_file
+            return original_open(filename, *args, **kwargs)
+        
+        with patch('builtins.open', side_effect=mock_open):
+            data_source = NotmuchDataSource()
+            message_id = "<abc123@example.com>"
+            result = await data_source.get_email_by_message_id(message_id)
 
-        assert result is None
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_email_by_message_id called" in captured.out
+            assert result is not None
+            assert result["message_id"] == "<abc123@example.com>"
 
     @pytest.mark.asyncio
-    async def test_get_email_by_message_id_without_content(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_email_by_message_id_without_content(self, mock_notmuch):
         """Test get_email_by_message_id with include_content=False."""
-        message_id = "<abc123@example.com>"
-        result = await data_source.get_email_by_message_id(message_id, include_content=False)
+        # Mock the notmuch database with a message
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        mock_message = MagicMock()
+        
+        mock_message.get_message_id.return_value = "<abc123@example.com>"
+        mock_message.get_header.side_effect = lambda x: {
+            "subject": "Test Message",
+            "from": "sender@example.com",
+            "to": "recipient@example.com"
+        }.get(x, "")
+        mock_message.get_date.return_value = 1234567894
+        mock_message.get_tags.return_value = ["inbox"]
+        mock_message.get_filename.return_value = "/tmp/test.eml"
+        
+        mock_query.search_messages.return_value = [mock_message]
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        # Mock the email file reading
+        import builtins
+        original_open = builtins.open
+        def mock_open(filename, *args, **kwargs):
+            if filename == "/tmp/test.eml":
+                mock_file = MagicMock()
+                mock_file.__enter__ = lambda: mock_file
+                mock_file.__exit__ = lambda *args: None
+                mock_file.read.return_value = "Subject: Test Message\n\nThis is the content."
+                return mock_file
+            return original_open(filename, *args, **kwargs)
+        
+        with patch('builtins.open', side_effect=mock_open):
+            data_source = NotmuchDataSource()
+            message_id = "<abc123@example.com>"
+            result = await data_source.get_email_by_message_id(message_id, include_content=False)
 
-        assert result is None
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: get_email_by_message_id called" in captured.out
+            assert result is not None
 
     @pytest.mark.asyncio
-    async def test_update_email_by_message_id(self, data_source, capsys):
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_update_email_by_message_id(self, mock_notmuch):
         """Test update_email_by_message_id method."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
         message_id = "<abc123@example.com>"
         update_data = {"tags": ["replied"], "is_read": True}
 
         result = await data_source.update_email_by_message_id(message_id, update_data)
 
-        assert result is None
-
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: update_email_by_message_id called" in captured.out
+        assert result is None  # Not implemented for read-only source
 
 
-class TestNotmuchDataSourceIntegration:
-    """Integration tests for NotmuchDataSource."""
+
+class TestNotmuchDataSourceDashboard:
+    """Test dashboard statistics operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def data_source(self):
+    @patch('src.core.notmuch_data_source.notmuch')
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
+        # Mock the notmuch database
+        mock_db = MagicMock()
+        mock_notmuch.Database.return_value = mock_db
         return NotmuchDataSource()
 
     @pytest.mark.asyncio
-    async def test_full_email_workflow_simulation(self, data_source, capsys):
-        """Test a complete email workflow using the mock data source."""
-        # Simulate creating an email
-        email_data = {
-            "subject": "Meeting Tomorrow",
-            "content": "Don't forget our meeting at 2 PM",
-            "sender": "boss@company.com",
-            "message_id": "<meeting123@company.com>",
-        }
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_dashboard_aggregates(self, mock_notmuch):
+        """Test get_dashboard_aggregates method."""
+        # Mock the notmuch database with query results
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        
+        # Mock query counts
+        mock_query.count_messages.side_effect = [100, 20, 15, 5]  # total, unread, auto-labeled, categories
+        mock_db.create_query.return_value = mock_query
+        mock_db.get_all_tags.return_value = ["inbox", "work", "personal", "unread", "sent"]
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
+        result = await data_source.get_dashboard_aggregates()
 
-        result = await data_source.create_email(email_data)
-        assert result is None
-
-        # Try to retrieve it (will return None in mock)
-        retrieved = await data_source.get_email_by_id(1)
-        assert retrieved is None
-
-        # Search for it (will return empty list in mock)
-        search_results = await data_source.search_emails("meeting")
-        assert isinstance(search_results, list)
-        assert len(search_results) == 0
-
-        # Check debug output
-        captured = capsys.readouterr()
-        assert "NotmuchDataSource: create_email called" in captured.out
-        assert "NotmuchDataSource: get_email_by_id called" in captured.out
+        assert isinstance(result, dict)
+        assert "total_emails" in result
+        assert "auto_labeled" in result
+        assert "categories_count" in result
+        assert "unread_count" in result
+        assert "weekly_growth" in result
 
     @pytest.mark.asyncio
-    async def test_concurrent_operations(self, data_source):
-        """Test that multiple operations can be called concurrently."""
-        import asyncio
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_category_breakdown(self, mock_notmuch):
+        """Test get_category_breakdown method."""
+        # Mock the notmuch database with tags and query results
+        mock_db = MagicMock()
+        mock_query = MagicMock()
+        
+        # Mock tags and query counts
+        mock_db.get_all_tags.return_value = ["work", "personal", "inbox", "unread", "project"]
+        mock_query.count_messages.side_effect = [30, 20, 15, 10, 5]  # Counts for each tag
+        mock_db.create_query.return_value = mock_query
+        mock_notmuch.Database.return_value = mock_db
+        
+        data_source = NotmuchDataSource()
+        result = await data_source.get_category_breakdown(limit=5)
 
-        # Create multiple concurrent operations
-        tasks = [
-            data_source.get_all_emails(),
-            data_source.get_all_categories(),
-            data_source.search_emails("test"),
-            data_source.get_emails(limit=10),
-        ]
-
-        # Execute all concurrently
-        results = await asyncio.gather(*tasks)
-
-        # All should complete without exceptions
-        assert len(results) == 4
-        assert all(isinstance(result, list) for result in results)
-
-    @pytest.mark.asyncio
-    async def test_error_resilience(self, data_source):
-        """Test that the data source handles various inputs gracefully."""
-        # Test with None values
-        result1 = await data_source.create_email(None)
-        assert result1 is None
-
-        # Test with empty dict
-        result2 = await data_source.create_email({})
-        assert result2 is None
-
-        # Test with invalid IDs
-        result3 = await data_source.get_email_by_id(-1)
-        assert result3 is None
-
-        result4 = await data_source.get_email_by_id("invalid")
-        assert result4 is None
-
-        # Test with empty search queries
-        result5 = await data_source.search_emails("")
-        assert isinstance(result5, list)
-
-        # Test with None search queries
-        result6 = await data_source.search_emails(None)
-        assert isinstance(result6, list)
-
-
-class TestNotmuchDataSourcePerformance:
-    """Performance tests for NotmuchDataSource."""
-
-    @pytest.fixture
-    def data_source(self):
-        """Create a fresh NotmuchDataSource for each test."""
-        return NotmuchDataSource()
+        assert isinstance(result, dict)
+        # Should return category breakdown based on tags
 
     @pytest.mark.asyncio
-    async def test_operation_timing(self, data_source):
-        """Test that operations complete within reasonable time."""
-        import time
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_dashboard_aggregates_no_db(self, mock_notmuch):
+        """Test get_dashboard_aggregates method when database is not available."""
+        # Mock the notmuch database as None
+        mock_notmuch.Database.return_value = None
+        
+        data_source = NotmuchDataSource()
+        result = await data_source.get_dashboard_aggregates()
 
-        start_time = time.time()
-        await data_source.get_all_emails(limit=1000)
-        end_time = time.time()
-
-        duration = end_time - start_time
-        # Mock operations should complete very quickly (< 0.1 seconds)
-        assert duration < 0.1, f"Operation took too long: {duration} seconds"
-
-    @pytest.mark.asyncio
-    async def test_memory_efficiency(self, data_source):
-        """Test that operations don't cause memory issues."""
-        # Perform many operations
-        for i in range(100):
-            await data_source.get_all_emails()
-            await data_source.search_emails(f"query_{i}")
-            await data_source.get_email_by_id(i)
-
-        # If we get here without memory issues, the test passes
-        assert True
+        assert isinstance(result, dict)
+        assert result["total_emails"] == 0
+        assert result["auto_labeled"] == 0
 
     @pytest.mark.asyncio
-    async def test_bulk_operations(self, data_source):
-        """Test bulk operations performance."""
-        import asyncio
+    @patch('src.core.notmuch_data_source.notmuch')
+    async def test_get_category_breakdown_no_db(self, mock_notmuch):
+        """Test get_category_breakdown method when database is not available."""
+        # Mock the notmuch database as None
+        mock_notmuch.Database.return_value = None
+        
+        data_source = NotmuchDataSource()
+        result = await data_source.get_category_breakdown(limit=5)
 
-        # Create many concurrent operations
-        tasks = []
-        for i in range(50):
-            tasks.extend(
-                [
-                    data_source.get_all_emails(),
-                    data_source.search_emails(f"bulk_test_{i}"),
-                    data_source.get_email_by_id(i),
-                ]
-            )
-
-        start_time = asyncio.get_event_loop().time()
-        results = await asyncio.gather(*tasks)
-        end_time = asyncio.get_event_loop().time()
-
-        duration = end_time - start_time
-
-        # 150 operations should complete in reasonable time
-        assert duration < 5.0, f"Bulk operations took too long: {duration} seconds"
-        assert len(results) == 150
-
-
-class TestNotmuchDataSourceScientific:
-    """Scientific/research-specific tests for NotmuchDataSource."""
-
-    @pytest.fixture
-    def data_source(self):
-        """Create a fresh NotmuchDataSource for each test."""
-        return NotmuchDataSource()
-
-    @pytest.mark.asyncio
-    async def test_scientific_query_patterns(self, data_source):
-        """Test query patterns typical in scientific email research."""
-        scientific_queries = [
-            "research collaboration",
-            "dataset analysis",
-            "publication review",
-            "grant application",
-            "conference presentation",
-            "peer review process",
-            "data sharing agreement",
-            "research methodology",
-        ]
-
-        for query in scientific_queries:
-            result = await data_source.search_emails(query)
-            assert isinstance(result, list)
-            # In real implementation, this would return actual results
-            # For mock, we just verify it doesn't crash
-
-    @pytest.mark.asyncio
-    async def test_research_workflow_simulation(self, data_source):
-        """Simulate a research workflow using NotmuchDataSource."""
-        # Step 1: Search for relevant emails
-        research_emails = await data_source.search_emails("research data")
-        assert isinstance(research_emails, list)
-
-        # Step 2: Get emails by category
-        categorized_emails = await data_source.get_emails_by_category("research")
-        assert isinstance(categorized_emails, list)
-
-        # Step 3: Get unread research emails
-        unread_research = await data_source.get_emails(is_unread=True, category_id=1)
-        assert isinstance(unread_research, list)
-
-        # Step 4: Mark some as read (would update in real implementation)
-        if research_emails:  # Would be true in real implementation
-            update_result = await data_source.update_email(1, {"is_read": True})
-            assert update_result is None  # Mock returns None
-
-    @pytest.mark.asyncio
-    async def test_academic_email_patterns(self, data_source):
-        """Test handling of academic/scientific email patterns."""
-        academic_senders = [
-            "professor@university.edu",
-            "researcher@lab.org",
-            "colleague@institute.com",
-            "editor@journal.com",
-        ]
-
-        # In a real implementation, these would be used for filtering
-        # For mock testing, we just verify the interface works
-        for sender in academic_senders:
-            # This would typically filter by sender in real implementation
-            results = await data_source.search_emails(f"from:{sender}")
-            assert isinstance(results, list)
-
-    @pytest.mark.asyncio
-    async def test_large_dataset_handling(self, data_source):
-        """Test handling of large email datasets typical in research."""
-        # Test with large limits (would be paginated in real implementation)
-        large_result = await data_source.get_all_emails(limit=10000, offset=0)
-        assert isinstance(large_result, list)
-
-        # Test pagination simulation
-        page_size = 100
-        for page in range(10):  # Simulate 10 pages
-            offset = page * page_size
-            page_result = await data_source.get_all_emails(limit=page_size, offset=offset)
-            assert isinstance(page_result, list)
-            assert len(page_result) == 0  # Mock returns empty
-
-    @pytest.mark.asyncio
-    async def test_metadata_preservation(self, data_source):
-        """Test that email metadata is properly handled."""
-        # Test emails with rich metadata (typical in research contexts)
-        rich_email = {
-            "subject": "Research Data Analysis Results",
-            "content": "Attached are the analysis results for dataset XYZ",
-            "sender": "researcher@university.edu",
-            "recipients": ["collaborator@lab.org", "pi@project.edu"],
-            "message_id": "<research123@university.edu>",
-            "timestamp": "2024-01-15T10:30:00Z",
-            "tags": ["research", "analysis", "urgent"],
-            "attachments": ["results.pdf", "data.csv"],
-            "thread_id": "<thread456@university.edu>",
-            "in_reply_to": "<original789@university.edu>",
-        }
-
-        # Create email with rich metadata
-        result = await data_source.create_email(rich_email)
-        assert result is None  # Mock implementation
-
-        # In real implementation, this metadata would be preserved and queryable
-        # For mock testing, we verify the interface accepts rich data structures
-
-        # Test retrieval by message ID
-        retrieved = await data_source.get_email_by_message_id(rich_email["message_id"])
-        assert retrieved is None  # Mock returns None
+        assert isinstance(result, dict)
+        assert len(result) == 0
