@@ -281,11 +281,10 @@ class DatabaseManager(DataSource):
         }
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
-        self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
+        self.category_counts = {}
         for email in self.emails_data:
-            cat_id = email.get(FIELD_CATEGORY_ID)
-            if cat_id in self.category_counts:
-                self.category_counts[cat_id] += 1
+            category = email.get('category', 'Uncategorized')
+            self.category_counts[category] = self.category_counts.get(category, 0) + 1
         for cat_id, count in self.category_counts.items():
             if (
                 cat_id in self.categories_by_id
@@ -1108,14 +1107,8 @@ class DatabaseManager(DataSource):
         """Retrieves category breakdown statistics with configurable limit."""
         await self._ensure_initialized()
 
-        # Count emails by category
-        category_counts = {}
-        for email in self.emails_data:
-            category = email.get('category', 'Uncategorized')
-            category_counts[category] = category_counts.get(category, 0) + 1
-
         # Sort by count descending and apply limit
-        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+        sorted_categories = sorted(self.category_counts.items(), key=lambda x: x[1], reverse=True)
         return dict(sorted_categories[:limit])
 
 

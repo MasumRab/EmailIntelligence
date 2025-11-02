@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from .database import DatabaseManager
 
 from .model_manager import ModelManager
+from .ai_insights_engine import AIInsightsEngine
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class AIAnalysisResult:
         self.suggested_labels = data.get("suggested_labels", [])
         self.risk_flags = data.get("risk_flags", [])
         self.category_id = data.get("category_id")
+        self.insights = data.get("insights", {})
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -48,6 +50,7 @@ class AIAnalysisResult:
             "suggested_labels": self.suggested_labels,
             "risk_flags": self.risk_flags,
             "category_id": self.category_id,
+            "insights": self.insights,
         }
 
 
@@ -56,6 +59,7 @@ class AdvancedAIEngine:
 
     def __init__(self, model_manager: ModelManager):
         self.model_manager = model_manager
+        self.insights_engine = AIInsightsEngine()
         self.category_lookup_map: Dict[str, Dict[str, Any]] = {}
 
     def initialize(self):
@@ -152,6 +156,8 @@ class AdvancedAIEngine:
                 analysis_data["category_id"] = matched_category_id
             else:
                 analysis_data["category_id"] = None
+
+            analysis_data["insights"] = self.insights_engine.generate_insights(analysis_data)
 
             logger.info(f"Analysis complete. Category ID: {analysis_data.get('category_id')}")
             return AIAnalysisResult(analysis_data)
