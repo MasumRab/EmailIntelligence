@@ -15,6 +15,13 @@ from typing import Any, Dict, List, Literal, Optional
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
+from .enhanced_caching import EnhancedCachingManager
+from .enhanced_error_reporting import (
+    log_error, 
+    ErrorSeverity, 
+    ErrorCategory, 
+    create_error_context
+)
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 from .data.data_source import DataSource
 
@@ -82,6 +89,9 @@ class DatabaseManager(DataSource):
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
 
+        # Enhanced caching system
+        self.caching_manager = EnhancedCachingManager()
+
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
@@ -103,14 +113,35 @@ class DatabaseManager(DataSource):
         if not email_id:
             return full_email
 
+        # Check content cache first
+        cached_content = self.caching_manager.get_email_content(email_id)
+        if cached_content is not None:
+            full_email.update(cached_content)
+            return full_email
+
         content_path = self._get_email_content_path(email_id)
         if os.path.exists(content_path):
             try:
                 with gzip.open(content_path, "rt", encoding="utf-8") as f:
                     heavy_data = await asyncio.to_thread(json.load, f)
                     full_email.update(heavy_data)
+                    
+                    # Cache the content
+                    self.caching_manager.put_email_content(email_id, heavy_data)
             except (IOError, json.JSONDecodeError) as e:
-                logger.error(f"Error loading content for email {email_id}: {e}")
+                error_context = create_error_context(
+                    component="DatabaseManager",
+                    operation="_load_and_merge_content",
+                    additional_context={"email_id": email_id, "content_path": content_path}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.DATA,
+                    context=error_context,
+                    details={"error_type": type(e).__name__}
+                )
+                logger.error(f"Error loading content for email {email_id}: {e}. Error ID: {error_id}")
         return full_email
 
     async def _ensure_initialized(self) -> None:
@@ -171,8 +202,20 @@ class DatabaseManager(DataSource):
                     await self._save_data_to_file(data_type)
                     logger.info(f"Created empty data file: {file_path}")
             except (IOError, json.JSONDecodeError) as e:
+                error_context = create_error_context(
+                    component="DatabaseManager",
+                    operation="_load_data",
+                    additional_context={"data_type": data_type, "file_path": file_path}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.ERROR,
+                    category=ErrorCategory.DATA,
+                    context=error_context,
+                    details={"error_type": type(e).__name__}
+                )
                 logger.error(
-                    f"Error loading data from {file_path}: {e}. Initializing with empty list."
+                    f"Error loading data from {file_path}: {e}. Error ID: {error_id}. Initializing with empty list."
                 )
                 setattr(self, data_list_attr, [])
 
@@ -190,7 +233,18 @@ class DatabaseManager(DataSource):
         elif data_type == DATA_TYPE_USERS:
             file_path, data_to_save = self.users_file, self.users_data
         else:
-            logger.error(f"Unknown data type for saving: {data_type}")
+            error_context = create_error_context(
+                component="DatabaseManager",
+                operation="_save_data_to_file",
+                additional_context={"data_type": data_type}
+            )
+            error_id = log_error(
+                f"Unknown data type for saving: {data_type}",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.VALIDATION,
+                context=error_context
+            )
+            logger.error(f"Unknown data type for saving: {data_type}. Error ID: {error_id}")
             return
 
         try:
@@ -199,7 +253,19 @@ class DatabaseManager(DataSource):
                 await asyncio.to_thread(dump_func)
             logger.info(f"Persisted {len(data_to_save)} items to compressed file: {file_path}")
         except IOError as e:
-            logger.error(f"Error saving data to {file_path}: {e}")
+            error_context = create_error_context(
+                component="DatabaseManager",
+                operation="_save_data_to_file",
+                additional_context={"data_type": data_type, "file_path": file_path}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.DATA,
+                context=error_context,
+                details={"error_type": type(e).__name__}
+            )
+            logger.error(f"Error saving data to {file_path}: {e}. Error ID: {error_id}")
 
     async def _save_data(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Marks data as dirty for write-behind saving."""
@@ -211,6 +277,11 @@ class DatabaseManager(DataSource):
         for data_type in list(self._dirty_data):
             await self._save_data_to_file(data_type)
         self._dirty_data.clear()
+        
+        # Log cache statistics
+        cache_stats = self.caching_manager.get_cache_statistics()
+        logger.info(f"Cache statistics: {cache_stats}")
+        
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
@@ -308,21 +379,48 @@ class DatabaseManager(DataSource):
         if category_id is not None:
             await self._update_category_count(category_id, increment=True)
 
+        # Cache the new email
+        self.caching_manager.put_email_record(new_id, light_email_record)
+        if heavy_data:
+            self.caching_manager.put_email_content(new_id, heavy_data)
+
         return self._add_category_details(light_email_record)
 
     async def get_email_by_id(
         self, email_id: int, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Get email by ID using in-memory index, with option to load heavy content."""
+        # Check cache first
+        cached_email = self.caching_manager.get_email_record(email_id)
+        if cached_email is not None and not include_content:
+            return self._add_category_details(cached_email.copy())
+        
         email_light = self.emails_by_id.get(email_id)
         if not email_light:
             return None
 
         if include_content:
+            # Check content cache
+            cached_content = self.caching_manager.get_email_content(email_id)
+            if cached_content is not None:
+                email_full = email_light.copy()
+                email_full.update(cached_content)
+                return self._add_category_details(email_full)
+            
             email_full = await self._load_and_merge_content(email_light)
-            return self._add_category_details(email_full)
+            
+            # Cache the content
+            heavy_fields = {k: v for k, v in email_full.items() if k in HEAVY_EMAIL_FIELDS}
+            if heavy_fields:
+                self.caching_manager.put_email_content(email_id, heavy_fields)
+            
+            result = self._add_category_details(email_full)
         else:
-            return self._add_category_details(email_light.copy())
+            result = self._add_category_details(email_light.copy())
+        
+        # Cache the email record
+        self.caching_manager.put_email_record(email_id, email_light)
+        return result
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
         """Get all categories with their counts from cache."""
@@ -450,6 +548,10 @@ class DatabaseManager(DataSource):
                     await self._update_category_count(original_category_id, decrement=True)
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
+            
+            # Invalidate cache for this email
+            self.caching_manager.invalidate_email_record(email_id)
+            
         return self._add_category_details(email_to_update)
 
     async def get_email_by_message_id(
@@ -458,14 +560,23 @@ class DatabaseManager(DataSource):
         """Get email by messageId using in-memory index, with option to load heavy content."""
         if not message_id:
             return None
+            
+        # Find email_id from message_id to use with caching
         email_light = self.emails_by_message_id.get(message_id)
         if not email_light:
             return None
-        if include_content:
-            email_full = await self._load_and_merge_content(email_light)
-            return self._add_category_details(email_full)
-        else:
-            return self._add_category_details(email_light.copy())
+            
+        email_id = email_light.get(FIELD_ID)
+        if not email_id:
+            # Fallback to original method if no ID
+            if include_content:
+                email_full = await self._load_and_merge_content(email_light)
+                return self._add_category_details(email_full)
+            else:
+                return self._add_category_details(email_light.copy())
+        
+        # Use the enhanced caching with email_id
+        return await self.get_email_by_id(email_id, include_content)
 
 
 # --- Singleton Instance Management ---
@@ -498,9 +609,12 @@ async def get_db() -> DatabaseManager:
         """Get emails by category"""
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
-    @log_performance(operation="search_emails")
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails. Searches subject/sender in-memory, and content on-disk."""
+    async def search_emails(self, query: str) -> List[Dict[str, Any]]:
+        """Searches for emails matching a query."""
+        return await self.search_emails_with_limit(query, limit=50)
+    
+    async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
         search_term_lower = search_term.lower()
@@ -551,12 +665,12 @@ async def get_db() -> DatabaseManager:
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Update email by its internal ID, handling separated content."""
         email_to_update = await self.get_email_by_id(email_id, include_content=True)
         if not email_to_update:
             logger.warning(f"Email with {FIELD_ID} {email_id} not found for update.")
-            return None
+            return {}
 
         original_category_id = email_to_update.get(FIELD_CATEGORY_ID)
         changed_fields = False
@@ -601,10 +715,21 @@ async def get_db() -> DatabaseManager:
                     await self._update_category_count(original_category_id, decrement=True)
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
+            
+            # Invalidate cache for this email
+            self.caching_manager.invalidate_email_record(email_id)
+            
         return self._add_category_details(email_to_update)
 
-    async def add_tags(self, email_id: int, tags: List[str]) -> bool:
+    async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
         """Adds tags to an email."""
+        # Convert email_id to int if it's a string
+        if isinstance(email_id, str):
+            try:
+                email_id = int(email_id)
+            except ValueError:
+                return False
+        
         email = await self.get_email_by_id(email_id)
         if not email:
             return False
@@ -613,10 +738,17 @@ async def get_db() -> DatabaseManager:
         new_tags = list(set(existing_tags + tags))
 
         updated_email = await self.update_email(email_id, {"tags": new_tags})
-        return updated_email is not None
+        return bool(updated_email)  # Return True if update was successful (not empty dict)
 
-    async def remove_tags(self, email_id: int, tags: List[str]) -> bool:
+    async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
         """Removes tags from an email."""
+        # Convert email_id to int if it's a string
+        if isinstance(email_id, str):
+            try:
+                email_id = int(email_id)
+            except ValueError:
+                return False
+        
         email = await self.get_email_by_id(email_id)
         if not email:
             return False
@@ -625,7 +757,7 @@ async def get_db() -> DatabaseManager:
         updated_tags = [tag for tag in existing_tags if tag not in tags]
 
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
-        return updated_email is not None
+        return bool(updated_email)  # Return True if update was successful (not empty dict)
 
 
 # Singleton instance

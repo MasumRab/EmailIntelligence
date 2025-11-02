@@ -17,6 +17,12 @@ from .data_source import DataSource
 from .database import DatabaseManager
 from backend.python_nlp.smart_filters import SmartFilterManager
 from backend.python_backend.performance_monitor import log_performance
+from .enhanced_error_reporting import (
+    log_error, 
+    ErrorSeverity, 
+    ErrorCategory, 
+    create_error_context
+)
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +112,18 @@ class NotmuchDataSource(DataSource):
                 if sentiment:
                     analysis_results["sentiment"] = sentiment
             except Exception as e:
-                logger.warning(f"Sentiment analysis failed for email {email_id}: {e}")
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="analyze_sentiment",
+                    additional_context={"email_id": email_id}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                logger.warning(f"Sentiment analysis failed for email {email_id}: {e}. Error ID: {error_id}")
 
             # Topic classification
             try:
@@ -114,7 +131,18 @@ class NotmuchDataSource(DataSource):
                 if topics:
                     analysis_results["topics"] = topics
             except Exception as e:
-                logger.warning(f"Topic classification failed for email {email_id}: {e}")
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="classify_topic",
+                    additional_context={"email_id": email_id}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                logger.warning(f"Topic classification failed for email {email_id}: {e}. Error ID: {error_id}")
 
             # Intent recognition
             try:
@@ -122,7 +150,18 @@ class NotmuchDataSource(DataSource):
                 if intent:
                     analysis_results["intent"] = intent
             except Exception as e:
-                logger.warning(f"Intent recognition failed for email {email_id}: {e}")
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="recognize_intent",
+                    additional_context={"email_id": email_id}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                logger.warning(f"Intent recognition failed for email {email_id}: {e}. Error ID: {error_id}")
 
             # Urgency detection
             try:
@@ -130,7 +169,18 @@ class NotmuchDataSource(DataSource):
                 if urgency:
                     analysis_results["urgency"] = urgency
             except Exception as e:
-                logger.warning(f"Urgency detection failed for email {email_id}: {e}")
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="detect_urgency",
+                    additional_context={"email_id": email_id}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                logger.warning(f"Urgency detection failed for email {email_id}: {e}. Error ID: {error_id}")
 
             # Apply smart filters for categorization
             try:
@@ -150,7 +200,18 @@ class NotmuchDataSource(DataSource):
                         analysis_results["suggested_category"] = suggested_category
 
             except Exception as e:
-                logger.warning(f"Smart filtering failed for email {email_id}: {e}")
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="apply_filters_to_email",
+                    additional_context={"email_id": email_id}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                logger.warning(f"Smart filtering failed for email {email_id}: {e}. Error ID: {error_id}")
 
             # Update email with analysis results
             update_data = {
@@ -163,7 +224,18 @@ class NotmuchDataSource(DataSource):
             logger.info(f"Completed AI analysis for email {email_id}")
 
         except Exception as e:
-            logger.error(f"Critical error in email analysis for {email_id}: {e}")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="_analyze_email_async",
+                additional_context={"email_id": email_id}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Critical error in email analysis for {email_id}: {e}. Error ID: {error_id}")
 
     def _determine_category_from_filters(self, filter_results: Dict[str, Any]) -> Optional[str]:
         """Determine suggested category based on filter results."""
@@ -527,7 +599,18 @@ class NotmuchDataSource(DataSource):
         Updates the tags for a given message ID in notmuch and triggers a re-analysis.
         """
         if not self.notmuch_db:
-            logger.error("Notmuch database not available.")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="update_tags_for_message",
+                additional_context={"message_id": message_id}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error("Notmuch database not available. Error ID: {error_id}")
             return False
 
         try:
@@ -535,7 +618,18 @@ class NotmuchDataSource(DataSource):
             query = self.notmuch_db.create_query(f"id:{message_id}")
             messages = list(query.search_messages())
             if not messages:
-                logger.error(f"Message with ID {message_id} not found in notmuch.")
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="update_tags_for_message",
+                    additional_context={"message_id": message_id}
+                )
+                error_id = log_error(
+                    f"Message with ID {message_id} not found in notmuch.",
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.DATA,
+                    context=error_context
+                )
+                logger.error(f"Message with ID {message_id} not found in notmuch. Error ID: {error_id}")
                 return False
 
             message = messages[0]
@@ -552,7 +646,18 @@ class NotmuchDataSource(DataSource):
             # Now, trigger a deep re-analysis
             email_data = await self.get_email_by_message_id(message_id, include_content=True)
             if not email_data:
-                logger.error(f"Could not retrieve email data for {message_id} to trigger re-analysis.")
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="update_tags_for_message",
+                    additional_context={"message_id": message_id}
+                )
+                error_id = log_error(
+                    f"Could not retrieve email data for {message_id} to trigger re-analysis.",
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.DATA,
+                    context=error_context
+                )
+                logger.error(f"Could not retrieve email data for {message_id} to trigger re-analysis. Error ID: {error_id}")
                 return False
 
             # We need the internal DB id to run the analysis
@@ -572,5 +677,17 @@ class NotmuchDataSource(DataSource):
             return True
 
         except Exception as e:
-            logger.error(f"Error updating tags for message {message_id}: {e}")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="update_tags_for_message",
+                additional_context={"message_id": message_id}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context,
+                details={"error_type": type(e).__name__}
+            )
+            logger.error(f"Error updating tags for message {message_id}: {e}. Error ID: {error_id}")
             return False
