@@ -1,0 +1,43 @@
+{
+  "timestamp": "2025-11-02T17:04:10.032023",
+  "results": {
+    "health": {
+      "worktrees_exist": true,
+      "inheritance_base_exists": true,
+      "sync_scripts_executable": true,
+      "config_valid": true,
+      "permissions_ok": true,
+      "issues": [],
+      "overall_status": "healthy"
+    },
+    "cleanup": {
+      "old_backups_removed": 0,
+      "temp_files_removed": 0,
+      "empty_dirs_removed": 0,
+      "cache_cleared": false,
+      "misplaced_files_moved": 0
+    },
+    "integrity": {
+      "missing_files": [],
+      "orphaned_files": [
+        "docs-main:test_conflict.md",
+        "docs-scientific:test_conflict.md"
+      ],
+      "misplaced_files": [],
+      "inconsistent_sync": [],
+      "total_files_checked": 114,
+      "integrity_score": 80
+    },
+    "optimization": {
+      "duplicate_files_found": 458,
+      "large_files": [],
+      "compression_savings": 0,
+      "optimizations_applied": []
+    }
+  },
+  "summary": {
+    "overall_health": "good",
+    "total_issues": 0,
+    "integrity_score": 80
+  }
+}
