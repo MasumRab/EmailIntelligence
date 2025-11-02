@@ -15,6 +15,7 @@ import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import rateLimit from 'express-rate-limit';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +23,15 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
+
+// Rate limiting configuration
+const catchAllLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Middleware
 app.use(express.json());
@@ -52,7 +62,8 @@ const clientBuildPath = path.join(__dirname, '../client/dist');
 app.use(express.static(clientBuildPath));
 
 // Catch-all handler: send back index.html for client-side routing
-app.get('*', (req, res) => {
+// Apply rate limiting specifically to the catch-all route serving index.html
+app.get('*', catchAllLimiter, (req, res) => {
   res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
