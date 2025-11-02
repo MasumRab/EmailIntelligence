@@ -319,7 +319,6 @@ class GmailAIService:
         self, strategies: List[str] = None, max_api_calls: int = 100, time_budget_minutes: int = 30
     ) -> Dict[str, Any]:
         """
-        Execute smart retrieval with the given strategies.
         Args:
             strategies: A list of retrieval strategies to execute.
             max_api_calls: The maximum number of API calls allowed.
@@ -352,10 +351,8 @@ class GmailAIService:
         return []
 
 async def main():
-    """Demonstrates the usage of the GmailAIService."""
-    logging.basicConfig(
-        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    # Demonstrates the usage of the GmailAIService
+    logging.basicConfig(level=logging.DEBUG)
     service = GmailAIService()
     sync_result = await service.sync_gmail_emails(max_emails=2)
     logging.info(f"Sync result: {sync_result}")

@@ -13,10 +13,6 @@ venv/
 *.env
 !.env.example
 
-# Python dependency management
-poetry.lock
-poetry.toml
-
 # Credentials and sensitive data
 token.json
 credentials.json
@@ -70,6 +66,9 @@ config/llm_guidelines.local.json
 # Ignore hidden files and directories, with exceptions
 .*
 !docs/.gitkeep
+!docs/.branch-config.json
+!docs/.review-queue.json
+!docs/.merge-history.json
 !.semgrep/
 !.gitignore
 
@@ -81,3 +80,8 @@ diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
+
+# Agent scratchpad and temporary files
+jules-scratch/
+app_output.log
+isolated_ui.log

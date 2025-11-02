@@ -115,8 +115,8 @@ async def test_complete_email_workflow():
     )
 
     print(
-    f"Created workflow with {len(workflow.nodes)} nodes and "
-    f"{len(workflow.connections)} connections"
+        f"Created workflow with {len(workflow.nodes)} nodes and {
+          len(workflow.connections)} connections"
     )
 
     # Execute with security context

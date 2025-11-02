@@ -6,13 +6,11 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-25 04:50'
-updated_date: '2025-10-28 08:54'
 labels:
   - ui
   - frontend
   - ux
 dependencies: []
-priority: low
 ---
 
 ## Description

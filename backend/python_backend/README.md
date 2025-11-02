@@ -2,28 +2,9 @@
 
 **This directory is part of the deprecated `backend` package and will be removed in a future release.**
 
-This directory contains the legacy monolithic Python backend for the EmailIntelligence application. It is a FastAPI application that handled all backend logic, including API endpoints, AI/NLP services, and database interactions.
+This directory contains the main and only Python backend for the EmailIntelligence application. It is a FastAPI application that handles all backend logic, including API endpoints, AI/NLP services, and database interactions.
 
-## Migration Status
-
-The functionality in this directory has been migrated to the new modular architecture:
-- Core components are now in `src/core/`
-- Feature modules are in `modules/`
-- API routes are now defined in `modules/*/routes.py`
-- Services are now defined in `modules/*/services.py`
-
-## New Architecture
-
-The new modular architecture provides:
-- Better separation of concerns
-- Improved testability
-- Enhanced extensibility
-- Clearer code organization
-
-For more information about the new architecture, see:
-- [Project Structure Comparison](docs/project_structure_comparison.md)
-- [Backend Migration Guide](docs/backend_migration_guide.md)
-- [Architecture Overview](docs/architecture_overview.md)
+This directory contains the Python backend services for the application.
 
 ## Gradio Interface
 

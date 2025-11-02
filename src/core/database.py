@@ -12,9 +12,11 @@ from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
 
-from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
-from .data_source import DataSource
-from backend.python_backend.performance_monitor import log_performance
+# NOTE: These dependencies will be moved to the core framework as well.
+# For now, we are assuming they will be available in the new location.
+from .performance_monitor import log_performance
+from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from .data.data_source import DataSource
 
 logger = logging.getLogger(__name__)
 
@@ -110,10 +112,6 @@ class DatabaseManager(DataSource):
             except (IOError, json.JSONDecodeError) as e:
                 logger.error(f"Error loading content for email {email_id}: {e}")
         return full_email
-
-    async def initialize(self) -> None:
-        """Initialize the database manager."""
-        await self._ensure_initialized()
 
     async def _ensure_initialized(self) -> None:
         """Ensure data is loaded and indexes are built."""
@@ -454,38 +452,6 @@ class DatabaseManager(DataSource):
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
 
-    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
-        """Get user by username from the users data."""
-        for user in self.users_data:
-            if user.get("username") == username:
-                return user
-        return None
-
-    async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Create a new user and save to the users data."""
-        # Check if user already exists
-        existing_user = await self.get_user_by_username(user_data.get("username", ""))
-        if existing_user:
-            return None
-
-        # Generate ID for the user
-        new_id = self._generate_id(self.users_data)
-        user_record = {
-            "id": new_id,
-            "username": user_data["username"],
-            "hashed_password": user_data["hashed_password"],
-            "role": user_data.get("role", "user"),
-            "permissions": user_data.get("permissions", []),
-            "mfa_enabled": user_data.get("mfa_enabled", False),
-            "mfa_secret": user_data.get("mfa_secret", None),
-            "mfa_backup_codes": user_data.get("mfa_backup_codes", []),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        
-        self.users_data.append(user_record)
-        await self._save_data(DATA_TYPE_USERS)
-        return user_record
-
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
@@ -636,3 +602,42 @@ async def get_db() -> DatabaseManager:
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
+
+    async def add_tags(self, email_id: int, tags: List[str]) -> bool:
+        """Adds tags to an email."""
+        email = await self.get_email_by_id(email_id)
+        if not email:
+            return False
+
+        existing_tags = email.get("tags", [])
+        new_tags = list(set(existing_tags + tags))
+
+        updated_email = await self.update_email(email_id, {"tags": new_tags})
+        return updated_email is not None
+
+    async def remove_tags(self, email_id: int, tags: List[str]) -> bool:
+        """Removes tags from an email."""
+        email = await self.get_email_by_id(email_id)
+        if not email:
+            return False
+
+        existing_tags = email.get("tags", [])
+        updated_tags = [tag for tag in existing_tags if tag not in tags]
+
+        updated_email = await self.update_email(email_id, {"tags": updated_tags})
+        return updated_email is not None
+
+
+# Singleton instance
+_db_manager_instance = None
+
+
+async def get_db() -> DatabaseManager:
+    """
+    Provides the singleton instance of the DatabaseManager.
+    """
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        _db_manager_instance = DatabaseManager()
+        await _db_manager_instance._ensure_initialized()
+    return _db_manager_instance

@@ -160,7 +160,7 @@ Email Input → Preprocessing → AI Analysis → Categorization → Storage →
 ## Technology Stack
 
 ### Backend
-- **Python 3.12-3.13**: Primary language for core logic
+- **Python 3.11-3.13**: Primary language for core logic
 - **FastAPI**: High-performance web framework
 - **Gradio**: Interactive UI for scientific development
 - **Transformers**: NLP models from Hugging Face

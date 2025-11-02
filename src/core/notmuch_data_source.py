@@ -334,38 +334,33 @@ class NotmuchDataSource(DataSource):
 
     @log_performance(operation="search_emails_ai")
     async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Perform intelligent search across emails and analysis data."""
-        await self._ensure_initialized()
+        """
+        Performs a direct search against the notmuch database.
+        The UI is dependent on this direct search to find messages to tag.
+        """
+        if not self.notmuch_db:
+            return []
 
         try:
-            # Basic text search
-            basic_results = await self.db.search_emails(search_term, limit * 2)  # Get more for ranking
+            query = self.notmuch_db.create_query(search_term)
+            messages = query.search_messages()
 
-            # Enhance with AI-powered ranking
-            scored_results = []
-            for email in basic_results:
-                score = self._calculate_search_relevance(email, search_term)
-                scored_results.append((email, score))
-
-            # Sort by relevance score
-            scored_results.sort(key=lambda x: x[1], reverse=True)
-
-            # Return top results
-            results = [email for email, score in scored_results[:limit]]
-
-            # Add search metadata
-            for email in results:
-                email["search_metadata"] = {
-                    "search_term": search_term,
-                    "relevance_score": next(score for e, score in scored_results if e["id"] == email["id"])
-                }
-
+            results = []
+            for message in list(messages)[:limit]:
+                results.append(
+                    {
+                        "id": message.get_message_id(),
+                        "message_id": message.get_message_id(),
+                        "subject": message.get_header("subject"),
+                        "sender": message.get_header("from"),
+                        "date": message.get_date(),
+                        "tags": list(message.get_tags()),
+                    }
+                )
             return results
-
         except Exception as e:
-            logger.error(f"Error searching emails: {e}")
-            # Fallback to basic search
-            return await self.db.search_emails(search_term, limit)
+            logger.error(f"Error searching emails in notmuch: {e}")
+            return []
 
     def _calculate_search_relevance(self, email: Dict[str, Any], search_term: str) -> float:
         """Calculate search relevance score using analysis data."""
@@ -526,3 +521,56 @@ class NotmuchDataSource(DataSource):
             confidence["spam"] = filter_results["spam_likelihood"]
 
         return confidence
+
+    async def update_tags_for_message(self, message_id: str, tags: List[str]) -> bool:
+        """
+        Updates the tags for a given message ID in notmuch and triggers a re-analysis.
+        """
+        if not self.notmuch_db:
+            logger.error("Notmuch database not available.")
+            return False
+
+        try:
+            # Find the message in notmuch
+            query = self.notmuch_db.create_query(f"id:{message_id}")
+            messages = list(query.search_messages())
+            if not messages:
+                logger.error(f"Message with ID {message_id} not found in notmuch.")
+                return False
+
+            message = messages[0]
+
+            # Update tags in notmuch
+            message.freeze()
+            message.remove_all_tags()
+            for tag in tags:
+                message.add_tag(tag)
+            message.thaw()
+
+            logger.info(f"Updated tags for message {message_id} in notmuch.")
+
+            # Now, trigger a deep re-analysis
+            email_data = await self.get_email_by_message_id(message_id, include_content=True)
+            if not email_data:
+                logger.error(f"Could not retrieve email data for {message_id} to trigger re-analysis.")
+                return False
+
+            # We need the internal DB id to run the analysis
+            # Let's try to find it via the message_id
+            db_email = await self.db.get_email_by_message_id(message_id)
+            if not db_email:
+                 logger.warning(f"Message {message_id} not found in the internal DB. Re-analysis will be skipped.")
+                 return True # Tags updated in notmuch, but can't re-analyze
+
+            internal_id = db_email.get("id")
+            subject = email_data.get("subject", "")
+            content = email_data.get("body", "")
+
+            asyncio.create_task(self._analyze_email_async(internal_id, subject, content))
+            logger.info(f"Queued deep re-analysis for message {message_id} (internal ID: {internal_id}).")
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Error updating tags for message {message_id}: {e}")
+            return False

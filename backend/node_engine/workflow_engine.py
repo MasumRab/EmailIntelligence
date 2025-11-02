@@ -10,11 +10,10 @@ dependencies, execution order, and error management.
 
 import asyncio
 import logging
-import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.node_engine.node_base import BaseNode, Connection, DataType, ExecutionContext, SecurityContext, Workflow
+from backend.node_engine.node_base import BaseNode, Connection, DataType, ExecutionContext, Workflow
 from backend.node_engine.security_manager import (
     ExecutionSandbox,
     InputSanitizer,
@@ -63,12 +62,7 @@ class WorkflowEngine:
             ExecutionContext containing the results and metadata
         """
         execution_id = workflow.workflow_id
-        start_time = time.time()
         self.logger.info(f"Starting execution of workflow: {workflow.name} (ID: {execution_id})")
-
-        # Create security context
-        security_context = SecurityContext(user_id=user_id)
-        security_context.execution_start_time = datetime.now()
 
         # Audit log workflow start
         audit_logger.log_workflow_start(execution_id, workflow.name, user_id)
@@ -86,19 +80,13 @@ class WorkflowEngine:
                 f"Unable to acquire resources for workflow {execution_id}"
             )
 
-        # Create execution context with security context
-        context = ExecutionContext(security_context=security_context)
+        # Create execution context
+        context = ExecutionContext()
         context.metadata["workflow_id"] = workflow.workflow_id
         context.metadata["workflow_name"] = workflow.name
         context.metadata["start_time"] = datetime.now()
         context.metadata["initial_inputs"] = initial_inputs or {}
         context.metadata["user_id"] = user_id
-        context.metadata["performance"] = {
-            "node_execution_times": {},
-            "total_execution_time": 0,
-            "nodes_executed": 0,
-            "errors_count": 0
-        }
 
         # Store active execution
         self.active_executions[execution_id] = context
@@ -140,8 +128,8 @@ class WorkflowEngine:
                 # Validate inputs
                 validation_result = node.validate_inputs()
                 if not validation_result["valid"]:
-                    error_msg = f"Node {node_id} input validation failed: "
-                    f"{', '.join(validation_result['errors'])}"
+                    error_msg = f"Node {node_id} input validation failed: {
+                        ', '.join(validation_result['errors'])}"
                     context.add_error(node_id, error_msg)
                     raise WorkflowExecutionException(error_msg)
 
@@ -154,24 +142,19 @@ class WorkflowEngine:
                             f"API call limit exceeded for node {node_id}"
                         )
 
-                    node_start_time = time.time()
+                    start_time = datetime.now()
                     result = await sandbox.execute_with_timeout(
                         node.execute, 30, context  # 30 second timeout per node
                     )
-                    node_execution_duration = time.time() - node_start_time
+                    execution_duration = (datetime.now() - start_time).total_seconds()
 
                     context.set_node_output(node_id, result)
                     context.execution_path.append(node_id)
+                    self.logger.debug(f"Node {node_id} executed successfully")
 
-                    # Update performance metrics
-                    context.metadata["performance"]["node_execution_times"][node_id] = node_execution_duration
-                    context.metadata["performance"]["nodes_executed"] += 1
-
-                    self.logger.debug(f"Node {node_id} executed successfully in {node_execution_duration:.3f}s")
-
-                    # Log node execution with enhanced performance data
+                    # Log node execution
                     audit_logger.log_node_execution(
-                        workflow.workflow_id, node_id, node.name, "success", node_execution_duration
+                        workflow.workflow_id, node_id, node.name, "success", execution_duration
                     )
                 except Exception as e:
                     error_msg = f"Node {node_id} execution failed: {str(e)}"
@@ -188,16 +171,16 @@ class WorkflowEngine:
                     raise WorkflowExecutionException(error_msg) from e
 
             # Set completion metadata
-            end_time = time.time()
-            total_execution_time = end_time - start_time
             context.metadata["end_time"] = datetime.now()
-            context.metadata["execution_duration"] = total_execution_time
-            context.metadata["performance"]["total_execution_time"] = total_execution_time
+            context.metadata["execution_duration"] = (
+                context.metadata["end_time"] - context.metadata["start_time"]
+            ).total_seconds()
             context.metadata["status"] = "completed"
 
             self.logger.info(
-            f"Workflow {workflow.name} completed successfully in "
-            f"{total_execution_time:.3f}s ({context.metadata['performance']['nodes_executed']} nodes)"
+                f"Workflow {
+                    workflow.name} completed successfully in {
+                    context.metadata['execution_duration']:.2f}s"
             )
 
         except Exception as e:
