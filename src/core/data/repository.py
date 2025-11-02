@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from src.core.data_source import DataSource
+from src.core.caching import get_cache_manager, CacheConfig, CacheBackend
 import asyncio
 import time
 
@@ -182,28 +183,34 @@ class DatabaseEmailRepository(EmailRepository):
 
 
 class CachingEmailRepository(EmailRepository):
-    """Caching wrapper for EmailRepository that adds caching to dashboard statistics."""
+    """Caching wrapper for EmailRepository that adds Redis/memory caching to dashboard statistics."""
 
-    def __init__(self, repository: EmailRepository, cache_ttl: int = 30):
+    def __init__(self, repository: EmailRepository, cache_ttl: int = 600):
         """
         Initialize the caching repository.
 
         Args:
             repository: The underlying EmailRepository to wrap
-            cache_ttl: Time to live for cached data in seconds (default: 30 seconds)
+            cache_ttl: Time to live for cached data in seconds (default: 10 minutes)
         """
         self.repository = repository
         self.cache_ttl = cache_ttl
-        self._dashboard_cache = {}
-        self._category_breakdown_cache = {}
+        self.cache_manager = get_cache_manager()
         self._cache_lock = asyncio.Lock()
+
+        # Cache keys
+        self._dashboard_key = "dashboard:aggregates"
+        self._category_breakdown_key = "dashboard:category_breakdown"
+
+    async def _invalidate_dashboard_cache(self):
+        """Invalidate all dashboard-related cache entries"""
+        await self.cache_manager.delete(self._dashboard_key)
+        await self.cache_manager.delete(self._category_breakdown_key)
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Creates a new email record."""
         # Invalidate cache when data changes
-        async with self._cache_lock:
-            self._dashboard_cache.clear()
-            self._category_breakdown_cache.clear()
+        await self._invalidate_dashboard_cache()
         return await self.repository.create_email(email_data)
 
     async def get_email_by_id(
@@ -269,53 +276,40 @@ class CachingEmailRepository(EmailRepository):
     ) -> Optional[Dict[str, Any]]:
         """Updates an email by its internal ID."""
         # Invalidate cache when data changes
-        async with self._cache_lock:
-            self._dashboard_cache.clear()
-            self._category_breakdown_cache.clear()
+        await self._invalidate_dashboard_cache()
         return await self.repository.update_email(email_id, update_data)
 
     async def get_dashboard_aggregates(self) -> Dict[str, Any]:
-        """Retrieves aggregated dashboard statistics with caching."""
-        current_time = time.time()
-        
-        async with self._cache_lock:
-            # Check if we have valid cached data
-            if ('data' in self._dashboard_cache and 
-                current_time - self._dashboard_cache.get('timestamp', 0) < self.cache_ttl):
-                return self._dashboard_cache['data'].copy()
-            
-            # Fetch fresh data
-            data = await self.repository.get_dashboard_aggregates()
-            
-            # Cache the data
-            self._dashboard_cache = {
-                'data': data,
-                'timestamp': current_time
-            }
-            
-            return data.copy()
+        """Retrieves aggregated dashboard statistics with Redis/memory caching."""
+        # Try to get from cache first
+        cached_data = await self.cache_manager.get(self._dashboard_key)
+        if cached_data is not None:
+            return cached_data.copy()
+
+        # Fetch fresh data from repository
+        data = await self.repository.get_dashboard_aggregates()
+
+        # Cache the data with TTL
+        await self.cache_manager.set(self._dashboard_key, data, ttl=self.cache_ttl)
+
+        return data.copy()
 
     async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
-        """Retrieves category breakdown statistics with caching."""
-        current_time = time.time()
-        cache_key = str(limit)
-        
-        async with self._cache_lock:
-            # Check if we have valid cached data for this limit
-            if (cache_key in self._category_breakdown_cache and 
-                current_time - self._category_breakdown_cache[cache_key].get('timestamp', 0) < self.cache_ttl):
-                return self._category_breakdown_cache[cache_key]['data'].copy()
-            
-            # Fetch fresh data
-            data = await self.repository.get_category_breakdown(limit)
-            
-            # Cache the data
-            self._category_breakdown_cache[cache_key] = {
-                'data': data,
-                'timestamp': current_time
-            }
-            
-            return data.copy()
+        """Retrieves category breakdown statistics with Redis/memory caching."""
+        cache_key = f"{self._category_breakdown_key}:{limit}"
+
+        # Try to get from cache first
+        cached_data = await self.cache_manager.get(cache_key)
+        if cached_data is not None:
+            return cached_data.copy()
+
+        # Fetch fresh data from repository
+        data = await self.repository.get_category_breakdown(limit)
+
+        # Cache the data with TTL
+        await self.cache_manager.set(cache_key, data, ttl=self.cache_ttl)
+
+        return data.copy()
 
 
 # Additional repository implementations could be added here
