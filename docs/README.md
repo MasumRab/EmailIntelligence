@@ -1,81 +1,70 @@
-# EmailIntelligence Documentation
 
-This directory contains comprehensive documentation for the EmailIntelligence project.
+**This extension is part of the deprecated `backend` package and will be removed in a future release.**
 
-## 📁 Directory Structure
+This extension demonstrates the extension system by adding a simple sentiment analysis enhancement to the EmailIntelligence application.
 
-### 📖 [guides/](guides/)
-User guides, tutorials, and feature documentation
-- Getting started guides
-- Feature documentation  
-- Module documentation
-- Workflow guides
+## Features
 
-### 🏗️ [architecture/](architecture/)
-Architecture and system design documentation
-- System architecture overview
-- Workflow system design
-- Component architecture
+- Adds emojis to sentiment analysis results (😊 for positive, 😞 for negative, 😐 for neutral)
+- Adds detailed metrics to sentiment analysis results:
+  - Word count
+  - Character count
+  - Exclamation count
+  - Question count
 
-### 💻 [development/](development/)
-Development and contribution documentation
-- Developer guides
-- Coding standards
-- Environment setup
-- Extension development
+## Installation
 
-### 🚀 [deployment/](deployment/)
-Deployment and operations documentation
-- Deployment guides
-- Launch configuration
-- Environment hardening
+This extension is included with EmailIntelligence by default. If you need to install it manually:
 
-### 🔌 [api/](api/)
-API documentation and references
-- API reference
-- Dashboard APIs
-- Integration guides
+1. Clone this repository into the `extensions` directory of your EmailIntelligence installation:
+   ```
+   cd /path/to/EmailIntelligence/extensions
+   git clone https://github.com/emailintelligence/example-extension.git example
+   ```
 
-### 📋 [project-management/](project-management/)
-Project management and planning documentation
-- Branch management
-- Documentation workflow
-- Task tracking
-- Project reports
+2. Restart the EmailIntelligence application.
 
-### 📝 [adr/](adr/)
-Architecture Decision Records
-- System design decisions
-- Technology choices
-- Implementation decisions
+## Usage
 
-### 📋 [changelog/](changelog/)
-Change logs and release notes
+The extension automatically enhances the sentiment analysis functionality of EmailIntelligence. No additional configuration is required.
 
-### 📝 [templates/](templates/)
-Documentation templates and examples
+### API
 
-## 🚀 Quick Start
+The extension also provides utility functions that can be used directly:
 
-1. **New to the project?** Start with [guides/getting_started.md](guides/getting_started.md)
-2. **Want to contribute?** Read [development/DEVELOPER_GUIDE.md](development/DEVELOPER_GUIDE.md)
-3. **Need API info?** Check [api/API_REFERENCE.md](api/API_REFERENCE.md)
-4. **Planning features?** See [project-management/](project-management/)
+```python
+from extensions.example.example import get_sentiment_emoji, analyze_text_with_emojis
 
-## 📊 Documentation Health
+# Get an emoji for a sentiment
+emoji = get_sentiment_emoji("positive")  # Returns "😊"
 
-This documentation is maintained in a single organized structure with branch-specific files consolidated.
+# Analyze text with emojis
+result = analyze_text_with_emojis("I love this application!")
+# Returns:
+# {
+#     "text": "I love this application!",
+#     "word_count": 4,
+#     "character_count": 24,
+#     "exclamation_count": 1,
+#     "question_count": 0,
+#     "sentiment": "positive",
+#     "emoji": "😊"
+# }
+```
 
-- **Structure**: Categorized by purpose (guides, architecture, development, etc.)
-- **Branch Integration**: Main and scientific branch documentation merged into organized folders
-- **Maintenance**: Single source of truth for all project documentation
+## Configuration
 
-## 🤝 Contributing
+You can configure the extension by editing the `metadata.json` file:
 
-When adding documentation:
-1. Place files in the appropriate subdirectory based on content type
-2. Follow the established naming conventions
-3. Update this README if adding new sections
-4. For branch-specific content, use descriptive suffixes (e.g., `-main.md`, `-scientific.md`)
+```json
+{
+    "settings": {
+        "add_emojis": true,
+        "add_detailed_metrics": true
+    }
+}
+```
 
-All documentation is now maintained in this single organized structure.
+## License
+
+This extension is licensed under the MIT License. See the LICENSE file for details.
