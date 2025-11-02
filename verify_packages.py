@@ -98,8 +98,7 @@ def check_package_availability():
                 success, output = run_command([str(pip_exe), "list", "--format=freeze"])
                 if success:
                     # Count lines in output
-                    line_count = len([line for line in output.split('
-') if line.strip()])
+                    line_count = len([line for line in output.split('\n') if line.strip()])
                     print(f"📦 Virtual environment has {line_count} packages installed")
             else:
                 success, output = run_command(f"source {venv_name}/bin/activate && pip list --format=freeze | wc -l")
@@ -114,8 +113,7 @@ def check_package_availability():
     success, output = run_command(["dpkg", "-l"])
     if success:
     # Count python3 packages manually
-        lines = [line for line in output.split('
-') if line.startswith('ii') and 'python3' in line]
+        lines = [line for line in output.split("\n") if line.startswith("ii") and "python3" in line]
         package_count = str(len(lines))
         print(f"📦 System has {package_count} Python packages installed")
 
