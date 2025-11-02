@@ -66,6 +66,9 @@ config/llm_guidelines.local.json
 # Ignore hidden files and directories, with exceptions
 .*
 !docs/.gitkeep
+!docs/.branch-config.json
+!docs/.review-queue.json
+!docs/.merge-history.json
 !.semgrep/
 !.gitignore
 
