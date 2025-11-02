@@ -1,7 +1,7 @@
 ---
 id: task-1
 title: 'Resolve merge conflicts in PR #133'
-status: Done
+status: To Do
 assignee: []
 created_date: '2025-10-25 04:46'
 labels: []
