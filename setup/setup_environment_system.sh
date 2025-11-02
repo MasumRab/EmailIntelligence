@@ -59,10 +59,13 @@ sudo apt install -y \
     python3-scipy \
     python3-matplotlib \
     python3-pandas \
+    python3-seaborn \
+    python3-plotly \
     python3-sklearn \
     python3-joblib \
     python3-psutil \
-    python3-sentencepiece
+    python3-sentencepiece \
+    python3-networkx
 
 # Install Python web framework packages
 log_info "🌐 Installing Python web framework packages..."
@@ -109,7 +112,8 @@ sudo apt install -y \
     libjpeg-dev \
     libtiff-dev \
     libx11-dev \
-    libxext-dev
+    libxext-dev \
+    python3-notmuch
 
 # Create virtual environment for packages not available in system repos
 log_info "🐍 Creating virtual environment for specialized packages..."
@@ -358,6 +362,20 @@ try:
     print('✅ Email Validator import: OK')
 except ImportError:
     print('❌ Email Validator import: FAILED')
+    success = False
+
+try:
+    import networkx
+    print('✅ NetworkX import: OK')
+except ImportError:
+    print('❌ NetworkX import: FAILED')
+    success = False
+
+try:
+    import notmuch
+    print('✅ Notmuch import: OK')
+except ImportError:
+    print('❌ Notmuch import: FAILED')
     success = False
 
 if not success:
