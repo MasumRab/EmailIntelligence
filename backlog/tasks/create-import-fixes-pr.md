@@ -4,7 +4,7 @@
 
 ## Priority: Medium
 
-## Status: Not Started
+## Status: In Progress
 
 ## Description
 Create a focused PR that extracts import error fixes from the `fix/import-errors-and-docs` branch. This PR should address specific import/circular dependency issues without including documentation changes.
@@ -46,8 +46,8 @@ Create a focused PR that extracts import error fixes from the `fix/import-errors
 4. Ensure performance is not negatively impacted
 
 ## Success Criteria
-- [ ] Import error fixes are extracted into focused PR
-- [ ] PR addresses only import-related changes
+- [x] Import error fixes are extracted into focused PR
+- [x] PR addresses only import-related changes
 - [ ] All import tests pass
 - [ ] PR description is clear and comprehensive
 - [ ] GitHub PR is created and ready for review
@@ -69,3 +69,8 @@ Create a focused PR that extracts import error fixes from the `fix/import-errors
 - Document any changes to public API import paths
 - Coordinate with team members who work with the affected modules
 - Ensure all modules can be imported without errors
+
+## Current Progress
+- Moved uvicorn import inside __main__ block in backend/python_backend/main.py to avoid importing heavy modules when the file is imported as a module
+- Fixed pydantic v2 imports to v1 compatibility: changed field_validator to validator in src/core/models.py and backend/python_backend/settings.py
+- Fixed unenforced Field constraints in BatchEmailUpdate by adding proper validator

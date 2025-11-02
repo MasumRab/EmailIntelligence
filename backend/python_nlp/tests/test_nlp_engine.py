@@ -5,9 +5,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from backend.python_nlp.nlp_engine import NLPEngine
+
 # Ensure the root directory is in the Python path
 
-from backend.python_nlp.nlp_engine import NLPEngine
 
 
 @pytest.fixture
