@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     import networkx as nx
+
     NETWORKX_AVAILABLE = True
 except ImportError:
     NETWORKX_AVAILABLE = False
@@ -39,8 +40,12 @@ class DataType(Enum):
 class SecurityContext:
     """Security context for node execution."""
 
-    def __init__(self, user_id: Optional[str] = None, permissions: List[str] = None,
-                 resource_limits: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        user_id: Optional[str] = None,
+        permissions: List[str] = None,
+        resource_limits: Optional[Dict[str, Any]] = None,
+    ):
         self.user_id = user_id
         self.permissions = permissions or []
         self.resource_limits = resource_limits or {}
@@ -245,15 +250,15 @@ class Workflow:
         source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
         if not source_port_exists:
             raise ValueError(
-            f"Source port {connection.source_port} does not exist on node "
-            f"{connection.source_node_id}"
+                f"Source port {connection.source_port} does not exist on node "
+                f"{connection.source_node_id}"
             )
 
         target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
         if not target_port_exists:
             raise ValueError(
-            f"Target port {connection.target_port} does not exist on node "
-            f"{connection.target_node_id}"
+                f"Target port {connection.target_port} does not exist on node "
+                f"{connection.target_node_id}"
             )
 
         self.connections.append(connection)
@@ -342,5 +347,7 @@ class Workflow:
         return result
 
     def __repr__(self):
-        return f"Workflow(name={self.name}, nodes={len(self.nodes)
-                                                   }, connections={len(self.connections)})"
+        return (
+            f"Workflow(name={self.name}, nodes={len(self.nodes)}"
+            f", connections={len(self.connections)})"
+        )

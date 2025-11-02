@@ -16,11 +16,12 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from .analysis_components.importance_model import ImportanceModel
+
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
+from .analysis_components.importance_model import ImportanceModel
 from .analysis_components.intent_model import IntentModel
 from .analysis_components.sentiment_model import SentimentModel
 from .analysis_components.topic_model import TopicModel
@@ -67,6 +68,7 @@ def clean_text(text: str) -> str:
 # TOPIC_MODEL_PATH = os.path.join(MODEL_DIR, "topic_model.pkl")
 # INTENT_MODEL_PATH = os.path.join(MODEL_DIR, "intent_model.pkl")
 # URGENCY_MODEL_PATH = os.path.join(MODEL_DIR, "urgency_model.pkl")
+
 
 class NLPEngine:
     """
@@ -137,6 +139,7 @@ class NLPEngine:
         if HAS_NLTK:
             try:
                 import nltk
+
                 nltk.data.find("corpora/stopwords")
             except LookupError:
                 logger.info("NLTK 'stopwords' resource not found. Downloading...")
@@ -174,6 +177,7 @@ class NLPEngine:
         try:
             if os.path.exists(model_path):
                 import joblib
+
                 model = joblib.load(model_path)
                 logger.info(f"Successfully loaded model from {model_path}")
                 return model
@@ -913,7 +917,6 @@ class NLPEngine:
             # "action_items": [], # Removed
         }
 
-
     def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
         """
         Analyzes text for action items using a regex-based approach.
@@ -935,14 +938,18 @@ class NLPEngine:
                 verb = match.group(1) if len(match.groups()) > 1 else None
                 obj = match.group(2) if len(match.groups()) > 2 else None
                 due_date_text = match.group(3) if len(match.groups()) > 3 else None
-                
-                action_items.append({
-                    "action_phrase": action_phrase,
-                    "verb": verb,
-                    "object": obj.strip() if obj else None,
-                    "raw_due_date_text": due_date_text.strip() if due_date_text else None,
-                    "context": text_lower[max(0, match.start()-50):min(len(text_lower), match.end()+50)].strip()
-                })
+
+                action_items.append(
+                    {
+                        "action_phrase": action_phrase,
+                        "verb": verb,
+                        "object": obj.strip() if obj else None,
+                        "raw_due_date_text": due_date_text.strip() if due_date_text else None,
+                        "context": text_lower[
+                            max(0, match.start() - 50) : min(len(text_lower), match.end() + 50)
+                        ].strip(),
+                    }
+                )
         return action_items
 
     def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
@@ -1078,7 +1085,9 @@ class NLPEngine:
             intent_analysis.get("intent", "informational") if intent_analysis else "informational"
         )
         final_urgency = urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
-        final_is_important = importance_analysis.get("is_important", False) if importance_analysis else False
+        final_is_important = (
+            importance_analysis.get("is_important", False) if importance_analysis else False
+        )
 
         suggested_labels = self._suggest_labels(categories, final_urgency)
 
@@ -1172,13 +1181,13 @@ def main():
 def _perform_health_check(engine: NLPEngine, output_format: str):
     """Performs a health check and prints the status."""
     models_available = []
-    if hasattr(engine, 'sentiment_analyzer') and engine.sentiment_analyzer:
+    if hasattr(engine, "sentiment_analyzer") and engine.sentiment_analyzer:
         models_available.append("sentiment")
-    if hasattr(engine, 'topic_analyzer') and engine.topic_analyzer:
+    if hasattr(engine, "topic_analyzer") and engine.topic_analyzer:
         models_available.append("topic")
-    if hasattr(engine, 'intent_analyzer') and engine.intent_analyzer:
+    if hasattr(engine, "intent_analyzer") and engine.intent_analyzer:
         models_available.append("intent")
-    if hasattr(engine, 'urgency_analyzer') and engine.urgency_analyzer:
+    if hasattr(engine, "urgency_analyzer") and engine.urgency_analyzer:
         models_available.append("urgency")
 
     all_models_loaded = all(
@@ -1240,7 +1249,7 @@ def _handle_backward_compatible_cli_invocation(
         if len(argv) < 3:  # Script name, subject, (optional) content
             # Allow content to be empty for old style, but subject must be there if any arg is given
             err_msg = {
-                "error": "Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py \"<subject>\" \"[content]\""
+                "error": 'Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py "<subject>" "[content]"'
             }
             if args.output_format == "json":
                 print(json.dumps(err_msg))

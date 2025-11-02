@@ -2,6 +2,7 @@
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 """
+
 import json
 import logging
 import sqlite3
@@ -9,11 +10,11 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+from src.core.auth import get_current_active_user
 
 from .database import DatabaseManager, get_db
 from .models import FilterRequest
 from .performance_monitor import PerformanceMonitor, log_performance
-from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -23,12 +24,9 @@ performance_monitor = PerformanceMonitor()
 
 @router.get("/api/filters")
 @log_performance
-async def get_filters(
-    request: Request,
-    current_user: str = Depends(get_current_active_user)
-):
+async def get_filters(request: Request, current_user: str = Depends(get_current_active_user)):
     """Get all active email filters
-    
+
     Requires authentication.
     """
     try:
@@ -44,18 +42,16 @@ async def get_filters(
 async def create_filter(
     request: Request,
     filter_request_model: FilterRequest,
-    current_user: str = Depends(get_current_active_user)
+    current_user: str = Depends(get_current_active_user),
 ):
     """Create new email filter
-    
+
     Requires authentication.
     """
     try:
         description = filter_request_model.description or ""
         new_filter_object = filter_manager.add_custom_filter(
-            filter_request_model.criteria,
-            filter_request_model.action,
-            description
+            filter_request_model.criteria, filter_request_model.action, description
         )
         return new_filter_object
     except Exception as e:
@@ -68,10 +64,10 @@ async def create_filter(
 async def generate_intelligent_filters(
     request: Request,
     current_user: str = Depends(get_current_active_user),
-    db: DatabaseManager = Depends(get_db)
+    db: DatabaseManager = Depends(get_db),
 ):
     """Generate intelligent filters based on email patterns.
-    
+
     Requires authentication.
     """
     try:
@@ -85,12 +81,9 @@ async def generate_intelligent_filters(
 
 @router.post("/api/filters/prune")
 @log_performance
-async def prune_filters(
-    request: Request,
-    current_user: str = Depends(get_current_active_user)
-):
+async def prune_filters(request: Request, current_user: str = Depends(get_current_active_user)):
     """Prune ineffective filters
-    
+
     Requires authentication.
     """
     try:

@@ -7,9 +7,10 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from src.core.auth import get_current_active_user
+
 from .dependencies import get_model_manager
 from .model_manager import ModelManager
-from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -21,7 +22,7 @@ async def list_models(
     model_manager: ModelManager = Depends(get_model_manager),
 ):
     """Lists all discovered models and their current status.
-    
+
     Requires authentication.
     """
     return model_manager.list_models()
@@ -34,7 +35,7 @@ async def load_model(
     model_manager: ModelManager = Depends(get_model_manager),
 ):
     """Loads a specific model into memory.
-    
+
     Requires authentication.
     """
     try:
@@ -52,7 +53,7 @@ async def unload_model(
     model_manager: ModelManager = Depends(get_model_manager),
 ):
     """Unloads a specific model from memory.
-    
+
     Requires authentication.
     """
     try:
