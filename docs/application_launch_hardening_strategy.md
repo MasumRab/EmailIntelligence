@@ -137,8 +137,8 @@ def validate_environment():
     issues = []
     
     # Check Python version
-    if sys.version_info < (3, 12):
-        issues.append("Python 3.12 or higher is required")
+    if sys.version_info < (3, 11):
+        issues.append("Python 3.11 or higher is required")
     
     # Check environment variables
     required_vars = ["DATABASE_URL", "GMAIL_CREDENTIALS_JSON"]
