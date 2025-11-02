@@ -73,7 +73,7 @@ async def get_dashboard_stats(
             "message": "Dashboard statistics retrieved successfully"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard stats: {str(e)}") from e
 
 
 @router.get("/jobs/{job_id}")
@@ -98,7 +98,7 @@ def get_job_status(job_id: str, current_user: str = Depends(get_current_active_u
             "completed_at": job_result.completed_at.isoformat() if job_result.completed_at else None
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get job status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get job status: {str(e)}") from e
 
 
 @router.post("/jobs/weekly-growth")
