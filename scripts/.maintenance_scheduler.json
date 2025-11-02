@@ -1,0 +1,93 @@
+{
+  "timestamp": 1762071698.5437665,
+  "maintenance_tasks": {
+    "29894c3a-748b-467c-988a-2f9d3615e38b": {
+      "task_id": "29894c3a-748b-467c-988a-2f9d3615e38b",
+      "task_type": "link_check",
+      "document_id": "integration-test-doc",
+      "description": "Integration test maintenance task",
+      "scheduled_time": 1762070321.0196247,
+      "status": "pending",
+      "priority": "normal",
+      "assigned_agents": [
+        "integration-test-agent"
+      ],
+      "start_time": 0.0,
+      "end_time": 0.0,
+      "result": "",
+      "metadata": {}
+    },
+    "7419000b-ff5b-4616-b4f5-88c2a0d09d21": {
+      "task_id": "7419000b-ff5b-4616-b4f5-88c2a0d09d21",
+      "task_type": "link_check",
+      "document_id": "integration-test-doc",
+      "description": "Integration test maintenance task",
+      "scheduled_time": 1762070469.2031007,
+      "status": "pending",
+      "priority": "normal",
+      "assigned_agents": [
+        "integration-test-agent"
+      ],
+      "start_time": 0.0,
+      "end_time": 0.0,
+      "result": "",
+      "metadata": {}
+    },
+    "dd2b0c50-3466-47d5-a91c-2fa15afe6997": {
+      "task_id": "dd2b0c50-3466-47d5-a91c-2fa15afe6997",
+      "task_type": "link_check",
+      "document_id": "integration-test-doc",
+      "description": "Integration test maintenance task",
+      "scheduled_time": 1762070753.9812095,
+      "status": "pending",
+      "priority": "normal",
+      "assigned_agents": [
+        "integration-test-agent"
+      ],
+      "start_time": 0.0,
+      "end_time": 0.0,
+      "result": "",
+      "metadata": {}
+    },
+    "4da73660-367e-4781-91c2-588aa6d8cc51": {
+      "task_id": "4da73660-367e-4781-91c2-588aa6d8cc51",
+      "task_type": "link_check",
+      "document_id": "integration-test-doc",
+      "description": "Integration test maintenance task",
+      "scheduled_time": 1762071698.5437517,
+      "status": "pending",
+      "priority": "normal",
+      "assigned_agents": [
+        "integration-test-agent"
+      ],
+      "start_time": 0.0,
+      "end_time": 0.0,
+      "result": "",
+      "metadata": {}
+    }
+  },
+  "maintenance_schedules": {},
+  "maintenance_agents": {
+    "integration-test-agent": {
+      "agent_id": "integration-test-agent",
+      "capabilities": [
+        "link_check",
+        "format_check"
+      ],
+      "max_concurrent_tasks": 5,
+      "status": "active",
+      "current_task_count": 0,
+      "last_heartbeat": 0.0,
+      "metadata": {}
+    }
+  },
+  "maintenance_results": {},
+  "task_queue": [
+    "29894c3a-748b-467c-988a-2f9d3615e38b",
+    "7419000b-ff5b-4616-b4f5-88c2a0d09d21",
+    "dd2b0c50-3466-47d5-a91c-2fa15afe6997",
+    "4da73660-367e-4781-91c2-588aa6d8cc51"
+  ],
+  "completed_tasks": [],
+  "failed_tasks": []
+}

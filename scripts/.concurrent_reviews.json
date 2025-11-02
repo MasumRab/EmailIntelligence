@@ -1,0 +1,113 @@
+{
+  "timestamp": 1762071698.5411077,
+  "review_sessions": {
+    "48bb5cd9-936f-4572-82b5-f4cc455d7f95": {
+      "session_id": "48bb5cd9-936f-4572-82b5-f4cc455d7f95",
+      "document_id": "integration-test-doc",
+      "reviewers": [
+        "test-agent-1",
+        "test-agent-2"
+      ],
+      "status": "pending",
+      "start_time": 1762070321.0185645,
+      "end_time": 0.0,
+      "comments": [
+        {
+          "comment_id": "cc0ee1d3-2022-4953-aab3-a8c0ad5695cb",
+          "agent_id": "test-agent-1",
+          "section_id": "intro",
+          "comment_text": "Integration test comment",
+          "severity": "medium",
+          "status": "open",
+          "timestamp": 1762070321.018751,
+          "resolved_by": "",
+          "metadata": {}
+        }
+      ],
+      "feedback": [],
+      "votes": [],
+      "metadata": {}
+    },
+    "57eb6ee7-33ca-4e78-81e6-6e2e9b2d0c14": {
+      "session_id": "57eb6ee7-33ca-4e78-81e6-6e2e9b2d0c14",
+      "document_id": "integration-test-doc",
+      "reviewers": [
+        "test-agent-1",
+        "test-agent-2"
+      ],
+      "status": "pending",
+      "start_time": 1762070469.1882472,
+      "end_time": 0.0,
+      "comments": [
+        {
+          "comment_id": "4df09fe0-d08d-455b-b76d-746d3fbad845",
+          "agent_id": "test-agent-1",
+          "section_id": "intro",
+          "comment_text": "Integration test comment",
+          "severity": "medium",
+          "status": "open",
+          "timestamp": 1762070469.188911,
+          "resolved_by": "",
+          "metadata": {}
+        }
+      ],
+      "feedback": [],
+      "votes": [],
+      "metadata": {}
+    },
+    "cba2fe2e-832a-4325-bef7-5632fd25fdb6": {
+      "session_id": "cba2fe2e-832a-4325-bef7-5632fd25fdb6",
+      "document_id": "integration-test-doc",
+      "reviewers": [
+        "test-agent-1",
+        "test-agent-2"
+      ],
+      "status": "pending",
+      "start_time": 1762070753.9765615,
+      "end_time": 0.0,
+      "comments": [
+        {
+          "comment_id": "9e5fa71a-7101-4114-a982-0122493f3e31",
+          "agent_id": "test-agent-1",
+          "section_id": "intro",
+          "comment_text": "Integration test comment",
+          "severity": "medium",
+          "status": "open",
+          "timestamp": 1762070753.977174,
+          "resolved_by": "",
+          "metadata": {}
+        }
+      ],
+      "feedback": [],
+      "votes": [],
+      "metadata": {}
+    },
+    "b0438808-b7e5-44ce-aec7-04985ddf9dc7": {
+      "session_id": "b0438808-b7e5-44ce-aec7-04985ddf9dc7",
+      "document_id": "integration-test-doc",
+      "reviewers": [
+        "test-agent-1",
+        "test-agent-2"
+      ],
+      "status": "pending",
+      "start_time": 1762071698.5407796,
+      "end_time": 0.0,
+      "comments": [
+        {
+          "comment_id": "c4392c27-d918-4365-92f2-f9ef8f11d400",
+          "agent_id": "test-agent-1",
+          "section_id": "intro",
+          "comment_text": "Integration test comment",
+          "severity": "medium",
+          "status": "open",
+          "timestamp": 1762071698.5411024,
+          "resolved_by": "",
+          "metadata": {}
+        }
+      ],
+      "feedback": [],
+      "votes": [],
+      "metadata": {}
+    }
+  }
+}
