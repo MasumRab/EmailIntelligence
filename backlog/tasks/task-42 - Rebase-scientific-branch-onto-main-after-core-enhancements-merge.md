@@ -5,9 +5,10 @@ status: Done
 assignee:
   - '@amp'
 created_date: '2025-10-31 15:14'
-updated_date: '2025-10-31 15:27'
+updated_date: '2025-11-02 03:00'
 labels: []
 dependencies: []
+priority: high
 ---
 
 ## Description
