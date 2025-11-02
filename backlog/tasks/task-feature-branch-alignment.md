@@ -102,4 +102,11 @@ The scientific branch contains more advanced architectural implementations that 
 the specific functionality of this feature branch.
 
 Current status: Planning phase - need to assess differences between this branch and scientific branch.
+
+## Feature Preservation Instructions:
+- Preserve the setup and code quality improvements implemented in launch.py and setup scripts
+- Maintain the improved dependency management and textblob integration
+- Ensure security hardening and production readiness implementations remain functional
+- Keep the dependency standardization and plugin routes integration
+- Verify all setup script modifications for venv creation remain intact
 <!-- SECTION:NOTES:END -->
