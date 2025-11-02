@@ -102,4 +102,11 @@ The scientific branch contains more advanced architectural implementations that 
 the specific functionality of this feature branch.
 
 Current status: Planning phase - need to assess differences between this branch and scientific branch.
+
+## Feature Preservation Instructions:
+- Preserve the documentation cleanup and organization improvements across all documentation files
+- Maintain all updated documentation that follows project standards and guidelines
+- Ensure documentation management guidelines remain properly implemented
+- Keep all comprehensive project documentation consolidation work intact
+- Verify that all branch classification and cleanup recommendations are preserved
 <!-- SECTION:NOTES:END -->
