@@ -92,18 +92,3 @@
   ],
   "completed_reviews": []
 }
-        },
-        "recommendation": "SHARE"
-      },
-      "strategy": "SHARE",
-      "created_at": "2025-11-02T11:35:21.762772",
-      "status": "pending",
-      "reviewers": [
-        "team-lead",
-        "tech-writer"
-      ],
-      "priority": "medium"
-    }
-  ],
-  "completed_reviews": []
-}
