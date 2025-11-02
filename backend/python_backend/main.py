@@ -1,9 +1,8 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+FastAPI Backend for Email Intelligence Platform
 
-FastAPI Backend for Gmail AI Email Management
-Unified Python backend with optimized performance and integrated NLP
+Unified Python backend with optimized performance, integrated NLP,
+and advanced node-based workflow system for email processing.
 """
 
 import json
