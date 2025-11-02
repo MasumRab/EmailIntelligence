@@ -1,3 +1,3 @@
-# Common Documentation
+This is a test common documentation file.
 
-This is common documentation shared across all worktrees.
+This line was added to test worktree synchronization.
