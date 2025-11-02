@@ -1,5 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 
 API routes for node-based workflows in the Email Intelligence Platform.

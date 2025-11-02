@@ -1,5 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 
 Base Plugin Interface for Email Intelligence Platform

@@ -1,4 +1,3 @@
-# DEPRECATED: Example Extension
 
 **This extension is part of the deprecated `backend` package and will be removed in a future release.**
 

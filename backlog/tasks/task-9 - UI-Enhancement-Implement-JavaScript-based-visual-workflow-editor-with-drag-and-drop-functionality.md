@@ -3,10 +3,11 @@ id: task-9
 title: >-
   UI Enhancement - Implement JavaScript-based visual workflow editor with
   drag-and-drop functionality
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@opencode'
 created_date: '2025-10-25 04:50'
-updated_date: '2025-10-28 08:54'
+updated_date: '2025-11-02 06:30'
 labels:
   - ui
   - frontend

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 
 Production server runner for Gmail AI Email Management

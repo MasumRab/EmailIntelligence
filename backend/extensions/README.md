@@ -1,9 +1,51 @@
-# DEPRECATED: EmailIntelligence Extensions
+# Email Intelligence Platform - Extensions
 
-**This directory is part of the deprecated `backend` package and will be removed in a future release.**
+This directory contains extensions for the Email Intelligence Platform, providing modular enhancements and custom functionality.
 
-This directory contains extensions for the EmailIntelligence application, allowing for modular enhancements.
+## Overview
 
-For detailed information on using existing extensions, developing new ones, the extension lifecycle, and the extension API, please see the **[Extensions Guide](../../docs/extensions_guide.md)**.
+Extensions allow you to:
+- Add custom workflow nodes
+- Implement specialized email processing logic
+- Create custom AI models and analysis tools
+- Extend the platform with domain-specific features
 
-To manage extensions (list, install, create, etc.), you can use the main launcher script. Refer to the **[Launcher Guide](../../docs/launcher_guide.md#extensions-and-models)** for commands.
+## Available Extensions
+
+### Example Extension
+- **Location**: `example/`
+- **Purpose**: Demonstrates extension structure and API usage
+- **Features**: Basic email processing node example
+
+## Extension Development
+
+For detailed information on:
+- Using existing extensions
+- Developing new extensions
+- Extension lifecycle management
+- Extension API reference
+
+Please see the **[Extensions Guide](../../docs/extensions_guide.md)**.
+
+## Managing Extensions
+
+To manage extensions (list, install, create, etc.), use the main launcher script:
+
+```bash
+python launch.py --list-extensions
+python launch.py --create-extension <name>
+```
+
+Refer to the **[Launcher Guide](../../docs/launcher_guide.md#extensions-and-models)** for complete commands.
+
+## Extension Structure
+
+Each extension should follow this structure:
+```
+extension_name/
+├── __init__.py          # Extension initialization
+├── metadata.json        # Extension metadata
+├── requirements.txt     # Python dependencies
+├── README.md           # Extension documentation
+└── extension_code.py   # Main extension logic
+```
