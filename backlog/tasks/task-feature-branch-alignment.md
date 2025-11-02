@@ -104,9 +104,9 @@ the specific functionality of this feature branch.
 Current status: Planning phase - need to assess differences between this branch and scientific branch.
 
 ## Feature Preservation Instructions:
-- Preserve the repository pattern integration with dashboard statistics implemented in modules/dashboard/routes.py
-- Maintain the EmailRepository abstraction and its get_dashboard_aggregates and get_category_breakdown methods
-- Ensure caching layer for repository pattern remains functional after alignment
-- Keep the dependency injection pattern using get_email_repository factory function
-- Verify all dashboard statistics functionality remains intact after alignment
+- Preserve the import error fixes related to pydantic v1/v2 compatibility and field constraints
+- Maintain the security fixes that prevent command injection in subprocess.Popen calls
+- Ensure proper exception handling replacing bare except clauses remains implemented
+- Keep the dashboard test updates with comprehensive test coverage for ConsolidatedDashboardStats
+- Verify all import compatibility fixes and validation mechanisms remain active
 <!-- SECTION:NOTES:END -->
