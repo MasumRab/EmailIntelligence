@@ -1,406 +1,391 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Workflow execution engine for the node-based system.
 
-Workflow Execution Engine for the Email Intelligence Platform.
-
-This module manages the execution of node-based workflows, handling
-dependencies, execution order, and error management.
+This module provides the core workflow execution functionality,
+including node registration, workflow validation, and secure execution.
 """
 
 import asyncio
 import logging
-import time
+from typing import Any, Dict, List, Optional, Type
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+import uuid
 
-from backend.node_engine.node_base import BaseNode, Connection, DataType, ExecutionContext, SecurityContext, Workflow
-from backend.node_engine.security_manager import (
-    SecurityManager, # Import the SecurityManager class
+<<<<<<< HEAD
+from .node_base import BaseNode, Connection, DataType, ExecutionContext, SecurityContext, Workflow, NodeExecutionError
+from .security_manager import (
+    SecurityManager,
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,
     audit_logger,
     resource_manager
 )
+>>>>>>> refs/remotes/origin/scientific-consolidated
 
-
-class WorkflowExecutionException(Exception):
-    """Exception raised when workflow execution fails."""
-
-    pass
+logger = logging.getLogger(__name__)
 
 
 class WorkflowEngine:
-    """Manages execution of node-based workflows."""
+    """
+    Central engine for managing and executing workflows.
 
-        def __init__(self, security_manager: Optional[SecurityManager] = None):
-            self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
-            self.active_executions: Dict[str, ExecutionContext] = {}
-            self.node_registry: Dict[str, type] = {}
-            # Initialize with a default SecurityManager if not provided, for flexibility
-            self.security_manager = security_manager if security_manager else SecurityManager(user_roles={})
-    def register_node_type(self, node_class: type):
-        """Register a node type for workflow composition."""
-        self.node_registry[node_class.__name__] = node_class
-        self.logger.info(f"Registered node type: {node_class.__name__}")
+    Provides node registration, workflow validation, and execution orchestration
+    with integrated security controls.
+    """
 
-    def get_registered_node_types(self) -> List[str]:
-        """Get list of all registered node types."""
-        return list(self.node_registry.keys())
+    def __init__(self, security_manager: Optional[SecurityManager] = None):
+        self.node_types: Dict[str, Type[BaseNode]] = {}
+        self.security_manager = security_manager if security_manager else SecurityManager()
+        self.active_executions: Dict[str, asyncio.Task] = {}
 
-    async def execute_workflow(
-        self, workflow: Workflow, initial_inputs: Dict[str, Any] = None, user_id: str = None
-    ) -> ExecutionContext:
+        # Register built-in node types
+        self._register_builtin_nodes()
+
+    def _register_builtin_nodes(self) -> None:
         """
-        Execute a workflow with the given initial inputs.
+        Register built-in node types.
+        """
+        from .email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode, FilterNode, ActionNode
+
+        self.register_node_type(EmailSourceNode)
+        self.register_node_type(PreprocessingNode)
+        self.register_node_type(AIAnalysisNode)
+        self.register_node_type(FilterNode)
+        self.register_node_type(ActionNode)
+
+    def register_node_type(self, node_class: Type[BaseNode]) -> None:
+        """
+        Register a node type for use in workflows.
 
         Args:
-            workflow: The workflow to execute
-            initial_inputs: Initial input values for the workflow
-            user_id: ID of the user requesting execution (for security/auditing)
+            node_class: Node class to register
+        """
+        type_name = node_class.__name__
+        self.node_types[type_name] = node_class
+        logger.info(f"Registered node type: {type_name}")
+
+    def get_registered_node_types(self) -> List[str]:
+        """
+        Get list of registered node type names.
 
         Returns:
-            ExecutionContext containing the results and metadata
+            List of node type names
         """
-        execution_id = workflow.workflow_id
-        start_time = time.time()
-        self.logger.info(f"Starting execution of workflow: {workflow.name} (ID: {execution_id})")
+        return list(self.node_types.keys())
 
-        # --- SECURITY CHECK: VERIFY USER PERMISSION TO EXECUTE WORKFLOW ---
-        class MockUser:
-            def __init__(self, user_id: str):
-                self.id = user_id
-        
-        mock_user = MockUser(user_id) if user_id else MockUser("anonymous") # Use 'anonymous' for unauthenticated
+    def create_node(self, node_type: str, config: Optional[Dict[str, Any]] = None, **kwargs) -> BaseNode:
+        """
+        Create a node instance.
+>>>>>>> refs/remotes/origin/scientific-consolidated
 
-        if not self.security_manager.has_permission(mock_user, "execute", workflow):
-            error_msg = f"User {user_id or 'anonymous'} does not have permission to execute workflow {workflow.name} (ID: {workflow.workflow_id})."
-            self.logger.warning(error_msg)
-            audit_logger.log_security_event(
-                "WORKFLOW_EXECUTION_DENIED",
-                {"workflow_id": workflow.workflow_id, "user_id": user_id, "reason": "Insufficient permissions"},
-            )
-            raise WorkflowExecutionException(error_msg)
-        # --- END SECURITY CHECK ---
+        Args:
+            node_type: Type name of node to create
+            config: Node configuration
+            **kwargs: Additional node parameters
 
-        # Create security context
-        security_context = SecurityContext(user_id=user_id)
-        security_context.execution_start_time = datetime.now()
+        Returns:
+            Node instance
 
-        # Audit log workflow start
-        audit_logger.log_workflow_start(execution_id, workflow.name, user_id)
+        Raises:
+            ValueError: If node type is not registered
+        """
+        if node_type not in self.node_types:
+            raise ValueError(f"Unknown node type: {node_type}")
 
-        # Sanitize initial inputs
-        if initial_inputs:
-            initial_inputs = InputSanitizer._sanitize_dict(initial_inputs or {})
+        node_class = self.node_types[node_type]
+        return node_class(config=config, **kwargs)
 
-        # Acquire resources for the workflow
-        resources_acquired = await resource_manager.acquire_resources(
-            execution_id, ResourceLimits()
+    async def execute_workflow(self, workflow: Workflow, user_id: str, execution_id: Optional[str] = None) -> ExecutionContext:
+        """
+        Execute a workflow with security controls.
+
+        Args:
+            workflow: Workflow to execute
+            user_id: ID of user executing the workflow
+            execution_id: Optional execution ID (generated if not provided)
+
+        Returns:
+            Execution context with results
+
+        Raises:
+            ValueError: If workflow is invalid
+            RuntimeError: If execution fails
+        """
+        execution_id = execution_id or str(uuid.uuid4())
+
+        context = ExecutionContext(
+            workflow_id=workflow.workflow_id,
+            user_id=user_id,
+            execution_id=execution_id
         )
-        if not resources_acquired:
-            raise WorkflowExecutionException(
-                f"Unable to acquire resources for workflow {execution_id}"
-            )
 
-        # Create execution context with security context
-        context = ExecutionContext(security_context=security_context)
-        context.metadata["workflow_id"] = workflow.workflow_id
-        context.metadata["workflow_name"] = workflow.name
-        context.metadata["start_time"] = datetime.now()
-        context.metadata["initial_inputs"] = initial_inputs or {}
-        context.metadata["user_id"] = user_id
-        context.metadata["performance"] = {
-            "node_execution_times": {},
-            "total_execution_time": 0,
-            "nodes_executed": 0,
-            "errors_count": 0
-        }
-
-        # Store active execution
-        self.active_executions[execution_id] = context
+        logger.info(f"Starting workflow execution: {workflow.workflow_id} by user {user_id}")
 
         try:
-            # Set initial inputs to appropriate source nodes
-            if initial_inputs:
-                await self._set_initial_inputs(workflow, context, initial_inputs)
+            # Validate workflow
+            validation_errors = workflow.validate()
+            if validation_errors:
+                raise ValueError(f"Workflow validation failed: {validation_errors}")
 
             # Get execution order
             execution_order = workflow.get_execution_order()
-            self.logger.debug(f"Execution order: {execution_order}")
 
-            # Execute nodes in order
-            sandbox = ExecutionSandbox(self.security_manager)
             for node_id in execution_order:
                 node = workflow.nodes[node_id]
 
-                # Validate node execution based on security policies
-                node_type = node.__class__.__name__
-                if not self.security_manager.validate_node_execution(
-                    node_type, getattr(node, "config", {})
-                ):
-                    error_msg = f"Security validation failed for node {node_id} ({node_type})"
-                    context.add_error(node_id, error_msg)
-                    audit_logger.log_security_event(
-                        "NODE_EXECUTION_BLOCKED",
-                        {
-                            "node_id": node_id,
-                            "node_type": node_type,
-                            "workflow_id": workflow.workflow_id,
-                        },
-                    )
-                    raise WorkflowExecutionException(error_msg)
+                # Execute node with security controls
+                result = await self.security_manager.execute_node_securely(node, context)
 
-                # Set inputs from connected nodes
-                await self._set_node_inputs(node, workflow, context)
+                # Store results in context for dependent nodes
+                context.variables[f"node_{node_id}_output"] = result
 
-                # Validate inputs
-                validation_result = node.validate_inputs()
-                if not validation_result["valid"]:
-                    error_msg = f"Node {node_id} input validation failed: "
-                    f"{', '.join(validation_result['errors'])}"
-                    context.add_error(node_id, error_msg)
-                    raise WorkflowExecutionException(error_msg)
+                # Propagate outputs to connected nodes
+                await self._propagate_outputs(workflow, node_id, result, context)
 
-                # Execute the node with security sandbox
-                self.logger.debug(f"Executing node {node_id} ({node.name})")
-                try:
-                    # Check API call limits
-                    if not self.security_manager.check_api_call_limit(workflow.workflow_id, node_id):
-                        raise WorkflowExecutionException(
-                            f"API call limit exceeded for node {node_id}"
-                        )
-
-                    node_start_time = time.time()
-                    result = await sandbox.execute_with_timeout(
-                        node.execute, 30, context  # 30 second timeout per node
-                    )
-                    node_execution_duration = time.time() - node_start_time
-
-                    context.set_node_output(node_id, result)
-                    context.execution_path.append(node_id)
-
-                    # Update performance metrics
-                    context.metadata["performance"]["node_execution_times"][node_id] = node_execution_duration
-                    context.metadata["performance"]["nodes_executed"] += 1
-
-                    self.logger.debug(f"Node {node_id} executed successfully in {node_execution_duration:.3f}s")
-
-                    # Log node execution with enhanced performance data
-                    audit_logger.log_node_execution(
-                        workflow.workflow_id, node_id, node.name, "success", node_execution_duration
-                    )
-                except Exception as e:
-                    error_msg = f"Node {node_id} execution failed: {str(e)}"
-                    context.add_error(
-                        node_id, error_msg, {"exception": str(e), "type": type(e).__name__}
-                    )
-                    self.logger.error(error_msg, exc_info=True)
-
-                    # Log failed node execution
-                    audit_logger.log_node_execution(
-                        workflow.workflow_id, node_id, node.name, "failed", -1  # Indicate error
-                    )
-
-                    raise WorkflowExecutionException(error_msg) from e
-
-            # Set completion metadata
-            end_time = time.time()
-            total_execution_time = end_time - start_time
-            context.metadata["end_time"] = datetime.now()
-            context.metadata["execution_duration"] = total_execution_time
-            context.metadata["performance"]["total_execution_time"] = total_execution_time
-            context.metadata["status"] = "completed"
-
-            self.logger.info(
-            f"Workflow {workflow.name} completed successfully in "
-            f"{total_execution_time:.3f}s ({context.metadata['performance']['nodes_executed']} nodes)"
-            )
+            logger.info(f"Workflow execution completed: {workflow.workflow_id}")
 
         except Exception as e:
-            # Set failure metadata
-            end_time = datetime.now()
-            context.metadata["end_time"] = end_time
-            if "start_time" in context.metadata:
-                context.metadata["execution_duration"] = (
-                    end_time - context.metadata["start_time"]
-                ).total_seconds()
-            context.metadata["status"] = "failed"
-            context.metadata["error"] = str(e)
-
-            self.logger.error(f"Workflow {workflow.name} execution failed: {str(e)}", exc_info=True)
-
-            # Re-raise the exception to indicate failure
-            raise
-        finally:
-            # Clean up active execution
-            if execution_id in self.active_executions:
-                del self.active_executions[execution_id]
-
-            # Release resources
-            resource_manager.release_resources(execution_id)
-
-            # Audit log workflow end
-            status = context.metadata.get("status", "unknown")
-            duration = context.metadata.get("execution_duration", -1)
-            audit_logger.log_workflow_end(execution_id, status, duration, user_id)
+            logger.error(f"Workflow execution failed: {workflow.workflow_id}, error: {str(e)}")
+            context.variables["execution_error"] = str(e)
+            raise RuntimeError(f"Workflow execution failed: {str(e)}")
 
         return context
 
-    async def _set_initial_inputs(
-        self, workflow: Workflow, context: ExecutionContext, initial_inputs: Dict[str, Any]
-    ):
-        """Set initial input values to appropriate source nodes."""
-        # For now, set all initial inputs as shared state
-        # In the future, we might want to map initial inputs to specific nodes based on metadata
-        context.shared_state.update(initial_inputs)
-
-    async def _set_node_inputs(self, node: BaseNode, workflow: Workflow, context: ExecutionContext):
-        """Set input values for a node based on connected node outputs with type validation."""
-        connections = workflow.get_connections_for_node(node.node_id)
-
-        # Find connections where this node is the target
-        input_connections = [conn for conn in connections if conn.target_node_id == node.node_id]
-
-        # Set inputs based on connected outputs with type validation
-        for conn in input_connections:
-            source_output = context.get_node_output(conn.source_node_id, conn.source_port)
-            if source_output is not None:
-                # Validate type compatibility between source output and target input
-                target_port = next(
-                    (p for p in node.input_ports if p.name == conn.target_port), None
-                )
-                if target_port:
-                    # Get the source node to check output port type
-                    source_node = workflow.nodes.get(conn.source_node_id)
-                    if source_node:
-                        source_port = next(
-                            (p for p in source_node.output_ports if p.name == conn.source_port),
-                            None,
-                        )
-                        if source_port:
-                            # Validate type compatibility
-                            if not self._validate_type_compatibility(
-                                source_port.data_type, target_port.data_type
-                            ):
-                                error_msg = f"Type mismatch in connection: {
-                                    source_node.__class__.__name__}.{
-                                    conn.source_port} ({
-                                    source_port.data_type.value}) -> {
-                                    node.__class__.__name__}.{
-                                    conn.target_port} ({
-                                    target_port.data_type.value})"
-                                context.add_error(node.node_id, error_msg)
-                                raise WorkflowExecutionException(error_msg)
-
-                node.set_input(conn.target_port, source_output)
-
-    # TODO(P2, 2h): Enhance type validation to support more complex type relationships
-    # Pseudo code for complex type relationships:
-    # - Support union types (e.g., EMAIL | EMAIL_LIST)
-    # - Handle inheritance relationships
-    # - Support generic types with constraints
-    # - Add type aliases and custom type definitions
-
-    # TODO(P2, 3h): Add support for optional input ports with default values
-    # Pseudo code for optional ports:
-    # - Modify NodePort to include default_value parameter
-    # - Update validate_inputs to skip validation for optional ports without values
-    # - Modify set_inputs to use default values when not provided
-
-    # TODO(P3, 4h): Implement input transformation pipeline for incompatible but convertible types
-    # Pseudo code for transformation pipeline:
-    # - Create TypeTransformer class with conversion methods
-    # - Add transform_input method to BaseNode
-    # - Support common conversions (string to json, list to single item, etc.)
-    # - Add transformation cost/priority system
-
-    def _validate_type_compatibility(
-        self, source_type: "DataType", target_type: "DataType"
-    ) -> bool:
-        """Validate if source and target types are compatible."""
-        if target_type == DataType.ANY:
-            return True
-        if source_type == target_type:
-            return True
-
-        # Check for compatible type relationships (e.g., EMAIL_LIST can go to EMAIL)
-        if target_type == DataType.EMAIL and source_type == DataType.EMAIL_LIST:
-            return True  # A list can be treated as a single item in some contexts
-        if target_type == DataType.JSON and source_type in [
-            DataType.STRING,
-            DataType.NUMBER,
-            DataType.BOOLEAN,
-        ]:
-            return True  # Primitive types can be serialized to JSON
-
-        # Add more type compatibility rules as needed
-        return False
-
-    # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations
-    # Pseudo code for expanded type compatibility:
-    # - Add compatibility matrix for all DataType combinations
-    # - Support OBJECT to JSON conversion
-    # - Handle TEXT/STRING interchangeability
-    # - Add NUMBER to STRING conversion for display purposes
-
-    # TODO(P2, 3h): Add support for generic types and type parameters
-    # Pseudo code for generic types:
-    # - Create GenericType class with type parameters
-    # - Support List[T], Dict[K,V] style generics
-    # - Add type parameter validation and inference
-    # - Handle generic type compatibility checking
-
-    # TODO(P3, 2h): Implement type coercion for compatible but distinct types
-    # Pseudo code for type coercion:
-    # - Create TypeCoercer class with coercion methods
-    # - Add safe coercion (no data loss) vs unsafe coercion
-    # - Support string to number, number to string conversions
-    # - Add coercion cost and safety ratings
-
-    async def execute_workflow_async(
-        self, workflow: Workflow, initial_inputs: Dict[str, Any] = None
-    ) -> ExecutionContext:
+    async def _propagate_outputs(self, workflow: Workflow, source_node_id: str, outputs: Dict[str, Any], context: ExecutionContext) -> None:
         """
-        Execute a workflow asynchronously without blocking.
+        Propagate node outputs to connected input nodes.
 
         Args:
-            workflow: The workflow to execute
-            initial_inputs: Initial input values for the workflow
+            workflow: Workflow instance
+            source_node_id: ID of node that produced outputs
+            outputs: Node output data
+            context: Execution context
+        """
+        for connection in workflow.connections:
+            if connection.source_node_id == source_node_id:
+                target_node = workflow.nodes[connection.target_node_id]
+                port_name = connection.target_port
+
+                # Get output data for this port
+                output_data = outputs.get(port_name)
+                if output_data is not None:
+                    target_node.inputs[port_name] = output_data
+
+                    # If using signed tokens, create and store token
+                    if hasattr(self.security_manager, 'token_manager'):
+                        token = self.security_manager.token_manager.create_node_data_token(
+                            source_node_id, connection.target_node_id, output_data
+                        )
+                        # Store token in context for verification
+                        context.variables[f"token_{connection.id}"] = token
+
+    async def cancel_execution(self, execution_id: str) -> bool:
+        """
+        Cancel a running workflow execution.
+
+        Args:
+            execution_id: Execution ID to cancel
 
         Returns:
-            ExecutionContext containing the results and metadata
+            True if execution was cancelled
         """
-        return await self.execute_workflow(workflow, initial_inputs)
-
-    async def cancel_execution(self, execution_id: str):
-        """Cancel an in-progress execution (not fully implemented)."""
         if execution_id in self.active_executions:
-            context = self.active_executions[execution_id]
-            context.metadata["status"] = "cancelled"
-            context.metadata["cancelled_at"] = datetime.now()
-            # In a real implementation, we would need to implement actual cancellation
-            # which requires cooperative cancellation in all nodes
+            task = self.active_executions[execution_id]
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
             del self.active_executions[execution_id]
-            self.logger.info(f"Execution {execution_id} cancelled")
+            logger.info(f"Cancelled workflow execution: {execution_id}")
+            return True
 
-    def get_execution_status(self, execution_id: str) -> Dict[str, Any]:
-        """Get the status of an execution."""
+        return False
+
+    def get_execution_status(self, execution_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get status of a workflow execution.
+
+        Args:
+            execution_id: Execution ID
+
+        Returns:
+            Status information or None if not found
+        """
         if execution_id in self.active_executions:
-            context = self.active_executions[execution_id]
+            task = self.active_executions[execution_id]
             return {
                 "execution_id": execution_id,
-                "status": "running",
-                "execution_path": context.execution_path,
+                "status": "running" if not task.done() else "completed",
+                "done": task.done()
             }
-        else:
-            # In a real system, we would check completed executions
-            return {
-                "execution_id": execution_id,
-                "status": "not_found_or_completed",
-            }
+
+        return None
+
+    async def execute_workflow_async(self, workflow: Workflow, user_id: str) -> str:
+        """
+        Execute a workflow asynchronously.
+
+        Args:
+            workflow: Workflow to execute
+            user_id: User executing the workflow
+
+        Returns:
+            Execution ID for tracking
+        """
+        execution_id = str(uuid.uuid4())
+
+        task = asyncio.create_task(self._execute_workflow_task(workflow, user_id, execution_id))
+        self.active_executions[execution_id] = task
+
+        # Clean up completed tasks
+        self.active_executions = {eid: t for eid, t in self.active_executions.items() if not t.done()}
+
+        return execution_id
+
+    async def _execute_workflow_task(self, workflow: Workflow, user_id: str, execution_id: str) -> None:
+        """
+        Task wrapper for async workflow execution.
+
+        Args:
+            workflow: Workflow to execute
+            user_id: User executing workflow
+            execution_id: Execution identifier
+        """
+        try:
+            await self.execute_workflow(workflow, user_id, execution_id)
+        except Exception as e:
+            logger.error(f"Async workflow execution failed: {execution_id}, error: {str(e)}")
+        finally:
+            # Clean up
+            if execution_id in self.active_executions:
+                del self.active_executions[execution_id]
 
 
 # Global workflow engine instance
-workflow_engine = WorkflowEngine(SecurityManager(user_roles={})) # Instantiate with a default SecurityManager
+workflow_engine = WorkflowEngine()
+
+
+class WorkflowManager:
+    """
+    Manager for workflow persistence and management.
+    """
+
+    def __init__(self, storage_path: str = "./workflows"):
+        self.storage_path = storage_path
+        self.workflows: Dict[str, Workflow] = {}
+
+    def save_workflow(self, workflow: Workflow) -> str:
+        """
+        Save workflow to storage.
+
+        Args:
+            workflow: Workflow to save
+
+        Returns:
+            File path where workflow was saved
+        """
+        import os
+        import json
+
+        os.makedirs(self.storage_path, exist_ok=True)
+
+        file_path = os.path.join(self.storage_path, f"{workflow.workflow_id}.json")
+
+        with open(file_path, 'w') as f:
+            json.dump(workflow.to_dict(), f, indent=2)
+
+        self.workflows[workflow.workflow_id] = workflow
+        logger.info(f"Saved workflow: {workflow.workflow_id} to {file_path}")
+
+        return file_path
+
+    def load_workflow(self, workflow_id: str) -> Optional[Workflow]:
+        """
+        Load workflow from storage.
+
+        Args:
+            workflow_id: Workflow ID to load
+
+        Returns:
+            Workflow instance or None if not found
+        """
+        import os
+        import json
+
+        if workflow_id in self.workflows:
+            return self.workflows[workflow_id]
+
+        file_path = os.path.join(self.storage_path, f"{workflow_id}.json")
+
+        if not os.path.exists(file_path):
+            return None
+
+        try:
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+
+            workflow = Workflow.from_dict(data)
+            self.workflows[workflow_id] = workflow
+
+            logger.info(f"Loaded workflow: {workflow_id} from {file_path}")
+            return workflow
+
+        except Exception as e:
+            logger.error(f"Failed to load workflow {workflow_id}: {str(e)}")
+            return None
+
+    def list_workflows(self) -> List[Dict[str, Any]]:
+        """
+        List all saved workflows.
+
+        Returns:
+            List of workflow metadata
+        """
+        import os
+        import json
+
+        workflows = []
+
+        if os.path.exists(self.storage_path):
+            for filename in os.listdir(self.storage_path):
+                if filename.endswith('.json'):
+                    workflow_id = filename[:-5]  # Remove .json
+                    workflow = self.load_workflow(workflow_id)
+                    if workflow:
+                        workflows.append({
+                            "workflow_id": workflow.workflow_id,
+                            "name": workflow.name,
+                            "description": workflow.description,
+                            "node_count": len(workflow.nodes),
+                            "connection_count": len(workflow.connections)
+                        })
+
+        return workflows
+
+    def delete_workflow(self, workflow_id: str) -> bool:
+        """
+        Delete a workflow.
+
+        Args:
+            workflow_id: Workflow ID to delete
+
+        Returns:
+            True if deleted successfully
+        """
+        import os
+
+        file_path = os.path.join(self.storage_path, f"{workflow_id}.json")
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            self.workflows.pop(workflow_id, None)
+            logger.info(f"Deleted workflow: {workflow_id}")
+            return True
+
+        return False
+
+
+# Global workflow manager instance
+workflow_manager = WorkflowManager()

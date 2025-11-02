@@ -1,123 +1,79 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Base classes and types for the node-based workflow system.
 
-Base classes for the node-based workflow system.
-
-This module defines the foundational classes for creating and managing
-node-based workflows in the Email Intelligence Platform.
+This module defines the core abstractions for creating and managing workflow nodes,
+including data types, ports, connections, and the base node class.
 """
 
-import logging
+import asyncio
 import uuid
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Set
 from enum import Enum
-from typing import Any, Dict, List, Optional
-
-try:
-    import networkx as nx
-    NETWORKX_AVAILABLE = True
-except ImportError:
-    NETWORKX_AVAILABLE = False
-    nx = None
 
 
 class DataType(Enum):
-    """Enum for supported data types in node connections."""
-
-    EMAIL = "email"
+    """Enumeration of supported data types for node ports."""
     EMAIL_LIST = "email_list"
-    TEXT = "text"
+    EMAIL = "email"
     JSON = "json"
-    BOOLEAN = "boolean"
-    NUMBER = "number"
     STRING = "string"
-    OBJECT = "object"
-    ANY = "any"  # For dynamic typing when specific type is not known
+    NUMBER = "number"
+    BOOLEAN = "boolean"
+    FILE_PATH = "file_path"
+    BINARY = "binary"
 
 
-class SecurityContext:
-    """Security context for node execution."""
-
-    def __init__(self, user_id: Optional[str] = None, permissions: List[str] = None,
-                 resource_limits: Optional[Dict[str, Any]] = None):
-        self.user_id = user_id
-        self.permissions = permissions or []
-        self.resource_limits = resource_limits or {}
-        self.execution_start_time = None
-        self.audit_trail: List[Dict[str, Any]] = []
-
-
+@dataclass
 class NodePort:
-    """Defines an input or output port for a node."""
-
-    def __init__(
-        self, name: str, data_type: DataType, required: bool = True, description: str = ""
-    ):
-        self.name = name
-        self.data_type = data_type
-        self.required = required
-        self.description = description
-
-    def __repr__(self):
-        return f"NodePort(name='{self.name}', data_type={self.data_type}, required={self.required})"
+    """Represents an input or output port on a node."""
+    name: str
+    data_type: DataType
+    required: bool = True
+    description: str = ""
+    default_value: Any = None
 
 
+@dataclass
 class Connection:
-    """Represents a connection between two nodes."""
+    """Represents a connection between two node ports."""
+    source_node_id: str
+    source_port: str
+    target_node_id: str
+    target_port: str
+    id: str = None
 
-    def __init__(
-        self, source_node_id: str, source_port: str, target_node_id: str, target_port: str
-    ):
-        self.source_node_id = source_node_id
-        self.source_port = source_port
-        self.target_node_id = target_node_id
-        self.target_port = target_port
-
-    def __repr__(self):
-        return (
-            f"Connection({self.source_node_id}.{self.source_port} -> "
-            f"{self.target_node_id}.{self.target_port})"
-        )
+    def __post_init__(self):
+        if self.id is None:
+            self.id = str(uuid.uuid4())
 
 
+@dataclass
 class ExecutionContext:
-    """Maintains execution context during workflow execution."""
+    """Context information for node execution."""
+    workflow_id: str
+    user_id: str
+    execution_id: str
+    variables: Dict[str, Any] = None
+    security_context: Dict[str, Any] = None
 
-    def __init__(self, security_context: Optional[SecurityContext] = None):
-        self.node_outputs: Dict[str, Dict[str, Any]] = {}
-        self.shared_state: Dict[str, Any] = {}
-        self.execution_path: List[str] = []
-        self.errors: List[Dict[str, Any]] = []
-        self.metadata: Dict[str, Any] = {}
-        self.security_context = security_context
-
-    def set_node_output(self, node_id: str, output: Dict[str, Any]):
-        """Store the output of a node."""
-        self.node_outputs[node_id] = output
-
-    def get_node_output(self, node_id: str, port_name: str) -> Optional[Any]:
-        """Get the output of a specific node's port."""
-        node_output = self.node_outputs.get(node_id)
-        if node_output:
-            return node_output.get(port_name)
-        return None
-
-    def add_error(self, node_id: str, error: str, details: Dict[str, Any] = None):
-        """Add an error to the execution context."""
-        error_info = {
-            "node_id": node_id,
-            "error": error,
-            "timestamp": str(self.metadata.get("start_time")),
-            "details": details or {},
-        }
-        self.errors.append(error_info)
+    def __post_init__(self):
+        if self.variables is None:
+            self.variables = {}
+        if self.security_context is None:
+            self.security_context = {}
 
 
 class BaseNode(ABC):
-    """Abstract base class for all nodes in the workflow system."""
+    """
+    Abstract base class for all workflow nodes.
 
-    def __init__(self, node_id: str = None, name: str = None, description: str = ""):
+    Nodes are the fundamental building blocks of workflows, processing data
+    and performing specific operations on email data.
+    """
+
+    def __init__(self, node_id: Optional[str] = None, name: Optional[str] = None, description: str = ""):
         self.node_id = node_id or str(uuid.uuid4())
         self.name = name or self.__class__.__name__
         self.description = description
@@ -125,222 +81,341 @@ class BaseNode(ABC):
         self.output_ports: List[NodePort] = []
         self.inputs: Dict[str, Any] = {}
         self.outputs: Dict[str, Any] = {}
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
-        self._parent_workflow_id: Optional[str] = None
+        self.metadata: Dict[str, Any] = {}
 
     @abstractmethod
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
         """
-        Execute the node's primary function.
+        Execute the node's logic.
 
         Args:
-            context: The execution context containing shared state and node outputs
+            context: Execution context containing workflow and user information
 
         Returns:
-            Dictionary containing the node's output values
+            Dictionary of output data keyed by output port name
+
+        Raises:
+            NodeExecutionError: If execution fails
         """
         pass
 
-    def validate_inputs(self) -> Dict[str, List[str]]:
+    def validate_inputs(self) -> List[str]:
         """
-        Validate that all required inputs are present and correct type.
+        Validate that all required inputs are present and valid.
 
         Returns:
-            Dictionary with 'valid' flag and list of errors if any
+            List of validation error messages (empty if valid)
         """
         errors = []
 
-        # Check required inputs
         for port in self.input_ports:
             if port.required and port.name not in self.inputs:
-                errors.append(f"Required input '{port.name}' is missing")
+                if port.default_value is None:
+                    errors.append(f"Required input '{port.name}' is missing")
+                else:
+                    self.inputs[port.name] = port.default_value
 
-        # Type validation would go here if we implement it
-        # For now, we rely on run-time type checking
+        return errors
 
-        return {"valid": len(errors) == 0, "errors": errors}
+    def validate_outputs(self) -> List[str]:
+        """
+        Validate that all required outputs are present.
 
-    def set_input(self, port_name: str, value: Any):
-        """Set an input value for the node."""
-        self.inputs[port_name] = value
+        Returns:
+            List of validation error messages (empty if valid)
+        """
+        errors = []
 
-    def set_inputs(self, inputs: Dict[str, Any]):
-        """Set multiple input values at once."""
-        self.inputs.update(inputs)
+        for port in self.output_ports:
+            if port.required and port.name not in self.outputs:
+                errors.append(f"Required output '{port.name}' is missing")
 
-    def get_node_info(self) -> Dict[str, Any]:
-        """Get information about the node for UI display."""
+        return errors
+
+    def get_input(self, port_name: str, default: Any = None) -> Any:
+        """
+        Get input data for a specific port.
+
+        Args:
+            port_name: Name of the input port
+            default: Default value if port not found
+
+        Returns:
+            Input data or default value
+        """
+        return self.inputs.get(port_name, default)
+
+    def set_output(self, port_name: str, data: Any) -> None:
+        """
+        Set output data for a specific port.
+
+        Args:
+            port_name: Name of the output port
+            data: Output data
+        """
+        self.outputs[port_name] = data
+
+    def reset(self) -> None:
+        """
+        Reset the node's state for reuse.
+        """
+        self.inputs = {}
+        self.outputs = {}
+        self.metadata = {}
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serialize node to dictionary for persistence.
+
+        Returns:
+            Dictionary representation of the node
+        """
         return {
-            "node_id": self.node_id,
-            "name": self.name,
-            "description": self.description,
-            "type": self.__class__.__name__,
-            "input_ports": [
-                {
-                    "name": port.name,
-                    "type": port.data_type.value,
-                    "required": port.required,
-                    "description": port.description,
-                }
-                for port in self.input_ports
-            ],
-            "output_ports": [
-                {
-                    "name": port.name,
-                    "type": port.data_type.value,
-                    "required": port.required,  # All outputs are required by definition
-                    "description": port.description,
-                }
-                for port in self.output_ports
-            ],
+            'node_id': self.node_id,
+            'name': self.name,
+            'description': self.description,
+            'type': self.__class__.__name__,
+            'input_ports': [{'name': p.name, 'data_type': p.data_type.value, 'required': p.required}
+                          for p in self.input_ports],
+            'output_ports': [{'name': p.name, 'data_type': p.data_type.value, 'required': p.required}
+                           for p in self.output_ports],
+            'metadata': self.metadata
         }
 
-    def set_parent_workflow(self, workflow_id: str):
-        """Set the parent workflow ID for this node."""
-        self._parent_workflow_id = workflow_id
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'BaseNode':
+        """
+        Deserialize node from dictionary.
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}(id={self.node_id})"
+        Args:
+            data: Dictionary representation
+
+        Returns:
+            Node instance
+        """
+        node = cls(
+            node_id=data.get('node_id'),
+            name=data.get('name'),
+            description=data.get('description', '')
+        )
+        node.metadata = data.get('metadata', {})
+        return node
 
 
 class Workflow:
-    """Represents a complete workflow of connected nodes."""
+    """
+    Represents a complete workflow consisting of nodes and connections.
+    """
 
-    def __init__(self, workflow_id: str = None, name: str = "", description: str = ""):
+    def __init__(self, workflow_id: Optional[str] = None, name: str = "", description: str = ""):
         self.workflow_id = workflow_id or str(uuid.uuid4())
         self.name = name
         self.description = description
         self.nodes: Dict[str, BaseNode] = {}
         self.connections: List[Connection] = []
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.metadata: Dict[str, Any] = {}
 
-    def add_node(self, node: BaseNode):
-        """Add a node to the workflow."""
-        node.set_parent_workflow(self.workflow_id)
+    def add_node(self, node: BaseNode) -> None:
+        """
+        Add a node to the workflow.
+
+        Args:
+            node: Node to add
+        """
         self.nodes[node.node_id] = node
 
-    def remove_node(self, node_id: str):
-        """Remove a node from the workflow."""
+    def remove_node(self, node_id: str) -> None:
+        """
+        Remove a node from the workflow.
+
+        Args:
+            node_id: ID of node to remove
+        """
         if node_id in self.nodes:
             del self.nodes[node_id]
-            # Remove any connections to/from this node
-            self.connections = [
-                conn
-                for conn in self.connections
-                if conn.source_node_id != node_id and conn.target_node_id != node_id
-            ]
+            # Remove connections involving this node
+            self.connections = [c for c in self.connections
+                              if c.source_node_id != node_id and c.target_node_id != node_id]
 
-    def add_connection(self, connection: Connection):
-        """Add a connection between nodes."""
-        # Validate that the nodes exist in the workflow
+    def add_connection(self, connection: Connection) -> None:
+        """
+        Add a connection between nodes.
+
+        Args:
+            connection: Connection to add
+
+        Raises:
+            ValueError: If connection is invalid
+        """
+        # Validate connection
         if connection.source_node_id not in self.nodes:
-            raise ValueError(f"Source node {connection.source_node_id} does not exist in workflow")
+            raise ValueError(f"Source node {connection.source_node_id} not found")
         if connection.target_node_id not in self.nodes:
-            raise ValueError(f"Target node {connection.target_node_id} does not exist in workflow")
+            raise ValueError(f"Target node {connection.target_node_id} not found")
 
-        # Validate the ports exist on the respective nodes
         source_node = self.nodes[connection.source_node_id]
         target_node = self.nodes[connection.target_node_id]
 
-        source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
-        if not source_port_exists:
-            raise ValueError(
-            f"Source port {connection.source_port} does not exist on node "
-            f"{connection.source_node_id}"
-            )
+        # Check if ports exist
+        source_port = next((p for p in source_node.output_ports if p.name == connection.source_port), None)
+        target_port = next((p for p in target_node.input_ports if p.name == connection.target_port), None)
 
-        target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
-        if not target_port_exists:
-            raise ValueError(
-            f"Target port {connection.target_port} does not exist on node "
-            f"{connection.target_node_id}"
-            )
+        if not source_port:
+            raise ValueError(f"Source port '{connection.source_port}' not found on node {connection.source_node_id}")
+        if not target_port:
+            raise ValueError(f"Target port '{connection.target_port}' not found on node {connection.target_node_id}")
+
+        # Check data type compatibility
+        if source_port.data_type != target_port.data_type:
+            raise ValueError(f"Data type mismatch: {source_port.data_type} -> {target_port.data_type}")
 
         self.connections.append(connection)
 
-    def get_connections_for_node(self, node_id: str) -> List[Connection]:
-        """Get all connections involving a specific node."""
-        return [
-            conn
-            for conn in self.connections
-            if conn.source_node_id == node_id or conn.target_node_id == node_id
-        ]
+    def validate(self) -> List[str]:
+        """
+        Validate the workflow structure.
 
-    def get_upstream_nodes(self, node_id: str) -> List[str]:
-        """Get all nodes that provide input to the specified node."""
-        upstream = []
-        for conn in self.connections:
-            if conn.target_node_id == node_id:
-                upstream.append(conn.source_node_id)
-        return upstream
+        Returns:
+            List of validation errors (empty if valid)
+        """
+        errors = []
 
-    def get_downstream_nodes(self, node_id: str) -> List[str]:
-        """Get all nodes that receive input from the specified node."""
-        downstream = []
+        # Check for cycles (simplified check)
+        # In a real implementation, you'd use topological sort
+        visited = set()
+        for node in self.nodes.values():
+            if self._has_cycle(node.node_id, visited, set()):
+                errors.append("Workflow contains cycles")
+                break
+
+        # Check that all required inputs are connected
+        for node in self.nodes.values():
+            for port in node.input_ports:
+                if port.required:
+                    connected = any(c.target_node_id == node.node_id and c.target_port == port.name
+                                  for c in self.connections)
+                    if not connected and port.default_value is None:
+                        errors.append(f"Required input '{port.name}' of node '{node.name}' is not connected")
+
+        return errors
+
+    def _has_cycle(self, node_id: str, visited: Set[str], rec_stack: Set[str]) -> bool:
+        """
+        Check for cycles using DFS.
+
+        Args:
+            node_id: Current node ID
+            visited: Set of visited nodes
+            rec_stack: Recursion stack
+
+        Returns:
+            True if cycle detected
+        """
+        visited.add(node_id)
+        rec_stack.add(node_id)
+
         for conn in self.connections:
             if conn.source_node_id == node_id:
-                downstream.append(conn.target_node_id)
-        return downstream
+                neighbor = conn.target_node_id
+                if neighbor not in visited:
+                    if self._has_cycle(neighbor, visited, rec_stack):
+                        return True
+                elif neighbor in rec_stack:
+                    return True
+
+        rec_stack.remove(node_id)
+        return False
 
     def get_execution_order(self) -> List[str]:
-        """Calculate the execution order of nodes using NetworkX topological sort."""
-        if NETWORKX_AVAILABLE and nx:
-            return self._get_execution_order_networkx()
-        else:
-            return self._get_execution_order_manual()
+        """
+        Get the order in which nodes should be executed.
 
-    def _get_execution_order_networkx(self) -> List[str]:
-        """Calculate execution order using NetworkX for better performance and cycle detection."""
-        # Create directed graph
-        graph = nx.DiGraph()
+        Returns:
+            List of node IDs in execution order
 
-        # Add all nodes
-        for node_id in self.nodes.keys():
-            graph.add_node(node_id)
+        Raises:
+            ValueError: If workflow has cycles
+        """
+        if self.validate():
+            raise ValueError("Cannot determine execution order for invalid workflow")
 
-        # Add edges (dependencies: target depends on source)
-        for conn in self.connections:
-            graph.add_edge(conn.source_node_id, conn.target_node_id)
-
-        try:
-            # Perform topological sort
-            return list(nx.topological_sort(graph))
-        except nx.NetworkXError as e:
-            if "cycle" in str(e).lower():
-                raise ValueError("Workflow has circular dependencies") from e
-            else:
-                raise
-
-    def _get_execution_order_manual(self) -> List[str]:
-        """Fallback manual topological sort implementation."""
-        # Build adjacency list of dependencies
-        dependencies = {node_id: [] for node_id in self.nodes.keys()}
-
-        for conn in self.connections:
-            dependencies[conn.target_node_id].append(conn.source_node_id)
-
-        # Topological sort using DFS
+        # Simple topological sort
         result = []
         visited = set()
         temp_visited = set()
 
-        def visit(node_id):
+        def visit(node_id: str):
             if node_id in temp_visited:
-                raise ValueError("Workflow has circular dependencies")
-            if node_id not in visited:
-                temp_visited.add(node_id)
-                for dep in dependencies[node_id]:
-                    visit(dep)
-                temp_visited.remove(node_id)
-                visited.add(node_id)
-                result.append(node_id)
+                raise ValueError("Workflow contains cycles")
+            if node_id in visited:
+                return
 
-        for node_id in self.nodes.keys():
+            temp_visited.add(node_id)
+
+            # Visit all dependencies first
+            for conn in self.connections:
+                if conn.target_node_id == node_id:
+                    visit(conn.source_node_id)
+
+            temp_visited.remove(node_id)
+            visited.add(node_id)
+            result.append(node_id)
+
+        # Visit all nodes
+        for node_id in self.nodes:
             if node_id not in visited:
                 visit(node_id)
 
         return result
 
-    def __repr__(self):
-        return f"Workflow(name={self.name}, nodes={len(self.nodes)
-                                                   }, connections={len(self.connections)})"
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serialize workflow to dictionary.
+
+        Returns:
+            Dictionary representation
+        """
+        return {
+            'workflow_id': self.workflow_id,
+            'name': self.name,
+            'description': self.description,
+            'nodes': {node_id: node.to_dict() for node_id, node in self.nodes.items()},
+            'connections': [vars(c) for c in self.connections],
+            'metadata': self.metadata
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Workflow':
+        """
+        Deserialize workflow from dictionary.
+
+        Args:
+            data: Dictionary representation
+
+        Returns:
+            Workflow instance
+        """
+        workflow = cls(
+            workflow_id=data.get('workflow_id'),
+            name=data.get('name', ''),
+            description=data.get('description', '')
+        )
+        workflow.metadata = data.get('metadata', {})
+
+        # Note: Node deserialization would require a node registry
+        # For now, just store the data
+        workflow._serialized_nodes = data.get('nodes', {})
+        workflow._serialized_connections = data.get('connections', [])
+
+        return workflow
+
+
+class NodeExecutionError(Exception):
+    """
+    Exception raised when a node execution fails.
+    """
+
+    def __init__(self, node_id: str, message: str, details: Optional[Dict[str, Any]] = None):
+        super().__init__(message)
+        self.node_id = node_id
+        self.details = details or {}

@@ -1,0 +1,96 @@
+{
+  "worktree": "scientific",
+  "timestamp": "2025-11-02T15:20:53.888704",
+  "changed_files": [
+    "docs/migration-risk-assessment-scientific-scientific.md",
+    "docs/migration-risk-assessment-scientific.md",
+    "docs/migration-risk-assessment.md",
+    "docs/rollback-procedures-scientific.md",
+    "docs/rollback-procedures.md",
+    "docs/system-inventory-scientific-scientific.md",
+    "docs/system-inventory-scientific.md",
+    "docs/system-inventory.md",
+    "docs/worktree-specifications-scientific-scientific.md",
+    "docs/worktree-specifications-scientific.md",
+    "docs/worktree-specifications.md"
+  ],
+  "sync_actions": [
+    {
+      "file": "docs/migration-risk-assessment-scientific-scientific.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/migration-risk-assessment-scientific.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/migration-risk-assessment.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/rollback-procedures-scientific.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/rollback-procedures.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/system-inventory-scientific-scientific.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/system-inventory-scientific.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/system-inventory.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/worktree-specifications-scientific-scientific.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/worktree-specifications-scientific.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    },
+    {
+      "file": "docs/worktree-specifications.md",
+      "action": "unknown",
+      "target_worktrees": [
+        "main"
+      ]
+    }
+  ]
+}

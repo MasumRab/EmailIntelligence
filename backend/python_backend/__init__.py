@@ -2,7 +2,6 @@
 Python Backend for Gmail AI Email Management
 Optimized FastAPI backend with comprehensive NLP integration
 
-DEPRECATED: This module is deprecated and will be removed in a future version.
 Use the modular architecture in src/ and modules/ instead.
 """
 

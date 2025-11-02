@@ -1,5 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 
 Test module for security and scalability features of the node-based workflow system.
