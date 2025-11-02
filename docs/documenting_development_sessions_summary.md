@@ -1,53 +1,30 @@
-# Documented Development Sessions Implementation Summary
+# documenting development sessions summary
 
-## Overview
+**PLACEHOLDER - BRANCH SPECIFIC CONTENT**
 
-This document summarizes the successful implementation of documented development sessions with IFLOW.md integration for the EmailIntelligence project. The implementation establishes a comprehensive framework for documenting, tracking, and managing development activities while maintaining full integration with the iFlow CLI and existing project documentation.
+This documentation exists on the `scientific` branch but not on `main`.
 
-## Implementation Summary
+## Pseudocode for Branch-Specific Generation
 
-### Session Structure and Tracking
-- Created consistent session log structure in `backlog/sessions/` with naming convention `IFLOW-YYYYMMDD-XXX.md`
-- Established session tracking in main `SESSION_LOG.md` file
-- Implemented proper session initialization, planning, implementation, documentation, and closure phases
+```pseudocode
+IF branch == "scientific":
+    INCLUDE: Scientific/research-focused content for documenting_development_sessions_summary
+    INCLUDE: Experimental features and methodologies
+    INCLUDE: Advanced technical implementations
+ELSE IF branch == "main":
+    INCLUDE: Production-ready content for documenting_development_sessions_summary
+    INCLUDE: Stable implementations and best practices
+    INCLUDE: User-facing documentation and guides
+```
 
-### Documentation Framework
-- Created comprehensive documentation framework in `docs/documenting_development_sessions.md`
-- Documented session goals, structure, expectations, and best practices
-- Integrated with existing project documentation practices and standards
-- Updated `docs/project_documentation_guide.md` and `docs/project_structure_comparison.md` to include new documentation
+## TODO: Generate Branch-Specific Content
 
-### Implementation Resources
-- Created implementation plan document at `implement/plan.md`
-- Established state tracking in `implement/state.json`
-- Set up task tracking using iFlow CLI todo system
+When implementing this documentation for the `main` branch:
 
-### Integration Verification
-- Verified integration with IFLOW.md guidelines and core mandates
-- Ensured alignment with project conventions and documentation standards
-- Confirmed proper linking and cross-referencing with existing documentation
+1. Adapt content for production use cases
+2. Include stable implementation details
+3. Add user-friendly explanations
+4. Document best practices and guidelines
+5. Include troubleshooting and common issues
 
-## Key Achievements
-
-1. **Structured Session Management**: Established a consistent framework for documenting all development activities
-2. **Comprehensive Documentation**: Created detailed guidance for session structure, expectations, and best practices
-3. **Proper Integration**: Fully integrated new documentation with existing project documentation ecosystem
-4. **State Tracking**: Implemented proper state management for development activities
-5. **Task Management**: Established task tracking using iFlow CLI todo system
-
-## Benefits
-
-- **Improved Traceability**: All development activities are now properly documented and traceable
-- **Enhanced Collaboration**: Clear documentation standards facilitate better team collaboration
-- **Knowledge Preservation**: Development knowledge is preserved for future reference
-- **Consistency**: Standardized processes ensure consistent documentation practices
-- **Integration**: Seamless integration with existing project workflows and documentation
-
-## Next Steps
-
-1. **Team Adoption**: Ensure all team members are aware of and follow the new documentation practices
-2. **Process Refinement**: Continuously improve the documentation framework based on usage feedback
-3. **Regular Audits**: Periodically review documentation quality and completeness
-4. **Training**: Provide guidance to team members on the new documentation processes
-
-This implementation provides a solid foundation for documented development sessions that will support high-quality, traceable development work throughout the EmailIntelligence project lifecycle.
+*This placeholder will be replaced with actual content when branch-specific documentation is generated.*

@@ -1,65 +1,30 @@
-# iFlow CLI Development Workflow Guide
+# iflow development workflow
 
-This document outlines the development workflow when using the iFlow CLI for the EmailIntelligence project.
+**PLACEHOLDER - BRANCH SPECIFIC CONTENT**
 
-## Session Structure
+This documentation exists on the `scientific` branch but not on `main`.
 
-1. **Session Initialization**
-   - Create a new session log in `backlog/sessions/` with the naming convention `IFLOW-YYYYMMDD-XXX.md`
-   - Document session goals, context, and initial state
-   - Update the main `SESSION_LOG.md` with session tracking information
+## Pseudocode for Branch-Specific Generation
 
-2. **Task Planning**
-   - Use the iFlow CLI todo system to track tasks
-   - Break down complex tasks into manageable steps
-   - Prioritize tasks based on project needs
+```pseudocode
+IF branch == "scientific":
+    INCLUDE: Scientific/research-focused content for iflow_development_workflow
+    INCLUDE: Experimental features and methodologies
+    INCLUDE: Advanced technical implementations
+ELSE IF branch == "main":
+    INCLUDE: Production-ready content for iflow_development_workflow
+    INCLUDE: Stable implementations and best practices
+    INCLUDE: User-facing documentation and guides
+```
 
-3. **Implementation**
-   - Follow project conventions as documented in IFLOW.md
-   - Use appropriate tools for code reading, writing, and modification
-   - Maintain consistent code style with existing project code
+## TODO: Generate Branch-Specific Content
 
-4. **Documentation**
-   - Document all activities in the session log
-   - Update relevant documentation files as needed
-   - Record development priorities and next steps
+When implementing this documentation for the `main` branch:
 
-5. **Session Closure**
-   - Summarize completed work and outcomes
-   - Document any remaining tasks for future sessions
-   - Archive session log appropriately
+1. Adapt content for production use cases
+2. Include stable implementation details
+3. Add user-friendly explanations
+4. Document best practices and guidelines
+5. Include troubleshooting and common issues
 
-## iFlow CLI Integration
-
-The iFlow CLI is designed to assist with software engineering tasks in the EmailIntelligence project. It specializes in:
-
-- Code understanding and analysis
-- Refactoring and implementation
-- Testing and verification
-- Following project conventions strictly
-
-## Tools Available
-
-- `read_file`: Read file contents
-- `write_file`: Write content to a file
-- `replace`: Replace text within a file
-- `search_file_content`: Search for patterns in files
-- `glob`: Find files matching patterns
-- `run_shell_command`: Execute shell commands
-- `todo_write`/`todo_read`: Task management
-
-## Workflow Process
-
-1. **Understand**: Analyze the user's request and relevant codebase context
-2. **Plan**: Build a coherent plan based on understanding
-3. **Implement**: Use available tools to act on the plan
-4. **Verify (Tests)**: Run project's testing procedures
-5. **Verify (Standards)**: Execute project-specific build, linting and type-checking commands
-
-## Session Expectations
-
-- All development activities should be documented in session logs
-- Code changes should follow existing project conventions
-- Tasks should be tracked using the iFlow CLI todo system
-- Regular updates should be made to session logs during development
-- Session logs should be moved to the backlog/sessions directory upon completion
+*This placeholder will be replaced with actual content when branch-specific documentation is generated.*
