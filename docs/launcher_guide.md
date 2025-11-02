@@ -1,5 +1,7 @@
 # EmailIntelligence Launcher
 
+**Note: This documentation may be outdated. The current launcher (`launch.py`) has a simplified feature set focused on environment setup and basic service launching.**
+
 The EmailIntelligence Launcher is a unified way to run the EmailIntelligence application with automatic environment setup, dependency management, and configuration.
 
 ## Quick Start
@@ -9,10 +11,10 @@ The EmailIntelligence Launcher is a unified way to run the EmailIntelligence app
 1. Run the setup command:
 ```bash
 python launch.py --setup
-```
+    ```
 
 2. Start the application:
-```bash
+    ```bash
 python launch.py --stage dev
 ```
 
@@ -25,8 +27,8 @@ python launch.py --stage dev
 
 - **Automatic Environment Setup**: Creates a virtual environment and installs dependencies automatically.
 - **Conda Environment Support**: Automatically detects and uses conda environments when available, with fallback to venv.
-- **Multiple Stages**: Supports development and testing environments.
-- **Extensions Support**: Install, update, and manage extensions.
+- **Multiple Stages**: Supports development, testing, staging, and production environments.
+- **Extensions Support**: Easily install, update, and manage extensions.
 - **Model Management**: Download, verify, and manage machine learning models.
 - **Testing Framework**: Run unit tests, integration tests, and end-to-end tests.
 - **Flexible Configuration**: Configure the application through command-line arguments or environment variables.
@@ -35,25 +37,21 @@ python launch.py --stage dev
 
 ### Environment Setup
 
-- `--setup`: Run environment setup.
-- `--force-recreate-venv`: Force recreation of the venv.
-- `--use-poetry`: Use Poetry for dependency management.
-- `--use-conda`: Use Conda environment instead of venv.
-- `--conda-env NAME`: Conda environment name to use (default: base).
-- `--no-venv`: Don't create or use a virtual environment.
-- `--update-deps`: Update dependencies before launching.
+- `--no-venv`: Don't create or use a virtual environment. This also skips all Python dependency installation steps. The user is responsible for managing their environment.
+- `--conda-env NAME`: Specify conda environment name to use (default: base). The launcher will try conda first, then fall back to venv.
+- `--update-deps`: Update dependencies before launching (applies if venv is used).
 - `--skip-torch-cuda-test`: Skip CUDA availability test for PyTorch.
-- `--reinstall-torch`: Reinstall PyTorch.
+- `--reinstall-torch`: Reinstall PyTorch (useful for CUDA issues).
 - `--skip-python-version-check`: Skip Python version check.
 - `--no-download-nltk`: Skip downloading NLTK data.
-- `--skip-prepare`: Skip all environment preparation steps.
-- `--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}`: Set the logging level. Default is INFO.
+- `--skip-prepare`: Skip all environment preparation steps (Python version check, venv, dependencies, NLTK data).
+- `--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}`: Set the logging level for the launcher script. Default is INFO.
 
 ### Application Stage
 
 - `--stage {dev,test}`: Specify the application mode.
   - `dev`: For running the application (backend/frontend). (Default)
-  - `test`: For running tests.
+  - `test`: For running tests (runs a default suite if no specific test flags like --unit are given).
 
 ### Server Configuration
 
@@ -111,6 +109,12 @@ python launch.py --stage dev
 
 ```
 python launch.py --stage dev
+```
+
+### Running in Production Mode
+
+```
+python launch.py --stage prod
 ```
 
 ### Running Only the API Server
@@ -176,6 +180,8 @@ This will create a new extension template in the `backend/extensions/my_extensio
 You can customize the launcher by modifying the following files:
 
 - `launch.py`: The main launcher script, which now integrates environment management.
+- `deployment/extensions_manager.py`: Manages extensions.
+- `deployment/models_manager.py`: Manages machine learning models.
 - `deployment/test_stages.py`: Manages testing for different stages.
 
 ## Troubleshooting
