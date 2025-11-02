@@ -132,7 +132,10 @@ def test_dependency_block_detection():
         
         # Initialize detector
         detector = BottleneckDetector(detection_file=detection_file)
-        
+
+        # Start a step with unmet dependencies
+        blocked_step = detector.start_workflow_step("blocked-step", "blocked-task", "agent-1", dependencies=["missing-dep"])
+
         # Manually set the start time to simulate a long wait
         blocked_step.start_time = time.time() - 360  # Waiting for 6 minutes (above 5-minute threshold)
         

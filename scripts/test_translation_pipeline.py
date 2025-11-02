@@ -131,19 +131,20 @@ def test_segment_translation():
         # Get the segment ID
         job = manager.get_translation_job(job_id)
         assert job is not None, "Should retrieve job"
-        assert len(job.segments) > 0, "Should have segments"
-        segment_id = job.segments[0].segment_id
+        assert len(job.translation_units) > 0, "Should have segments"
+        unit_id = job.translation_units[0].unit_id
         
+        # Assign agent to unit
+        manager.assign_unit_to_agent(unit_id, "translator-agent")
+
         # Start the job
-        manager.start_translation_job(job_id, ["translator-agent"])
+        manager.start_job_processing(job_id)
         
-        # Translate the segment
-        success = manager.translate_segment(
-            job_id=job_id,
-            segment_id=segment_id,
-            agent_id="translator-agent",
+        # Translate the unit
+        success = manager.complete_translation_unit(
+            unit_id=unit_id,
             translated_text="Hola, ¿cómo estás?",
-            confidence_score=0.85
+            quality_score=0.85
         )
         
         assert success, "Should translate segment successfully"
@@ -151,10 +152,10 @@ def test_segment_translation():
         # Check that segment was updated
         updated_job = manager.get_translation_job(job_id)
         assert updated_job is not None, "Should retrieve updated job"
-        assert updated_job.segments[0].translation_status == "completed", "Segment should be completed"
-        assert updated_job.segments[0].translated_text == "Hola, ¿cómo estás?", "Translation should match"
-        assert updated_job.segments[0].translation_agent == "translator-agent", "Agent should match"
-        assert updated_job.segments[0].confidence_score == 0.85, "Confidence score should match"
+        assert updated_job.translation_units[0].status == "completed", "Unit should be completed"
+        assert updated_job.translation_units[0].translated_text == "Hola, ¿cómo estás?", "Translation should match"
+        assert updated_job.translation_units[0].assigned_agent == "translator-agent", "Agent should match"
+        assert updated_job.translation_units[0].quality_score == 0.85, "Quality score should match"
         
         print("✓ Segment translation test passed")
 
@@ -190,13 +191,13 @@ def test_job_progress():
         
         # Update one segment
         job = manager.get_translation_job(job_id)
-        if job and job.segments:
+        if job and job.translation_units:
             success = manager.translate_segment(
                 job_id=job_id,
-                segment_id=job.segments[0].segment_id,
+                unit_id=job.translation_units[0].unit_id,
                 agent_id="test-agent",
                 translated_text="Hola",
-                confidence_score=0.8
+                quality_score=0.8
             )
             assert success, "Should update segment"
         
@@ -230,13 +231,13 @@ def test_quality_reports():
         
         job = manager.get_translation_job(job_id)
         assert job is not None, "Should retrieve job"
-        assert len(job.segments) > 0, "Should have segments"
-        segment_id = job.segments[0].segment_id
+        assert len(job.translation_units) > 0, "Should have segments"
+        unit_id = job.translation_units[0].unit_id
         
         # Add a quality report
         report_id = manager.add_quality_report(
             job_id=job_id,
-            segment_id=segment_id,
+            unit_id=unit_id,
             quality_score=0.8,
             issues=["Minor grammar issue"],
             suggestions=["Consider alternative translation"],
@@ -323,13 +324,13 @@ def test_agent_translation_stats():
         # Translate segments
         job = manager.get_translation_job(job_id)
         if job:
-            for i, segment in enumerate(job.segments):
+            for i, segment in enumerate(job.translation_units):
                 manager.translate_segment(
                     job_id=job_id,
-                    segment_id=segment.segment_id,
+                    unit_id=segment.unit_id,
                     agent_id="stats-agent",
                     translated_text=f"Translation {i+1}",
-                    confidence_score=0.8 + i * 0.1
+                    quality_score=0.8 + i * 0.1
                 )
         
         # Get agent stats
@@ -368,10 +369,10 @@ def test_translation_dashboard():
         
         # Add some quality reports
         job = manager.get_translation_job(job_id)
-        if job and job.segments:
+        if job and job.translation_units:
             manager.add_quality_report(
                 job_id=job_id,
-                segment_id=job.segments[0].segment_id,
+                unit_id=job.translation_units[0].unit_id,
                 quality_score=0.9,
                 reviewer="reviewer-1"
             )
@@ -413,23 +414,23 @@ def test_translation_persistence():
         
         # Translate a segment
         job = manager1.get_translation_job(job_id)
-        if job and job.segments:
+        if job and job.translation_units:
             manager1.translate_segment(
                 job_id=job_id,
-                segment_id=job.segments[0].segment_id,
+                unit_id=job.translation_units[0].unit_id,
                 agent_id="persist-agent",
                 translated_text="Prueba persistencia",
-                confidence_score=0.85
+                quality_score=0.85
             )
         
         # Add to translation memory
         manager1._add_to_translation_memory("Test", "Prueba", "en", "es", 0.8)
         
         # Add quality report
-        if job and job.segments:
+        if job and job.translation_units:
             manager1.add_quality_report(
                 job_id=job_id,
-                segment_id=job.segments[0].segment_id,
+                unit_id=job.translation_units[0].unit_id,
                 quality_score=0.9
             )
         
@@ -440,8 +441,8 @@ def test_translation_persistence():
         loaded_job = manager2.get_translation_job(job_id)
         assert loaded_job is not None, "Should load job"
         assert loaded_job.status == "in_progress", "Job status should match"
-        assert loaded_job.segments[0].translated_text == "Prueba persistencia", "Translation should match"
-        assert loaded_job.segments[0].confidence_score == 0.85, "Confidence should match"
+        assert loaded_job.translation_units[0].translated_text == "Prueba persistencia", "Translation should match"
+        assert loaded_job.translation_units[0].quality_score == 0.85, "Quality score should match"
         
         # Check translation memory
         entry = manager2.lookup_translation_memory("Test", "en", "es")

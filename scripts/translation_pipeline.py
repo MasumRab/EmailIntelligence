@@ -35,7 +35,7 @@ class TranslationMemoryEntry:
     target_text: str
     source_language: str
     target_language: str
-    quality_score: float
+    confidence_score: float
     usage_count: int = 1
     last_used: float = 0.0
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -74,9 +74,37 @@ class DistributedTranslationManager:
         self.translation_memory: Dict[str, TranslationMemoryEntry] = {}
         self.agent_assignments: Dict[str, List[str]] = defaultdict(list)  # agent_id -> job_ids
         self.language_pairs: Dict[str, List[str]] = defaultdict(list)  # source_lang -> target_langs
+        self.agent_capabilities: Dict[str, List[Tuple[str, str]]] = defaultdict(list)  # agent_id -> [(source, target)]
         self._lock = threading.RLock()
         self.load_translations()
-        
+
+    def register_agent_capability(self, agent_id: str, source_lang: str, target_lang: str):
+        """Register an agent's translation capability."""
+        with self._lock:
+            self.agent_capabilities[agent_id].append((source_lang, target_lang))
+            if target_lang not in self.language_pairs[source_lang]:
+                self.language_pairs[source_lang].append(target_lang)
+
+    def create_translation_job(self, document_id: str, source_language: str,
+                             target_languages=None, target_language=None, source_segments=None, metadata: Dict[str, Any] = None) -> str:
+        """Create a new translation job (flexible signature)."""
+        if target_language and not target_languages:
+            target_languages = [target_language]
+        if not isinstance(target_languages, list):
+            target_languages = [target_languages]
+        job_id = self.start_translation_job(document_id, source_language, target_languages, metadata)
+        if source_segments:
+            self.add_translation_units(job_id, source_segments)
+        return job_id
+
+    def get_translation_memory_stats(self) -> Dict[str, Any]:
+        """Get translation memory statistics."""
+        with self._lock:
+            return {
+                'total_entries': len(self.translation_memory),
+                'language_pairs': dict(self.language_pairs)
+            }
+
     def start_translation_job(self, document_id: str, source_language: str, 
                             target_languages: List[str], metadata: Dict[str, Any] = None) -> str:
         """Start a new translation job."""
@@ -245,17 +273,17 @@ class DistributedTranslationManager:
             return True
             
     def _add_to_translation_memory(self, source_text: str, target_text: str,
-                                 source_lang: str, target_lang: str, quality_score: float):
+                                 source_lang: str, target_lang: str, confidence_score: float):
         """Add a translation to the translation memory."""
         # Create a key for the translation memory entry
         key = hashlib.md5(f"{source_text}_{source_lang}_{target_lang}".encode()).hexdigest()
-        
+
         if key in self.translation_memory:
             # Update existing entry
             entry = self.translation_memory[key]
-            # Weighted average of quality scores
-            new_quality = (entry.quality_score * entry.usage_count + quality_score) / (entry.usage_count + 1)
-            entry.quality_score = new_quality
+            # Weighted average of confidence scores
+            new_confidence = (entry.confidence_score * entry.usage_count + confidence_score) / (entry.usage_count + 1)
+            entry.confidence_score = new_confidence
             entry.usage_count += 1
             entry.last_used = time.time()
         else:
@@ -265,7 +293,7 @@ class DistributedTranslationManager:
                 target_text=target_text,
                 source_language=source_lang,
                 target_language=target_lang,
-                quality_score=quality_score,
+                confidence_score=confidence_score,
                 usage_count=1,
                 last_used=time.time()
             )
@@ -486,7 +514,7 @@ class DistributedTranslationManager:
                         'target_text': entry.target_text,
                         'source_language': entry.source_language,
                         'target_language': entry.target_language,
-                        'quality_score': entry.quality_score,
+                        'confidence_score': entry.confidence_score,
                         'usage_count': entry.usage_count,
                         'last_used': entry.last_used,
                         'metadata': entry.metadata
@@ -553,7 +581,7 @@ class DistributedTranslationManager:
                     target_text=entry_data['target_text'],
                     source_language=entry_data['source_language'],
                     target_language=entry_data['target_language'],
-                    quality_score=entry_data['quality_score'],
+                    confidence_score=entry_data['confidence_score'],
                     usage_count=entry_data['usage_count'],
                     last_used=entry_data['last_used'],
                     metadata=entry_data.get('metadata', {})
