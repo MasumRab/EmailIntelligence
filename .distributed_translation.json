@@ -1,0 +1,70 @@
+{
+  "timestamp": 1762072856.0233576,
+  "translation_jobs": {
+    "ad7f90c8-c108-49ca-a2d8-51d82b60f445": {
+      "job_id": "ad7f90c8-c108-49ca-a2d8-51d82b60f445",
+      "document_id": "integration-test-doc",
+      "source_language": "en",
+      "target_language": "es",
+      "segments": [
+        {
+          "segment_id": "ad7f90c8-c108-49ca-a2d8-51d82b60f445-seg-0",
+          "source_text": "Integration test text",
+          "source_language": "en",
+          "target_language": "es",
+          "translated_text": "Texto de prueba de integraci\u00f3n",
+          "translation_status": "completed",
+          "translation_agent": "integration-test-agent",
+          "translation_time": 0,
+          "confidence_score": 0.95,
+          "metadata": {}
+        }
+      ],
+      "status": "pending",
+      "start_time": 0.0,
+      "end_time": 0.0,
+      "assigned_agents": [],
+      "metadata": {}
+    },
+    "15cf536d-9bbd-4029-ada7-d9a0c417b54f": {
+      "job_id": "15cf536d-9bbd-4029-ada7-d9a0c417b54f",
+      "document_id": "integration-test-doc",
+      "source_language": "en",
+      "target_language": "es",
+      "segments": [
+        {
+          "segment_id": "15cf536d-9bbd-4029-ada7-d9a0c417b54f-seg-0",
+          "source_text": "Integration test text",
+          "source_language": "en",
+          "target_language": "es",
+          "translated_text": "Texto de prueba de integraci\u00f3n",
+          "translation_status": "completed",
+          "translation_agent": "integration-test-agent",
+          "translation_time": 0,
+          "confidence_score": 0.95,
+          "metadata": {}
+        }
+      ],
+      "status": "pending",
+      "start_time": 0.0,
+      "end_time": 0.0,
+      "assigned_agents": [],
+      "metadata": {}
+    }
+  },
+  "translation_memory": {
+    "0ec3854181f1b9ecd88fe5bc2f71a12a": {
+      "source_text": "Integration test text",
+      "target_text": "Texto de prueba de integraci\u00f3n",
+      "source_language": "en",
+      "target_language": "es",
+      "confidence_score": 0.95,
+      "last_used": 1762072856.0233448,
+      "usage_count": 1,
+      "metadata": {}
+    }
+  },
+  "quality_reports": {},
+  "language_pairs": {},
+  "agent_capabilities": {}
+}

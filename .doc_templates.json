@@ -1,0 +1,230 @@
+{
+  "timestamp": 1762072856.0199025,
+  "templates": {
+    "api_documentation": {
+      "template_id": "api_documentation",
+      "template_name": "API Documentation Template",
+      "description": "Template for API documentation with parallel section generation",
+      "sections": [
+        {
+          "section_id": "header",
+          "section_type": "header",
+          "title": "API Documentation",
+          "content_template": "# {title}\n\nAPI documentation for {api_name}",
+          "estimated_duration": 2.0,
+          "dependencies": [],
+          "metadata": {}
+        },
+        {
+          "section_id": "introduction",
+          "section_type": "introduction",
+          "title": "Introduction",
+          "content_template": "This document describes the {api_name} API.",
+          "estimated_duration": 5.0,
+          "dependencies": [
+            "header"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "authentication",
+          "section_type": "authentication",
+          "title": "Authentication",
+          "content_template": "## Authentication\n\nThis API uses {auth_type} authentication.",
+          "estimated_duration": 8.0,
+          "dependencies": [
+            "introduction"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "endpoints",
+          "section_type": "endpoints",
+          "title": "Endpoints",
+          "content_template": "## Endpoints\n\nList of available endpoints:",
+          "estimated_duration": 15.0,
+          "dependencies": [
+            "authentication"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "examples",
+          "section_type": "examples",
+          "title": "Examples",
+          "content_template": "## Examples\n\nExample usage:",
+          "estimated_duration": 10.0,
+          "dependencies": [
+            "endpoints"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "errors",
+          "section_type": "errors",
+          "title": "Error Handling",
+          "content_template": "## Error Handling\n\nCommon error responses:",
+          "estimated_duration": 8.0,
+          "dependencies": [
+            "endpoints"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "rate_limiting",
+          "section_type": "rate_limiting",
+          "title": "Rate Limiting",
+          "content_template": "## Rate Limiting\n\nAPI rate limits:",
+          "estimated_duration": 5.0,
+          "dependencies": [
+            "endpoints"
+          ],
+          "metadata": {}
+        }
+      ],
+      "required_sections": [
+        "header",
+        "introduction",
+        "endpoints"
+      ],
+      "optional_sections": [
+        "examples",
+        "errors",
+        "rate_limiting"
+      ],
+      "metadata": {}
+    },
+    "user_guide": {
+      "template_id": "user_guide",
+      "template_name": "User Guide Template",
+      "description": "Template for user guides with parallel section generation",
+      "sections": [
+        {
+          "section_id": "header",
+          "section_type": "header",
+          "title": "User Guide",
+          "content_template": "# {title}\n\nUser guide for {product_name}",
+          "estimated_duration": 2.0,
+          "dependencies": [],
+          "metadata": {}
+        },
+        {
+          "section_id": "getting_started",
+          "section_type": "getting_started",
+          "title": "Getting Started",
+          "content_template": "## Getting Started\n\nQuick start guide:",
+          "estimated_duration": 10.0,
+          "dependencies": [
+            "header"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "installation",
+          "section_type": "installation",
+          "title": "Installation",
+          "content_template": "## Installation\n\nHow to install:",
+          "estimated_duration": 12.0,
+          "dependencies": [
+            "getting_started"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "configuration",
+          "section_type": "configuration",
+          "title": "Configuration",
+          "content_template": "## Configuration\n\nHow to configure:",
+          "estimated_duration": 8.0,
+          "dependencies": [
+            "installation"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "usage",
+          "section_type": "usage",
+          "title": "Usage",
+          "content_template": "## Usage\n\nHow to use:",
+          "estimated_duration": 15.0,
+          "dependencies": [
+            "configuration"
+          ],
+          "metadata": {}
+        },
+        {
+          "section_id": "troubleshooting",
+          "section_type": "troubleshooting",
+          "title": "Troubleshooting",
+          "content_template": "## Troubleshooting\n\nCommon issues and solutions:",
+          "estimated_duration": 10.0,
+          "dependencies": [],
+          "metadata": {}
+        },
+        {
+          "section_id": "faq",
+          "section_type": "faq",
+          "title": "FAQ",
+          "content_template": "## Frequently Asked Questions\n\nCommon questions:",
+          "estimated_duration": 8.0,
+          "dependencies": [],
+          "metadata": {}
+        }
+      ],
+      "required_sections": [
+        "header",
+        "getting_started",
+        "usage"
+      ],
+      "optional_sections": [
+        "troubleshooting",
+        "faq"
+      ],
+      "metadata": {}
+    },
+    "integration-test-template": {
+      "template_id": "integration-test-template",
+      "template_name": "Integration Test Template",
+      "description": "Template for integration testing",
+      "sections": [
+        {
+          "section_id": "intro",
+          "section_type": "introduction",
+          "title": "Introduction",
+          "content_template": "# {title}\n\n{content}",
+          "estimated_duration": 5.0,
+          "dependencies": [],
+          "metadata": {}
+        }
+      ],
+      "required_sections": [],
+      "optional_sections": [],
+      "metadata": {}
+    }
+  },
+  "generated_documents": {
+    "integration-test-doc": {
+      "document_id": "integration-test-doc",
+      "template_id": "integration-test-template",
+      "title": "Integration Test Document",
+      "sections": [
+        {
+          "section_id": "integration-test-doc-intro",
+          "template_section_id": "intro",
+          "title": "Introduction",
+          "content": "",
+          "generation_time": 0.0,
+          "agent_id": "",
+          "status": "pending",
+          "metadata": {}
+        }
+      ],
+      "status": "pending",
+      "start_time": 1762072856.0198941,
+      "end_time": 0.0,
+      "metadata": {
+        "version": "1.0"
+      }
+    }
+  }
+}
