@@ -64,19 +64,18 @@ Documentation templates and examples
 
 ## 📊 Documentation Health
 
-This documentation is maintained across multiple Git worktrees with automatic synchronization.
+This documentation is maintained in a single organized structure with branch-specific files consolidated.
 
-- **Inheritance Base**: `docs/clean-inheritance-base` branch
-- **Worktrees**: `docs-main` (main), `docs-scientific` (scientific)
-- **Sync Status**: Automatically synchronized
-- **Health Checks**: Run `python scripts/maintenance_docs.py --health`
+- **Structure**: Categorized by purpose (guides, architecture, development, etc.)
+- **Branch Integration**: Main and scientific branch documentation merged into organized folders
+- **Maintenance**: Single source of truth for all project documentation
 
 ## 🤝 Contributing
 
 When adding documentation:
-1. Place files in the appropriate subdirectory
+1. Place files in the appropriate subdirectory based on content type
 2. Follow the established naming conventions
 3. Update this README if adding new sections
-4. Commit to the appropriate worktree branch
+4. For branch-specific content, use descriptive suffixes (e.g., `-main.md`, `-scientific.md`)
 
-The documentation system will automatically sync changes across all worktrees.
+All documentation is now maintained in this single organized structure.
