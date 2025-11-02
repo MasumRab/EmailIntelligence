@@ -611,7 +611,6 @@ async def main_cli():
 
     # Placeholder implementation
     print("CLI not yet implemented. Use the API instead.")
-    pass
 
 
 if __name__ == "__main__":
