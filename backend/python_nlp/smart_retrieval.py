@@ -86,20 +86,20 @@ class SmartRetrievalManager:
 
         If a checkpoint with a last_sync_date is provided, modifies the query to filter records
         newer than the checkpoint to avoid retrieving unnecessary records.
-        Assumes the query_filter contains a placeholder for additional filters, or that the
-        underlying data source supports filtering by a 'date' or 'updated_at' field.
+        This implementation uses Gmail API date filters for incremental synchronization.
 
-        If no date field is available, incremental sync cannot be performed and the base query is returned.
+        Note: This is a Gmail-specific implementation. For other email providers,
+        the date filtering logic would need to be adapted accordingly.
         """
         base_query = strategy.query_filter
         if checkpoint and checkpoint.last_sync_date:
-            # Example: assumes 'updated_at' is the field to filter on
-            incremental_filter = f" AND updated_at > '{checkpoint.last_sync_date.isoformat()}'"
-            if "WHERE" in base_query.upper():
-                query = base_query + incremental_filter
+            # Gmail API uses 'after:' filter for date-based queries
+            # Convert to YYYY/MM/DD format expected by Gmail
+            date_filter = checkpoint.last_sync_date.strftime('%Y/%m/%d')
+            if base_query:
+                return f"{base_query} after:{date_filter}"
             else:
-                query = base_query + f" WHERE updated_at > '{checkpoint.last_sync_date.isoformat()}'"
-            return query
+                return f"after:{date_filter}"
         return base_query
 
     async def execute_smart_retrieval(
