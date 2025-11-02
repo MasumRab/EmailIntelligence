@@ -46,8 +46,8 @@ Create a focused PR that extracts import error fixes from the `fix/import-errors
 4. Ensure performance is not negatively impacted
 
 ## Success Criteria
-- [ ] Import error fixes are extracted into focused PR
-- [ ] PR addresses only import-related changes
+- [x] Import error fixes are extracted into focused PR
+- [x] PR addresses only import-related changes
 - [ ] All import tests pass
 - [ ] PR description is clear and comprehensive
 - [ ] GitHub PR is created and ready for review
