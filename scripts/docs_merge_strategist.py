@@ -10,7 +10,7 @@ import os
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 
 
@@ -107,7 +107,9 @@ class DocsMergeStrategist:
 
         analysis = review_request['analysis']
 
-        content = f"""# Documentation Review: {Path(doc_path).name}
+        # Handle different analysis types
+        if 'error' in analysis:
+            content = f"""# Documentation Review: {Path(doc_path).name}
 
 **Review ID**: {review_id}
 **Document**: {doc_path}
@@ -117,20 +119,64 @@ class DocsMergeStrategist:
 
 ## Analysis Summary
 
-### Goal Similarity: {analysis['goal_analysis']['similarity']:.2f}
-- **Main Goals**: {len(analysis['goal_analysis']['main_goals'])}
-- **Scientific Goals**: {len(analysis['goal_analysis']['scientific_goals'])}
-- **Overlapping Goals**: {analysis['goal_analysis']['overlap']}
-- **Different Goals**: {analysis['goal_analysis']['differences']}
+**Error**: {analysis['error']}
+
+## Recommended Strategy: {review_request['strategy']}
+
+## Review Decision
+
+**Decision**: [ ] SHARE  [ ] BRANCH_SPECIFIC  [ ] MANUAL_REVIEW
+**Reasoning**:
+"""
+        elif analysis.get('recommendation') in ['SCIENTIFIC_ONLY', 'MAIN_ONLY']:
+            branch_name = 'scientific' if analysis['recommendation'] == 'SCIENTIFIC_ONLY' else 'main'
+            content = f"""# Documentation Review: {Path(doc_path).name}
+
+**Review ID**: {review_id}
+**Document**: {doc_path}
+**Branch**: {review_request['branch']}
+**Created**: {review_request['created_at']}
+**Status**: {review_request['status']}
+
+## Analysis Summary
+
+**File exists only on {branch_name} branch**
+
+This documentation file exists only on the `{branch_name}` branch and not on the other branch.
+
+## Recommended Strategy: {review_request['strategy']}
+
+## Review Decision
+
+**Decision**: [ ] SHARE  [ ] BRANCH_SPECIFIC  [ ] MANUAL_REVIEW
+**Reasoning**:
+"""
+        else:
+            # Full analysis available
+            content = f"""# Documentation Review: {Path(doc_path).name}
+
+**Review ID**: {review_id}
+**Document**: {doc_path}
+**Branch**: {review_request['branch']}
+**Created**: {review_request['created_at']}
+**Status**: {review_request['status']}
+
+## Analysis Summary
+
+### Goal Similarity: {analysis.get('goal_analysis', {}).get('similarity', 'N/A')}
+- **Main Goals**: {len(analysis.get('goal_analysis', {}).get('main_goals', []))}
+- **Scientific Goals**: {len(analysis.get('goal_analysis', {}).get('scientific_goals', []))}
+- **Overlapping Goals**: {analysis.get('goal_analysis', {}).get('overlap', 0)}
+- **Different Goals**: {analysis.get('goal_analysis', {}).get('differences', 0)}
 
 ### Audience Analysis
-- **Overlap**: {', '.join(analysis['audience_analysis']['overlap']) or 'None'}
-- **Main Only**: {', '.join(analysis['audience_analysis']['main_unique']) or 'None'}
-- **Scientific Only**: {', '.join(analysis['audience_analysis']['scientific_unique']) or 'None'}
+- **Overlap**: {', '.join(analysis.get('audience_analysis', {}).get('overlap', [])) or 'None'}
+- **Main Only**: {', '.join(analysis.get('audience_analysis', {}).get('main_unique', [])) or 'None'}
+- **Scientific Only**: {', '.join(analysis.get('audience_analysis', {}).get('scientific_unique', [])) or 'None'}
 
 ### Technical Depth
-- **Main**: {analysis['technical_analysis']['main']['level']} ({analysis['technical_analysis']['main']['technical_score']:.2f})
-- **Scientific**: {analysis['technical_analysis']['scientific']['level']} ({analysis['technical_analysis']['scientific']['technical_score']:.2f})
+- **Main**: {analysis.get('technical_analysis', {}).get('main', {}).get('level', 'N/A')} ({analysis.get('technical_analysis', {}).get('main', {}).get('technical_score', 0):.2f})
+- **Scientific**: {analysis.get('technical_analysis', {}).get('scientific', {}).get('level', 'N/A')} ({analysis.get('technical_analysis', {}).get('scientific', {}).get('technical_score', 0):.2f})
 
 ## Recommended Strategy: {review_request['strategy']}
 
