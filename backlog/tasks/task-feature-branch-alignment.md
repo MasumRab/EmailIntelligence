@@ -102,4 +102,11 @@ The scientific branch contains more advanced architectural implementations that 
 the specific functionality of this feature branch.
 
 Current status: Planning phase - need to assess differences between this branch and scientific branch.
+
+## Feature Preservation Instructions:
+- Preserve the search_emails_by_category functionality that enables searching within specific categories
+- Maintain the implementation in the email service and routing layers
+- Ensure category filtering mechanisms remain functional after alignment
+- Keep the search parameter handling for category-specific searches
+- Verify all related tests for search functionality remain intact
 <!-- SECTION:NOTES:END -->
