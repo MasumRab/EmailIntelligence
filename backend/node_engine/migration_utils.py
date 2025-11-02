@@ -185,7 +185,8 @@ class WorkflowMigrationService:
         Migrate a default legacy workflow to node-based format.
         This is a specialized case for the default workflow.
         """
-        # Default workflow has specific models like {"sentiment": "sentiment-default", "topic": "topic-default"}
+        # Default workflow has specific models like {"sentiment": "sentiment-default",
+        # "topic": "topic-default"}
         # Use the same approach as file-based migration
         return self._migrate_file_based_workflow(config, workflow_name)
 
@@ -195,7 +196,7 @@ class WorkflowMigrationService:
 
         Args:
             file_path: Path to the legacy workflow file
-            output_path: Optional output path for the new workflow (defaults to node engine workflow dir)
+            output_path: Optional output path (defaults to node engine workflow dir)
 
         Returns:
             str: Path to the new workflow file
@@ -323,7 +324,8 @@ class WorkflowMigrationManager:
                 "filter": "FilterNode",
                 "action": "ActionNode",
             },
-            "connection_pattern": "Linear pipeline: source -> preprocessing -> ai_analysis -> filter -> action",
+            "connection_pattern": ("Linear pipeline: source -> preprocessing -> "
+                                   "ai_analysis -> filter -> action"),
         }
 
         return plan
