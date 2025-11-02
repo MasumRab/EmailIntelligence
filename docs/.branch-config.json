@@ -14,5 +14,8 @@
   "sharing_rules": {
     "high_overlap_threshold": 0.8,
     "manual_review_threshold": 0.6
+  },
+  "exclusions": {
+    "paths": ["backlog/", "docs/project-management/backlog/"]
   }
 }
