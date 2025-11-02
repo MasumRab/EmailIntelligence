@@ -346,55 +346,6 @@ class ExecutionSandbox:
             raise
 
 
-class PathValidator:
-    """Validates and sanitizes file paths and database paths"""
-
-    @staticmethod
-    def sanitize_filename(filename: str) -> str:
-        """
-        Sanitize a filename by removing dangerous characters.
-
-        Args:
-            filename: The filename to sanitize
-
-        Returns:
-            Sanitized filename
-        """
-        if not filename:
-            return filename
-
-        # Remove or replace dangerous characters
-        sanitized = filename.replace('/', '_').replace('\\', '_').replace(':', '_')
-        sanitized = sanitized.replace('*', '_').replace('?', '_').replace('"', '_')
-        sanitized = sanitized.replace('<', '_').replace('>', '_').replace('|', '_')
-
-        # Remove control characters
-        sanitized = ''.join(c for c in sanitized if ord(c) >= 32)
-
-        return sanitized.strip()
-
-    @staticmethod
-    def validate_database_path(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> pathlib.Path:
-        """
-        Validate a database path and return it as a Path object if safe.
-
-        Args:
-            path: The database path to validate
-            base_dir: Optional base directory to validate against
-
-        Returns:
-            Validated Path object
-
-        Raises:
-            ValueError: If path is invalid or unsafe
-        """
-        path_obj = pathlib.Path(path)
-
-        if not validate_path_safety(path_obj, base_dir):
-            raise ValueError(f"Unsafe database path: {path}")
-
-        return path_obj
-
 
 class SecurityManager:
     """
