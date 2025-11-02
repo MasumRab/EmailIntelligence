@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 #!/usr/bin/env python3
 """
 EmailIntelligence Unified Launcher
@@ -892,3 +893,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> Stashed changes

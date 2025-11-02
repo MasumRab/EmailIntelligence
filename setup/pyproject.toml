@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
@@ -75,3 +76,5 @@ markers = [
     "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
 ]
 norecursedirs = ["backend"]
+=======
+>>>>>>> Stashed changes
