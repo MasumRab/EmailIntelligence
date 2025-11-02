@@ -16,12 +16,10 @@ JWT-based authentication with basic authorization.
 4. Add audit logging for security-sensitive operations
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Implement role-based access control system
-- [ ] #2 Add multi-factor authentication support
-- [ ] #3 Implement session management with automatic expiration
-- [ ] #4 Add audit logging for security-sensitive operations
-<!-- AC:END -->
+- Users can be assigned to different roles with specific permissions
+- Multi-factor authentication is available as an option
+- Sessions automatically expire after a configurable time
+- All security-sensitive operations are logged with sufficient context
 
 ## Estimated Effort
 16 hours

@@ -16,12 +16,10 @@ Several TODO comments about global state management in database.py.
 4. Maintain backward compatibility during transition
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Implement proper dependency injection for database manager instance
-- [ ] #2 Remove global state where possible
-- [ ] #3 Ensure thread safety for shared resources
-- [ ] #4 Maintain backward compatibility during transition
-<!-- AC:END -->
+- Global state is eliminated from database manager
+- Dependency injection is used consistently
+- Thread safety is ensured for concurrent access
+- Existing functionality continues to work without changes
 
 ## Estimated Effort
 12 hours

@@ -16,12 +16,10 @@ Pytest with multiple test categories.
 4. Create test data management strategies
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Add test coverage reporting and requirements
-- [ ] #2 Implement contract testing for API endpoints
-- [ ] #3 Add performance testing automation
-- [ ] #4 Create test data management strategies
-<!-- AC:END -->
+- Test coverage is measured and reported
+- API contracts are validated automatically
+- Performance tests can be run automatically
+- Test data management is streamlined
 
 ## Estimated Effort
 20 hours

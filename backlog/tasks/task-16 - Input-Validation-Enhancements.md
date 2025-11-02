@@ -16,12 +16,10 @@ Pydantic validation for API inputs.
 4. Implement security headers and CSP policies
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Add comprehensive business logic validation
-- [ ] #2 Implement rate limiting for API endpoints
-- [ ] #3 Add input sanitization for stored data
-- [ ] #4 Implement security headers and CSP policies
-<!-- AC:END -->
+- Business logic validation prevents invalid operations
+- Rate limiting protects against abuse
+- Stored data is properly sanitized
+- Security headers protect against common attacks
 
 ## Estimated Effort
 12 hours

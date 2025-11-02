@@ -21,17 +21,17 @@ Implement SOLID principles for email data source abstraction to improve code mai
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [x] #1 Design abstraction layer
-- [x] #2 Implement interface segregation
-- [x] #3 Add dependency inversion
-- [x] #4 Refactor existing code to use abstraction
+- [ ] #1 Design abstraction layer
+- [ ] #2 Implement interface segregation
+- [ ] #3 Add dependency inversion
+- [ ] #4 Refactor existing code to use abstraction
 
-- [x] #5 Design clean abstraction layer following SOLID principles
-- [x] #6 Implement interface segregation for different data operations
-- [x] #7 Add dependency inversion to decouple high-level modules
-- [x] #8 Refactor existing email data access code to use new abstraction
-- [x] #9 Add comprehensive unit tests for abstraction layer
-- [x] #10 Document the new architecture and usage patterns
+- [ ] #5 Design clean abstraction layer following SOLID principles
+- [ ] #6 Implement interface segregation for different data operations
+- [ ] #7 Add dependency inversion to decouple high-level modules
+- [ ] #8 Refactor existing email data access code to use new abstraction
+- [ ] #9 Add comprehensive unit tests for abstraction layer
+- [ ] #10 Document the new architecture and usage patterns
 <!-- AC:END -->
 
 ## Implementation Notes

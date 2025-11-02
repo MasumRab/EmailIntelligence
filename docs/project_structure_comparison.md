@@ -31,6 +31,7 @@
 │   ├── advanced_workflow_system.md # Comprehensive workflow system documentation
 │   ├── client_development.md
 │   ├── deployment_guide.md
+│   ├── documenting_development_sessions.md # Framework for documented development sessions with iFlow CLI integration
 │   ├── env_management.md
 │   ├── extensions_guide.md
 │   ├── launcher_guide.md

@@ -16,12 +16,10 @@ Uses JSON file storage with caching and Notmuch integration.
 4. Implement data validation at the storage layer
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Implement database migration strategy for production deployments
-- [ ] #2 Add data backup and recovery procedures
-- [ ] #3 Consider adding Redis caching layer for improved performance
-- [ ] #4 Implement data validation at the storage layer
-<!-- AC:END -->
+- Database migration strategy is implemented
+- Backup and recovery procedures are in place
+- Caching performance is improved
+- Data validation prevents corruption
 
 ## Estimated Effort
 20 hours

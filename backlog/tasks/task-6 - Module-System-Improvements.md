@@ -16,12 +16,10 @@ Dynamic module loading with registration pattern.
 4. Create module template generator for new modules
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Add module dependency management
-- [ ] #2 Implement module lifecycle hooks (init, start, stop, cleanup)
-- [ ] #3 Add module configuration validation
-- [ ] #4 Create module template generator for new modules
-<!-- AC:END -->
+- Modules can declare and manage dependencies
+- Module lifecycle is properly managed with hooks
+- Module configurations are validated before loading
+- New modules can be generated from templates
 
 ## Estimated Effort
 18 hours

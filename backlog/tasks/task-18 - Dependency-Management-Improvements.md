@@ -16,12 +16,10 @@ Uses uv with pyproject.toml for Python dependencies and npm for frontend depende
 4. Set up automated dependency update notifications
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Regular dependency audits to identify outdated or vulnerable packages
-- [ ] #2 Implement automated security scanning in CI/CD pipeline
-- [ ] #3 Consider using pip-audit for Python security checks
-- [ ] #4 Set up automated dependency update notifications
-<!-- AC:END -->
+- Dependency audits are performed regularly
+- Security scanning is integrated into CI/CD
+- Vulnerabilities are detected and reported
+- Dependency updates are tracked and managed
 
 ## Estimated Effort
 8 hours

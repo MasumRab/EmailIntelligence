@@ -16,12 +16,10 @@ Abstract BaseAIEngine with ModernAIEngine implementation.
 4. Create standardized interfaces for training new models
 
 ## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Add support for multiple AI backends (OpenAI, Anthropic, etc.)
-- [ ] #2 Implement model versioning and A/B testing capabilities
-- [ ] #3 Add caching for AI analysis results
-- [ ] #4 Create standardized interfaces for training new models
-<!-- AC:END -->
+- Multiple AI backends can be used interchangeably
+- Model versioning and A/B testing are supported
+- AI analysis results are cached appropriately
+- Training interfaces are standardized and documented
 
 ## Estimated Effort
 24 hours
