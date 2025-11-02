@@ -10,24 +10,24 @@ class ConsolidatedDashboardStats(BaseModel):
     """Comprehensive dashboard statistics model that consolidates both modular and legacy implementations."""
 
     # Core email statistics
-    total_emails: int
+    total_emails: int = Field(..., description="Total number of emails in the system.", example=1234)
 
     # Category-related statistics
-    categorized_emails: Optional[Dict[str, int]] = None  # From modular implementation
-    categories: Optional[int] = None  # From legacy implementation
+    categorized_emails: Optional[Dict[str, int]] = Field(None, description="Breakdown of emails by category.", example={"Work": 100, "Personal": 200})
+    categories: Optional[int] = Field(None, description="Total number of categories.", example=10)
 
     # Email processing statistics
-    unread_emails: Optional[int] = None  # From modular implementation
-    auto_labeled: Optional[int] = None  # From legacy implementation
+    unread_emails: Optional[int] = Field(None, description="Number of unread emails.", example=50)
+    auto_labeled: Optional[int] = Field(None, description="Number of emails that have been automatically labeled.", example=500)
 
     # Time and productivity metrics
-    time_saved: Optional[str] = None  # From legacy implementation
+    time_saved: Optional[str] = Field(None, description="Estimated time saved from auto-labeling (in Xh Ym format).", example="16h 40m")
 
     # Growth and trend analysis
-    weekly_growth: Optional[WeeklyGrowth] = None  # From legacy implementation
+    weekly_growth: Optional[WeeklyGrowth] = Field(None, description="Weekly growth in email volume.")
 
     # Performance monitoring
-    performance_metrics: Optional[Dict[str, float]] = None  # From modular implementation
+    performance_metrics: Optional[Dict[str, float]] = Field(None, description="Performance metrics for various operations.", example={"get_emails": 0.15, "create_email": 0.3})
 
     class Config:
         # Allow both field names and aliases during validation
