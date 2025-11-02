@@ -115,6 +115,28 @@ This multitask plan outlines the comprehensive approach for aligning the feature
 4. **Thorough Testing**: Zero regression in existing functionality
 5. **Documentation**: Complete documentation of all changes and preservation decisions
 
+## Priority Tiers for Integration
+
+### Tier 1: Critical - MUST PRESERVE (No Exceptions)
+- AI-integrated email processing (sentiment, topic, intent, urgency analysis)
+- Asynchronous analysis architecture using `asyncio.create_task`
+- Tag management and re-analysis triggering (`update_tags_for_message` method)
+- Smart filtering integration during email processing
+- Event-driven UI updates and real-time refresh
+
+### Tier 2: Important - PRESERVE WITH MINIMAL CHANGES
+- UI components for interactive tag management
+- Notmuch database connection patterns
+- Search functionality with advanced query syntax
+- Data abstraction layer integration
+
+### Tier 3: Enhancement - SAFE TO INTEGRATE
+- Performance optimizations that don't change workflows
+- Error handling improvements
+- Logging enhancements
+- Utility functions that extend rather than replace
+- Documentation improvements
+
 ## Dependencies
 
 - Task-73: Update Alignment Strategy (Completed)
@@ -145,3 +167,22 @@ This multitask plan outlines the comprehensive approach for aligning the feature
 - Successful integration testing with no critical issues
 - Complete documentation coverage of changes
 - Positive user acceptance testing results
+
+## Business Logic Preservation Metrics
+
+### Tier 1 Critical Components (Must be 100% preserved):
+- AI analysis workflows: 100% functionality retention
+- Asynchronous processing: 100% non-blocking operation
+- Tag management features: 100% functionality retention
+- Smart filtering integration: 100% workflow preservation
+- UI component functionality: 100% feature retention
+
+### Tier 2 Important Components (Must be ≥95% preserved):
+- Data access patterns: ≥95% compatibility
+- Search functionality: ≥95% feature retention
+- Error handling: ≥95% workflow preservation
+
+### Tier 3 Enhancement Areas (Can be improved):
+- Performance metrics: 20%+ improvement target
+- Code quality: Maintain or improve current standards
+- Documentation: 100% coverage of changes
