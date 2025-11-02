@@ -5,7 +5,6 @@ JSON file storage implementation with in-memory caching and indexing.
 
 import asyncio
 import gzip
-import hashlib
 import json
 import logging
 import os
@@ -13,14 +12,15 @@ import shutil
 from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
-
-from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
-from .data.data_source import DataSource
+import hashlib
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
-from .security import sanitize_path, validate_path_safety
+from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from .data.data_source import DataSource
+
+from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ CURRENT_SCHEMA_VERSION = "1.0"
 # - Modify file path construction to use config.data_dir
 # - Add validation to ensure directory exists or can be created
 
-from .security import sanitize_path, validate_path_safety
+from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
 
@@ -379,7 +379,7 @@ class DatabaseManager(DataSource):
     def _validate_email_data(self, email_data: Dict[str, Any]) -> bool:
         """Validates email data before storage."""
         required_fields = {FIELD_MESSAGE_ID}  # messageId is required
-        if not all(field in email_data for field in required_fields):
+        if any(field not in email_data for field in required_fields):
             logger.warning(f"Missing required fields in email data: {email_data}")
             return False
 
@@ -395,7 +395,7 @@ class DatabaseManager(DataSource):
     def _validate_category_data(self, category_data: Dict[str, Any]) -> bool:
         """Validates category data before storage."""
         required_fields = {FIELD_NAME}
-        if not all(field in category_data for field in required_fields):
+        if any(field not in category_data for field in required_fields):
             logger.warning(f"Missing required fields in category data: {category_data}")
             return False
 
@@ -410,7 +410,7 @@ class DatabaseManager(DataSource):
     def _validate_user_data(self, user_data: Dict[str, Any]) -> bool:
         """Validates user data before storage."""
         required_fields = {"username", "hashed_password"}
-        if not all(field in user_data for field in required_fields):
+        if any(field not in user_data for field in required_fields):
             logger.warning(f"Missing required fields in user data: {user_data}")
             return False
 
@@ -649,11 +649,10 @@ class DatabaseManager(DataSource):
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
-        # Validation functionality is preserved as a method
-        # Uncomment the next lines if validation is needed:
-        # if not self._validate_email_data(email_data):
-        #     logger.warning(f"Email data validation failed: {email_data}")
-        #     return None
+        # Validation functionality is enabled to maintain data integrity
+        if not self._validate_email_data(email_data):
+            logger.warning(f"Email data validation failed: {email_data}")
+            return None
 
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
@@ -733,11 +732,10 @@ class DatabaseManager(DataSource):
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
-        # Validation functionality is preserved as a method
-        # Uncomment the next lines if validation is needed:
-        # if not self._validate_category_data(category_data):
-        #     logger.warning(f"Category data validation failed: {category_data}")
-        #     return None
+        # Validation functionality is enabled to maintain data integrity
+        if not self._validate_category_data(category_data):
+            logger.warning(f"Category data validation failed: {category_data}")
+            return None
 
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
@@ -867,11 +865,10 @@ class DatabaseManager(DataSource):
 
     async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new user and save to the users data."""
-        # Validation functionality is preserved as a method
-        # Uncomment the next lines if validation is needed:
-        # if not self._validate_user_data(user_data):
-        #     logger.warning(f"User data validation failed: {user_data}")
-        #     return None
+        # Validation functionality is enabled to maintain data integrity
+        if not self._validate_user_data(user_data):
+            logger.warning(f"User data validation failed: {user_data}")
+            return None
 
         # Check if user already exists
         existing_user = await self.get_user_by_username(user_data.get("username", ""))
@@ -1079,6 +1076,45 @@ class DatabaseManager(DataSource):
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return updated_email is not None
 
+    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
+        """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
+        await self._ensure_initialized()
+
+        # Get basic counts
+        total_emails = len(self.emails_data)
+        auto_labeled = sum(1 for email in self.emails_data if email.get(self.FIELD_CATEGORY_ID))
+        categories_count = len(self.categories_data)
+        unread_count = sum(1 for email in self.emails_data if not email.get('is_read', False))
+
+        # Calculate weekly growth (simplified - in production this would be more sophisticated)
+        # For now, return placeholder values
+        weekly_growth = {
+            "emails": total_emails,  # This should be emails added in the last week
+            "percentage": 0.0  # This should be week-over-week growth percentage
+        }
+
+        return {
+            "total_emails": total_emails,
+            "auto_labeled": auto_labeled,
+            "categories_count": categories_count,
+            "unread_count": unread_count,
+            "weekly_growth": weekly_growth
+        }
+
+    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
+        """Retrieves category breakdown statistics with configurable limit."""
+        await self._ensure_initialized()
+
+        # Count emails by category
+        category_counts = {}
+        for email in self.emails_data:
+            category = email.get('category', 'Uncategorized')
+            category_counts[category] = category_counts.get(category, 0) + 1
+
+        # Sort by count descending and apply limit
+        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+        return dict(sorted_categories[:limit])
+
 
 # Factory functions and configuration management (work-in-progress)
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
@@ -1101,7 +1137,18 @@ async def get_db() -> DatabaseManager:
     """
     Provides a default singleton instance for backward compatibility.
     For new implementations, consider using create_database_manager with explicit configuration.
+    
+    WARNING: This function uses a global singleton pattern which is deprecated.
+    Please migrate to using DatabaseConfig and create_database_manager for new code.
     """
+    import warnings
+    warnings.warn(
+        "get_db() uses a global singleton pattern which is deprecated. "
+        "Please migrate to using DatabaseConfig and create_database_manager for new code.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    
     global _db_manager_instance
     if _db_manager_instance is None:
         async with _db_init_lock:

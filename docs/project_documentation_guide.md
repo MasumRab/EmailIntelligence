@@ -11,6 +11,7 @@ This document outlines the various documentation files in the project and how to
 - `docs/advanced_workflow_system.md`: Documentation for the node-based workflow system
 - `docs/client_development.md`: Guidelines for client-side development
 - `docs/deployment_guide.md`: Deployment instructions and configurations
+- `docs/documenting_development_sessions.md`: Framework for documented development sessions with iFlow CLI integration
 - `docs/env_management.md`: Environment management guidelines
 - `docs/extensions_guide.md`: Guide for creating and managing extensions
 - `docs/launcher_guide.md`: Documentation for the unified launcher

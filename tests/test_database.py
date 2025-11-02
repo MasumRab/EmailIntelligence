@@ -1,10 +1,8 @@
+import pytest
 import asyncio
 import os
 import time
-
-import pytest
-
-from backend.python_backend.database import DatabaseManager
+from src.core.database import DatabaseManager
 
 
 @pytest.fixture

@@ -1,8 +1,7 @@
+import pytest
 from unittest.mock import AsyncMock
 
-import pytest
-
-from backend.python_backend.models import CategoryCreate
+from src.core.models import CategoryCreate
 
 
 async def test_get_categories_success(client, mock_db_manager: AsyncMock):

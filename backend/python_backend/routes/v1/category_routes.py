@@ -6,15 +6,14 @@ Version 1 API routes for category operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-import logging
 from typing import List
-
+import logging
 from fastapi import APIRouter, Depends, Request
 
-from backend.python_backend.dependencies import get_category_service
-from backend.python_backend.models import CategoryCreate, CategoryResponse
-from backend.python_backend.performance_monitor import log_performance
+from src.core.models import CategoryResponse, CategoryCreate
 from backend.python_backend.services.category_service import CategoryService
+from backend.python_backend.dependencies import get_category_service
+from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 

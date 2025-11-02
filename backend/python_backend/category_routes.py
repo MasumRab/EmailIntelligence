@@ -42,7 +42,7 @@ async def get_categories(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.")
+        raise DatabaseError(detail="Failed to create category.") from db_err
 
 
 @router.post("/api/categories", response_model=CategoryResponse)
@@ -80,4 +80,4 @@ async def create_category(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.")
+        raise DatabaseError(detail="Failed to create category.") from db_err

@@ -375,7 +375,11 @@ async def get_error_stats():
 
 
 if __name__ == "__main__":
-    import uvicorn
+import uvicorn
 
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, log_level="info")
+port = int(os.getenv("PORT", 8000))
+env = os.getenv("NODE_ENV", "development")
+host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+reload = env == "development"
+# Use string app path to support reload
+uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
