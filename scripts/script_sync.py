@@ -27,11 +27,17 @@ def get_current_branch() -> str:
 def get_all_branches() -> List[str]:
     """Get all local branches."""
     output = run_git_command(['branch'])
-    branches = [line.strip().lstrip('* ') for line in output.split('\n') if line.strip()]
+    branches = [line.strip().lstrip('*+ ') for line in output.split('\n') if line.strip()]
     return branches
 
 def checkout_branch(branch: str) -> bool:
     """Checkout a branch."""
+    # Check if branch is currently checked out in a worktree
+    worktree_output = run_git_command(['worktree', 'list'])
+    for line in worktree_output.split('\n'):
+        if f'[{branch}]' in line:
+            print(f"Branch {branch} is currently checked out in a worktree, skipping")
+            return False
     result = subprocess.run(['git', 'checkout', branch], capture_output=True, text=True)
     return result.returncode == 0
 
@@ -57,16 +63,24 @@ def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_cu
         shutil.copytree(scripts_dir, backup_dir)
         print(f"Backed up current scripts to {backup_dir}")
 
-    # Use git read-tree to merge scripts directory from master
-    # This merges only the scripts/ directory
-    result = subprocess.run([
-        'git', 'read-tree', '-m', '-u',
-        f'{master_branch}:scripts',  # Source tree
-        f'{target_branch}:scripts'   # Current tree
-    ], capture_output=True, text=True)
+    # Check if target branch has scripts directory
+    target_has_scripts = run_git_command(['ls-tree', '-d', f'{target_branch}:scripts']) != ""
+
+    if target_has_scripts:
+        # Use git read-tree to merge scripts directory from master
+        result = subprocess.run([
+            'git', 'read-tree', '-m', '-u',
+            f'{master_branch}:scripts',  # Source tree
+            f'{target_branch}:scripts'   # Current tree
+        ], capture_output=True, text=True)
+    else:
+        # Target doesn't have scripts, just checkout from master
+        result = subprocess.run([
+            'git', 'checkout', master_branch, '--', 'scripts/'
+        ], capture_output=True, text=True)
 
     if result.returncode != 0:
-        print(f"Failed to merge scripts: {result.stderr}")
+        print(f"Failed to sync scripts: {result.stderr}")
         # Restore backup if it exists
         if backup_dir.exists() and preserve_custom:
             if scripts_dir.exists():
