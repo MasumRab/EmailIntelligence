@@ -102,4 +102,11 @@ The scientific branch contains more advanced architectural implementations that 
 the specific functionality of this feature branch.
 
 Current status: Planning phase - need to assess differences between this branch and scientific branch.
+
+## Feature Preservation Instructions:
+- Preserve the clean merge implementation that enhances core system with security, database backups, and performance improvements
+- Maintain the enhanced configuration management modules in python_backend
+- Ensure all system enhancements related to opencode LLM guidelines remain functional
+- Keep the venv creation improvements and config directory structure intact
+- Verify security and performance enhancements remain active after alignment
 <!-- SECTION:NOTES:END -->
