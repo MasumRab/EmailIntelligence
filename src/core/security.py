@@ -121,11 +121,10 @@ def validate_path_safety(
         path_str = str(path_obj)
 
         # Common directory traversal patterns
-        traversal_patterns = ["..", "\\", "//", "/./", "\\./"]
-        for pattern in traversal_patterns:
-            if pattern in str(path):
-                logger.warning(f"Potential directory traversal detected in path: {path}")
-                return False
+        # Check for directory traversal attempts by looking for '..' as a path segment
+        if any(part == ".." for part in path_obj.parts):
+            logger.warning(f"Potential directory traversal detected in path: {path}")
+            return False
 
         # If base_dir is specified, ensure path is within base_dir
         if base_dir:
@@ -166,10 +165,6 @@ def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
 
         # Basic sanitization - remove dangerous sequences
         path_str = path_str.replace("../", "").replace("..\\", "")
-        path_str = path_str.replace("<!--", "").replace("-->", "")  # Prevent comment injection
-        path_str = path_str.replace("<script", "").replace(
-            "script>", ""
-        )  # Prevent script injection
 
         # Normalize path separators
         path_str = path_str.replace("\\", "/")
@@ -614,12 +609,10 @@ def validate_path_safety(
         # Check for directory traversal patterns
         path_str = str(path_obj)
 
-        # Common directory traversal patterns
-        traversal_patterns = ["..", "\\", "//", "/./", "\\./"]
-        for pattern in traversal_patterns:
-            if pattern in str(path):
-                logger.warning(f"Potential directory traversal detected in path: {path}")
-                return False
+        # Check for directory traversal attempts by looking for '..' as a path segment
+        if any(part == ".." for part in path_obj.parts):
+            logger.warning(f"Potential directory traversal detected in path: {path}")
+            return False
 
         # If base_dir is specified, ensure path is within base_dir
         if base_dir:
@@ -716,10 +709,7 @@ def secure_path_join(
             result_path = result_path / component_path
 
         # Final validation
-        if validate_path_safety(result_path, base_dir):
-            return result_path
-
-        return None
+        return result_path if validate_path_safety(result_path, base_dir) else None
 
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
