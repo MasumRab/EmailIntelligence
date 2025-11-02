@@ -1,7 +1,7 @@
 ---
 id: task-13
 title: Implement /api/dashboard/stats endpoint
-status: Completed
+status: To Do
 assignee: []
 created_date: '2025-10-26 14:21'
 updated_date: '2025-10-28 23:47'
