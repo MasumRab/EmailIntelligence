@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
+from argon2 import PasswordHasher
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -75,35 +76,34 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def hash_password(password: str) -> str:
     """
-    Hash a password using SHA-256 with a salt.
-    
+    Hash a password using Argon2.
+
     Args:
         password: Plain text password
-        
+
     Returns:
-        Hashed password with salt
+        Argon2 hashed password (including salt and parameters)
     """
-    salt = secrets.token_hex(16)
-    password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
-    return f"{password_hash}:{salt}"
+    ph = PasswordHasher()
+    return ph.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Verify a plain password against a hashed password.
-    
+    Verify a plain password against an Argon2-hashed password.
+
     Args:
         plain_password: Plain text password
-        hashed_password: Hashed password with salt
-        
+        hashed_password: Argon2 hashed password
+
     Returns:
         True if passwords match, False otherwise
     """
+    ph = PasswordHasher()
     try:
-        password_hash, salt = hashed_password.split(":")
-        return hashlib.sha256((plain_password + salt).encode()).hexdigest() == password_hash
-    except ValueError:
-        # Invalid format
+        return ph.verify(hashed_password, plain_password)
+    except Exception:
+        # Verification failed (wrong password, corrupted hash, etc.)
         return False
 
 
