@@ -8,7 +8,6 @@ async def search_notmuch(query):
     data_source = await get_data_source()
     if hasattr(data_source, 'search_emails'):
         emails = await data_source.search_emails(query)
-        # Store message_id in a DataFrame
         df = pd.DataFrame(emails)
         return df
     return pd.DataFrame()
@@ -31,7 +30,6 @@ def create_notmuch_ui():
             search_bar = gr.Textbox(label="Search Query", placeholder="Enter notmuch query...")
             search_button = gr.Button("Search")
 
-        # Hidden DataFrame to store full email data
         email_data_df = gr.DataFrame(visible=False)
 
         results_list = gr.DataFrame(
@@ -41,6 +39,12 @@ def create_notmuch_ui():
         )
 
         email_viewer = gr.Textbox(label="Email Content", lines=20, interactive=False)
+
+        with gr.Row():
+            tag_input = gr.Textbox(label="Tags", placeholder="Enter comma-separated tags...")
+            update_button = gr.Button("Update Tags")
+
+        selected_message_id = gr.Textbox(visible=False)
 
         def display_search_results(df):
             if not df.empty:
@@ -53,10 +57,32 @@ def create_notmuch_ui():
             if evt.index is not None and not df.empty:
                 selected_row = df.iloc[evt.index[0]]
                 message_id = selected_row['message_id']
-                # Run async function to get content
+                tags = selected_row['tags']
+
                 content = asyncio.run(get_email_content(message_id))
-                return content
-            return "Select an email to view its content."
+                tag_str = ', '.join(tags) if isinstance(tags, list) else ''
+
+                return content, message_id, tag_str
+            return "Select an email to view its content.", "", ""
+
+        async def update_tags_callback(message_id: str, tags_str: str, current_query: str):
+            if not message_id:
+                gr.Warning("No message selected!")
+                return pd.DataFrame()
+
+            tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+
+            data_source = await get_data_source()
+            if hasattr(data_source, 'update_tags_for_message'):
+                success = await data_source.update_tags_for_message(message_id, tags)
+                if success:
+                    gr.Info("Tags updated successfully! Refreshing search...")
+                    refreshed_df = await search_notmuch(current_query)
+                    return refreshed_df
+                else:
+                    gr.Error("Failed to update tags.")
+
+            return pd.DataFrame()
 
         search_button.click(
             fn=lambda q: asyncio.run(search_notmuch(q)),
@@ -71,16 +97,17 @@ def create_notmuch_ui():
         results_list.select(
             fn=on_select,
             inputs=[email_data_df],
-            outputs=email_viewer
+            outputs=[email_viewer, selected_message_id, tag_input]
+        )
+
+        update_button.click(
+            fn=lambda msg_id, tags, query: asyncio.run(update_tags_callback(msg_id, tags, query)),
+            inputs=[selected_message_id, tag_input, search_bar],
+            outputs=email_data_df
+        ).then(
+            fn=display_search_results,
+            inputs=email_data_df,
+            outputs=[email_data_df, results_list]
         )
 
     return notmuch_tab
-
-if __name__ == '__main__':
-    # To run this file for testing, you need to set the DATA_SOURCE_TYPE environment variable
-    # Example: DATA_SOURCE_TYPE=notmuch python modules/notmuch/ui.py
-    import os
-    os.environ["DATA_SOURCE_TYPE"] = "notmuch"
-
-    ui = create_notmuch_ui()
-    ui.launch()

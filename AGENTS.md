@@ -11,7 +11,8 @@
 - **Code quality**: `pylint src modules`
 
 ### Dependency Management
-- **uv**: `python launch.py --setup` - Uses uv for fast, reliable Python package installs
+- **uv (default)**: `python launch.py --setup` - Uses uv for fast, reliable installs
+- **Poetry**: `python launch.py --use-poetry --setup` - Alternative Poetry-based setup
 - **Update deps**: `python launch.py --update-deps` - Updates all dependencies
 - **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
 - **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
@@ -61,12 +62,6 @@
 - **API**: Use api client from lib/api.ts for backend communication
 
 ## Troubleshooting
-
-### Architecture Overview
-- **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, Vite build system
-- **Backend**: Python with FastAPI for API endpoints and Gradio for UI
-- **AI Engine**: Python-based NLP models for sentiment and topic analysis
-- **Database**: SQLite for local storage and caching, JSON files for main application data
 
 ### Port Binding Errors (e.g., [Errno 10048])
 If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
