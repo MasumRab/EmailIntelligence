@@ -10,7 +10,7 @@ from typing import Optional
 import os
 from pydantic_settings import BaseSettings
 from pydantic import Field
-from pydantic import field_validator
+from pydantic import validator
 
 
 class Settings(BaseSettings):
@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     # Database compression settings
     gzip_compression_level: int = 6  # Default compression level
 
-    @field_validator('secret_key')
+    @validator('secret_key')
     @classmethod
     def validate_secret_key(cls, v):
         if not v:
