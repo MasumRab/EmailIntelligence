@@ -7,7 +7,13 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field, validator
+# ConfigDict is not available in Pydantic v1, using Config class instead
+try:
+    from pydantic import ConfigDict
+except ImportError:
+    # For Pydantic v1 compatibility
+    ConfigDict = None
 
 # A default color for categories, can be moved to a config file later
 DEFAULT_CATEGORY_COLOR = "#FFFFFF"
@@ -67,12 +73,12 @@ class EmailCreate(EmailBase):
     attachmentCount: int = 0
     sizeEstimate: int = 0
 
-    @field_validator("preview", mode="before")
+    @validator("preview", pre=True)
     @classmethod
-    def set_preview(cls, v, info):
+    def set_preview(cls, v, values):
         """Sets the preview from the content if not provided."""
-        if not v and info.data and "content" in info.data:
-            content = info.data["content"]
+        if not v and "content" in values:
+            content = values["content"]
             return content[:200] + "..." if len(content) > 200 else content
         return v
 
@@ -462,7 +468,7 @@ class SearchResponse(BaseModel):
 class BatchEmailUpdate(BaseModel):
     """Model for a request to update a batch of emails."""
 
-    emailIds: List[int] = Field(alias="email_ids", min_length=1)
+    emailIds: List[int] = Field(alias="email_ids")
     updates: EmailUpdate
 
     model_config = ConfigDict(populate_by_name=True)
@@ -478,3 +484,7 @@ class BatchOperationResponse(BaseModel):
     errors: List[Dict[str, Any]] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
+
+# Aliases for backward compatibility
+Email = EmailResponse
+Category = CategoryResponse

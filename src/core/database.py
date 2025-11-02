@@ -23,7 +23,6 @@ from .enhanced_error_reporting import (
     create_error_context
 )
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .data.data_source import DataSource
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +64,9 @@ HEAVY_EMAIL_FIELDS = [FIELD_CONTENT, "content_html"]
 FIELD_CATEGORY_NAME = "categoryName"
 FIELD_CATEGORY_COLOR = "categoryColor"
 
+
+# Import DataSource locally to avoid circular imports
+from .data.data_source import DataSource
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
@@ -758,18 +760,3 @@ async def get_db() -> DatabaseManager:
 
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return bool(updated_email)  # Return True if update was successful (not empty dict)
-
-
-# Singleton instance
-_db_manager_instance = None
-
-
-async def get_db() -> DatabaseManager:
-    """
-    Provides the singleton instance of the DatabaseManager.
-    """
-    global _db_manager_instance
-    if _db_manager_instance is None:
-        _db_manager_instance = DatabaseManager()
-        await _db_manager_instance._ensure_initialized()
-    return _db_manager_instance
