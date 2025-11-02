@@ -12,7 +12,12 @@ from pathlib import Path
 def run_command(cmd):
     """Run a command and return output"""
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        # Use shell=False for security, ensure cmd is a list
+        if isinstance(cmd, str):
+            # For shell commands that need shell features, use shlex.split
+            import shlex
+            cmd = shlex.split(cmd)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
         return result.returncode == 0, result.stdout.strip()
     except Exception:
         return False, ""
@@ -88,7 +93,16 @@ def check_package_availability():
             venv_found = True
 
             # Check pip packages in venv
-            success, output = run_command(f"source {venv_name}/bin/activate && pip list --format=freeze | wc -l")
+            pip_exe = venv_path / "bin" / "pip"
+            if pip_exe.exists():
+                success, output = run_command([str(pip_exe), "list", "--format=freeze"])
+                if success:
+                    # Count lines in output
+                    line_count = len([line for line in output.split('
+') if line.strip()])
+                    print(f"📦 Virtual environment has {line_count} packages installed")
+            else:
+                success, output = run_command(f"source {venv_name}/bin/activate && pip list --format=freeze | wc -l")
             if success:
                 print(f"📦 Virtual environment has {output} packages installed")
             break
@@ -97,9 +111,13 @@ def check_package_availability():
         print("⚠️  Virtual environment not found")
 
     # Check system packages
-    success, output = run_command("dpkg -l | grep '^ii' | grep python3 | wc -l")
+    success, output = run_command(["dpkg", "-l"])
     if success:
-        print(f"📦 System has {output} Python packages installed")
+    # Count python3 packages manually
+        lines = [line for line in output.split('
+') if line.startswith('ii') and 'python3' in line]
+        package_count = str(len(lines))
+        print(f"📦 System has {package_count} Python packages installed")
 
 if __name__ == "__main__":
     check_package_availability()
