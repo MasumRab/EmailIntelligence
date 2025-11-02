@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-11-02T02:25:17.425600",
+  "results": {
+    "health": {
+      "worktrees_exist": true,
+      "inheritance_base_exists": true,
+      "sync_scripts_executable": true,
+      "config_valid": true,
+      "permissions_ok": true,
+      "issues": [],
+      "overall_status": "healthy"
+    },
+    "cleanup": {
+      "old_backups_removed": 0,
+      "temp_files_removed": 0,
+      "empty_dirs_removed": 12,
+      "cache_cleared": true
+    },
+    "integrity": {
+      "missing_files": [],
+      "orphaned_files": [
+        "docs-main:README.md",
+        "docs-scientific:README.md"
+      ],
+      "inconsistent_sync": [],
+      "total_files_checked": 48,
+      "integrity_score": 80
+    },
+    "optimization": {
+      "duplicate_files_found": 83,
+      "large_files": [],
+      "compression_savings": 0,
+      "optimizations_applied": []
+    }
+  },
+  "summary": {
+    "overall_health": "good",
+    "total_issues": 0,
+    "integrity_score": 80
+  }
+}
