@@ -9,48 +9,127 @@ Unified Python backend with optimized performance and integrated NLP
 import json
 import logging
 import os
-from datetime import datetime
+import threading
+import time
+import uuid
+from collections import defaultdict
+from datetime import datetime, timedelta
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from ..plugins.plugin_manager import plugin_manager
 from backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from backend.python_nlp.smart_filters import SmartFilterManager
+from src.core.auth import authenticate_user
 
+from ..plugins.plugin_manager import plugin_manager
 from . import (
+    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
     email_routes,
     filter_routes,
     gmail_routes,
-    training_routes,
-    workflow_routes,
     model_routes,
     performance_routes,
+    training_routes,
+    workflow_routes,
 )
-from .auth import create_access_token, get_current_user, TokenData
-from src.core.auth import authenticate_user
-from .settings import settings
-from fastapi.security import HTTPBearer
-from fastapi import Depends, HTTPException, status
-from datetime import timedelta
 from .ai_engine import AdvancedAIEngine
+from .auth import TokenData, create_access_token, get_current_user
+from .database import db_manager
 from .exceptions import AppException, BaseAppException
 
 # Import new components
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
-from .database import DatabaseManager
 
-db_manager = DatabaseManager()
+# Error rate monitoring
+error_counts = defaultdict(int)
+error_lock = threading.Lock()
+
+
+class ErrorHandlingMiddleware(BaseHTTPMiddleware):
+    """Middleware for consistent error handling and response formatting."""
+
+    async def dispatch(self, request: Request, call_next):
+        # Add request ID for tracking
+        request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
+        request.state.start_time = time.time()
+
+        try:
+            response = await call_next(request)
+            # Add request ID to successful responses
+            if hasattr(response, "headers"):
+                response.headers["X-Request-ID"] = request_id
+            return response
+        except Exception as exc:
+            # Log error with context
+            duration = time.time() - request.state.start_time
+            logger.error(
+                f"Request failed: {request.method} {request.url} "
+                f"Duration: {duration:.2f}s RequestID: {request_id} Error: {str(exc)}",
+                exc_info=True,
+            )
+
+            # Track error rate
+            with error_lock:
+                error_counts[500] += 1  # Default to 500 for unhandled exceptions
+                # Alert if error rate is high (simple threshold)
+                total_errors = sum(error_counts.values())
+                if total_errors > 10:  # Simple threshold
+                    logger.warning(f"High error rate detected: {total_errors} errors in session")
+
+            # Format error response consistently
+            if isinstance(exc, AppException):
+                # Already formatted, add request_id
+                error_response = exc.detail
+                if isinstance(error_response, dict):
+                    error_response["request_id"] = request_id
+                status_code = exc.status_code
+            elif isinstance(exc, BaseAppException):
+                error_response = {
+                    "success": False,
+                    "message": "An internal error occurred",
+                    "error_code": "INTERNAL_ERROR",
+                    "details": str(exc),
+                    "request_id": request_id,
+                }
+                status_code = exc.status_code
+            elif isinstance(exc, ValidationError):
+                error_response = {
+                    "success": False,
+                    "message": "Validation error",
+                    "error_code": "VALIDATION_ERROR",
+                    "details": str(exc),
+                    "request_id": request_id,
+                }
+                status_code = 422
+            else:
+                error_response = {
+                    "success": False,
+                    "message": "An unexpected error occurred",
+                    "error_code": "INTERNAL_ERROR",
+                    "details": str(exc) if settings.debug else None,
+                    "request_id": request_id,
+                }
+                status_code = 500
+
+            return JSONResponse(
+                status_code=status_code,
+                content=error_response,
+                headers={"X-Request-ID": request_id},
+            )
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -62,6 +141,9 @@ app = FastAPI(
     description="Advanced email management with AI categorization and smart filtering",
     version=settings.app_version,
 )
+
+# Add error handling middleware
+app.add_middleware(ErrorHandlingMiddleware)
 
 
 @app.on_event("startup")
@@ -89,71 +171,17 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    # await db_manager.connect()
+    await db_manager.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
-    # await db_manager.close()
+    await db_manager.close()
 
 
-@app.exception_handler(AppException)
-
-async def app_exception_handler(request: Request, exc: AppException):
-
-    return JSONResponse(
-
-        status_code=exc.status_code,
-
-        content=exc.detail,
-
-    )
-
-
-@app.exception_handler(BaseAppException)
-
-async def base_app_exception_handler(request: Request, exc: BaseAppException):
-
-    return JSONResponse(
-
-        status_code=500,
-
-        content={
-
-            "success": False,
-
-            "message": "An internal error occurred",
-
-            "error_code": "INTERNAL_ERROR",
-            "details": str(exc),
-        },
-
-    )
-
-
-
-
-
-@app.exception_handler(ValidationError)
-
-async def validation_exception_handler(request: Request, exc: ValidationError):
-
-    """Handle Pydantic validation errors with detailed 422 responses."""
-
-    return JSONResponse(
-
-        status_code=422,
-
-        content={
-
-            "detail": exc.errors(),
-
-            "message": "Validation error with provided data.",
-
-        },
-
-    )
+# Exception handlers removed - now handled by ErrorHandlingMiddleware
+# The middleware provides consistent error handling and response formatting
 
 
 # Configure CORS using settings
@@ -244,7 +272,7 @@ except ImportError:
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
-    db = await get_db()
+    db = db_manager  # Use the DatabaseManager instance that's already initialized
     user = await authenticate_user(username, password, db)
     
     if not user:
@@ -303,8 +331,19 @@ async def health_check(request: Request):
         )
 
 
+@app.get("/api/error-stats")
+async def get_error_stats():
+    """Get error statistics for monitoring."""
+    with error_lock:
+        return {"error_counts": dict(error_counts), "total_errors": sum(error_counts.values())}
+
+
 if __name__ == "__main__":
     import uvicorn
 
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, log_level="info")
+    env = os.getenv("NODE_ENV", "development")
+    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+    reload = env == "development"
+    # Use string app path to support reload
+    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
