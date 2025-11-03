@@ -24,7 +24,6 @@ from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import SmartFilterManager
 
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -43,13 +42,15 @@ from fastapi.security import HTTPBearer
 from fastapi import Depends, HTTPException, status
 from datetime import timedelta
 from .ai_engine import AdvancedAIEngine
-from .exceptions import AppException
+from .exceptions import AppException, BaseAppException
 
 # Import new components
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
-from .database import db_manager
+from .database import DatabaseManager
+
+db_manager = DatabaseManager()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -88,13 +89,13 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    await db_manager.connect()
+    # await db_manager.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
-    await db_manager.close()
+    # await db_manager.close()
 
 
 @app.exception_handler(AppException)
