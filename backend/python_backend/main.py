@@ -46,7 +46,7 @@ from . import (
 from .ai_engine import AdvancedAIEngine
 from .auth import TokenData, create_access_token, get_current_user
 from .database import db_manager
-from .exceptions import AppException
+from .exceptions import AppException, BaseAppException
 
 # Import new components
 from .model_manager import model_manager
