@@ -754,6 +754,13 @@ def initialize_workflow_system() -> WorkflowManager:
     workflow_manager.register_node_type("nlp_processor", NLPProcessorNode)
     workflow_manager.register_node_type("email_output", EmailOutputNode)
 
+    # Register smart filter node types
+    try:
+        from .smart_filter_nodes import register_smart_filter_nodes
+        register_smart_filter_nodes(workflow_manager)
+    except ImportError as e:
+        logger.warning(f"Could not import smart filter nodes: {e}")
+
     return workflow_manager
 
 

@@ -259,3 +259,5 @@ def get_errors_by_category(category: ErrorCategory) -> List[Dict[str, Any]]:
 def get_errors_by_severity(severity: ErrorSeverity) -> List[Dict[str, Any]]:
     """Get errors by severity."""
     return enhanced_error_reporter.get_errors_by_severity(severity)
+# Alias for backward compatibility
+ErrorReporter = EnhancedErrorReporter

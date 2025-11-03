@@ -1,17 +1,18 @@
 from typing import List, Dict, Any
 from .data_source import DataSource
-from ..database import get_db, DatabaseManager
 
 class DatabaseDataSource(DataSource):
     """
     A data source for emails that uses the database.
     """
 
-    def __init__(self, db_manager: DatabaseManager):
+    def __init__(self, db_manager):
         self.db = db_manager
 
     @classmethod
     async def create(cls):
+        # Import locally to avoid circular imports
+        from ..database import get_db
         db_manager = await get_db()
         return cls(db_manager)
 
