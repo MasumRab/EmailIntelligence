@@ -1,14 +1,4 @@
-<<<<<<< HEAD
----
-id: task-5
-title: Secure SQLite database paths to prevent path traversal
-status: Done
-assignee: []
-created_date: '2025-10-25 04:47'
-<<<<<<< HEAD
-=======
 updated_date: '2025-10-30 06:00'
->>>>>>> scientific
 labels:
   - security
   - sqlite
@@ -23,11 +13,6 @@ Implement secure path validation for SQLite database operations to prevent path 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-<<<<<<< HEAD
-- [ ] #1 Add path validation functions
-- [ ] #2 Update database path handling
-- [ ] #3 Add security tests
-=======
 - [x] #1 Add path validation functions
 - [x] #2 Update database path handling
 - [x] #3 Add security tests
@@ -37,7 +22,6 @@ Implement secure path validation for SQLite database operations to prevent path 
 - [x] #6 Update all database path handling code to use secure validation
 - [x] #7 Add security tests for path traversal prevention
 - [x] #8 Document secure database path handling procedures
->>>>>>> scientific
 <!-- AC:END -->
 
 ## Implementation Notes

@@ -28,11 +28,7 @@ dependencies = [
     "google-auth>=2.40.3",
     "google-auth-oauthlib>=1.2.2",
     "redis>=5.0.0",
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     "rq>=1.15.0",
->>>>>>> scientific
 =======
 >>>>>>> origin/main
     "notmuch>=0.29",
@@ -81,8 +77,4 @@ addopts = "--asyncio-mode=auto"
 markers = [
     "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
 ]
-<<<<<<< HEAD
 norecursedirs = ["backend"]
-=======
-norecursedirs = ["backend"]
->>>>>>> origin/main

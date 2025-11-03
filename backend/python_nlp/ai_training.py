@@ -1,21 +1,4 @@
-<<<<<<< HEAD
-"""
-AI Model Training Configuration.
-
-This module defines the data structures and configurations required for
-training the various AI models used in the Email Intelligence application.
-It provides a standardized way to specify model parameters and data paths.
-It also includes the PromptEngineer class for LLM interaction capabilities.
-"""
-
-import json
-from dataclasses import dataclass, field
-<<<<<<< HEAD
-from typing import Any, Dict, Optional, List
-import json
-=======
 from typing import Any, Dict, List, Optional
->>>>>>> scientific
 
 
 @dataclass
@@ -37,18 +20,6 @@ class PromptEngineer:
     to use them in addition to the existing local models.
     """
 
-<<<<<<< HEAD
-    def __init__(self):
-        self.templates = {}
-        self.defaults = {
-            "system_prompt": "You are an AI assistant specialized in email analysis and management. You help users categorize emails, identify important information, and suggest actions.",
-            "email_analysis_template": "Analyze the following email:\nSubject: {subject}\nContent: {content}\n\nProvide: 1) Topic, 2) Sentiment, 3) Intent, 4) Urgency level, 5) Key action items."
-        }
-
-    def register_template(self, name: str, template: str):
-        """Register a new prompt template."""
-        self.templates[name] = template
-=======
     def __init__(self, template: str = None):
         self.template = template
         self.templates = {}
@@ -92,34 +63,9 @@ class PromptEngineer:
             return self.template.format(**kwargs)
         else:
             raise ValueError("No template provided to PromptEngineer")
->>>>>>> scientific
 
     def generate_prompt(self, template_name: str, **kwargs) -> str:
         """
-<<<<<<< HEAD
-        Generate a prompt using a named template and provided variables.
-
-        Args:
-            template_name: Name of the template to use
-            **kwargs: Variables to substitute in the template
-
-        Returns:
-            str: The generated prompt
-        """
-        if template_name in self.templates:
-            template = self.templates[template_name]
-        elif template_name in self.defaults:
-            template = self.defaults[template_name]
-        else:
-            raise ValueError(f"Template '{template_name}' not found")
-
-        try:
-            return template.format(**kwargs)
-        except KeyError as e:
-            raise ValueError(f"Missing required variable {e} for template '{template_name}'")
-
-    def create_email_categorization_prompt(self, subject: str, content: str, categories: List[str]) -> str:
-=======
         Execute the prompt by filling template and adding execution prefix (backward compatibility method).
         """
         filled = self.fill(**kwargs)
@@ -128,7 +74,6 @@ class PromptEngineer:
     def create_email_categorization_prompt(
         self, subject: str, content: str, categories: List[str]
     ) -> str:
->>>>>>> scientific
         """
         Create a prompt for email categorization based on available categories.
 

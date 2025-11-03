@@ -1,14 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
-<<<<<<< HEAD
-
-from .data_source import DataSource
-=======
 from src.core.data_source import DataSource
 from src.core.caching import get_cache_manager, CacheConfig, CacheBackend
 import asyncio
 import time
->>>>>>> scientific
 
 
 class EmailRepository(ABC):
@@ -246,22 +241,5 @@ class CachingEmailRepository(EmailRepository):
         return data.copy()
 
 
-<<<<<<< HEAD
-# Factory function
-_email_repo_instance: Optional[EmailRepository] = None
-
-
-async def get_email_repository() -> EmailRepository:
-    """
-    Provides the singleton instance of the EmailRepository.
-    """
-    global _email_repo_instance
-    if _email_repo_instance is None:
-        from .factory import get_data_source
-        data_source = await get_data_source()
-        _email_repo_instance = DatabaseEmailRepository(data_source)
-    return _email_repo_instance
-=======
 # Additional repository implementations could be added here
 # For example, a logging repository that adds logging to another repository
->>>>>>> scientific

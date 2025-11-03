@@ -11,22 +11,6 @@ Comprehensive testing and validation of the subtree integration on both main and
 5. Document any issues and resolution procedures
 
 ## Subtasks
-<<<<<<< HEAD
-- [ ] Test complete application launch on main branch with subtree
-- [ ] Test complete application launch on scientific branch with subtree
-- [ ] Test propagation of a setup change to both branches
-- [ ] Verify branches can continue independent development after subtree integration
-- [ ] Test CI/CD pipelines on both branches with subtree integration
-- [ ] Document any issues encountered and their solutions
-- [ ] Create troubleshooting guide for subtree-related issues
-
-## Acceptance Criteria
-- [ ] Application launches successfully on both branches using subtree
-- [ ] Setup changes can be propagated to both branches
-- [ ] Both branches maintain independent development capabilities
-- [ ] CI/CD processes work correctly with subtree integration
-- [ ] Troubleshooting guide is available for common issues
-=======
 - [x] Test complete application launch on main branch with subtree
 - [x] Test complete application launch on scientific branch with subtree
 - [x] Test propagation of a setup change to both branches
@@ -41,7 +25,6 @@ Comprehensive testing and validation of the subtree integration on both main and
 - [x] Both branches maintain independent development capabilities
 - [x] CI/CD processes work correctly with subtree integration
 - [x] Troubleshooting guide is available for common issues
->>>>>>> scientific
 
 ## Task Dependencies
 - task-implement-subtree-pull-main.md
@@ -54,12 +37,6 @@ High
 10 hours
 
 ## Status
-<<<<<<< HEAD
-Pending
-
-## Additional Notes
-This is a critical validation task to ensure the subtree integration works reliably in real-world usage. Both branches should continue to function independently while benefiting from shared setup improvements.
-=======
 Completed
 
 ## Completion Notes
@@ -81,4 +58,3 @@ For the scientific branch specifically:
 - All changes have been pushed to the remote scientific branch
 
 This documentation ensures that proper testing procedures are in place for the subtree integration methodology.
->>>>>>> scientific

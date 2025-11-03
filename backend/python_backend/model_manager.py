@@ -19,11 +19,3 @@ class ModelManager:
     def check_health(self) -> bool:
         """Check model manager health. Stub implementation."""
         return True
-<<<<<<< HEAD
-
-
-model_manager = ModelManager()
-
-
-=======
->>>>>>> scientific

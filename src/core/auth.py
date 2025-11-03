@@ -6,15 +6,11 @@ core architecture and database management system.
 """
 
 from datetime import datetime, timedelta
-<<<<<<< HEAD
-from typing import Optional
-=======
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
 from argon2 import PasswordHasher
 
->>>>>>> scientific
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -22,10 +18,6 @@ from pydantic import BaseModel
 import hashlib
 import secrets
 
-<<<<<<< HEAD
-from .database import get_db, DatabaseManager
-from .security import DataSanitizer
-=======
 from .database import get_db
 from .settings import settings
 
@@ -33,7 +25,6 @@ from .settings import settings
 from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
->>>>>>> scientific
 
 
 class TokenData(BaseModel):
@@ -169,8 +160,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-<<<<<<< HEAD
-=======
 def hash_password(password: str) -> str:
     """
     Hash a password using Argon2.
@@ -261,7 +250,6 @@ async def create_user(username: str, password: str, db) -> bool:
         return False
 
 
->>>>>>> scientific
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> TokenData:
@@ -335,9 +323,6 @@ def create_authentication_middleware():
     This is a placeholder function that could be expanded to implement
     custom authentication middleware if needed.
     """
-<<<<<<< HEAD
-    pass
-=======
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
@@ -378,4 +363,3 @@ def create_security_context_for_user(username: str) -> SecurityContext:
     )
     
     return context
->>>>>>> scientific

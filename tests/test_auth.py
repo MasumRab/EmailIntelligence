@@ -1,14 +1,9 @@
 import pytest
-<<<<<<< HEAD
-from unittest.mock import AsyncMock, patch
-import json
-=======
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi.security import HTTPAuthorizationCredentials
 from src.core.auth import get_current_active_user, verify_token
 from src.main import app
->>>>>>> scientific
 
 
 @pytest.mark.asyncio

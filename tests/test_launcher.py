@@ -1,18 +1,3 @@
-<<<<<<< HEAD
-import argparse
-import subprocess
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-# Add the project root to the Python path to allow importing 'launch'
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-import pytest
-
-<<<<<<< HEAD
-from setup.launch import ROOT_DIR, main, start_gradio_ui
-=======
 from launch import (
     PYTHON_MAX_VERSION,
     PYTHON_MIN_VERSION,
@@ -37,7 +22,6 @@ def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_
 
     assert result is False, "Function should return False when npm install fails"
     mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
->>>>>>> scientific
 
 
 @patch("launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
@@ -68,17 +52,11 @@ def test_python_interpreter_discovery_avoids_substring_match(
 
     def test_compatible_version(self):
         """Test that compatible Python versions pass."""
-<<<<<<< HEAD
-        with patch("launch.platform.python_version", return_value="3.12.0"), \
-             patch("launch.sys.version_info", (3, 12, 0)), \
-             patch("launch.logger") as mock_logger:
-=======
         with (
             patch("launch.sys.version_info", (3, 12, 0)),
             patch("launch.sys.version", "3.12.0"),
             patch("launch.logger") as mock_logger,
         ):
->>>>>>> scientific
             check_python_version()
             mock_logger.info.assert_called_with("Python version 3.12.0 is compatible.")
 
@@ -124,16 +102,10 @@ class TestDependencyManagement:
         """Test successful dependency setup."""
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         venv_path = ROOT_DIR / "venv"
-<<<<<<< HEAD
-        setup_dependencies(venv_path)
-        mock_subprocess_run.assert_called_once()
-
-=======
         with patch("launch.logger") as mock_logger:
             setup_dependencies(venv_path)
             mock_logger.info.assert_any_call("Installing project dependencies with uv...")
         mock_subprocess_run.assert_called_once()
->>>>>>> scientific
 
     @patch("launch.subprocess.run")
     def test_download_nltk_success(self, mock_subprocess_run):

@@ -29,11 +29,6 @@ from typing import List, Optional
 
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
->>>>>>> scientific
 =======
 
 >>>>>>> origin/main
@@ -416,11 +411,7 @@ def create_venv(venv_path: Path, recreate: bool = False):
 
 def install_package_manager(venv_path: Path, manager: str):
     python_exe = get_venv_executable(venv_path, "python")
-<<<<<<< HEAD
-    run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
-=======
     run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
->>>>>>> origin/main
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     python_exe = get_python_executable()
@@ -578,15 +569,6 @@ def start_server_ts():
         return None
 
     # Check if package.json exists
-<<<<<<< HEAD
-    pkg_json_path = ROOT_DIR / "server" / "package.json"
-    if not pkg_json_path.exists():
-        logger.debug("No package.json in 'server/', skipping TypeScript backend server startup.")
-        return None
-
-    # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "server" / "node_modules"
-=======
     pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
     if not pkg_json_path.exists():
         logger.debug("No package.json in 'backend/server-ts/', skipping TypeScript backend server startup.")
@@ -594,37 +576,22 @@ def start_server_ts():
 
     # Install Node.js dependencies if node_modules doesn't exist
     node_modules_path = ROOT_DIR / "backend" / "server-ts" / "node_modules"
->>>>>>> origin/main
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
 
 # --- Service Startup Functions ---
 def start_backend(host: str, port: int, debug: bool = False):
-<<<<<<< HEAD
-    # Validate inputs to prevent command injection
-<<<<<<< HEAD
-    import ipaddress
-    try:
-        # Allow localhost, 127.0.0.1, or valid IP addresses
-        if host not in ["localhost", "127.0.0.1", "0.0.0.0"]:
-            ipaddress.ip_address(host)  # Validates IP format
-        if not (1 <= port <= 65535):
-=======
 import ipaddress
 try:
 # Allow localhost, 127.0.0.1, or valid IP addresses
     if host not in ["localhost", "127.0.0.1", "0.0.0.0"]:
         ipaddress.ip_address(host)  # Validates IP format
     if not (1 <= port <= 65535):
->>>>>>> scientific
             raise ValueError("Port out of range")
     except ValueError as e:
         logger.error(f"Invalid host or port: {e}")
         return
 
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
     if debug:
@@ -632,8 +599,6 @@ try:
     logger.info(f"Starting backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
-<<<<<<< HEAD
-=======
 python_exe = get_python_executable()
 cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
 if debug:
@@ -641,7 +606,6 @@ cmd.append("--reload")
 logger.info(f"Starting backend on {host}:{port}")
 process = subprocess.Popen(cmd, cwd=ROOT_DIR)
 process_manager.add_process(process)
->>>>>>> scientific
 =======
 >>>>>>> origin/main
 
@@ -762,19 +726,11 @@ def print_system_info():
     print(f"Python Version: {sys.version}")
     print(f"Python Executable: {sys.executable}")
 
-<<<<<<< HEAD
-    print("\\n=== Project Information ===")
-    print(f"Project Root: {ROOT_DIR}")
-    print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
-
-    print("\\n=== Environment Status ===")
-=======
     print("\n=== Project Information ===")
     print(f"Project Root: {ROOT_DIR}")
     print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
 
     print("\n=== Environment Status ===")
->>>>>>> origin/main
     venv_path = ROOT_DIR / VENV_DIR
     if venv_path.exists():
         print(f"Virtual Environment: {venv_path} (exists)")
@@ -795,11 +751,7 @@ def print_system_info():
     node_available = check_node_npm_installed()
     print(f"Node.js/npm Available: {node_available}")
 
-<<<<<<< HEAD
-    print("\\n=== Configuration Files ===")
-=======
     print("\n=== Configuration Files ===")
->>>>>>> origin/main
     config_files = [
         "pyproject.toml", "requirements.txt", "requirements-dev.txt",
         "package.json", "launch-user.env", ".env"
@@ -814,12 +766,7 @@ def main():
     # Environment Setup
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
     
->>>>>>> scientific
 =======
     
 >>>>>>> origin/main
@@ -969,8 +916,4 @@ def main():
         process_manager.cleanup()
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     main()
-=======
-    main()
->>>>>>> origin/main

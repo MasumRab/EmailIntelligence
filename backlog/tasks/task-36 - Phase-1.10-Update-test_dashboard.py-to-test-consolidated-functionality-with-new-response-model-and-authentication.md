@@ -3,11 +3,7 @@ id: task-36
 title: >-
   Phase 1.10: Update test_dashboard.py to test consolidated functionality with
   new response model and authentication
-<<<<<<< HEAD
-status: In Progress
-=======
 status: Done
->>>>>>> scientific
 assignee:
   - '@agent'
 created_date: '2025-10-31 13:51'
@@ -25,15 +21,6 @@ Update the dashboard test suite to test the consolidated functionality including
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-<<<<<<< HEAD
-- [ ] #1 Update test_dashboard.py to use new ConsolidatedDashboardStats model
-- [ ] #2 Add authentication mocking for tests
-- [ ] #3 Test all new fields (auto_labeled, time_saved, weekly_growth)
-- [ ] #4 Update existing test assertions for new response format
-- [ ] #5 Add tests for error conditions and edge cases
-- [ ] #6 Ensure test coverage >90% for dashboard functionality
-<!-- AC:END -->
-=======
 - [x] #1 Update test_dashboard.py to use new ConsolidatedDashboardStats model
 - [x] #2 Add authentication mocking for tests
 - [x] #3 Test all new fields (auto_labeled, time_saved, weekly_growth)
@@ -65,4 +52,3 @@ Successfully updated the dashboard test suite to comprehensively test the consol
 
 All tests pass successfully, ensuring >90% coverage for dashboard functionality.
 <!-- SECTION:NOTES:END -->
->>>>>>> scientific

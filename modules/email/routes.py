@@ -1,23 +1,3 @@
-<<<<<<< HEAD
-import logging
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-
-from src.core.data_source import DataSource
-from src.core.database import DatabaseManager
-from src.core.exceptions import DatabaseError, GmailServiceError
-from src.core.factory import get_data_source
-from src.core.models import (
-    EmailCreate,
-    EmailResponse,
-    EmailUpdate,
-)
-from src.core.performance_monitor import log_performance
-<<<<<<< HEAD
-from src.core.auth import get_current_active_user
-=======
->>>>>>> scientific
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

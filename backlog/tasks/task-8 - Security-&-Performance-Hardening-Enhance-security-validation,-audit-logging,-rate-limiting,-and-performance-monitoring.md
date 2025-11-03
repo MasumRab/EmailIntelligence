@@ -1,16 +1,4 @@
-<<<<<<< HEAD
----
-id: task-8
-title: >-
-  Security & Performance Hardening - Enhance security validation, audit logging,
-  rate limiting, and performance monitoring
-status: Done
-assignee: []
-created_date: '2025-10-25 04:50'
-<<<<<<< HEAD
-=======
 updated_date: '2025-10-30 06:30'
->>>>>>> scientific
 labels:
   - security
   - performance

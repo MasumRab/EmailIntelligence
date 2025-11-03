@@ -6,16 +6,6 @@ including statistics and metrics for the Email Intelligence platform.
 """
 
 import logging
-<<<<<<< HEAD
-from datetime import datetime
-from typing import Dict, Any
-
-from fastapi import APIRouter, Depends, HTTPException
-
-from src.core.models import DashboardStats, WeeklyGrowth
-from src.core.auth import get_current_active_user
-from src.core.database import get_db
-=======
 import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -25,41 +15,9 @@ from src.core.factory import get_email_repository
 from src.core.auth import get_current_active_user
 from .models import DashboardStats, ConsolidatedDashboardStats, WeeklyGrowth
 from collections import defaultdict
->>>>>>> scientific
 
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
-router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
-
-
-@router.get("/stats", response_model=Dict[str, Any])
-async def get_dashboard_stats(
-    current_user: str = Depends(get_current_active_user),
-    db = Depends(get_db)
-):
-    """
-    Retrieve dashboard statistics including total emails, auto-labeled count,
-    category count, time saved, and weekly growth metrics.
-    
-    Returns:
-        Dict[str, Any]: A dictionary containing dashboard statistics
-    """
-    try:
-        # Get total emails count
-        total_emails = len(await db.get_all_emails())
-        
-        # Get auto-labeled emails count (emails with categories)
-        all_emails = await db.get_all_emails()
-        auto_labeled = sum(1 for email in all_emails if email.get("category_id") is not None)
-        
-        # Get categories count
-        categories = await db.get_all_categories()
-        categories_count = len(categories)
-        
-        # Calculate time saved (example calculation - would need actual implementation)
-        # Assuming 2 minutes saved per auto-labeled email
-=======
 # Use absolute path for performance log file
 LOG_FILE = Path(__file__).resolve().parent.parent.parent / "performance_metrics_log.jsonl"
 
@@ -90,19 +48,10 @@ async def get_dashboard_stats(
         weekly_growth_data = aggregates.get('weekly_growth')
 
         # Calculate time_saved (2 minutes per auto-labeled email, matching legacy implementation)
->>>>>>> scientific
         time_saved_minutes = auto_labeled * 2
         time_saved_hours = time_saved_minutes // 60
         time_saved_remaining_minutes = time_saved_minutes % 60
         time_saved = f"{time_saved_hours}h {time_saved_remaining_minutes}m"
-<<<<<<< HEAD
-        
-        # Calculate weekly growth (example implementation)
-        # For now, we'll use a placeholder implementation
-        weekly_growth = WeeklyGrowth(
-            emails=0,
-            percentage=0.0
-=======
 
         # Parse weekly growth data
         weekly_growth = None
@@ -144,7 +93,6 @@ async def get_dashboard_stats(
             time_saved=time_saved,
             weekly_growth=weekly_growth,
             performance_metrics=avg_performance_metrics,
->>>>>>> scientific
         )
         
         stats = DashboardStats(
@@ -161,10 +109,5 @@ async def get_dashboard_stats(
             "message": "Dashboard statistics retrieved successfully"
         }
     except Exception as e:
-<<<<<<< HEAD
-        logger.error(f"Failed to fetch dashboard stats: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard stats: {str(e)}")
-=======
         logger.error(f"Error fetching dashboard stats for user {current_user}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error fetching dashboard stats.")
->>>>>>> scientific

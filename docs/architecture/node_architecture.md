@@ -85,19 +85,11 @@ class CustomEmailNode(BaseNode):
             NodePort("processed_emails", DataType.EMAIL_LIST, required=True),
             NodePort("stats", DataType.JSON, required=True)
         ]
-<<<<<<< HEAD
-
-    async def execute(self, context):
-        # Implement node logic here
-        input_emails = self.inputs.get("emails", [])
-
-=======
     
     async def execute(self, context):
         # Implement node logic here
         input_emails = self.inputs.get("emails", [])
         
->>>>>>> scientific
         # Process emails
         processed_emails = []
         for email in input_emails:
@@ -105,11 +97,7 @@ class CustomEmailNode(BaseNode):
             processed_email = email.copy()
             processed_email["custom_processed"] = True
             processed_emails.append(processed_email)
-<<<<<<< HEAD
-
-=======
         
->>>>>>> scientific
         return {
             "processed_emails": processed_emails,
             "stats": {"processed_count": len(processed_emails)}
@@ -184,11 +172,7 @@ loaded_workflow = workflow_manager.load_workflow(workflow.workflow_id)
 The node-based system includes comprehensive testing:
 
 - `test_nodes.py`: Basic node functionality
-<<<<<<< HEAD
-- `test_security.py`: Security and scalability features
-=======
 - `test_security.py`: Security and scalability features  
->>>>>>> scientific
 - `test_integration.py`: Complete system integration
 
 Run tests with:
