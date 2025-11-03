@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from launch import (
+from setup.launch import (
     PYTHON_MAX_VERSION,
     PYTHON_MIN_VERSION,
     ROOT_DIR,
@@ -21,8 +21,9 @@ from launch import (
     setup_dependencies,
     start_backend,
     start_gradio_ui,
+    install_nodejs_dependencies,
 )
-@patch("launch.logger")
+@patch("setup.launch.logger")
 def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
     """
     Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.
@@ -33,15 +34,15 @@ def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_
     mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
 
 
-@patch("launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
-@patch("launch.sys.argv", ["launch.py"])
-@patch("launch.platform.system", return_value="Linux")
-@patch("launch.sys.version_info", (3, 10, 0))  # Incompatible version
-@patch("launch.shutil.which")
-@patch("launch.subprocess.run")
-@patch("launch.os.execv", side_effect=Exception("Called execve"))
-@patch("launch.sys.exit")
-@patch("launch.logger")
+@patch("setup.launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
+@patch("setup.launch.sys.argv", ["launch.py"])
+@patch("setup.launch.platform.system", return_value="Linux")
+@patch("setup.launch.sys.version_info", (3, 10, 0))  # Incompatible version
+@patch("setup.launch.shutil.which")
+@patch("setup.launch.subprocess.run")
+@patch("setup.launch.os.execv", side_effect=Exception("Called execve"))
+@patch("setup.launch.sys.exit")
+@patch("setup.launch.logger")
 def test_python_interpreter_discovery_avoids_substring_match(
     mock_logger, mock_exit, mock_execve, mock_subprocess_run, mock_which, _mock_system
 ):
@@ -61,13 +62,13 @@ def test_python_interpreter_discovery_avoids_substring_match(
 
     def test_compatible_version(self):
         """Test that compatible Python versions pass."""
-        with patch("launch.sys.version_info", (3, 12, 0)), \
-             patch("launch.sys.version", "3.12.0"), \
-             patch("launch.logger") as mock_logger:
+        with patch("setup.launch.sys.version_info", (3, 12, 0)), \
+             patch("setup.launch.sys.version", "3.12.0"), \
+             patch("setup.launch.logger") as mock_logger:
             check_python_version()
             mock_logger.info.assert_called_with("Python version 3.12.0 is compatible.")
 
-    @patch("launch.sys.version_info", (3, 8, 0))
+    @patch("setup.launch.sys.version_info", (3, 8, 0))
     def test_incompatible_version(self):
         """Test that incompatible Python versions exit."""
         with pytest.raises(SystemExit):
@@ -77,25 +78,25 @@ def test_python_interpreter_discovery_avoids_substring_match(
 class TestVirtualEnvironment:
     """Test virtual environment creation and management."""
 
-    @patch("launch.venv.create")
-    @patch("launch.Path.exists", return_value=False)
+    @patch("setup.launch.venv.create")
+    @patch("setup.launch.Path.exists", return_value=False)
     def test_create_venv_success(self, mock_exists, mock_venv_create):
         """Test successful venv creation."""
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.logger") as mock_logger:
+        with patch("setup.launch.logger") as mock_logger:
             create_venv(venv_path)
             mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
             mock_logger.info.assert_called_with("Creating virtual environment.")
 
-    @patch("launch.shutil.rmtree")
-    @patch("launch.venv.create")
-    @patch("launch.Path.exists")
+    @patch("setup.launch.shutil.rmtree")
+    @patch("setup.launch.venv.create")
+    @patch("setup.launch.Path.exists")
     def test_create_venv_recreate(self, mock_exists, mock_venv_create, mock_rmtree):
         """Test venv recreation when forced."""
         # Mock exists to return True initially, then False after rmtree
         mock_exists.side_effect = [True, False]
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.logger") as mock_logger:
+        with patch("setup.launch.logger") as mock_logger:
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
             mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
@@ -105,16 +106,16 @@ class TestDependencyManagement:
     """Test dependency installation and management."""
 
 
-    @patch("launch.subprocess.run")
+    @patch("setup.launch.subprocess.run")
     def test_setup_dependencies_success(self, mock_subprocess_run):
         """Test successful dependency setup."""
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.logger") as mock_logger:
+        with patch("setup.launch.logger") as mock_logger:
             setup_dependencies(venv_path)
-            mock_logger.info.assert_any_call("Installing project dependencies with uv...")
+            mock_logger.info.assert_any_call("Installing dependencies with uv (excluding notmuch)")
 
-    @patch("launch.subprocess.run")
+    @patch("setup.launch.subprocess.run")
     def test_download_nltk_success(self, mock_subprocess_run):
         """Test successful NLTK data download."""
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
@@ -126,42 +127,39 @@ class TestDependencyManagement:
 class TestServiceStartup:
     """Test service startup functions."""
 
-    @patch("launch.check_uvicorn_installed", return_value=True)
-    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
-    @patch("launch.subprocess.Popen")
-    def test_start_backend_success(self, mock_popen, mock_check_uvicorn, mock_get_exec):
+    @patch("setup.launch.check_uvicorn_installed", return_value=True)
+    @patch("setup.launch.get_python_executable", return_value=Path("/app/venv/bin/python"))
+    @patch("setup.launch.subprocess.Popen")
+    def test_start_backend_success(self, mock_popen, mock_get_exec, mock_check_uvicorn):
         """Test successful backend startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        venv_path = ROOT_DIR / "venv"
-        with patch("launch.process_manager.processes", []):
-            result = start_backend(venv_path, "127.0.0.1", 8000)
-            assert result == mock_process
-            assert mock_process in process_manager.processes
+        with patch("setup.launch.process_manager.processes", []):
+            start_backend("127.0.0.1", 8000)
+            mock_popen.assert_called()
+            assert mock_popen.return_value in process_manager.processes
 
-    @patch("launch.check_gradio_installed", return_value=True)
-    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
-    @patch("launch.subprocess.Popen")
-    def test_start_gradio_ui_success(self, mock_popen, mock_get_exec, mock_check_gradio):
+    @patch("setup.launch.get_python_executable", return_value=Path("/app/venv/bin/python"))
+    @patch("setup.launch.subprocess.Popen")
+    def test_start_gradio_ui_success(self, mock_popen, mock_get_exec):
         """Test successful Gradio UI startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        venv_path = ROOT_DIR / "venv"
-        with patch("launch.process_manager.processes", []):
-            result = start_gradio_ui(venv_path, "127.0.0.1")
-            assert result == mock_process
-            assert mock_process in process_manager.processes
+        with patch("setup.launch.process_manager.processes", []):
+            start_gradio_ui("127.0.0.1", 7860, False, False)
+            mock_popen.assert_called()
+            assert mock_popen.return_value in process_manager.processes
 
 
 # Integration tests
 class TestLauncherIntegration:
     """Integration tests for complete launcher workflows."""
 
-    @patch("launch.subprocess.run")
-    @patch("launch.shutil.which", return_value="/usr/bin/npm")
-    @patch("launch.Path.exists", return_value=True)
+    @patch("setup.launch.subprocess.run")
+    @patch("setup.launch.shutil.which", return_value="/usr/bin/npm")
+    @patch("setup.launch.Path.exists", return_value=True)
     def test_full_setup_workflow(self, mock_exists, mock_which, mock_run):
         """Test complete setup workflow."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
@@ -177,7 +175,7 @@ class TestLauncherIntegration:
         ]
 
         for version_tuple, should_pass in test_cases:
-            with patch("launch.sys.version_info", version_tuple):
+            with patch("setup.launch.sys.version_info", version_tuple):
                 if should_pass:
                     try:
                         check_python_version()

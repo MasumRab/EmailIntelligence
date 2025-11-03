@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 import ipaddress
 
 from .rate_limiter import api_rate_limiter
-from .audit_logger import audit_logger
+from .audit_logger import audit_logger, AuditEventType
 from .performance_monitor import performance_monitor
 
 logger = logging.getLogger(__name__)
@@ -62,8 +62,8 @@ class SecurityMiddleware:
                 # Audit log rate limit violation
                 if self.enable_audit_logging:
                     audit_logger.log_security_event(
-                        event_type=audit_logger.AuditEventType.RATE_LIMIT_EXCEEDED,
-                        severity=audit_logger.AuditSeverity.MEDIUM,
+                        event_type=AuditEventType.RATE_LIMIT_EXCEEDED,
+                        severity=AuditSeverity.MEDIUM,
                         user_id=user_id,
                         ip_address=client_ip,
                         user_agent=user_agent,
@@ -139,8 +139,8 @@ class SecurityMiddleware:
             # Audit log the error
             if self.enable_audit_logging:
                 audit_logger.log_security_event(
-                    event_type=audit_logger.AuditEventType.SECURITY_VIOLATION,
-                    severity=audit_logger.AuditSeverity.HIGH,
+                    event_type=AuditEventType.SECURITY_VIOLATION,
+                    severity=AuditSeverity.HIGH,
                     user_id=user_id,
                     ip_address=client_ip,
                     user_agent=user_agent,

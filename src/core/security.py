@@ -102,6 +102,7 @@ class SecurityValidator:
 def validate_path_safety(
     path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
 ) -> bool:
+
     """
     Validate that a path is safe and doesn't contain directory traversal attempts.
 
@@ -112,32 +113,25 @@ def validate_path_safety(
     Returns:
         True if path is safe, False otherwise
     """
-    import pathlib
-
     try:
-        path_obj = pathlib.Path(path).resolve()
+        # Normalize the path to resolve ".." components first
+        normalized_path_str = os.path.normpath(str(path).replace("\\", "/"))
+        path_obj = pathlib.Path(normalized_path_str)
 
-        # Check for directory traversal patterns
-        path_str = str(path_obj)
+        # If path is absolute and no base_dir is given, we don't check for containment.
+        if not path_obj.is_absolute() or base_dir:
+            if base_dir is None:
+                base_dir = pathlib.Path.cwd()
 
-        # Common directory traversal patterns
-        # Check for directory traversal attempts by looking for '..' as a path segment
-        if any(part == ".." for part in path_obj.parts):
-            logger.warning(f"Potential directory traversal detected in path: {path}")
-            return False
+            base_dir = pathlib.Path(base_dir).resolve()
+            test_path = (base_dir / path_obj).resolve()
 
-        # If base_dir is specified, ensure path is within base_dir
-        if base_dir:
-            base_obj = pathlib.Path(base_dir).resolve()
-            try:
-                # Check if path is within base_dir
-                path_obj.relative_to(base_obj)
-            except ValueError:
+            if base_dir not in test_path.parents and test_path != base_dir:
                 logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
                 return False
 
-        # Additional safety checks
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
+        # Additional safety checks on the original path string
+        if any(char in normalized_path_str for char in ["<", ">", "|", "?", "*"]):
             logger.warning(f"Potentially dangerous characters detected in path: {path}")
             return False
 
@@ -174,6 +168,9 @@ def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
             logger.warning(f"Invalid characters in path after sanitization: {path_str}")
             return None
 
+        if not validate_path_safety(path_str):
+            return None
+
         return path_str
     except Exception as e:
         logger.warning(f"Error during path sanitization: {e}")
@@ -190,7 +187,10 @@ class DataSanitizer:
         """
         if isinstance(data, str):
             # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace("<script", "&lt;script").replace("javascript:", "javascript-")
+            sanitized = data.replace("<script", "&lt;script").replace("</script>", "&lt;/script>")
+            sanitized = sanitized.replace("javascript:", "javascript-")
+            sanitized = sanitized.replace("vbscript:", "vbscript-")
+            sanitized = sanitized.replace("onload=", "onload&equals;")
             return sanitized
         elif isinstance(data, dict):
             sanitized_dict = {}
@@ -405,7 +405,7 @@ class SecurityManager:
         """Generate a signed token for secure data transmission"""
         json_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
         signature = hmac.new(
-            self.secret_key.encode(), json_data.encode(), hashlib.sha256
+            self.secret_key.encode(), json_data.encode(), hashlib.sha512
         ).hexdigest()
         return f"{json_data}.{signature}"
 
@@ -417,7 +417,7 @@ class SecurityManager:
         try:
             json_part, signature_part = token.rsplit(".", 1)
             expected_signature = hmac.new(
-                self.secret_key.encode(), json_part.encode(), hashlib.sha256
+                self.secret_key.encode(), json_part.encode(), hashlib.sha512
             ).hexdigest()
 
             if not hmac.compare_digest(expected_signature, signature_part):
@@ -588,90 +588,6 @@ class PathValidator:
         return sanitized
 
 
-def validate_path_safety(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> bool:
-    """
-    Validate that a path is safe and doesn't contain directory traversal attempts.
-
-    Args:
-        path: The path to validate
-        base_dir: Optional base directory to resolve relative to
-
-    Returns:
-        True if path is safe, False otherwise
-    """
-    import pathlib
-
-    try:
-        path_obj = pathlib.Path(path).resolve()
-
-        # Check for directory traversal patterns
-        path_str = str(path_obj)
-
-        # Check for directory traversal attempts by looking for '..' as a path segment
-        if any(part == ".." for part in path_obj.parts):
-            logger.warning(f"Potential directory traversal detected in path: {path}")
-            return False
-
-        # If base_dir is specified, ensure path is within base_dir
-        if base_dir:
-            base_obj = pathlib.Path(base_dir).resolve()
-            try:
-                # Check if path is within base_dir
-                path_obj.relative_to(base_obj)
-            except ValueError:
-                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
-                return False
-
-        # Additional safety checks
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Potentially dangerous characters detected in path: {path}")
-            return False
-
-        return True
-    except Exception as e:
-        logger.error(f"Error validating path {path}: {e}")
-        return False
-
-
-def sanitize_path(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> Optional[str]:
-    """
-    Sanitize a path by removing or encoding potentially dangerous characters.
-
-    Args:
-        path: The path to sanitize
-
-    Returns:
-        Sanitized path string or None if path is invalid
-    """
-    import pathlib
-
-    try:
-        # Convert to string if it's a Path object
-        path_str = str(path)
-
-        # Basic sanitization - remove dangerous sequences
-        path_str = path_str.replace("../", "").replace("..\\", "")
-        path_str = path_str.replace("<!--", "").replace("-->", "")  # Prevent comment injection
-        path_str = path_str.replace("<script", "").replace(
-            "script>", ""
-        )  # Prevent script injection
-
-        # Normalize path separators
-        path_str = path_str.replace("\\", "/")
-
-        # Additional checks to ensure validity
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
-            return None
-
-        return path_str
-    except Exception as e:
-        logger.warning(f"Error during path sanitization: {e}")
-        return None
 
 
 def secure_path_join(

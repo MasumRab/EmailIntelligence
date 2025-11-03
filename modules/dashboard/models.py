@@ -35,6 +35,14 @@ class ConsolidatedDashboardStats(BaseModel):
         validate_assignment = True
 
 # Keep the original DashboardStats for backward compatibility
+class PerformanceMetric(BaseModel):
+    """Model representing detailed performance metrics for a single operation."""
+    operation: str
+    total_duration: float
+    count: int
+    average_duration: float
+
+
 class DashboardStats(BaseModel):
     """Legacy modular dashboard stats - kept for backward compatibility."""
     total_emails: int

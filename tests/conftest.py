@@ -1,5 +1,12 @@
 import os
 import sys
+import configparser
+
+# Monkey-patch for notmuch library compatibility with Python 3.12+
+configparser.SafeConfigParser = configparser.ConfigParser
+
+# Set a dummy SECRET_KEY for testing purposes
+os.environ["SECRET_KEY"] = "test_secret_key"
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -9,30 +16,7 @@ from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
-# Create a minimal test app without gradio dependencies
-def create_test_app():
-    """Create a minimal FastAPI app for testing without gradio."""
-    app = FastAPI(title="Test App", version="1.0.0")
-
-    # Add basic CORS
-    from fastapi.middleware.cors import CORSMiddleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    # Add a simple health endpoint
-    @app.get("/health")
-    async def health():
-        return {"status": "healthy"}
-
-    return app
-
-# Use the test app instead of the main app
-from tests.conftest import create_test_app as create_app
+from src.main import create_app
 from src.core.database import get_db
 from src.core.factory import get_data_source
 
@@ -95,6 +79,12 @@ def mock_db_manager():
     return mock
 
 
+from src.core.auth import get_current_active_user
+
+
+from src.core.factory import get_email_repository
+
+
 @pytest.fixture
 def client(mock_db_manager: AsyncMock):
     """
@@ -102,11 +92,35 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
+
+    def get_test_user():
+        return {"username": "testuser", "role": "admin"}
+
+    async def get_mock_dashboard_aggregates():
+        return {
+            "total_emails": 100,
+            "unread_count": 10,
+            "auto_labeled": 50,
+            "categories_count": 5,
+            "weekly_growth": {"emails": 10, "percentage": 0.1},
+        }
+
+    async def get_mock_category_breakdown(limit: int):
+        return {"Test": 10}
+
+    mock_email_repository = AsyncMock()
+    mock_email_repository.get_dashboard_aggregates.side_effect = get_mock_dashboard_aggregates
+    mock_email_repository.get_category_breakdown.side_effect = get_mock_category_breakdown
+
     app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_data_source] = lambda: mock_db_manager
+    app.dependency_overrides[get_current_active_user] = get_test_user
+    app.dependency_overrides[get_email_repository] = lambda: mock_email_repository
 
     with TestClient(app) as test_client:
         yield test_client
 
     del app.dependency_overrides[get_db]
     del app.dependency_overrides[get_data_source]
+    del app.dependency_overrides[get_current_active_user]
+    del app.dependency_overrides[get_email_repository]

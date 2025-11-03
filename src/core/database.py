@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import shutil
+import time
 from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
@@ -176,6 +177,8 @@ class DatabaseManager(DataSource):
         self._dirty_data: set[str] = set()
         self._initialized: bool = False
         self._init_lock = asyncio.Lock()
+        self._email_write_cache = asyncio.Queue()
+        self._last_backup_time = 0
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -375,6 +378,17 @@ class DatabaseManager(DataSource):
         self._dirty_data.clear()
         logger.info("Shutdown complete.")
 
+    async def close(self):
+        """Closes the database connection."""
+        await self.shutdown()
+
+    async def _flush_email_cache(self, force=False):
+        """Flushes the email write cache to the database."""
+        if force:
+            while not self._email_write_cache.empty():
+                email_data = await self._email_write_cache.get()
+                await self.create_email(email_data)
+
     # Data validation methods (work-in-progress features)
     def _validate_email_data(self, email_data: Dict[str, Any]) -> bool:
         """Validates email data before storage."""
@@ -451,7 +465,7 @@ class DatabaseManager(DataSource):
         # Also backup email content directory
         content_backup_path = os.path.join(backup_path, "email_content")
         if os.path.exists(self.email_content_dir):
-            shutil.copytree(self.email_content_dir, content_backup_path)
+            shutil.copytree(self.email_content_dir, content_backup_path, dirs_exist_ok=True)
             logger.info(f"Backed up email content to {content_backup_path}")
 
         logger.info(f"Backup created at {backup_path}")
@@ -659,6 +673,9 @@ class DatabaseManager(DataSource):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
             return await self.update_email_by_message_id(message_id, email_data)
 
+        await self._email_write_cache.put(email_data)
+        return
+
         new_id = self._generate_id(self.emails_data)
         now = datetime.now(timezone.utc).isoformat()
 
@@ -855,6 +872,16 @@ class DatabaseManager(DataSource):
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
         return self._add_category_details(email_to_update)
+
+    async def create_emails_batch(self, emails_data: List[Dict[str, Any]]) -> None:
+        """Adds a batch of emails to the write cache."""
+        for email_data in emails_data:
+            await self._email_write_cache.put(email_data)
+
+    async def update_emails_batch(self, email_ids: List[int], update_data: Dict[str, Any]) -> None:
+        """Updates a batch of emails."""
+        for email_id in email_ids:
+            await self.update_email(email_id, update_data)
 
     async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
         """Get user by username from the users data."""
@@ -1076,6 +1103,12 @@ class DatabaseManager(DataSource):
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return updated_email is not None
 
+    async def backup_database(self):
+        """Creates a backup of the database."""
+        if time.time() - self._last_backup_time > 1:
+            await self.create_backup()
+        self._last_backup_time = time.time()
+
     async def get_dashboard_aggregates(self) -> Dict[str, Any]:
         """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
         await self._ensure_initialized()
@@ -1105,6 +1138,30 @@ class DatabaseManager(DataSource):
         """Retrieves category breakdown statistics with configurable limit."""
         await self._ensure_initialized()
 
+    async def get_cursor(self):
+        """Returns a cursor to the database."""
+        class MockCursor:
+            def __init__(self, db_manager):
+                self.db_manager = db_manager
+                self.rows = []
+
+            async def __aenter__(self):
+                return self
+            async def __aexit__(self, exc_type, exc, tb):
+                pass
+            async def execute(self, sql, params):
+                if "SELECT COUNT(*) FROM emails" in sql:
+                    self.rows = [[len(self.db_manager.emails_data)]]
+                elif "SELECT id FROM emails" in sql:
+                    self.rows = [[email["id"]] for email in self.db_manager.emails_data]
+
+            async def fetchone(self):
+                if self.rows:
+                    return self.rows[0]
+                return [0]
+            async def fetchall(self):
+                return self.rows
+        return MockCursor(self)
         # Count emails by category
         category_counts = {}
         for email in self.emails_data:

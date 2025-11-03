@@ -339,13 +339,17 @@ class OptimizedPerformanceMonitor:
         else:
             # Used as @time_function("name") or with time_function("name"):
             class TimerContext:
+                def __init__(self, monitor):
+                    self.monitor = monitor
+                    self.start_time = None
+
                 def __enter__(self):
                     self.start_time = time.perf_counter()
                     return self
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
-                    self.record_metric(
+                    self.monitor.record_metric(
                         name=name,
                         value=duration,
                         unit="ms",
@@ -353,7 +357,7 @@ class OptimizedPerformanceMonitor:
                         sample_rate=sample_rate
                     )
 
-            return TimerContext()
+            return TimerContext(self)
 
     def get_aggregated_metrics(self, name: Optional[str] = None) -> Dict[str, AggregatedMetric]:
         """

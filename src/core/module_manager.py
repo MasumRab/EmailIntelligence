@@ -35,6 +35,9 @@ class ModuleManager:
             logger.debug(f"No '__init__.py' in module '{module_name}', skipping.")
             return
 
+        if module_name == "default_ai_engine":
+            logger.warning("Temporarily skipping loading of 'default_ai_engine' due to model loading issues.")
+            return
         try:
             # The module name for importlib should be `modules.module_name`
             # to reflect the package structure.

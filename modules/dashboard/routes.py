@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.core.data.repository import EmailRepository
 from src.core.factory import get_email_repository
 from src.core.auth import get_current_active_user
-from .models import DashboardStats, ConsolidatedDashboardStats, WeeklyGrowth
+from .models import DashboardStats, ConsolidatedDashboardStats, WeeklyGrowth, PerformanceMetric
 from collections import defaultdict
+from typing import List
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -91,3 +92,45 @@ async def get_dashboard_stats(
     except Exception as e:
         logger.error(f"Error fetching dashboard stats for user {current_user}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error fetching dashboard stats.")
+
+
+@router.get("/performance", response_model=List[PerformanceMetric])
+async def get_performance_metrics(
+    current_user: str = Depends(get_current_active_user)
+):
+    """
+    Retrieve a detailed breakdown of performance metrics.
+    """
+    try:
+        performance_metrics = defaultdict(lambda: {'total_duration': 0, 'count': 0})
+        try:
+            with open(LOG_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    try:
+                        log_entry = json.loads(line)
+                        op = log_entry.get("operation")
+                        duration = log_entry.get("duration_seconds")
+                        if op and duration is not None:
+                            performance_metrics[op]['total_duration'] += duration
+                            performance_metrics[op]['count'] += 1
+                    except json.JSONDecodeError:
+                        continue
+        except FileNotFoundError:
+            logger.warning(f"Performance log file not found: {LOG_FILE}")
+            return []
+
+        detailed_metrics = []
+        for op, data in performance_metrics.items():
+            if data['count'] > 0:
+                detailed_metrics.append(
+                    PerformanceMetric(
+                        operation=op,
+                        total_duration=data['total_duration'],
+                        count=data['count'],
+                        average_duration=data['total_duration'] / data['count']
+                    )
+                )
+        return detailed_metrics
+    except Exception as e:
+        logger.error(f"Error fetching performance metrics for user {current_user}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error fetching performance metrics.")
