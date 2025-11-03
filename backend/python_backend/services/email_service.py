@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -185,3 +186,5 @@ class EmailService(BaseService):
         except Exception:
             # Return default values in case of error
             return {"emails": 0, "percentage": 0.0}
+=======
+>>>>>>> origin/main

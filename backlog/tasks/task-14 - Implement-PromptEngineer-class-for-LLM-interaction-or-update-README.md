@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 id: task-14
 title: Implement PromptEngineer class for LLM interaction or update README
@@ -60,3 +61,5 @@ Implemented the `PromptEngineer` class in `backend/python_nlp/ai_training.py` wi
 The implementation provides a solid foundation for LLM integration while maintaining compatibility with the existing local AI model architecture.
 <!-- SECTION:NOTES:END -->
 >>>>>>> scientific
+=======
+>>>>>>> origin/main

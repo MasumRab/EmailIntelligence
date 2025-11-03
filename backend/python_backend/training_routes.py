@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -175,3 +176,5 @@ async def run_training(job_id: str, model_config: ModelConfig):
         training_jobs[job_id]["status"] = "failed"
         training_jobs[job_id]["message"] = f"Training failed: {str(e)}"
         logger.error(f"Training job {job_id} failed: {e}")
+=======
+>>>>>>> origin/main

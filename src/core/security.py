@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Security Framework for Email Intelligence Platform
 
@@ -721,3 +722,5 @@ def secure_path_join(
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
+=======
+>>>>>>> origin/main

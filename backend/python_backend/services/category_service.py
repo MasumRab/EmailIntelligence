@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -88,3 +89,5 @@ class CategoryService(BaseService):
                 )
         except Exception as e:
             return await self.handle_error(e, "delete_category")
+=======
+>>>>>>> origin/main

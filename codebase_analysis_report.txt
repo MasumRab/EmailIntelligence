@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ================================================================================
 EMAIL INTELLIGENCE PLATFORM - CODEBASE ANALYSIS REPORT
 ================================================================================
@@ -373,3 +374,5 @@ RECOMMENDATIONS
 3. Plan regular code reviews to prevent new technical debt
 4. Implement automated code quality checks in CI/CD pipeline
 5. Establish coding standards and guidelines for the team
+=======
+>>>>>>> origin/main

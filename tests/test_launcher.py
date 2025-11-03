@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import argparse
 import subprocess
 import sys
@@ -205,3 +206,5 @@ class TestLauncherIntegration:
                 else:
                     with pytest.raises(SystemExit):
                         check_python_version()
+=======
+>>>>>>> origin/main

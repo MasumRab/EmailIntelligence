@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import logging
 from typing import List
 
@@ -108,3 +109,5 @@ async def update_email(
     except DatabaseError as e:
         logger.error(f"Database error while updating email {email_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Database error occurred.")
+=======
+>>>>>>> origin/main

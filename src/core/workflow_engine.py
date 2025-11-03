@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import logging
 import time
 from enum import Enum
@@ -691,3 +692,5 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
+=======
+>>>>>>> origin/main

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -429,3 +430,5 @@ class WorkflowEngine:
 workflow_engine = WorkflowEngine(
     SecurityManager(user_roles={})
 )  # Instantiate with a default SecurityManager
+=======
+>>>>>>> origin/main

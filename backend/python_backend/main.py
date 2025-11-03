@@ -46,17 +46,12 @@ from . import (
 from .ai_engine import AdvancedAIEngine
 from .auth import TokenData, create_access_token, get_current_user
 from .database import db_manager
-<<<<<<< HEAD
 from .exceptions import AppException, BaseAppException
-=======
-from .exceptions import AppException
->>>>>>> scientific
 
 # Import new components
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
-<<<<<<< HEAD
 
 # Error rate monitoring
 error_counts = defaultdict(int)
@@ -135,91 +130,11 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 content=error_response,
                 headers={"X-Request-ID": request_id},
             )
-=======
->>>>>>> scientific
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Error rate monitoring
-error_counts = defaultdict(int)
-error_lock = threading.Lock()
-
-
-class ErrorHandlingMiddleware(BaseHTTPMiddleware):
-    """Middleware for consistent error handling and response formatting."""
-
-    async def dispatch(self, request: Request, call_next):
-        # Add request ID for tracking
-        request_id = str(uuid.uuid4())
-        request.state.request_id = request_id
-        request.state.start_time = time.time()
-
-        try:
-            response = await call_next(request)
-            # Add request ID to successful responses
-            if hasattr(response, "headers"):
-                response.headers["X-Request-ID"] = request_id
-            return response
-        except Exception as exc:
-            # Log error with context
-            duration = time.time() - request.state.start_time
-            logger.error(
-                f"Request failed: {request.method} {request.url} "
-                f"Duration: {duration:.2f}s RequestID: {request_id} Error: {str(exc)}",
-                exc_info=True,
-            )
-
-            # Track error rate
-            with error_lock:
-                error_counts[500] += 1  # Default to 500 for unhandled exceptions
-                # Alert if error rate is high (simple threshold)
-                total_errors = sum(error_counts.values())
-                if total_errors > 10:  # Simple threshold
-                    logger.warning(f"High error rate detected: {total_errors} errors in session")
-
-            # Format error response consistently
-            if isinstance(exc, AppException):
-                # Already formatted, add request_id
-                error_response = exc.detail
-                if isinstance(error_response, dict):
-                    error_response["request_id"] = request_id
-                status_code = exc.status_code
-            elif isinstance(exc, BaseAppException):
-                error_response = {
-                    "success": False,
-                    "message": "An internal error occurred",
-                    "error_code": "INTERNAL_ERROR",
-                    "details": str(exc),
-                    "request_id": request_id,
-                }
-                status_code = exc.status_code
-            elif isinstance(exc, ValidationError):
-                error_response = {
-                    "success": False,
-                    "message": "Validation error",
-                    "error_code": "VALIDATION_ERROR",
-                    "details": str(exc),
-                    "request_id": request_id,
-                }
-                status_code = 422
-            else:
-                error_response = {
-                    "success": False,
-                    "message": "An unexpected error occurred",
-                    "error_code": "INTERNAL_ERROR",
-                    "details": str(exc) if settings.debug else None,
-                    "request_id": request_id,
-                }
-                status_code = 500
-
-            return JSONResponse(
-                status_code=status_code,
-                content=error_response,
-                headers={"X-Request-ID": request_id},
-            )
-
 
 # Initialize FastAPI app with settings
 app = FastAPI(
@@ -266,52 +181,9 @@ async def shutdown_event():
     await db_manager.close()
 
 
-<<<<<<< HEAD
 # Exception handlers removed - now handled by ErrorHandlingMiddleware
 # The middleware provides consistent error handling and response formatting
-=======
-@app.exception_handler(AppException)
-async def app_exception_handler(request: Request, exc: AppException):
 
-    return JSONResponse(
-        status_code=exc.status_code,
-        content=exc.detail,
-    )
-
-
-@app.exception_handler(BaseAppException)
-async def base_app_exception_handler(request: Request, exc: BaseAppException):
-
-    return JSONResponse(
-        status_code=500,
-        content={
-            "success": False,
-            "message": "An internal error occurred",
-            "error_code": "INTERNAL_ERROR",
-            "details": str(exc),
-        },
-    )
-
-
-# Exception handlers removed - now handled by ErrorHandlingMiddleware
-
-
-@app.exception_handler(ValidationError)
-async def validation_exception_handler(request: Request, exc: ValidationError):
-    """Handle Pydantic validation errors with detailed 422 responses."""
-
-    return JSONResponse(
-        status_code=422,
-        content={
-            "detail": exc.errors(),
-            "message": "Validation error with provided data.",
-        },
-    )
->>>>>>> scientific
-
-
-# Add error handling middleware
-app.add_middleware(ErrorHandlingMiddleware)
 
 # Configure CORS using settings
 app.add_middleware(
@@ -346,6 +218,7 @@ from .routes.v1.category_routes import router as category_router_v1
 
 # Include versioned API routers
 from .routes.v1.email_routes import router as email_router_v1
+
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -470,9 +343,9 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-port = int(os.getenv("PORT", 8000))
-env = os.getenv("NODE_ENV", "development")
-host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-reload = env == "development"
-# Use string app path to support reload
-uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+    port = int(os.getenv("PORT", 8000))
+    env = os.getenv("NODE_ENV", "development")
+    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+    reload = env == "development"
+    # Use string app path to support reload
+    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")

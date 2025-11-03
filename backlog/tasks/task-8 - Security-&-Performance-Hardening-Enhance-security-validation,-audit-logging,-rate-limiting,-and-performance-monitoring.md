@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 id: task-8
 title: >-
@@ -83,3 +84,5 @@ Implemented comprehensive enterprise-grade security and performance hardening ac
 
 All components are designed for production deployment with monitoring, alerting, and compliance capabilities.
 <!-- SECTION:NOTES:END -->
+=======
+>>>>>>> origin/main

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 id: task-13
 title: Implement /api/dashboard/stats endpoint
@@ -63,3 +64,5 @@ Implemented comprehensive dashboard statistics API endpoint at GET /api/dashboar
 
 The endpoint provides real-time insights into system usage and performance, enabling data-driven dashboard visualizations.
 <!-- SECTION:NOTES:END -->
+=======
+>>>>>>> origin/main

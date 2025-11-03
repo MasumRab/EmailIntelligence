@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 AI Model Training Configuration.
 
@@ -186,3 +187,5 @@ class PromptEngineer:
             f"Provide a concise summary that captures the key points and any important details."
         )
         return prompt
+=======
+>>>>>>> origin/main

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import argparse
 import logging
 
@@ -699,3 +700,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> origin/main

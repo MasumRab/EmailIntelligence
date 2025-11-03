@@ -1,9 +1,18 @@
 import os
 
 from .data_source import DataSource
-from .database import DatabaseManager
-<<<<<<< HEAD
-from .notmuch_data_source import NotmuchDataSource
+from .database import DatabaseManager, create_database_manager, DatabaseConfig
+from .ai_engine import ModernAIEngine
+from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
+from .caching import init_cache_manager, CacheConfig, CacheBackend
+
+# Optional import for NotmuchDataSource
+try:
+    from .notmuch_data_source import NotmuchDataSource
+    NOTMUCH_AVAILABLE = True
+except ImportError:
+    NOTMUCH_AVAILABLE = False
+    NotmuchDataSource = None
 
 
 class DataSourceFactory:
@@ -23,32 +32,18 @@ class DataSourceFactory:
             A DataSource instance
         """
         if source_type == "database":
-            db_manager = DatabaseManager()
-            await db_manager._ensure_initialized()
-            return db_manager
-        elif source_type == "notmuch":
+            config = DatabaseConfig()
+            return await create_database_manager(config)
+        elif source_type == "notmuch" and NOTMUCH_AVAILABLE:
             return NotmuchDataSource()
         else:
             # Default to database
-            db_manager = DatabaseManager()
-            await db_manager._ensure_initialized()
-            return db_manager
+            config = DatabaseConfig()
+            return await create_database_manager(config)
 
-=======
-from .ai_engine import ModernAIEngine
-from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
-from .caching import init_cache_manager, CacheConfig, CacheBackend
-
-# Optional import for NotmuchDataSource
-try:
-    from .notmuch_data_source import NotmuchDataSource
-    NOTMUCH_AVAILABLE = True
-except ImportError:
-    NOTMUCH_AVAILABLE = False
-    NotmuchDataSource = None
->>>>>>> scientific
 
 _data_source_instance = None
+_email_repository_instance = None
 
 
 async def get_data_source() -> DataSource:
@@ -63,13 +58,7 @@ async def get_data_source() -> DataSource:
                 raise ImportError("NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch")
             _data_source_instance = NotmuchDataSource()
         else:
-<<<<<<< HEAD
-            _data_source_instance = DatabaseManager()
-            await _data_source_instance._ensure_initialized()
-    return _data_source_instance
-=======
             # Create DatabaseManager with proper configuration
-            from .database import DatabaseConfig, create_database_manager
             config = DatabaseConfig()
             _data_source_instance = await create_database_manager(config)
     return _data_source_instance
@@ -84,7 +73,7 @@ async def get_email_repository() -> EmailRepository:
         # Initialize cache manager with Redis backend
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         cache_config = CacheConfig(
-                backend=CacheBackend.REDIS,
+            backend=CacheBackend.REDIS,
             redis_url=redis_url,
             default_ttl=600,  # 10 minutes for dashboard data
             enable_monitoring=True
@@ -95,4 +84,3 @@ async def get_email_repository() -> EmailRepository:
         base_repository = DatabaseEmailRepository(data_source)
         _email_repository_instance = CachingEmailRepository(base_repository)
     return _email_repository_instance
->>>>>>> scientific

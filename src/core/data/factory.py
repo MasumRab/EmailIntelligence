@@ -1,5 +1,6 @@
 from .database_source import get_database_data_source
 <<<<<<< HEAD
+<<<<<<< HEAD
 from .data_source import DataSource
 
 
@@ -31,6 +32,8 @@ class DataSourceFactory:
 =======
 >>>>>>> scientific
 
+=======
+>>>>>>> origin/main
 
 async def get_data_source():
     """

@@ -1,6 +1,8 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Gradio UI for the Email Intelligence Platform.
+
+This module provides a web-based interface for interacting with the email analysis features
+using Gradio. It includes tabs for dashboard, inbox, email analysis, and visualization.
 """
 
 import json

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 id: task-5
 title: Secure SQLite database paths to prevent path traversal
@@ -72,3 +73,5 @@ Implemented comprehensive path security measures to prevent directory traversal 
 
 The implementation provides defense-in-depth against path traversal attacks while maintaining usability for legitimate operations.
 <!-- SECTION:NOTES:END -->
+=======
+>>>>>>> origin/main

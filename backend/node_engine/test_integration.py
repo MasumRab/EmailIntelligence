@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -391,3 +392,5 @@ if __name__ == "__main__":
             print("\nFAILURE: Some integration tests failed. Please check the implementation.")
     except Exception as e:
         print(f"\nERROR: Test execution failed with error: {e}")
+=======
+>>>>>>> origin/main

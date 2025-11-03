@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -357,3 +358,5 @@ async def delete_workflow(
         raise HTTPException(
             status_code=500, detail="An unexpected error occurred while deleting the workflow."
         )
+=======
+>>>>>>> origin/main

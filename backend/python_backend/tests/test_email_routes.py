@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -214,3 +215,5 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
 
     # Also assert that the AI engine was NOT called, since the uppercase workflow doesn't use it
     mock_ai_engine.analyze_email.assert_not_called()
+=======
+>>>>>>> origin/main

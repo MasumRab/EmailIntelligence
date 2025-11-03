@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 A system for managing and applying intelligent email filters.
 
@@ -470,3 +471,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> origin/main

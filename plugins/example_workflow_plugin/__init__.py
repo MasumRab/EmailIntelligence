@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 An example plugin that registers a new workflow.
 """
@@ -90,3 +91,5 @@ def register(
     # Register the custom node type
     workflow_engine.register_node_type(ExampleUppercaseNode)
     logger.info("ExampleUppercaseNode registered successfully")
+=======
+>>>>>>> origin/main

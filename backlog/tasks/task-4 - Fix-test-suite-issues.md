@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 id: task-4
 title: Fix test suite issues
@@ -40,3 +41,5 @@ Resolved critical test suite issues that were preventing CI/CD pipeline executio
 - **Modified conftest.py**: Now uses test-specific app that provides all necessary FastAPI functionality without UI dependencies
 - **Health Endpoint**: Added `/health` endpoint for basic connectivity testing
 <!-- SECTION:NOTES:END -->
+=======
+>>>>>>> origin/main

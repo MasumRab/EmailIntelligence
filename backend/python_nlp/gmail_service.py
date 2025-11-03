@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 A high-level service for comprehensive Gmail integration.
 
@@ -452,3 +453,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+=======
+>>>>>>> origin/main

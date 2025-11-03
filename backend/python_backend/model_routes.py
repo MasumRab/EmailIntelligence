@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 API routes for managing AI models.
 """
@@ -84,3 +85,5 @@ async def unload_model(
             status_code=500,
             detail=f"An unexpected error occurred while unloading model '{model_name}'.",
         )
+=======
+>>>>>>> origin/main

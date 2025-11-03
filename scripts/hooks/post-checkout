@@ -2,6 +2,7 @@
 
 # Post-checkout hook to automatically set up environment on main/scientific branches
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
@@ -47,6 +48,11 @@ install_git_hooks() {
 install_git_hooks
 
 >>>>>>> scientific
+=======
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+>>>>>>> origin/main
 if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
     echo "Checking out $BRANCH branch. Running environment setup..."
     if command -v python &> /dev/null; then
@@ -55,6 +61,7 @@ if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
     else
         echo "Python not found, skipping setup."
     fi
+<<<<<<< HEAD
 <<<<<<< HEAD
 fi
 =======
@@ -66,3 +73,6 @@ fi
     fi
 fi
 >>>>>>> scientific
+=======
+fi
+>>>>>>> origin/main

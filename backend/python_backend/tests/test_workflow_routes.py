@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from unittest.mock import AsyncMock
 
 import pytest
@@ -89,3 +90,5 @@ async def test_create_and_activate_new_workflow(client, mock_workflow_engine):
     )
 >>>>>>> scientific
     mock_workflow_engine.set_active_workflow.assert_called_with("my_brand_new_workflow")
+=======
+>>>>>>> origin/main

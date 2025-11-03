@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
@@ -94,3 +95,5 @@ def test_prune_filters_success(client, mock_filter_manager, mock_performance_mon
     assert response.status_code == 200
     assert response.json()["pruned_count"] == 2
     mock_filter_manager.prune_ineffective_filters.assert_called_once()
+=======
+>>>>>>> origin/main

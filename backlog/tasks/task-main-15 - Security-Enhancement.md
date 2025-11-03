@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 id: task-main-15
 title: Security Enhancement
@@ -67,3 +68,5 @@ Strengthen the security posture of the Email Intelligence Platform with enhanced
 - Document security procedures and best practices
 <!-- SECTION:NOTES:END -->
 >>>>>>> scientific
+=======
+>>>>>>> origin/main

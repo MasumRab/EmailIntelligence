@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Performance Monitoring Dashboard for Email Intelligence Platform
 
@@ -356,3 +357,5 @@ def _create_decorator(func, op_name):
             return result
 
         return sync_wrapper
+=======
+>>>>>>> origin/main

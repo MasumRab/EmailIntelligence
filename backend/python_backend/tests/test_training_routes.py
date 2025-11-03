@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Tests for training routes.
 """
@@ -128,3 +129,5 @@ async def test_run_training():
             await run_training("test_job", config)
 
             # Since training completed successfully (as seen in logs), the test passes
+=======
+>>>>>>> origin/main

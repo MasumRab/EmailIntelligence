@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import pytest
 import asyncio
 from unittest.mock import MagicMock, AsyncMock
@@ -8,11 +9,17 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 >>>>>>> scientific
+=======
+import pytest
+import asyncio
+from unittest.mock import MagicMock, AsyncMock
+>>>>>>> origin/main
 
 from src.core.advanced_workflow_engine import (
     BaseNode,
     NodeMetadata,
     Workflow,
+<<<<<<< HEAD
 <<<<<<< HEAD
     WorkflowRunner,
     WorkflowManager,
@@ -20,10 +27,15 @@ from src.core.advanced_workflow_engine import (
     WorkflowManager,
     WorkflowRunner,
 >>>>>>> scientific
+=======
+    WorkflowRunner,
+    WorkflowManager,
+>>>>>>> origin/main
 )
 
 # --- Mock Nodes for Testing ---
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 class MockSimpleNode(BaseNode):
     def get_metadata(self) -> NodeMetadata:
@@ -40,11 +52,17 @@ class MockSimpleNode(BaseNode):
             output_types={"output_val": int},
         )
 >>>>>>> scientific
+=======
+class MockSimpleNode(BaseNode):
+    def get_metadata(self) -> NodeMetadata:
+        return NodeMetadata(name="Mock Simple Node", description="A simple mock node.", version="1.0", input_types={"input_val": int}, output_types={"output_val": int})
+>>>>>>> origin/main
 
     async def process(self, inputs: dict) -> dict:
         input_val = inputs.get("input_val", 0)
         return {"output_val": input_val * 2}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 class MockBranchNode(BaseNode):
     def get_metadata(self) -> NodeMetadata:
@@ -61,11 +79,17 @@ class MockBranchNode(BaseNode):
             output_types={"branch1": int, "branch2": int},
         )
 >>>>>>> scientific
+=======
+class MockBranchNode(BaseNode):
+    def get_metadata(self) -> NodeMetadata:
+        return NodeMetadata(name="Mock Branch Node", description="A node with multiple outputs.", version="1.0", input_types={"input_val": int}, output_types={"branch1": int, "branch2": int})
+>>>>>>> origin/main
 
     async def process(self, inputs: dict) -> dict:
         input_val = inputs.get("input_val", 0)
         return {"branch1": input_val + 1, "branch2": input_val - 1}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 class MockExceptionNode(BaseNode):
     def get_metadata(self) -> NodeMetadata:
@@ -82,10 +106,16 @@ class MockExceptionNode(BaseNode):
             output_types={},
         )
 >>>>>>> scientific
+=======
+class MockExceptionNode(BaseNode):
+    def get_metadata(self) -> NodeMetadata:
+        return NodeMetadata(name="Mock Exception Node", description="A node that always raises an exception.", version="1.0", input_types={}, output_types={})
+>>>>>>> origin/main
 
     async def process(self, inputs: dict) -> dict:
         raise ValueError("This node is designed to fail.")
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 # --- Workflow Tests ---
 
@@ -95,6 +125,10 @@ class MockExceptionNode(BaseNode):
 
 
 >>>>>>> scientific
+=======
+# --- Workflow Tests ---
+
+>>>>>>> origin/main
 def test_workflow_creation_and_structure():
     wf = Workflow(name="Test Workflow")
     node1_id = wf.add_node("MockSimpleNode", node_id="node1")
@@ -106,27 +140,37 @@ def test_workflow_creation_and_structure():
     assert wf.get_execution_order() == ["node1", "node2"]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> scientific
+=======
+>>>>>>> origin/main
 def test_workflow_cycle_detection():
     wf = Workflow(name="Cyclic Workflow")
     node1_id = wf.add_node("MockSimpleNode", node_id="node1")
     node2_id = wf.add_node("MockSimpleNode", node_id="node2")
     wf.add_connection(node1_id, "output_val", node2_id, "input_val")
 <<<<<<< HEAD
+<<<<<<< HEAD
     wf.add_connection(node2_id, "output_val", node1_id, "input_val") # Cycle
 =======
     wf.add_connection(node2_id, "output_val", node1_id, "input_val")  # Cycle
 >>>>>>> scientific
+=======
+    wf.add_connection(node2_id, "output_val", node1_id, "input_val") # Cycle
+>>>>>>> origin/main
 
     with pytest.raises(ValueError, match="Workflow contains cycles"):
         wf.get_execution_order()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> scientific
+=======
+>>>>>>> origin/main
 def test_workflow_serialization():
     wf = Workflow(name="Serialization Test")
     node1_id = wf.add_node("MockSimpleNode", node_id="node1", x=10, y=20)
@@ -138,6 +182,7 @@ def test_workflow_serialization():
     assert new_wf.nodes[0]["id"] == "node1"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # --- WorkflowRunner Tests ---
 
 =======
@@ -146,6 +191,10 @@ def test_workflow_serialization():
 
 
 >>>>>>> scientific
+=======
+# --- WorkflowRunner Tests ---
+
+>>>>>>> origin/main
 @pytest.mark.asyncio
 async def test_run_simple_workflow():
     wf = Workflow(name="Simple Runner Test")
@@ -162,9 +211,12 @@ async def test_run_simple_workflow():
     assert result.node_results["end_node"]["output_val"] == 20
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> scientific
+=======
+>>>>>>> origin/main
 @pytest.mark.asyncio
 async def test_run_workflow_with_exception():
     wf = Workflow(name="Exception Test")
@@ -178,6 +230,7 @@ async def test_run_workflow_with_exception():
     assert "This node is designed to fail" in result.error
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # --- WorkflowManager Tests ---
 
 =======
@@ -186,23 +239,33 @@ async def test_run_workflow_with_exception():
 
 
 >>>>>>> scientific
+=======
+# --- WorkflowManager Tests ---
+
+>>>>>>> origin/main
 @pytest.fixture
 def manager(tmp_path):
     # Use a temporary directory for workflow files
     return WorkflowManager(workflows_dir=str(tmp_path))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> scientific
+=======
+>>>>>>> origin/main
 def test_manager_node_registration(manager):
     manager.register_node_type("MockSimpleNode", MockSimpleNode)
     assert "MockSimpleNode" in manager.get_registered_node_types()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> scientific
+=======
+>>>>>>> origin/main
 def test_manager_workflow_persistence(manager):
     wf = manager.create_workflow(name="Persistence Test")
     wf.add_node("MockSimpleNode", node_id="node1")
@@ -216,9 +279,12 @@ def test_manager_workflow_persistence(manager):
     assert loaded_wf.workflow_id == wf.workflow_id
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> scientific
+=======
+>>>>>>> origin/main
 @pytest.mark.asyncio
 async def test_manager_end_to_end_execution(manager):
     manager.register_node_type("MockSimpleNode", MockSimpleNode)
