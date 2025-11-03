@@ -53,6 +53,10 @@ from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Error rate monitoring
 error_counts = defaultdict(int)
 error_lock = threading.Lock()
@@ -132,19 +136,12 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             )
 
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,
     description="Advanced email management with AI categorization and smart filtering",
     version=settings.app_version,
 )
-
-# Add error handling middleware
-app.add_middleware(ErrorHandlingMiddleware)
 
 
 @app.on_event("startup")
@@ -181,9 +178,8 @@ async def shutdown_event():
     await db_manager.close()
 
 
-# Exception handlers removed - now handled by ErrorHandlingMiddleware
-# The middleware provides consistent error handling and response formatting
-
+# Add error handling middleware
+app.add_middleware(ErrorHandlingMiddleware)
 
 # Configure CORS using settings
 app.add_middleware(
@@ -275,7 +271,7 @@ except ImportError:
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
-    db = db_manager  # Use the DatabaseManager instance that's already initialized
+    db = await get_db()
     user = await authenticate_user(username, password, db)
 
     if not user:
@@ -343,9 +339,9 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.getenv("PORT", 8000))
-    env = os.getenv("NODE_ENV", "development")
-    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-    reload = env == "development"
-    # Use string app path to support reload
-    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+port = int(os.getenv("PORT", 8000))
+env = os.getenv("NODE_ENV", "development")
+host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+reload = env == "development"
+# Use string app path to support reload
+uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
