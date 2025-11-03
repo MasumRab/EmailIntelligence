@@ -1,3 +1,4 @@
+
 <!-- BACKLOG.MD GUIDELINES START -->
 # Instructions for the usage of Backlog.md CLI Tool
 
@@ -193,10 +194,10 @@ Provide a concise summary of the task purpose and its goal. Explains the context
 backlog task edit 42 --ac "User can login" --ac "Session persists"
 
 # Check specific criteria by index (MULTIPLE values supported)
-backlog task edit 42 --check-ac 1 --check-ac 2 --check-ac 3  # Check all at once
-# Or check them individually if preferred:
-# backlog task edit 42 --check-ac 1    # Mark #1 as complete
-# backlog task edit 42 --check-ac 2    # Mark #2 as complete
+backlog task edit 42 --check-ac 1 --check-ac 2 --check-ac 3  # Check multiple ACs
+# Or check them individually if you prefer:
+backlog task edit 42 --check-ac 1    # Mark #1 as complete
+backlog task edit 42 --check-ac 2    # Mark #2 as complete
 
 # Mixed operations in single command
 backlog task edit 42 --check-ac 1 --uncheck-ac 2 --remove-ac 3
@@ -223,7 +224,7 @@ Good Examples:
 
 - "User can successfully log in with valid credentials"
 - "System processes 1000 requests per second without errors"
-- "CLI preserves literal newlines in description/plan/notes; `\n` sequences are not auto‑converted"
+- "CLI preserves literal newlines in description/plan/notes; `\\n` sequences are not auto‑converted"
 
 Bad Example (Implementation Step):
 
@@ -270,7 +271,7 @@ When you are ready, write it down in the task so that you can refer to it later.
 
 ```bash
 # Example
-backlog task edit 42 --plan "1. Research codebase for references\n2. Research on internet for similar cases\n3. Implement\n4. Test"
+backlog task edit 42 --plan "1. Research codebase for references\n2Research on internet for similar cases\n3. Implement\n4. Test"
 ```
 
 ## 5.3. Implementation
@@ -479,7 +480,7 @@ The CLI preserves input literally. Shells do not convert `\n` inside normal quot
 
 Do not expect `"...\n..."` to become a newline. That passes the literal backslash + n to the CLI by design.
 
-Descriptions support literal newlines; shell examples may show escaped `\n`, but enter a single `\n` to create a newline.
+Descriptions support literal newlines; shell examples may show escaped `\\n`, but enter a single `\n` to create a newline.
 
 ### Implementation Notes Formatting
 
