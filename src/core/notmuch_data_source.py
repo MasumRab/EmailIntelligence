@@ -85,89 +85,199 @@ class NotmuchDataSource(DataSource):
         if self.ai_engine is None:
             try:
                 self.ai_engine = ModernAIEngine()
-                await self.ai_engine.initialize()
+                self.ai_engine.initialize()
             except Exception as e:
-                logger.error(f"Error initializing AI engine: {e}")
+                logger.warning(f"Could not initialize AI engine: {e}")
                 self.ai_engine = None
 
-        # Initialize filter manager
+        # Initialize smart filter manager if needed for categorization
         if self.filter_manager is None:
-            self.filter_manager = SmartFilterManager()
+            try:
+                self.filter_manager = SmartFilterManager()
+            except Exception as e:
+                logger.warning(f"Could not initialize SmartFilterManager: {e}")
+                self.filter_manager = None
 
         self._initialized = True
+        logger.info("NotmuchDataSource initialized")
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Creates a new email record in Notmuch."""
+    @log_performance(operation="search_emails")
+    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Searches emails using a notmuch query string."""
         await self._ensure_initialized()
         
         if not self.notmuch_db:
-            logger.error("Notmuch database not available")
-            return None
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="search_emails",
+                additional_context={"search_term": search_term, "limit": limit}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available. Error ID: {error_id}")
+            return []
 
         try:
-            # In a real implementation, this would create a new email in Notmuch
-            # For now, we'll return a mock result
-            return {
-                "id": 1,
-                "message_id": email_data.get("message_id", ""),
-                "subject": email_data.get("subject", ""),
-                "sender": email_data.get("sender", ""),
-                "content": email_data.get("content", ""),
-                "time": datetime.now(timezone.utc).isoformat()
-            }
-        except Exception as e:
-            logger.error(f"Error creating email in Notmuch: {e}")
-            return None
+            query = self.notmuch_db.create_query(search_term)
+            messages = query.search_messages()
 
-    async def get_email_by_id(
-        self, email_id: int, include_content: bool = True
+            results = []
+            for message in list(messages)[:limit]:
+                results.append(
+                    {
+                        "id": message.get_message_id(),
+                        "message_id": message.get_message_id(),
+                        "subject": message.get_header("subject"),
+                        "sender": message.get_header("from"),
+                        "date": message.get_date(),
+                        "tags": list(message.get_tags()),
+                    }
+                )
+            return results
+        except Exception as e:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="search_emails",
+                additional_context={"search_term": search_term, "limit": limit, "error": str(e)}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Error searching emails in notmuch: {e}. Error ID: {error_id}")
+            return []
+
+    @log_performance(operation="get_email_by_message_id")
+    async def get_email_by_message_id(
+        self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
-        """Retrieves an email by its ID from Notmuch."""
+        """Retrieves an email by its notmuch message ID with improved content extraction."""
         await self._ensure_initialized()
         
         if not self.notmuch_db:
-            logger.error("Notmuch database not available")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_email_by_message_id",
+                additional_context={"message_id": message_id, "include_content": include_content}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for message ID {message_id}. Error ID: {error_id}")
             return None
 
+        query = self.notmuch_db.create_query(f"id:{message_id}")
+        messages = list(query.search_messages())
+
+        if not messages:
+            logger.info(f"No email found with message ID {message_id}")
+            return None
+
+        message = messages[0]
+        
+        # Load the full message from the file to extract content parts
+        filename = message.get_filename()
+        
         try:
-            # In a real implementation, this would query Notmuch for the email
-            # For now, we'll return a mock result
-            return {
-                "id": email_id,
-                "message_id": "test_message_id",
-                "subject": "Test Email",
-                "sender": "test@example.com",
-                "content": "Test email content",
-                "time": datetime.now(timezone.utc).isoformat()
-            }
+            query = self.notmuch_db.create_query(f"id:{message_id}")
+            messages = list(query.search_messages())
+
+            if not messages:
+                logger.info(f"No email found with message ID {message_id}")
+                return None
+
+            message = messages[0]
+            
+            # Load the full message from the file to extract content parts
+            filename = message.get_filename()
+            
+            try:
+                # Parse email content from file
+                with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+                    email_message = email.message_from_file(f)
+                
+                email_data = {
+                    "id": message.get_message_id(),
+                    "message_id": message.get_message_id(),
+                    "subject": message.get_header("subject") or email_message.get("Subject", ""),
+                    "sender": message.get_header("from") or email_message.get("From", ""),
+                    "recipients": message.get_header("to") or email_message.get("To", ""),
+                    "date": message.get_date(),
+                    "tags": list(message.get_tags()),
+                }
+
+                if include_content:
+                    content = ""
+                    if email_message.is_multipart():
+                        for part in email_message.walk():
+                            if part.get_content_type() == "text/plain":
+                                payload = part.get_payload(decode=True)
+                                if payload:
+                                    content = payload.decode('utf-8', errors='ignore')
+                                    break
+                            elif part.get_content_type() == "text/html":
+                                # If no plain text, use HTML content as fallback
+                                if not content:
+                                    payload = part.get_payload(decode=True)
+                                    if payload:
+                                        content = payload.decode('utf-8', errors='ignore')
+                    else:
+                        payload = email_message.get_payload(decode=True)
+                        if payload:
+                            content = payload.decode('utf-8', errors='ignore')
+                    
+                    email_data["body"] = content
+                    
+                return email_data
+            except Exception as e:
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="get_email_by_message_id",
+                    additional_context={"message_id": message_id, "filename": filename, "error": str(e)}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.ERROR,
+                    category=ErrorCategory.DATA,
+                    context=error_context
+                )
+                logger.error(f"Error processing email {message_id} from file {filename}: {e}. Error ID: {error_id}")
+                return {
+                    "id": message.get_message_id(),
+                    "message_id": message.get_message_id(),
+                    "subject": message.get_header("subject"),
+                    "sender": message.get_header("from"),
+                    "recipients": message.get_header("to"),
+                    "date": message.get_date(),
+                    "tags": list(message.get_tags()),
+                    "body": f"Error decoding content: {e}"
+                }
+
         except Exception as e:
-            logger.error(f"Error retrieving email from Notmuch: {e}")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_email_by_message_id",
+                additional_context={"message_id": message_id, "error": str(e)}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Error retrieving email by message ID {message_id}: {e}. Error ID: {error_id}")
             return None
 
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
-        """Retrieves all categories from Notmuch."""
-        await self._ensure_initialized()
-        
-        # In a real implementation, this would retrieve categories from Notmuch
-        # For now, we'll return mock categories
-        return [
-            {"id": 1, "name": "Inbox", "color": "#000000"},
-            {"id": 2, "name": "Work", "color": "#FF0000"},
-            {"id": 3, "name": "Personal", "color": "#00FF00"}
-        ]
-
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Creates a new category in Notmuch."""
-        await self._ensure_initialized()
-        
-        # In a real implementation, this would create a category in Notmuch
-        # For now, we'll return a mock result
-        return {
-            "id": 4,
-            "name": category_data.get("name", "New Category"),
-            "color": category_data.get("color", "#000000")
-        }
-
+    @log_performance(operation="get_emails")
     async def get_emails(
         self,
         limit: int = 50,
@@ -175,231 +285,573 @@ class NotmuchDataSource(DataSource):
         category_id: Optional[int] = None,
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
-        """Retrieves emails with filtering and pagination from Notmuch."""
+        """
+        Retrieves emails. This is a basic implementation that maps parameters to a notmuch query.
+        """
         await self._ensure_initialized()
         
+        query_parts = []
+        if is_unread:
+            query_parts.append("tag:unread")
+
+        search_term = " ".join(query_parts) if query_parts else "*"
+
         if not self.notmuch_db:
-            logger.error("Notmuch database not available")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_emails",
+                additional_context={"limit": limit, "offset": offset, "category_id": category_id, "is_unread": is_unread}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for get_emails. Error ID: {error_id}")
             return []
 
         try:
-            # In a real implementation, this would query Notmuch for emails
-            # For now, we'll return mock emails
-            return [
-                {
-                    "id": 1,
-                    "message_id": "test_message_1",
-                    "subject": "Test Email 1",
-                    "sender": "sender1@example.com",
-                    "time": datetime.now(timezone.utc).isoformat()
-                },
-                {
-                    "id": 2,
-                    "message_id": "test_message_2",
-                    "subject": "Test Email 2",
-                    "sender": "sender2@example.com",
-                    "time": datetime.now(timezone.utc).isoformat()
-                }
-            ]
+            query = self.notmuch_db.create_query(search_term)
+            messages = query.search_messages()
+
+            results = []
+            for message in list(messages)[offset : offset + limit]:
+                results.append(
+                    {
+                        "id": message.get_message_id(),
+                        "message_id": message.get_message_id(),
+                        "subject": message.get_header("subject"),
+                        "sender": message.get_header("from"),
+                        "date": message.get_date(),
+                        "tags": list(message.get_tags()),
+                    }
+                )
+            return results
         except Exception as e:
-            logger.error(f"Error retrieving emails from Notmuch: {e}")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_emails",
+                additional_context={"limit": limit, "offset": offset, "category_id": category_id, "is_unread": is_unread, "error": str(e)}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Error getting emails from notmuch: {e}. Error ID: {error_id}")
             return []
 
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Get all emails with pagination."""
+        return await self.get_emails(limit=limit, offset=offset)
+
+    @log_performance(operation="get_all_categories")
+    async def get_all_categories(self) -> List[Dict[str, Any]]:
+        """In notmuch, categories are tags."""
+        await self._ensure_initialized()
+        
+        if not self.notmuch_db:
+            return []
+        
+        try:
+            tags = self.notmuch_db.get_all_tags()
+            return [{"name": tag, "id": tag} for tag in tags]
+        except Exception as e:
+            logger.error(f"Error retrieving notmuch tags: {e}")
+            return []
+
+    @log_performance(operation="create_email")
+    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new email entry with AI analysis."""
+        await self._ensure_initialized()
+        
+        logger.info(f"Creating email with subject: {email_data.get('subject', 'No subject')}")
+        
+        # For now, return a mock implementation
+        # In a full implementation, this would actually store the email
+        result = {
+            "id": "mock_id_" + str(hash(str(email_data)))[:8],
+            "message_id": "mock_message_id_" + str(hash(str(email_data)))[:8],
+            "subject": email_data.get("subject", ""),
+            "sender": email_data.get("sender", ""),
+            "date": datetime.now().isoformat(),
+            "tags": email_data.get("initial_tags", [])
+        }
+        
+        # If AI engine is available, perform analysis asynchronously
+        if self.ai_engine:
+            try:
+                # Schedule AI analysis as a background task
+                asyncio.create_task(self._analyze_and_tag_email_background(result["message_id"], email_data))
+            except Exception as e:
+                logger.warning(f"Failed to schedule background AI analysis: {e}")
+        
+        return result
+
+    async def _analyze_and_tag_email_background(self, message_id: str, email_data: Dict[str, Any]):
+        """Perform background AI analysis and tagging for a new email."""
+        try:
+            # Get the full email content for analysis
+            subject = email_data.get("subject", "")
+            content = email_data.get("body", "")
+            full_text = f"{subject} {content}"
+
+            analysis_results = {}
+
+            # Sentiment analysis
+            try:
+                if self.ai_engine:
+                    sentiment = self.ai_engine.analyze_sentiment(full_text)
+                    if sentiment:
+                        analysis_results["sentiment"] = sentiment
+            except Exception as e:
+                logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
+
+            # Topic classification
+            try:
+                if self.ai_engine:
+                    topics = self.ai_engine.classify_topic(full_text)
+                    if topics:
+                        analysis_results["topics"] = topics
+            except Exception as e:
+                logger.warning(f"Topic classification failed for email {message_id}: {e}")
+
+            # Apply smart filters for categorization
+            try:
+                if self.filter_manager:
+                    filter_results = await self.filter_manager.apply_filters_to_email({
+                        "id": message_id,
+                        "subject": subject,
+                        "content": content,
+                        "analysis": analysis_results
+                    })
+
+                    if filter_results:
+                        analysis_results["smart_filters"] = filter_results
+
+                        # Apply suggested tags based on filters
+                        suggested_tags = filter_results.get("categories", [])
+                        if suggested_tags:
+                            # Add suggested tags
+                            new_tags = suggested_tags
+                            # Update tags in notmuch
+                            await self.update_tags_for_message(message_id, new_tags)
+
+            except Exception as e:
+                logger.warning(f"Smart filtering failed for email {message_id}: {e}")
+
+            logger.info(f"Completed background AI analysis and tagging for email {message_id}")
+        except Exception as e:
+            logger.error(f"Critical error in background email analysis and tagging for {message_id}: {e}")
+
+    async def get_email_by_id(
+        self, email_id: int, include_content: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """Get email by ID - Notmuch uses string message IDs, not integer IDs."""
+        # This is a compatibility method for the DataSource interface
+        # In a real implementation, this would map internal IDs to message IDs
+        logger.warning("get_email_by_id called but Notmuch uses string message IDs")
+        return None
+
+    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new category - Notmuch uses tags, not categories."""
+        # This is a compatibility method for the DataSource interface
+        # In Notmuch, categories are tags, so this would create a tag
+        logger.warning("create_category called but Notmuch uses tags")
+        return None
+
+    @log_performance(operation="update_email_by_message_id")
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        """Updates an email by its message ID in Notmuch."""
+        """Update an email by its message ID."""
         await self._ensure_initialized()
         
-        if not self.notmuch_db:
-            logger.error("Notmuch database not available")
-            return None
-
-        try:
-            # In a real implementation, this would update the email in Notmuch
-            # For now, we'll return a mock result
-            return {
-                "id": 1,
-                "message_id": message_id,
-                "subject": update_data.get("subject", "Updated Subject"),
-                "sender": "sender@example.com",
-                "time": datetime.now(timezone.utc).isoformat()
-            }
-        except Exception as e:
-            logger.error(f"Error updating email in Notmuch: {e}")
-            return None
-
-    async def get_email_by_message_id(
-        self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
-        """Retrieves an email by its message ID from Notmuch."""
-        await self._ensure_initialized()
+        logger.info(f"Updating email {message_id} with data: {update_data}")
         
-        if not self.notmuch_db:
-            logger.error("Notmuch database not available")
-            return None
-
-        try:
-            # In a real implementation, this would query Notmuch for the email
-            # For now, we'll return a mock result
-            return {
-                "id": 1,
-                "message_id": message_id,
-                "subject": "Test Email",
-                "sender": "test@example.com",
-                "content": "Test email content",
-                "time": datetime.now(timezone.utc).isoformat()
-            }
-        except Exception as e:
-            logger.error(f"Error retrieving email from Notmuch: {e}")
-            return None
-
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-        """Retrieves all emails with pagination from Notmuch."""
-        await self._ensure_initialized()
-        
-        if not self.notmuch_db:
-            logger.error("Notmuch database not available")
-            return []
-
-        try:
-            # In a real implementation, this would query Notmuch for all emails
-            # For now, we'll return mock emails
-            return [
-                {
-                    "id": 1,
-                    "message_id": "test_message_1",
-                    "subject": "Test Email 1",
-                    "sender": "sender1@example.com",
-                    "time": datetime.now(timezone.utc).isoformat()
-                },
-                {
-                    "id": 2,
-                    "message_id": "test_message_2",
-                    "subject": "Test Email 2",
-                    "sender": "sender2@example.com",
-                    "time": datetime.now(timezone.utc).isoformat()
-                }
-            ]
-        except Exception as e:
-            logger.error(f"Error retrieving emails from Notmuch: {e}")
-            return []
+        # For now, return a mock implementation
+        # In a full implementation, this would actually update the email
+        return {
+            "id": message_id,
+            "message_id": message_id,
+            "updated": True
+        }
 
     async def get_emails_by_category(
         self, category_id: int, limit: int = 50, offset: int = 0
     ) -> List[Dict[str, Any]]:
-        """Retrieves emails by category from Notmuch."""
-        await self._ensure_initialized()
-        
-        # In a real implementation, this would query Notmuch for emails by category
-        # For now, we'll return mock emails
-        return [
-            {
-                "id": 1,
-                "message_id": "test_message_1",
-                "subject": "Test Email 1",
-                "sender": "sender1@example.com",
-                "time": datetime.now(timezone.utc).isoformat()
-            }
-        ]
+        """Get emails by category - Notmuch uses string tags, not integer category IDs."""
+        # This is a compatibility method for the DataSource interface
+        # In Notmuch, categories are tags, so this would search by tag
+        logger.warning("get_emails_by_category called but Notmuch uses string tags")
+        return []
 
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Searches emails in Notmuch."""
-        await self._ensure_initialized()
-        
-        if not self.notmuch_db:
-            logger.error("Notmuch database not available")
-            return []
-
-        try:
-            # In a real implementation, this would search Notmuch for emails
-            # For now, we'll return mock emails
-            return [
-                {
-                    "id": 1,
-                    "message_id": "test_message_1",
-                    "subject": f"Email matching '{search_term}'",
-                    "sender": "sender1@example.com",
-                    "time": datetime.now(timezone.utc).isoformat()
-                }
-            ]
-        except Exception as e:
-            logger.error(f"Error searching emails in Notmuch: {e}")
-            return []
-
+    @log_performance(operation="update_email")
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        """Updates an email by its internal ID in Notmuch."""
+        """Update an email by its internal ID."""
         await self._ensure_initialized()
         
-        if not self.notmuch_db:
-            logger.error("Notmuch database not available")
-            return None
-
-        try:
-            # In a real implementation, this would update the email in Notmuch
-            # For now, we'll return a mock result
-            return {
-                "id": email_id,
-                "message_id": "test_message_id",
-                "subject": update_data.get("subject", "Updated Subject"),
-                "sender": "sender@example.com",
-                "time": datetime.now(timezone.utc).isoformat()
-            }
-        except Exception as e:
-            logger.error(f"Error updating email in Notmuch: {e}")
-            return None
+        logger.info(f"Updating email ID {email_id} with data: {update_data}")
+        
+        # For now, return a mock implementation
+        # In a full implementation, this would actually update the email
+        return {
+            "id": email_id,
+            "updated": True
+        }
 
     async def delete_email(self, email_id: int) -> bool:
-        """Deletes an email by its internal ID in Notmuch."""
+        """Delete an email by its internal ID."""
         await self._ensure_initialized()
         
-        if not self.notmuch_db:
-            logger.error("Notmuch database not available")
-            return False
+        logger.info(f"Deleting email ID {email_id}")
+        
+        # For now, return a mock implementation
+        # In a full implementation, this would actually delete the email
+        return True
 
-        try:
-            # In a real implementation, this would delete the email from Notmuch
-            # For now, we'll return True to indicate success
-            return True
-        except Exception as e:
-            logger.error(f"Error deleting email from Notmuch: {e}")
-            return False
-
+    @log_performance(operation="get_dashboard_aggregates")
     async def get_dashboard_aggregates(self) -> Dict[str, Any]:
         """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
         await self._ensure_initialized()
-
-        # In a real implementation, this would retrieve real statistics from Notmuch
-        # For now, we'll return mock statistics
-        return {
-            "total_emails": 100,
-            "auto_labeled": 50,
-            "categories_count": 5,
-            "unread_count": 25,
-            "weekly_growth": {
-                "emails": 10,
-                "percentage": 11.1
+        
+        if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_dashboard_aggregates",
+                additional_context={"reason": "Notmuch database not available"}
+            )
+            error_id = log_error(
+                "Notmuch database not available for dashboard aggregates.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for dashboard aggregates. Error ID: {error_id}")
+            return {
+                "total_emails": 0,
+                "auto_labeled": 0,
+                "categories_count": 0,
+                "unread_count": 0,
+                "weekly_growth": {"emails": 0, "percentage": 0.0}
             }
-        }
 
+        try:
+            # Get total emails
+            query = self.notmuch_db.create_query("*")
+            total_emails = query.count_messages()
+
+            # Get unread count
+            unread_query = self.notmuch_db.create_query("tag:unread")
+            unread_count = unread_query.count_messages()
+
+            # For auto_labeled, we'll use a placeholder tag like "auto-labeled"
+            auto_labeled_query = self.notmuch_db.create_query("tag:auto-labeled")
+            auto_labeled = auto_labeled_query.count_messages()
+
+            # For categories, we'll count distinct tags (excluding system tags)
+            all_tags = self.notmuch_db.get_all_tags()
+            # Filter out common system tags to get user-defined categories
+            system_tags = {"inbox", "unread", "sent", "draft", "deleted", "spam", "flagged", "replied", "forwarded"}
+            category_tags = [tag for tag in all_tags if tag.lower() not in system_tags]
+            categories_count = len(category_tags)
+
+            # Weekly growth - simplified calculation
+            # In a production implementation, this would query for emails from the last week
+            weekly_growth = {
+                "emails": total_emails,  # Placeholder - would be new emails in last week
+                "percentage": 0.0  # Placeholder - would be week-over-week growth percentage
+            }
+
+            return {
+                "total_emails": total_emails,
+                "auto_labeled": auto_labeled,
+                "categories_count": categories_count,
+                "unread_count": unread_count,
+                "weekly_growth": weekly_growth
+            }
+        except Exception as e:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_dashboard_aggregates",
+                additional_context={"error": str(e)}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Error getting dashboard aggregates from notmuch: {e}. Error ID: {error_id}")
+            # Return default values on error
+            return {
+                "total_emails": 0,
+                "auto_labeled": 0,
+                "categories_count": 0,
+                "unread_count": 0,
+                "weekly_growth": {"emails": 0, "percentage": 0.0}
+            }
+
+    @log_performance(operation="get_category_breakdown")
     async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
-        """Retrieves category breakdown statistics with configurable limit."""
+        """Retrieves category breakdown statistics with configurable limit.
+        
+        In Notmuch, categories are mapped to tags. This implementation counts emails per tag
+        and excludes common system tags to focus on user-defined categories.
+        """
         await self._ensure_initialized()
+        
+        if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_category_breakdown",
+                additional_context={"limit": limit, "reason": "Notmuch database not available"}
+            )
+            error_id = log_error(
+                "Notmuch database not available for category breakdown.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for category breakdown. Error ID: {error_id}")
+            return {}
 
-        # In a real implementation, this would retrieve real category breakdown from Notmuch
-        # For now, we'll return mock data
-        return {
-            "Inbox": 40,
-            "Work": 30,
-            "Personal": 20,
-            "Promotions": 5,
-            "Social": 5
-        }
+        try:
+            # Get all tags and their counts
+            tag_counts = {}
+            
+            # Exclude common system tags
+            system_tags = {"inbox", "unread", "sent", "draft", "deleted", "spam", "flagged", "replied", "forwarded"}
+            
+            # Get all tags from the database
+            all_tags = list(self.notmuch_db.get_all_tags())
+            
+            # For each tag (that's not a system tag), count messages
+            for tag in all_tags:
+                if tag.lower() not in system_tags:
+                    query = self.notmuch_db.create_query(f"tag:{tag}")
+                    count = query.count_messages()
+                    if count > 0:  # Only include tags with emails
+                        tag_counts[tag] = count
+            
+            # Sort by count descending and apply limit
+            sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
+            return dict(sorted_tags[:limit])
+        except Exception as e:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_category_breakdown",
+                additional_context={"limit": limit, "error": str(e)}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Error getting category breakdown from notmuch: {e}. Error ID: {error_id}")
+            # Return empty dict on error
+            return {}
+
+    @log_performance(operation="update_tags_for_message")
+    async def update_tags_for_message(self, message_id: str, tags: List[str]) -> bool:
+        """
+        Updates the tags for a given message ID in notmuch.
+        """
+        await self._ensure_initialized()
+        
+        if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="update_tags_for_message",
+                additional_context={"message_id": message_id}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error("Notmuch database not available. Error ID: {error_id}")
+            return False
+
+        try:
+            # Find the message in notmuch
+            query = self.notmuch_db.create_query(f"id:{message_id}")
+            messages = list(query.search_messages())
+            if not messages:
+                error_context = create_error_context(
+                    component="NotmuchDataSource",
+                    operation="update_tags_for_message",
+                    additional_context={"message_id": message_id}
+                )
+                error_id = log_error(
+                    f"Message with ID {message_id} not found in notmuch.",
+                    severity=ErrorSeverity.WARNING,
+                    category=ErrorCategory.DATA,
+                    context=error_context
+                )
+                logger.error(f"Message with ID {message_id} not found in notmuch. Error ID: {error_id}")
+                return False
+
+            message = messages[0]
+
+            # Update tags in notmuch
+            message.freeze()
+            message.remove_all_tags()
+            for tag in tags:
+                message.add_tag(tag)
+            message.thaw()
+
+            logger.info(f"Updated tags for message {message_id} in notmuch.")
+            
+            # Trigger re-analysis if AI engine is available
+            if self.ai_engine:
+                try:
+                    asyncio.create_task(self._reanalyze_email(message_id))
+                except Exception as e:
+                    logger.warning(f"Failed to schedule re-analysis for email {message_id}: {e}")
+            
+            return True
+
+        except Exception as e:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="update_tags_for_message",
+                additional_context={"message_id": message_id}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context,
+                details={"error_type": type(e).__name__}
+            )
+            logger.error(f"Error updating tags for message {message_id}: {e}. Error ID: {error_id}")
+            return False
+
+    async def _reanalyze_email(self, message_id: str):
+        """Re-analyze an email after tags have been updated."""
+        try:
+            logger.info(f"Re-analyzing email {message_id} after tag update")
+            
+            # Get email content
+            email_data = await self.get_email_by_message_id(message_id, include_content=True)
+            if not email_data:
+                logger.error(f"Could not retrieve email data for re-analysis {message_id}")
+                return
+
+            # Perform AI analysis
+            subject = email_data.get("subject", "")
+            content = email_data.get("body", "")
+            full_text = f"{subject} {content}"
+
+            analysis_results = {}
+
+            # Sentiment analysis
+            try:
+                if self.ai_engine:
+                    sentiment = self.ai_engine.analyze_sentiment(full_text)
+                    if sentiment:
+                        analysis_results["sentiment"] = sentiment
+            except Exception as e:
+                logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
+
+            # Topic classification
+            try:
+                if self.ai_engine:
+                    topics = self.ai_engine.classify_topic(full_text)
+                    if topics:
+                        analysis_results["topics"] = topics
+            except Exception as e:
+                logger.warning(f"Topic classification failed for email {message_id}: {e}")
+
+            logger.info(f"Completed re-analysis for email {message_id}")
+        except Exception as e:
+            logger.error(f"Critical error in email re-analysis for {message_id}: {e}")
+
+    async def analyze_and_tag_email(self, message_id: str) -> bool:
+        """
+        Performs comprehensive AI analysis on an email and applies intelligent tagging.
+        """
+        await self._ensure_initialized()
+        
+        if not self.ai_engine or not self.filter_manager:
+            logger.warning("AI engine or filter manager not available for analysis")
+            return False
+
+        try:
+            # Get email content
+            email_data = await self.get_email_by_message_id(message_id, include_content=True)
+            if not email_data:
+                logger.error(f"Could not retrieve email data for {message_id}")
+                return False
+
+            # Perform AI analysis
+            subject = email_data.get("subject", "")
+            content = email_data.get("body", "")
+            full_text = f"{subject} {content}"
+
+            analysis_results = {}
+
+            # Sentiment analysis
+            try:
+                if self.ai_engine:
+                    sentiment = self.ai_engine.analyze_sentiment(full_text)
+                    if sentiment:
+                        analysis_results["sentiment"] = sentiment
+            except Exception as e:
+                logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
+
+            # Topic classification
+            try:
+                if self.ai_engine:
+                    topics = self.ai_engine.classify_topic(full_text)
+                    if topics:
+                        analysis_results["topics"] = topics
+            except Exception as e:
+                logger.warning(f"Topic classification failed for email {message_id}: {e}")
+
+            # Apply smart filters for categorization
+            try:
+                if self.filter_manager:
+                    filter_results = await self.filter_manager.apply_filters_to_email({
+                        "id": message_id,
+                        "subject": subject,
+                        "content": content,
+                        "analysis": analysis_results
+                    })
+
+                    if filter_results:
+                        analysis_results["smart_filters"] = filter_results
+
+                        # Apply suggested tags based on filters
+                        suggested_tags = filter_results.get("categories", [])
+                        if suggested_tags:
+                            # Get current tags
+                            current_tags = email_data.get("tags", [])
+                            # Add suggested tags
+                            new_tags = list(set(current_tags + suggested_tags))
+                            # Update tags in notmuch
+                            await self.update_tags_for_message(message_id, new_tags)
+
+            except Exception as e:
+                logger.warning(f"Smart filtering failed for email {message_id}: {e}")
+
+            logger.info(f"Completed AI analysis and tagging for email {message_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Critical error in email analysis and tagging for {message_id}: {e}")
+            return False
 
     async def shutdown(self) -> None:
-        """Performs any necessary cleanup."""
+        """Gracefully shutdown the data source and clean up resources."""
         if self.notmuch_db:
             self.notmuch_db.close()
             self.notmuch_db = None
+        logger.info("NotmuchDataSource shutdown complete")

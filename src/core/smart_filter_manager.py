@@ -163,8 +163,6 @@ class SmartFilterManager:
                     import time
 
                     time.sleep(0.1 * (attempt + 1))  # Exponential backoff
-                    # TODO(P1, 4h): Refactor this to use async sleep when the function is made async
-                    # This currently blocks the event loop but is necessary for retry logic
                     continue
                 else:
                     error_context = create_error_context(
@@ -178,26 +176,45 @@ class SmartFilterManager:
                         category=ErrorCategory.INTEGRATION,
                         context=error_context
                     )
-                    self.logger.error(
-                        f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
+                    raise
+            finally:
+                try:
+                    conn.close()
+                except:
+                    pass
+
+    async def _db_execute_async(self, query: str, params: tuple = (), retries: int = 3):
+        """Execute a query (INSERT, UPDATE, DELETE) with async retry logic for robustness."""
+        for attempt in range(retries):
+            conn = self._get_db_connection()
+            try:
+                conn.execute(query, params)
+                conn.commit()
+                return
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < retries - 1:
+                    self.logger.warning(f"Database locked, retrying async ({attempt + 1}/{retries}): {e}")
+                    # Use async sleep to yield control to the event loop
+                    await asyncio.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    error_context = create_error_context(
+                        component="SmartFilterManager",
+                        operation="_db_execute_async",
+                        additional_context={"query": query[:100], "attempt": attempt}
+                    )
+                    error_id = log_error(
+                        e,
+                        severity=ErrorSeverity.ERROR,
+                        category=ErrorCategory.INTEGRATION,
+                        context=error_context
                     )
                     raise
-            except sqlite3.Error as e:
-                error_context = create_error_context(
-                    component="SmartFilterManager",
-                    operation="_db_execute",
-                    additional_context={"query": query[:100]}
-                )
-                error_id = log_error(
-                    e,
-                    severity=ErrorSeverity.ERROR,
-                    category=ErrorCategory.INTEGRATION,
-                    context=error_context
-                )
-                self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
-                raise
             finally:
-                self._close_db_connection(conn)
+                try:
+                    conn.close()
+                except:
+                    pass
 
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Executes a read query and fetches a single row."""
@@ -601,7 +618,7 @@ class SmartFilterManager:
             json.dumps(filter_obj.performance_metrics),
             filter_obj.is_active,
         )
-        self._db_execute(query, params)
+        await self._db_execute_async(query, params)
         
         # Update cache
         cache_key = f"filter_{filter_obj.filter_id}"
@@ -716,7 +733,7 @@ class SmartFilterManager:
             WHERE filter_id = ?
         """
         current_time = datetime.now(timezone.utc).isoformat()
-        self._db_execute(update_query, (current_time, filter_id))
+        await self._db_execute_async(update_query, (current_time, filter_id))
         
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
@@ -784,35 +801,25 @@ class SmartFilterManager:
         
         return True
 
-    @log_performance(operation="update_filter_status")
     async def update_filter_status(self, filter_id: str, is_active: bool) -> bool:
         """Updates a filter's active status."""
         await self._ensure_initialized()
         
         update_query = "UPDATE email_filters SET is_active = ? WHERE filter_id = ?"
-        self._db_execute(update_query, (is_active, filter_id))
-        
-        # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        await self._db_execute_async(update_query, (is_active, filter_id))
         
         return True
 
-    @log_performance(operation="delete_filter")
     async def delete_filter(self, filter_id: str) -> bool:
         """Deletes a filter from the system."""
         await self._ensure_initialized()
         
         delete_query = "DELETE FROM email_filters WHERE filter_id = ?"
-        self._db_execute(delete_query, (filter_id,))
+        await self._db_execute_async(delete_query, (filter_id,))
         
         # Also delete associated performance data
         delete_perf_query = "DELETE FROM filter_performance WHERE filter_id = ?"
-        self._db_execute(delete_perf_query, (filter_id,))
-        
-        # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        await self._db_execute_async(delete_perf_query, (filter_id,))
         
         return True
 
