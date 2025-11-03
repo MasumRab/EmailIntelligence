@@ -10,7 +10,13 @@ from fastapi.testclient import TestClient
 
 from src.main import create_app
 from src.core.database import get_db
-from src.core.factory import get_data_source
+
+try:
+    from src.core.factory import get_data_source
+    HAS_NOTMUCH = True
+except ImportError:
+    HAS_NOTMUCH = False
+    get_data_source = None
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -51,10 +57,12 @@ def client(mock_db_manager: AsyncMock):
     """
     app = create_app()
     app.dependency_overrides[get_db] = lambda: mock_db_manager
-    app.dependency_overrides[get_data_source] = lambda: mock_db_manager
+    if HAS_NOTMUCH:
+        app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
     del app.dependency_overrides[get_db]
-    del app.dependency_overrides[get_data_source]
+    if HAS_NOTMUCH:
+        del app.dependency_overrides[get_data_source]

@@ -159,6 +159,16 @@ class ActivityResponse(ActivityBase):
 
 
 # AI Analysis Models
+class ActionItem(BaseModel):
+    """Model representing a single extracted action item from an email."""
+
+    action_phrase: str
+    verb: Optional[str] = None
+    object: Optional[str] = None
+    raw_due_date_text: Optional[str] = None
+    context: str
+
+
 class AIAnalysisRequest(BaseModel):
     subject: str
     content: str

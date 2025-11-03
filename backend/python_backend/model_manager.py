@@ -21,3 +21,6 @@ class ModelManager:
         return True
 
 
+model_manager = ModelManager()
+
+
