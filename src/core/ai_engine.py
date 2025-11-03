@@ -2,6 +2,13 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
+from .enhanced_error_reporting import (
+    log_error,
+    ErrorSeverity,
+    ErrorCategory,
+    create_error_context
+)
+
 logger = logging.getLogger(__name__)
 
 
