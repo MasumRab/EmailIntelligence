@@ -163,6 +163,8 @@ class SmartFilterManager:
                     import time
 
                     time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    # TODO(P1, 4h): Refactor this to use async sleep when the function is made async
+                    # This currently blocks the event loop but is necessary for retry logic
                     continue
                 else:
                     error_context = create_error_context(
