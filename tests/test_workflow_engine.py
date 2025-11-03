@@ -2,6 +2,7 @@
 Unit tests for the enhanced workflow engine.
 Tests all the new functionality implemented for workflow engine enhancement.
 """
+<<<<<<< HEAD
 import asyncio
 import pytest
 import sys
@@ -13,6 +14,24 @@ from src.core.workflow_engine import Node, Workflow, WorkflowRunner
 
 def test_topological_sort():
     """Test the topological sorting of nodes"""
+=======
+
+import asyncio
+import os
+import sys
+
+import pytest
+
+# Add the project root to the path to import correctly
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from src.core.workflow_engine import Node, Workflow, WorkflowRunner
+
+
+def test_topological_sort():
+    """Test the topological sorting of nodes"""
+
+>>>>>>> scientific
     def dummy_operation(x):
         return x
 
@@ -36,6 +55,10 @@ def test_topological_sort():
 
 def test_workflow_validation():
     """Test workflow validation functionality"""
+<<<<<<< HEAD
+=======
+
+>>>>>>> scientific
     def dummy_operation(x):
         return x
 
@@ -56,7 +79,14 @@ def test_workflow_validation():
 
     # Test with invalid connection
     invalid_connections = [
+<<<<<<< HEAD
         {"from": {"node_id": "NONEXISTENT", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
+=======
+        {
+            "from": {"node_id": "NONEXISTENT", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
+>>>>>>> scientific
     ]
     invalid_workflow = Workflow("invalid_workflow", {"A": node_a, "B": node_b}, invalid_connections)
 
@@ -67,12 +97,22 @@ def test_workflow_validation():
 
 def test_conditional_execution():
     """Test conditional execution of nodes"""
+<<<<<<< HEAD
+=======
+
+>>>>>>> scientific
     def dummy_operation(x):
         return x + 1
 
     # Create a node with a conditional expression
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
+<<<<<<< HEAD
     node_b = Node("B", "Node B", dummy_operation, ["input"], ["output"], conditional_expression="value > 5")
+=======
+    node_b = Node(
+        "B", "Node B", dummy_operation, ["input"], ["output"], conditional_expression="value > 5"
+    )
+>>>>>>> scientific
 
     connections = [
         {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
@@ -94,6 +134,10 @@ def test_conditional_execution():
 
 def test_error_handling_and_recovery():
     """Test error handling and recovery mechanisms"""
+<<<<<<< HEAD
+=======
+
+>>>>>>> scientific
     def good_operation(x):
         return x + 1
 
@@ -102,7 +146,13 @@ def test_error_handling_and_recovery():
 
     # Create nodes
     node_a = Node("A", "Node A", good_operation, ["input"], ["output"])
+<<<<<<< HEAD
     node_b = Node("B", "Node B", failing_operation, ["input"], ["output"], failure_strategy="continue")
+=======
+    node_b = Node(
+        "B", "Node B", failing_operation, ["input"], ["output"], failure_strategy="continue"
+    )
+>>>>>>> scientific
     node_c = Node("C", "Node C", good_operation, ["input"], ["output"])
 
     connections = [
@@ -110,7 +160,13 @@ def test_error_handling_and_recovery():
         {"from": {"node_id": "B", "output": "output"}, "to": {"node_id": "C", "input": "input"}},
     ]
 
+<<<<<<< HEAD
     workflow = Workflow("error_handling_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections)
+=======
+    workflow = Workflow(
+        "error_handling_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections
+    )
+>>>>>>> scientific
     runner = WorkflowRunner(workflow, max_retries=2)
 
     # Run the workflow - node B will fail, but should continue
@@ -122,6 +178,10 @@ def test_error_handling_and_recovery():
 
 def test_memory_optimization():
     """Test memory optimization feature"""
+<<<<<<< HEAD
+=======
+
+>>>>>>> scientific
     def dummy_operation(x):
         return x + 1
 
@@ -137,7 +197,13 @@ def test_memory_optimization():
         {"from": {"node_id": "C", "output": "output"}, "to": {"node_id": "D", "input": "input"}},
     ]
 
+<<<<<<< HEAD
     workflow = Workflow("memory_opt_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections)
+=======
+    workflow = Workflow(
+        "memory_opt_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
+    )
+>>>>>>> scientific
     runner = WorkflowRunner(workflow)
 
     # Run with memory optimization enabled
@@ -148,6 +214,10 @@ def test_memory_optimization():
 
 def test_parallel_execution():
     """Test parallel execution of independent nodes"""
+<<<<<<< HEAD
+=======
+
+>>>>>>> scientific
     def dummy_operation(x):
         return x + 1
 
@@ -164,7 +234,13 @@ def test_parallel_execution():
         {"from": {"node_id": "C", "output": "output"}, "to": {"node_id": "D", "input": "input2"}},
     ]
 
+<<<<<<< HEAD
     workflow = Workflow("parallel_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections)
+=======
+    workflow = Workflow(
+        "parallel_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
+    )
+>>>>>>> scientific
     runner = WorkflowRunner(workflow, max_concurrent=3)  # Allow up to 3 nodes to run in parallel
 
     # Run with parallel execution
@@ -175,6 +251,10 @@ def test_parallel_execution():
 
 def test_metrics_collection():
     """Test metrics collection functionality"""
+<<<<<<< HEAD
+=======
+
+>>>>>>> scientific
     def dummy_operation(x):
         return x + 1
 
@@ -226,4 +306,8 @@ if __name__ == "__main__":
     test_metrics_collection()
     print("✓ Metrics collection test passed")
 
+<<<<<<< HEAD
     print("\nAll tests passed! 🎉")
+=======
+    print("\nAll tests passed! 🎉")
+>>>>>>> scientific

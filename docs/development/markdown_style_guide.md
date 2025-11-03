@@ -6,7 +6,11 @@ This document outlines the standards for formatting Markdown files in the EmailI
 
 ### Headings
 - Use `#` for main title (H1) - only one per document
+<<<<<<< HEAD
 - Use `##` for main sections (H2)
+=======
+- Use `##` for main sections (H2) 
+>>>>>>> scientific
 - Use `###` for subsections (H3)
 - Use `####` for sub-subsections (H4) when needed
 - Do not skip heading levels (e.g., don't go from H2 directly to H4)

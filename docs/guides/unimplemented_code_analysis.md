@@ -6,7 +6,11 @@ This document analyzes code that is currently unused or unimplemented in the Ema
 
 ### `backend/python_backend/advanced_workflow_routes.py`
 
+<<<<<<< HEAD
 - **Code:**
+=======
+- **Code:** 
+>>>>>>> scientific
   ```python
   for node_data in request.nodes:
       # This is a simplified approach - in practice, we'd reconstruct the actual nodes
@@ -112,3 +116,15 @@ This document analyzes code that is currently unused or unimplemented in the Ema
       pass
   ```
 - **Analysis:** This file is deprecated. The `pass` statement is in an abstract method of an abstract base class. This is a valid use of `pass` to indicate that subclasses must implement this method. The file is slated for removal as part of the backend migration.
+<<<<<<< HEAD
+=======
+
+
+
+
+
+
+
+
+
+>>>>>>> scientific

@@ -1,9 +1,52 @@
 #!/bin/bash
 
 # Post-checkout hook to automatically set up environment on main/scientific branches
+<<<<<<< HEAD
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
+=======
+# Also ensures Git hooks are properly installed
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Function to install Git hooks if they're not properly installed
+install_git_hooks() {
+    local hooks_installed=false
+
+    # Check if the required hooks exist in .git/hooks/
+    if [[ -f ".git/hooks/pre-commit" && -f ".git/hooks/post-commit" && -f ".git/hooks/post-checkout" ]]; then
+        # Check if they're pointing to the right scripts
+        if grep -q "pre-commit-docs-check\|Documentation Synchronization" ".git/hooks/pre-commit" 2>/dev/null && \
+           grep -q "post-commit-sync\|Agent Workflow" ".git/hooks/post-commit" 2>/dev/null && \
+           grep -q "post-checkout\|environment setup" ".git/hooks/post-checkout" 2>/dev/null; then
+            hooks_installed=true
+        fi
+    fi
+
+    if [[ "$hooks_installed" == false ]]; then
+        echo "Installing Git hooks..."
+        if [[ -f "scripts/install-hooks.sh" ]]; then
+            bash scripts/install-hooks.sh
+            echo "Git hooks installed successfully."
+        elif [[ -f "scripts/pre-commit-docs-check" && -f "scripts/post-commit-sync" ]]; then
+            # Install hooks manually if install script doesn't exist
+            cp scripts/pre-commit-docs-check .git/hooks/pre-commit
+            cp scripts/post-commit-sync .git/hooks/post-commit
+            # The post-checkout hook should already be the current one
+            echo "Git hooks installed manually."
+        else
+            echo "Warning: Git hook scripts not found in expected locations."
+        fi
+    else
+        echo "Git hooks are already properly installed."
+    fi
+}
+
+# Install Git hooks first
+install_git_hooks
+
+>>>>>>> scientific
 if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
     echo "Checking out $BRANCH branch. Running environment setup..."
     if command -v python &> /dev/null; then
@@ -12,4 +55,14 @@ if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
     else
         echo "Python not found, skipping setup."
     fi
+<<<<<<< HEAD
 fi
+=======
+
+    # Documentation sync for branch-specific content
+    echo "Syncing documentation for $BRANCH branch..."
+    if command -v python3 &> /dev/null; then
+        python3 scripts/docs_branch_versioning.py --cleanup --branch "$BRANCH"
+    fi
+fi
+>>>>>>> scientific

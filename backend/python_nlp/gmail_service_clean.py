@@ -350,6 +350,7 @@ class GmailAIService:
         # Implementation would go here
         return []
 
+
 async def main():
     # Demonstrates the usage of the GmailAIService
     logging.basicConfig(level=logging.DEBUG)

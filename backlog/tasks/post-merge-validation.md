@@ -24,7 +24,11 @@ This task involves validating that all changes have been successfully merged and
 
 #### Testing Branch Cleanup Completed:
 - Deleted `refactor/python-nlp-testing` (merged)
+<<<<<<< HEAD
 - Deleted `test-coverage-improvement` (merged)
+=======
+- Deleted `test-coverage-improvement` (merged) 
+>>>>>>> scientific
 - Deleted `bugfix/backend-fixes-and-test-suite-stabilization` (changes already incorporated into scientific branch)
 
 ### Part 3: Documentation Updates

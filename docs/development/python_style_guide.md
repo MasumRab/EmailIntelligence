@@ -64,6 +64,7 @@ Function docstring format:
 def function_name(param1: type, param2: type) -> return_type:
     """
     Brief description of the function.
+<<<<<<< HEAD
 
     Args:
         param1: Description of param1
@@ -72,6 +73,16 @@ def function_name(param1: type, param2: type) -> return_type:
     Returns:
         Description of return value
 
+=======
+    
+    Args:
+        param1: Description of param1
+        param2: Description of param2
+        
+    Returns:
+        Description of return value
+        
+>>>>>>> scientific
     Raises:
         ExceptionType: When and why this exception is raised
     """

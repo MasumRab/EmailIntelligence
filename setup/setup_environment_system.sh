@@ -59,6 +59,7 @@ sudo apt install -y \
     python3-scipy \
     python3-matplotlib \
     python3-pandas \
+<<<<<<< HEAD
     python3-seaborn \
     python3-plotly \
     python3-sklearn \
@@ -66,6 +67,12 @@ sudo apt install -y \
     python3-psutil \
     python3-sentencepiece \
     python3-networkx
+=======
+    python3-sklearn \
+    python3-joblib \
+    python3-psutil \
+    python3-sentencepiece
+>>>>>>> scientific
 
 # Install Python web framework packages
 log_info "🌐 Installing Python web framework packages..."
@@ -364,6 +371,7 @@ except ImportError:
     print('❌ Email Validator import: FAILED')
     success = False
 
+<<<<<<< HEAD
 try:
     import networkx
     print('✅ NetworkX import: OK')
@@ -378,6 +386,8 @@ except ImportError:
     print('❌ Notmuch import: FAILED')
     success = False
 
+=======
+>>>>>>> scientific
 if not success:
     print('⚠️  Some packages failed to import, check installation logs.')
     sys.exit(1)

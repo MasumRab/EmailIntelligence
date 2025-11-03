@@ -13,7 +13,10 @@ from src.core.models import (
     EmailUpdate,
 )
 from src.core.performance_monitor import log_performance
+<<<<<<< HEAD
 from src.core.auth import get_current_active_user
+=======
+>>>>>>> scientific
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

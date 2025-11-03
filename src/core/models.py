@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+<<<<<<< HEAD
 from pydantic import BaseModel, Field, validator
 # ConfigDict is not available in Pydantic v1, using Config class instead
 try:
@@ -14,6 +15,9 @@ try:
 except ImportError:
     # For Pydantic v1 compatibility
     ConfigDict = None
+=======
+from pydantic import BaseModel, ConfigDict, Field, validator
+>>>>>>> scientific
 
 # A default color for categories, can be moved to a config file later
 DEFAULT_CATEGORY_COLOR = "#FFFFFF"
@@ -77,7 +81,11 @@ class EmailCreate(EmailBase):
     @classmethod
     def set_preview(cls, v, values):
         """Sets the preview from the content if not provided."""
+<<<<<<< HEAD
         if not v and "content" in values:
+=======
+        if not v and values and "content" in values:
+>>>>>>> scientific
             content = values["content"]
             return content[:200] + "..." if len(content) > 200 else content
         return v
@@ -505,6 +513,13 @@ class BatchEmailUpdate(BaseModel):
 
     emailIds: List[int] = Field(alias="email_ids")
     updates: EmailUpdate
+
+    @validator("emailIds")
+    @classmethod
+    def validate_email_ids(cls, v):
+        if not v or len(v) < 1:
+            raise ValueError("emailIds must contain at least one email ID")
+        return v
 
     model_config = ConfigDict(populate_by_name=True)
 

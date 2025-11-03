@@ -1,0 +1,27 @@
+{
+  "description": "Template configuration for this project. See https://www.codebuff.com/config for all options.",
+  "startupProcesses": [
+    {
+      "name": "server",
+      "command": "npm run dev",
+      "enabled": true,
+      "stdoutFile": "logs/server.log"
+    },
+    {
+      "name": "client",
+      "command": "npm run dev",
+      "cwd": "client",
+      "enabled": true,
+      "stdoutFile": "logs/client.log"
+    }
+  ],
+  "fileChangeHooks": [
+    {
+      "name": "typecheck",
+      "command": "npm run check",
+      "filePattern": "**/*.{ts,tsx}",
+      "enabled": true
+    }
+  ],
+  "maxAgentSteps": 25
+}

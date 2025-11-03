@@ -279,6 +279,7 @@ def get_performance_monitor() -> PerformanceMonitor:
     """Get the global performance monitor instance"""
     return performance_monitor
 
+
 def log_performance(operation_or_func=None, *, operation: str = ""):
     """
     A decorator to log the performance of both sync and async functions.

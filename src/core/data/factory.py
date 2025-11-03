@@ -1,4 +1,5 @@
 from .database_source import get_database_data_source
+<<<<<<< HEAD
 from .data_source import DataSource
 
 
@@ -27,6 +28,8 @@ class DataSourceFactory:
         else:
             # Default to database
             return await get_database_data_source()
+=======
+>>>>>>> scientific
 
 
 async def get_data_source():

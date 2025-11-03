@@ -29,7 +29,10 @@ from typing import List, Optional
 
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+<<<<<<< HEAD
 
+=======
+>>>>>>> scientific
 from deployment.test_stages import test_stages
 
 try:
@@ -580,17 +583,27 @@ def start_server_ts():
 # --- Service Startup Functions ---
 def start_backend(host: str, port: int, debug: bool = False):
     # Validate inputs to prevent command injection
+<<<<<<< HEAD
     import ipaddress
     try:
         # Allow localhost, 127.0.0.1, or valid IP addresses
         if host not in ["localhost", "127.0.0.1", "0.0.0.0"]:
             ipaddress.ip_address(host)  # Validates IP format
         if not (1 <= port <= 65535):
+=======
+import ipaddress
+try:
+# Allow localhost, 127.0.0.1, or valid IP addresses
+    if host not in ["localhost", "127.0.0.1", "0.0.0.0"]:
+        ipaddress.ip_address(host)  # Validates IP format
+    if not (1 <= port <= 65535):
+>>>>>>> scientific
             raise ValueError("Port out of range")
     except ValueError as e:
         logger.error(f"Invalid host or port: {e}")
         return
 
+<<<<<<< HEAD
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
     if debug:
@@ -598,6 +611,15 @@ def start_backend(host: str, port: int, debug: bool = False):
     logger.info(f"Starting backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
+=======
+python_exe = get_python_executable()
+cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
+if debug:
+cmd.append("--reload")
+logger.info(f"Starting backend on {host}:{port}")
+process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+process_manager.add_process(process)
+>>>>>>> scientific
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
     """Start a Node.js service."""
@@ -756,7 +778,11 @@ def main():
     # Environment Setup
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> scientific
     parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
     parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
     parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
