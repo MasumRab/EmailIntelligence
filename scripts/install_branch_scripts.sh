@@ -3,7 +3,7 @@
 # Run from launch-setup-fixes
 
 # List of scripts to install
-scripts=("validate_setup.sh" "organize_docs.sh" "sync_setup_worktrees.sh")
+scripts=("validate_setup.sh" "organize_docs.sh" "sync_setup_worktrees.sh" "setup_hooks_and_scripts.sh")
 
 for repo in ../EmailIntelligenceGem ../EmailIntelligenceAuto ../EmailIntelligenceQwen; do
   if [[ -d "$repo" ]]; then
