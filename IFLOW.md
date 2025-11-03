@@ -43,6 +43,145 @@ EmailIntelligence/
 ├── README.md               # Project documentation
 └── ...                     # Other configuration and documentation files
 ```
+```
+
+<<<<<<< HEAD
+=======
+## Building and Running
+
+### Prerequisites
+
+- Python 3.12 or later
+- Node.js 18 or later
+- Git
+
+### Quick Start
+
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd EmailIntelligence
+   ```
+
+2. Install Node.js dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Run the application using the launcher:
+   ```bash
+   # Windows
+   launch.bat --stage dev
+
+   # Linux/macOS
+   ./launch.sh --stage dev
+   ```
+
+This will:
+- Set up the Python virtual environment or conda environment
+- Install Python dependencies using uv
+- Download necessary NLTK data
+- Create placeholder AI model files
+- Start the Python FastAPI server (default: port 8000)
+- Start the React frontend development server (default: port 5173)
+
+### Launcher Usage
+
+The `launch.py` script is the central tool for managing the development environment:
+
+- Setup: `python launch.py --setup`
+- Run all services: `python launch.py`
+- Run specific services:
+  - Backend only: `python launch.py --no-client --no-ui`
+  - Frontend only: `python launch.py --no-backend --no-ui`
+  - Gradio UI only: `python launch.py --no-backend --no-client`
+- Run with conda environment: `python launch.py --conda-env myenv`
+
+## AI Models Setup
+
+**Note:** This documentation describes an aspirational architecture. The current repository contains only documentation and does not include training scripts or AI model implementation.
+
+For a full EmailIntelligence deployment with AI capabilities:
+
+1. Prepare labeled datasets for training (sentiment, topic, intent, urgency classification)
+2. Implement training scripts (e.g., `scripts/train_sentiment_model.py`) to load your data
+3. Train models and save them in the expected directory structure:
+   - `models/sentiment/` - Sentiment analysis models (model.pkl, config.json)
+   - `models/topic/` - Topic classification models
+   - `models/intent/` - Intent recognition models
+   - `models/urgency/` - Urgency detection models
+
+Models should be organized in the `models/` directory with subdirectories for each model type, including both model weights and configuration files.
+
+## Environment Configuration
+
+Key environment variables for a full EmailIntelligence deployment:
+- `DATABASE_URL`: Database connection string (e.g., `sqlite:///emailintelligence.db`)
+- `GMAIL_CREDENTIALS_JSON`: Gmail API credentials JSON content
+- `NLP_MODEL_DIR`: Directory for trained NLP models (default: `models/`)
+- `PORT`: Port for the Python FastAPI server (default: `8000`)
+
+To set these variables, create a `.env` file in the project root:
+```
+DATABASE_URL=sqlite:///emailintelligence.db
+GMAIL_CREDENTIALS_JSON={"installed":{"client_id":"..."}}
+NLP_MODEL_DIR=models/
+PORT=8000
+```
+
+## Development Conventions
+
+### Code Organization
+
+- Backend code is organized in `backend/python_backend/` (legacy) and `backend/python_nlp/` (NLP components)
+- Core application logic is in `src/` with Gradio UI integration
+- Node-based workflow engine in `backend/node_engine/`
+- Modular functionality in `modules/`
+- Frontend code follows standard React patterns in `client/`
+- Tests are located in `tests/`
+- AI models are organized in `models/` directory by type
+
+**Feature Placement Guidance:**
+- New API endpoints and backend services → `backend/python_backend/`
+- NLP analysis components and AI models → `backend/python_nlp/`
+- Core application logic and UI integration → `src/`
+- Workflow nodes and orchestration → `backend/node_engine/`
+- Reusable components and extensions → `modules/`
+- React UI components and pages → `client/`
+- Test files → `tests/` (matching source structure)
+
+### Python Development
+
+- Uses `uv` for Python dependency management based on `pyproject.toml`
+- Code formatting with `black` and `isort`
+- Type checking with `mypy`
+- Testing with `pytest`
+
+### Frontend Development
+
+- Uses Vite for building and development
+- TypeScript for type safety
+- React for UI components
+
+### Testing
+
+- Backend tests use `pytest`
+- Frontend tests use Vitest
+
+### Security Considerations
+
+- Securely manage API keys and credentials
+- Validate and sanitize user inputs
+- Restrict CORS policy in production
+- Ensure sensitive information is not excessively logged
+
+## Gradio UI Structure
+
+The Gradio interface provides an interactive web UI with the following tabs:
+- Simple UI (A): User-friendly interface for running pre-built workflows
+- Visual Editor (B): Node-based workflow editor
+- Admin Dashboard (C): Power-user dashboard for managing models, users, and system performance
+- Workflows: Node engine workflow system
 
 ## iFlow CLI Core Mandates
 

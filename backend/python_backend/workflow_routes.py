@@ -13,12 +13,12 @@ from pydantic import BaseModel, Field
 
 # Import node-based workflow components
 from backend.node_engine.node_base import Workflow as NodeWorkflow
+from backend.node_engine.workflow_engine import WorkflowEngine
 from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+from src.core.auth import get_current_active_user
 
 from .dependencies import get_workflow_engine
-from backend.node_engine.workflow_engine import WorkflowEngine
-from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -67,7 +67,8 @@ async def list_workflows(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Lists all available workflows (both legacy and node-based).
-    Requires authentication."""
+    Requires authentication.
+    """
     try:
         # Get legacy workflows
         legacy_workflows = (
@@ -109,7 +110,8 @@ async def create_workflow(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Creates and persists a new workflow (either legacy or node-based).
-    Requires authentication."""
+    Requires authentication.
+    """
     try:
         if workflow_data.workflow_type == "node_based":
             # Handle node-based workflow creation
@@ -183,7 +185,8 @@ async def get_active_workflow(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Gets information about the currently active workflow.
-    Requires authentication."""
+    Requires authentication.
+    """
     result = {}
 
     # Check for active legacy workflow
@@ -233,9 +236,7 @@ async def set_active_workflow(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to set active workflow: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail="An unexpected error occurred."
-        )
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
 @router.get("/api/workflows/{workflow_name}", response_model=dict)

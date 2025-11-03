@@ -10,23 +10,24 @@ from typing import Generator, AsyncGenerator
 import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import Depends
+# Updated to use the new src architecture where available
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
 from backend.python_backend.database import get_db, DatabaseManager
-from backend.python_backend.model_manager import ModelManager
-from backend.python_backend.ai_engine import AdvancedAIEngine
-from backend.python_nlp.smart_filters import SmartFilterManager
-from backend.python_backend.workflow_engine import WorkflowEngine
-from backend.python_backend.plugin_manager import PluginManager
-from backend.python_nlp.gmail_service import GmailAIService
+from .model_manager import ModelManager
+from .ai_engine import AdvancedAIEngine
+from .smart_filters import SmartFilterManager
+from .workflow_engine import WorkflowEngine
+from src.plugins.plugin_manager import PluginManager
+from .gmail_service import GmailAIService
 
 if TYPE_CHECKING:
-    from backend.python_backend.model_manager import ModelManager
-    from backend.python_backend.ai_engine import AdvancedAIEngine
-from backend.python_nlp.smart_filters import SmartFilterManager
-from backend.python_backend.workflow_engine import WorkflowEngine
-from backend.python_backend.plugin_manager import PluginManager
-from backend.python_nlp.gmail_service import GmailAIService
+    from .model_manager import ModelManager
+    from .ai_engine import AdvancedAIEngine
+    from .smart_filters import SmartFilterManager
+    from .workflow_engine import WorkflowEngine
+    from src.plugins.plugin_manager import PluginManager
+    from .gmail_service import GmailAIService
 
 logger = logging.getLogger(__name__)
 
@@ -218,16 +219,3 @@ def get_gmail_service(
         ai_engine = get_ai_engine()
         _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
-
-async def get_email_service() -> "EmailService":
-    """Provides an EmailService instance"""
-    return EmailService()
-
-async def get_category_service() -> "CategoryService":
-    """Provides a CategoryService instance"""
-    return CategoryService()
-
-async def get_database():
-    """Provides database instance (for existing code that uses direct database access)"""
-    db = await get_db()
-    return db

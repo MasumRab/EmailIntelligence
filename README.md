@@ -26,38 +26,6 @@ The Gradio UI acts as a full-featured client to the FastAPI backend.
 
 ```
 Gradio UI (gradio_app.py)
-==========================
-|
-├── 📈 Dashboard Tab
-|   └── Calls GET /api/dashboard/stats ──> Displays key metrics & charts
-|
-├── 📥 Inbox Tab
-|   ├── Calls GET /api/emails ─────> Displays searchable email list
-|   └── Calls GET /api/categories ─> Populates category filter dropdown
-|
-├── 📧 Gmail Tab
-|   └── Calls POST /api/gmail/sync ──> Triggers Gmail synchronization
-|
-├── 🔬 AI Lab Tab (Advanced Tools)
-|   ├── Analysis Sub-Tab ──────────> Calls POST /api/ai/analyze
-|   └── Model Management Sub-Tab ────> Calls GET/POST /api/models/*
-|
-└── ⚙️ System Status Tab
-    ├── Calls GET /health ───────────> Displays system health
-    └── Calls GET /api/gmail/performance -> Displays performance metrics
-```
-
-## Project Overview
-
-To successfully set up and run EmailIntelligence, you will need the following:
-
-## Prerequisites
-
-To successfully set up and run EmailIntelligence, you will need the following:
-
-- **Python 3.11+**: Required for the backend services
-- **Node.js 16+**: Required for the frontend (optional if running API-only)
-- **Conda (optional)**: For conda environment management (venv is used by default)
 
 You can run any combination of services by using the launcher scripts:
 
@@ -197,26 +165,44 @@ This starts the application in a local development mode. For comprehensive setup
 
 ## Documentation
 
-This project includes comprehensive documentation in the `docs/` directory:
+This project includes comprehensive documentation:
 
-- **[Client Development Guide](docs/client_development.md)**: Information about the frontend application, structure, and development.
-- **[Server Development Guide](docs/server_development.md)**: Details about the backend components, structure, and development.
-- **[Deployment Guide](docs/deployment_guide.md)**: Comprehensive guide covering all deployment environments (local, Docker, staging, production), setup, configuration, deployment strategies, and operational procedures.
-- **[Environment Management Guide](docs/env_management.md)**: Details about the Python environment management system, `launch.py`, and related features.
-- **[Launcher Guide](docs/launcher_guide.md)**: Comprehensive information about the unified launcher system (`launch.py`) and its command-line options.
-- **[Extensions Guide](docs/extensions_guide.md)**: Information on how to use and develop extensions.
-- **[Python Style Guide](docs/python_style_guide.md)**: Coding standards for Python code in the project.
+### Getting Started
+- **[Getting Started Guide](docs/getting_started.md)**: Complete setup guide for new developers (under 30 minutes)
+- **[Quick Start](#quick-start)**: Fast setup for experienced developers
+
+### Development Guides
+- **[Client Development Guide](docs/client_development.md)**: Frontend application structure and development
+- **[Server Development Guide](docs/server_development.md)**: Backend components and development
+- **[Contributing Guide](CONTRIBUTING.md)**: How to contribute to the project
+
+### Architecture & Design
+- **[Architecture Overview](docs/architecture_overview.md)**: System architecture and design principles
+- **[Architecture Decision Records](docs/adr/)**: Key design decisions and their rationale
+- **[API Documentation](http://localhost:8000/docs)**: Interactive API documentation (when running)
+
+### Deployment & Operations
+- **[Deployment Guide](docs/deployment_guide.md)**: All deployment environments and strategies
+- **[Environment Management Guide](docs/env_management.md)**: Python environment management
+- **[Launcher Guide](docs/launcher_guide.md)**: Unified launcher system details
+
+### Development Tools
+- **[Extensions Guide](docs/extensions_guide.md)**: Using and developing extensions
+- **[Python Style Guide](docs/python_style_guide.md)**: Code standards and conventions
+- **[Testing Guide](docs/testing_guide.md)**: Testing strategies and tools
 
 ## Setup
 
 The primary method for setting up EmailIntelligence for development is using the sequence described in the [Quick Start](#quick-start):
 1.  Clone the repository.
-2.  Install Node.js dependencies (`npm install`).
+2.  Install development dependencies:
+    - For Ubuntu/WSL environments, run `./setup_environment_wsl.sh` (requires sudo) to install all necessary system packages and create the Python virtual environment.
+    - For other environments, install Node.js dependencies (`npm install`).
 3.  Set up the PostgreSQL database (e.g., using `npm run db:setup` with Docker or configuring an existing instance).
 4.  Run the unified launcher script (`launch.py` via `launch.bat` or `launch.sh`) with the `--stage dev` flag.
 
 The launcher script (`launch.py`) handles:
-- Python virtual environment creation.
+- Python virtual environment activation (if created with setup_environment_wsl.sh).
 - Python dependency installation from `requirements.txt`.
 - NLTK data download.
 - Creation of placeholder AI model files if they don't exist (this requires follow-up, see below).
@@ -259,7 +245,7 @@ This section details important environment variables used by the application. Th
 *   **`DATABASE_URL`**: Connection string for the database. For SQLite, this might be `sqlite:sqlite.db` or similar if used, though the application may default to a hardcoded path.
 *   **`GMAIL_CREDENTIALS_JSON`**: JSON content of OAuth 2.0 Client ID credentials for Gmail API.
 *   **`credentials.json` (File Alternative)**: Alternative to `GMAIL_CREDENTIALS_JSON`, placed in project root. Ensure this file is in `.gitignore` if used.
-*   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `token.json`). Ensure this file is in `.gitignore`.
+*   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `jsons/token.json`). Ensure this file is in `.gitignore`.
 *   **`NLP_MODEL_DIR`**: Directory for trained NLP models (default: `backend/python_nlp/`).
 *   **`PORT`**: Port for the Python FastAPI server (default: `8000`).
 
