@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
+from src.core.models import ActionItem
 
 
 # Enums
@@ -191,7 +192,6 @@ class AIAnalysisResponse(BaseModel):
     actionItems: List[ActionItem] = Field(default_factory=list)
     categoryId: Optional[int] = None
     isImportant: bool = False
-    actionItems: List[ActionItem] = Field(default_factory=list)
 
     class Config:
         allow_population_by_field_name = True
