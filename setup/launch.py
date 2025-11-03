@@ -8,10 +8,18 @@ Gradio UI, and Node.js services. It uses 'uv' for Python dependency management
 based on pyproject.toml.
 
 Usage:
-    python launch.py [arguments]
+    python launch.py [command] [arguments]
+
+Commands:
+    setup    Set up the environment (virtual environment, dependencies, etc.)
+    run      Run the EmailIntelligence application
+    test     Run tests with optional coverage reporting
+
+For backward compatibility, the old argument style is still supported.
 """
 
 import argparse
+import asyncio
 import atexit
 import logging
 import os
@@ -29,7 +37,10 @@ from typing import List, Optional
 
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from deployment.test_stages import test_stages
+
+# Import new modular components
+from src.core.commands.command_factory import get_command_factory
+from src.core.container import initialize_services, initialize_all_services, cleanup_all_services
 
 try:
     from dotenv import load_dotenv
@@ -578,13 +589,14 @@ def start_server_ts():
 
 # --- Service Startup Functions ---
 def start_backend(host: str, port: int, debug: bool = False):
+    """Start the backend service."""
     # Validate inputs to prevent command injection
-import ipaddress
-try:
-# Allow localhost, 127.0.0.1, or valid IP addresses
-    if host not in ["localhost", "127.0.0.1", "0.0.0.0"]:
-        ipaddress.ip_address(host)  # Validates IP format
-    if not (1 <= port <= 65535):
+    try:
+        # Allow localhost, 127.0.0.1, or valid IP addresses
+        if host not in ["localhost", "127.0.0.1", "0.0.0.0"]:
+            import ipaddress
+            ipaddress.ip_address(host)  # Validates IP format
+        if not (1 <= port <= 65535):
             raise ValueError("Port out of range")
     except ValueError as e:
         logger.error(f"Invalid host or port: {e}")
@@ -749,72 +761,153 @@ def print_system_info():
         exists = (ROOT_DIR / cf).exists()
         print(f"{cf}: {'Found' if exists else 'Not found'}")
 
-def main():
-    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
+async def main_async():
+    """Main entry point with async support for new Command pattern."""
+    # Initialize services
+    initialize_services()
 
-    # Environment Setup
-    parser.add_argument("--setup", action="store_true", help="Run environment setup.")
-    parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
-    
-    parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
-    parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
-    parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
-    parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching.")
-    parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test for PyTorch.")
-    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
-    parser.add_argument("--skip-python-version-check", action="store_true", help="Skip Python version check.")
-    parser.add_argument("--no-download-nltk", action="store_true", help="Skip downloading NLTK data.")
-    parser.add_argument("--skip-prepare", action="store_true", help="Skip all environment preparation steps.")
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="EmailIntelligence Unified Launcher",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python launch.py setup                    # Set up environment
+  python launch.py run                      # Run all services
+  python launch.py test --coverage          # Run tests with coverage
+  python launch.py --setup                  # Legacy setup mode
+  python launch.py --port 8001              # Legacy run mode
+        """
+    )
+
+    # Add subcommands for new Command pattern
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Setup command
+    setup_parser = subparsers.add_parser('setup', help='Set up the environment')
+    setup_parser.add_argument('--recreate-venv', action='store_true', help='Recreate virtual environment')
+    setup_parser.add_argument('--use-poetry', action='store_true', help='Use Poetry instead of uv/pip')
+    setup_parser.add_argument('--skip-nltk', action='store_true', help='Skip NLTK data download')
+
+    # Run command
+    run_parser = subparsers.add_parser('run', help='Run the application')
+    run_parser.add_argument('--backend-only', action='store_true', help='Run only backend')
+    run_parser.add_argument('--ui-only', action='store_true', help='Run only UI')
+    run_parser.add_argument('--api-only', action='store_true', help='Run only API')
+    run_parser.add_argument('--host', default='127.0.0.1', help='Host to bind to')
+    run_parser.add_argument('--backend-port', type=int, default=8000, help='Backend port')
+    run_parser.add_argument('--gradio-port', type=int, default=7860, help='Gradio UI port')
+    run_parser.add_argument('--node-port', type=int, default=3000, help='Node.js API port')
+    run_parser.add_argument('--no-health-check', action='store_true', help='Disable health monitoring')
+    run_parser.add_argument('--detach', action='store_true', help='Run in background')
+
+    # Test command
+    test_parser = subparsers.add_parser('test', help='Run tests')
+    test_parser.add_argument('--coverage', action='store_true', help='Generate coverage report')
+    test_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    test_parser.add_argument('--fail-fast', '-x', action='store_true', help='Stop on first failure')
+    test_parser.add_argument('--pattern', '-k', help='Run tests matching pattern')
+
+    # Legacy arguments for backward compatibility
+    parser.add_argument("--setup", action="store_true", help="Run environment setup (legacy).")
+    parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv (legacy).")
+    parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv (legacy).")
+    parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name (legacy).")
+    parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment (legacy).")
+    parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching (legacy).")
+    parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test (legacy).")
+    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch (legacy).")
+    parser.add_argument("--skip-python-version-check", action="store_true", help="Skip Python version check (legacy).")
+    parser.add_argument("--no-download-nltk", action="store_true", help="Skip downloading NLTK data (legacy).")
+    parser.add_argument("--skip-prepare", action="store_true", help="Skip all environment preparation steps (legacy).")
     parser.add_argument("--loglevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help="Set the logging level.")
-
-    # Application Stage
-    parser.add_argument("--stage", choices=['dev', 'test'], default='dev', help="Specify the application mode.")
-
-    # Server Configuration
-    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
-    parser.add_argument("--frontend-port", type=int, default=5173, help="Specify the frontend port to run on.")
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
-    parser.add_argument("--api-only", action="store_true", help="Run only the API server without the frontend.")
-    parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server.")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
-
-    # Testing Options
-    parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests.")
-    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
-    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
-    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
-    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
-    parser.add_argument("--security", action="store_true", help="Run security tests.")
-
-    # Extensions and Models
-    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
-    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
-    parser.add_argument("--install-extension", type=str, help="Install an extension from a Git repository.")
-    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension.")
-    parser.add_argument("--update-extension", type=str, help="Update an extension.")
-    parser.add_argument("--list-extensions", action="store_true", help="List all extensions.")
-    parser.add_argument("--create-extension", type=str, help="Create a new extension template.")
-    parser.add_argument("--download-model", type=str, help="Download a model from a URL.")
-    parser.add_argument("--model-name", type=str, help="Specify the model name for download.")
-    parser.add_argument("--list-models", action="store_true", help="List all models.")
-    parser.add_argument("--delete-model", type=str, help="Delete a model.")
-
-    # Advanced Options
-    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models.")
-    parser.add_argument("--force-cpu", action="store_true", help="Force CPU mode even if GPU is available.")
-    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode.")
-    parser.add_argument("--system-info", action="store_true", help="Print detailed system, Python, and project configuration information then exit.")
-
-    # Networking Options
-    parser.add_argument("--share", action="store_true", help="Create a public URL.")
-    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
-    parser.add_argument("--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region.")
-
-    # Environment Configuration
-    parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
+    parser.add_argument("--stage", choices=['dev', 'test'], default='dev', help="Specify the application mode (legacy).")
+    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on (legacy).")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on (legacy).")
+    parser.add_argument("--frontend-port", type=int, default=5173, help="Specify the frontend port (legacy).")
+    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend (legacy).")
+    parser.add_argument("--api-only", action="store_true", help="Run only the API server (legacy).")
+    parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend (legacy).")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode (legacy).")
+    parser.add_argument("--coverage", action="store_true", help="Generate coverage report (legacy).")
+    parser.add_argument("--unit", action="store_true", help="Run unit tests (legacy).")
+    parser.add_argument("--integration", action="store_true", help="Run integration tests (legacy).")
+    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests (legacy).")
+    parser.add_argument("--performance", action="store_true", help="Run performance tests (legacy).")
+    parser.add_argument("--security", action="store_true", help="Run security tests (legacy).")
+    parser.add_argument("--system-info", action="store_true", help="Print system information (legacy).")
 
     args = parser.parse_args()
+
+    # Setup basic environment
+    setup_wsl_environment()
+    check_wsl_requirements()
+
+    if not args.skip_python_version_check:
+        check_python_version()
+
+    logging.getLogger().setLevel(args.loglevel)
+
+    # Load environment variables
+    if DOTENV_AVAILABLE:
+        user_env_file = ROOT_DIR / "launch-user.env"
+        if user_env_file.exists():
+            load_dotenv(user_env_file)
+            logger.info(f"Loaded user environment variables from {user_env_file}")
+
+        env_file = getattr(args, 'env_file', None) or ".env"
+        if os.path.exists(env_file):
+            load_dotenv(env_file)
+
+    # Determine which execution path to take
+    if args.command:
+        # New Command pattern path
+        await execute_command(args.command, args)
+    else:
+        # Legacy backward compatibility path
+        await execute_legacy_mode(args)
+
+
+async def execute_command(command_name: str, args):
+    """Execute a command using the new Command pattern."""
+    try:
+        # Initialize all services
+        await initialize_all_services()
+
+        # Get command factory and create command
+        factory = get_command_factory()
+        command = factory.create_command(command_name, args)
+
+        if not command:
+            logger.error(f"Unknown command: {command_name}")
+            logger.info("Available commands:")
+            for name, cls in factory.get_available_commands().items():
+                logger.info(f"  {name}: {cls().description}")
+            sys.exit(1)
+
+        # Execute command
+        result = await command.execute()
+
+        # Handle result
+        if result.success:
+            if result.data:
+                logger.info(f"Command completed: {result.message}")
+            else:
+                logger.info(result.message)
+        else:
+            logger.error(f"Command failed: {result.message}")
+            sys.exit(result.exit_code)
+
+    except Exception as e:
+        logger.error(f"Command execution failed: {e}")
+        sys.exit(1)
+    finally:
+        await cleanup_all_services()
+
+
+async def execute_legacy_mode(args):
+    """Execute in legacy mode for backward compatibility."""
+    logger.info("Running in legacy compatibility mode")
 
     # Setup WSL environment if applicable (early setup)
     setup_wsl_environment()
@@ -824,28 +917,6 @@ def main():
         check_python_version()
 
     logging.getLogger().setLevel(args.loglevel)
-
-    if DOTENV_AVAILABLE:
-        # Load user customizations from launch-user.env if it exists
-        user_env_file = ROOT_DIR / "launch-user.env"
-        if user_env_file.exists():
-            load_dotenv(user_env_file)
-            logger.info(f"Loaded user environment variables from {user_env_file}")
-        else:
-            logger.debug(f"User env file not found: {user_env_file}")
-
-        # Load environment file if specified
-        env_file = args.env_file or ".env"
-        if os.path.exists(env_file):
-            logger.info(f"Loading environment variables from {env_file}")
-            load_dotenv(env_file)
-
-    # Set conda environment name if specified
-    global CONDA_ENV_NAME
-    if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
-        CONDA_ENV_NAME = args.conda_env
-        args.use_conda = True  # Set flag when conda env is specified
-    # args.use_conda remains as set by command line argument
 
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
@@ -900,6 +971,17 @@ def main():
         logger.info("Shutdown signal received.")
     finally:
         process_manager.cleanup()
+
+
+def main():
+    """Main entry point - wraps async main for compatibility."""
+    try:
+        asyncio.run(main_async())
+    except KeyboardInterrupt:
+        logger.info("Interrupted by user")
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
