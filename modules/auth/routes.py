@@ -6,25 +6,33 @@ This module provides authentication endpoints for the new modular architecture.
 
 import logging
 from datetime import timedelta
-from typing import Dict
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-<<<<<<< HEAD
-from src.core.auth import authenticate_user, create_access_token, create_user, get_current_active_user
-from src.core.database import get_db
-from ..backend.python_backend.settings import settings
-=======
 from src.core.auth import authenticate_user, create_access_token, create_user, get_current_active_user, hash_password, TokenData, require_role, UserRole
 from src.core.factory import get_data_source
 from src.core.data_source import DataSource
 from src.core.mfa import get_mfa_service
 from src.core.settings import settings
->>>>>>> scientific
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# MFA Models
+class MFASetupResponse(BaseModel):
+    """Response model for MFA setup endpoint"""
+    secret: str
+    qr_code: str
+    backup_codes: List[str]
+
+
+class EnableMFARequest(BaseModel):
+    """Request model for enabling MFA"""
+    token: str
 
 
 class UserLogin(BaseModel):
@@ -35,6 +43,8 @@ class UserLogin(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
+    role: Optional[UserRole] = UserRole.USER
+    permissions: Optional[List[str]] = []
 
 
 class Token(BaseModel):
@@ -62,8 +72,6 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-<<<<<<< HEAD
-=======
 @router.post("/mfa/setup", response_model=MFASetupResponse)
 async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
     """Setup MFA for the current user"""
@@ -185,13 +193,9 @@ async def disable_mfa(
     return {"message": "MFA disabled successfully"}
 
 
->>>>>>> scientific
 @router.post("/register", response_model=Token)
 async def register(user_data: UserCreate, db: DataSource = Depends(get_data_source)):
     """Register a new user"""
-<<<<<<< HEAD
-    db = await get_db()
-=======
     user_dict = {
         "username": user_data.username,
         "hashed_password": hash_password(user_data.password),
@@ -201,7 +205,6 @@ async def register(user_data: UserCreate, db: DataSource = Depends(get_data_sour
         "mfa_secret": None,
         "mfa_backup_codes": []
     }
->>>>>>> scientific
     success = await create_user(user_data.username, user_data.password, db)
     
     if not success:
