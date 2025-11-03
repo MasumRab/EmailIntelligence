@@ -1,0 +1,2 @@
+class SmartFilterManager:
+    pass

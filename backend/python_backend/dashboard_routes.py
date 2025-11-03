@@ -9,10 +9,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 
-from .models import DashboardStats, WeeklyGrowth
-from .database import get_db, DatabaseManager
-from .dependencies import get_email_service
-from .services.email_service import EmailService
+from src.core.models import DashboardStats, WeeklyGrowth
+from src.core.data_source import DataSource
+from src.core.factory import get_data_source
 from src.core.auth import get_current_active_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -20,7 +19,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_dashboard_stats(
-    email_service: EmailService = Depends(get_email_service),
+    db: DataSource = Depends(get_data_source),
     current_user: str = Depends(get_current_active_user)
 ):
     """
@@ -32,13 +31,13 @@ async def get_dashboard_stats(
     """
     try:
         # Get total emails count
-        total_emails = await email_service.get_total_emails_count()
+        total_emails = await db.get_total_emails_count()
         
         # Get auto-labeled emails count
-        auto_labeled = await email_service.get_auto_labeled_count()
+        auto_labeled = await db.get_auto_labeled_count()
         
         # Get categories count
-        categories_count = await email_service.get_categories_count()
+        categories_count = await db.get_categories_count()
         
         # Calculate time saved (example calculation - would need actual implementation)
         # Assuming 2 minutes saved per auto-labeled email
@@ -48,7 +47,7 @@ async def get_dashboard_stats(
         time_saved = f"{time_saved_hours}h {time_saved_remaining_minutes}m"
         
         # Calculate weekly growth (example implementation)
-        weekly_growth = await email_service.get_weekly_growth()
+        weekly_growth = await db.get_weekly_growth()
         
         stats = DashboardStats(
             total_emails=total_emails,
