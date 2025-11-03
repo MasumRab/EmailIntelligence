@@ -568,13 +568,13 @@ def start_server_ts():
         return None
 
     # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "server" / "package.json"
+    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
     if not pkg_json_path.exists():
-        logger.debug("No package.json in 'server/', skipping TypeScript backend server startup.")
+        logger.debug("No package.json in 'backend/server-ts/', skipping TypeScript backend server startup.")
         return None
 
     # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "server" / "node_modules"
+    node_modules_path = ROOT_DIR / "backend" / "server-ts" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
 
