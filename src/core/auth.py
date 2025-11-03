@@ -6,7 +6,11 @@ core architecture and database management system.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict, Any, List
+import hashlib
+import secrets
+from argon2 import PasswordHasher
+
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -14,8 +18,13 @@ from pydantic import BaseModel
 import hashlib
 import secrets
 
-from .database import get_db, DatabaseManager
-from .security import DataSanitizer
+from .database import get_db
+from .settings import settings
+
+# Import the security framework components
+from .security import SecurityContext, Permission, SecurityLevel
+
+logger = logging.getLogger(__name__)
 
 
 class TokenData(BaseModel):
@@ -151,6 +160,96 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
+def hash_password(password: str) -> str:
+    """
+    Hash a password using Argon2.
+
+    Args:
+        password: Plain text password
+
+    Returns:
+        Argon2 hashed password (including salt and parameters)
+    """
+    ph = PasswordHasher()
+    return ph.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify a plain password against an Argon2-hashed password.
+
+    Args:
+        plain_password: Plain text password
+        hashed_password: Argon2 hashed password
+
+    Returns:
+        True if passwords match, False otherwise
+    """
+    ph = PasswordHasher()
+    try:
+        return ph.verify(hashed_password, plain_password)
+    except Exception:
+        # Verification failed (wrong password, corrupted hash, etc.)
+        return False
+
+
+async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
+    """
+    Authenticate a user by username and password.
+    
+    Args:
+        username: Username to authenticate
+        password: Password to verify
+        db: Database connection
+        
+    Returns:
+        User data if authentication is successful, None otherwise
+    """
+    try:
+        # Try to get user from database
+        user_data = await db.get_user_by_username(username)
+        if user_data and verify_password(password, user_data.get("hashed_password", "")):
+            return user_data
+        return None
+    except Exception as e:
+        logger.error(f"Error authenticating user {username}: {e}")
+        return None
+
+
+async def create_user(username: str, password: str, db) -> bool:
+    """
+    Create a new user in the database.
+    
+    Args:
+        username: Username for the new user
+        password: Password for the new user
+        db: Database connection
+        
+    Returns:
+        True if user was created successfully, False if user already exists or on error
+    """
+    try:
+        # Check if user already exists
+        existing_user = await db.get_user_by_username(username)
+        if existing_user:
+            return False
+            
+        # Hash the password
+        hashed_password = hash_password(password)
+        
+        # Create user in database
+        user_data = {
+            "username": username,
+            "hashed_password": hashed_password
+        }
+        
+        await db.create_user(user_data)
+        return True
+    except Exception as e:
+        logger.error(f"Error creating user {username}: {e}")
+        return False
+
+
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> TokenData:
@@ -224,4 +323,43 @@ def create_authentication_middleware():
     This is a placeholder function that could be expanded to implement
     custom authentication middleware if needed.
     """
-    pass
+    def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
+        # In a real implementation, you would check the user's actual role from the database
+        # For now, we'll check the role from the token
+        if token_data.role not in [role.value for role in required_roles]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required."
+            )
+        return token_data
+    return role_checker
+
+
+def create_security_context_for_user(username: str) -> SecurityContext:
+    """
+    Create a security context for an authenticated user.
+    
+    This integrates with the existing security framework.
+    
+    Args:
+        username: Username of the authenticated user
+        
+    Returns:
+        SecurityContext for the user
+    """
+    # In a production system, you would fetch user permissions from the database
+    # For now, we'll give standard permissions
+    permissions = [Permission.READ, Permission.WRITE]
+    
+    # Create a session token (in a real system, this would be linked to the JWT)
+    session_token = secrets.token_urlsafe(32)
+    
+    context = SecurityContext(
+        user_id=username,
+        permissions=permissions,
+        security_level=SecurityLevel.INTERNAL,
+        session_id=session_token,
+        allowed_resources=["*"],  # All resources allowed for now
+    )
+    
+    return context

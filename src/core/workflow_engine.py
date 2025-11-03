@@ -1,161 +1,16 @@
-import logging
-import time
-import psutil  # For memory monitoring
-from typing import Any, Callable, Dict, List, Optional
-import networkx as nx
-from enum import Enum
-
-logger = logging.getLogger(__name__)
-
-
-class NodeExecutionStatus(Enum):
-    """Status of node execution"""
-    PENDING = "pending"
-    RUNNING = "running"
-    SUCCESS = "success"
-    FAILED = "failed"
-    SKIPPED = "skipped"
-
-
-class Node:
-    """
-    Represents a single node in a processing workflow.
-
-    Each node encapsulates a specific operation, such as fetching an email,
-    analyzing its sentiment, or applying a category. Nodes define their
-    required inputs and the outputs they produce.
-    """
-
-    def __init__(
-        self, node_id: str, name: str, operation: Callable, inputs: List[str], outputs: List[str],
-        failure_strategy: str = "stop", conditional_expression: Optional[str] = None
-    ):
-        self.node_id = node_id
-        self.name = name
-        self.operation = operation
-        self.inputs = inputs
-        self.outputs = outputs
-        self.failure_strategy = failure_strategy  # "stop", "continue", or "retry"
-        self.conditional_expression = conditional_expression  # Optional conditional for execution
-        self.status = NodeExecutionStatus.PENDING
-
-    def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Executes the node's operation using the provided context.
-        """
-        self.status = NodeExecutionStatus.RUNNING
-
-        try:
-            # Prepare the arguments for the operation from the context
-            args = [context[key] for key in self.inputs]
-
-            # Execute the operation
-            result = self.operation(*args)
-
-            # If the node produces multiple outputs, we expect the operation
-            # to return a tuple. Otherwise, a single value.
-            if len(self.outputs) == 1:
-                node_result = {self.outputs[0]: result}
-            else:
-                node_result = {name: value for name, value in zip(self.outputs, result)}
-
-            self.status = NodeExecutionStatus.SUCCESS
-            return node_result
-
-        except Exception as e:
-            self.status = NodeExecutionStatus.FAILED
-            logger.error(f"Error executing node '{self.name}' ({self.node_id}): {e}", exc_info=True)
-            raise
-
-
-class Workflow:
-    """
-    Represents a processing workflow as a directed acyclic graph (DAG) of nodes.
-    """
-
-    def __init__(self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]):
-        self.name = name
-        self.nodes = nodes
-        self.connections = connections  # List of connections in the format {"from": {"node_id": str, "output": str}, "to": {"node_id": str, "input": str}}
-
-    def to_graph(self) -> nx.DiGraph:
-        """
-        Convert workflow to a NetworkX directed graph for topological analysis.
-        """
-        graph = nx.DiGraph()
-
-        # Add nodes to the graph
-        for node_id in self.nodes:
-            graph.add_node(node_id)
-
-        # Add edges based on connections
-        for conn in self.connections:
-            source_node_id = conn["from"]["node_id"]
-            target_node_id = conn["to"]["node_id"]
-            graph.add_edge(source_node_id, target_node_id)
-
-        return graph
-
-    def get_execution_order(self) -> List[str]:
-        """
-        Get the execution order of nodes based on dependencies using topological sort.
-        """
-        graph = self.to_graph()
-
-        try:
-            # Use topological sort to determine execution order
-            execution_order = list(nx.topological_sort(graph))
-            return execution_order
-        except nx.NetworkXUnfeasible:
-            # If there's a cycle, raise an error
-            raise ValueError("Workflow contains cycles, which are not allowed")
-
-    def validate(self) -> (bool, List[str]):
-        """
-        Validate the workflow before execution.
-        Returns a tuple of (is_valid, list_of_errors).
-        """
-        errors = []
-
-        # Check that all nodes have unique IDs
-        node_ids = list(self.nodes.keys())
-        if len(node_ids) != len(set(node_ids)):
-            errors.append("Duplicate node IDs found in workflow")
-
-        # Check that all connections reference valid nodes
-        for i, conn in enumerate(self.connections):
-            from_node_id = conn["from"]["node_id"]
-            to_node_id = conn["to"]["node_id"]
-
-            if from_node_id not in self.nodes:
-                errors.append(f"Connection {i}: Source node '{from_node_id}' does not exist")
-            if to_node_id not in self.nodes:
-                errors.append(f"Connection {i}: Target node '{to_node_id}' does not exist")
-
-        # Check for cycles using the topological sort
-        try:
-            self.get_execution_order()
-        except ValueError as e:
-            errors.append(str(e))
-
-        # Check that inputs and outputs are properly connected
-        for conn in self.connections:
-            from_node_id = conn["from"]["node_id"]
-            to_node_id = conn["to"]["node_id"]
-            expected_output = conn["from"]["output"]
-            expected_input = conn["to"]["input"]
-
-            # Check if the output exists in the source node
-            if from_node_id in self.nodes:
-                source_node = self.nodes[from_node_id]
-                if expected_output not in source_node.outputs:
-                    errors.append(f"Connection from {from_node_id} to {to_node_id}: Output '{expected_output}' does not exist in source node")
+                    errors.append(
+                        f"Connection from {from_node_id} to {to_node_id}: "
+                        f"Output '{expected_output}' does not exist in source node"
+                    )
 
             # Check if the input exists in the target node
             if to_node_id in self.nodes:
                 target_node = self.nodes[to_node_id]
                 if expected_input not in target_node.inputs:
-                    errors.append(f"Connection from {from_node_id} to {to_node_id}: Input '{expected_input}' does not exist in target node")
+                    errors.append(
+                        f"Connection from {from_node_id} to {to_node_id}: "
+                        f"Input '{expected_input}' does not exist in target node"
+                    )
 
         return len(errors) == 0, errors
 
@@ -330,7 +185,10 @@ class WorkflowRunner:
                     self.execution_stats["retries_performed"] += 1
 
                     if retry_count <= self.max_retries:
-                        logger.warning(f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}")
+                        logger.warning(
+                            f"Node {node.name} failed, retrying "
+                            f"({retry_count}/{self.max_retries}): {str(e)}"
+                        )
                     else:
                         error_msg = f"Node {node.name} ({node_id}) failed after {self.max_retries} retries: {str(e)}"
                         logger.error(error_msg, exc_info=True)
@@ -357,7 +215,9 @@ class WorkflowRunner:
                 for node_to_cleanup in cleanup_schedule[node_id]:
                     if node_to_cleanup in self.node_results:
                         del self.node_results[node_to_cleanup]
-                        logger.debug(f"Cleaned up results for node {node_to_cleanup} to optimize memory")
+                        logger.debug(
+                            f"Cleaned up results for node " f"{node_to_cleanup} to optimize memory"
+                        )
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
         """Execute workflow nodes in parallel where possible"""
@@ -443,11 +303,16 @@ class WorkflowRunner:
                 for node_id in completed_nodes.copy():  # Use copy to avoid mutation during iteration
                     if node_id in cleanup_schedule:
                         for node_to_cleanup in cleanup_schedule[node_id]:
-                            if (node_to_cleanup in self.node_results and
-                                node_to_cleanup not in running_tasks and
-                                node_to_cleanup not in ready_nodes):
+                            if (
+                                node_to_cleanup in self.node_results
+                                and node_to_cleanup not in running_tasks
+                                and node_to_cleanup not in ready_nodes
+                            ):
                                 del self.node_results[node_to_cleanup]
-                                logger.debug(f"Cleaned up results for node {node_to_cleanup} to optimize memory")
+                                logger.debug(
+                                    f"Cleaned up results for node "
+                                    f"{node_to_cleanup} to optimize memory"
+                                )
 
     async def _execute_single_node(self, node_id: str):
         """Execute a single node asynchronously"""
@@ -479,7 +344,10 @@ class WorkflowRunner:
                 self.execution_stats["retries_performed"] += 1
 
                 if retry_count <= self.max_retries:
-                    logger.warning(f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}")
+                    logger.warning(
+                        f"Node {node.name} failed, retrying "
+                        f"({retry_count}/{self.max_retries}): {str(e)}"
+                    )
                 else:
                     raise e  # Re-raise the exception after max retries
 
@@ -643,3 +511,5 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
+=======
+>>>>>>> origin/main
