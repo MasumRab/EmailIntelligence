@@ -31,6 +31,7 @@ from .enhanced_error_reporting import (
     ErrorCategory, 
     create_error_context
 )
+from .security import PathValidator, validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,18 @@ class NotmuchDataSource(DataSource):
     """
 
     def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path
+        # Validate the database path for security if provided
+        if db_path is not None:
+            try:
+                # Use the PathValidator to validate and resolve the database path
+                validated_path = PathValidator.validate_and_resolve_db_path(db_path)
+                self.db_path = str(validated_path)
+            except ValueError as e:
+                logger.error(f"Invalid database path provided: {e}")
+                self.db_path = None
+        else:
+            self.db_path = None
+            
         self.notmuch_db = None
         self._initialized = False
         self.db = None
@@ -55,7 +67,7 @@ class NotmuchDataSource(DataSource):
         # Initialize Notmuch database if the notmuch module is available
         if NOTMUCH_AVAILABLE:
             try:
-                self.notmuch_db = notmuch.Database(db_path) if db_path else notmuch.Database()
+                self.notmuch_db = notmuch.Database(self.db_path) if self.db_path else notmuch.Database()
             except Exception as e:
                 logger.error(f"Error initializing notmuch database: {e}")
                 self.notmuch_db = None
@@ -69,7 +81,15 @@ class NotmuchDataSource(DataSource):
 
         if self.notmuch_db is None:
             try:
-                self.notmuch_db = notmuch.Database(self.db_path)
+                # Validate the database path before opening
+                if self.db_path is not None:
+                    validated_path = PathValidator.validate_and_resolve_db_path(self.db_path)
+                    self.notmuch_db = notmuch.Database(str(validated_path))
+                else:
+                    self.notmuch_db = notmuch.Database()
+            except ValueError as e:
+                logger.error(f"Invalid database path: {e}")
+                self.notmuch_db = None
             except Exception as e:
                 logger.error(f"Error opening notmuch database: {e}")
                 self.notmuch_db = None
