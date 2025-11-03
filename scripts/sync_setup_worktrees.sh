@@ -1,5 +1,6 @@
 #!/bin/bash
-# Script to synchronize setup files between worktrees
+# Script to update all local worktrees with the latest orchestration tools and setup files.
+# This script should be part of the 'orchestration-tools' branch.
 
 # Colors
 RED='\033[0;31m'
@@ -11,21 +12,16 @@ NC='\033[0m'
 # Function to print usage
 print_usage() {
     echo "Usage: $0 [OPTIONS]"
-    echo "Synchronize setup files between worktrees"
+    echo "Update all local worktrees with the latest orchestration tools and setup files."
     echo ""
     echo "Options:"
     echo "  --help, -h     Show this help message"
-    echo "  --dry-run      Show what would be synchronized without making changes"
+    echo "  --dry-run      (Not fully implemented for git pull, but can show worktrees)"
     echo "  --verbose, -v  Enable verbose output"
-    echo ""
-    echo "Examples:"
-    echo "  $0                 # Synchronize setup files"
-    echo "  $0 --dry-run       # Show what would be synchronized"
-    echo "  $0 --verbose       # Synchronize with verbose output"
 }
 
-# Function to sync setup files from launch-setup-fixes to other worktrees
-sync_setup_files() {
+# Function to update all local worktrees
+update_all_worktrees() {
     local dry_run=false
     local verbose=false
     
@@ -52,124 +48,55 @@ sync_setup_files() {
         esac
     done
     
-    # Check if we're in the right directory
-    if [[ ! -d ".git" ]]; then
-        echo -e "${RED}Error: Not in a git repository${NC}"
+    local REPO_ROOT=$(git rev-parse --show-toplevel)
+    if [[ -z "$REPO_ROOT" ]]; then
+        echo -e "${RED}Error: Not in a git repository.${NC}"
         exit 1
     fi
+
+    echo -e "${BLUE}Updating all local worktrees from remote 'orchestration-tools' branch...${NC}"
     
-    # Check if worktrees directory exists
-    if [[ ! -d "worktrees" ]]; then
-        echo -e "${YELLOW}Warning: No worktrees directory found${NC}"
-        exit 0
-    fi
-    
-    # Check if launch-setup-fixes worktree exists
-    if [[ ! -d "worktrees/launch-setup-fixes" ]]; then
-        echo -e "${YELLOW}Warning: launch-setup-fixes worktree not found${NC}"
-        exit 0
-    fi
-    
-    # Check if setup directory exists in launch-setup-fixes worktree
-    if [[ ! -d "worktrees/launch-setup-fixes/setup" ]]; then
-        echo -e "${YELLOW}Warning: setup directory not found in launch-setup-fixes worktree${NC}"
-        exit 0
-    fi
-    
-    echo -e "${BLUE}Synchronizing setup files...${NC}"
-    
-    # List of files to synchronize
-    local setup_files=(
-        ".env.example"
-        "launch.bat"
-        "launch.py"
-        "launch.sh"
-        "pyproject.toml"
-        "README.md"
-        "requirements-dev.txt"
-        "requirements.txt"
-        "setup_environment_system.sh"
-        "setup_environment_wsl.sh"
-        "setup_python.sh"
-    )
-    
-    # Counter for synchronized files
-    local synced_count=0
+    local worktree_list=$(git worktree list --porcelain | grep 'worktree ' | cut -d' ' -f2)
+    local updated_count=0
     local skipped_count=0
-    
-    # Synchronize to other worktrees
-    for worktree in worktrees/*/; do
-        # Skip launch-setup-fixes worktree (source)
-        if [[ "$(basename "$worktree")" == "launch-setup-fixes" ]]; then
+
+    if [[ -z "$worktree_list" ]]; then
+        echo -e "${YELLOW}No additional worktrees found.${NC}"
+        exit 0
+    fi
+
+    for worktree_path in $worktree_list;
+    do
+        local worktree_name=$(basename "$worktree_path")
+        echo -e "${BLUE}Processing worktree: $worktree_name (${worktree_path})${NC}"
+
+        if [[ "$dry_run" == true ]]; then
+            echo -e "${BLUE}[DRY RUN] Would perform 'git pull' in $worktree_name${NC}"
+            ((skipped_count++))
             continue
         fi
-        
-        # Skip docs worktrees (docs-main, docs-scientific) as they're for documentation only
-        if [[ "$(basename "$worktree")" == "docs-main" ]] || [[ "$(basename "$worktree")" == "docs-scientific" ]]; then
-            if [[ "$verbose" == true ]]; then
-                echo -e "${BLUE}Skipping docs worktree: $worktree${NC}"
-            fi
-            continue
+
+        # Navigate into the worktree and perform git pull
+        (cd "$worktree_path" && git pull)
+        local pull_status=$?
+
+        if [[ $pull_status -eq 0 ]]; then
+            echo -e "${GREEN}Successfully pulled in $worktree_name. Post-merge hook should have updated tools/setup files.${NC}"
+            ((updated_count++))
+        else
+            echo -e "${RED}Failed to pull in $worktree_name. Please check for conflicts or uncommitted changes.${NC}"
+            ((skipped_count++))
         fi
-        
-        # Skip if not a directory
-        if [[ ! -d "$worktree" ]]; then
-            continue
+
+        if [[ "$verbose" == true ]]; then
+            echo -e "${BLUE}--- End of processing for $worktree_name ---${NC}"
         fi
-        
-        # Create setup directory if it doesn't exist
-        if [[ ! -d "$worktree/setup" ]]; then
-            if [[ "$dry_run" == false ]]; then
-                mkdir -p "$worktree/setup"
-                echo -e "${GREEN}Created setup directory in $worktree${NC}"
-            else
-                echo -e "${BLUE}[DRY RUN] Would create setup directory in $worktree${NC}"
-            fi
-        fi
-        
-        # Synchronize each setup file
-        for file in "${setup_files[@]}"; do
-            local source_file="worktrees/launch-setup-fixes/setup/$file"
-            local dest_file="$worktree/setup/$file"
-            
-            # Check if source file exists
-            if [[ ! -f "$source_file" ]]; then
-                if [[ "$verbose" == true ]]; then
-                    echo -e "${YELLOW}Skipping $file (not found in source)${NC}"
-                fi
-                continue
-            fi
-            
-            # Check if destination file exists and is different
-            local should_copy=true
-            if [[ -f "$dest_file" ]]; then
-                if cmp -s "$source_file" "$dest_file"; then
-                    should_copy=false
-                    if [[ "$verbose" == true ]]; then
-                        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
-                    fi
-                fi
-            fi
-            
-            # Copy file if needed
-            if [[ "$should_copy" == true ]]; then
-                if [[ "$dry_run" == false ]]; then
-                    cp "$source_file" "$dest_file"
-                    echo -e "${GREEN}Copied $file to $worktree${NC}"
-                else
-                    echo -e "${BLUE}[DRY RUN] Would copy $file to $worktree${NC}"
-                fi
-                ((synced_count++))
-            else
-                ((skipped_count++))
-            fi
-        done
     done
     
-    echo -e "${GREEN}Synchronization complete!${NC}"
-    echo -e "${GREEN}Files synchronized: $synced_count${NC}"
-    echo -e "${BLUE}Files unchanged: $skipped_count${NC}"
+    echo -e "${GREEN}Update process complete!${NC}"
+    echo -e "${GREEN}Worktrees updated: $updated_count${NC}"
+    echo -e "${BLUE}Worktrees skipped/failed: $skipped_count${NC}"
 }
 
-# Run the sync function with all arguments
-sync_setup_files "$@"
+# Run the update function with all arguments
+update_all_worktrees "$@" 

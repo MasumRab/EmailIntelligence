@@ -1,3 +1,164 @@
+import asyncio
+import logging
+import time
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+import networkx as nx
+import psutil  # For memory monitoring
+
+logger = logging.getLogger(__name__)
+
+
+class NodeExecutionStatus(Enum):
+    """Status of node execution"""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+
+class Node:
+    """
+    Represents a single node in a processing workflow.
+
+    Each node encapsulates a specific operation, such as fetching an email,
+    analyzing its sentiment, or applying a category. Nodes define their
+    required inputs and the outputs they produce.
+    """
+
+    def __init__(
+        self,
+        node_id: str,
+        name: str,
+        operation: Callable,
+        inputs: List[str],
+        outputs: List[str],
+        failure_strategy: str = "stop",
+        conditional_expression: Optional[str] = None,
+    ):
+        self.node_id = node_id
+        self.name = name
+        self.operation = operation
+        self.inputs = inputs
+        self.outputs = outputs
+        self.failure_strategy = failure_strategy  # "stop", "continue", or "retry"
+        self.conditional_expression = conditional_expression  # Optional conditional for execution
+        self.status = NodeExecutionStatus.PENDING
+
+    def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Executes the node's operation using the provided context.
+        """
+        self.status = NodeExecutionStatus.RUNNING
+
+        try:
+            # Prepare the arguments for the operation from the context
+            args = [context[key] for key in self.inputs]
+
+            # Execute the operation
+            result = self.operation(*args)
+
+            # If the node produces multiple outputs, we expect the operation
+            # to return a tuple. Otherwise, a single value.
+            if len(self.outputs) == 1:
+                node_result = {self.outputs[0]: result}
+            else:
+                node_result = {name: value for name, value in zip(self.outputs, result)}
+
+            self.status = NodeExecutionStatus.SUCCESS
+            return node_result
+
+        except Exception as e:
+            self.status = NodeExecutionStatus.FAILED
+            logger.error(f"Error executing node '{self.name}' ({self.node_id}): {e}", exc_info=True)
+            raise
+
+
+class Workflow:
+    """
+    Represents a processing workflow as a directed acyclic graph (DAG) of nodes.
+    """
+
+    def __init__(self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]):
+        self.name = name
+        self.nodes = nodes
+        self.connections = connections  # List of connections in the format
+        # {"from": {"node_id": str, "output": str}, "to": {"node_id": str, "input": str}}
+
+    def to_graph(self) -> nx.DiGraph:
+        """
+        Convert workflow to a NetworkX directed graph for topological analysis.
+        """
+        graph = nx.DiGraph()
+
+        # Add nodes to the graph
+        for node_id in self.nodes:
+            graph.add_node(node_id)
+
+        # Add edges based on connections
+        for conn in self.connections:
+            source_node_id = conn["from"]["node_id"]
+            target_node_id = conn["to"]["node_id"]
+            graph.add_edge(source_node_id, target_node_id)
+
+        return graph
+
+    def get_execution_order(self) -> List[str]:
+        """
+        Get the execution order of nodes based on dependencies using topological sort.
+        """
+        graph = self.to_graph()
+
+        try:
+            # Use topological sort to determine execution order
+            execution_order = list(nx.topological_sort(graph))
+            return execution_order
+        except nx.NetworkXUnfeasible:
+            # If there's a cycle, raise an error
+            raise ValueError("Workflow contains cycles, which are not allowed")
+
+    def validate(self) -> (bool, List[str]):
+        """
+        Validate the workflow before execution.
+        Returns a tuple of (is_valid, list_of_errors).
+        """
+        errors = []
+
+        # Check that all nodes have unique IDs
+        node_ids = list(self.nodes.keys())
+        if len(node_ids) != len(set(node_ids)):
+            errors.append("Duplicate node IDs found in workflow")
+
+        # Check that all connections reference valid nodes
+        for i, conn in enumerate(self.connections):
+            from_node_id = conn["from"]["node_id"]
+            to_node_id = conn["to"]["node_id"]
+
+            if from_node_id not in self.nodes:
+                errors.append(f"Connection {i}: Source node '{from_node_id}' does not exist")
+            if to_node_id not in self.nodes:
+                errors.append(f"Connection {i}: Target node '{to_node_id}' does not exist")
+
+        # Check for cycles using the topological sort
+        try:
+            self.get_execution_order()
+        except ValueError as e:
+            errors.append(str(e))
+
+        # Check that inputs and outputs are properly connected
+        for conn in self.connections:
+            from_node_id = conn["from"]["node_id"]
+            to_node_id = conn["to"]["node_id"]
+            expected_output = conn["from"]["output"]
+            expected_input = conn["to"]["input"]
+
+            # Check if the output exists in the source node
+            if from_node_id in self.nodes:
+                source_node = self.nodes[from_node_id]
+                if expected_output not in source_node.outputs:
                     errors.append(
                         f"Connection from {from_node_id} to {to_node_id}: "
                         f"Output '{expected_output}' does not exist in source node"
@@ -15,9 +176,6 @@
         return len(errors) == 0, errors
 
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-
 class WorkflowRunner:
     """
     Executes a workflow by processing its nodes in the correct topological order.
@@ -31,7 +189,13 @@ class WorkflowRunner:
     - Monitoring and metrics
     """
 
-    def __init__(self, workflow: Workflow, fail_on_error: bool = False, max_retries: int = 1, max_concurrent: int = 5):
+    def __init__(
+        self,
+        workflow: Workflow,
+        fail_on_error: bool = False,
+        max_retries: int = 1,
+        max_concurrent: int = 5,
+    ):
         self.workflow = workflow
         self.fail_on_error = fail_on_error
         self.max_retries = max_retries
@@ -54,12 +218,19 @@ class WorkflowRunner:
             "parallelism_utilization": 0,  # Track parallelism utilization
         }
 
-    def run(self, initial_context: Dict[str, Any], memory_optimized: bool = False, parallel_execution: bool = False):
+    def run(
+        self,
+        initial_context: Dict[str, Any],
+        memory_optimized: bool = False,
+        parallel_execution: bool = False,
+    ):
         """
         Executes the workflow with proper topological sorting of nodes to determine execution order.
-        Enhanced with comprehensive error handling and recovery, memory optimization, and optional parallel execution.
+        Enhanced with comprehensive error handling and recovery, memory optimization,
+        and optional parallel execution.
         """
         import time
+
         start_time = time.time()
 
         logger.info(f"Running workflow: {self.workflow.name}")
@@ -74,7 +245,11 @@ class WorkflowRunner:
                 "success": False,
                 "error": validation_error_msg,
                 "results": {},
-                "stats": {"nodes_executed": 0, "total_execution_time": 0, "errors": validation_errors}
+                "stats": {
+                    "nodes_executed": 0,
+                    "total_execution_time": 0,
+                    "errors": validation_errors,
+                },
             }
 
         try:
@@ -84,7 +259,7 @@ class WorkflowRunner:
 
             # Get execution order using topological sort
             execution_order = self.workflow.get_execution_order()
-            logger.info(f"Execution order: {execution_order}")
+            logger.info(f"Execution order: {execution_order}")  # noqa: E501
 
             # If memory optimization is enabled, pre-calculate which nodes' results can be cleaned up
             cleanup_schedule = {}
@@ -93,19 +268,20 @@ class WorkflowRunner:
 
             if parallel_execution:
                 # Execute with parallel execution for independent nodes
-                result = asyncio.run(self._run_parallel(execution_order, cleanup_schedule))
+                _ = asyncio.run(self._run_parallel(execution_order, cleanup_schedule))
             else:
                 # Execute nodes in topological order sequentially
-                result = self._run_sequential(execution_order, cleanup_schedule)
+                _ = self._run_sequential(execution_order, cleanup_schedule)
 
             execution_time = time.time() - start_time
             self.execution_stats["total_execution_time"] = execution_time
 
             # Track final memory usage
-            current_process = psutil.Process()
             final_memory = current_process.memory_info().rss / 1024 / 1024  # MB
             memory_used = final_memory - initial_memory
-            self.execution_stats["memory_usage_peak"] = max(self.execution_stats["memory_usage_peak"], final_memory)
+            self.execution_stats["memory_usage_peak"] = max(
+                self.execution_stats["memory_usage_peak"], final_memory
+            )
 
             logger.info(f"Workflow execution completed in {execution_time:.2f}s.")
             logger.info(f"Memory used: {memory_used:.2f} MB")
@@ -117,7 +293,7 @@ class WorkflowRunner:
                 "success": True,
                 "results": self.node_results,
                 "context": self.execution_context,
-                "stats": self.execution_stats
+                "stats": self.execution_stats,
             }
 
         except Exception as e:
@@ -129,7 +305,7 @@ class WorkflowRunner:
                 "success": False,
                 "error": str(e),
                 "results": self.node_results,
-                "stats": self.execution_stats
+                "stats": self.execution_stats,
             }
 
     def _run_sequential(self, execution_order, cleanup_schedule):
@@ -147,7 +323,9 @@ class WorkflowRunner:
                 continue
 
             # Check if node should be executed based on condition
-            if node.conditional_expression and not self._evaluate_condition(node.conditional_expression):
+            if node.conditional_expression and not self._evaluate_condition(
+                node.conditional_expression
+            ):
                 node.status = NodeExecutionStatus.SKIPPED
                 logger.info(f"Condition not met for node {node_id}, skipping execution")
                 self.execution_stats["nodes_skipped"] += 1
@@ -190,7 +368,10 @@ class WorkflowRunner:
                             f"({retry_count}/{self.max_retries}): {str(e)}"
                         )
                     else:
-                        error_msg = f"Node {node.name} ({node_id}) failed after {self.max_retries} retries: {str(e)}"
+                        error_msg = (
+                            f"Node {node.name} ({node_id}) failed after "
+                            f"{self.max_retries} retries: {str(e)}"
+                        )
                         logger.error(error_msg, exc_info=True)
                         self.execution_stats["errors"].append(error_msg)
                         self.execution_stats["nodes_failed"] += 1
@@ -221,6 +402,8 @@ class WorkflowRunner:
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
         """Execute workflow nodes in parallel where possible"""
+        import asyncio
+
         # Create a queue of nodes that are ready to execute
         ready_nodes = []
         completed_nodes = set()
@@ -247,8 +430,7 @@ class WorkflowRunner:
             if running_tasks:
                 # Wait for at least one task to complete
                 done, pending = await asyncio.wait(
-                    list(running_tasks.values()),
-                    return_when=asyncio.FIRST_COMPLETED
+                    list(running_tasks.values()), return_when=asyncio.FIRST_COMPLETED
                 )
 
                 # Process completed tasks
@@ -274,10 +456,14 @@ class WorkflowRunner:
 
                             # Add newly ready nodes to the ready queue
                             for candidate_id in execution_order:
-                                if candidate_id not in completed_nodes and candidate_id not in running_tasks:
+                                if (
+                                    candidate_id not in completed_nodes
+                                    and candidate_id not in running_tasks
+                                ):
                                     # Check if all dependencies for candidate are met
                                     dependencies_met = all(
-                                        dep in completed_nodes for dep in node_dependencies[candidate_id]
+                                        dep in completed_nodes
+                                        for dep in node_dependencies[candidate_id]
                                     )
                                     if dependencies_met:
                                         ready_nodes.append(candidate_id)
@@ -300,7 +486,9 @@ class WorkflowRunner:
                         del running_tasks[node_id]
 
                 # If memory optimization is enabled, clean up results that are no longer needed
-                for node_id in completed_nodes.copy():  # Use copy to avoid mutation during iteration
+                for (
+                    node_id
+                ) in completed_nodes.copy():  # Use copy to avoid mutation during iteration
                     if node_id in cleanup_schedule:
                         for node_to_cleanup in cleanup_schedule[node_id]:
                             if (
@@ -319,7 +507,9 @@ class WorkflowRunner:
         node = self.workflow.nodes[node_id]
 
         # Check if node should be executed based on condition
-        if node.conditional_expression and not self._evaluate_condition(node.conditional_expression):
+        if node.conditional_expression and not self._evaluate_condition(
+            node.conditional_expression
+        ):
             node.status = NodeExecutionStatus.SKIPPED
             logger.info(f"Condition not met for node {node_id}, skipping execution")
             # Update execution stats for skipped nodes
@@ -400,11 +590,13 @@ class WorkflowRunner:
                 # Check if any subsequent nodes need the result from prev_node_id
                 still_needed = False
 
-                for subsequent_node_id in execution_order[i+1:]:
+                for subsequent_node_id in execution_order[i + 1 :]:
                     # Check if there's a connection from prev_node to subsequent_node
                     for conn in self.workflow.connections:
-                        if (conn["from"]["node_id"] == prev_node_id and
-                            conn["to"]["node_id"] == subsequent_node_id):
+                        if (
+                            conn["from"]["node_id"] == prev_node_id
+                            and conn["to"]["node_id"] == subsequent_node_id
+                        ):
                             still_needed = True
                             break
                     if still_needed:
@@ -415,28 +607,6 @@ class WorkflowRunner:
                     cleanup_schedule[node_id].append(prev_node_id)
 
         return cleanup_schedule
-
-    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
-        """
-        Build the context for a specific node based on connections and available data.
-        """
-        # Start with the main execution context
-        node_context = self.execution_context.copy()
-
-        # Find all incoming connections to this node
-        for conn in self.workflow.connections:
-            if conn["to"]["node_id"] == node_id:
-                source_node_id = conn["from"]["node_id"]
-                source_output = conn["from"]["output"]
-                target_input = conn["to"]["input"]
-
-                # If we have results from the source node, add them to the context
-                if source_node_id in self.node_results:
-                    source_results = self.node_results[source_node_id]
-                    if source_output in source_results:
-                        node_context[target_input] = source_results[source_output]
-
-        return node_context
 
     def _evaluate_condition(self, condition: str) -> bool:
         """
@@ -456,7 +626,9 @@ class WorkflowRunner:
                 right = right.strip()
 
                 # Remove quotes from right side if present
-                if (right.startswith('"') and right.endswith('"')) or (right.startswith("'") and right.endswith("'")):
+                if (right.startswith('"') and right.endswith('"')) or (
+                    right.startswith("'") and right.endswith("'")
+                ):
                     right = right[1:-1]
 
                 # Check if variable exists in context
@@ -470,7 +642,7 @@ class WorkflowRunner:
                         elif isinstance(context_value, float):
                             right = float(right)
                         elif isinstance(context_value, bool):
-                            right = right.lower() == 'true'
+                            right = right.lower() == "true"
                         # For other types, keep as string
                     except ValueError:
                         pass  # Keep as string if conversion fails
@@ -511,5 +683,3 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
-=======
->>>>>>> origin/main
