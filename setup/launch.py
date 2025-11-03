@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 #!/usr/bin/env python3
 """
 EmailIntelligence Unified Launcher
@@ -410,7 +409,7 @@ def create_venv(venv_path: Path, recreate: bool = False):
 
 def install_package_manager(venv_path: Path, manager: str):
     python_exe = get_venv_executable(venv_path, "python")
-    run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
+    run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     python_exe = get_python_executable()
@@ -705,11 +704,11 @@ def print_system_info():
     print(f"Python Version: {sys.version}")
     print(f"Python Executable: {sys.executable}")
 
-    print("\\n=== Project Information ===")
+    print("\n=== Project Information ===")
     print(f"Project Root: {ROOT_DIR}")
     print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
 
-    print("\\n=== Environment Status ===")
+    print("\n=== Environment Status ===")
     venv_path = ROOT_DIR / VENV_DIR
     if venv_path.exists():
         print(f"Virtual Environment: {venv_path} (exists)")
@@ -730,7 +729,7 @@ def print_system_info():
     node_available = check_node_npm_installed()
     print(f"Node.js/npm Available: {node_available}")
 
-    print("\\n=== Configuration Files ===")
+    print("\n=== Configuration Files ===")
     config_files = [
         "pyproject.toml", "requirements.txt", "requirements-dev.txt",
         "package.json", "launch-user.env", ".env"
@@ -893,5 +892,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
->>>>>>> Stashed changes
