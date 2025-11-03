@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from .dependencies import get_ai_engine, get_db
 from .database import DatabaseManager
+from .ai_engine import AdvancedAIEngine
 from .models import AIAnalysisRequest, AIAnalysisResponse, AICategorizeRequest, AICategorizeResponse, EmailResponse, AIValidateRequest, AIValidateResponse
 from src.core.auth import get_current_active_user
 
