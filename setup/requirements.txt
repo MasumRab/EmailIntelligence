@@ -1,4 +1,5 @@
 # EmailIntelligence Python Requirements
+argon2-cffi==25.1.0
 # Install in virtual environment only
 
 # Core web framework
