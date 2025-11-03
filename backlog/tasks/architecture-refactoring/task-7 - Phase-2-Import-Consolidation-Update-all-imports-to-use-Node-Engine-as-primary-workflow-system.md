@@ -6,10 +6,12 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2025-10-25 04:50'
+updated_date: '2025-10-28 08:54'
 labels:
   - architecture
   - refactoring
 dependencies: []
+priority: low
 ---
 
 ## Description
@@ -27,3 +29,10 @@ Update imports across 26+ files to use Node Engine instead of Basic and Advanced
 - [ ] #5 Update plugin files (1 file)
 - [ ] #6 Validate all imports work correctly
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+---
+**Migration Context:** This task is part of the larger [Backend Migration to src/ (task-18)](backlog/tasks/task-18 - Backend-Migration-to-src.md) effort. Refer to the [Backend Migration Guide](docs/backend_migration_guide.md) for overall strategy and details.
+<!-- SECTION:NOTES:END -->
