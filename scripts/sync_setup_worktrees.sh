@@ -64,16 +64,31 @@ sync_setup_files() {
         exit 0
     fi
     
-    # Check if launch-setup-fixes worktree exists
-    if [[ ! -d "worktrees/launch-setup-fixes" ]]; then
+    # Determine the path to launch-setup-fixes worktree
+    local launch_setup_worktree=""
+    if [[ -d "/home/masum/github/worktrees/launch-setup-fixes" ]]; then
+        launch_setup_worktree="/home/masum/github/worktrees/launch-setup-fixes"
+    elif [[ -d "launch-setup-fixes" ]]; then
+        launch_setup_worktree="launch-setup-fixes"
+    else
         echo -e "${YELLOW}Warning: launch-setup-fixes worktree not found${NC}"
         exit 0
     fi
-    
-    # Check if setup directory exists in launch-setup-fixes worktree
-    if [[ ! -d "worktrees/launch-setup-fixes/setup" ]]; then
-        echo -e "${YELLOW}Warning: setup directory not found in launch-setup-fixes worktree${NC}"
-        exit 0
+
+    # Ensure setup directory exists in launch-setup-fixes worktree
+    if [[ ! -d "$launch_setup_worktree/setup" ]]; then
+        echo -e "${BLUE}Creating setup directory in launch-setup-fixes worktree...${NC}"
+        mkdir -p "$launch_setup_worktree/setup"
+
+        # Copy setup files from current repository if available
+        if [[ -d "./setup" ]]; then
+            echo -e "${BLUE}Copying setup files from current repository to launch-setup-fixes...${NC}"
+            cp -r ./setup/* "$launch_setup_worktree/setup/"
+            echo -e "${GREEN}Setup files copied to launch-setup-fixes worktree${NC}"
+        else
+            echo -e "${YELLOW}Warning: No setup directory in current repository to copy from${NC}"
+            exit 0
+        fi
     fi
     
     echo -e "${BLUE}Synchronizing setup files...${NC}"
@@ -99,8 +114,8 @@ sync_setup_files() {
     
     # Synchronize to other worktrees
     for worktree in worktrees/*/; do
-        # Skip launch-setup-fixes worktree (source)
-        if [[ "$(basename "$worktree")" == "launch-setup-fixes" ]]; then
+        # Skip if not a directory
+        if [[ ! -d "$worktree" ]]; then
             continue
         fi
         
@@ -129,7 +144,7 @@ sync_setup_files() {
         
         # Synchronize each setup file
         for file in "${setup_files[@]}"; do
-            local source_file="worktrees/launch-setup-fixes/setup/$file"
+            local source_file="$launch_setup_worktree/setup/$file"
             local dest_file="$worktree/setup/$file"
             
             # Check if source file exists
