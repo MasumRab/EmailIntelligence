@@ -70,7 +70,7 @@ def create_system_status_tab():
                 "gmail_status": "Connected" if not gmail_data.get("error") else "Disconnected",
                 "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
-        except Exception as e:
+        except (psutil.Error, OSError, ValueError, KeyError) as e:
             logger.error(f"Error refreshing system status: {e}")
             return {
                 "system_info": {"error": "Unable to retrieve system info"},

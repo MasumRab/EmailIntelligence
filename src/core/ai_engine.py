@@ -149,7 +149,7 @@ class ModernAIEngine(BaseAIEngine):
             self._initialized = True
             logger.info("ModernAIEngine fully initialized with model manager")
 
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError) as e:
             logger.error(f"Failed to initialize ModernAIEngine: {e}")
             # Continue without model manager - use fallback methods
             self._model_manager = None
@@ -176,7 +176,7 @@ class ModernAIEngine(BaseAIEngine):
                     "status": "healthy",
                     "models_available": len(models_info) if models_info else 0,
                 }
-            except Exception as e:
+            except (AttributeError, RuntimeError, ConnectionError) as e:
                 health_status["components"]["model_manager"] = {
                     "status": "unhealthy",
                     "error": str(e),
@@ -197,7 +197,7 @@ class ModernAIEngine(BaseAIEngine):
                 "status": "healthy",
                 "test_result": "passed",
             }
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError) as e:
             health_status["components"]["analysis_engine"] = {
                 "status": "unhealthy",
                 "error": str(e),
