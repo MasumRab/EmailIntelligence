@@ -579,6 +579,18 @@ def start_server_ts():
 
 # --- Service Startup Functions ---
 def start_backend(host: str, port: int, debug: bool = False):
+    # Validate inputs to prevent command injection
+    import ipaddress
+    try:
+        # Allow localhost, 127.0.0.1, or valid IP addresses
+        if host not in ["localhost", "127.0.0.1", "0.0.0.0"]:
+            ipaddress.ip_address(host)  # Validates IP format
+        if not (1 <= port <= 65535):
+            raise ValueError("Port out of range")
+    except ValueError as e:
+        logger.error(f"Invalid host or port: {e}")
+        return
+
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
     if debug:
