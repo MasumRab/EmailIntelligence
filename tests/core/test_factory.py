@@ -5,13 +5,12 @@ This module tests the factory functions that provide instances of core abstracti
 ensuring proper dependency injection and singleton behavior.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
-notmuch = pytest.importorskip("notmuch")
-
-from src.core.factory import get_data_source, get_ai_engine
 from src.core.data_source import DataSource
+from src.core.factory import get_ai_engine, get_data_source
 from src.core.notmuch_data_source import NotmuchDataSource
 
 
@@ -23,6 +22,7 @@ class TestDataSourceFactory:
         """Test get_data_source with default DATA_SOURCE_TYPE."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock environment to use default
@@ -32,7 +32,7 @@ class TestDataSourceFactory:
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock()
 
-        with patch('src.core.factory.DatabaseManager', return_value=mock_db_manager):
+        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
             data_source = await get_data_source()
 
             assert data_source is mock_db_manager
@@ -43,6 +43,7 @@ class TestDataSourceFactory:
         """Test get_data_source with notmuch DATA_SOURCE_TYPE."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock environment to use notmuch
@@ -57,6 +58,7 @@ class TestDataSourceFactory:
         """Test get_data_source with unknown DATA_SOURCE_TYPE defaults to DatabaseManager."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock environment to use unknown type
@@ -66,7 +68,7 @@ class TestDataSourceFactory:
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock()
 
-        with patch('src.core.factory.DatabaseManager', return_value=mock_db_manager):
+        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
             data_source = await get_data_source()
 
             assert data_source is mock_db_manager
@@ -76,10 +78,12 @@ class TestDataSourceFactory:
         """Test that get_data_source returns the same instance (singleton)."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock environment
         import os
+
         original_env = os.environ.get("DATA_SOURCE_TYPE")
         os.environ["DATA_SOURCE_TYPE"] = "notmuch"
 
@@ -106,6 +110,7 @@ class TestDataSourceFactory:
         """Test that environment variable properly controls data source type."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         test_cases = [
@@ -127,7 +132,7 @@ class TestDataSourceFactory:
                 mock_db_manager = AsyncMock()
                 mock_db_manager._ensure_initialized = AsyncMock()
 
-                with patch('src.core.factory.DatabaseManager', return_value=mock_db_manager):
+                with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
                     data_source = await get_data_source()
                     assert data_source is mock_db_manager
             else:
@@ -148,15 +153,13 @@ class TestAIEngineFactory:
         ai_engine = get_ai_engine()
 
         # Should have basic AI methods
-        expected_methods = [
-            'analyze_sentiment',
-            'classify_topic',
-            'recognize_intent'
-        ]
+        expected_methods = ["analyze_sentiment", "classify_topic", "recognize_intent"]
 
         for method_name in expected_methods:
             assert hasattr(ai_engine, method_name), f"AI engine missing method: {method_name}"
-            assert callable(getattr(ai_engine, method_name)), f"AI engine method not callable: {method_name}"
+            assert callable(
+                getattr(ai_engine, method_name)
+            ), f"AI engine method not callable: {method_name}"
 
 
 class TestFactoryErrorHandling:
@@ -167,13 +170,14 @@ class TestFactoryErrorHandling:
         """Test handling of database initialization failure."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock DatabaseManager that fails initialization
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock(side_effect=Exception("DB init failed"))
 
-        with patch('src.core.factory.DatabaseManager', return_value=mock_db_manager):
+        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
             with pytest.raises(Exception, match="DB init failed"):
                 await get_data_source()
 
@@ -182,12 +186,14 @@ class TestFactoryErrorHandling:
         """Test that factory handles import errors gracefully."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock an import error for DatabaseManager
-        with patch('src.core.factory.DatabaseManager', side_effect=ImportError("Module not found")):
+        with patch("src.core.factory.DatabaseManager", side_effect=ImportError("Module not found")):
             # Should still work for notmuch
             import os
+
             original_env = os.environ.get("DATA_SOURCE_TYPE")
             os.environ["DATA_SOURCE_TYPE"] = "notmuch"
 
@@ -210,10 +216,12 @@ class TestFactoryIntegration:
         """Test that factory integrates properly with data source implementations."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Test with notmuch (doesn't require external dependencies)
         import os
+
         original_env = os.environ.get("DATA_SOURCE_TYPE")
         os.environ["DATA_SOURCE_TYPE"] = "notmuch"
 
@@ -225,8 +233,12 @@ class TestFactoryIntegration:
 
             # Should have all required methods
             required_methods = [
-                'create_email', 'get_email_by_id', 'get_all_emails',
-                'search_emails', 'update_email', 'delete_email'
+                "create_email",
+                "get_email_by_id",
+                "get_all_emails",
+                "search_emails",
+                "update_email",
+                "delete_email",
             ]
 
             for method_name in required_methods:
@@ -263,6 +275,7 @@ class TestFactoryIntegration:
             # AI engine might not be fully implemented, but shouldn't crash
             # Log the error for debugging
             import logging
+
             logging.warning(f"AI engine integration test failed: {e}")
             # Don't fail the test - this might be expected if models aren't loaded
             pass
@@ -276,6 +289,7 @@ class TestFactoryConfiguration:
         """Test that data source type can be configured via environment."""
         # Reset the global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         import os
@@ -302,7 +316,7 @@ class TestFactoryConfiguration:
                     mock_db = AsyncMock()
                     mock_db._ensure_initialized = AsyncMock()
 
-                    with patch('src.core.factory.DatabaseManager', return_value=mock_db):
+                    with patch("src.core.factory.DatabaseManager", return_value=mock_db):
                         data_source = await get_data_source()
                         assert data_source is mock_db
 
@@ -317,6 +331,7 @@ class TestFactoryConfiguration:
         """Test that all factory functions are properly defined and callable."""
         # Test get_data_source (async)
         import asyncio
+
         assert asyncio.iscoroutinefunction(get_data_source)
 
         # Test get_ai_engine (sync)

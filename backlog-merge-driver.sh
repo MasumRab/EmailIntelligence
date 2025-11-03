@@ -18,7 +18,10 @@ get_status() {
 # Function to count checked acceptance criteria
 count_checked_ac() {
     local file="$1"
-    grep -c "\[x\]" "$file" || echo "0"
+    local count
+    # Use command substitution which captures output regardless of exit code
+    count=$(grep -c "\[x\]" "$file" 2>/dev/null)
+    echo "$count"
 }
 
 # Function to check if file has implementation notes
@@ -32,13 +35,15 @@ ancestor_status=$(get_status "$ANCESTOR")
 ours_status=$(get_status "$OURS")
 theirs_status=$(get_status "$THEIRS")
 
-# Status priority: Done > Completed > In Progress > To Do
+# Status priority: Done > Completed > In Progress > To Do > Empty/Unknown
 get_priority() {
     case "$1" in
         "Done"|"Completed") echo 4 ;;
         "In Progress") echo 3 ;;
         "To Do") echo 2 ;;
-        *) echo 1 ;;
+        "") echo 1 ;;  # Empty status gets lowest priority
+        "Not Started") echo 1 ;;  # Explicitly handle Not Started as low priority 
+        *) echo 1 ;;  # Any other unrecognized status gets low priority
     esac
 }
 

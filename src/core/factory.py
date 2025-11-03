@@ -6,6 +6,7 @@ from .data_source import DataSource
 from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
+from .caching import init_cache_manager, CacheConfig, CacheBackend
 
 # Optional import for NotmuchDataSource
 try:
@@ -69,17 +70,29 @@ async def get_data_source() -> DataSource:
                 raise ImportError("NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch")
             _data_source_instance = NotmuchDataSource()
         else:
-            _data_source_instance = DatabaseManager()
-            await _data_source_instance.initialize()
+            # Create DatabaseManager with proper configuration
+            from .database import DatabaseConfig, create_database_manager
+            config = DatabaseConfig()
+            _data_source_instance = await create_database_manager(config)
     return _data_source_instance
 
 
 async def get_email_repository() -> EmailRepository:
     """
-    Provides the singleton instance of the EmailRepository with caching.
+    Provides the singleton instance of the EmailRepository with Redis/memory caching.
     """
     global _email_repository_instance
     if _email_repository_instance is None:
+        # Initialize cache manager with Redis backend
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        cache_config = CacheConfig(
+                backend=CacheBackend.REDIS,
+            redis_url=redis_url,
+            default_ttl=600,  # 10 minutes for dashboard data
+            enable_monitoring=True
+        )
+        init_cache_manager(cache_config)
+
         data_source = await get_data_source()
         base_repository = DatabaseEmailRepository(data_source)
         _email_repository_instance = CachingEmailRepository(base_repository)

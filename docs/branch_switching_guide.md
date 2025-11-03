@@ -23,7 +23,7 @@ This guide provides instructions for switching between the `scientific` branch (
 Before switching branches, ensure you have:
 
 1. Git installed and configured
-2. Python 3.12+ installed
+2. Python 3.11+ installed
 3. Node.js LTS installed
 4. All project dependencies installed for both branches
 5. A clean working directory (commit or stash changes)

@@ -136,18 +136,20 @@ class ModernAIEngine(BaseAIEngine):
 
             self._model_manager = ModelManager()
             # Note: ModelManager.discover_models() may not exist, handle gracefully
-            if hasattr(self._model_manager, 'discover_models'):
+            if hasattr(self._model_manager, "discover_models"):
                 self._model_manager.discover_models()
 
             self._initialized = True
             logger.info("ModernAIEngine fully initialized with model manager")
 
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError) as e:
             logger.error(f"Failed to initialize ModernAIEngine: {e}")
             # Continue without model manager - use fallback methods
             self._model_manager = None
             self._initialized = True
-            logger.warning("ModernAIEngine initialized without model manager - using fallback methods")
+            logger.warning(
+                "ModernAIEngine initialized without model manager - using fallback methods"
+            )
 
     def health_check(self) -> Dict[str, Any]:
         """Perform a comprehensive health check of the AI engine."""
@@ -156,7 +158,7 @@ class ModernAIEngine(BaseAIEngine):
             "status": "healthy" if self._initialized else "unhealthy",
             "initialized": self._initialized,
             "components": {},
-            "issues": []
+            "issues": [],
         }
 
         # Check model manager
@@ -165,18 +167,18 @@ class ModernAIEngine(BaseAIEngine):
                 models_info = self._model_manager.get_available_models()
                 health_status["components"]["model_manager"] = {
                     "status": "healthy",
-                    "models_available": len(models_info) if models_info else 0
+                    "models_available": len(models_info) if models_info else 0,
                 }
-            except Exception as e:
+            except (AttributeError, RuntimeError, ConnectionError) as e:
                 health_status["components"]["model_manager"] = {
                     "status": "unhealthy",
-                    "error": str(e)
+                    "error": str(e),
                 }
                 health_status["issues"].append(f"Model manager error: {e}")
         else:
             health_status["components"]["model_manager"] = {
                 "status": "unhealthy",
-                "error": "Model manager not initialized"
+                "error": "Model manager not initialized",
             }
             health_status["issues"].append("Model manager not available")
 
@@ -186,17 +188,19 @@ class ModernAIEngine(BaseAIEngine):
             test_result = asyncio.run(self.analyze_email("test", "test content"))
             health_status["components"]["analysis_engine"] = {
                 "status": "healthy",
-                "test_result": "passed"
+                "test_result": "passed",
             }
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError) as e:
             health_status["components"]["analysis_engine"] = {
                 "status": "unhealthy",
-                "error": str(e)
+                "error": str(e),
             }
             health_status["issues"].append(f"Analysis engine error: {e}")
 
         # Overall status
-        component_statuses = [comp.get("status", "unknown") for comp in health_status["components"].values()]
+        component_statuses = [
+            comp.get("status", "unknown") for comp in health_status["components"].values()
+        ]
         if "unhealthy" in component_statuses:
             health_status["status"] = "unhealthy"
         elif not self._initialized:
@@ -206,7 +210,9 @@ class ModernAIEngine(BaseAIEngine):
 
         return health_status
 
-    async def analyze_email(self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None) -> AIAnalysisResult:
+    async def analyze_email(
+        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
+    ) -> AIAnalysisResult:
         """Analyze an email using modern AI techniques."""
         if not self._initialized:
             raise RuntimeError("AI Engine not initialized")
@@ -227,11 +233,15 @@ class ModernAIEngine(BaseAIEngine):
                 "topic": topics[0] if topics else "general",
                 "intent": intent.get("type", "unknown") if intent else "unknown",
                 "urgency": urgency.get("level", "low") if urgency else "low",
-                "confidence": self._calculate_overall_confidence(sentiment, topics, intent, urgency),
+                "confidence": self._calculate_overall_confidence(
+                    sentiment, topics, intent, urgency
+                ),
                 "categories": topics if topics else [],
                 "keywords": self._extract_keywords(full_text),
                 "reasoning": "Analysis performed using ModernAIEngine with integrated model management",
-                "suggested_labels": self._generate_suggested_labels(sentiment, topics, intent, urgency),
+                "suggested_labels": self._generate_suggested_labels(
+                    sentiment, topics, intent, urgency
+                ),
                 "risk_flags": self._assess_risks(sentiment, urgency),
             }
 
@@ -240,20 +250,22 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"Error analyzing email: {e}")
             # Return minimal result on error
-            return AIAnalysisResult({
-                "sentiment": "neutral",
-                "topic": "unknown",
-                "intent": "unknown",
-                "urgency": "low",
-                "confidence": 0.0,
-                "reasoning": f"Analysis failed: {str(e)}"
-            })
+            return AIAnalysisResult(
+                {
+                    "sentiment": "neutral",
+                    "topic": "unknown",
+                    "intent": "unknown",
+                    "urgency": "low",
+                    "confidence": 0.0,
+                    "reasoning": f"Analysis failed: {str(e)}",
+                }
+            )
 
     async def _analyze_sentiment(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze sentiment using available models."""
         try:
             # Try to use sentiment model from model manager
-            if self._model_manager and hasattr(self._model_manager, 'get_sentiment_model'):
+            if self._model_manager and hasattr(self._model_manager, "get_sentiment_model"):
                 model = self._model_manager.get_sentiment_model()
                 if model:
                     return await model.analyze(text)
@@ -266,7 +278,7 @@ class ModernAIEngine(BaseAIEngine):
     async def _analyze_topics(self, text: str) -> List[str]:
         """Analyze topics using available models."""
         try:
-            if self._model_manager and hasattr(self._model_manager, 'get_topic_model'):
+            if self._model_manager and hasattr(self._model_manager, "get_topic_model"):
                 model = self._model_manager.get_topic_model()
                 if model:
                     result = await model.analyze(text)
@@ -280,7 +292,7 @@ class ModernAIEngine(BaseAIEngine):
     async def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze intent using available models."""
         try:
-            if self._model_manager and hasattr(self._model_manager, 'get_intent_model'):
+            if self._model_manager and hasattr(self._model_manager, "get_intent_model"):
                 model = self._model_manager.get_intent_model()
                 if model:
                     return await model.analyze(text)
@@ -292,7 +304,7 @@ class ModernAIEngine(BaseAIEngine):
     async def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze urgency using available models."""
         try:
-            if self._model_manager and hasattr(self._model_manager, 'get_urgency_model'):
+            if self._model_manager and hasattr(self._model_manager, "get_urgency_model"):
                 model = self._model_manager.get_urgency_model()
                 if model:
                     return await model.analyze(text)
@@ -329,7 +341,7 @@ class ModernAIEngine(BaseAIEngine):
             "finance": ["payment", "invoice", "bill", "account", "money", "bank"],
             "healthcare": ["doctor", "medical", "appointment", "health", "clinic"],
             "personal": ["family", "friend", "party", "vacation", "holiday"],
-            "technical": ["software", "code", "bug", "server", "database", "api"]
+            "technical": ["software", "code", "bug", "server", "database", "api"],
         }
 
         for topic, keywords in topic_patterns.items():
@@ -364,7 +376,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return {
             "level": "high" if has_urgency else "low",
-            "confidence": 0.7 if has_urgency else 0.5
+            "confidence": 0.7 if has_urgency else 0.5,
         }
 
     def _calculate_overall_confidence(self, sentiment, topics, intent, urgency) -> float:
@@ -384,7 +396,22 @@ class ModernAIEngine(BaseAIEngine):
         # Simple keyword extraction - could be enhanced with NLP
         words = text.lower().split()
         # Filter out common stop words and short words
-        stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by"}
+        stop_words = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+        }
         keywords = [word for word in words if len(word) > 3 and word not in stop_words]
         return list(set(keywords))[:10]  # Return unique keywords, max 10
 

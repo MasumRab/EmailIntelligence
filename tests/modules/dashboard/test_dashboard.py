@@ -7,6 +7,10 @@ import json
 import sys
 import os
 
+# Set required environment variables for testing
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing")
+os.environ.setdefault("DATA_DIR", "./data")
+
 # Add the project root to the path to avoid gradio import issues
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
@@ -64,11 +68,11 @@ def setup_and_teardown_mock_log():
     # Setup: create a mock performance log file in the project root
     import os
     from pathlib import Path
-    
+
     # Get the project root directory (two levels up from this test file)
     project_root = Path(__file__).parent.parent.parent.parent
     log_file_path = project_root / "performance_metrics_log.jsonl"
-    
+
     with open(log_file_path, "w") as f:
         for entry in mock_performance_log:
             f.write(json.dumps(entry) + "\n")
@@ -95,12 +99,55 @@ def test_get_dashboard_stats():
     assert data["time_saved"] == "0h 6m"  # 3 auto_labeled * 2 minutes = 6 minutes
     assert data["auto_labeled"] == 3  # Should be included from aggregates
     assert data["categories"] == 3   # Should be included from aggregates
+    assert data["weekly_growth"] == {"emails": 4, "percentage": 0.0}  # Should be included from aggregates
 
     # Test performance metrics
     assert "get_emails" in data["performance_metrics"]
     assert "create_email" in data["performance_metrics"]
     assert data["performance_metrics"]["get_emails"] == pytest.approx(0.15)
     assert data["performance_metrics"]["create_email"] == pytest.approx(0.3)
+
+
+def test_get_dashboard_stats_repository_error():
+    """Test dashboard stats when repository raises an exception."""
+    # Temporarily make repository raise an exception
+    original_method = mock_repository.get_dashboard_aggregates
+    mock_repository.get_dashboard_aggregates = AsyncMock(side_effect=Exception("Database connection failed"))
+
+    try:
+        response = client.get("/api/dashboard/stats")
+        assert response.status_code == 500
+        assert response.json() == {"detail": "Error fetching dashboard stats."}
+    finally:
+        # Restore original method
+        mock_repository.get_dashboard_aggregates = original_method
+
+
+def test_get_dashboard_stats_missing_performance_log():
+    """Test dashboard stats when performance log file is missing."""
+    import os
+    from pathlib import Path
+
+    # Remove the performance log file temporarily
+    project_root = Path(__file__).parent.parent.parent.parent
+    log_file_path = project_root / "performance_metrics_log.jsonl"
+
+    if log_file_path.exists():
+        os.remove(log_file_path)
+
+    try:
+        response = client.get("/api/dashboard/stats")
+        assert response.status_code == 200
+
+        data = response.json()
+        # Performance metrics should be empty or default when log file is missing
+        assert isinstance(data.get("performance_metrics", {}), dict)
+
+    finally:
+        # Restore the log file for other tests
+        with open(log_file_path, "w") as f:
+            for entry in mock_performance_log:
+                f.write(json.dumps(entry) + "\n")
 
 
 def test_time_saved_calculation():

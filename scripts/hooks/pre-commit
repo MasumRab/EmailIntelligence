@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Pre-commit hook to prevent accidental commits of temporary files or unversioned documentation.
+
+# Check for files in .branch_docs/
+if git diff --cached --name-only | grep -qE "^\.branch_docs/"; then
+    echo "WARNING: You are attempting to commit files from the .branch_docs/ directory."
+    echo "These files are typically for temporary, branch-specific documentation and should not be committed."
+    echo "If you intend to commit these files, please remove them from .branch_docs/ and add them to a versioned location."
+    echo "Commit aborted. To bypass, use 'git commit --no-verify'."
+    exit 1
+fi
+
+# Add other pre-commit checks here if needed
+# For example, linting, formatting, etc.
+
+exit 0

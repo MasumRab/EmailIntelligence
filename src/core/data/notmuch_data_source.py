@@ -1,12 +1,16 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from .data_source import DataSource
+
 
 class NotmuchDataSource(DataSource):
     """
     A mock data source for notmuch.
     """
 
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None
+    ) -> List[Dict[str, Any]]:
         """
         Fetches a list of emails from notmuch.
         """
@@ -58,4 +62,8 @@ class NotmuchDataSource(DataSource):
         """
         Creates a new category in notmuch.
         """
-        return {"id": 2, "name": category_data.get("name", "New Category"), "color": category_data.get("color", "#000000")}
+        return {
+            "id": 2,
+            "name": category_data.get("name", "New Category"),
+            "color": category_data.get("color", "#000000"),
+        }
