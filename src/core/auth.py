@@ -16,7 +16,7 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
-from .database import get_db
+# Database imports removed - use dependency injection with create_database_manager
 from .settings import settings
 
 # Import the security framework components
@@ -102,8 +102,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except Exception:
-        # Verification failed (wrong password, corrupted hash, etc.)
+    except argon2.exceptions.VerifyMismatchError:
+        # Password verification failed
+        return False
+    except argon2.exceptions.InvalidHashError:
+        # Invalid hash format
+        logger.warning("Invalid password hash format")
+        return False
+    except Exception as e:
+        # Other unexpected errors
+        logger.error(f"Unexpected error during password verification: {e}")
         return False
 
 
@@ -206,7 +214,8 @@ async def verify_token(
         )
     except jwt.PyJWTError:
         raise credentials_exception
-    except Exception:
+    except Exception as e:
+        logger.error(f"Unexpected error during token verification: {e}")
         raise credentials_exception
     
     return token_data
