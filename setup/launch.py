@@ -841,6 +841,7 @@ def _add_legacy_args(parser):
     parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
     parser.add_argument("--api-only", action="store_true", help="Run only the API server without the frontend.")
     parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server.")
+    parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
 
     # Testing Options
     parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests.")
