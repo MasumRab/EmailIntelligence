@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Post-checkout hook to automatically set up environment on main/scientific branches
+# Post-checkout hook to automatically set up environment and sync orchestration files
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
@@ -14,7 +14,7 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
             # Check if file differs before checkout
             if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
                 echo "Updating $file_path from orchestration-tools"
-                git checkout orchestration-tools -- "$file_path" --quiet
+                git checkout --quiet orchestration-tools -- "$file_path"
             fi
         else
             echo "Info: $file_path not available in orchestration-tools branch (expected for cleaned branch)"
@@ -36,6 +36,7 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     # Update orchestration scripts
     checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
     checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
+    checkout_from_orchestration "scripts/cleanup_orchestration.sh"
 
     # Update orchestration documentation
     checkout_from_orchestration "docs/orchestration-workflow.md"
@@ -64,5 +65,3 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
 
     echo "Orchestration synchronization complete"
 fi
-
-
