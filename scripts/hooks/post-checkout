@@ -4,6 +4,12 @@
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
+if [[ "$BRANCH" != "orchestration-tools" ]]; then
+    echo "Checking out $BRANCH branch. Syncing canonical orchestration files..."
+    git checkout orchestration-tools -- setup/ scripts/hooks/ scripts/sync_setup_worktrees.sh .gitattributes .gitignore launch.bat launch.py launch.sh pyproject.toml requirements.txt requirements-dev.txt --quiet
+    echo "Orchestration files updated to canonical versions."
+fi
+
 if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
     echo "Checking out $BRANCH branch. Running environment setup..."
     if command -v python &> /dev/null; then
