@@ -64,14 +64,14 @@ Function docstring format:
 def function_name(param1: type, param2: type) -> return_type:
     """
     Brief description of the function.
-
+    
     Args:
         param1: Description of param1
         param2: Description of param2
-
+        
     Returns:
         Description of return value
-
+        
     Raises:
         ExceptionType: When and why this exception is raised
     """

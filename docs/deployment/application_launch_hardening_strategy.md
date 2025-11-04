@@ -112,7 +112,7 @@ def check_for_merge_conflicts(file_paths):
     """Check for unresolved merge conflict markers in files."""
     conflict_markers = ["<<<<<<<", "=======", ">>>>>>>"]
     conflicts = []
-
+    
     for file_path in file_paths:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -126,7 +126,7 @@ def check_for_merge_conflicts(file_paths):
                         })
         except Exception as e:
             logger.warning(f"Could not check {file_path} for conflicts: {e}")
-
+    
     return conflicts
 ```
 
@@ -135,23 +135,23 @@ def check_for_merge_conflicts(file_paths):
 def validate_environment():
     """Validate the application environment before launch."""
     issues = []
-
+    
     # Check Python version
     if sys.version_info < (3, 12):
         issues.append("Python 3.12 or higher is required")
-
+    
     # Check environment variables
     required_vars = ["DATABASE_URL", "GMAIL_CREDENTIALS_JSON"]
     for var in required_vars:
         if not os.getenv(var):
             issues.append(f"Required environment variable {var} is not set")
-
+    
     # Check directories
     required_dirs = ["backend", "client", "data"]
     for dir_name in required_dirs:
         if not os.path.exists(dir_name):
             issues.append(f"Required directory {dir_name} does not exist")
-
+    
     return issues
 ```
 
@@ -160,7 +160,7 @@ def validate_environment():
 def verify_dependencies():
     """Verify that required dependencies are installed."""
     missing_deps = []
-
+    
     # Check Python packages
     required_packages = [
         "fastapi",
@@ -170,19 +170,19 @@ def verify_dependencies():
         "transformers",
         "torch"
     ]
-
+    
     for package in required_packages:
         try:
             __import__(package)
         except ImportError:
             missing_deps.append(package)
-
+    
     # Check system tools
     required_tools = ["node", "npm", "git"]
     for tool in required_tools:
         if not shutil.which(tool):
             missing_deps.append(f"system:{tool}")
-
+    
     return missing_deps
 ```
 
