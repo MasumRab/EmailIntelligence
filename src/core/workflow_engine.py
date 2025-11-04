@@ -1,8 +1,127 @@
-                    errors.append(
-                        f"Connection from {from_node_id} to {to_node_id}: "
-                        f"Output '{expected_output}' does not exist in source node"
-                    )
+"""
+Core workflow engine for the Email Intelligence Platform.
 
+This module implements:
+- Workflow definition and validation
+- Topological sorting of execution order
+- Sequential and parallel execution
+- Error handling and recovery mechanisms
+- Memory optimization strategies
+- Monitoring capabilities
+"""
+import asyncio
+import logging
+import time
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, List, Optional, Any
+
+import psutil
+
+from .base_node import BaseNode, NodeExecutionStatus
+from .exceptions import WorkflowValidationError, WorkflowExecutionError
+
+logger = logging.getLogger(__name__)
+
+
+class Workflow:
+    """
+    Represents a workflow with nodes and connections.
+    Implements graph-based workflow representation with validation and execution order determination.
+    """
+    
+    def __init__(self, name: str, description: str = ""):
+        self.name = name
+        self.description = description
+        self.nodes: Dict[str, BaseNode] = {}
+        self.connections: List[Dict] = []
+        self.start_nodes: List[str] = []
+        self.end_nodes: List[str] = []
+
+    def add_node(self, node_id: str, node: BaseNode):
+        """Add a node to the workflow."""
+        self.nodes[node_id] = node
+        
+    def add_connection(self, from_node_id: str, from_output: str, to_node_id: str, to_input: str):
+        """
+        Add a connection between two nodes.
+        Defines data flow from an output of one node to an input of another.
+        """
+        if from_node_id not in self.nodes:
+            raise ValueError(f"Source node {from_node_id} does not exist in workflow")
+        if to_node_id not in self.nodes:
+            raise ValueError(f"Target node {to_node_id} does not exist in workflow")
+        if from_output not in self.nodes[from_node_id].outputs:
+            raise ValueError(f"Output {from_output} does not exist in node {from_node_id}")
+        if to_input not in self.nodes[to_node_id].inputs:
+            raise ValueError(f"Input {to_input} does not exist in node {to_node_id}")
+        
+        connection = {
+            "from": {"node_id": from_node_id, "output": from_output},
+            "to": {"node_id": to_node_id, "input": to_input}
+        }
+        self.connections.append(connection)
+
+    def get_execution_order(self) -> List[str]:
+        """
+        Determines the execution order of nodes using topological sorting.
+        Handles dependencies between nodes to ensure correct execution sequence.
+        """
+        in_degree = {node_id: 0 for node_id in self.nodes}
+        
+        for conn in self.connections:
+            target = conn["to"]["node_id"]
+            in_degree[target] += 1
+        
+        queue = [node_id for node_id, degree in in_degree.items() if degree == 0]
+        order = []
+        
+        while queue:
+            current = queue.pop(0)
+            order.append(current)
+            
+            # Reduce in-degree for connected nodes
+            for conn in self.connections:
+                source = conn["from"]["node_id"]
+                target = conn["to"]["node_id"]
+                
+                if source == current:
+                    in_degree[target] -= 1
+                    if in_degree[target] == 0:
+                        queue.append(target)
+        
+        if len(order) != len(self.nodes):
+            raise WorkflowExecutionError("Workflow has circular dependencies")
+        
+        return order
+    
+    def validate(self) -> tuple[bool, List[str]]:
+        """
+        Validates the integrity of the workflow.
+        Checks that connections are valid and all dependencies are satisfied.
+        """
+        errors = []
+        
+        # Check that all connections have valid nodes
+        for conn in self.connections:
+            from_node_id = conn["from"]["node_id"]
+            to_node_id = conn["to"]["node_id"]
+            expected_output = conn["from"]["output"]
+            expected_input = conn["to"]["input"]
+            
+            # Check if the source node exists
+            if from_node_id not in self.nodes:
+                errors.append(
+                    f"Connection from {from_node_id} to {to_node_id}: Source node does not exist"
+                )
+                continue
+            
+            # Check if the output exists in the source node
+            if expected_output not in self.nodes[from_node_id].outputs:
+                errors.append(
+                    f"Connection from {from_node_id} to {to_node_id}: "
+                    f"Output '{expected_output}' does not exist in source node"
+                )
+            
             # Check if the input exists in the target node
             if to_node_id in self.nodes:
                 target_node = self.nodes[to_node_id]
@@ -11,12 +130,9 @@
                         f"Connection from {from_node_id} to {to_node_id}: "
                         f"Input '{expected_input}' does not exist in target node"
                     )
-
+        
         return len(errors) == 0, errors
 
-
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 
 class WorkflowRunner:
     """
@@ -511,5 +627,7 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
-=======
->>>>>>> origin/main
+
+
+# Global workflow manager instance
+workflow_manager = Workflow(name="GlobalWorkflowManager")

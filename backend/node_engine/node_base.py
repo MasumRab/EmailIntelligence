@@ -1,4 +1,4 @@
-
+"""
 Base classes for the node-based workflow system.
 
 This module defines the foundational classes for creating and managing
@@ -346,3 +346,12 @@ class Workflow:
             f"Workflow(name={self.name}, nodes={len(self.nodes)}"
             f", connections={len(self.connections)})"
         )
+
+
+class NodeExecutionError(Exception):
+    """Exception raised for errors during node execution."""
+
+    def __init__(self, message: str, node_id: str = None):
+        super().__init__(message)
+        self.node_id = node_id
+        self.message = message

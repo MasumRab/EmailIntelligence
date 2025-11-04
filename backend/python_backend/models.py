@@ -527,6 +527,30 @@ class BatchOperationResponse(BaseModel):
         allow_population_by_field_name = True
 
 
+# Action Models
+class ActionRequest(BaseModel):
+    """Model for requests to perform actions on emails."""
+
+    email_ids: List[int] = Field(alias="emailIds", min_items=1)
+    action_name: Optional[str] = Field(default=None, alias="actionName")
+    action_params: Optional[Dict[str, Any]] = Field(default=None, alias="actionParams")
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class ActionResponse(BaseModel):
+    """Model for the response of email actions."""
+
+    success: bool
+    message: str
+    processed_count: int = Field(default=0, alias="processedCount")
+    failed_ids: List[int] = Field(default_factory=list, alias="failedIds")
+
+    class Config:
+        allow_population_by_field_name = True
+
+
 # API Response Models
 class BaseResponse(BaseModel):
     """Base response model for all API responses"""
