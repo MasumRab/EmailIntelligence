@@ -5,14 +5,9 @@
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [[ "$BRANCH" != "orchestration-tools" ]]; then
-    echo "Checking out $BRANCH branch. Syncing canonical orchestration files..."
-    git checkout orchestration-tools -- setup/ scripts/hooks/ scripts/sync_setup_worktrees.sh .gitattributes .gitignore launch.bat launch.py launch.sh pyproject.toml requirements.txt requirements-dev.txt --quiet
-    echo "Orchestration files updated to canonical versions."
-
-    # Install/update Git hooks
-    if [[ -f "scripts/install-hooks.sh" ]]; then
-        echo "Installing updated Git hooks..."
-        bash scripts/install-hooks.sh
+    echo "Checking out $BRANCH branch. Running orchestration cleanup..."
+    if [[ -f "scripts/cleanup_orchestration.sh" ]]; then
+        bash scripts/cleanup_orchestration.sh
     fi
 fi
 
