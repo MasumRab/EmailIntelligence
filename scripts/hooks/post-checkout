@@ -5,10 +5,58 @@
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [[ "$BRANCH" != "orchestration-tools" ]]; then
-    echo "Checking out $BRANCH branch. Running orchestration cleanup..."
-    if [[ -f "scripts/cleanup_orchestration.sh" ]]; then
-        bash scripts/cleanup_orchestration.sh
+    echo "Checking out $BRANCH branch. Synchronizing setup directory from orchestration-tools..."
+
+    # Function to safely checkout files from orchestration-tools branch
+    checkout_from_orchestration() {
+        local file_path="$1"
+        if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
+            # Check if file differs before checkout
+            if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
+                echo "Updating $file_path from orchestration-tools"
+                git checkout orchestration-tools -- "$file_path" --quiet
+            fi
+        else
+            echo "Info: $file_path not available in orchestration-tools branch (expected for cleaned branch)"
+        fi
+    }
+
+    # Update setup directory
+    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
+        echo "Synchronizing setup directory from orchestration-tools"
+        git checkout orchestration-tools -- setup/ --quiet
     fi
+
+    # Update orchestration scripts
+    checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
+    checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
+
+    # Update orchestration documentation
+    checkout_from_orchestration "docs/orchestration-workflow.md"
+
+    # Update shared configuration files
+    checkout_from_orchestration ".flake8"
+    checkout_from_orchestration ".pylintrc"
+    checkout_from_orchestration ".gitignore"
+    checkout_from_orchestration ".gitattributes"
+    checkout_from_orchestration "launch.py"
+    checkout_from_orchestration "pyproject.toml"
+    checkout_from_orchestration "requirements.txt"
+    checkout_from_orchestration "requirements-dev.txt"
+
+    # Update Git hooks
+    checkout_from_orchestration "scripts/hooks/pre-commit"
+    checkout_from_orchestration "scripts/hooks/post-commit"
+    checkout_from_orchestration "scripts/hooks/post-merge"
+    checkout_from_orchestration "scripts/hooks/post-push"
+
+    # Install/update Git hooks
+    if [[ -f "scripts/install-hooks.sh" ]]; then
+        echo "Installing updated Git hooks..."
+        bash scripts/install-hooks.sh --quiet
+    fi
+
+    echo "Orchestration synchronization complete"
 fi
 
 if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
