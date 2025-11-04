@@ -1,10 +1,16 @@
 import argparse
 import logging
+import platform
+import datetime
+import psutil
+import requests
 
 import gradio as gr
 import uvicorn
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, RedirectResponse
+from pydantic import ValidationError
 from .core.module_manager import ModuleManager
 from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
@@ -578,21 +584,14 @@ def create_app():
 
         # Add exception handlers for secure error responses
     @app.exception_handler(ValidationError)
-    async def validation_exception_handler(request: Request, exc: ValidationError):
+    async def validation_exception_handler(request, exc: ValidationError):
         return JSONResponse(
             status_code=422,
             content={"detail": "Validation error", "message": "Invalid input data"},
         )
 
-    @app.exception_handler(HTTPException)
-    async def http_exception_handler(request: Request, exc: HTTPException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": "Request error", "message": "An error occurred"},
-        )
-
     @app.exception_handler(Exception)
-    async def general_exception_handler(request: Request, exc: Exception):
+    async def general_exception_handler(request, exc: Exception):
         logger.error(f"Unhandled exception: {exc}", exc_info=True)
         return JSONResponse(
             status_code=500,
@@ -615,6 +614,15 @@ def create_app():
 
             with gr.TabItem("Visual Editor (B)"):
                 gr.Markdown("## Visual & Node-Based UI\nThis is the placeholder for the powerful, node-based workflow editor.")
+
+            with gr.TabItem("System Status"):
+                create_system_status_tab()
+
+            with gr.TabItem("AI Lab"):
+                create_ai_lab_tab()
+
+            with gr.TabItem("Gmail Integration"):
+                create_gmail_integration_tab()
 
             with gr.TabItem("Admin Dashboard (C)"):
                 gr.Markdown("## Power-User Dashboard\nThis is the placeholder for the admin and power-user dashboard for managing models, users, and system performance.")

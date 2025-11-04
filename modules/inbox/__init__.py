@@ -11,11 +11,15 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
     """
     Registers the inbox module with the main application.
     """
-    logger.info("Registering inbox module.")
-    
-    # Add the inbox UI component to the main Gradio app
-    with gradio_app:
-        with gr.TabItem("📥 Inbox"):
-            create_inbox_ui()
-    
-    logger.info("Inbox module registered successfully.")
+    try:
+        logger.info("Registering inbox module.")
+        
+        # Add the inbox UI component to the main Gradio app
+        with gradio_app:
+            with gr.TabItem("📥 Inbox"):
+                create_inbox_ui()
+        
+        logger.info("Inbox module registered successfully.")
+    except Exception as e:
+        logger.error(f"Failed to register inbox module: {e}", exc_info=True)
+        raise

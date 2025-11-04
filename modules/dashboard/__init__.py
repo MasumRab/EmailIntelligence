@@ -15,9 +15,9 @@ def register(app: FastAPI, gradio_app):
     This includes API routes with authentication dependencies for secure access
     to dashboard statistics and metrics.
     """
-    logger.info("Registering dashboard module with authentication support.")
-
     try:
+        logger.info("Registering dashboard module with authentication support.")
+
         # Add the API routes to the main FastAPI app
         # Routes include authentication dependencies (get_current_active_user)
         app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])

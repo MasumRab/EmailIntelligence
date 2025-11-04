@@ -1213,7 +1213,6 @@ class DatabaseManager(DataSource):
 
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return bool(updated_email)  # Return True if update was successful (not empty dict)
-        return updated_email is not None
 
     async def get_dashboard_aggregates(self) -> Dict[str, Any]:
         """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
@@ -1262,7 +1261,7 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     This implements the dependency injection approach mentioned in the refactoring notes.
     """
     manager = DatabaseManager(config=config)
-    await manager.initialize()
+    await manager._ensure_initialized()
     return manager
 
 
