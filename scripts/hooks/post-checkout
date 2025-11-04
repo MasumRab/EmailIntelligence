@@ -59,12 +59,4 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     echo "Orchestration synchronization complete"
 fi
 
-if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
-    echo "Checking out $BRANCH branch. Running environment setup..."
-    if command -v python &> /dev/null; then
-        python launch.py --setup --skip-prepare > /dev/null 2>&1 &
-        echo "Setup started in background. Check logs for status."
-    else
-        echo "Python not found, skipping setup."
-    fi
-fi
+
