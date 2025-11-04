@@ -185,7 +185,7 @@ If you encounter dependency issues after switching branches:
    # For Python
    pip uninstall -r requirements.txt -y
    pip install -r requirements.txt
-
+   
    # For Node.js
    rm -rf node_modules package-lock.json
    npm install
