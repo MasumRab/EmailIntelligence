@@ -68,6 +68,7 @@ config/llm_guidelines.local.json
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
+!.git/hooks/
 
 # Python cache
 __pycache__/
