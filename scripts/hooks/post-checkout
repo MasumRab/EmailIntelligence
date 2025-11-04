@@ -27,6 +27,12 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
         git checkout orchestration-tools -- setup/ --quiet
     fi
 
+    # Update deployment directory
+    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
+        echo "Synchronizing deployment directory from orchestration-tools"
+        git checkout orchestration-tools -- deployment/ --quiet
+    fi
+
     # Update orchestration scripts
     checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
     checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
