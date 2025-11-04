@@ -653,10 +653,9 @@ class DatabaseManager(DataSource):
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
         # Validation functionality is preserved as a method
-        # Uncomment the next lines if validation is needed: 
-        # if not self._validate_email_data(email_data):
-        #     logger.warning(f"Email data validation failed: {email_data}")
-        #     return None
+        if not self._validate_email_data(email_data):
+            logger.warning("Email data validation failed. Required fields missing or invalid.")
+            return None
 
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
@@ -737,10 +736,9 @@ class DatabaseManager(DataSource):
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
         # Validation functionality is preserved as a method
-        # Uncomment the next lines if validation is needed: 
-        # if not self._validate_category_data(category_data):
-        #     logger.warning(f"Category data validation failed: {category_data}")
-        #     return None
+        if not self._validate_category_data(category_data):
+            logger.warning("Category data validation failed. Required fields missing or invalid.")
+            return None
 
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
@@ -871,10 +869,9 @@ class DatabaseManager(DataSource):
     async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new user and save to the users data."""
         # Validation functionality is preserved as a method
-        # Uncomment the next lines if validation is needed:
-        # if not self._validate_user_data(user_data):
-        #     logger.warning(f"User data validation failed: {user_data}")
-        #     return None
+        if not self._validate_user_data(user_data):
+            logger.warning("User data validation failed. Required fields missing or invalid.")
+            return None
 
         # Check if user already exists
         existing_user = await self.get_user_by_username(user_data.get("username", ""))
