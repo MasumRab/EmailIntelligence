@@ -28,13 +28,12 @@ class ResourceLimits:
     max_concurrent_nodes: int = 10
 
 
-from .node_base import SecurityLevel  # Import after ResourceLimits is defined
 class SecurityManager:
     """
     Manages security and authorization for workflow operations.
     """
 
-    def __init__(self, user_roles: Optional[Dict[str, List[str]] = None):
+    def __init__(self, user_roles: Optional[Dict[str, List[str]]] = None):
         self.user_roles = user_roles or {}
         self._api_call_counts: Dict[str, int] = {}
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
@@ -47,6 +46,22 @@ class SecurityManager:
             user: The user object, expected to have an 'id' attribute.
             action: The action being performed (e.g., "execute", "edit", "view").
             resource: The resource being acted upon (e.g., a Workflow object).
+
+        # TODO(P1, 3h): Implement comprehensive security policies with RBAC support
+        # Pseudo code for RBAC security policies:
+        # - Create Role-Based Access Control system
+        # - Define roles: admin, user, guest with different permissions
+        # - Implement permission checking for node execution
+        # - Add user context to security validation
+        # - Support role hierarchies and permission inheritance
+
+        # TODO(P1, 4h): Add rate limiting for different user roles and node types
+        # Pseudo code for rate limiting:
+        # - Implement token bucket or sliding window algorithms
+        # - Different limits for different user roles (admin: 1000/min, user: 100/min)
+        # - Per-node-type rate limiting (expensive nodes: lower limits)
+        # - Add rate limit headers to responses
+        # - Implement rate limit bypass for trusted operations
 
         Returns:
             True if the user has permission, False otherwise.
@@ -202,6 +217,14 @@ class InputSanitizer:
             sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
             sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
 
+        # TODO(P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
+        # Pseudo code for additional content type sanitization:
+        # - Add Markdown sanitization with allowed elements (headers, links, lists)
+        # - Implement CSV sanitization to prevent formula injection
+        # - Add XML sanitization with schema validation
+        # - Support YAML sanitization with type safety checks
+        # - Implement binary data sanitization for file uploads
+
         return sanitized
 
 
@@ -244,6 +267,14 @@ class InputSanitizer:
             return [InputSanitizer._sanitize_item(i) for i in item]
         return item
 
+    # TODO(P2, 2h): Add configurable sanitization policies based on security levels
+    # Pseudo code for configurable sanitization policies:
+    # - Create SanitizationPolicy class with different security levels
+    # - Level 1 (Strict): Minimal allowed content, maximum security
+    # - Level 2 (Standard): Balanced security and functionality
+    # - Level 3 (Permissive): Maximum functionality, reduced security
+    # - Allow per-user or per-operation policy selection
+
 
 class ExecutionSandbox:
     """Provides a sandboxed environment for node execution."""
@@ -252,6 +283,8 @@ class ExecutionSandbox:
         self.security_manager = security_manager
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
+    # TODO(P1, 8h): Implement comprehensive execution sandboxing with resource isolation
+    # TODO(P2, 4h): Add support for custom execution environments based on node security levels
 
     async def execute_with_timeout(self, coro: Callable, timeout: int, *args, **kwargs) -> Any:
         """Execute a coroutine with a timeout."""
