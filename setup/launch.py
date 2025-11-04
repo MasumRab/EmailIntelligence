@@ -34,7 +34,7 @@ from deployment.test_stages import test_stages
 
 # Import command pattern components
 from src.core.commands.command_factory import get_command_factory
-from src.core.container import initialize_all_services, cleanup_all_services
+from src.core.container import get_container, initialize_all_services, cleanup_all_services
 
 try:
     from dotenv import load_dotenv
@@ -743,7 +743,7 @@ def print_system_info():
         print(f"{cf}: {'Found' if exists else 'Not found'}")
 
 def main():
-# Initialize services
+    # Initialize services
     initialize_all_services(get_container())
 
     # Parse command line arguments
@@ -777,7 +777,6 @@ def main():
     parser.add_argument('--stage', choices=['dev', 'test'], default='dev', help='Application mode (legacy)')
 
     # Environment Setup
-    parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
     
     parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
@@ -792,7 +791,6 @@ def main():
     parser.add_argument("--loglevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help="Set the logging level.")
 
     # Application Stage
-    parser.add_argument("--stage", choices=['dev', 'test'], default='dev', help="Specify the application mode.")
 
     # Server Configuration
     parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
@@ -802,41 +800,6 @@ def main():
     parser.add_argument("--api-only", action="store_true", help="Run only the API server without the frontend.")
     parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server.")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
-
-    # Testing Options
-    parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests.")
-    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
-    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
-    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
-    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
-    parser.add_argument("--security", action="store_true", help="Run security tests.")
-
-    # Extensions and Models
-    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
-    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
-    parser.add_argument("--install-extension", type=str, help="Install an extension from a Git repository.")
-    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension.")
-    parser.add_argument("--update-extension", type=str, help="Update an extension.")
-    parser.add_argument("--list-extensions", action="store_true", help="List all extensions.")
-    parser.add_argument("--create-extension", type=str, help="Create a new extension template.")
-    parser.add_argument("--download-model", type=str, help="Download a model from a URL.")
-    parser.add_argument("--model-name", type=str, help="Specify the model name for download.")
-    parser.add_argument("--list-models", action="store_true", help="List all models.")
-    parser.add_argument("--delete-model", type=str, help="Delete a model.")
-
-    # Advanced Options
-    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models.")
-    parser.add_argument("--force-cpu", action="store_true", help="Force CPU mode even if GPU is available.")
-    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode.")
-    parser.add_argument("--system-info", action="store_true", help="Print detailed system, Python, and project configuration information then exit.")
-
-    # Networking Options
-    parser.add_argument("--share", action="store_true", help="Create a public URL.")
-    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
-    parser.add_argument("--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region.")
-
-    # Environment Configuration
-    parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
 
     args = parser.parse_args()
 
@@ -914,18 +877,18 @@ def _execute_command(command_name: str, args) -> int:
 
 
 def _handle_legacy_args(args) -> int:
-"""Handle legacy argument parsing for backward compatibility."""
+    """Handle legacy argument parsing for backward compatibility."""
     # Setup WSL environment if applicable (early setup)
-setup_wsl_environment()
-check_wsl_requirements()
+    setup_wsl_environment()
+    check_wsl_requirements()
 
-if not args.skip_python_version_check:
-check_python_version()
+    if not args.skip_python_version_check:
+        check_python_version()
 
-logging.getLogger().setLevel(args.loglevel)
+    logging.getLogger().setLevel(args.loglevel)
 
-if DOTENV_AVAILABLE:
-# Load user customizations from launch-user.env if it exists
+    if DOTENV_AVAILABLE:
+        # Load user customizations from launch-user.env if it exists
         user_env_file = ROOT_DIR / "launch-user.env"
         if user_env_file.exists():
             load_dotenv(user_env_file)
@@ -939,59 +902,59 @@ if DOTENV_AVAILABLE:
             logger.info(f"Loading environment variables from {env_file}")
             load_dotenv(env_file)
 
-# Set conda environment name if specified
+    # Set conda environment name if specified
     global CONDA_ENV_NAME
-if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
-    CONDA_ENV_NAME = args.conda_env
-    args.use_conda = True  # Set flag when conda env is specified
-    # args.use_conda remains as set by command line argument
+    if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
+        CONDA_ENV_NAME = args.conda_env
+        args.use_conda = True  # Set flag when conda env is specified
+        # args.use_conda remains as set by command line argument
 
-# Validate environment if not skipping preparation
+    # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
-    return 1
+        return 1
 
-# Validate input arguments
-try:
-    args.port = validate_port(args.port)
+    # Validate input arguments
+    try:
+        args.port = validate_port(args.port)
         args.host = validate_host(args.host)
         if hasattr(args, 'frontend_port'):
-        args.frontend_port = validate_port(args.frontend_port)
-except ValueError as e:
-    logger.error(f"Input validation failed: {e}")
-    return 1
+            args.frontend_port = validate_port(args.frontend_port)
+    except ValueError as e:
+        logger.error(f"Input validation failed: {e}")
+        return 1
 
     if args.setup:
         venv_path = ROOT_DIR / VENV_DIR
         handle_setup(args, venv_path)
         return 0
 
-# Handle Conda environment if requested
+    # Handle Conda environment if requested
     if args.use_conda:
-if not is_conda_available():
-    logger.error("Conda is not available. Please install Conda or use venv.")
-        return 1
-if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
-    logger.error(f"Failed to activate Conda environment: {args.conda_env}")
-        return 1
+        if not is_conda_available():
+            logger.error("Conda is not available. Please install Conda or use venv.")
+            return 1
+        if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
+            logger.error(f"Failed to activate Conda environment: {args.conda_env}")
+            return 1
         elif get_conda_env_info()["is_active"]:
-logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
+            logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
 
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
 
-if args.system_info:
-    print_system_info()
-    return 0
+    if args.system_info:
+        print_system_info()
+        return 0
 
-# Handle test stage
+    # Handle test stage
     if hasattr(args, 'stage') and args.stage == 'test':
         handle_test_stage(args)
         return 0
 
-# Handle unit/integration test flags
+    # Handle unit/integration test flags
     if getattr(args, 'unit', False) or getattr(args, 'integration', False) or getattr(args, 'coverage', False):
         handle_test_stage(args)
-return 0
+        return 0
 
     # Service startup logic
     start_services(args)
