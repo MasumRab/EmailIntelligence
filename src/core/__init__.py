@@ -15,10 +15,7 @@ from .dynamic_model_manager import DynamicModelManager, get_model_manager
 from .model_registry import ModelRegistry
 from .plugin_manager import PluginManager, get_plugin_manager
 from .models import Email, Category
-<<<<<<< Updated upstream
 from .settings import SettingsManager
-=======
->>>>>>> Stashed changes
 from .exceptions import (
     EmailIntelligenceError,
     DatabaseError,
