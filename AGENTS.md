@@ -337,8 +337,6 @@ cd ../project-api && claude     # Terminal 2: API work
 ```
 
 ## Troubleshooting
-
-<<<<<<< Updated upstream
 ### AI Commands Failing
 
 ```bash
@@ -368,6 +366,40 @@ task-master generate
 # Fix dependency issues
 task-master fix-dependencies
 ```
+
+### Port Binding Errors (e.g., [Errno 10048])
+If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
+
+**Procedure to identify and fix:**
+
+1. **Identify the process using the port:**
+   ```bash
+   netstat -ano | findstr :PORT_NUMBER
+   ```
+   Replace `PORT_NUMBER` with the conflicting port (e.g., 8000 for backend, 7860 for Gradio).
+
+2. **Note the PID (Process ID) from the output.**
+
+3. **Kill the process:**
+   ```bash
+   taskkill /f /pid PID_NUMBER
+   ```
+   Replace `PID_NUMBER` with the PID from step 1.
+
+4. **Verify the port is free:**
+   ```bash
+   netstat -ano | findstr :PORT_NUMBER
+   ```
+   Should show no results.
+
+5. **Retry the launch:**
+   ```bash
+   python launch.py
+   ```
+
+**Alternative:** Use different ports by modifying the launch script or passing port arguments.
+
+**Prevention:** Always shut down services properly with Ctrl+C before restarting.
 
 DO NOT RE-INITIALIZE. That will not do anything beyond re-adding the same Taskmaster core files.
 
@@ -416,41 +448,6 @@ These commands make AI calls and may take up to a minute:
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
-=======
-### Port Binding Errors (e.g., [Errno 10048])
-If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
-
-**Procedure to identify and fix:**
-
-1. **Identify the process using the port:**
-   ```bash
-   netstat -ano | findstr :PORT_NUMBER
-   ```
-   Replace `PORT_NUMBER` with the conflicting port (e.g., 8000 for backend, 7860 for Gradio).
-
-2. **Note the PID (Process ID) from the output.**
-
-3. **Kill the process:**
-   ```bash
-   taskkill /f /pid PID_NUMBER
-   ```
-   Replace `PID_NUMBER` with the PID from step 1.
-
-4. **Verify the port is free:**
-   ```bash
-   netstat -ano | findstr :PORT_NUMBER
-   ```
-   Should show no results.
-
-5. **Retry the launch:**
-   ```bash
-   python launch.py
-   ```
-
-**Alternative:** Use different ports by modifying the launch script or passing port arguments.
-
-**Prevention:** Always shut down services properly with Ctrl+C before restarting.
-
 
 ## ⚠️ Critical Rules & Code Smells to Avoid
 - **Circular Dependencies**: Avoid circular imports (especially AIEngine ↔ DatabaseManager)
@@ -489,4 +486,3 @@ You MUST read the overview resource to understand the complete workflow. The inf
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
->>>>>>> Stashed changes
