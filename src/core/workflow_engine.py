@@ -511,5 +511,3 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
-=======
->>>>>>> origin/main
