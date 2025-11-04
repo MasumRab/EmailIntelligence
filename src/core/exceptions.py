@@ -62,3 +62,17 @@ class GmailServiceError(BaseAppException):
         self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
     ):
         super().__init__(status_code=status_code, detail=detail)
+
+
+class WorkflowValidationError(EmailIntelligenceError):
+    """Exception for workflow validation errors."""
+
+    def __init__(self, message: str = "Workflow validation failed"):
+        super().__init__(message)
+
+
+class WorkflowExecutionError(EmailIntelligenceError):
+    """Exception for workflow execution errors."""
+
+    def __init__(self, message: str = "Workflow execution failed"):
+        super().__init__(message)

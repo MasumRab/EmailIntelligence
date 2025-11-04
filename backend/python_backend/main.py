@@ -24,6 +24,7 @@ from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import SmartFilterManager
 
 from . import (
+    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
