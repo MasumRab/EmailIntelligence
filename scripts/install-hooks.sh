@@ -35,4 +35,4 @@ done
 
 echo "Git hooks installed successfully."
 echo "Current hooks in .git/hooks/:"
-ls -la "$GIT_HOOKS_DIR" | grep -E '\.(pre-commit|post-commit|post-merge|post-checkout|post-push)$' || echo "No hooks found"
+ls -la "$GIT_HOOKS_DIR" | grep -E '(pre-commit|post-commit|post-merge|post-checkout|post-push)$' || echo "No hooks found"
