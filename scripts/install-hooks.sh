@@ -10,6 +10,33 @@ GIT_HOOKS_DIR=".git/hooks"
 
 echo "Installing Git hooks..."
 
+# Ensure we're in a git repository
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "Error: Not in a git repository"
+    exit 1
+fi
+
+# Check if orchestration-tools branch exists
+if ! git show-ref --verify --quiet refs/heads/orchestration-tools && ! git show-ref --verify --quiet refs/remotes/origin/orchestration-tools; then
+    echo "Error: orchestration-tools branch not found"
+    exit 1
+fi
+
+# Check if local install-hooks.sh is behind orchestration-tools version
+if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^scripts/install-hooks.sh$"; then
+    if ! git diff --quiet orchestration-tools:"scripts/install-hooks.sh" "scripts/install-hooks.sh" 2>/dev/null; then
+        echo "Local install-hooks.sh differs from orchestration-tools version."
+        read -p "Update install-hooks.sh from orchestration-tools? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            git checkout orchestration-tools -- "scripts/install-hooks.sh" --quiet
+            echo "Updated install-hooks.sh from orchestration-tools."
+            # Re-run the script with updated version
+            exec "$0" "$@"
+        fi
+    fi
+fi
+
 # Create .git/hooks directory if it doesn't exist
 mkdir -p "$GIT_HOOKS_DIR"
 
