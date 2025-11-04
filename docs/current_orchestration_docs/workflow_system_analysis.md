@@ -92,7 +92,6 @@ The system includes:
 
 ### Code Quality
 - The implementation follows good Python practices with proper type hints, docstrings, and naming conventions
-- The code adheres to the project guidelines specified in AGENTS.md
 - Proper error handling with meaningful error messages is implemented
 - Security best practices are followed throughout the implementation
 

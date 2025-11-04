@@ -26,9 +26,10 @@ The `orchestration-tools` branch serves as the central hub for development envir
 
 ### Files ONLY in `orchestration-tools` branch:
 - `scripts/` - All orchestration scripts and utilities
+  - `install-hooks.sh`: Installs Git hooks to `.git/hooks/` for automated environment management
+  - `cleanup_orchestration.sh`: Removes orchestration-specific files when not on orchestration-tools branch
 - `scripts/lib/` - Shared utility libraries
 - `scripts/hooks/` - Hook source files
-- `scripts/install-hooks.sh` - Hook installation script
 
 ### Files synced TO other branches (orchestration-managed):
 - `setup/` - Launch scripts and environment setup
@@ -190,7 +191,7 @@ main/scientific branches
 
 ## Troubleshooting
 
-### "Scripts directory shouldn't be in main branch"
+### "Scripts directory shouldn\'t be in main branch"
 **Cause**: Orchestration tooling was accidentally committed to main
 **Fix**: Remove scripts/ from main, ensure only orchestration-tools has it
 
@@ -201,6 +202,23 @@ main/scientific branches
 ### "Post-checkout syncs too many files"
 **Cause**: Hook syncing orchestration source files to other branches
 **Fix**: Only sync essentials (setup/, shared configs), not tooling
+
+## Canonical File List
+
+This section lists the files and directories that are considered canonical for the `orchestration-tools` branch. This list should be updated if there are intentional changes to the files or directories that constitute the core of this branch\'s functionality.
+
+### Core Orchestration Files:
+*   `orchestration-workflow.md`: This documentation file.
+*   `scripts/install-hooks.sh`: Script to install Git hooks.
+*   `scripts/hooks/`: Directory containing Git hook scripts (e.g., `pre-commit`, `post-checkout`, etc.).
+*   `setup/`: Directory for setup scripts and configurations.
+*   `launch.*`: Files related to launching the application.
+*   `.gitattributes`: Git attribute configurations.
+*   `.gitignore`: Git ignore patterns.
+*   `pyproject.toml`: Python project configuration.
+*   `requirements.*`: Python dependency files (e.g., `requirements.txt`).
+
+---
 
 ## Usage
 
