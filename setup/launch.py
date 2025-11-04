@@ -157,7 +157,11 @@ def check_python_version():
     """Check if the current Python version is compatible."""
     current_version = sys.version_info[:2]
     if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        logger.error(f"Python version {platform.python_version()} is not compatible.")
+        logger.error(
+            f"Python version {platform.python_version()} is not compatible. "
+            f"Please use Python version {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} "
+            f"to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}."
+        )
         sys.exit(1)
     logger.info(f"Python version {platform.python_version()} is compatible.")
 
@@ -324,13 +328,24 @@ def activate_conda_env(env_name: str = None) -> bool:
         return False
 
     if not is_conda_available():
-        logger.debug("Conda not available, skipping environment activation.")
+        if env_name:
+            logger.warning(f"Conda not available, cannot activate environment '{env_name}'. Please install Conda.")
+        else:
+            logger.debug("Conda not available, skipping environment activation.")
         return False
 
     conda_info = get_conda_env_info()
     if conda_info["is_active"]:
-        logger.info(f"Already in conda environment: {conda_info['env_name']}")
-        return True
+        if conda_info["env_name"] == env_name:
+            logger.info(f"Already in specified conda environment: {conda_info['env_name']}")
+            return True
+        else:
+            logger.warning(
+                f"Currently in conda environment '{conda_info['env_name']}', "
+                f"but '{env_name}' was requested. "
+                f"Please activate '{env_name}' manually before running the script."
+            )
+            return False
 
     # Check if the requested environment exists
     try:
@@ -419,6 +434,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     python_exe = get_python_executable()
 
     if use_poetry:
+        # Ensure pip is up-to-date before installing other packages
+        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
             subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
@@ -427,6 +444,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 
         run_command([python_exe, "-m", "poetry", "install", "--with", "dev"], "Installing dependencies with Poetry", cwd=ROOT_DIR)
     else:
+        # Ensure pip is up-to-date before installing other packages
+        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
             subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
