@@ -28,16 +28,6 @@ if [ "$current_branch" != "orchestration-tools" ]; then
             fi
         done
 
-        # Remove orchestration scripts
-        if [ -f "scripts/sync_setup_worktrees.sh" ]; then
-            rm "scripts/sync_setup_worktrees.sh"
-            echo "Removed scripts/sync_setup_worktrees.sh"
-        fi
-        if [ -f "scripts/reverse_sync_orchestration.sh" ]; then
-            rm "scripts/reverse_sync_orchestration.sh"
-            echo "Removed scripts/reverse_sync_orchestration.sh"
-        fi
-
         echo "Cleanup completed."
     else
         echo "Cleanup cancelled."
