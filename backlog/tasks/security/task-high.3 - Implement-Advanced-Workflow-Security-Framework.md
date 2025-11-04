@@ -1,11 +1,11 @@
 ---
 id: task-high.3
 title: Implement Advanced Workflow Security Framework
-status: Done
+status: To Do
 assignee:
-  - '@myself'
+  - '@amp'
 created_date: '2025-10-28 08:50'
-updated_date: '2025-10-29 18:40'
+updated_date: '2025-10-28 08:56'
 labels:
   - security
   - workflow
