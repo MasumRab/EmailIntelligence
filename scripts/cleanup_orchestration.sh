@@ -19,10 +19,23 @@ if [ "$current_branch" != "orchestration-tools" ]; then
             echo "Removed scripts/currently_disabled/ from git and working directory"
         fi
 
-        # Remove orchestration-specific hooks
-        if [ -f ".git/hooks/post-commit-setup-sync" ]; then
-            rm .git/hooks/post-commit-setup-sync
-            echo "Removed .git/hooks/post-commit-setup-sync"
+        # Remove all orchestration-managed hooks to prevent mixup
+        HOOKS_TO_REMOVE=("pre-commit" "post-commit" "post-merge" "post-checkout" "post-push")
+        for hook in "${HOOKS_TO_REMOVE[@]}"; do
+            if [ -f ".git/hooks/$hook" ]; then
+                rm ".git/hooks/$hook"
+                echo "Removed .git/hooks/$hook"
+            fi
+        done
+
+        # Remove orchestration scripts
+        if [ -f "scripts/sync_setup_worktrees.sh" ]; then
+            rm "scripts/sync_setup_worktrees.sh"
+            echo "Removed scripts/sync_setup_worktrees.sh"
+        fi
+        if [ -f "scripts/reverse_sync_orchestration.sh" ]; then
+            rm "scripts/reverse_sync_orchestration.sh"
+            echo "Removed scripts/reverse_sync_orchestration.sh"
         fi
 
         echo "Cleanup completed."
