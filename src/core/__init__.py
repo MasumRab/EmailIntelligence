@@ -15,7 +15,6 @@ from .dynamic_model_manager import DynamicModelManager, get_model_manager
 from .model_registry import ModelRegistry
 from .plugin_manager import PluginManager, get_plugin_manager
 from .models import Email, Category
-from .auth import AuthManager
 from .settings import SettingsManager
 from .exceptions import (
     EmailIntelligenceError,
@@ -48,7 +47,6 @@ __all__ = [
     
     # Managers and factories
     "DataSourceFactory",
-    "AuthManager",
     "SettingsManager",
     "SecurityManager",
     "PerformanceMonitor",
