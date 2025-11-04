@@ -41,6 +41,12 @@ install_git_hooks() {
 # Install Git hooks first
 install_git_hooks
 
+if [[ "$BRANCH" != "orchestration-tools" ]]; then
+    echo "Checking out $BRANCH branch. Syncing canonical orchestration files..."
+    git checkout --quiet orchestration-tools -- setup/ scripts/hooks/ scripts/sync_setup_worktrees.sh .gitattributes .gitignore launch.bat launch.py launch.sh pyproject.toml requirements.txt requirements-dev.txt
+    echo "Orchestration files updated to canonical versions."
+fi
+
 if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
     echo "Checking out $BRANCH branch. Running environment setup..."
     if command -v python &> /dev/null; then
