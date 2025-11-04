@@ -1,10 +1,11 @@
-# Git Workflow Plan: Managing Documentation Changes
+# Git Workflow Plan: Managing Orchestration Documentation and Files
 
 ## Overview
-This document outlines the recommended approach for managing the documentation changes created during our analysis of the node-based workflow system. The changes include three new documentation files:
-1. `docs/workflow_system_analysis.md` - Comprehensive analysis of the current workflow system
-2. `docs/project_structure_comparison.md` - Text-based diagram comparing old and new project structures
-3. `docs/workflow_implementation_plan.md` - Phased implementation plan for future development
+This document outlines the recommended approach for managing documentation and related files within the `orchestration-tools` branch, focusing on orchestration script management and `launch.py` related files. This includes:
+1. Orchestration scripts (e.g., `install-hooks.sh`)
+2. Git hooks (e.g., `pre-commit`, `post-checkout`)
+3. `launch.py` and its associated configuration files (e.g., `requirements.txt`, `pyproject.toml`)
+4. Documentation specific to the orchestration process (e.g., `orchestration-workflow.md`)
 
 ## Current State Assessment
 - The documentation changes are already created in the local filesystem
@@ -138,29 +139,37 @@ When conflicts occur during merge/rebase:
 2. Verify that merged documentation makes sense in the target context
 3. Update any cross-references that might be affected
 
-## Specific Workflow for This Documentation Set
+## Specific Workflow for Orchestration Files
 
-### Step 1: Create Documentation Branch
+### Step 1: Create a Feature Branch
 ```bash
-git checkout -b docs/workflow-documentation-update
-git add docs/workflow_system_analysis.md docs/project_structure_comparison.md docs/workflow_implementation_plan.md
-git commit -m "Add comprehensive workflow system documentation based on analysis"
+# Always work on a feature branch when making changes to orchestration files
+git checkout -b feat/orchestration-update
 ```
 
-### Step 2: Push and Create PR
+### Step 2: Make Changes and Commit
+- Modify orchestration scripts, Git hooks, `launch.py`, or related configuration files.
+- Update relevant documentation (e.g., `orchestration-workflow.md`) if changes impact the orchestration process.
 ```bash
-git push -u origin docs/workflow-documentation-update
+# Example: Update an orchestration script and its documentation
+git add scripts/install-hooks.sh docs/current_orchestration_docs/orchestration-workflow.md
+git commit -m "feat: update install-hooks.sh and orchestration workflow doc"
 ```
 
-### Step 3: Review and Merge
-- Submit a pull request to the main branch
-- Review the changes to ensure they align with the project's documentation standards
-- Request review from team members if appropriate
+### Step 3: Push and Create Pull Request
+```bash
+git push -u origin feat/orchestration-update
+```
 
-### Step 4: Integration with Other Work
-- After merging to main, update any long-running feature branches with the new documentation
-- Consider if the analysis and plan should influence current development work
-- Communicate the availability of the new documentation to the team
+### Step 4: Review and Merge
+- Submit a pull request to the `orchestration-tools` branch.
+- Ensure changes align with project standards and do not introduce regressions.
+- Request review from relevant team members.
+
+### Step 5: Integration and Sync
+- After merging to `orchestration-tools`, ensure that changes are properly synced to other branches via the `post-checkout` hook.
+- Communicate significant changes to the development team.
+
 
 ## Handling Future Design Changes
 
