@@ -1,3 +1,6 @@
+"""
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Base classes for the node-based workflow system.
 
@@ -18,6 +21,7 @@ try:
 except ImportError:
     NETWORKX_AVAILABLE = False
     nx = None
+
 
 class DataType(Enum):
     """Enum for supported data types in node connections."""
@@ -85,12 +89,13 @@ class Connection:
 class ExecutionContext:
     """Maintains execution context during workflow execution."""
 
-    def __init__(self):
+    def __init__(self, security_context: Optional[SecurityContext] = None):
         self.node_outputs: Dict[str, Dict[str, Any]] = {}
         self.shared_state: Dict[str, Any] = {}
         self.execution_path: List[str] = []
         self.errors: List[Dict[str, Any]] = []
         self.metadata: Dict[str, Any] = {}
+        self.security_context = security_context
 
     def set_node_output(self, node_id: str, output: Dict[str, Any]):
         """Store the output of a node."""

@@ -178,6 +178,45 @@ async def shutdown_event():
     await db_manager.close()
 
 
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.detail,
+    )
+
+
+@app.exception_handler(BaseAppException)
+async def base_app_exception_handler(request: Request, exc: BaseAppException):
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "An internal error occurred",
+            "error_code": "INTERNAL_ERROR",
+            "details": str(exc),
+        },
+    )
+
+
+# Exception handlers removed - now handled by ErrorHandlingMiddleware
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle Pydantic validation errors with detailed 422 responses."""
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "message": "Validation error with provided data.",
+        },
+    )
+
+
 # Add error handling middleware
 app.add_middleware(ErrorHandlingMiddleware)
 
