@@ -119,7 +119,10 @@ install_hook_from_remote() {
 
 # Main installation function
 main() {
-    common_init
+    # Initialize logging manually to avoid common.sh issues
+    LOG_LEVEL=${LOG_LEVEL:-INFO}
+    CURRENT_LOG_LEVEL=${LOG_LEVEL}
+
     parse_install_args "$@"
 
     log_info "Installing Git hooks from remote $ORCHESTRATION_BRANCH branch..."
