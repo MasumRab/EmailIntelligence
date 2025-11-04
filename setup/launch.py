@@ -29,9 +29,6 @@ from typing import List, Optional
 
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-=======
-
->>>>>>> origin/main
 from deployment.test_stages import test_stages
 
 try:
@@ -411,7 +408,7 @@ def create_venv(venv_path: Path, recreate: bool = False):
 
 def install_package_manager(venv_path: Path, manager: str):
     python_exe = get_venv_executable(venv_path, "python")
-    run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
+    run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     python_exe = get_python_executable()
@@ -569,18 +566,19 @@ def start_server_ts():
         return None
 
     # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
+    pkg_json_path = ROOT_DIR / "server" / "package.json"
     if not pkg_json_path.exists():
-        logger.debug("No package.json in 'backend/server-ts/', skipping TypeScript backend server startup.")
+        logger.debug("No package.json in 'server/', skipping TypeScript backend server startup.")
         return None
 
     # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "backend" / "server-ts" / "node_modules"
+    node_modules_path = ROOT_DIR / "server" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
 
 # --- Service Startup Functions ---
 def start_backend(host: str, port: int, debug: bool = False):
+    # Validate inputs to prevent command injection
 import ipaddress
 try:
 # Allow localhost, 127.0.0.1, or valid IP addresses
@@ -592,13 +590,6 @@ try:
         logger.error(f"Invalid host or port: {e}")
         return
 
-    python_exe = get_python_executable()
-    cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
-    if debug:
-        cmd.append("--reload")
-    logger.info(f"Starting backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    process_manager.add_process(process)
 python_exe = get_python_executable()
 cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
 if debug:
@@ -606,8 +597,6 @@ cmd.append("--reload")
 logger.info(f"Starting backend on {host}:{port}")
 process = subprocess.Popen(cmd, cwd=ROOT_DIR)
 process_manager.add_process(process)
-=======
->>>>>>> origin/main
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
     """Start a Node.js service."""
@@ -726,11 +715,11 @@ def print_system_info():
     print(f"Python Version: {sys.version}")
     print(f"Python Executable: {sys.executable}")
 
-    print("\n=== Project Information ===")
+    print("\\n=== Project Information ===")
     print(f"Project Root: {ROOT_DIR}")
     print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
 
-    print("\n=== Environment Status ===")
+    print("\\n=== Environment Status ===")
     venv_path = ROOT_DIR / VENV_DIR
     if venv_path.exists():
         print(f"Virtual Environment: {venv_path} (exists)")
@@ -751,7 +740,7 @@ def print_system_info():
     node_available = check_node_npm_installed()
     print(f"Node.js/npm Available: {node_available}")
 
-    print("\n=== Configuration Files ===")
+    print("\\n=== Configuration Files ===")
     config_files = [
         "pyproject.toml", "requirements.txt", "requirements-dev.txt",
         "package.json", "launch-user.env", ".env"
@@ -767,9 +756,6 @@ def main():
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
     
-=======
-    
->>>>>>> origin/main
     parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
     parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
     parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
