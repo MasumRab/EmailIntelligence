@@ -51,6 +51,7 @@ coverage/
 
 # Misc
 diagnosis_message.txt
+logs/
 
 # Ignore configuration and local environment files
 *.local.config
