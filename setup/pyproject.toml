@@ -8,13 +8,14 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
-    "email-validator>=2.2.0",
-    "httpx>=0.28.1",
-    "pydantic>=2.11.5",
-    "python-multipart>=0.0.20",
-    "gradio>=4.0.0",
-    "RestrictedPython>=8.0",
-    "pyngrok>=0.7.0",
+    # Core AI/ML (CPU versions by default - installation scripts handle CPU index)
+    "torch>=2.4.0",
+    "torchvision>=0.19.0",
+    "torchaudio>=2.4.0",
+    "transformers>=4.40.0",
+    "accelerate>=0.30.0",
+
+    # NLP and text processing
     "nltk>=3.9.1",
     "textblob>=0.19.0",
     "transformers>=4.40.0",
