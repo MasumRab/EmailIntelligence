@@ -2,12 +2,16 @@
 
 ## 1. Purpose of `orchestration-tools` Branch
 
+⚠️ **SEE ALSO**: [Orchestration Branch Scope Definition](orchestration_branch_scope.md) for a clear understanding of what belongs in this branch.
+
 The `orchestration-tools` branch serves as the **central source of truth** for:
 *   Development environment tooling.
 *   Configuration management.
 *   Scripts and Git hooks that ensure consistency across all project branches.
 
 Its primary goal is to keep the core email intelligence codebase clean by separating orchestration concerns.
+
+**IMPORTANT**: This branch will NOT be merged with other branches. It exists solely to provide environment tools and configurations that are synchronized to other branches.
 
 ## 2. File Ownership and Synchronization
 
