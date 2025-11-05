@@ -57,10 +57,28 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     checkout_from_orchestration "scripts/hooks/post-merge"
     checkout_from_orchestration "scripts/hooks/post-push"
 
-    # Install/update Git hooks
-    if [[ -f "scripts/install-hooks.sh" ]]; then
-        echo "Installing updated Git hooks..."
-        bash scripts/install-hooks.sh --quiet
+    # Conditional Git hook installation/update
+    ORCHESTRATION_BRANCH="${ORCHESTRATION_BRANCH:-orchestration-tools}"
+    CURRENT_ORCH_COMMIT=$(git rev-parse "origin/$ORCHESTRATION_BRANCH" 2>/dev/null)
+    LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
+
+    if [[ -z "$CURRENT_ORCH_COMMIT" ]]; then
+        echo "Warning: Could not determine current commit for $ORCHESTRATION_BRANCH. Skipping conditional hook update."
+    elif [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
+        echo "Orchestration tools branch has new changes. Installing/updating Git hooks..."
+        if [[ -f "scripts/install-hooks.sh" ]]; then
+            bash scripts/install-hooks.sh --quiet
+            if [[ $? -eq 0 ]]; then
+                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
+                echo "Hooks updated and commit ID stored."
+            else
+                echo "Warning: Hook installation failed. Commit ID not updated."
+            fi
+        else
+            echo "Warning: scripts/install-hooks.sh not found. Cannot update hooks."
+        fi
+    else
+        echo "Git hooks are already up-to-date with $ORCHESTRATION_BRANCH."
     fi
 
     echo "Orchestration synchronization complete"
