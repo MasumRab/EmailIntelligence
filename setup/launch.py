@@ -363,6 +363,12 @@ def main():
         "--continue-on-error", action="store_true", help="Continue running tests even if some fail"
     )
 
+    # Check command for orchestration-tools branch
+    check_parser = subparsers.add_parser("check", help="Run checks for orchestration environment")
+    _add_common_args(check_parser)
+    check_parser.add_argument("--critical-files", action="store_true", help="Check for critical orchestration files")
+    check_parser.add_argument("--env", action="store_true", help="Check orchestration environment")
+
     # Legacy argument parsing for backward compatibility
     parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
     parser.add_argument(
