@@ -59,7 +59,18 @@ class SetupCommand(Command):
             if not self._validate_setup():
                 return 1
 
-            logger.info("Environment setup completed successfully")
+            logger.info("🎉 Environment setup completed successfully!")
+            logger.info("")
+            logger.info("Next steps:")
+            logger.info("  1. Activate the virtual environment:")
+            logger.info("     source venv/bin/activate")
+            logger.info("")
+            logger.info("  2. Or use Python directly:")
+            logger.info("     ./venv/bin/python")
+            logger.info("")
+            logger.info("  3. Install additional packages (if needed):")
+            logger.info("     ./venv/bin/pip install <package>")
+            logger.info("")
             return 0
 
         except Exception as e:
@@ -68,14 +79,98 @@ class SetupCommand(Command):
 
     def _validate_environment(self) -> bool:
         """Validate the environment before setup."""
+        import sys
         logger.info("Validating environment...")
 
-        # Add environment validation logic here
-        # This would include Python version checks, system requirements, etc.
+        # Check for system Python that might cause permission issues
+        if self._is_system_python():
+            logger.warning("⚠️  System Python detected at: {}".format(sys.executable))
+            logger.warning("❌ This will cause 'Permission denied' errors when running 'pip install'")
+            logger.info("✅ The setup will create a virtual environment to avoid permission issues.")
+            logger.info("💡 After setup, always use: source venv/bin/activate")
+            logger.info("   Or run commands with: ./venv/bin/pip install <package>")
 
-        # For now, just log success
+        # Check if we're already in a virtual environment
+        if self._is_in_virtual_env():
+            venv_path = self._get_venv_path()
+            logger.info(f"✅ Already in virtual environment: {venv_path}")
+        else:
+            logger.info("ℹ️  Not in a virtual environment - setup will create one")
+
+        # Check Python version
+        import sys
+        python_version = sys.version_info
+        if python_version < (3, 8):
+            logger.error(f"Python {python_version.major}.{python_version.minor} is too old. Minimum required: 3.8")
+            return False
+
+        logger.info(f"Python version: {python_version.major}.{python_version.minor}.{python_version.micro}")
         logger.info("Environment validation passed")
         return True
+
+    def _is_system_python(self) -> bool:
+        """Check if we're using system-installed Python."""
+        import sys
+        from pathlib import Path
+
+        python_path = Path(sys.executable)
+
+        # Common system Python paths
+        system_paths = [
+            "/usr/bin/python",
+            "/usr/bin/python3",
+            "/usr/local/bin/python",
+            "/usr/local/bin/python3",
+            "/opt/homebrew/bin/python3",  # macOS Homebrew
+        ]
+
+        # Check if executable is in system paths
+        for system_path in system_paths:
+            if python_path == Path(system_path):
+                return True
+
+        # Check if it's in a system directory
+        system_dirs = ["/usr", "/usr/local", "/opt/homebrew"]
+        for sys_dir in system_dirs:
+            if str(python_path).startswith(sys_dir):
+                return True
+
+        return False
+
+    def _is_in_virtual_env(self) -> bool:
+        """Check if we're currently in a virtual environment."""
+        import sys
+        import os
+
+        # Check for common venv indicators
+        return (
+            hasattr(sys, 'real_prefix') or
+            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
+            os.environ.get('VIRTUAL_ENV') is not None or
+            os.environ.get('CONDA_DEFAULT_ENV') is not None
+        )
+
+    def _get_venv_path(self) -> str:
+        """Get the current virtual environment path."""
+        import os
+
+        # Check various indicators
+        venv_path = os.environ.get('VIRTUAL_ENV')
+        if venv_path:
+            return venv_path
+
+        conda_env = os.environ.get('CONDA_DEFAULT_ENV')
+        if conda_env:
+            return f"conda:{conda_env}"
+
+        # Try to infer from sys.prefix
+        import sys
+        if hasattr(sys, 'real_prefix'):
+            return sys.real_prefix
+        elif hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix:
+            return sys.prefix
+
+        return "Unknown"
 
     def _setup_virtual_env(self) -> bool:
         """Setup virtual environment."""
