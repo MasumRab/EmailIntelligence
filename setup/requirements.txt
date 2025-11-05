@@ -2,10 +2,10 @@
 # Core dependencies that work across all environments
 # Environment-specific overrides are applied via requirements-*.txt files
 
-# Core AI/ML (CPU versions by default)
-torch>=2.4.0
-torchvision>=0.19.0
-torchaudio>=2.4.0
+# Core AI/ML (CPU-only versions)
+torch>=2.4.0+cpu
+torchvision>=0.19.0+cpu
+torchaudio>=2.4.0+cpu
 transformers>=4.40.0
 accelerate>=0.30.0
 
