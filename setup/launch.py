@@ -51,11 +51,13 @@ from setup.test_stages import test_stages
 try:
     from src.core.commands.command_factory import get_command_factory
     from src.core.container import get_container, initialize_all_services
+    COMMAND_PATTERN_AVAILABLE = True
 except ImportError as e:
     logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
     get_command_factory = None
     get_container = None
     initialize_all_services = None
+    COMMAND_PATTERN_AVAILABLE = False
 
 try:
     from dotenv import load_dotenv
