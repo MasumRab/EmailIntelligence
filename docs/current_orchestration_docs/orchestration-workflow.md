@@ -2,7 +2,11 @@
 
 ## Overview
 
+⚠️ **SCOPE NOTE**: See [Orchestration Branch Scope](../orchestration_branch_scope.md) for a clear definition of what files belong in this branch.
+
 The `orchestration-tools` branch serves as the central hub for development environment tooling and configuration management. It maintains scripts, hooks, and configurations that ensure consistency across all project branches while keeping the core email intelligence codebase clean.
+
+**IMPORTANT**: This branch will NOT be merged with other branches. It exists solely as the source of truth for environment tools that are synchronized to other branches.
 
 ## Core Principle: Separation of Concerns
 
