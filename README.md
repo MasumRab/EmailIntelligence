@@ -95,6 +95,16 @@ The following files are NOT needed in this orchestration-focused branch and can 
 - **Maintain backward compatibility for the launch system**
 - **Ensure all hooks and automation scripts work correctly**
 
+## Hook Management and Updates
+
+When making changes to orchestration files, follow these important steps:
+
+1. **Always work in the orchestration-tools branch**
+2. **Test your changes thoroughly**
+3. **After pushing changes, other developers will receive updates automatically when switching branches**
+4. **For immediate updates, run**: `scripts/install-hooks.sh --force`
+5. **Refer to**: `docs/orchestration_hook_management.md` for detailed procedures
+
 ## Cleanup Strategy
 
 To clean this branch for orchestration-only purposes:
