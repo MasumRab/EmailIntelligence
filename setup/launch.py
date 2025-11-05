@@ -454,6 +454,9 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
             cwd=ROOT_DIR,
         )
 
+        # Install environment-specific requirements
+        install_environment_specific_requirements(python_exe)
+
         # Install notmuch with version matching system
         install_notmuch_matching_system()
 
@@ -474,6 +477,50 @@ def install_notmuch_matching_system():
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.warning("notmuch not found on system, skipping version-specific install")
+
+
+def install_environment_specific_requirements(python_exe: str):
+    """Install environment-specific requirements based on platform and hardware."""
+    system = platform.system().lower()
+    requirements_files = []
+
+    # Base environment-specific file
+    if system == "linux":
+        requirements_files.append("requirements-linux.txt")
+    elif system == "windows":
+        requirements_files.append("requirements-windows.txt")
+    elif system == "darwin":  # macOS
+        requirements_files.append("requirements-linux.txt")  # Use linux as fallback
+
+    # Hardware-specific file (GPU vs CPU)
+    try:
+        # Check for CUDA availability (simple check)
+        result = subprocess.run(
+            [python_exe, "-c", "import torch; print(torch.cuda.is_available())"],
+            capture_output=True, text=True, timeout=10
+        )
+        has_cuda = result.stdout.strip() == "True"
+        if has_cuda:
+            requirements_files.append("requirements-gpu.txt")
+        else:
+            requirements_files.append("requirements-cpu.txt")
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        # If torch check fails, default to CPU
+        logger.info("Could not detect CUDA availability, defaulting to CPU requirements")
+        requirements_files.append("requirements-cpu.txt")
+
+    # Install each requirements file if it exists
+    for req_file in requirements_files:
+        req_path = ROOT_DIR / "setup" / req_file
+        if req_path.exists():
+            logger.info(f"Installing environment-specific requirements from {req_file}")
+            run_command(
+                [python_exe, "-m", "pip", "install", "-r", str(req_path)],
+                f"Installing {req_file}",
+                cwd=ROOT_DIR,
+            )
+        else:
+            logger.debug(f"Environment-specific requirements file {req_file} not found, skipping")
 
 
 def download_nltk_data(venv_path=None):
