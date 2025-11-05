@@ -113,7 +113,7 @@ sudo apt install -y \
 
 # Create virtual environment for packages not available in system repos
 log_info "🐍 Creating virtual environment for specialized packages..."
-VENV_DIR="emailintelligence_venv"
+VENV_DIR="venv"
 if [[ -d "$VENV_DIR" ]]; then
     log_warning "Virtual environment already exists. Removing..."
     rm -rf "$VENV_DIR"
@@ -208,7 +208,7 @@ cat > activate_system.sh << 'ACTIVATE_EOF'
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$SCRIPT_DIR/emailintelligence_venv"
+VENV_DIR="$SCRIPT_DIR/venv"
 
 # Activate virtual environment if it exists
 if [[ -d "$VENV_DIR" ]]; then
