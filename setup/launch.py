@@ -49,10 +49,10 @@ from setup.test_stages import test_stages
 
 # Import command pattern components (with error handling for refactors)
 try:
-    from src.core.commands.command_factory import get_command_factory
-    from src.core.container import get_container, initialize_all_services
+    from setup.commands.command_factory import get_command_factory
+    from setup.container import get_container, initialize_all_services
 except ImportError as e:
-    logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
+    logging.warning(f"Could not import launch modules: {e}. Some features may be unavailable.")
     get_command_factory = None
     get_container = None
     initialize_all_services = None
