@@ -214,6 +214,18 @@ def main():
     # Setup command
     setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
     _add_common_args(setup_parser)
+    setup_parser.add_argument(
+        "--force-recreate-venv", action="store_true", help="Force recreation of the venv."
+    )
+    setup_parser.add_argument(
+        "--use-conda", action="store_true", help="Use Conda environment instead of venv."
+    )
+    setup_parser.add_argument(
+        "--conda-env", type=str, default="base", help="Conda environment name to use."
+    )
+    setup_parser.add_argument(
+        "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
+    )
 
     # Run command
     run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
