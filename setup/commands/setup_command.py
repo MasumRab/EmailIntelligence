@@ -28,6 +28,11 @@ class SetupCommand(Command):
     def get_description(self) -> str:
         return "Set up the development environment (virtual environment, dependencies, etc.)"
 
+    def validate_args(self) -> bool:
+        """Validate command arguments."""
+        # Setup command accepts various legacy arguments
+        return True
+
     def execute(self) -> int:
         """
         Execute the setup command.
@@ -76,21 +81,38 @@ class SetupCommand(Command):
         """Setup virtual environment."""
         logger.info("Setting up virtual environment...")
 
-        # Add virtual environment setup logic here
-        # This would include creating venv or conda env, etc.
+        try:
+            # Use existing setup logic from environment.py
+            from setup.environment import handle_setup
+            from setup.project_config import get_project_config
+            import argparse
 
-        # For now, just log success
-        logger.info("Virtual environment setup completed")
-        return True
+            # Create args object with defaults for setup
+            args = argparse.Namespace(
+                use_conda=getattr(self.args, 'use_conda', False),
+                force_recreate_venv=getattr(self.args, 'force_recreate_venv', False),
+                no_download_nltk=getattr(self.args, 'no_download_nltk', False)
+            )
+
+            # Get venv path
+            venv_path = get_project_config().root_dir / "venv"
+
+            # Call the existing setup function
+            handle_setup(args, venv_path)
+
+            logger.info("Virtual environment setup completed")
+            return True
+
+        except Exception as e:
+            logger.error(f"Virtual environment setup failed: {e}")
+            return False
 
     def _install_dependencies(self) -> bool:
         """Install project dependencies."""
         logger.info("Installing dependencies...")
 
-        # Add dependency installation logic here
-        # This would use uv, pip, npm, etc.
-
-        # For now, just log success
+        # Dependencies are already installed in _setup_virtual_env
+        # This method is kept for future expansion if needed
         logger.info("Dependencies installed successfully")
         return True
 
@@ -98,9 +120,30 @@ class SetupCommand(Command):
         """Validate that setup completed successfully."""
         logger.info("Validating setup...")
 
-        # Add setup validation logic here
-        # Check that venv works, imports work, etc.
+        try:
+            # Check if venv exists and is functional
+            from setup.project_config import get_project_config
+            from setup.environment import get_venv_executable
 
-        # For now, just log success
-        logger.info("Setup validation passed")
-        return True
+            venv_path = get_project_config().root_dir / "venv"
+            python_exe = get_venv_executable(venv_path, "python")
+
+            if not python_exe.exists():
+                logger.error(f"Python executable not found in venv: {python_exe}")
+                return False
+
+            # Try to run a simple python command to verify venv works
+            import subprocess
+            result = subprocess.run([str(python_exe), "-c", "print('Venv validation successful')"],
+                                  capture_output=True, text=True, timeout=10)
+
+            if result.returncode != 0:
+                logger.error(f"Venv validation failed: {result.stderr}")
+                return False
+
+            logger.info("Setup validation passed")
+            return True
+
+        except Exception as e:
+            logger.error(f"Setup validation failed: {e}")
+            return False
