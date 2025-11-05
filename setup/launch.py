@@ -1051,6 +1051,9 @@ def _add_legacy_args(parser):
 
 
 def main():
+    # Check for common setup issues before proceeding
+    _check_setup_warnings()
+
     # Initialize services (only if core modules are available)
     if initialize_all_services and get_container:
         initialize_all_services(get_container())
@@ -1263,6 +1266,31 @@ def _handle_legacy_args(args) -> int:
         process_manager.cleanup()
 
     return 0
+
+
+def _check_setup_warnings():
+    """Check for common setup issues and warn users."""
+    import sys
+    from pathlib import Path
+
+    # Check if using system Python
+    python_path = Path(sys.executable)
+    system_indicators = [
+        python_path == Path("/usr/bin/python"),
+        python_path == Path("/usr/bin/python3"),
+        str(python_path).startswith("/usr/"),
+        str(python_path).startswith("/usr/local/"),
+    ]
+
+    if any(system_indicators):
+        logger.warning("⚠️  You're using system Python. This may cause permission errors with pip.")
+        logger.info("💡  Run 'python launch.py setup' to create a virtual environment")
+        logger.info("   Then use: source venv/bin/activate")
+
+    # Check if venv exists but not activated
+    venv_path = ROOT_DIR / "venv" / "bin" / "python"
+    if venv_path.exists() and python_path != venv_path:
+        logger.info("💡  Virtual environment exists. Activate it with: source venv/bin/activate")
 
 
 if __name__ == "__main__":
