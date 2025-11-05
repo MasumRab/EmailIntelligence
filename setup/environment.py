@@ -152,8 +152,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
         run_command(
-            [python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]", "--exclude", "notmuch"],
-            "Installing dependencies with uv (excluding notmuch)",
+            [python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]"],
+            "Installing dependencies with uv",
             cwd=ROOT_DIR,
         )
 
