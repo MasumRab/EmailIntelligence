@@ -11,17 +11,23 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 # Check if setup/ directory has changes
 if git diff --cached --name-only | grep -q "^setup/"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-        echo "WARNING: Changes to setup/ files detected on '$CURRENT_BRANCH' branch."
-        echo "This will require a pull request to 'orchestration-tools' for approval."
-        echo "Proceeding with commit, but ensure PR is created after push."
+        echo "ERROR: Changes to setup/ files should only be made in the 'orchestration-tools' branch."
+        echo "Please commit setup changes to orchestration-tools branch instead."
+        echo ""
+        echo "To fix this:"
+        echo "1. Stash your changes: git stash"
+        echo "2. Switch to orchestration-tools: git checkout orchestration-tools"
+        echo "3. Apply stash: git stash pop"
+        echo "4. Commit there, then merge back"
+        exit 1
     fi
 fi
 
 # Check if orchestration scripts have changes
 if git diff --cached --name-only | grep -q "^scripts/sync_setup_worktrees.sh$"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-        echo "WARNING: Changes to orchestration scripts detected on '$CURRENT_BRANCH' branch."
-        echo "This will require a pull request to 'orchestration-tools' for approval."
+        echo "ERROR: Changes to orchestration scripts should only be made in the 'orchestration-tools' branch."
+        exit 1
     fi
 fi
 
@@ -33,11 +39,12 @@ ORCHESTRATION_CONFIG_FILES=(
     ".gitattributes"
 )
 
+<<<<<<< HEAD
 for config_file in "${ORCHESTRATION_CONFIG_FILES[@]}"; do
     if git diff --cached --name-only | grep -q "^${config_file}$"; then
         if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-            echo "WARNING: Changes to shared config file '${config_file}' detected on '$CURRENT_BRANCH' branch."
-            echo "This will require a pull request to 'orchestration-tools' for approval."
+            echo "ERROR: Changes to shared config file '${config_file}' should only be made in the 'orchestration-tools' branch."
+            exit 1
         fi
     fi
 done
@@ -45,9 +52,97 @@ done
 # Check if hooks have changes
 if git diff --cached --name-only | grep -q "^scripts/hooks/"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-        echo "WARNING: Changes to Git hooks detected on '$CURRENT_BRANCH' branch."
-        echo "This will require a pull request to 'orchestration-tools' for approval."
+        echo "ERROR: Changes to Git hooks should only be made in the 'orchestration-tools' branch."
+        exit 1
     fi
+fi
+
+# Function to validate orchestration-managed files (only on orchestration-tools branch)
+validate_orchestration_file() {
+    local file_path="$1"
+    local file_ext="${file_path##*.}"
+
+    case "$file_ext" in
+        py)
+            # Python syntax check
+            if command -v python3 &> /dev/null; then
+                if ! python3 -m py_compile "$file_path" 2>/dev/null; then
+                    echo "❌ Python syntax error in $file_path"
+                    return 1
+                fi
+            fi
+            ;;
+        json)
+            # JSON validation
+            if command -v python3 &> /dev/null; then
+                if ! python3 -c "import json; json.load(open('$file_path'))" 2>/dev/null; then
+                    echo "❌ Invalid JSON in $file_path"
+                    return 1
+                fi
+            fi
+            ;;
+        sh)
+            # Shell script syntax check
+            if command -v bash &> /dev/null; then
+                if ! bash -n "$file_path" 2>/dev/null; then
+                    echo "❌ Shell syntax error in $file_path"
+                    return 1
+                fi
+            fi
+            ;;
+        toml)
+            # TOML validation (basic check)
+            if command -v python3 &> /dev/null; then
+                if ! python3 -c "import tomllib; tomllib.load(open('$file_path', 'rb'))" 2>/dev/null; then
+                    echo "❌ Invalid TOML in $file_path"
+                    return 1
+                fi
+            fi
+            ;;
+    esac
+    return 0
+}
+
+# Validate orchestration-managed files (only when on orchestration-tools branch)
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
+    echo "🔍 Validating orchestration files..."
+
+    # Validate setup files
+    for file in $(git diff --cached --name-only | grep "^setup/"); do
+        if [[ -f "$file" ]]; then
+            if ! validate_orchestration_file "$file"; then
+                echo "💥 Validation failed for orchestration file: $file"
+                echo "Please fix the errors and try again."
+                exit 1
+            fi
+        fi
+    done
+
+    # Validate orchestration scripts
+    for file in $(git diff --cached --name-only | grep "^scripts/.*\.sh$"); do
+        if [[ -f "$file" ]]; then
+            if ! validate_orchestration_file "$file"; then
+                echo "💥 Validation failed for orchestration script: $file"
+                echo "Please fix the errors and try again."
+                exit 1
+            fi
+        fi
+    done
+
+    # Validate shared config files
+    for config_file in "${SHARED_CONFIG_FILES[@]}"; do
+        if git diff --cached --name-only | grep -q "^${config_file}$"; then
+            if [[ -f "$config_file" ]]; then
+                if ! validate_orchestration_file "$config_file"; then
+                    echo "💥 Validation failed for shared config: $config_file"
+                    echo "Please fix the errors and try again."
+                    exit 1
+                fi
+            fi
+        fi
+    done
+
+    echo "✅ Orchestration files validation passed"
 fi
 
 echo "Pre-commit validation passed"
