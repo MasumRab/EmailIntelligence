@@ -5,15 +5,13 @@
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [[ "$BRANCH" != "orchestration-tools" ]]; then
-    echo "Checking out $BRANCH branch. Synchronizing setup directory from orchestration-tools..."
-
-    # Function to safely checkout files from orchestration-tools branch
-    checkout_from_orchestration() {
-        local file_path="$1"
-        if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
-            # Check if file differs before checkout
-            if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
-                echo "Updating $file_path from orchestration-tools"
+# Function to safely checkout files from orchestration-tools branch
+checkout_from_orchestration() {
+local file_path="$1"
+if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
+        # Check if file differs before checkout
+    if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
+            echo "Updating $file_path from orchestration-tools"
                 git checkout --quiet orchestration-tools -- "$file_path"
             fi
         else
@@ -66,4 +64,15 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     fi
 
     echo "Orchestration synchronization complete"
+fi
+
+# Branch-specific setup for main/scientific
+if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
+    echo "Checking out $BRANCH branch. Running environment setup..."
+    if command -v python &> /dev/null; then
+        python launch.py --setup --skip-prepare > /dev/null 2>&1 &
+        echo "Setup started in background. Check logs for status."
+    else
+        echo "Python not found, skipping setup."
+    fi
 fi
