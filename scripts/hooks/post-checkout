@@ -51,34 +51,18 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     checkout_from_orchestration "requirements.txt"
     checkout_from_orchestration "requirements-dev.txt"
 
-    # Update Git hooks
-    checkout_from_orchestration "scripts/hooks/pre-commit"
-    checkout_from_orchestration "scripts/hooks/post-commit"
-    checkout_from_orchestration "scripts/hooks/post-merge"
-    checkout_from_orchestration "scripts/hooks/post-push"
-
-    # Conditional Git hook installation/update
-    ORCHESTRATION_BRANCH="${ORCHESTRATION_BRANCH:-orchestration-tools}"
-    CURRENT_ORCH_COMMIT=$(git rev-parse "origin/$ORCHESTRATION_BRANCH" 2>/dev/null)
-    LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
-
-    if [[ -z "$CURRENT_ORCH_COMMIT" ]]; then
-        echo "Warning: Could not determine current commit for $ORCHESTRATION_BRANCH. Skipping conditional hook update."
-    elif [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
-        echo "Orchestration tools branch has new changes. Installing/updating Git hooks..."
-        if [[ -f "scripts/install-hooks.sh" ]]; then
-            bash scripts/install-hooks.sh --quiet
-            if [[ $? -eq 0 ]]; then
-                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
-                echo "Hooks updated and commit ID stored."
-            else
-                echo "Warning: Hook installation failed. Commit ID not updated."
-            fi
+    # Install/update Git hooks using the standardized install-hooks.sh script
+    # This ensures all branches use consistent hook versions from orchestration-tools
+    echo "Installing/updating Git hooks from orchestration-tools..."
+    if [[ -f "scripts/install-hooks.sh" ]]; then
+        bash scripts/install-hooks.sh
+        if [[ $? -eq 0 ]]; then
+            echo "Git hooks installed successfully."
         else
-            echo "Warning: scripts/install-hooks.sh not found. Cannot update hooks."
+            echo "Warning: Git hook installation failed."
         fi
     else
-        echo "Git hooks are already up-to-date with $ORCHESTRATION_BRANCH."
+        echo "Warning: scripts/install-hooks.sh not found. Cannot install hooks."
     fi
 
     echo "Orchestration synchronization complete"
