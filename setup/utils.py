@@ -27,7 +27,7 @@ class ProcessManager:
     def __init__(self):
         self.processes: List[subprocess.Popen] = []
         self._shutdown_event = threading.Event()
-        atexit.register(self.cleanup)
+        # Manual cleanup only - no automatic cleanup on exit
 
     def add_process(self, process: subprocess.Popen):
         """Add a process to be managed."""

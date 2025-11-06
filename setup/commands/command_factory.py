@@ -12,6 +12,7 @@ from .setup_command import SetupCommand
 from .run_command import RunCommand
 from .test_command import TestCommand
 from .check_command import CheckCommand
+from .cleanup_command import CleanupCommand
 
 
 class CommandFactory:
@@ -29,6 +30,7 @@ class CommandFactory:
             'run': RunCommand,
             'test': TestCommand,
             'check': CheckCommand,
+            'cleanup': CleanupCommand,
         }
 
     def create_command(self, command_name: str, args: Namespace) -> Optional[Command]:

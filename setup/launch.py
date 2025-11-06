@@ -992,6 +992,10 @@ def main():
     _add_common_args(check_parser)
     check_parser.add_argument("--critical-files", action="store_true", help="Check for critical orchestration files")
     check_parser.add_argument("--env", action="store_true", help="Check orchestration environment")
+    
+    # Cleanup command
+    cleanup_parser = subparsers.add_parser("cleanup", help="Perform manual cleanup of resources")
+    _add_common_args(cleanup_parser)
 
     # Legacy argument parsing for backward compatibility
     parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
@@ -1078,6 +1082,7 @@ def _add_common_args(parser):
         help="Set the logging level.",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
+    parser.add_argument("--cleanup", action="store_true", help="Perform cleanup after execution")
 
 
 def _add_legacy_args(parser):
@@ -1173,9 +1178,17 @@ def _execute_command(command_name: str, args) -> int:
             return 1
 
         try:
-            return command.execute()
-        finally:
-            command.cleanup()
+            result = command.execute()
+            # Only call cleanup if explicitly requested
+            if hasattr(args, 'cleanup') and args.cleanup:
+                try:
+                    command.cleanup()
+                except Exception as e:
+                    logger.warning(f"Command cleanup failed: {e}")
+            return result
+        except Exception as e:
+            logger.error(f"Command execution failed: {e}")
+            return 1
     else:
         logger.error(f"Command pattern not available and '{command_name}' is not a built-in command")
         return 1
@@ -1304,7 +1317,9 @@ def _handle_legacy_args(args) -> int:
     except KeyboardInterrupt:
         logger.info("Shutdown signal received.")
     finally:
-        process_manager.cleanup()
+        # Only perform cleanup if explicitly requested
+        if hasattr(args, 'cleanup') and args.cleanup:
+            process_manager.cleanup()
 
     return 0
 
