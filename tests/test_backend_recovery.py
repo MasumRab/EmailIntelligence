@@ -316,3 +316,139 @@ class TestBackendRecovery:
 
         except ImportError as e:
             pytest.fail(f"All additional modules should be importable: {e}")
+
+    def test_complete_backend_integration_pipeline(self):
+        """Test the complete email processing pipeline with all restored modules."""
+        # This test will fail until full integration is complete
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import smart_filters
+            import smart_retrieval
+            import email_summarizer
+            import nlp_engine
+            import email_filter_node
+
+            # Create test email data
+            test_email = {
+                "id": "test-123",
+                "subject": "Urgent: Project deadline approaching",
+                "content": "Dear team, we have an urgent project deadline approaching. Please review the attached documents and provide feedback by end of day. This is critical for our success. Thank you.",
+                "sender": "manager@company.com",
+                "timestamp": "2024-01-01T10:00:00Z"
+            }
+
+            # Step 1: Filter the email
+            filter_engine = smart_filters.SmartFilter()
+            filtered_email = smart_filters.apply_filters(test_email.copy())
+
+            # Verify filtering worked
+            assert 'priority_score' in filtered_email
+            assert filtered_email['priority_score'] > 0
+
+            # Step 2: Analyze with NLP
+            sentiment = nlp_engine.analyze_sentiment(test_email['content'])
+            entities = nlp_engine.extract_entities(test_email['content'])
+
+            assert sentiment in ['positive', 'negative', 'neutral']
+            assert isinstance(entities, dict)
+
+            # Step 3: Process through filter node
+            processed_email = email_filter_node.process(test_email.copy())
+            assert 'filter_results' in processed_email
+            assert 'processed_by' in processed_email['filter_results']
+
+            # Step 4: Generate summary
+            summary = email_summarizer.summarize(test_email)
+            assert isinstance(summary, str)
+            assert len(summary) > 10
+
+            # Step 5: Test retrieval capabilities
+            data_source = [test_email]
+            results = smart_retrieval.retrieve_data("urgent", data_source)
+            assert len(results) > 0
+            assert results[0]['id'] == test_email['id']
+
+        except ImportError as e:
+            pytest.fail(f"Integration pipeline modules should be importable: {e}")
+        except Exception as e:
+            pytest.fail(f"Integration pipeline should execute without errors: {e}")
+
+    def test_backend_module_configuration_validation(self):
+        """Test that all backend modules can be properly configured."""
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import smart_filters
+            import smart_retrieval
+            import email_summarizer
+            import nlp_engine
+            import email_filter_node
+
+            # Test configuration interfaces
+            filter_engine = smart_filters.SmartFilter()
+            assert hasattr(filter_engine, 'add_filter')
+
+            retriever = smart_retrieval.SmartRetriever()
+            assert hasattr(retriever, 'add_to_index')
+
+            summarizer = email_summarizer.EmailSummarizer()
+            assert hasattr(summarizer, 'summary_templates')
+
+            nlp = nlp_engine.NLPEngine()
+            assert hasattr(nlp, 'sentiment_keywords')
+
+            filter_node = email_filter_node.EmailFilterNode()
+            assert hasattr(filter_node, 'configure')
+
+        except ImportError as e:
+            pytest.fail(f"Configuration validation modules should be importable: {e}")
+
+    def test_backend_system_health_check(self):
+        """Test overall system health and module availability."""
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        modules_to_check = [
+            'smart_filters',
+            'smart_retrieval',
+            'email_summarizer',
+            'nlp_engine',
+            'email_filter_node'
+        ]
+
+        failed_modules = []
+
+        for module_name in modules_to_check:
+            try:
+                __import__(module_name)
+            except ImportError:
+                failed_modules.append(module_name)
+
+        assert len(failed_modules) == 0, f"Failed to import modules: {failed_modules}"
+
+        # Test that all modules have expected basic functionality
+        for module_name in modules_to_check:
+            module = __import__(module_name)
+            # Each module should have at least one class or function
+            assert len(dir(module)) > 5, f"Module {module_name} appears incomplete"
+
+    def test_recovery_completion_documentation(self):
+        """Test that recovery completion is fully documented."""
+        recovery_log_path = Path('docs/recovery_log.md')
+        content = recovery_log_path.read_text()
+
+        # Check for completion indicators
+        assert 'All critical backend modules successfully restored' in content
+        assert '- [x] smart_filters.py' in content
+        assert '- [x] smart_retrieval.py' in content
+        assert '- [x] email_filter_node.py' in content
+        assert '- [x] nlp_engine.py' in content
+
+        # Check for integration testing section
+        assert 'Integration' in content or 'Verification' in content
