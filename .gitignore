@@ -82,4 +82,4 @@ models/*.pkl
 worktrees/
 
 # Agent-specific files
-opencode.json
+opencode.json/home/masum/github/worktrees/taskmaster-worktree/
