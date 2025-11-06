@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from queue import Queue, Empty
+from queue import Queue
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -250,7 +250,7 @@ class AuditLogger:
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except Empty:
+            except asyncio.TimeoutError:
                 pass  # No events available
 
             # Write events

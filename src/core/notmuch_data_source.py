@@ -98,9 +98,9 @@ class NotmuchDataSource(DataSource):
         if self.db is None:
             try:
                 # Import DatabaseManager locally to avoid circular imports
-                from .database import DatabaseManager
-                # Use DatabaseManager as concrete implementation
-                self.db = DatabaseManager()
+                from .database import DatabaseManager, SQLiteManager
+                # Use SQLiteManager as concrete implementation instead of abstract DatabaseManager
+                self.db = SQLiteManager()
                 await self.db._ensure_initialized()
             except Exception as e:
                 logger.warning(f"Could not initialize DatabaseManager, proceeding without: {e}")
