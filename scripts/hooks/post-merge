@@ -3,7 +3,7 @@
 # Post-merge hook for worktree setup synchronization
 # This hook updates shared setup files and orchestration scripts from the orchestration-tools branch
 
-set -e
+# Note: Not using 'set -e' to allow graceful error handling and continue processing
 
 # Get the current worktree path
 WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
@@ -17,16 +17,27 @@ fi
 
 # Function to safely checkout files from orchestration-tools branch
 checkout_from_orchestration() {
-    local file_path="$1"
-    if git ls-tree -r orchestration-tools --name-only | grep -q "^$file_path$"; then
-        # Check if file differs before checkout
+local file_path="$1"
+# Check if orchestration-tools branch exists
+if ! git show-ref --verify --quiet refs/heads/orchestration-tools && 
+! git ls-remote --exit-code --heads origin orchestration-tools >/dev/null 2>&1; then
+echo "Warning: orchestration-tools branch not available for $file_path"
+return 1
+fi
+
+if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
+    # Check if file differs before checkout
         if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
             echo "Updating $file_path from orchestration-tools"
-            git checkout orchestration-tools -- "$file_path"
+            if ! git checkout orchestration-tools -- "$file_path" 2>/dev/null; then
+                echo "Error: Failed to checkout $file_path from orchestration-tools"
+                return 1
+            fi
         fi
     else
-        echo "Warning: $file_path not found in orchestration-tools branch"
+        echo "Info: $file_path not found in orchestration-tools branch (may be branch-specific)"
     fi
+    return 0
 }
 
 # Update setup directory
@@ -41,30 +52,55 @@ WORKTREE_NAME="$(basename "$WORKTREE_ROOT")"
 
 # Only apply orchestration to main/scientific branches
 if [[ "$WORKTREE_NAME" == "main" ]] || [[ "$WORKTREE_NAME" == "scientific" ]]; then
-    echo "Detected $WORKTREE_NAME worktree - applying orchestration setup..."
+echo "Detected $WORKTREE_NAME worktree - applying orchestration setup..."
 
-    # Create temporary orchestration worktree to get setup files
-    TEMP_ORCH="/tmp/orch-setup-$$"
-    mkdir -p "$TEMP_ORCH"
+# Create temporary orchestration worktree to get setup files
+TEMP_ORCH="/tmp/orch-setup-$$"
+ORCH_WORKTREE_CREATED=false
+
+# Ensure cleanup on exit
+cleanup_temp_worktree() {
+if [[ "$ORCH_WORKTREE_CREATED" == true ]]; then
+    git worktree remove --force "$TEMP_ORCH" 2>/dev/null || echo "Warning: Failed to remove temp worktree"
+        fi
+rm -rf "$TEMP_ORCH" 2>/dev/null || true
+}
+trap cleanup_temp_worktree EXIT
+
+    mkdir -p "$TEMP_ORCH" || {
+echo "Error: Failed to create temp directory $TEMP_ORCH"
+exit 1
+}
 
     # Checkout orchestration-tools branch temporarily
-    if git worktree add "$TEMP_ORCH" origin/orchestration-tools 2>/dev/null; then
-        # Copy setup files
-        cp -r "$TEMP_ORCH/setup/"* . 2>/dev/null || true
+if git worktree add "$TEMP_ORCH" origin/orchestration-tools 2>/dev/null; then
+ORCH_WORKTREE_CREATED=true
+echo "Created temporary worktree for orchestration setup"
 
-        # Copy shared configs
+# Copy setup files with error checking
+    if [[ -d "$TEMP_ORCH/setup" ]]; then
+    if ! cp -r "$TEMP_ORCH/setup/"* . 2>/dev/null; then
+            echo "Warning: Failed to copy some setup files"
+            fi
+        else
+            echo "Warning: No setup directory found in orchestration-tools"
+        fi
+
+        # Copy shared configs with error checking
         for config in .flake8 .pylintrc tsconfig.json package.json tailwind.config.ts vite.config.ts drizzle.config.ts components.json .gitignore .gitattributes; do
-            cp "$TEMP_ORCH/$config" . 2>/dev/null || true
+            if [[ -f "$TEMP_ORCH/$config" ]]; then
+                if ! cp "$TEMP_ORCH/$config" . 2>/dev/null; then
+                    echo "Warning: Failed to copy $config"
+                fi
+            fi
         done
 
         # Apply branch-specific configuration
         if [[ -d "$TEMP_ORCH/configs/$WORKTREE_NAME" ]]; then
-            cp -r "$TEMP_ORCH/configs/$WORKTREE_NAME/"* . 2>/dev/null || true
+            if ! cp -r "$TEMP_ORCH/configs/$WORKTREE_NAME/"* . 2>/dev/null; then
+                echo "Warning: Failed to copy branch-specific configs for $WORKTREE_NAME"
+            fi
         fi
-
-        # Cleanup temp worktree
-        git worktree remove --force "$TEMP_ORCH" 2>/dev/null || true
-        rm -rf "$TEMP_ORCH" 2>/dev/null || true
 
         echo "✓ Orchestration setup applied to $WORKTREE_NAME worktree"
     else
@@ -93,17 +129,17 @@ checkout_from_orchestration ".gitattributes"
 
 # Note: package-lock.json is excluded as it's environment-specific
 
-# Update Git hooks
-checkout_from_orchestration "scripts/hooks/post-merge"
-checkout_from_orchestration "scripts/hooks/pre-commit"
-checkout_from_orchestration "scripts/hooks/post-commit"
-checkout_from_orchestration "scripts/hooks/post-push"
-
-# Install hooks to .git/hooks/
-cp scripts/hooks/post-merge .git/hooks/ 2>/dev/null || true
-cp scripts/hooks/pre-commit .git/hooks/ 2>/dev/null || true
-cp scripts/hooks/post-commit .git/hooks/ 2>/dev/null || true
-cp scripts/hooks/post-push .git/hooks/ 2>/dev/null || true
-chmod +x .git/hooks/post-merge .git/hooks/pre-commit .git/hooks/post-commit .git/hooks/post-push 2>/dev/null || true
+# Install/update Git hooks using the standardized approach
+# This ensures consistent hook versions across all branches
+if [[ -f "scripts/install-hooks.sh" ]]; then
+    echo "Installing/updating Git hooks from orchestration-tools..."
+    if bash scripts/install-hooks.sh >/dev/null 2>&1; then
+        echo "Git hooks installed successfully"
+    else
+        echo "Warning: Git hook installation failed"
+    fi
+else
+    echo "Warning: scripts/install-hooks.sh not found, hooks not updated"
+fi
 
 echo "Setup synchronization complete"
