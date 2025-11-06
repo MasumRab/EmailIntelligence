@@ -164,3 +164,71 @@ class TestBackendRecovery:
         assert 'Audit Commands Executed' in content, "Audit commands should be documented"
         assert 'Findings' in content, "Audit findings should be documented"
         assert 'smart_filters.py' in content, "Lost modules should be referenced in audit"
+
+    def test_smart_filters_module_restored(self):
+        """Test that smart_filters.py module is restored and functional."""
+        # This test will fail until the module is restored
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import smart_filters
+            # Check that key functions exist
+            assert hasattr(smart_filters, 'SmartFilter'), "SmartFilter class should exist"
+            assert hasattr(smart_filters, 'apply_filters'), "apply_filters function should exist"
+            # Basic functionality test
+            filter_instance = smart_filters.SmartFilter()
+            assert filter_instance is not None, "Should be able to instantiate SmartFilter"
+        except ImportError:
+            pytest.fail("smart_filters module should be importable")
+
+    def test_smart_retrieval_module_restored(self):
+        """Test that smart_retrieval.py module is restored and functional."""
+        # This test will fail until the module is restored
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import smart_retrieval
+            # Check that key functions exist
+            assert hasattr(smart_retrieval, 'SmartRetriever'), "SmartRetriever class should exist"
+            assert hasattr(smart_retrieval, 'retrieve_data'), "retrieve_data function should exist"
+            # Basic functionality test
+            retriever_instance = smart_retrieval.SmartRetriever()
+            assert retriever_instance is not None, "Should be able to instantiate SmartRetriever"
+        except ImportError:
+            pytest.fail("smart_retrieval module should be importable")
+
+    def test_restored_modules_integration(self):
+        """Test that restored modules can work together."""
+        # This test will fail until both modules are restored and integrated
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import smart_filters
+            import smart_retrieval
+
+            # Test basic integration
+            filter_engine = smart_filters.SmartFilter()
+            retriever_engine = smart_retrieval.SmartRetriever()
+
+            # They should be able to communicate or share data
+            assert filter_engine is not None
+            assert retriever_engine is not None
+
+        except ImportError as e:
+            pytest.fail(f"Restored modules should be importable: {e}")
+
+    def test_module_recovery_documented(self):
+        """Test that module recovery progress is documented."""
+        recovery_log_path = Path('docs/recovery_log.md')
+        content = recovery_log_path.read_text()
+
+        # Check recovery documentation
+        assert 'Module Recovery Progress' in content or 'Recovered Modules' in content
+        assert 'smart_filters.py' in content
+        assert 'smart_retrieval.py' in content
