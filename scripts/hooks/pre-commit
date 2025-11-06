@@ -1,17 +1,59 @@
 #!/bin/bash
 
-# Pre-commit hook to prevent accidental commits of temporary files or unversioned documentation.
+# Pre-commit hook for worktree setup validation
+# Validates that shared setup files are only modified in orchestration-tools branch
 
-# Check for files in .branch_docs/
-if git diff --cached --name-only | grep -qE "^\.branch_docs/"; then
-    echo "WARNING: You are attempting to commit files from the .branch_docs/ directory."
-    echo "These files are typically for temporary, branch-specific documentation and should not be committed."
-    echo "If you intend to commit these files, please remove them from .branch_docs/ and add them to a versioned location."
-    echo "Commit aborted. To bypass, use 'git commit --no-verify'."
-    exit 1
+set -e
+
+# Get current branch
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Check if setup/ directory has changes
+if git diff --cached --name-only | grep -q "^setup/"; then
+    if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+        echo "WARNING: Changes to setup/ files detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
+        echo "Proceeding with commit, but ensure PR is created after push."
+    fi
 fi
 
-# Add other pre-commit checks here if needed
-# For example, linting, formatting, etc.
+# Check if orchestration scripts have changes
+if git diff --cached --name-only | grep -q "^scripts/sync_setup_worktrees.sh$"; then
+    if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+        echo "WARNING: Changes to orchestration scripts detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
+    fi
+fi
 
-exit 0
+# Check if shared config files have changes
+SHARED_CONFIG_FILES=(
+    ".flake8"
+    ".pylintrc"
+    "tsconfig.json"
+    "package.json"
+    "tailwind.config.ts"
+    "vite.config.ts"
+    "drizzle.config.ts"
+    "components.json"
+    ".gitignore"
+    ".gitattributes"
+)
+
+for config_file in "${SHARED_CONFIG_FILES[@]}"; do
+    if git diff --cached --name-only | grep -q "^${config_file}$"; then
+        if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+            echo "WARNING: Changes to shared config file '${config_file}' detected on '$CURRENT_BRANCH' branch."
+            echo "This will require a pull request to 'orchestration-tools' for approval."
+        fi
+    fi
+done
+
+# Check if hooks have changes
+if git diff --cached --name-only | grep -q "^scripts/hooks/"; then
+    if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+        echo "WARNING: Changes to Git hooks detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
+    fi
+fi
+
+echo "Pre-commit validation passed"
