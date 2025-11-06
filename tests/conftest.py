@@ -35,7 +35,6 @@ def create_test_app():
     return app
 
 
-from src.core.database import get_db
 from src.core.factory import get_data_source
 
 # Use the test app instead of the main app
@@ -117,11 +116,9 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
-    app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
-    del app.dependency_overrides[get_db]
     del app.dependency_overrides[get_data_source]
