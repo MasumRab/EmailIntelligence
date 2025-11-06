@@ -200,6 +200,5 @@ show_manual_pr_instructions() {
     echo "🔧 For urgent fixes only:"
     echo "   ./scripts/reverse_sync_orchestration.sh $branch $commit_sha"
 }
-}
 
 echo "Post-push hook completed"
