@@ -232,3 +232,87 @@ class TestBackendRecovery:
         assert 'Module Recovery Progress' in content or 'Recovered Modules' in content
         assert 'smart_filters.py' in content
         assert 'smart_retrieval.py' in content
+
+    def test_email_summarization_module_restored(self):
+        """Test that email summarization functionality is restored."""
+        # This test will fail until the summarization module is restored
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import email_summarizer
+            # Check that key functions exist
+            assert hasattr(email_summarizer, 'EmailSummarizer'), "EmailSummarizer class should exist"
+            assert hasattr(email_summarizer, 'summarize'), "summarize function should exist"
+            # Basic functionality test
+            summarizer = email_summarizer.EmailSummarizer()
+            test_email = {"content": "This is a test email with important information."}
+            summary = summarizer.summarize(test_email)
+            assert isinstance(summary, str), "Summary should be a string"
+            assert len(summary) > 0, "Summary should not be empty"
+        except ImportError:
+            pytest.fail("email_summarizer module should be importable")
+
+    def test_nlp_engine_module_restored(self):
+        """Test that NLP engine module is restored and functional."""
+        # This test will fail until the NLP engine is restored
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import nlp_engine
+            # Check that key functions exist
+            assert hasattr(nlp_engine, 'NLPEngine'), "NLPEngine class should exist"
+            assert hasattr(nlp_engine, 'analyze_sentiment'), "analyze_sentiment function should exist"
+            assert hasattr(nlp_engine, 'extract_entities'), "extract_entities function should exist"
+            # Basic functionality test
+            engine = nlp_engine.NLPEngine()
+            test_text = "This is a positive message about great work."
+            sentiment = engine.analyze_sentiment(test_text)
+            assert 'positive' in sentiment.lower() or isinstance(sentiment, (int, float)), "Should return sentiment analysis"
+        except ImportError:
+            pytest.fail("nlp_engine module should be importable")
+
+    def test_email_filter_node_restored(self):
+        """Test that email filter node is restored."""
+        # This test will fail until the email filter node is restored
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import email_filter_node
+            # Check that key functions exist
+            assert hasattr(email_filter_node, 'EmailFilterNode'), "EmailFilterNode class should exist"
+            assert hasattr(email_filter_node, 'process'), "process function should exist"
+            # Basic functionality test
+            node = email_filter_node.EmailFilterNode()
+            assert node is not None, "Should be able to instantiate EmailFilterNode"
+        except ImportError:
+            pytest.fail("email_filter_node module should be importable")
+
+    def test_additional_modules_integration(self):
+        """Test that all restored modules work together."""
+        # This test will fail until all additional modules are restored
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+
+        try:
+            import email_summarizer
+            import nlp_engine
+            import email_filter_node
+
+            # Test integration
+            summarizer = email_summarizer.EmailSummarizer()
+            nlp = nlp_engine.NLPEngine()
+            filter_node = email_filter_node.EmailFilterNode()
+
+            assert summarizer is not None
+            assert nlp is not None
+            assert filter_node is not None
+
+        except ImportError as e:
+            pytest.fail(f"All additional modules should be importable: {e}")
