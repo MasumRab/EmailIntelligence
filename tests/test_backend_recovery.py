@@ -80,8 +80,8 @@ class TestBackendRecovery:
         recovery_log_path = Path('docs/recovery_log.md')
         content = recovery_log_path.read_text()
 
-        # Check for checklist format
-        assert '- [ ]' in content, "Checklist items should use proper markdown format"
+        # Check for checklist format (now all items are completed/checked)
+        assert '- [x]' in content, "Completed checklist items should use proper markdown format"
         assert 'Priority:' in content, "Priority levels should be documented"
         assert 'Status:' in content, "Status tracking should be documented"
 
