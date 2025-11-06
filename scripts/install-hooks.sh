@@ -58,7 +58,7 @@ parse_install_args() {
             --help|-h)
                 echo "Usage: $0 [--force] [--verbose]"
                 echo "Install Git hooks from orchestration-tools branch"
-                exit 0
+                return 0
                 ;;
             *)
                 log_error "Unknown option: $1"
