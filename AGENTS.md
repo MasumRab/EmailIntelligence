@@ -1,3 +1,116 @@
+# EmailIntelligence Agent Guidelines
+
+## Build/Lint/Test Commands
+### Python Backend
+- **Test all**: `pytest`
+- **Test single file**: `pytest tests/test_file.py`
+- **Test single function**: `pytest tests/test_file.py::TestClass::test_function`
+- **Format**: `black .`
+- **Lint**: `flake8 .`
+- **Type check**: `mypy .`
+- **Code quality**: `pylint src modules`
+
+### Dependency Management
+- **uv**: `python launch.py --setup` - Uses uv for fast, reliable Python package installs
+- **Update deps**: `python launch.py --update-deps` - Updates all dependencies
+- **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
+- **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
+
+### TypeScript/React Frontend
+- **Build**: `npm run build` (from client/)
+- **Lint**: `npm run lint` (from client/)
+- **Dev server**: `npm run dev` (from client/)
+
+## Architecture & Codebase Structure
+
+### Services
+- **Python Backend (FastAPI)**: Core API at `backend/python_backend/` with AI engine, database, workflows
+- **React Frontend (Vite)**: User interface at `client/` with TypeScript, Tailwind CSS, Radix UI
+- **Node.js TypeScript Backend**: Secondary API routes at `server/` with Express, Drizzle ORM
+- **Gradio UI**: Interactive interface integrated with Python backend for scientific development
+
+### Key Modules
+- **Core Components**: `src/core/` - AI engine, database manager, workflow engines, security
+- **Modules**: `modules/` - Pluggable features (categories, AI engine, workflows)
+- **Backend Extensions**: `backend/` - Additional Python services, plugins, NLP components
+- **Shared Code**: `shared/` - Cross-service utilities and types
+
+### Databases & Storage
+- **SQLite**: Primary database (`.db` files in project root and `data/`)
+- **JSON Files**: Configuration and cached data in `data/` directory
+- **Configurable Data Directory**: Via `DATA_DIR` environment variable
+
+### APIs
+- **FastAPI**: Main REST API on port 8000 (`/api/*`)
+- **Express**: Secondary Node.js API routes
+- **Internal APIs**: Workflow execution, AI model management, performance monitoring
+
+## Code Style Guidelines
+### Python
+- **Line length**: 100 chars max, Black formatting, isort imports (stdlib → third-party → local)
+- **Naming**: snake_case functions/vars, CapWords classes, UPPER_CASE constants
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+- **Error handling**: Specific exceptions, meaningful messages, appropriate logging
+
+### TypeScript/React
+- **Strict mode**: Enabled (noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch)
+- **JSX**: react-jsx transform, **Imports**: @/ for client src, @shared/ for shared types
+- **Components**: Default export functions, PascalCase naming
+- **Styling**: Tailwind CSS utilities, component-specific styles as needed
+- **API**: Use api client from lib/api.ts for backend communication
+
+## Troubleshooting
+
+### Architecture Overview
+- **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, Vite build system
+- **Backend**: Python with FastAPI for API endpoints and Gradio for UI
+- **AI Engine**: Python-based NLP models for sentiment and topic analysis
+- **Database**: SQLite for local storage and caching, JSON files for main application data
+
+### Port Binding Errors (e.g., [Errno 10048])
+If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
+
+**Procedure to identify and fix:**
+
+1. **Identify the process using the port:**
+   ```bash
+   netstat -ano | findstr :PORT_NUMBER
+   ```
+   Replace `PORT_NUMBER` with the conflicting port (e.g., 8000 for backend, 7860 for Gradio).
+
+2. **Note the PID (Process ID) from the output.**
+
+3. **Kill the process:**
+   ```bash
+   taskkill /f /pid PID_NUMBER
+   ```
+   Replace `PID_NUMBER` with the PID from step 1.
+
+4. **Verify the port is free:**
+   ```bash
+   netstat -ano | findstr :PORT_NUMBER
+   ```
+   Should show no results.
+
+5. **Retry the launch:**
+   ```bash
+   python launch.py
+   ```
+
+**Alternative:** Use different ports by modifying the launch script or passing port arguments.
+
+**Prevention:** Always shut down services properly with Ctrl+C before restarting.
+
+
+## ⚠️ Critical Rules & Code Smells to Avoid
+- **Circular Dependencies**: Avoid circular imports (especially AIEngine ↔ DatabaseManager)
+- **Hard-coded Paths**: Never hard-code file paths or URLs
+- **Missing Type Hints**: Add type hints to all function parameters and return values
+- **Inconsistent Naming**: Follow established naming conventions strictly
+- **Security**: Never expose secrets/keys, never log sensitive data
+- **Global State**: Use dependency injection over global state
+- **Dependencies**: Check existing dependencies before adding new libraries
 
 <!-- BACKLOG.MD GUIDELINES START -->
 # Instructions for the usage of Backlog.md CLI Tool
@@ -523,6 +636,61 @@ Descriptions support literal newlines; shell examples may show escaped `\\n`, bu
 
 ---
 
+## 11. Merge Conflict Resolution for Backlog Tasks
+
+When merging branches that contain parallel task completions, merge conflicts can occur in backlog task files. Follow these guidelines to resolve them properly:
+
+### Priority Order for Conflict Resolution
+Always prefer the version that shows **more progress**:
+1. **Done/Completed** > **In Progress** > **To Do**
+2. **More acceptance criteria checked** > fewer checked
+3. **More detailed implementation notes** > basic notes
+4. **Later updated_date** > earlier updated_date
+
+### Resolution Steps
+1. **Identify the conflict**: Look at both versions of the task file
+2. **Compare completion status**: Choose the version with higher completion status
+3. **Merge implementation details**: Combine notes from both versions if they complement each other
+4. **Preserve acceptance criteria**: Keep all checked items from both versions
+5. **Update metadata**: Use the most recent dates and assignees
+
+### Example Conflict Resolution
+```bash
+# If HEAD shows task as "Done" with full notes
+# And merge shows task as "In Progress" with partial notes
+# Choose HEAD version to preserve completion status
+```
+
+### Prevention Strategies
+- **Commit task completion immediately** when work is done
+- **Push changes frequently** to reduce parallel work conflicts
+- **Use feature branches** for task-specific work
+- **Coordinate** with team when working on the same tasks
+
+### Recommended Development Workflow
+1. **Pull latest changes** before starting work: `git pull origin main`
+2. **Create feature branch** for task: `git checkout -b feature/task-42-implementation`
+3. **Mark task in progress**: `backlog task edit 42 -s "In Progress" -a @yourname`
+4. **Work on task** and commit changes incrementally
+5. **Complete task**: Mark ACs complete, add implementation notes, set status to Done
+6. **Commit completion**: `git add . && git commit -m "feat: Complete task-42 - Implementation summary"`
+7. **Push immediately**: `git push origin feature/task-42-implementation`
+8. **Create PR** and merge promptly to avoid conflicts
+
+### Git Configuration (Recommended)
+Consider setting up a custom merge driver for backlog files:
+
+```bash
+# .gitattributes
+backlog/tasks/*.md merge=backlog-merge
+
+# .git/config
+[merge "backlog-merge"]
+    driver = /path/to/backlog-merge-driver.sh
+```
+
+---
+
 ## Remember: The Golden Rule
 
 **🎯 If you want to change ANYTHING in a task, use the `backlog task edit` command.**
@@ -531,116 +699,3 @@ Descriptions support literal newlines; shell examples may show escaped `\\n`, bu
 Full help available: `backlog --help`
 
 <!-- BACKLOG.MD GUIDELINES END -->
--e 
----
-
-# Gemini CLI-Specific Instructions
-
-> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Gemini CLI-specific features and integrations.
-
-## MCP Configuration for Gemini CLI
-
-Configure Task Master MCP server in `~/.gemini/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "task-master-ai": {
-      "command": "npx",
-      "args": ["-y", "task-master-ai"]
-    }
-  }
-}
-```
-
-**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
-
-## Gemini CLI-Specific Features
-
-### Session Management
-
-Built-in session commands:
-
-- `/chat` - Start new conversation while keeping context
-- `/checkpoint save <name>` - Save session state
-- `/checkpoint load <name>` - Resume saved session
-- `/memory show` - View loaded context
-
-Both `AGENTS.md` and `GEMINI.md` are auto-loaded on every Gemini CLI session.
-
-### Headless Mode for Automation
-
-Non-interactive mode for scripts:
-
-```bash
-# Simple text response
-gemini -p "What's the next task?"
-
-# JSON output for parsing
-gemini -p "List all pending tasks" --output-format json
-
-# Stream events for long operations
-gemini -p "Expand all tasks" --output-format stream-json
-```
-
-### Token Usage Monitoring
-
-```bash
-# In Gemini CLI session
-/stats
-
-# Shows: token usage, API costs, request counts
-```
-
-### Google Search Grounding
-
-Leverage built-in Google Search as an alternative to Perplexity research mode:
-- Best practices research
-- Library documentation
-- Security vulnerability checks
-- Implementation patterns
-
-## Important Differences from Other Agents
-
-### No Slash Commands
-Gemini CLI does not support custom slash commands (unlike Claude Code). Use natural language instead.
-
-### No Tool Allowlist
-Security is managed at the MCP level, not via agent configuration.
-
-### Session Persistence
-Use `/checkpoint` instead of git worktrees for managing multiple work contexts.
-
-### Configuration Files
-- Global: `~/.gemini/settings.json`
-- Project: `.gemini/settings.json`
-- **Not**: `.mcp.json` (that's for Claude Code)
-
-## Recommended Model Configuration
-
-For Gemini CLI users:
-
-```bash
-# Set Gemini as primary model
-task-master models --set-main gemini-2.0-flash-exp
-task-master models --set-fallback gemini-1.5-flash
-
-# Optional: Use Perplexity for research (or rely on Google Search)
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
-```
-
-## Your Role with Gemini CLI
-
-As a Gemini CLI assistant with Task Master:
-
-1. **Use MCP tools naturally** - They integrate transparently in conversation
-2. **Reference files with @** - Leverage Gemini's file inclusion
-3. **Save checkpoints** - Offer to save state after significant progress
-4. **Monitor usage** - Remind users about `/stats` for long sessions
-5. **Use Google Search** - Leverage search grounding for research
-
-**Key Principle:** Focus on natural conversation. Task Master MCP tools work seamlessly with Gemini CLI's interface.
-
----
-
-*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
