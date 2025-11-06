@@ -30,7 +30,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import project configuration
 from setup.project_config import get_project_config
->>>>>>> 7009e68 (refactor: Complete launch.py cleanup and modularization)
 
 # Import launch system modules
 from setup.validation import (
@@ -88,7 +87,6 @@ CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 
 
-<<<<<<< HEAD
 def setup_wsl_environment():
     """Setup WSL-specific environment variables if in WSL"""
     if not is_wsl():
@@ -247,8 +245,6 @@ def validate_environment() -> bool:
     logger.info("Environment validation passed.")
     return True
 
-=======
->>>>>>> 7009e68 (refactor: Complete launch.py cleanup and modularization)
 
 def check_critical_files() -> bool:
     """Check for critical files that must exist in the orchestration-tools branch."""
@@ -388,7 +384,6 @@ def validate_orchestration_environment() -> bool:
 
 
 
-<<<<<<< HEAD
     if not is_conda_available():
         if env_name:
             logger.warning(f"Conda not available, cannot activate environment '{env_name}'. Please install Conda.")
@@ -408,9 +403,6 @@ def validate_orchestration_environment() -> bool:
                 f"Please activate '{env_name}' manually before running the script."
             )
             return False
-=======
-
->>>>>>> 7009e68 (refactor: Complete launch.py cleanup and modularization)
 
 
 
@@ -419,7 +411,7 @@ def validate_orchestration_environment() -> bool:
 
 
 
-<<<<<<< HEAD
+
 # --- Helper Functions ---
 def get_venv_executable(venv_path: Path, executable: str) -> Path:
     """Get the path to a specific executable in the virtual environment."""
@@ -959,8 +951,6 @@ def main():
         # Handle legacy arguments
         return _handle_legacy_args(args)
 
-=======
->>>>>>> 7009e68 (refactor: Complete launch.py cleanup and modularization)
 
 def _add_common_args(parser):
     """Add common arguments to subcommand parsers."""
