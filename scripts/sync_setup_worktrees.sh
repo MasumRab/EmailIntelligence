@@ -100,6 +100,17 @@ sync_setup_files() {
     ".gitignore"
     ".gitattributes"
     )
+
+    # Launch system architecture files (part of setup since launch.py depends on them)
+    local launch_files=(
+    "src/core/commands/command_factory.py"
+    "src/core/commands/command_interface.py"
+    "src/core/commands/setup_command.py"
+    "src/core/commands/run_command.py"
+    "src/core/commands/test_command.py"
+    "src/core/commands/__init__.py"
+    "src/core/container.py"
+    )
     # Note: package-lock.json excluded as it's environment-specific
     
     # Counter for synchronized files
@@ -194,6 +205,45 @@ sync_setup_files() {
 
         # Synchronize shared config files
         for file in "${config_files[@]}"; do
+            # Check if source file exists in orchestration-tools
+            if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
+                if [[ "$verbose" == true ]]; then
+                    echo -e "${YELLOW}Skipping $file (not found in orchestration-tools)${NC}"
+                fi
+                continue
+            fi
+
+            # Check if destination file exists and is different
+            local should_sync=true
+            if [[ -f "$file" ]]; then
+                # Compare with orchestration-tools version
+                if git cat-file -p "orchestration-tools:$file" | cmp -s - "$file"; then
+                    should_sync=false
+                    if [[ "$verbose" == true ]]; then
+                        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
+                    fi
+                fi
+            fi
+
+            # Sync file if needed
+            if [[ "$should_sync" == true ]]; then
+                if [[ "$dry_run" == false ]]; then
+                    git checkout orchestration-tools -- "$file" 2>/dev/null || {
+                        echo -e "${YELLOW}Failed to checkout $file${NC}"
+                        continue
+                    }
+                    echo -e "${GREEN}Updated $file in $worktree${NC}"
+                else
+                    echo -e "${BLUE}[DRY RUN] Would update $file in $worktree${NC}"
+                fi
+                ((synced_count++))
+            else
+                ((skipped_count++))
+            fi
+        done
+
+        # Synchronize launch system architecture files
+        for file in "${launch_files[@]}"; do
             # Check if source file exists in orchestration-tools
             if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
                 if [[ "$verbose" == true ]]; then
