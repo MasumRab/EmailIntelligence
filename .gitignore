@@ -83,3 +83,44 @@ worktrees/
 
 # Agent-specific files
 opencode.json/home/masum/github/worktrees/taskmaster-worktree/
+.env
+.gemini/
+.mcp.json
+.qwen/
+.taskmaster/
+AGENTS.md
+CLAUDE.md
+CRUSH.md
+GEMINI.md
+IFLOW.md
+LLXPRT.md
+config.json
+docs/
+llm_guidelines.opencode.json
+opencode.json
+reports/
+state.json
+task-master-optimization-plan.md
+tasks/
+
+# Taskmaster files
+taskmaster-worktree/
+.taskmaster/
+AGENTS.md
+CLAUDE.md
+CRUSH.md
+GEMINI.md
+IFLOW.md
+LLXPRT.md
+config.json
+docs/
+llm_guidelines.opencode.json
+opencode.json
+reports/
+state.json
+task-master-optimization-plan.md
+tasks/
+.env
+.mcp.json
+.gemini/
+.qwen/
