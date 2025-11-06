@@ -1,0 +1,3 @@
+[submodule ".taskmaster"]
+	path = .taskmaster
+	url = file:///home/masum/github/worktrees/taskmaster-bare.git
