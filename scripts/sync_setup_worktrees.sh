@@ -118,176 +118,175 @@ sync_setup_files() {
     local skipped_count=0
     
     # Synchronize to other worktrees
-    # Check for temporary worktrees only (no persistent worktrees)
-    # Orchestration sync happens through post-merge hooks in worktrees
-    # This script is for manual bulk operations when needed
-    for worktree_dir in "/tmp"; do
-    if [[ -d "$worktree_dir" ]]; then
-    for worktree in "$worktree_dir"/*/; do
-    # Only process temporary worktrees (not orchestration-tools)
-    worktree_base=$(basename "$worktree")
-    if [[ "$worktree_base" == orchestration-tools* ]] || [[ ! -d "$worktree/.git" ]]; then
-                    continue
-                fi
-    # Skip if not a directory
-    if [[ ! -d "$worktree" ]]; then
-    continue
-    fi
+    # Use git worktree list to properly enumerate all worktrees
+    # This ensures we find all worktrees, not just those in /tmp
+    git worktree list --porcelain | grep "^worktree " | sed 's/^worktree //' | while IFS= read -r worktree_path; do
+        # Skip the current worktree (where this script is running)
+        if [[ "$worktree_path" == "$(git rev-parse --show-toplevel)" ]]; then
+            continue
+        fi
 
-    local worktree_name="$(basename "$worktree")"
-
-    # Skip docs worktrees (docs-main, docs-scientific) as they're for documentation only
-    if [[ "$worktree_name" == "docs-main" ]] || [[ "$worktree_name" == "docs-scientific" ]]; then
+        # Skip if not a directory or doesn't exist
+    if [[ ! -d "$worktree_path" ]]; then
     if [[ "$verbose" == true ]]; then
-    echo -e "${BLUE}Skipping docs worktree: $worktree${NC}"
-    fi
-    continue
-    fi
+                echo -e "${YELLOW}Skipping invalid worktree path: $worktree_path${NC}"
+            fi
+            continue
+        fi
 
-        # Skip template/config directories
-        if [[ "$worktree_name" == "main" ]] || [[ "$worktree_name" == "scientific" ]]; then
-            # Only skip if it's in the local worktrees/ directory (templates)
-            if [[ "$worktree_dir" == "worktrees" ]]; then
+        # Extract worktree name for filtering
+        worktree_name=$(basename "$worktree_path")
+
+            # Skip docs worktrees (docs-main, docs-scientific) as they're for documentation only
+        if [[ "$worktree_name" == "docs-main" ]] || [[ "$worktree_name" == "docs-scientific" ]]; then
                 if [[ "$verbose" == true ]]; then
-                    echo -e "${BLUE}Skipping template directory: $worktree${NC}"
+                    echo -e "${BLUE}Skipping docs worktree: $worktree_path${NC}"
                 fi
                 continue
             fi
+
+            # Skip template/config directories
+        if [[ "$worktree_name" == "main" ]] || [[ "$worktree_name" == "scientific" ]]; then
+            # Only skip if it's in the local worktrees/ directory (templates)
+            if [[ "$worktree_path" == *"/worktrees/"* ]]; then
+            if [[ "$verbose" == true ]]; then
+                echo -e "${BLUE}Skipping template directory: $worktree_path${NC}"
+        fi
+        continue
+        fi
         fi
 
-    echo -e "${BLUE}Synchronizing to worktree: $worktree_name${NC}"
+        echo -e "${BLUE}Synchronizing to worktree: $worktree_name${NC}"
 
-    # Change to worktree directory
-    if [[ "$dry_run" == false ]]; then
-        cd "$worktree" || continue
-    fi
-
-    # Synchronize setup files
-    for file in "${setup_files[@]}"; do
-        local source_path="setup/$file"
-
-        # Check if source file exists in orchestration-tools
-        if ! git cat-file -e "orchestration-tools:$source_path" 2>/dev/null; then
-        if [[ "$verbose" == true ]]; then
-        echo -e "${YELLOW}Skipping setup/$file (not found in orchestration-tools)${NC}"
+            # Change to worktree directory
+            if [[ "$dry_run" == false ]]; then
+            cd "$worktree_path" || continue
             fi
-            continue
+
+                # Synchronize setup files
+                for file in "${setup_files[@]}"; do
+                local source_path="setup/$file"
+
+                # Check if source file exists in orchestration-tools
+                if ! git cat-file -e "orchestration-tools:$source_path" 2>/dev/null; then
+                    if [[ "$verbose" == true ]]; then
+                        echo -e "${YELLOW}Skipping setup/$file (not found in orchestration-tools)${NC}"
+                fi
+                continue
             fi
 
             # Check if destination file exists and is different
             local should_sync=true
             if [[ -f "$source_path" ]]; then
-                # Compare with orchestration-tools version
-                if git cat-file -p "orchestration-tools:$source_path" | cmp -s - "$source_path"; then
-            should_sync=false
-            if [[ "$verbose" == true ]]; then
-            echo -e "${BLUE}Skipping setup/$file (unchanged)${NC}"
-            fi
-            fi
-            fi
-
-            # Sync file if needed
-            if [[ "$should_sync" == true ]]; then
-                if [[ "$dry_run" == false ]]; then
-                git checkout orchestration-tools -- "$source_path" 2>/dev/null || {
-            echo -e "${YELLOW}Failed to checkout setup/$file${NC}"
-            continue
-            }
-            echo -e "${GREEN}Updated setup/$file in $worktree${NC}"
-                else
-                    echo -e "${BLUE}[DRY RUN] Would update setup/$file in $worktree${NC}"
-                fi
-                ((synced_count++))
-            else
-                ((skipped_count++))
-            fi
-        done
-
-        # Synchronize shared config files
-        for file in "${config_files[@]}"; do
-            # Check if source file exists in orchestration-tools
-            if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
-                if [[ "$verbose" == true ]]; then
-                    echo -e "${YELLOW}Skipping $file (not found in orchestration-tools)${NC}"
-                fi
-                continue
-            fi
-
-            # Check if destination file exists and is different
-            local should_sync=true
-            if [[ -f "$file" ]]; then
-                # Compare with orchestration-tools version
-                if git cat-file -p "orchestration-tools:$file" | cmp -s - "$file"; then
+            # Compare with orchestration-tools version
+            if git cat-file -p "orchestration-tools:$source_path" | cmp -s - "$source_path"; then
                     should_sync=false
                     if [[ "$verbose" == true ]]; then
-                        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
+                        echo -e "${BLUE}Skipping setup/$file (unchanged)${NC}"
                     fi
                 fi
             fi
 
             # Sync file if needed
             if [[ "$should_sync" == true ]]; then
-                if [[ "$dry_run" == false ]]; then
-                    git checkout orchestration-tools -- "$file" 2>/dev/null || {
-                        echo -e "${YELLOW}Failed to checkout $file${NC}"
+            if [[ "$dry_run" == false ]]; then
+                git checkout orchestration-tools -- "$source_path" 2>/dev/null || {
+                        echo -e "${YELLOW}Failed to checkout setup/$file${NC}"
                         continue
                     }
-                    echo -e "${GREEN}Updated $file in $worktree${NC}"
-                else
-                    echo -e "${BLUE}[DRY RUN] Would update $file in $worktree${NC}"
-                fi
-                ((synced_count++))
+                    echo -e "${GREEN}Updated setup/$file in $worktree_name${NC}"
             else
-                ((skipped_count++))
+            echo -e "${BLUE}[DRY RUN] Would update setup/$file in $worktree_name${NC}"
             fi
+            ((synced_count++))
+            else
+            ((skipped_count++))
+            fi
+            done
+
+        # Synchronize shared config files
+        for file in "${config_files[@]}"; do
+        # Check if source file exists in orchestration-tools
+        if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
+        if [[ "$verbose" == true ]]; then
+        echo -e "${YELLOW}Skipping $file (not found in orchestration-tools)${NC}"
+        fi
+        continue
+        fi
+
+        # Check if destination file exists and is different
+        local should_sync=true
+        if [[ -f "$file" ]]; then
+        # Compare with orchestration-tools version
+        if git cat-file -p "orchestration-tools:$file" | cmp -s - "$file"; then
+        should_sync=false
+        if [[ "$verbose" == true ]]; then
+        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
+        fi
+        fi
+        fi
+
+        # Sync file if needed
+        if [[ "$should_sync" == true ]]; then
+        if [[ "$dry_run" == false ]]; then
+        git checkout orchestration-tools -- "$file" 2>/dev/null || {
+        echo -e "${YELLOW}Failed to checkout $file${NC}"
+        continue
+        }
+        echo -e "${GREEN}Updated $file in $worktree_name${NC}"
+        else
+        echo -e "${BLUE}[DRY RUN] Would update $file in $worktree_name${NC}"
+        fi
+        ((synced_count++))
+        else
+        ((skipped_count++))
+        fi
         done
 
         # Synchronize launch system architecture files
         for file in "${launch_files[@]}"; do
-            # Check if source file exists in orchestration-tools
-            if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
-                if [[ "$verbose" == true ]]; then
-                    echo -e "${YELLOW}Skipping $file (not found in orchestration-tools)${NC}"
-                fi
-                continue
-            fi
+        # Check if source file exists in orchestration-tools
+        if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
+        if [[ "$verbose" == true ]]; then
+        echo -e "${YELLOW}Skipping $file (not found in orchestration-tools)${NC}"
+        fi
+        continue
+        fi
 
-            # Check if destination file exists and is different
-            local should_sync=true
-            if [[ -f "$file" ]]; then
-                # Compare with orchestration-tools version
-                if git cat-file -p "orchestration-tools:$file" | cmp -s - "$file"; then
-                    should_sync=false
-                    if [[ "$verbose" == true ]]; then
-                        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
-                    fi
-                fi
-            fi
+        # Check if destination file exists and is different
+        local should_sync=true
+        if [[ -f "$file" ]]; then
+        # Compare with orchestration-tools version
+        if git cat-file -p "orchestration-tools:$file" | cmp -s - "$file"; then
+        should_sync=false
+        if [[ "$verbose" == true ]]; then
+        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
+        fi
+        fi
+        fi
 
-            # Sync file if needed
-            if [[ "$should_sync" == true ]]; then
-                if [[ "$dry_run" == false ]]; then
-                    git checkout orchestration-tools -- "$file" 2>/dev/null || {
-                        echo -e "${YELLOW}Failed to checkout $file${NC}"
-                        continue
-                    }
-                    echo -e "${GREEN}Updated $file in $worktree${NC}"
-                else
-                    echo -e "${BLUE}[DRY RUN] Would update $file in $worktree${NC}"
-                fi
-                ((synced_count++))
-            else
-                ((skipped_count++))
-            fi
+        # Sync file if needed
+        if [[ "$should_sync" == true ]]; then
+        if [[ "$dry_run" == false ]]; then
+        git checkout orchestration-tools -- "$file" 2>/dev/null || {
+        echo -e "${YELLOW}Failed to checkout $file${NC}"
+        continue
+        }
+        echo -e "${GREEN}Updated $file in $worktree_name${NC}"
+        else
+        echo -e "${BLUE}[DRY RUN] Would update $file in $worktree_name${NC}"
+        fi
+        ((synced_count++))
+        else
+        ((skipped_count++))
+        fi
         done
 
-    # Return to original directory
+        # Return to original directory
         if [[ "$dry_run" == false ]]; then
-    cd - >/dev/null || continue
-    fi
-            done
+        cd - >/dev/null || continue
         fi
-    done
+        done
     
     echo -e "${GREEN}Synchronization complete!${NC}"
     echo -e "${GREEN}Files synchronized: $synced_count${NC}"
