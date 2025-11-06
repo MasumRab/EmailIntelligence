@@ -2,7 +2,7 @@
 # Orchestration Testing Framework
 # Tests the orchestration system components and workflows
 
-set -e
+# set -e
 
 # Colors for output
 RED='\033[0;31m'
