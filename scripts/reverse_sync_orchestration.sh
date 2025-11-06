@@ -102,16 +102,91 @@ COMMIT_FILES=$(git show --name-only --format="" "$COMMIT_SHA")
 ORCHESTRATION_CHANGES=false
 
 for file in "${MANAGED_FILES[@]}"; do
-    if echo "$COMMIT_FILES" | grep -q "^${file}$"; then
-        echo -e "${GREEN}✓ Contains orchestration-managed file: $file${NC}"
-        ORCHESTRATION_CHANGES=true
-    fi
+if echo "$COMMIT_FILES" | grep -q "^${file}$"; then
+echo -e "${GREEN}✓ Contains orchestration-managed file: $file${NC}"
+ORCHESTRATION_CHANGES=true
+fi
 done
 
 if [[ "$ORCHESTRATION_CHANGES" == false ]]; then
-    echo -e "${YELLOW}Warning: Commit does not contain any orchestration-managed files${NC}"
-    echo "This reverse sync may not be necessary."
-    echo ""
+echo -e "${YELLOW}Warning: Commit does not contain any orchestration-managed files${NC}"
+echo "This reverse sync may not be necessary."
+echo ""
+fi
+
+# Enhanced validation functions
+validate_commit_safety() {
+    local commit_sha="$1"
+
+    echo -e "${YELLOW}Running enhanced safety validation...${NC}"
+
+    # Check for merge conflicts that would be created
+    echo "Checking for potential merge conflicts..."
+    if ! git merge-tree HEAD~1 HEAD "$commit_sha" >/dev/null 2>&1; then
+        echo -e "${RED}⚠️  Potential merge conflicts detected${NC}"
+        echo "The commit may conflict with recent changes in orchestration-tools."
+        echo "Consider rebasing the source branch or resolving conflicts first."
+        return 1
+    fi
+
+    # Validate syntax of changed files
+    echo "Validating syntax of changed files..."
+    for file in $COMMIT_FILES; do
+        if [[ -f "$file" ]]; then
+            case "${file##*.}" in
+                py)
+                    if command -v python3 &> /dev/null; then
+                        if ! python3 -m py_compile "$file" 2>/dev/null; then
+                            echo -e "${RED}❌ Python syntax error in $file${NC}"
+                            return 1
+                        fi
+                    fi
+                    ;;
+                sh)
+                    if command -v bash &> /dev/null; then
+                        if ! bash -n "$file" 2>/dev/null; then
+                            echo -e "${RED}❌ Shell syntax error in $file${NC}"
+                            return 1
+                        fi
+                    fi
+                    ;;
+                json)
+                    if command -v python3 &> /dev/null; then
+                        if ! python3 -c "import json; json.load(open('$file'))" 2>/dev/null; then
+                            echo -e "${RED}❌ Invalid JSON in $file${NC}"
+                            return 1
+                        fi
+                    fi
+                    ;;
+            esac
+        fi
+    done
+
+    # Check for circular dependencies or problematic changes
+    echo "Checking for potentially problematic changes..."
+    if echo "$COMMIT_FILES" | grep -q "scripts/reverse_sync_orchestration.sh$"; then
+        echo -e "${YELLOW}⚠️  This commit modifies the reverse sync script itself${NC}"
+        echo "Ensure this change doesn't break the validation logic."
+    fi
+
+    if echo "$COMMIT_FILES" | grep -q "scripts/install-hooks.sh$"; then
+        echo -e "${YELLOW}⚠️  This commit modifies the hook installation script${NC}"
+        echo "Verify that hook installation still works correctly."
+    fi
+
+    echo -e "${GREEN}✓ Enhanced validation passed${NC}"
+    return 0
+}
+
+# Run enhanced validation
+if [[ "$DRY_RUN" == false ]]; then
+    if ! validate_commit_safety "$COMMIT_SHA"; then
+        echo -e "${RED}❌ Validation failed. Cannot proceed with reverse sync.${NC}"
+        echo "Please address the issues above and try again."
+        exit 1
+    fi
+else
+    echo -e "${BLUE}DRY RUN: Skipping enhanced validation${NC}"
 fi
 
 # Show diff
