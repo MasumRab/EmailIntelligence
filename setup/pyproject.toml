@@ -80,31 +80,6 @@ dev = [
     "pip-autoremove>=0.10.0",
 ]
 
-[tool.black]
-line-length = 100
-target-version = ['py311']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
-line_length = 100
-
-[tool.pytest.ini_options]
-addopts = "--asyncio-mode=auto"
-markers = [
-    "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
-]
-norecursedirs = ["backend"]
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

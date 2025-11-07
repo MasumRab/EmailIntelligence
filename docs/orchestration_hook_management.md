@@ -77,10 +77,18 @@ Changes to orchestration-managed files automatically propagate to other branches
 - `pyproject.toml`
 - `requirements.txt`
 - `requirements-dev.txt`
+- `uv.lock`
 - `.flake8`
 - `.pylintrc`
 - `.gitignore`
 - `.gitattributes`
+- `tests/` directory (orchestration-specific tests)
+  - `tests/conftest.py` (test configuration)
+  - `tests/test_hooks.py` (Git hooks validation)
+  - `tests/test_launch.py` (launch system validation)
+  - `tests/test_sync.py` (orchestration sync validation)
+  - `tests/test_basic_validation.py` (basic functionality tests)
+- `pytest.ini` (pytest configuration)
 
 ### Hook System Files (Orchestration-tools only)
 - `scripts/install-hooks.sh`

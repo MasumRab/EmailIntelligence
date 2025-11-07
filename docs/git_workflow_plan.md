@@ -152,7 +152,7 @@ git checkout -b feat/orchestration-update
 - Update relevant documentation (e.g., `orchestration-workflow.md`) if changes impact the orchestration process.
 ```bash
 # Example: Update an orchestration script and its documentation
-git add scripts/install-hooks.sh docs/current_orchestration_docs/orchestration-workflow.md
+git add scripts/install-hooks.sh docs/orchestration-workflow.md
 git commit -m "feat: update install-hooks.sh and orchestration workflow doc"
 ```
 
