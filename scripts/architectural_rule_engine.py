@@ -14,11 +14,10 @@ Author: opencode
 
 import argparse
 import ast
-import os
 import sys
 import yaml
 from pathlib import Path
-from typing import Dict, List, Set, Any, Optional
+from typing import Dict, List, Any
 import re
 
 
@@ -95,7 +94,7 @@ class ArchitecturalRuleEngine:
             })
 
     def _apply_rule(self, rule_name: str, rule_config: Dict[str, Any],
-                   tree: ast.AST, file_path: Path, content: str) -> None:
+                     tree: ast.AST, file_path: Path, content: str) -> None:
         """Apply a specific rule to the AST."""
         rule_type = rule_config.get('type')
 
@@ -108,7 +107,7 @@ class ArchitecturalRuleEngine:
         # Add more rule types as needed
 
     def _check_no_import_rule(self, rule_name: str, rule_config: Dict[str, Any],
-                            tree: ast.AST, file_path: Path) -> None:
+                              tree: ast.AST, file_path: Path) -> None:
         """Check for forbidden imports."""
         forbidden_modules = rule_config.get('forbidden_modules', [])
         allowed_in = rule_config.get('allowed_in', [])
@@ -133,7 +132,7 @@ class ArchitecturalRuleEngine:
                         })
 
     def _check_layer_dependency_rule(self, rule_name: str, rule_config: Dict[str, Any],
-                                   tree: ast.AST, file_path: Path) -> None:
+                                     tree: ast.AST, file_path: Path) -> None:
         """Check layer dependency rules (e.g., domain shouldn't import infrastructure)."""
         from_layer = rule_config.get('from_layer')
         to_layer = rule_config.get('to_layer')
@@ -157,18 +156,24 @@ class ArchitecturalRuleEngine:
 
                 # Check if import is from forbidden layer
                 for layer, patterns in self.rules.get('layers', {}).items():
-                    if layer == to_layer and any(self._matches_pattern(module_name, pattern) for pattern in patterns):
+                    if (
+                        layer == to_layer
+                        and any(self._matches_pattern(module_name, pattern) for pattern in patterns)
+                    ):
                         if forbidden:
                             self._add_violation({
                                 'rule': rule_name,
                                 'file': str(file_path),
                                 'line': node.lineno,
-                                'message': f"Layer violation: {from_layer} layer importing from {to_layer} layer ({module_name})",
+                                'message': (
+                                    f"Layer violation: {from_layer} layer importing from "
+                                    f"{to_layer} layer ({module_name})"
+                                ),
                                 'severity': rule_config.get('severity', 'error')
                             })
 
     def _check_naming_convention_rule(self, rule_name: str, rule_config: Dict[str, Any],
-                                    tree: ast.AST, file_path: Path) -> None:
+                                      tree: ast.AST, file_path: Path) -> None:
         """Check naming conventions."""
         patterns = rule_config.get('patterns', [])
 
