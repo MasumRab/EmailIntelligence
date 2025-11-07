@@ -36,16 +36,18 @@ print_usage() {
     echo ""
     echo "Commands:"
     echo "  check [branch]     Check if current/source branch has only managed file changes"
-    echo "  isolate [branch]   Create isolated patch of managed file changes"
+    echo "  isolate <source>   Create isolated patch of managed file changes from source"
     echo "  apply <patch_file> Apply isolated patch to orchestration-tools"
+    echo "  sync <source>      Isolate and apply changes from source in one step"
     echo ""
     echo "Options:"
     echo "  -h, --help         Show this help"
     echo ""
     echo "Examples:"
     echo "  $0 check main"
-    echo "  $0 isolate feature/launch-update"
+    echo "  $0 isolate ../worktree-path"
     echo "  $0 apply orchestration_changes.patch"
+    echo "  $0 sync ../feature-branch-worktree"
 }
 
 validate_managed_files() {
@@ -98,27 +100,48 @@ validate_managed_files() {
 }
 
 create_isolated_patch() {
-    local source_branch=$1
+    local source=$1
     local patch_file="orchestration_changes_$(date +%Y%m%d_%H%M%S).patch"
-    
-    echo -e "${BLUE}Creating isolated patch from $source_branch...${NC}"
-    
+
+    echo -e "${BLUE}Creating isolated patch from $source...${NC}"
+
+    # Check if source is a branch or path
+    local diff_base=""
+    if [[ -d "$source" ]]; then
+        # It's a path (e.g., worktree), diff against current directory
+        diff_base="--no-index /dev/null $source"
+    else
+        # It's a branch/commit
+        diff_base="$source"
+    fi
+
     # Get diff of only managed files
     local diff_content=""
     for file in "${MANAGED_FILES[@]}"; do
-        if git cat-file -e "$source_branch:$file" 2>/dev/null; then
-            local file_diff=$(git diff "$source_branch" -- "$file" 2>/dev/null || true)
-            if [[ -n "$file_diff" ]]; then
-                diff_content+="$file_diff\n"
+        if [[ -d "$source" ]]; then
+            # For paths, check if file exists in source
+            if [[ -f "$source/$file" ]]; then
+                local file_diff=$(git diff --no-index -- "$file" "$source/$file" 2>/dev/null || true)
+                if [[ -n "$file_diff" ]]; then
+                    diff_content+="$file_diff\n"
+                fi
+            fi
+        else
+            # For branches
+            if git cat-file -e "$source:$file" 2>/dev/null; then
+                local file_diff=$(git diff "$source" -- "$file" 2>/dev/null || true)
+                if [[ -n "$file_diff" ]]; then
+                    diff_content+="$file_diff\n"
+                fi
             fi
         fi
     done
-    
+
     if [[ -z "$diff_content" ]]; then
         echo -e "${YELLOW}No changes to orchestration-managed files found${NC}"
         return 0
     fi
-    
+
     echo "$diff_content" > "$patch_file"
     echo -e "${GREEN}✓ Isolated patch created: $patch_file${NC}"
     echo "To apply: $0 apply $patch_file"
@@ -126,14 +149,14 @@ create_isolated_patch() {
 
 apply_patch() {
     local patch_file=$1
-    
+
     if [[ ! -f "$patch_file" ]]; then
         echo -e "${RED}Error: Patch file '$patch_file' not found${NC}"
         exit 1
     fi
-    
+
     echo -e "${BLUE}Applying isolated patch: $patch_file${NC}"
-    
+
     if git apply --check "$patch_file" 2>/dev/null; then
         git apply "$patch_file"
         echo -e "${GREEN}✓ Patch applied successfully${NC}"
@@ -144,6 +167,25 @@ apply_patch() {
     fi
 }
 
+sync_changes() {
+    local source=$1
+    local patch_file="orchestration_sync_$(date +%Y%m%d_%H%M%S).patch"
+
+    echo -e "${BLUE}Syncing changes from $source...${NC}"
+
+    # First isolate
+    create_isolated_patch "$source"
+    mv "${patch_file}.patch" "$patch_file" 2>/dev/null || true  # Rename if created
+
+    # Then apply
+    if [[ -f "$patch_file" ]]; then
+        apply_patch "$patch_file"
+        echo -e "${GREEN}✓ Sync completed: Isolated and applied changes from $source${NC}"
+    else
+        echo -e "${YELLOW}No orchestration changes found to sync${NC}"
+    fi
+}
+
 main() {
     case "${1:-}" in
         check)
@@ -151,7 +193,7 @@ main() {
             ;;
         isolate)
             if [[ -z "$2" ]]; then
-                echo -e "${RED}Error: Source branch required for isolate command${NC}"
+                echo -e "${RED}Error: Source required for isolate command${NC}"
                 print_usage
                 exit 1
             fi
@@ -164,6 +206,14 @@ main() {
                 exit 1
             fi
             apply_patch "$2"
+            ;;
+        sync)
+            if [[ -z "$2" ]]; then
+                echo -e "${RED}Error: Source required for sync command${NC}"
+                print_usage
+                exit 1
+            fi
+            sync_changes "$2"
             ;;
         -h|--help|"")
             print_usage
