@@ -447,9 +447,9 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
         run_command(
-            [python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]", "--exclude", "notmuch"],
-            "Installing dependencies with uv (excluding notmuch)",
-            cwd=ROOT_DIR,
+        [python_exe, "-m", "uv", "pip", "install", "-e", "."],
+        "Installing dependencies with uv",
+        cwd=ROOT_DIR,
         )
 
         # Install notmuch with version matching system
@@ -466,10 +466,16 @@ def install_notmuch_matching_system():
         version = version_line.split()[1]
         major_minor = ".".join(version.split(".")[:2])  # e.g., 0.38
         python_exe = get_python_executable()
-        run_command(
-            [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
+        # Try to install matching version, fallback to latest if not available
+        if not run_command(
+        [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
             f"Installing notmuch {major_minor} to match system",
-        )
+        ):
+            logger.warning(f"Could not install notmuch {major_minor}, trying latest version")
+        run_command(
+            [python_exe, "-m", "pip", "install", "notmuch"],
+            "Installing latest notmuch version",
+            )
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.warning("notmuch not found on system, skipping version-specific install")
 
