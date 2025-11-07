@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     import networkx as nx
+
     NETWORKX_AVAILABLE = True
 except ImportError:
     NETWORKX_AVAILABLE = False
@@ -39,8 +40,12 @@ class DataType(Enum):
 class SecurityContext:
     """Security context for node execution."""
 
-    def __init__(self, user_id: Optional[str] = None, permissions: List[str] = None,
-                 resource_limits: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        user_id: Optional[str] = None,
+        permissions: Optional[List[str]] = None,
+        resource_limits: Optional[Dict[str, Any]] = None,
+    ):
         self.user_id = user_id
         self.permissions = permissions or []
         self.resource_limits = resource_limits or {}
@@ -103,7 +108,7 @@ class ExecutionContext:
             return node_output.get(port_name)
         return None
 
-    def add_error(self, node_id: str, error: str, details: Dict[str, Any] = None):
+    def add_error(self, node_id: str, error: str, details: Optional[Dict[str, Any]] = None):
         """Add an error to the execution context."""
         error_info = {
             "node_id": node_id,
@@ -117,7 +122,7 @@ class ExecutionContext:
 class BaseNode(ABC):
     """Abstract base class for all nodes in the workflow system."""
 
-    def __init__(self, node_id: str = None, name: str = None, description: str = ""):
+    def __init__(self, node_id: Optional[str] = None, name: Optional[str] = None, description: str = ""):
         self.node_id = node_id or str(uuid.uuid4())
         self.name = name or self.__class__.__name__
         self.description = description
@@ -141,7 +146,7 @@ class BaseNode(ABC):
         """
         pass
 
-    def validate_inputs(self) -> Dict[str, List[str]]:
+    def validate_inputs(self) -> Dict[str, Any]:
         """
         Validate that all required inputs are present and correct type.
 
@@ -206,7 +211,7 @@ class BaseNode(ABC):
 class Workflow:
     """Represents a complete workflow of connected nodes."""
 
-    def __init__(self, workflow_id: str = None, name: str = "", description: str = ""):
+    def __init__(self, workflow_id: Optional[str] = None, name: str = "", description: str = ""):
         self.workflow_id = workflow_id or str(uuid.uuid4())
         self.name = name
         self.description = description
@@ -245,15 +250,15 @@ class Workflow:
         source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
         if not source_port_exists:
             raise ValueError(
-            f"Source port {connection.source_port} does not exist on node "
-            f"{connection.source_node_id}"
+                f"Source port {connection.source_port} does not exist on node "
+                f"{connection.source_node_id}"
             )
 
         target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
         if not target_port_exists:
             raise ValueError(
-            f"Target port {connection.target_port} does not exist on node "
-            f"{connection.target_node_id}"
+                f"Target port {connection.target_port} does not exist on node "
+                f"{connection.target_node_id}"
             )
 
         self.connections.append(connection)
@@ -314,7 +319,7 @@ class Workflow:
     def _get_execution_order_manual(self) -> List[str]:
         """Fallback manual topological sort implementation."""
         # Build adjacency list of dependencies
-        dependencies = {node_id: [] for node_id in self.nodes.keys()}
+        dependencies: Dict[str, List[str]] = {node_id: [] for node_id in self.nodes.keys()}
 
         for conn in self.connections:
             dependencies[conn.target_node_id].append(conn.source_node_id)
@@ -342,5 +347,7 @@ class Workflow:
         return result
 
     def __repr__(self):
-        return f"Workflow(name={self.name}, nodes={len(self.nodes)
-                                                   }, connections={len(self.connections)})"
+        return (
+            f"Workflow(name={self.name}, nodes={len(self.nodes)}"
+            f", connections={len(self.connections)})"
+        )

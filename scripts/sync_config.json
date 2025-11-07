@@ -1,5 +1,6 @@
 {
   "sync_rules": {
+<<<<<<< HEAD
     "inheritance_base": "docs",
     "worktrees": ["docs-main", "docs-scientific"],
     "common_docs_path": "docs/common/docs",

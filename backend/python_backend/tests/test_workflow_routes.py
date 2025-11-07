@@ -71,13 +71,14 @@ async def test_create_and_activate_new_workflow(client, mock_workflow_engine):
     # 2. Immediately try to activate the new workflow
     response_activate = client.put("/api/workflows/active/my_brand_new_workflow")
     assert response_activate.status_code == 200
-    assert response_activate.json()["message"] == "Active legacy workflow set to 'my_brand_new_workflow'."
+    assert (
+        response_activate.json()["message"]
+        == "Active legacy workflow set to 'my_brand_new_workflow'."
+    )
 
     # 3. Verify the mocks were called as expected
     expected_config = new_workflow_config.copy()
-    expected_config.update(
-        {"workflow_type": "legacy", "nodes": [], "connections": []}
-    )
+    expected_config.update({"workflow_type": "legacy", "nodes": [], "connections": []})
     mock_workflow_engine.create_and_register_workflow_from_config.assert_called_once_with(
         expected_config
     )

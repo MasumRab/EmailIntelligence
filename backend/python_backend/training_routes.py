@@ -12,9 +12,10 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
+from src.core.auth import get_current_active_user
+
 from ..python_nlp.ai_training import ModelConfig
 from .performance_monitor import log_performance
-from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -26,9 +27,9 @@ training_jobs: Dict[str, Dict[str, Any]] = {}
 @router.post("/api/training/start")
 @log_performance(operation="start_training")
 async def start_training(
-model_config: ModelConfig,
-background_tasks: BackgroundTasks,
-current_user: str = Depends(get_current_active_user),
+    model_config: ModelConfig,
+    background_tasks: BackgroundTasks,
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Start training a model with the given configuration.
@@ -62,10 +63,7 @@ current_user: str = Depends(get_current_active_user),
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-async def get_training_status(
-    job_id: str,
-    current_user: str = Depends(get_current_active_user)
-):
+async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
     """
     Get the status of a training job.
 

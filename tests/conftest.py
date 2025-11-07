@@ -3,11 +3,23 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-import pytest
+# Set up test environment immediately on import to handle early imports
+def _setup_test_env_early():
+    """Set up minimal environment for early imports."""
+    import secrets
+    if "SECRET_KEY" not in os.environ:
+        os.environ["SECRET_KEY"] = secrets.token_urlsafe(32)
+    os.environ.setdefault("DATA_DIR", "./test_data")
+
+_setup_test_env_early()
+
 import subprocess
 from unittest.mock import AsyncMock
-from fastapi.testclient import TestClient
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 
 # Create a minimal test app without gradio dependencies
 def create_test_app():
@@ -16,6 +28,7 @@ def create_test_app():
 
     # Add basic CORS
     from fastapi.middleware.cors import CORSMiddleware
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -31,10 +44,37 @@ def create_test_app():
 
     return app
 
-# Use the test app instead of the main app
-from tests.conftest import create_test_app as create_app
-from src.core.database import get_db
+
+def setup_test_environment():
+    """Set up environment variables required for testing."""
+    import secrets
+
+    # Generate a random secret key for testing
+    if "SECRET_KEY" not in os.environ:
+        test_secret_key = secrets.token_urlsafe(32)
+        os.environ["SECRET_KEY"] = test_secret_key
+
+    # Set other required environment variables for testing
+    os.environ.setdefault("DATA_DIR", "./test_data")
+    os.environ.setdefault("DEBUG", "true")
+
+    # Create test data directory if it doesn't exist
+    test_data_dir = os.path.join(os.path.dirname(__file__), "..", "test_data")
+    os.makedirs(test_data_dir, exist_ok=True)
+
+
+# from src.core.database import get_db  # FIXME: get_db function doesn't exist
 from src.core.factory import get_data_source
+
+# Use the test app instead of the main app
+# Use the create_test_app function defined above
+create_app = create_test_app
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_session():
+    """Set up the test environment before any tests run."""
+    setup_test_environment()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -42,6 +82,7 @@ def download_nltk_data():
     """Download NLTK data before running tests."""
     try:
         import nltk
+
         # Use NLTK's programmatic download for better reliability
         packages = ["punkt", "punkt_tab", "stopwords", "wordnet", "averaged_perceptron_tagger"]
         for package in packages:
@@ -57,15 +98,24 @@ def download_nltk_data():
     # Download TextBlob corpora if textblob is available
     try:
         import textblob
+
         try:
             # Use textblob's programmatic download
             from textblob import download_corpora
+
             download_corpora()
         except Exception as e:
             # Try command line approach as fallback
             try:
-                subprocess.run([sys.executable, "-c", "from textblob import download_corpora; download_corpora()"],
-                             check=True, timeout=60)
+                subprocess.run(
+                    [
+                        sys.executable,
+                        "-c",
+                        "from textblob import download_corpora; download_corpora()",
+                    ],
+                    check=True,
+                    timeout=60,
+                )
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
                 # TextBlob corpora download failed - skip silently
                 pass
@@ -102,11 +152,11 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
-    app.dependency_overrides[get_db] = lambda: mock_db_manager
+    # app.dependency_overrides[get_db] = lambda: mock_db_manager  # FIXME: get_db doesn't exist
     app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
-    del app.dependency_overrides[get_db]
+    # del app.dependency_overrides[get_db]  # FIXME: get_db doesn't exist
     del app.dependency_overrides[get_data_source]

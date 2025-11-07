@@ -1,4 +1,5 @@
 #!/bin/bash
+<<<<<<< HEAD
 # Git post-commit hook for documentation synchronization and Agent Workflow triggering
 # This hook runs after each commit to keep documentation synchronized and trigger Agent Workflows
 
@@ -7,6 +8,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Check if this is a documentation-related commit
 if git diff-tree --no-commit-id --name-only HEAD | grep -q "^docs/\|^backlog/"; then
+<<<<<<< HEAD
     echo "Documentation changes detected, running sync and Agent Workflows..."
 
     # Run the sync script
@@ -15,16 +17,17 @@ if git diff-tree --no-commit-id --name-only HEAD | grep -q "^docs/\|^backlog/"; 
     else
         echo "Warning: Documentation sync failed"
     fi
+<<<<<<< HEAD
 
     # Trigger Agent Workflow components for documentation processing
     echo "Triggering Agent Workflow components..."
-    
+
     if python "$SCRIPT_DIR/agent_workflow_integration.py"; then
         echo "Agent Workflow integration completed successfully"
     else
         echo "Warning: Agent Workflow integration failed"
     fi
-    
+
 else
     echo "No documentation changes detected, skipping sync and Agent Workflows"
 fi

@@ -10,10 +10,11 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from backend.node_engine.workflow_manager import workflow_manager
+
 from ..plugins.plugin_manager import plugin_manager
 from .model_manager import model_manager
 from .performance_monitor import PerformanceMetric, performance_monitor
-from backend.node_engine.workflow_manager import workflow_manager
 
 router = APIRouter()
 
@@ -123,8 +124,8 @@ async def get_workflow(workflow_id: str):
 @router.post("/workflows")
 async def create_workflow(request: WorkflowCreateRequest):
     """Create a new workflow."""
+    from backend.node_engine.email_nodes import AIAnalysisNode, EmailSourceNode, PreprocessingNode
     from backend.node_engine.node_base import Workflow
-    from backend.node_engine.email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode
 
     workflow = Workflow(name=request.name, description=request.description)
     # Add some default nodes for demonstration

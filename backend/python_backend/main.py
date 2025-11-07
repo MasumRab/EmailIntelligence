@@ -9,23 +9,27 @@ Unified Python backend with optimized performance and integrated NLP
 import json
 import logging
 import os
-from datetime import datetime
+import threading
+import time
+import uuid
+from collections import defaultdict
+from datetime import datetime, timedelta
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
-import uuid
-import time
 
-from ..plugins.plugin_manager import plugin_manager
 from backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from backend.python_nlp.smart_filters import SmartFilterManager
+from src.core.auth import authenticate_user
 
+from ..plugins.plugin_manager import plugin_manager
 from . import (
     action_routes,
     ai_routes,
@@ -34,27 +38,20 @@ from . import (
     email_routes,
     filter_routes,
     gmail_routes,
-    training_routes,
-    workflow_routes,
     model_routes,
     performance_routes,
+    training_routes,
+    workflow_routes,
 )
-from .auth import create_access_token, get_current_user, TokenData
-from src.core.auth import authenticate_user
-from .settings import settings
-from fastapi.security import HTTPBearer
-from fastapi import Depends, HTTPException, status
-from datetime import timedelta
 from .ai_engine import AdvancedAIEngine
-from .exceptions import AppException
+from .auth import TokenData, create_access_token, get_current_user
+from .database import db_manager
+from .exceptions import AppException, BaseAppException
 
 # Import new components
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
-from collections import defaultdict
-import threading
-from .database import db_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -77,8 +74,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
             # Add request ID to successful responses
-            if hasattr(response, 'headers'):
-                response.headers['X-Request-ID'] = request_id
+            if hasattr(response, "headers"):
+                response.headers["X-Request-ID"] = request_id
             return response
         except Exception as exc:
             # Log error with context
@@ -86,7 +83,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             logger.error(
                 f"Request failed: {request.method} {request.url} "
                 f"Duration: {duration:.2f}s RequestID: {request_id} Error: {str(exc)}",
-                exc_info=True
+                exc_info=True,
             )
 
             # Track error rate
@@ -110,7 +107,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "message": "An internal error occurred",
                     "error_code": "INTERNAL_ERROR",
                     "details": str(exc),
-                    "request_id": request_id
+                    "request_id": request_id,
                 }
                 status_code = exc.status_code
             elif isinstance(exc, ValidationError):
@@ -119,7 +116,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "message": "Validation error",
                     "error_code": "VALIDATION_ERROR",
                     "details": str(exc),
-                    "request_id": request_id
+                    "request_id": request_id,
                 }
                 status_code = 422
             else:
@@ -128,15 +125,16 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "message": "An unexpected error occurred",
                     "error_code": "INTERNAL_ERROR",
                     "details": str(exc) if settings.debug else None,
-                    "request_id": request_id
+                    "request_id": request_id,
                 }
                 status_code = 500
 
             return JSONResponse(
                 status_code=status_code,
                 content=error_response,
-                headers={"X-Request-ID": request_id}
+                headers={"X-Request-ID": request_id},
             )
+
 
 # Initialize FastAPI app with settings
 app = FastAPI(
@@ -181,56 +179,41 @@ async def shutdown_event():
 
 
 @app.exception_handler(AppException)
-
 async def app_exception_handler(request: Request, exc: AppException):
 
     return JSONResponse(
-
         status_code=exc.status_code,
-
         content=exc.detail,
-
     )
 
 
 @app.exception_handler(BaseAppException)
-
 async def base_app_exception_handler(request: Request, exc: BaseAppException):
 
     return JSONResponse(
-
         status_code=500,
-
         content={
-
             "success": False,
-
             "message": "An internal error occurred",
-
             "error_code": "INTERNAL_ERROR",
             "details": str(exc),
         },
-
     )
+
+
 # Exception handlers removed - now handled by ErrorHandlingMiddleware
+
 
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
-
     """Handle Pydantic validation errors with detailed 422 responses."""
 
     return JSONResponse(
-
         status_code=422,
-
         content={
-
             "detail": exc.errors(),
-
             "message": "Validation error with provided data.",
-
         },
-
     )
 
 
@@ -266,9 +249,10 @@ filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
+from .routes.v1.category_routes import router as category_router_v1
+
 # Include versioned API routers
 from .routes.v1.email_routes import router as email_router_v1
-from .routes.v1.category_routes import router as category_router_v1
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -327,25 +311,24 @@ async def login(username: str, password: str):
     # Use the new authentication system
     db = await get_db()
     user = await authenticate_user(username, password, db)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Try to get the settings if possible
     try:
         from .settings import settings
+
         access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     except ImportError:
         # Use a default if settings are not available
         access_token_expires = timedelta(minutes=30)
-    
-    access_token = create_access_token(
-        data={"sub": username}, expires_delta=access_token_expires
-    )
+
+    access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -388,14 +371,15 @@ async def health_check(request: Request):
 async def get_error_stats():
     """Get error statistics for monitoring."""
     with error_lock:
-        return {
-            "error_counts": dict(error_counts),
-            "total_errors": sum(error_counts.values())
-        }
+        return {"error_counts": dict(error_counts), "total_errors": sum(error_counts.values())}
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, log_level="info")
+port = int(os.getenv("PORT", 8000))
+env = os.getenv("NODE_ENV", "development")
+host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+reload = env == "development"
+# Use string app path to support reload
+uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
