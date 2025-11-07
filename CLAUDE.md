@@ -1,3 +1,6 @@
+Please also reference the following documents as needed:
+
+@.claude/memories/CLAUDE.md description: "Claude-specific rules" globs: "**/*"
 # Project Overview
 
 ## General Guidelines

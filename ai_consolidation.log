@@ -1,0 +1,294 @@
+Starting AI consolidation
+Consolidated .claude from 5 sources
+Consolidated .cursor from 5 sources
+Starting AI consolidation
+Consolidated .claude from 5 sources
+Consolidated .cursor from 5 sources
+Copied single .codex
+Consolidated .gemini from 3 sources
+Consolidated .qwen from 2 sources
+Consolidated AGENTS.md from 5 sources
+Consolidated CLAUDE.md from 5 sources
+Consolidated opencode.json from 4 sources
+Consolidated .mcp.json from 5 sources
+Validated consolidated_.qwen
+Validated consolidated_AGENTS.md
+Validated consolidated_opencode.json
+Validated consolidated_.gemini
+Validated consolidated_.cursor
+Validated consolidated_CLAUDE.md
+Validated consolidated_.claude
+Starting AI consolidation
+Consolidated .claude from 5 sources
+Consolidated .cursor from 5 sources
+Copied single .codex
+Consolidated .gemini from 3 sources
+Consolidated .qwen from 2 sources
+Consolidated AGENTS.md from 5 sources
+Consolidated CLAUDE.md from 5 sources
+Consolidated opencode.json from 4 sources
+Consolidated .mcp.json from 5 sources
+Validated consolidated_.qwen
+Validated consolidated_AGENTS.md
+Validated consolidated_opencode.json
+Validated consolidated_.gemini
+Validated consolidated_.cursor
+Validated consolidated_CLAUDE.md
+Validated consolidated_.claude
+Validated consolidated_.mcp.json
+AI regeneration not implemented yet. Use Gemini/opencode CLI manually.
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligence
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceAuto
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceGem
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceQwen
+AI consolidation complete
+Starting AI consolidation
+DRY RUN: Demonstrating files with potential new information
+File/Dir: .claude
+  Source: /home/masum/github/EmailIntelligence/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceGem/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceQwen/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/.aiglobal/.claude
+    Directory - check subfiles manually
+
+File/Dir: .cursor
+  Source: /home/masum/github/EmailIntelligence/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceGem/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceQwen/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/.aiglobal/.cursor
+    Directory - check subfiles manually
+
+File/Dir: .codex
+  Source: /home/masum/github/EmailIntelligenceGem/.codex
+    Directory - check subfiles manually
+
+File/Dir: .gemini
+  Source: /home/masum/github/EmailIntelligence/.gemini
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.gemini
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceQwen/.gemini
+    Directory - check subfiles manually
+
+File/Dir: .qwen
+  Source: /home/masum/github/EmailIntelligence/.qwen
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.qwen
+    Directory - check subfiles manually
+
+File/Dir: AGENTS.md
+  Source: /home/masum/github/EmailIntelligence/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceGem/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/AGENTS.md
+    Contains new info not in rulesync
+
+File/Dir: CLAUDE.md
+  Source: /home/masum/github/EmailIntelligence/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceGem/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/CLAUDE.md
+    Contains new info not in rulesync
+
+File/Dir: opencode.json
+  Source: /home/masum/github/EmailIntelligence/opencode.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/opencode.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/opencode.json
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/opencode.json
+    Contains new info not in rulesync
+
+File/Dir: .mcp.json
+  Source: /home/masum/github/EmailIntelligence/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceGem/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/.mcp.json
+    Contains new info not in rulesync
+
+Dry run complete
+Starting AI consolidation
+Consolidated .claude from 5 sources
+Consolidated .cursor from 5 sources
+Copied single .codex
+Consolidated .gemini from 3 sources
+Consolidated .qwen from 2 sources
+Consolidated AGENTS.md from 5 sources
+Consolidated CLAUDE.md from 5 sources
+Consolidated opencode.json from 4 sources
+Consolidated .mcp.json from 5 sources
+Validated consolidated_.qwen
+Validated consolidated_AGENTS.md
+Validated consolidated_opencode.json
+Validated consolidated_.gemini
+Validated consolidated_.cursor
+Validated consolidated_CLAUDE.md
+Validated consolidated_.claude
+Validated consolidated_.mcp.json
+AI regeneration not implemented yet. Use Gemini/opencode CLI manually.
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligence
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceAuto
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceGem
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceQwen
+AI consolidation complete
+Starting AI consolidation
+Consolidated .claude from 5 sources
+Consolidated .cursor from 5 sources
+Copied single .codex
+Consolidated .gemini from 3 sources
+Consolidated .qwen from 2 sources
+Consolidated AGENTS.md from 5 sources
+Consolidated CLAUDE.md from 5 sources
+Consolidated opencode.json from 4 sources
+Consolidated .mcp.json from 5 sources
+Validated consolidated_.qwen
+Validated consolidated_AGENTS.md
+Validated consolidated_opencode.json
+Validated consolidated_.gemini
+Validated consolidated_.cursor
+Validated consolidated_CLAUDE.md
+Validated consolidated_.claude
+Validated consolidated_.mcp.json
+GEMINI_API_KEY not set. Skipping AI regeneration.
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligence
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceAuto
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceGem
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligenceQwen
+AI consolidation complete
+Starting AI consolidation
+DRY RUN: Demonstrating files with potential new information
+File/Dir: .claude
+  Source: /home/masum/github/EmailIntelligence/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceGem/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceQwen/.claude
+    Directory - check subfiles manually
+  Source: /home/masum/.aiglobal/.claude
+    Directory - check subfiles manually
+
+File/Dir: .cursor
+  Source: /home/masum/github/EmailIntelligence/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceGem/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceQwen/.cursor
+    Directory - check subfiles manually
+  Source: /home/masum/.aiglobal/.cursor
+    Directory - check subfiles manually
+
+File/Dir: .codex
+  Source: /home/masum/github/EmailIntelligenceGem/.codex
+    Directory - check subfiles manually
+
+File/Dir: .gemini
+  Source: /home/masum/github/EmailIntelligence/.gemini
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.gemini
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceQwen/.gemini
+    Directory - check subfiles manually
+
+File/Dir: .qwen
+  Source: /home/masum/github/EmailIntelligence/.qwen
+    Directory - check subfiles manually
+  Source: /home/masum/github/EmailIntelligenceAuto/.qwen
+    Directory - check subfiles manually
+
+File/Dir: AGENTS.md
+  Source: /home/masum/github/EmailIntelligence/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceGem/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/AGENTS.md
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/AGENTS.md
+    Contains new info not in rulesync
+
+File/Dir: CLAUDE.md
+  Source: /home/masum/github/EmailIntelligence/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceGem/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/CLAUDE.md
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/CLAUDE.md
+    Contains new info not in rulesync
+
+File/Dir: opencode.json
+  Source: /home/masum/github/EmailIntelligence/opencode.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/opencode.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/opencode.json
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/opencode.json
+    Contains new info not in rulesync
+
+File/Dir: .mcp.json
+  Source: /home/masum/github/EmailIntelligence/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceAuto/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceGem/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/github/EmailIntelligenceQwen/.mcp.json
+    Contains new info not in rulesync
+  Source: /home/masum/.aiglobal/.mcp.json
+    Contains new info not in rulesync
+
+Dry run complete
+Starting AI consolidation
+Consolidated .claude from 5 sources
+Consolidated .cursor from 5 sources
+Copied single .codex
+Consolidated .gemini from 3 sources
+Consolidated .qwen from 2 sources
+Consolidated AGENTS.md from 5 sources
+Consolidated CLAUDE.md from 5 sources
+Consolidated opencode.json from 4 sources
+Consolidated .mcp.json from 5 sources
+Validated consolidated_.qwen
+Validated consolidated_AGENTS.md
+Validated consolidated_opencode.json
+Validated consolidated_.gemini
+Validated consolidated_.cursor
+Validated consolidated_CLAUDE.md
+Validated consolidated_.claude
+Validated consolidated_.mcp.json
+GEMINI_API_KEY not set. Skipping AI regeneration.
+Synced ai_consolidation.log to /home/masum/github/EmailIntelligence
