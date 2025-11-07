@@ -75,4 +75,10 @@ if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
     else
         echo "Python not found, skipping setup."
     fi
+
+    # Documentation sync for branch-specific content
+    echo "Syncing documentation for $BRANCH branch..."
+    if command -v python3 &> /dev/null; then
+        python3 scripts/docs_branch_versioning.py --cleanup --branch "$BRANCH"
+    fi
 fi
