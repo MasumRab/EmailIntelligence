@@ -65,15 +65,23 @@ async def get_data_source() -> DataSource:
     global _data_source_instance
     if _data_source_instance is None:
         source_type = os.environ.get("DATA_SOURCE_TYPE", "default")
+
+        # The DatabaseManager may be used by multiple data sources, so we create it upfront.
+        from .database import DatabaseConfig, create_database_manager
+        config = DatabaseConfig()
+        db_manager = await create_database_manager(config)
+
         if source_type == "notmuch":
             if not NOTMUCH_AVAILABLE:
-                raise ImportError("NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch")
-            _data_source_instance = NotmuchDataSource()
+                raise ImportError(
+                    "NotmuchDataSource requested but notmuch library is not available. "
+                    "Install with: pip install notmuch"
+                )
+            # NotmuchDataSource uses a DatabaseManager for caching.
+            _data_source_instance = NotmuchDataSource(db_manager=db_manager)
         else:
-            # Create DatabaseManager with proper configuration
-            from .database import DatabaseConfig, create_database_manager
-            config = DatabaseConfig()
-            _data_source_instance = await create_database_manager(config)
+            # The default data source is the database manager itself.
+            _data_source_instance = db_manager
     return _data_source_instance
 
 
