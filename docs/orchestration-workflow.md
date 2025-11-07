@@ -4,6 +4,76 @@
 
 The `orchestration-tools` branch serves as the central hub for development environment tooling and configuration management. It maintains scripts, hooks, and configurations that ensure consistency across all project branches while keeping the core email intelligence codebase clean.
 
+## Launch System Architecture
+
+The EmailIntelligence project uses a modern command pattern architecture for its launch system, providing a clean, extensible way to manage development environments and application lifecycle.
+
+### Command Pattern Structure
+
+```
+setup/
+├── launch.py                 # Main entry point with command routing
+├── commands/                 # Command implementations
+│   ├── command_interface.py  # Abstract base class for commands
+│   ├── command_factory.py    # Factory for creating command instances
+│   ├── setup_command.py      # Environment setup command
+│   ├── run_command.py        # Application execution command
+│   └── test_command.py       # Testing command
+├── container.py              # Dependency injection container
+├── environment.py            # Environment management
+├── services.py               # Service orchestration
+├── validation.py             # Input validation
+├── utils.py                  # Shared utilities
+└── test_stages.py            # Test execution logic
+```
+
+### Available Commands
+
+#### `python launch.py setup`
+**Purpose**: Set up the development environment
+- Creates virtual environment (venv or conda)
+- Installs Python dependencies via uv
+- Downloads NLTK data
+- Configures WSL environment (if applicable)
+- Handles system-specific requirements
+
+#### `python launch.py run`
+**Purpose**: Run the EmailIntelligence application
+- Starts all required services (backend, frontend, database)
+- Provides development mode with hot reloading
+- Manages service dependencies and startup order
+
+#### `python launch.py test`
+**Purpose**: Run comprehensive test suites
+- Unit tests (`--unit`)
+- Integration tests (`--integration`)
+- End-to-end tests (`--e2e`)
+- Performance tests (`--performance`)
+- Security tests (`--security`)
+- Coverage reporting (`--coverage`)
+
+### Key Features
+
+#### WSL Support
+- Automatic WSL environment detection and setup
+- WSL-specific dependency installation
+- GPU acceleration configuration for WSL
+
+#### Conda Integration
+- Optional conda environment support
+- Automatic conda environment creation and activation
+- Fallback to venv if conda unavailable
+
+#### Dependency Management
+- Uses `uv` for fast Python package management
+- Platform-specific requirements files
+- CPU/GPU-specific dependency handling
+
+#### Service Orchestration
+- Parallel service startup
+- Health checking and dependency validation
+- Graceful shutdown handling
+
 ## Core Principle: Separation of Concerns
 
 ```
@@ -31,10 +101,29 @@ The `orchestration-tools` branch serves as the central hub for development envir
 - `scripts/install-hooks.sh` - Hook installation script
 
 ### Files synced TO other branches (orchestration-managed):
-- `setup/` - Launch scripts and environment setup
+- `setup/` - Launch scripts and environment setup (command pattern architecture)
 - `docs/orchestration-workflow.md` - This documentation
 - `.flake8`, `.pylintrc` - Python linting configuration
 - `.gitignore`, `.gitattributes` - Git configuration
+
+#### Setup Directory Structure (Orchestration-Managed):
+```
+setup/
+├── launch.py              # Main launcher with command pattern
+├── launch.bat             # Windows batch launcher
+├── launch.sh              # Unix shell launcher
+├── commands/              # Command implementations
+├── container.py           # Dependency injection
+├── environment.py         # Environment setup utilities
+├── services.py            # Service orchestration
+├── validation.py          # Input validation
+├── utils.py               # Shared utilities
+├── test_stages.py         # Test execution
+├── project_config.py      # Project configuration
+├── pyproject.toml         # Python project configuration
+├── requirements*.txt      # Platform-specific requirements
+└── README.md              # Setup documentation
+```
 
 ### Files that remain BRANCH-SPECIFIC (not orchestration-managed):
 - `tsconfig.json` - TypeScript configuration
@@ -204,7 +293,44 @@ main/scientific branches
 
 ## Usage
 
+### Launch System Commands
+
+```bash
+# Set up development environment
+python launch.py setup
+
+# Set up with conda instead of venv
+python launch.py setup --use-conda --conda-env emailintelligence
+
+# Run the application
+python launch.py run
+
+# Run in development mode
+python launch.py run --dev
+
+# Run specific test suites
+python launch.py test --unit
+python launch.py test --integration
+python launch.py test --e2e
+python launch.py test --coverage
+
+# Legacy usage (still supported)
+python launch.py --setup
+```
+
+### Development Workflow
+
 - **For orchestration development**: Work in `orchestration-tools` branch
 - **For feature development**: Use main/scientific branches, orchestration-managed files will sync automatically
 - **For configuration changes**: Make changes in orchestration-tools, they propagate via sync
 - **For project-specific changes**: Edit directly in feature branches (no PR required)
+
+### Environment Setup
+
+The launch system automatically handles:
+- **Python version validation** (requires Python 3.8+)
+- **Virtual environment creation** (venv or conda)
+- **Dependency installation** via uv package manager
+- **WSL environment detection** and configuration
+- **Platform-specific requirements** (Linux/Windows/macOS)
+- **GPU/CPU-specific dependencies** based on hardware
