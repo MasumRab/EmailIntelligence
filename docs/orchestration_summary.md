@@ -27,6 +27,8 @@ These files are considered "essentials" and are synchronized from `orchestration
 *   `.flake8`, `.pylintrc` (Python linting configuration)
 *   `.gitignore`, `.gitattributes` (Git configuration)
 *   `launch.py` (and its associated configuration files like `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`)
+*   `.env.example` (environment template)
+*   `scripts/install-hooks.sh`, `scripts/manage_orchestration_changes.sh`, `scripts/reverse_sync_orchestration.sh`, `scripts/cleanup_orchestration.sh` (key orchestration scripts)
 
 ### Files that remain BRANCH-SPECIFIC (not orchestration-managed):
 These files are *not* synced by the orchestration process and are managed independently within each branch.
