@@ -37,9 +37,12 @@ The `orchestration-tools` branch serves as the central hub for development envir
 
 ### Files synced TO other branches (orchestration-managed):
 - `setup/` - Launch scripts and environment setup
-- `docs/orchestration-workflow.md` - This documentation
+- `docs/orchestration-workflow.md` - Orchestration workflow documentation
+- `docs/orchestration_summary.md` - Orchestration summary
+- `docs/env_management.md` - Environment management documentation
 - `.flake8`, `.pylintrc` - Python linting configuration
 - `.gitignore`, `.gitattributes` - Git configuration
+- `uv.lock` - Python dependency lock file
 
 ### Files that remain BRANCH-SPECIFIC (not orchestration-managed):
 - `tsconfig.json` - TypeScript configuration
@@ -220,7 +223,7 @@ This section lists the files and directories that are considered canonical for t
 *   `.gitattributes`: Git attribute configurations.
 *   `.gitignore`: Git ignore patterns.
 *   `pyproject.toml`: Python project configuration.
-*   `requirements.*`: Python dependency files (e.g., `requirements.txt`).
+*   `requirements.*`: Python dependency files (e.g., `requirements.txt`, `uv.lock`).
 
 ---
 

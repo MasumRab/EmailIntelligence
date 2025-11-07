@@ -77,6 +77,7 @@ Changes to orchestration-managed files automatically propagate to other branches
 - `pyproject.toml`
 - `requirements.txt`
 - `requirements-dev.txt`
+- `uv.lock`
 - `.flake8`
 - `.pylintrc`
 - `.gitignore`

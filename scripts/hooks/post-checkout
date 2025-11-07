@@ -40,6 +40,8 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
 
     # Update orchestration documentation
     checkout_from_orchestration "docs/orchestration-workflow.md"
+    checkout_from_orchestration "docs/orchestration_summary.md"
+    checkout_from_orchestration "docs/env_management.md"
 
     # Update shared configuration files
     checkout_from_orchestration ".flake8"
@@ -50,6 +52,7 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     checkout_from_orchestration "pyproject.toml"
     checkout_from_orchestration "requirements.txt"
     checkout_from_orchestration "requirements-dev.txt"
+    checkout_from_orchestration "uv.lock"
 
     # Update Git hooks
     checkout_from_orchestration "scripts/hooks/pre-commit"
