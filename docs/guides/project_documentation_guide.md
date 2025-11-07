@@ -8,7 +8,7 @@ This document outlines the various documentation files in the project and how to
 - `QWEN.md`: Detailed development context and architecture information
 - `tools_used.md`: Comprehensive list of tools and technologies used in the project
 - `docs/python_style_guide.md`: Python coding standards and best practices
-- `docs/advanced_workflow_system.md`: Documentation for the node-based workflow system
+- `docs/architecture/advanced_workflow_system.md`: Documentation for the node-based workflow system
 - `docs/client_development.md`: Guidelines for client-side development
 - `docs/deployment_guide.md`: Deployment instructions and configurations
 - `docs/env_management.md`: Environment management guidelines
