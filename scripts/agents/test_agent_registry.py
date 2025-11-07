@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 from agent_registry import AgentCapabilityRegistry
-from task_queue import Agent
+from ..task_queue import Agent
 
 def test_agent_registry():
     """Test the agent capability registry."""
