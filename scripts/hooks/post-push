@@ -30,20 +30,16 @@ check_orchestration_changes() {
     local old_sha="$1"
     local new_sha="$2"
 
-    # Check if managed files were changed in this push
-    MANAGED_FILES=(
+    # Check if orchestration-managed files were changed in this push
+    ORCHESTRATION_MANAGED_FILES=(
         "setup/launch.py"
         "setup/launch.bat"
         "setup/launch.sh"
         "scripts/sync_setup_worktrees.sh"
+        "scripts/reverse_sync_orchestration.sh"
+        "scripts/cleanup_orchestration.sh"
         ".flake8"
         ".pylintrc"
-        "tsconfig.json"
-        "package.json"
-        "tailwind.config.ts"
-        "vite.config.ts"
-        "drizzle.config.ts"
-        "components.json"
         ".gitignore"
         ".gitattributes"
     )
@@ -51,7 +47,7 @@ check_orchestration_changes() {
     CHANGED_FILES=$(git diff --name-only "$old_sha" "$new_sha")
 
     ORCHESTRATION_CHANGES=false
-    for file in "${MANAGED_FILES[@]}"; do
+    for file in "${ORCHESTRATION_MANAGED_FILES[@]}"; do
         if echo "$CHANGED_FILES" | grep -q "^${file}$"; then
             ORCHESTRATION_CHANGES=true
             break
@@ -59,7 +55,7 @@ check_orchestration_changes() {
     done
 
     if [[ "$ORCHESTRATION_CHANGES" == true ]]; then
-        CHANGED_ORCHESTRATION_FILES=$(echo "$CHANGED_FILES" | grep -E "$(printf '%s|' "${MANAGED_FILES[@]}" | sed 's/|$//')")
+        CHANGED_ORCHESTRATION_FILES=$(echo "$CHANGED_FILES" | grep -E "$(printf '%s|' "${ORCHESTRATION_MANAGED_FILES[@]}" | sed 's/|$//')")
 
         echo "⚠️  ORCHESTRATION CHANGES DETECTED on branch '$CURRENT_BRANCH'"
         echo "   Files changed: $CHANGED_ORCHESTRATION_FILES"
