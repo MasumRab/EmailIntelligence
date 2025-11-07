@@ -221,95 +221,14 @@ def prepare_environment(args: argparse.Namespace) -> bool:
             return False
         # Download NLTK data immediately after Python deps are installed
         if not args.no_download_nltk:
-            if not download_nltk_data(python_executable):
+            if not download_nltk_data():
                 return False
-<<<<<<< HEAD
-    else:
-        python_executable = sys.executable
-        # If not using venv, still need to handle NLTK download
-        if not args.no_download_nltk:
-            logger.warning("Running NLTK download with system python. This may fail if nltk is not installed globally.")
-            if not download_nltk_data(python_executable):
-                return False
-
-    # 2. Install Node.js dependencies
-    if not args.no_client:
-        if not install_nodejs_dependencies("client", args.update_deps):
-=======
-            venv_needs_initial_setup = True
-
-        if venv_needs_initial_setup:
-            primary_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Installing base dependencies from {Path(primary_req_file).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
-            )
-            if not install_dependencies(primary_req_file, update=False):
-                logger.error(
-                    f"Failed to install base dependencies from {Path(primary_req_file).name}. Exiting."
-                )
-                return False
-        elif args.update_deps:
-            primary_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Updating base dependencies from {Path(primary_req_file).name} in existing venv as per --update-deps..."
-            )
-            if not install_dependencies(primary_req_file, update=True):
-                logger.error(
-                    f"Failed to update base dependencies from {Path(primary_req_file).name}. Exiting."
-                )
-                return False
-        else:
-            chosen_req_file = _get_primary_requirements_file()
-            logger.info(
-                f"Compatible virtual environment found (or user chose to proceed with existing). Primary requirements file: {Path(chosen_req_file).name}. Skipping base dependency installation unless --update-deps is used."
-            )
-
-        stage_requirements_file_path_str = None
-        if args.stage == "dev":
-            dev_req_path_obj = ROOT_DIR / "requirements-dev.txt"
-            if dev_req_path_obj.exists():
-                stage_requirements_file_path_str = "requirements-dev.txt"
-        elif args.stage == "test":
-            test_req_path_obj = ROOT_DIR / "requirements-test.txt"
-            if test_req_path_obj.exists():
-                stage_requirements_file_path_str = "requirements-test.txt"
-
-        if stage_requirements_file_path_str:
-            install_stage_deps_update_flag = args.update_deps
-            if venv_needs_initial_setup:
-                install_stage_deps_update_flag = False
-                logger.info(
-                    f"Installing stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} into {'new' if not venv_recreated_this_run else 'recreated'} venv..."
-                )
-            elif args.update_deps:
-                logger.info(
-                    f"Updating stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} as per --update-deps..."
-                )
-            else:
-                logger.info(
-                    f"Skipping stage-specific requirements for '{args.stage}' from {Path(stage_requirements_file_path_str).name} unless missing or --update-deps is used."
-                )
-
-            if venv_needs_initial_setup or args.update_deps:
-                if not install_dependencies(
-                    stage_requirements_file_path_str,
-                    update=install_stage_deps_update_flag,
-                ):
-                    logger.error(
-                        f"Failed to install/update stage-specific dependencies from {Path(stage_requirements_file_path_str).name}. Exiting."
-                    )
-                    return False
-
-    if not args.no_download_nltk:
-        if not download_nltk_data():
->>>>>>> origin/main
             return False
 
     return True
 
 
-<<<<<<< HEAD
-=======
+
 def start_backend(args: argparse.Namespace, python_executable: str) -> Optional[subprocess.Popen]:
     """Starts the backend server."""
     actual_host = "0.0.0.0" if args.listen else args.host
@@ -396,8 +315,6 @@ def start_gradio_ui(args: argparse.Namespace, python_executable: str) -> Optiona
         logger.error(f"Failed to start Gradio UI: {e}")
         return None
 
-
->>>>>>> origin/main
 def run_application(args: argparse.Namespace) -> int:
     """Run the selected application components."""
     python_executable = get_python_executable()
@@ -414,16 +331,6 @@ def run_application(args: argparse.Namespace) -> int:
             cmd.append("--reload")
         services_started.append(start_service(cmd, "Python Backend"))
 
-<<<<<<< HEAD
-    # Start Gradio UI
-    if not args.no_ui:
-        cmd = [python_executable, "backend/python_backend/gradio_app.py", "--host", args.host]
-        if args.gradio_port:
-            cmd.extend(["--port", str(args.gradio_port)])
-        if args.share:
-            cmd.append("--share")
-        services_started.append(start_service(cmd, "Gradio UI"))
-=======
     if args.api_only:
         logger.info("Running in API only mode.")
         backend_process = start_backend(args, python_executable)
@@ -445,7 +352,6 @@ def run_application(args: argparse.Namespace) -> int:
         unexpected_exit = False
         backend_process = start_backend(args, python_executable)
         gradio_process = start_gradio_ui(args, python_executable)
->>>>>>> origin/main
 
     # Start Node.js Frontend (Vite)
     if not args.no_client:
@@ -540,16 +446,6 @@ def main() -> int:
     """Main entry point."""
     # Ensure launcher is running with a compatible Python
     if os.environ.get("LAUNCHER_REEXEC_GUARD") != "1":
-<<<<<<< HEAD
-        current_version = sys.version_info[:2]
-        if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-            interpreter = find_compatible_python_interpreter()
-            if interpreter:
-                re_execute_with_compatible_python(interpreter)
-            else:
-                logger.error(f"Python {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} is required but not found.")
-                return 1
-=======
         interpreter = find_compatible_python_interpreter()
         if interpreter:
             re_execute_with_compatible_python(interpreter)
@@ -565,7 +461,6 @@ def main() -> int:
         logger.info(
             f"Launcher re-executed with Python {sys.version_info.major}.{sys.version_info.minor}"
         )
->>>>>>> origin/main
 
     _setup_signal_handlers()
     args = parse_arguments()
