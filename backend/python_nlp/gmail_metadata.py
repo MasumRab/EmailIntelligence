@@ -386,9 +386,10 @@ class GmailMetadataExtractor:
 
     def _extract_email_address(self, address_header: str) -> str:
         """Extracts a single email address from a header string."""
-        if match := re.search(r"<([^>]+)>", address_header):
-            return match.group(1)
-        return address_header.strip()
+        from email.utils import parseaddr
+        # Use parseaddr to robustly extract the email address from the header
+        name, email_addr = parseaddr(address_header)
+        return email_addr if email_addr else address_header.strip()
 
     def _extract_email_addresses(self, addresses_header: str) -> List[str]:
         """Extracts multiple email addresses from a header string."""
