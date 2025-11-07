@@ -79,4 +79,9 @@ diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
-worktrees/
+worktrees//home/masum/github/worktrees/taskmaster-worktree/
+-e 
+# Configuration files with API keys
+.env
+.mcp.json
+opencode.json

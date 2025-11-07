@@ -1,11 +1,29 @@
-# This is a dummy requirements-dev.txt for testing launch.py
-# It can be empty or list development-specific packages.
-# Example:
-# pytest
-# flake8
-nltk==3.8.1
-uvicorn[standard]>=0.15.0
-fastapi>=0.70.0
-pytest>=7.0.0
-gradio
-pytest-asyncio
+# Development and testing dependencies
+# These are installed in addition to base requirements
+
+# Code quality and linting
+black>=25.1.0
+isort>=6.0.1
+flake8>=7.2.0
+mypy>=1.16.0
+pylint>=3.3.7
+pre-commit>=3.0.0
+
+# Testing framework (base testing already in requirements.txt)
+pytest>=8.4.0
+pytest-asyncio>=0.23.0
+
+# Advanced testing frameworks (scientific branch)
+hypothesis>=6.100.0  # Property-based testing
+pytest-cov>=4.1.0    # Coverage reporting
+pytest-benchmark>=4.0.0  # Performance benchmarking
+pytest-mock>=3.12.0  # Enhanced mocking
+pytest-xdist>=3.5.0  # Parallel test execution
+mutmut>=2.5.0        # Mutation testing
+coverage>=7.4.0      # Enhanced coverage analysis
+
+# Development tools
+uvicorn[standard]>=0.30.0
+
+# Additional development dependencies
+# Add any development-specific packages here

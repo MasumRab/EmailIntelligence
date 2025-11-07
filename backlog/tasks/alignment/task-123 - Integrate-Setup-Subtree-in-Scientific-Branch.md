@@ -1,9 +1,10 @@
 ---
 id: task-123
 title: Integrate Setup Subtree in Scientific Branch
-status: To Do
+status: Completed
 assignee: []
 created_date: '2025-10-27 15:22'
+updated_date: '2025-11-03'
 labels: ["git", "subtree", "integration"]
 priority: high
 ---

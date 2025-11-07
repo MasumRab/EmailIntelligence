@@ -18,6 +18,8 @@ from .core.module_manager import ModuleManager
 from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
+from .backend.api.ci_cd_routes import router as ci_cd_router
+from .backend.api.task_validation_routes import router as task_validation_router
 
 # Configure logging
 logging.basicConfig(
@@ -607,6 +609,12 @@ def create_app():
             status_code=500,
             content={"detail": "Internal server error", "message": "An unexpected error occurred"},
         )
+
+    # Include CI/CD routes
+    app.include_router(ci_cd_router)
+
+    # Include task validation routes
+    app.include_router(task_validation_router)
 
     @app.get("/")
     async def root():
