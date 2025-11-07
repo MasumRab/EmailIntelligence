@@ -47,11 +47,22 @@ from setup.utils import print_system_info, process_manager
 # Import test stages
 from setup.test_stages import test_stages
 
-# Import command pattern components (disabled in orchestration-tools as src/ is not present)
-# Command pattern requires application code in src/, not available in orchestration setup
-get_command_factory = None
-get_container = None
-initialize_all_services = None
+# Import command pattern components (with error handling for refactors)
+try:
+    from setup.commands.command_factory import get_command_factory
+    from setup.container import get_container, initialize_all_services
+except ImportError as e:
+    # Command pattern not available, will use legacy mode
+    get_command_factory = None
+    get_container = None
+    initialize_all_services = None
+
+# Determine if command pattern is available
+COMMAND_PATTERN_AVAILABLE = (
+    get_command_factory is not None and 
+    get_container is not None and 
+    initialize_all_services is not None
+)
 
 try:
     from dotenv import load_dotenv
