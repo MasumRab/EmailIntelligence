@@ -85,4 +85,13 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     fi
 
     echo "Orchestration synchronization complete"
+
+    # Check for committed hooks on non-orchestration branches
+    if git ls-files | grep -q "^scripts/hooks/"; then
+        echo "WARNING: Orchestration hooks found committed on non-orchestration branch '$BRANCH'"
+        echo "Removing hooks from index to prevent accidental commits"
+        git rm --cached scripts/hooks/* 2>/dev/null || true
+        echo "If you wish to preserve these hook changes, switch to orchestration-tools branch and commit them there"
+        echo "Then create a PR if needed"
+    fi
 fi

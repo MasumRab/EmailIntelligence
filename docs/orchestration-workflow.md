@@ -1,5 +1,47 @@
 # Orchestration Workflow Documentation
 
+## Key Checks and Rules
+
+### ⚠️ Critical: Updating Managed Files
+When adding new files to `orchestration-tools` that should be synced to other branches:
+1. Update the "Files synced TO other branches" list in this document
+2. Add the file to `scripts/hooks/post-checkout` for syncing
+3. Add checks in `scripts/hooks/pre-commit` for warnings on non-orchestration branches
+4. Test the sync by switching branches
+
+**Further details:** [Orchestration Hook Management](../orchestration_hook_management.md)
+
+### ⚠️ Critical: Changing Orchestration Files on Non-Orchestration Branches
+
+**Key Rule:** Orchestration-managed files must only be modified on the `orchestration-tools` branch. The system enforces this with Git hooks to maintain consistency.
+
+#### Common Scenarios and Solutions
+
+**Scenario 1: Pre-commit Warning**
+- **When:** Attempting to commit changes to managed files (e.g., `setup/`, `launch.py`, `.flake8`) on `main`, `scientific`, or feature branches
+- **What happens:** `pre-commit` hook warns and blocks the commit
+- **What to do:**
+  1. Create a pull request to `orchestration-tools` with your changes
+  2. Wait for review and merge
+  3. Pull the merged changes to your branch
+
+**Scenario 2: Automatic PR Creation**
+- **When:** Pushing changes to managed files on non-orchestration branches
+- **What happens:** `post-push` hook detects changes and creates a draft PR to `orchestration-tools`
+- **What to do:**
+  1. Review the auto-generated PR
+  2. Merge if approved, or close if changes are incorrect
+
+**Scenario 3: Sync Failures**
+- **When:** Files not syncing properly after branch switches
+- **What happens:** Managed files may be missing or outdated on other branches
+- **What to do:**
+  1. Verify the file exists in `orchestration-tools`
+  2. Check `post-checkout` hook output for errors
+  3. Manually sync if needed: `git checkout orchestration-tools -- <file>`
+
+**Further details:** [Orchestration Validation Tests](../orchestration_validation_tests.md) | [Hook Management](../orchestration_hook_management.md)
+
 ## Overview
 
 ⚠️ **SCOPE NOTE**: See [Orchestration Branch Scope](../orchestration_branch_scope.md) for a clear definition of what files belong in this branch.
