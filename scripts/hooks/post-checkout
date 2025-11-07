@@ -1,85 +1,15 @@
 #!/bin/bash
 
-# Post-checkout hook to automatically set up environment and sync orchestration files
+# Post-checkout hook to automatically set up environment on main/scientific branches
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-if [[ "$BRANCH" != "orchestration-tools" ]]; then
-    echo "Checking out $BRANCH branch. Synchronizing setup directory from orchestration-tools..."
-
-    # Function to safely checkout files from orchestration-tools branch
-    checkout_from_orchestration() {
-        local file_path="$1"
-        if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
-            # Check if file differs before checkout
-            if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
-                echo "Updating $file_path from orchestration-tools"
-                git checkout --quiet orchestration-tools -- "$file_path"
-            fi
-        else
-            echo "Info: $file_path not available in orchestration-tools branch (expected for cleaned branch)"
-        fi
-    }
-
-    # Update setup directory
-    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
-        echo "Synchronizing setup directory from orchestration-tools"
-        git checkout orchestration-tools -- setup/ --quiet
-    fi
-
-    # Update deployment directory
-    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
-        echo "Synchronizing deployment directory from orchestration-tools"
-        git checkout orchestration-tools -- deployment/ --quiet
-    fi
-
-    # Update orchestration scripts
-    checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
-    checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
-    checkout_from_orchestration "scripts/cleanup_orchestration.sh"
-
-    # Update orchestration documentation
-    checkout_from_orchestration "docs/orchestration-workflow.md"
-
-    # Update shared configuration files
-    checkout_from_orchestration ".flake8"
-    checkout_from_orchestration ".pylintrc"
-    checkout_from_orchestration ".gitignore"
-    checkout_from_orchestration ".gitattributes"
-    checkout_from_orchestration "launch.py"
-    checkout_from_orchestration "pyproject.toml"
-    checkout_from_orchestration "requirements.txt"
-    checkout_from_orchestration "requirements-dev.txt"
-
-    # Update Git hooks
-    checkout_from_orchestration "scripts/hooks/pre-commit"
-    checkout_from_orchestration "scripts/hooks/post-commit"
-    checkout_from_orchestration "scripts/hooks/post-merge"
-    checkout_from_orchestration "scripts/hooks/post-push"
-
-    # Conditional Git hook installation/update
-    ORCHESTRATION_BRANCH="${ORCHESTRATION_BRANCH:-orchestration-tools}"
-    CURRENT_ORCH_COMMIT=$(git rev-parse "origin/$ORCHESTRATION_BRANCH" 2>/dev/null)
-    LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
-
-    if [[ -z "$CURRENT_ORCH_COMMIT" ]]; then
-        echo "Warning: Could not determine current commit for $ORCHESTRATION_BRANCH. Skipping conditional hook update."
-    elif [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
-        echo "Orchestration tools branch has new changes. Installing/updating Git hooks..."
-        if [[ -f "scripts/install-hooks.sh" ]]; then
-            bash scripts/install-hooks.sh --quiet
-            if [[ $? -eq 0 ]]; then
-                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
-                echo "Hooks updated and commit ID stored."
-            else
-                echo "Warning: Hook installation failed. Commit ID not updated."
-            fi
-        else
-            echo "Warning: scripts/install-hooks.sh not found. Cannot update hooks."
-        fi
+if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
+    echo "Checking out $BRANCH branch. Running environment setup..."
+    if command -v python &> /dev/null; then
+        python launch.py --setup --skip-prepare > /dev/null 2>&1 &
+        echo "Setup started in background. Check logs for status."
     else
-        echo "Git hooks are already up-to-date with $ORCHESTRATION_BRANCH."
+        echo "Python not found, skipping setup."
     fi
-
-    echo "Orchestration synchronization complete"
 fi
