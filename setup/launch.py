@@ -446,9 +446,17 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
+        # Install CPU-only PyTorch first to prevent CUDA package installation
+        logger.info("Installing CPU-only PyTorch packages...")
+        run_command(
+            [python_exe, "-m", "pip", "install", "torch", "torchvision", "torchaudio", "--index-url", "https://download.pytorch.org/whl/cpu"],
+            "Installing CPU-only PyTorch packages",
+            cwd=ROOT_DIR,
+        )
+
         run_command(
         [python_exe, "-m", "uv", "pip", "install", "-e", "."],
-        "Installing dependencies with uv",
+        "Installing remaining dependencies with uv",
         cwd=ROOT_DIR,
         )
 

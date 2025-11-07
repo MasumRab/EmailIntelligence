@@ -8,10 +8,10 @@ description = "AI-powered email intelligence and analysis platform"
 requires-python = ">=3.11"
 
 dependencies = [
-    # Core AI/ML (CPU-only versions)
-    "torch>=2.4.0+cpu",
-    "torchvision>=0.19.0+cpu",
-    "torchaudio>=2.4.0+cpu",
+    # Core AI/ML (CPU versions - PyTorch installed separately via setup scripts)
+    # "torch>=2.4.0",
+    # "torchvision>=0.19.0",
+    # "torchaudio>=2.4.0",
     "transformers>=4.40.0",
     "accelerate>=0.30.0",
 
