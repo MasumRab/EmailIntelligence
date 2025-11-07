@@ -22,7 +22,6 @@ for file in $STAGED_FILES; do
             # File is in correct location
             continue
         else
-<<<<<<< HEAD
             # Allow README.md files in code directories
             if [[ "$file" == */README.md ]]; then
                 continue
