@@ -11,8 +11,8 @@ import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import Depends
 # Updated to use the new src architecture where available
-from src.backend.python_backend.services.email_service import EmailService
-from src.backend.python_backend.services.category_service import CategoryService
+from backend.python_backend.services.email_service import EmailService
+from backend.python_backend.services.category_service import CategoryService
 from src.core.database import get_db, DatabaseManager
 from .model_manager import ModelManager  # Assuming this is in the same package for now
 from .ai_engine import AdvancedAIEngine  # This might need to be updated to src version
