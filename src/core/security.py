@@ -653,22 +653,28 @@ def sanitize_path(
         # Convert to string if it's a Path object
         path_str = str(path)
 
-        # Basic sanitization - remove dangerous sequences
-        path_str = path_str.replace("../", "").replace("..\\", "")
-        path_str = path_str.replace("<!--", "").replace("-->", "")  # Prevent comment injection
-        path_str = path_str.replace("<script", "").replace(
-            "script>", ""
-        )  # Prevent script injection
-
+        # Use pathlib's resolve and relative_to for more robust directory traversal prevention
+        # instead of simple string replacement
+        base_path = pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()
+        input_path = pathlib.Path(path_str)
+        
+        # Resolve the path to handle relative paths and symbolic links
+        resolved_path = input_path.resolve()
+        
+        # Verify that the resolved path is within the allowed base directory
+        if base_dir and not resolved_path.is_relative_to(base_path):
+            logger.warning(f"Path escapes base directory: {path_str}")
+            return None
+        
         # Normalize path separators
-        path_str = path_str.replace("\\", "/")
+        normalized_path = str(resolved_path).replace("\\", "/")
 
         # Additional checks to ensure validity
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
+        if any(char in normalized_path for char in ["<", ">", "|", "?", "*"]):
+            logger.warning(f"Invalid characters in path after sanitization: {normalized_path}")
             return None
 
-        return path_str
+        return normalized_path
     except Exception as e:
         logger.warning(f"Error during path sanitization: {e}")
         return None
