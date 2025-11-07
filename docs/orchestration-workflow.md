@@ -1,54 +1,8 @@
 # Orchestration Workflow Documentation
 
-## Key Checks and Rules
-
-### ⚠️ Critical: Updating Managed Files
-When adding new files to `orchestration-tools` that should be synced to other branches:
-1. Update the "Files synced TO other branches" list in this document
-2. Add the file to `scripts/hooks/post-checkout` for syncing
-3. Add checks in `scripts/hooks/pre-commit` for warnings on non-orchestration branches
-4. Test the sync by switching branches
-
-**Further details:** [Orchestration Hook Management](../orchestration_hook_management.md)
-
-### ⚠️ Critical: Changing Orchestration Files on Non-Orchestration Branches
-
-**Key Rule:** Orchestration-managed files must only be modified on the `orchestration-tools` branch. The system enforces this with Git hooks to maintain consistency.
-
-#### Common Scenarios and Solutions
-
-**Scenario 1: Pre-commit Warning**
-- **When:** Attempting to commit changes to managed files (e.g., `setup/`, `launch.py`, `.flake8`) on `main`, `scientific`, or feature branches
-- **What happens:** `pre-commit` hook warns and blocks the commit
-- **What to do:**
-  1. Create a pull request to `orchestration-tools` with your changes
-  2. Wait for review and merge
-  3. Pull the merged changes to your branch
-
-**Scenario 2: Automatic PR Creation**
-- **When:** Pushing changes to managed files on non-orchestration branches
-- **What happens:** `post-push` hook detects changes and creates a draft PR to `orchestration-tools`
-- **What to do:**
-  1. Review the auto-generated PR
-  2. Merge if approved, or close if changes are incorrect
-
-**Scenario 3: Sync Failures**
-- **When:** Files not syncing properly after branch switches
-- **What happens:** Managed files may be missing or outdated on other branches
-- **What to do:**
-  1. Verify the file exists in `orchestration-tools`
-  2. Check `post-checkout` hook output for errors
-  3. Manually sync if needed: `git checkout orchestration-tools -- <file>`
-
-**Further details:** [Orchestration Validation Tests](../orchestration_validation_tests.md) | [Hook Management](../orchestration_hook_management.md)
-
 ## Overview
 
-⚠️ **SCOPE NOTE**: See [Orchestration Branch Scope](../orchestration_branch_scope.md) for a clear definition of what files belong in this branch.
-
 The `orchestration-tools` branch serves as the central hub for development environment tooling and configuration management. It maintains scripts, hooks, and configurations that ensure consistency across all project branches while keeping the core email intelligence codebase clean.
-
-**IMPORTANT**: This branch will NOT be merged with other branches. It exists solely as the source of truth for environment tools that are synchronized to other branches.
 
 ## Core Principle: Separation of Concerns
 
@@ -72,19 +26,15 @@ The `orchestration-tools` branch serves as the central hub for development envir
 
 ### Files ONLY in `orchestration-tools` branch:
 - `scripts/` - All orchestration scripts and utilities
-  - `install-hooks.sh`: Installs Git hooks to `.git/hooks/` for automated environment management
-  - `cleanup_orchestration.sh`: Removes orchestration-specific files when not on orchestration-tools branch
 - `scripts/lib/` - Shared utility libraries
 - `scripts/hooks/` - Hook source files
+- `scripts/install-hooks.sh` - Hook installation script
 
 ### Files synced TO other branches (orchestration-managed):
 - `setup/` - Launch scripts and environment setup
-- `docs/orchestration-workflow.md` - Orchestration workflow documentation
-- `docs/orchestration_summary.md` - Orchestration summary
-- `docs/env_management.md` - Environment management documentation
+- `docs/orchestration-workflow.md` - This documentation
 - `.flake8`, `.pylintrc` - Python linting configuration
 - `.gitignore`, `.gitattributes` - Git configuration
-- `uv.lock` - Python dependency lock file
 
 ### Files that remain BRANCH-SPECIFIC (not orchestration-managed):
 - `tsconfig.json` - TypeScript configuration
@@ -240,7 +190,7 @@ main/scientific branches
 
 ## Troubleshooting
 
-### "Scripts directory shouldn\'t be in main branch"
+### "Scripts directory shouldn't be in main branch"
 **Cause**: Orchestration tooling was accidentally committed to main
 **Fix**: Remove scripts/ from main, ensure only orchestration-tools has it
 
@@ -251,23 +201,6 @@ main/scientific branches
 ### "Post-checkout syncs too many files"
 **Cause**: Hook syncing orchestration source files to other branches
 **Fix**: Only sync essentials (setup/, shared configs), not tooling
-
-## Canonical File List
-
-This section lists the files and directories that are considered canonical for the `orchestration-tools` branch. This list should be updated if there are intentional changes to the files or directories that constitute the core of this branch\'s functionality.
-
-### Core Orchestration Files:
-*   `orchestration-workflow.md`: This documentation file.
-*   `scripts/install-hooks.sh`: Script to install Git hooks.
-*   `scripts/hooks/`: Directory containing Git hook scripts (e.g., `pre-commit`, `post-checkout`, etc.).
-*   `setup/`: Directory for setup scripts and configurations.
-*   `launch.*`: Files related to launching the application.
-*   `.gitattributes`: Git attribute configurations.
-*   `.gitignore`: Git ignore patterns.
-*   `pyproject.toml`: Python project configuration.
-*   `requirements.*`: Python dependency files (e.g., `requirements.txt`, `uv.lock`).
-
----
 
 ## Usage
 
