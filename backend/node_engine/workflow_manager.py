@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Workflow Manager for the Email Intelligence Platform.
 
 This module provides functionality for managing, storing, and retrieving

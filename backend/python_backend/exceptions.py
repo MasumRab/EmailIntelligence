@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Custom exceptions for the Email Intelligence Platform
 Provides consistent error handling across the application
 """
