@@ -28,9 +28,16 @@ from typing import List
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Import command pattern components
-from src.core.commands.command_factory import get_command_factory
-from src.core.container import get_container, initialize_all_services
+# Try to import command pattern components (may not exist in orchestration-tools branch)
+COMMAND_PATTERN_AVAILABLE = True
+try:
+    from src.core.commands.command_factory import get_command_factory
+    from src.core.container import get_container, initialize_all_services
+except ImportError:
+    COMMAND_PATTERN_AVAILABLE = False
+    get_command_factory = None
+    get_container = None
+    initialize_all_services = None
 
 from deployment.test_stages import test_stages
 
@@ -161,7 +168,11 @@ def check_python_version():
     """Check if the current Python version is compatible."""
     current_version = sys.version_info[:2]
     if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        logger.error(f"Python version {platform.python_version()} is not compatible.")
+        logger.error(
+            f"Python version {platform.python_version()} is not compatible. "
+            f"Please use Python version {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} "
+            f"to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}."
+        )
         sys.exit(1)
     logger.info(f"Python version {platform.python_version()} is compatible.")
 
@@ -274,6 +285,130 @@ def validate_environment() -> bool:
     return True
 
 
+def check_critical_files() -> bool:
+    """Check for critical files that must exist in the orchestration-tools branch."""
+    # Critical files that are essential for orchestration
+    critical_files = [
+        # Core orchestration scripts
+        "scripts/install-hooks.sh",
+        "scripts/cleanup_orchestration.sh",
+        "scripts/sync_setup_worktrees.sh",
+        "scripts/reverse_sync_orchestration.sh",
+        
+        # Git hooks
+        "scripts/hooks/pre-commit",
+        "scripts/hooks/post-commit",
+        "scripts/hooks/post-commit-setup-sync",
+        "scripts/hooks/post-merge",
+        "scripts/hooks/post-checkout",
+        "scripts/hooks/post-push",
+        
+        # Shared libraries
+        "scripts/lib/common.sh",
+        "scripts/lib/error_handling.sh",
+        "scripts/lib/git_utils.sh",
+        "scripts/lib/logging.sh",
+        "scripts/lib/validation.sh",
+        
+        # Setup files
+        "setup/launch.py",
+        "setup/pyproject.toml",
+        "setup/requirements.txt",
+        "setup/requirements-dev.txt",
+        "setup/setup_environment_system.sh",
+        "setup/setup_environment_wsl.sh",
+        "setup/setup_python.sh",
+        
+        # Configuration files
+        ".flake8",
+        ".pylintrc",
+        ".gitignore",
+        ".gitattributes",
+        
+        # Root wrapper
+        "launch.py",
+        
+        # Deployment files
+        "deployment/deploy.py",
+        "deployment/test_stages.py",
+        "deployment/docker-compose.yml",
+    ]
+    
+    # Critical directories that must exist
+    critical_directories = [
+        "scripts/",
+        "scripts/hooks/",
+        "scripts/lib/",
+        "setup/",
+        "deployment/",
+        "docs/",
+    ]
+    
+    # Orchestration documentation files
+    orchestration_docs = [
+        "docs/orchestration_summary.md",
+        "docs/orchestration_validation_tests.md",
+        "docs/orchestration_hook_management.md",
+        "docs/orchestration_branch_scope.md",
+        "docs/env_management.md",
+        "docs/git_workflow_plan.md",
+        "docs/current_orchestration_docs/",
+        "docs/guides/",
+    ]
+    
+    missing_files = []
+    missing_dirs = []
+    
+    # Check for missing critical files
+    for file_path in critical_files:
+        full_path = ROOT_DIR / file_path
+        if not full_path.exists():
+            missing_files.append(file_path)
+    
+    # Check for missing critical directories
+    for dir_path in critical_directories:
+        full_path = ROOT_DIR / dir_path
+        if not full_path.exists():
+            missing_dirs.append(dir_path)
+    
+    # Check for missing orchestration documentation
+    for doc_path in orchestration_docs:
+        full_path = ROOT_DIR / doc_path
+        if not full_path.exists():
+            missing_files.append(doc_path)
+    
+    if missing_files or missing_dirs:
+        if missing_files:
+            logger.error("Missing critical files:")
+            for file_path in missing_files:
+                logger.error(f"  - {file_path}")
+        if missing_dirs:
+            logger.error("Missing critical directories:")
+            for dir_path in missing_dirs:
+                logger.error(f"  - {dir_path}")
+        logger.error("Please restore these critical files for proper orchestration functionality.")
+        return False
+    
+    logger.info("All critical files are present.")
+    return True
+
+
+def validate_orchestration_environment() -> bool:
+    """Run comprehensive validation for the orchestration-tools branch."""
+    logger.info("Running orchestration environment validation...")
+    
+    # Check for merge conflicts first
+    if not check_for_merge_conflicts():
+        return False
+    
+    # Check critical files
+    if not check_critical_files():
+        return False
+    
+    logger.info("Orchestration environment validation passed.")
+    return True
+
+
 # --- Input Validation ---
 def validate_port(port: int) -> int:
     """Validate port number is within valid range."""
@@ -329,13 +464,24 @@ def activate_conda_env(env_name: str = None) -> bool:
         return False
 
     if not is_conda_available():
-        logger.debug("Conda not available, skipping environment activation.")
+        if env_name:
+            logger.warning(f"Conda not available, cannot activate environment '{env_name}'. Please install Conda.")
+        else:
+            logger.debug("Conda not available, skipping environment activation.")
         return False
 
     conda_info = get_conda_env_info()
     if conda_info["is_active"]:
-        logger.info(f"Already in conda environment: {conda_info['env_name']}")
-        return True
+        if conda_info["env_name"] == env_name:
+            logger.info(f"Already in specified conda environment: {conda_info['env_name']}")
+            return True
+        else:
+            logger.warning(
+                f"Currently in conda environment '{conda_info['env_name']}', "
+                f"but '{env_name}' was requested. "
+                f"Please activate '{env_name}' manually before running the script."
+            )
+            return False
 
     # Check if the requested environment exists
     try:
@@ -430,6 +576,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     python_exe = get_python_executable()
 
     if use_poetry:
+        # Ensure pip is up-to-date before installing other packages
+        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
             subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
@@ -442,6 +590,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
             cwd=ROOT_DIR,
         )
     else:
+        # Ensure pip is up-to-date before installing other packages
+        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
             subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
@@ -805,8 +955,9 @@ def print_system_info():
 
 
 def main():
-    # Initialize services
-    initialize_all_services(get_container())
+    # Initialize services if command pattern is available
+    if COMMAND_PATTERN_AVAILABLE and initialize_all_services and get_container:
+        initialize_all_services(get_container())
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
@@ -835,6 +986,12 @@ def main():
     test_parser.add_argument(
         "--continue-on-error", action="store_true", help="Continue running tests even if some fail"
     )
+
+    # Check command for orchestration-tools branch
+    check_parser = subparsers.add_parser("check", help="Run checks for orchestration environment")
+    _add_common_args(check_parser)
+    check_parser.add_argument("--critical-files", action="store_true", help="Check for critical orchestration files")
+    check_parser.add_argument("--env", action="store_true", help="Check orchestration environment")
 
     # Legacy argument parsing for backward compatibility
     parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
@@ -1002,17 +1159,55 @@ def _add_legacy_args(parser):
 
 def _execute_command(command_name: str, args) -> int:
     """Execute a command using the command pattern."""
-    factory = get_command_factory()
-    command = factory.create_command(command_name, args)
+    # Handle check command directly in orchestration-tools branch
+    if command_name == "check":
+        return _execute_check_command(args)
+    
+    # For other commands, use command pattern if available
+    if COMMAND_PATTERN_AVAILABLE:
+        factory = get_command_factory()
+        command = factory.create_command(command_name, args)
 
-    if command is None:
-        logger.error(f"Unknown command: {command_name}")
+        if command is None:
+            logger.error(f"Unknown command: {command_name}")
+            return 1
+
+        try:
+            return command.execute()
+        finally:
+            command.cleanup()
+    else:
+        logger.error(f"Command pattern not available and '{command_name}' is not a built-in command")
         return 1
 
-    try:
-        return command.execute()
-    finally:
-        command.cleanup()
+
+def _execute_check_command(args) -> int:
+    """Execute the check command for orchestration validation."""
+    logger.info("Running orchestration checks...")
+    
+    success = True
+    
+    # Run critical files check if requested
+    if args.critical_files or (not args.env):
+        if not check_critical_files():
+            success = False
+    
+    # Run environment validation if requested
+    if args.env:
+        if not validate_orchestration_environment():
+            success = False
+    
+    # If no specific check was requested, run all checks
+    if not args.critical_files and not args.env:
+        if not validate_orchestration_environment():
+            success = False
+    
+    if success:
+        logger.info("All orchestration checks passed!")
+        return 0
+    else:
+        logger.error("Orchestration checks failed!")
+        return 1
 
 
 def _handle_legacy_args(args) -> int:
