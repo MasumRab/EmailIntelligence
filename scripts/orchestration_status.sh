@@ -20,8 +20,13 @@ CROSS="❌"
 WARNING="⚠️"
 INFO="ℹ️"
 GEAR="⚙️"
+BRANCH="🌿"
+SYNC="🔄"
+HOOK="🪝"
 
 # Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 ORCHESTRATION_BRANCH="orchestration-tools"
 
 # Status tracking
@@ -31,9 +36,9 @@ STATUS_FAILED=0
 
 # Logging functions
 log_header() {
-    echo -e "\n${BLUE}╔══════════════════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "\n${BLUE}╔═════════════════════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║${WHITE} $1 ${BLUE}$(printf '%*s' $((78-${#1})) '')║${NC}"
-    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════════════════════╝${NC}\n"
+    echo -e "${BLUE}╚═════════════════════════════════════════════════════════════════════════════════╝${NC}\n"
 }
 
 log_section() {
@@ -43,6 +48,7 @@ log_section() {
 log_item() {
     local status="$1"
     local message="$2"
+    local details="${3:-}"
 
     case "$status" in
         "PASS")
@@ -60,7 +66,39 @@ log_item() {
         "INFO")
             echo -e "${BLUE}${INFO} ${message}${NC}"
             ;;
+        *)
+            echo -e "  ${message}"
+            ;;
     esac
+
+    if [[ -n "$details" ]]; then
+        echo -e "    ${details}"
+    fi
+}
+
+# Check functions
+check_git_repository() {
+    log_section "Git Repository Status"
+
+    if git rev-parse --git-dir >/dev/null 2>&1; then
+        log_item "PASS" "Git repository detected"
+    else
+        log_item "FAIL" "Not a Git repository"
+        return 1
+    fi
+
+    # Check current branch
+    local current_branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    log_item "INFO" "Current branch: $current_branch"
+
+    # Check if orchestration-tools branch exists
+    if git show-ref --verify --quiet "refs/heads/$ORCHESTRATION_BRANCH" 2>/dev/null || \
+       git ls-remote --exit-code --heads origin "$ORCHESTRATION_BRANCH" >/dev/null 2>&1; then
+        log_item "PASS" "Orchestration branch exists: $ORCHESTRATION_BRANCH"
+    else
+        log_item "FAIL" "Orchestration branch missing: $ORCHESTRATION_BRANCH"
+    fi
 }
 
 check_orchestration_files() {
@@ -74,14 +112,23 @@ check_orchestration_files() {
         "setup/requirements.txt"
         "setup/requirements-dev.txt"
         "setup/requirements-cpu.txt"
+        "setup/setup_environment_system.sh"
+        "setup/setup_environment_wsl.sh"
+        "setup/project_config.py"
+        "setup/environment.py"
+        "setup/services.py"
+        "setup/test_config.py"
+        "setup/test_stages.py"
+        "setup/utils.py"
+        "setup/validation.py"
+        "setup/README.md"
+        "scripts/sync_setup_worktrees.sh"
+        "scripts/reverse_sync_orchestration.sh"
+        "scripts/cleanup_orchestration.sh"
         ".flake8"
         ".pylintrc"
         ".gitignore"
         ".gitattributes"
-        "scripts/sync_setup_worktrees.sh"
-        "scripts/reverse_sync_orchestration.sh"
-        "scripts/cleanup_orchestration.sh"
-        "scripts/install-hooks.sh"
     )
 
     local missing_files=()
@@ -182,6 +229,7 @@ main() {
 
     echo -e "${WHITE}Monitoring orchestration system health...${NC}\n"
 
+    check_git_repository
     check_orchestration_files
     check_git_hooks
 
@@ -189,4 +237,3 @@ main() {
 }
 
 main "$@"
-EOF && chmod +x scripts/orchestration_status.sh && git add scripts/orchestration_status.sh && git commit -m "Add orchestration status monitoring dashboard to orchestration-tools" && git push origin orchestration-tools
