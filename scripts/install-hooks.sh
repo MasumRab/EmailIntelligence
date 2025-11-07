@@ -90,13 +90,6 @@ validate_hook() {
         return 1
     fi
 
-    # Check bash syntax
-    if ! bash -n "$temp_file" 2>/dev/null; then
-        log_warn "Hook $hook_name has bash syntax errors - skipping installation"
-        rm -f "$temp_file"
-        return 1
-    fi
-
     rm -f "$temp_file"
     log_debug "Hook $hook_name validation passed"
     return 0
