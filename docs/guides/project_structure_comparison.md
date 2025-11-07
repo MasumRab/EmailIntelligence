@@ -33,7 +33,7 @@
 │   ├── deployment_guide.md
 │   ├── env_management.md
 │   ├── extensions_guide.md
-│   ├── launcher_guide.md
+│   ├── deployment/launcher_guide.md
 │   ├── node_architecture.md
 │   ├── project_documentation_guide.md
 │   ├── python_style_guide.md

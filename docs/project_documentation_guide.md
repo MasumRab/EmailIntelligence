@@ -13,7 +13,7 @@ This document outlines the various documentation files in the project and how to
 - `docs/deployment_guide.md`: Deployment instructions and configurations
 - `docs/env_management.md`: Environment management guidelines
 - `docs/extensions_guide.md`: Guide for creating and managing extensions
-- `docs/launcher_guide.md`: Documentation for the unified launcher
+- `docs/deployment/launcher_guide.md`: Documentation for the unified launcher
 - `docs/node_architecture.md`: Architecture details of the node-based system
 - `docs/server_development.md`: Guidelines for server-side development
 

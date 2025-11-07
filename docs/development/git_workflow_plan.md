@@ -4,7 +4,7 @@
 This document outlines the recommended approach for managing the documentation changes created during our analysis of the node-based workflow system. The changes include three new documentation files:
 1. `docs/workflow_system_analysis.md` - Comprehensive analysis of the current workflow system
 2. `docs/project_structure_comparison.md` - Text-based diagram comparing old and new project structures
-3. `docs/workflow_implementation_plan.md` - Phased implementation plan for future development
+3. `docs/guides/workflow_implementation_plan.md` - Phased implementation plan for future development
 
 ## Current State Assessment
 - The documentation changes are already created in the local filesystem
@@ -36,7 +36,7 @@ git diff
 git checkout -b feature/workflow-documentation-analysis
 
 # Add and commit the new documentation files
-git add docs/workflow_system_analysis.md docs/project_structure_comparison.md docs/workflow_implementation_plan.md
+git add docs/workflow_system_analysis.md docs/guides/project_structure_comparison.md docs/guides/workflow_implementation_plan.md
 git commit -m "Add workflow system analysis, structure comparison, and implementation plan"
 
 # Push the new branch
@@ -48,7 +48,7 @@ git push -u origin feature/workflow-documentation-analysis
 #### If on a Development/Feature Branch
 ```bash
 # Add and commit the new documentation files
-git add docs/workflow_system_analysis.md docs/project_structure_comparison.md docs/workflow_implementation_plan.md
+git add docs/workflow_system_analysis.md docs/guides/project_structure_comparison.md docs/guides/workflow_implementation_plan.md
 git commit -m "Add workflow system analysis, structure comparison, and implementation plan"
 
 # If the current branch is meant to be merged to main, proceed with your normal workflow
@@ -143,7 +143,7 @@ When conflicts occur during merge/rebase:
 ### Step 1: Create Documentation Branch
 ```bash
 git checkout -b feature/workflow-documentation-update
-git add docs/workflow_system_analysis.md docs/project_structure_comparison.md docs/workflow_implementation_plan.md
+git add docs/workflow_system_analysis.md docs/guides/project_structure_comparison.md docs/guides/workflow_implementation_plan.md
 git commit -m "Add comprehensive workflow system documentation based on analysis"
 ```
 
