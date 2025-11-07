@@ -47,15 +47,11 @@ from setup.utils import print_system_info, process_manager
 # Import test stages
 from setup.test_stages import test_stages
 
-# Import command pattern components (with error handling for refactors)
-try:
-    from src.core.commands.command_factory import get_command_factory
-    from src.core.container import get_container, initialize_all_services
-except ImportError as e:
-    logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
-    get_command_factory = None
-    get_container = None
-    initialize_all_services = None
+# Import command pattern components (disabled in orchestration-tools as src/ is not present)
+# Command pattern requires application code in src/, not available in orchestration setup
+get_command_factory = None
+get_container = None
+initialize_all_services = None
 
 try:
     from dotenv import load_dotenv
