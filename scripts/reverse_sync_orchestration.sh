@@ -71,9 +71,8 @@ echo ""
 
 # Define managed files
 MANAGED_FILES=(
-    "setup/launch.py"
-    "setup/launch.bat"
-    "setup/launch.sh"
+    "setup/"
+    "launch.py"
     "scripts/sync_setup_worktrees.sh"
     ".flake8"
     ".pylintrc"
@@ -85,6 +84,15 @@ MANAGED_FILES=(
     "components.json"
     ".gitignore"
     ".gitattributes"
+    "uv.lock"
+    "pyproject.toml"
+    "tests/conftest.py"
+    "tests/test_hooks.py"
+    "tests/test_launch.py"
+    "tests/test_sync.py"
+    "tests/test_basic_validation.py"
+    "tests/test_hook_recursion.py"
+    "pytest.ini"
 )
 
 # Check if commit contains managed files
