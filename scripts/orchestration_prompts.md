@@ -185,3 +185,68 @@ Output: Status summary.
 - Validate all actions before and after execution.
 - Use verbose flags for detailed output.
 - If unsure, ask for clarification rather than assume.
+
+## Critical Git Operations (Branch Switching, Stashing, Resetting, Pushing)
+
+LLM agents often make mistakes with Git operations. Follow these exact steps carefully:
+
+### Branch Switching
+```
+To switch branches:
+1. Check current branch: git branch --show-current
+2. Ensure working directory is clean: git status
+   - If there are uncommitted changes, stash them: git stash push -m "temp stash"
+   - Or commit them: git add . && git commit -m "temp commit"
+3. Switch branch: git checkout <target-branch>
+4. Verify switch: git branch --show-current
+5. If stashed, restore: git stash pop (if applicable)
+```
+
+### Stashing Changes
+```
+To temporarily save uncommitted changes:
+1. Check status: git status
+2. Stash with message: git stash push -m "descriptive message"
+3. Verify stash: git stash list
+4. To restore: git stash pop
+5. If conflicts on pop, resolve manually then git add . && git stash drop
+```
+
+### Resetting Changes
+```
+To undo uncommitted changes:
+1. Check what to reset: git status
+2. Reset specific file: git checkout -- <file>
+3. Reset all uncommitted: git reset --hard HEAD
+4. WARNING: This loses all uncommitted changes permanently
+5. To undo last commit but keep changes: git reset --soft HEAD~1
+6. To undo last commit and discard changes: git reset --hard HEAD~1
+```
+
+### Pushing Changes
+```
+To push commits to remote:
+1. Check branch: git branch --show-current
+2. Check remote: git remote -v
+3. Push current branch: git push origin <current-branch>
+4. If first push: git push -u origin <current-branch>
+5. If force needed (dangerous): git push --force-with-lease origin <current-branch>
+6. Verify push: Check remote repository or git log --oneline origin/<branch>
+```
+
+### Validation After Operations
+```
+After any Git operation:
+1. Confirm branch: git branch --show-current
+2. Check status: git status
+3. View recent commits: git log --oneline -3
+4. Check remotes: git remote -v
+5. Report any unexpected state immediately
+```
+
+### Common LLM Mistakes to Avoid
+- Switching branches without stashing changes (causes conflicts).
+- Pushing to wrong remote/branch.
+- Using git reset --hard without backup.
+- Forgetting to check status before/after operations.
+- Assuming operations succeeded without verification.
