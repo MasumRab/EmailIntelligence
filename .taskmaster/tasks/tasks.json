@@ -1218,11 +1218,122 @@
             "dependencies": [],
             "details": "Update the data model or schema for tasks within the Task Master system to include mandatory fields such as `required_test_types` (e.g., 'unit', 'integration', 'scientific-specific') and `minimum_coverage_percentage`. If Task Master has a user interface or API for creating tasks, modify these interfaces to enforce the input of these testing requirements. Provide updated documentation for developers on how to specify these requirements when creating new tasks. Consider optional integration of pre-commit hooks or static analysis tools to encourage adherence to these testing requirements during code development, possibly referencing existing test directories like `src/backend/tests` and `src/data_platform/tests`.",
             "status": "pending",
-            "testStrategy": "Attempt to create tasks through the Task Master API/UI without specifying the new mandatory testing requirement fields, and verify that the creation fails with an appropriate error. Successfully create tasks with valid testing requirements specified, and confirm these requirements are correctly stored and displayed. Develop and run unit tests for the task creation logic."
-          }
-        ]
-      }
-    ],
+             "testStrategy": "Attempt to create tasks through the Task Master API/UI without specifying the new mandatory testing requirement fields, and verify that the creation fails with an appropriate error. Successfully create tasks with valid testing requirements specified, and confirm these requirements are correctly stored and displayed. Develop and run unit tests for the task creation logic."
+           }
+         ]
+       },
+       {
+         "id": 11,
+         "title": "Complete Email Intelligence Core Development",
+         "description": "Execute comprehensive core development plan focusing on architectural improvements, security, testing, and performance optimization using scientific branch as foundation",
+         "status": "pending",
+         "dependencies": [1, 2],
+         "priority": "high",
+         "details": "Phase 1: Foundation Consolidation - Refactor AI modules from scientific branch and integrate backend migration\nPhase 2: Security Implementation - Leverage scientific's security enhancements (RBAC, MFA, auditing)\nPhase 3: Quality Assurance - Utilize scientific's comprehensive testing (90+ test files)\nPhase 4: Performance Optimization - Build on scientific's monitoring and AI engine optimizations\n\nPARALLEL EXECUTION: Tasks can run in parallel within phases. Jules coordination enabled with branch labels: 'scientific' for all core tasks, 'main' for reference only.",
+         "testStrategy": "Each phase validated through automated testing, code reviews, and performance benchmarks using scientific branch's advanced infrastructure. Parallel execution metadata available for Jules coordination with explicit branch labeling (scientific/main) and task-specific commands.",
+         "subtasks": [
+           {
+             "id": 1,
+             "title": "Refactor High-Complexity AI Modules",
+             "description": "Break down monolithic smart_filters.py (1598 lines) and smart_retrieval.py (1198 lines) from scientific branch into modular packages",
+             "status": "pending",
+             "dependencies": [2],
+             "branch": "scientific",
+             "branch_instructions": "Checkout scientific branch - contains advanced AI modules (smart_filters.py 1598 lines, smart_retrieval.py 1198 lines) with comprehensive testing framework",
+             "details": "Extract rule_parsers.py, filter_evaluators.py, data_transformers.py from smart_filters.py\nExtract query_builders.py, ranking_algorithms.py, source_integrations.py from smart_retrieval.py\nImplement dependency injection and maintain 100% test coverage using scientific's testing framework",
+             "testStrategy": "Unit tests for each new module, integration tests for refactored functionality, leverage scientific's 90+ test files"
+           },
+           {
+             "id": 2,
+             "title": "Integrate Backend Migration",
+             "description": "Merge feature/backend-to-src-migration from scientific branch and update all imports",
+             "status": "pending",
+             "dependencies": [],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains 20+ advanced backend modules, comprehensive testing suite, and migration-ready structure",
+             "details": "Validate migration completeness using scientific's advanced backend (20+ modules), update import references, merge to scientific, run full test suite",
+             "testStrategy": "Import validation, regression testing, functionality verification using scientific's comprehensive testing"
+           },
+           {
+             "id": 3,
+             "title": "Leverage Scientific Security Framework",
+             "description": "Integrate and enhance scientific branch's security features (RBAC, MFA, auditing, node engine security)",
+             "status": "pending",
+             "dependencies": [2],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains advanced security framework (security_manager.py, RBAC, MFA, node engine security, audit logging)",
+             "details": "Review and integrate scientific's security_manager.py, authentication enhancements, and audit logging. Add any missing security features from main branch.",
+             "testStrategy": "Security unit tests, integration tests using scientific's security test suite"
+           },
+           {
+             "id": 4,
+             "title": "Security Testing & Validation",
+             "description": "Implement comprehensive security testing using scientific's advanced testing infrastructure",
+             "status": "pending",
+             "dependencies": [3],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains comprehensive security testing suite, vulnerability scanning tools, and compliance validation framework",
+             "details": "Leverage scientific's security test suite, vulnerability scanning, compliance validation, audit verification",
+             "testStrategy": "Automated security scans, manual testing, compliance audits using scientific's testing framework"
+           },
+           {
+             "id": 5,
+             "title": "Comprehensive Testing Integration",
+             "description": "Utilize and enhance scientific's extensive testing infrastructure (90+ test files, comprehensive coverage)",
+             "status": "pending",
+             "dependencies": [2],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains 90+ test files, comprehensive testing infrastructure, and advanced test automation framework",
+             "details": "Review scientific's testing framework, ensure 90%+ coverage maintained, add missing tests, integrate API and performance testing",
+             "testStrategy": "Coverage reports, automated test execution, regression prevention using scientific's advanced testing"
+           },
+           {
+             "id": 6,
+             "title": "CI/CD Pipeline Enhancement",
+             "description": "Enhance CI/CD pipeline using scientific's workflow orchestration and monitoring",
+             "status": "pending",
+             "dependencies": [5],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains orchestration system, monitoring dashboard, and advanced CI/CD workflow automation",
+             "details": "Leverage scientific's orchestration tools, enhance GitHub Actions, integrate scientific's monitoring dashboard",
+             "testStrategy": "Pipeline validation, deployment testing, rollback verification using scientific's monitoring"
+           },
+           {
+             "id": 7,
+             "title": "Database Performance Optimization",
+             "description": "Optimize database using scientific's performance monitoring and optimization features",
+             "status": "pending",
+             "dependencies": [2],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains performance_monitor.py, advanced database optimization tools, and monitoring infrastructure",
+             "details": "Leverage scientific's performance_monitor.py, optimize queries, implement connection pooling, enhance caching",
+             "testStrategy": "Performance benchmarks, query analysis, load testing using scientific's monitoring tools"
+           },
+           {
+             "id": 8,
+             "title": "AI Engine Performance Optimization",
+             "description": "Enhance AI engine using scientific's advanced AI infrastructure and monitoring",
+             "status": "pending",
+             "dependencies": [1],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains AI training routes, model management system, and advanced AI performance monitoring tools",
+             "details": "Leverage scientific's AI training routes, model management, batch processing, and performance monitoring",
+             "testStrategy": "Inference benchmarks, memory profiling, concurrent load testing using scientific's AI monitoring"
+           },
+           {
+             "id": 9,
+             "title": "System Monitoring & Alerting",
+             "description": "Integrate scientific's comprehensive monitoring and orchestration system",
+             "status": "pending",
+             "dependencies": [2],
+             "branch": "scientific",
+             "branch_instructions": "Work in scientific branch - contains orchestration status monitoring, comprehensive alerting system, and incident response automation",
+             "details": "Utilize scientific's orchestration status monitoring, performance monitoring dashboard, and alerting system",
+             "testStrategy": "Monitoring validation, alert testing, incident simulation using scientific's monitoring infrastructure"
+           }
+         ]
+       }
+     ],
     "metadata": {
       "created": "2025-11-06T04:11:47.735Z",
       "updated": "2025-11-06T06:25:04.818Z",
