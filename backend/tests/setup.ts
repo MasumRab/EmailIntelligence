@@ -1,7 +1,3 @@
-/*
- * DEPRECATED: This file is part of the deprecated `backend` package.
- * It will be removed in a future release.
- */
 import { vi } from 'vitest';
 
 vi.mock('../db', () => ({

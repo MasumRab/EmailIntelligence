@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Configuration for the FastAPI application, using Pydantic's BaseSettings.
 """
 

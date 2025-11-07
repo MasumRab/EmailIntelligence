@@ -28,9 +28,7 @@ from typing import List
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Import command pattern components
-from src.core.commands.command_factory import get_command_factory
-from src.core.container import get_container, initialize_all_services
+# Command pattern not available in this branch
 
 from deployment.test_stages import test_stages
 
@@ -449,9 +447,9 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
         run_command(
-            [python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]", "--exclude", "notmuch"],
-            "Installing dependencies with uv (excluding notmuch)",
-            cwd=ROOT_DIR,
+        [python_exe, "-m", "uv", "pip", "install", "-e", "."],
+        "Installing dependencies with uv",
+        cwd=ROOT_DIR,
         )
 
         # Install notmuch with version matching system
@@ -468,10 +466,16 @@ def install_notmuch_matching_system():
         version = version_line.split()[1]
         major_minor = ".".join(version.split(".")[:2])  # e.g., 0.38
         python_exe = get_python_executable()
-        run_command(
-            [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
+        # Try to install matching version, fallback to latest if not available
+        if not run_command(
+        [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
             f"Installing notmuch {major_minor} to match system",
-        )
+        ):
+            logger.warning(f"Could not install notmuch {major_minor}, trying latest version")
+        run_command(
+            [python_exe, "-m", "pip", "install", "notmuch"],
+            "Installing latest notmuch version",
+            )
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.warning("notmuch not found on system, skipping version-specific install")
 
@@ -805,38 +809,10 @@ def print_system_info():
 
 
 def main():
-    # Initialize services
-    initialize_all_services(get_container())
+    # Services initialization not available in this branch
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
-
-    # Add subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Setup command
-    setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
-    _add_common_args(setup_parser)
-
-    # Run command
-    run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
-    _add_common_args(run_parser)
-    run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
-
-    # Test command
-    test_parser = subparsers.add_parser("test", help="Run tests")
-    _add_common_args(test_parser)
-    test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
-    test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
-    test_parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    test_parser.add_argument("--performance", action="store_true", help="Run performance tests")
-    test_parser.add_argument("--security", action="store_true", help="Run security tests")
-    test_parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
-    test_parser.add_argument(
-        "--continue-on-error", action="store_true", help="Continue running tests even if some fail"
-    )
-
-    # Legacy argument parsing for backward compatibility
     parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
     parser.add_argument(
         "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
@@ -901,15 +877,35 @@ def main():
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
 
+    # Testing Options
+    parser.add_argument(
+        "--coverage", action="store_true", help="Generate coverage report when running tests."
+    )
+    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
+    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
+    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    parser.add_argument("--security", action="store_true", help="Run security tests.")
+
+    # Extensions and Models
+    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
+    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
+
+    # Advanced Options
+    parser.add_argument(
+        "--system-info", action="store_true", help="Print system information then exit."
+    )
+    parser.add_argument("--share", action="store_true", help="Create a public URL.")
+    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
+    parser.add_argument(
+    "--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region."
+    )
+    parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
+
     args = parser.parse_args()
 
-    # Handle command pattern vs legacy arguments
-    if args.command:
-        # Use command pattern
-        return _execute_command(args.command, args)
-    else:
-        # Handle legacy arguments
-        return _handle_legacy_args(args)
+    # Handle legacy arguments
+    return _handle_legacy_args(args)
 
 
 def _add_common_args(parser):

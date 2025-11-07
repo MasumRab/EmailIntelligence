@@ -1,6 +1,4 @@
-# DEPRECATED: Example Extension
-
-**This extension is part of the deprecated `backend` package and will be removed in a future release.**
+# Example Extension
 
 This extension demonstrates the extension system by adding a simple sentiment analysis enhancement to the EmailIntelligence application.
 

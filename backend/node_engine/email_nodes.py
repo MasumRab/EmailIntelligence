@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Node implementations for the Email Intelligence Platform.
 
 This module contains specific node implementations for email processing

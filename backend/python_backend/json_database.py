@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Pure JSON-based Database management for Gmail AI email processing
 Replaces all database dependencies with pure JSON/text file operations
 """

@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Plugin Manager for Email Intelligence Platform
 
 Manages the loading, registration, and execution of plugins in the system.
