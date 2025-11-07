@@ -16,11 +16,11 @@ fi
 
 # Detect worktree vs subtree setup
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    IS_WORKTREE=1
-    IS_SUBTREE=0
+    IS_WORKTREE=true
+    IS_SUBTREE=false
 else
-    IS_WORKTREE=0
-    IS_SUBTREE=1
+    IS_WORKTREE=false
+    IS_SUBTREE=true
 fi
 
 # Set sync active flag to prevent recursion
@@ -30,11 +30,11 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [[ "$BRANCH" != "orchestration-tools" ]]; then
     # Determine sync strategy based on setup type
-    if [[ "$IS_WORKTREE" == "1" ]]; then
-        echo "Worktree setup detected. Performing full synchronization from orchestration-tools..."
+    if [[ "$IS_WORKTREE" == "true" ]]; then
+        echo "WARNING: Detected WORKTREE setup. Performing full synchronization from orchestration-tools..."
         perform_full_sync=1
     else
-        echo "Subtree setup detected. Performing conservative synchronization from orchestration-tools..."
+        echo "WARNING: Detected SUBTREE setup. Performing conservative synchronization from orchestration-tools..."
         perform_full_sync=0
     fi
 
