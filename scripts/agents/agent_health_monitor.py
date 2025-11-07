@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
-from task_queue import Agent
+from ..task_queue import Agent
 
 
 class AgentHealthMetrics:
@@ -123,7 +123,7 @@ class AgentHealthMetrics:
 
 
 class AgentHealthMonitor:
-    def __init__(self, metrics_file: Path = None):
+    def __init__(self, metrics_file: Optional[Path] = None):
         self.metrics_file = metrics_file or Path("agent_health_metrics.json")
         self.agent_metrics: Dict[str, AgentHealthMetrics] = {}
         self.agents: List[Agent] = []
@@ -323,7 +323,6 @@ def main():
     monitor = AgentHealthMonitor()
     
     # Register some agents
-from ..task_queue import Agent
     api_agent = Agent("api-writer", ["api", "general"], 5)
     guide_agent = Agent("guide-writer", ["guide", "general"], 3)
     
