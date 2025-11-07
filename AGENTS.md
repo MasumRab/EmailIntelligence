@@ -102,7 +102,7 @@ Task Master provides an MCP server that Claude Code can connect to. Configure in
         "XAI_API_KEY": "XAI_API_KEY_HERE",
         "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
         "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
-        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
+        "AZURE_OPENAI_KEY": "AZURE_OPENAI_API_KEY_HERE",
         "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
       }
     }
@@ -735,8 +735,9 @@ backlog task edit 42 --ac "User can login" --ac "Session persists"
 # Check specific criteria by index (MULTIPLE values supported)
 backlog task edit 42 --check-ac 1 --check-ac 2 --check-ac 3  # Check multiple ACs
 # Or check them individually if you prefer:
-# backlog task edit 42 --check-ac 1    # Mark #1 as complete
-# backlog task edit 42 --check-ac 2    # Mark #2 as complete
+# backlog task edit 42 --check-ac 1
+# backlog task edit 42 --check-ac 2
+# backlog task edit 42 --check-ac 3
 
 # Mixed operations in single command
 backlog task edit 42 --check-ac 1 --uncheck-ac 2 --remove-ac 3
@@ -841,7 +842,7 @@ implementation.
 - When you begin work, switch to edit, set the task in progress and assign to yourself
   `backlog task edit <id> -s "In Progress" -a "..."`.
 - Think about how you would solve the task and add the plan: `backlog task edit <id> --plan "..."`.
-- After updating the plan, share it with the user and ask for confirmation. Do not begin coding until the user approves the plan or explicitly tells you to skip the review.
+- After updating the plan, share it with the user and wait for confirmation. Do not begin coding until the user approves the plan or explicitly tells you to skip the review.
 - Add Implementation Notes only after completing the work: `backlog task edit <id> --notes "..."` (replace) or append progressively using `--append-notes`.
 
 ## Phase discipline: What goes where
@@ -1056,8 +1057,8 @@ Descriptions support literal newlines; shell examples may show escaped `\\n`, bu
 | Problem              | Solution                                                           |
 |----------------------|--------------------------------------------------------------------|
 | Task not found       | Check task ID with `backlog task list --plain`                     |
-| AC won't check       | Use correct index: `backlog task 42 --plain` to see AC numbers     |
-| Changes not saving   | Ensure you're using CLI, not editing files                         |
+| AC won\'t check       | Use correct index: `backlog task 42 --plain` to see AC numbers     |
+| Changes not saving   | Ensure you\'re using CLI, not editing files                         |
 | Metadata out of sync | Re-edit via CLI to fix: `backlog task edit 42 -s <current-status>` |
 
 ---
