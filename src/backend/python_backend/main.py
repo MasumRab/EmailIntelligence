@@ -23,10 +23,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.python_nlp.gmail_service import GmailAIService
+from src.backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from backend.python_nlp.smart_filters import SmartFilterManager
+from src.backend.python_nlp.smart_filters import SmartFilterManager
 from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
@@ -296,7 +296,7 @@ app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workfl
 
 # Initialize workflow manager instance (using the node-based workflow manager)
 try:
-    from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+    from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 
     workflow_manager_instance = node_workflow_manager
 except ImportError:
