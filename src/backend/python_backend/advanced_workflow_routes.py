@@ -15,10 +15,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 # Use the new node-based workflow system instead of non-existent src.core module
-from backend.node_engine.node_base import Connection
-from backend.node_engine.node_base import Workflow as AdvancedWorkflow
-from backend.node_engine.workflow_engine import WorkflowEngine
-from backend.node_engine.workflow_manager import workflow_manager
+from src.backend.node_engine.node_base import Connection
+from src.backend.node_engine.node_base import Workflow as AdvancedWorkflow
+from src.backend.node_engine.workflow_engine import WorkflowEngine
+from src.backend.node_engine.workflow_manager import workflow_manager
 
 from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
@@ -44,7 +44,7 @@ class WorkflowExecutionResult:
 
 # Try to import security features from the new node-based system
 try:
-    from backend.node_engine.security_manager import SecurityLevel
+    from src.backend.node_engine.security_manager import SecurityLevel
 
     SecurityContext = None  # Use None as there isn't a direct equivalent yet
     security_available = True
@@ -222,7 +222,7 @@ async def execute_advanced_workflow(
 ):
     """Execute an advanced workflow with provided inputs."""
     # Use the new node engine's workflow execution system
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from src.backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
 
     try:
         # Load the workflow to execute
@@ -280,7 +280,7 @@ async def get_node_schema(node_type: str):
 async def get_execution_status():
     """Get status of running workflows."""
     # Use the new node engine's execution tracking
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from src.backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
 
     running_workflows = []
     for exec_id, context in node_workflow_engine.active_executions.items():
@@ -300,7 +300,7 @@ async def get_execution_status():
 async def cancel_workflow_execution(workflow_id: str):
     """Cancel a running workflow execution."""
     # Use the new node engine's execution cancellation
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from src.backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
 
     # Check if the workflow_id corresponds to an active execution
     if workflow_id in node_workflow_engine.active_executions:

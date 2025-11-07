@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from backend.node_engine.email_nodes import (
+from src.backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
@@ -22,10 +22,10 @@ from backend.node_engine.email_nodes import (
 )
 
 # Import the new node-based workflow components
-from backend.node_engine.node_base import Workflow as NodeWorkflow
-from backend.node_engine.workflow_engine import WorkflowEngine  # Node engine
-from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+from src.backend.node_engine.node_base import Workflow as NodeWorkflow
+from src.backend.node_engine.workflow_engine import WorkflowEngine  # Node engine
+from src.backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 
 from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine
@@ -101,7 +101,7 @@ async def create_node_workflow(request: NodeWorkflowCreateRequest):
 
         # Create connections
         for conn_data in request.connections:
-            from backend.node_engine.node_base import Connection
+            from src.backend.node_engine.node_base import Connection
 
             connection = Connection(
                 source_node_id=conn_data["source_node_id"],
@@ -217,7 +217,7 @@ async def update_node_workflow(workflow_id: str, request: NodeWorkflowCreateRequ
 
         # Create connections
         for conn_data in request.connections:
-            from backend.node_engine.node_base import Connection
+            from src.backend.node_engine.node_base import Connection
 
             connection = Connection(
                 source_node_id=conn_data["source_node_id"],
@@ -320,7 +320,7 @@ async def get_node_info(node_type: str):
 async def get_node_types():
     """Get list of all available node types."""
     try:
-        from backend.node_engine.node_library import get_available_node_types
+        from src.backend.node_engine.node_library import get_available_node_types
 
         return get_available_node_types()
     except Exception as e:
@@ -331,7 +331,7 @@ async def get_node_types():
 async def get_node_type_info(node_type: str):
     """Get detailed information about a specific node type."""
     try:
-        from backend.node_engine.node_library import get_node_info
+        from src.backend.node_engine.node_library import get_node_info
 
         return get_node_info(node_type)
     except ValueError as e:
@@ -344,7 +344,7 @@ async def get_node_type_info(node_type: str):
 async def get_nodes_by_category():
     """Get all nodes grouped by category."""
     try:
-        from backend.node_engine.node_library import get_nodes_by_category
+        from src.backend.node_engine.node_library import get_nodes_by_category
 
         return get_nodes_by_category()
     except Exception as e:
@@ -355,7 +355,7 @@ async def get_nodes_by_category():
 async def get_all_nodes_info():
     """Get information about all available nodes."""
     try:
-        from backend.node_engine.node_library import get_all_node_info
+        from src.backend.node_engine.node_library import get_all_node_info
 
         return get_all_node_info()
     except Exception as e:

@@ -154,7 +154,7 @@ def get_workflow_manager() -> WorkflowManager:
     import warnings
 
     warnings.warn(
-        "get_workflow_manager from backend.python_backend.workflow_manager is deprecated. "
+        "get_workflow_manager from src.backend.python_backend.workflow_manager is deprecated. "
         "Use backend.node_engine.workflow_manager.workflow_manager instead.",
         DeprecationWarning,
         stacklevel=2,

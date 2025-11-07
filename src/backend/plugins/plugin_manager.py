@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-from backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
+from src.backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
 
 logger = logging.getLogger(__name__)
 

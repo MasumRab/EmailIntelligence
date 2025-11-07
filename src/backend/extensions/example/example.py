@@ -26,7 +26,7 @@ def initialize():
     # Register hooks
     try:
         logger.info("--- Example extension: About to import NLPEngine ---")
-        from backend.python_nlp.nlp_engine import NLPEngine
+        from src.backend.python_nlp.nlp_engine import NLPEngine
 
         logger.info("--- Example extension: SUCCESSFULLY imported NLPEngine ---")
 
@@ -65,7 +65,7 @@ def shutdown():
 
     # Restore original methods if needed
     try:
-        from backend.python_nlp.nlp_engine import NLPEngine
+        from src.backend.python_nlp.nlp_engine import NLPEngine
 
         # If we stored the original method somewhere, we could restore it here
         # For now, we'll just log that we're not restoring anything

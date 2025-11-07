@@ -7,7 +7,7 @@ Test module for workflow migration utilities.
 
 import asyncio
 
-from backend.node_engine.migration_utils import (
+from src.backend.node_engine.migration_utils import (
     WorkflowMigrationManager,
     generate_migration_plan,
     get_migration_report,

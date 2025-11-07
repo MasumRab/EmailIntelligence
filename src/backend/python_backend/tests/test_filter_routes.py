@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from backend.python_nlp.smart_filters import EmailFilter
+from src.backend.python_nlp.smart_filters import EmailFilter
 
 
 def test_get_filters(client, mock_filter_manager):

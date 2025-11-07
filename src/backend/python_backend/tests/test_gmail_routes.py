@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Import the app instance
-from backend.python_backend.main import app
+from src.backend.python_backend.main import app
 
 # Create a mock instance for GmailAIService
 mock_gmail_service_instance = MagicMock()
@@ -19,7 +19,7 @@ def client_gmail():
     """
     Provides a TestClient with all external services mocked for gmail routes.
     """
-    from backend.python_backend.dependencies import get_gmail_service
+    from src.backend.python_backend.dependencies import get_gmail_service
 
     # Reset mocks before each test to ensure isolation
     mock_gmail_service_instance.reset_mock()
