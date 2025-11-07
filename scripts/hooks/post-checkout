@@ -2,9 +2,42 @@
 
 # Post-checkout hook to automatically set up environment and sync orchestration files
 
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    echo "Orchestration sync already active, skipping to prevent recursion"
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration checks disabled, skipping sync"
+    exit 0
+fi
+
+# Detect worktree vs subtree setup
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    IS_WORKTREE=1
+    IS_SUBTREE=0
+else
+    IS_WORKTREE=0
+    IS_SUBTREE=1
+fi
+
+# Set sync active flag to prevent recursion
+export ORCHESTRATION_SYNC_ACTIVE=1
+
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [[ "$BRANCH" != "orchestration-tools" ]]; then
+    # Determine sync strategy based on setup type
+    if [[ "$IS_WORKTREE" == "1" ]]; then
+        echo "Worktree setup detected. Performing full synchronization from orchestration-tools..."
+        perform_full_sync=1
+    else
+        echo "Subtree setup detected. Performing conservative synchronization from orchestration-tools..."
+        perform_full_sync=0
+    fi
+
     echo "Checking out $BRANCH branch. Synchronizing setup directory from orchestration-tools..."
 
     # Function to safely checkout files from orchestration-tools branch
@@ -21,14 +54,14 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
         fi
     }
 
-    # Update setup directory
-    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
+    # Update setup directory (full sync only)
+    if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
         echo "Synchronizing setup directory from orchestration-tools"
         git checkout orchestration-tools -- setup/
     fi
 
-    # Update deployment directory
-    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
+    # Update deployment directory (full sync only)
+    if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
         echo "Synchronizing deployment directory from orchestration-tools"
         git checkout orchestration-tools -- deployment/
     fi
@@ -101,4 +134,7 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
         echo "If you wish to preserve these hook changes, switch to orchestration-tools branch and commit them there"
         echo "Then create a PR if needed"
     fi
+
+    # Unset the recursion prevention flag
+    unset ORCHESTRATION_SYNC_ACTIVE
 fi
