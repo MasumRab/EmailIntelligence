@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, scientific ]
+  pull_request:
+    branches: [ main, scientific ]
+
+jobs:
+  test:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+          
+      - name: Run tests
+        run: |
+          uv run pytest backend/ src/ modules/ -v --tb=short --cov=backend --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+          
+      - name: Run linting
+        run: |
+          uv run flake8 backend/
+          uv run black --check backend/
+          uv run isort --check-only backend/
+          
+      - name: Type checking
+        run: |
+          uv run mypy backend/ --show-error-codes --no-strict-optional

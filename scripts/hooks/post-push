@@ -32,28 +32,18 @@ check_orchestration_changes() {
 
     # Check if managed files were changed in this push
     MANAGED_FILES=(
-    "setup/launch.py"
-    "setup/launch.bat"
-    "setup/launch.sh"
-    "setup/pyproject.toml"
-    "setup/requirements.txt"
-    "setup/requirements-dev.txt"
-    "setup/requirements-cpu.txt"
-    "setup/setup_environment_system.sh"
-    "setup/setup_environment_wsl.sh"
-    "setup/project_config.py"
-    "setup/environment.py"
-    "setup/services.py"
-    "setup/test_config.py"
-    "setup/test_stages.py"
-        "setup/utils.py"
-        "setup/validation.py"
-        "setup/README.md"
+        "setup/launch.py"
+        "setup/launch.bat"
+        "setup/launch.sh"
         "scripts/sync_setup_worktrees.sh"
-        "scripts/reverse_sync_orchestration.sh"
-        "scripts/cleanup_orchestration.sh"
         ".flake8"
         ".pylintrc"
+        "tsconfig.json"
+        "package.json"
+        "tailwind.config.ts"
+        "vite.config.ts"
+        "drizzle.config.ts"
+        "components.json"
         ".gitignore"
         ".gitattributes"
     )
@@ -199,6 +189,7 @@ show_manual_pr_instructions() {
     echo ""
     echo "🔧 For urgent fixes only:"
     echo "   ./scripts/reverse_sync_orchestration.sh $branch $commit_sha"
+}
 }
 
 echo "Post-push hook completed"
