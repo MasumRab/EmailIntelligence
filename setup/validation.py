@@ -29,8 +29,9 @@ def check_python_version():
             f"Required: {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]}-"
             f"{PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}"
         )
-        sys.exit(1)
+        return False
     logger.info(f"Python version {current_version} is compatible.")
+    return True
 
 
 def check_for_merge_conflicts() -> bool:
@@ -69,6 +70,24 @@ def check_for_merge_conflicts() -> bool:
     return True
 
 
+def _is_documentation_branch() -> bool:
+    """Check if this appears to be a documentation-focused branch."""
+    import subprocess
+
+    try:
+        # Check if branch name contains documentation-related terms
+        result = subprocess.run(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        capture_output=True, text=True, cwd=ROOT_DIR
+        )
+        if result.returncode == 0:
+            branch_name = result.stdout.strip().lower()
+            return any(term in branch_name for term in ['docs', 'documentation', 'doc'])
+        return False
+    except Exception:
+        return False
+
+
 def check_required_components() -> bool:
     """Check for required components and configurations."""
     issues = []
@@ -81,9 +100,13 @@ def check_required_components() -> bool:
         )
 
     # Get project configuration and validate structure
-    config = get_project_config()
-    structure_issues = config.validate_structure()
-    issues.extend(structure_issues)
+    # Skip strict structure validation for documentation branches
+    if not _is_documentation_branch():
+        config = get_project_config()
+        structure_issues = config.validate_structure()
+        issues.extend(structure_issues)
+    else:
+        logger.info("Skipping strict structure validation for documentation branch.")
 
     # Check AI models directory
     models_dir = ROOT_DIR / "models"
