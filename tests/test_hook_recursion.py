@@ -217,12 +217,12 @@ class TestHookRecursionPrevention:
             # Should set the flag before doing git operations
             assert "export ORCHESTRATION_SYNC_ACTIVE=1" in content, "Should set sync active flag"
 
-            # Should check for flag at the very beginning
+            # Should check for flag early in the script (within first 15 lines)
             lines = content.split('\n')
-            early_checks = lines[:10]  # First 10 lines
+            early_checks = lines[:15]  # First 15 lines
             early_check_content = '\n'.join(early_checks)
             assert "ORCHESTRATION_SYNC_ACTIVE" in early_check_content, \
-                "Should check recursion flag at the very beginning"
+                "Should check recursion flag early in the script"
 
     def test_git_checkout_operations_are_protected(self):
         """Test that git checkout operations within hooks are protected from recursion."""

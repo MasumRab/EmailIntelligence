@@ -50,3 +50,8 @@ url = "https://download.pytorch.org/whl/cpu"
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
