@@ -45,10 +45,13 @@ def test_agent_health_monitor():
     api_health = monitor.get_agent_health("api-writer")
     guide_health = monitor.get_agent_health("guide-writer")
     arch_health = monitor.get_agent_health("architect")
-    
-    print(f"API Writer Health Score: {api_health['health_score']:.2f}")
-    print(f"Guide Writer Health Score: {guide_health['health_score']:.2f}")
-    print(f"Architect Health Score: {arch_health['health_score']:.2f}")
+
+    if api_health:
+        print(f"API Writer Health Score: {api_health['health_score']:.2f}")
+    if guide_health:
+        print(f"Guide Writer Health Score: {guide_health['health_score']:.2f}")
+    if arch_health:
+        print(f"Architect Health Score: {arch_health['health_score']:.2f}")
     
     # Get system overview
     overview = monitor.get_system_overview()
@@ -62,7 +65,7 @@ def test_agent_health_monitor():
     # Test alerts
     monitor.update_system_metrics("architect", 85.0, 90.0)  # High usage
     arch_health = monitor.get_agent_health("architect")
-    if arch_health['recent_alerts']:
+    if arch_health and arch_health['recent_alerts']:
         print(f"Architect has {len(arch_health['recent_alerts'])} recent alerts")
     
     print("Agent health monitor test completed successfully!")
