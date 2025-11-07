@@ -14,7 +14,7 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
             # Check if file differs before checkout
             if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
                 echo "Updating $file_path from orchestration-tools"
-                git checkout --quiet orchestration-tools -- "$file_path"
+                git checkout orchestration-tools -- "$file_path"
             fi
         else
             echo "Info: $file_path not available in orchestration-tools branch (expected for cleaned branch)"
@@ -24,19 +24,19 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     # Update setup directory
     if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
         echo "Synchronizing setup directory from orchestration-tools"
-        git checkout orchestration-tools -- setup/ --quiet
+        git checkout orchestration-tools -- setup/
     fi
 
     # Update deployment directory
     if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
         echo "Synchronizing deployment directory from orchestration-tools"
-        git checkout orchestration-tools -- deployment/ --quiet
+        git checkout orchestration-tools -- deployment/
     fi
 
     # Update orchestration lib first
     if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^scripts/lib$"; then
         echo "Synchronizing scripts/lib directory from orchestration-tools"
-        git checkout orchestration-tools -- scripts/lib/ --quiet
+        git checkout orchestration-tools -- scripts/lib/
     fi
 
     # Update orchestration scripts
