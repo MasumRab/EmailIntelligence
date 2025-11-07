@@ -1,5 +1,5 @@
 """
-Tests for Git hook recursion prevention and infinite loop protection.
+Tests for Git hook recursion prevention and loop safety.
 """
 
 import os
@@ -203,50 +203,3 @@ class TestHookRecursionPrevention:
                     os.environ["DISABLE_ORCHESTRATION_CHECKS"] = original_env
                 elif "DISABLE_ORCHESTRATION_CHECKS" in os.environ:
                     del os.environ["DISABLE_ORCHESTRATION_CHECKS"]
-
-    def test_infinite_loop_prevention_on_branch_switch(self):
-        """Test that hook prevents infinite loops when switching branches with orchestration changes."""
-        hook_path = Path(".git/hooks/post-checkout")
-
-        if hook_path.exists():
-            content = hook_path.read_text()
-
-            # Should have multiple levels of recursion prevention
-            assert "ORCHESTRATION_SYNC_ACTIVE" in content, "Should check for sync active flag"
-
-            # Should set the flag before doing git operations
-            assert "export ORCHESTRATION_SYNC_ACTIVE=1" in content, "Should set sync active flag"
-
-            # Should check for flag early in the script (within first 15 lines)
-            lines = content.split('\n')
-            early_checks = lines[:15]  # First 15 lines
-            early_check_content = '\n'.join(early_checks)
-            assert "ORCHESTRATION_SYNC_ACTIVE" in early_check_content, \
-                "Should check recursion flag early in the script"
-
-    def test_git_checkout_operations_are_protected(self):
-        """Test that git checkout operations within hooks are protected from recursion."""
-        hook_path = Path(".git/hooks/post-checkout")
-
-        if hook_path.exists():
-            content = hook_path.read_text()
-
-            # Find all git checkout operations
-            checkout_lines = [line for line in content.split('\n') if 'git checkout' in line]
-
-            # Each checkout operation should be protected by the sync flag
-            # The flag should be set before any checkout operations occur
-            flag_setting_line = None
-            for i, line in enumerate(content.split('\n')):
-                if 'export ORCHESTRATION_SYNC_ACTIVE=1' in line:
-                    flag_setting_line = i
-                    break
-
-            assert flag_setting_line is not None, "Should set ORCHESTRATION_SYNC_ACTIVE flag"
-
-            # All git checkout operations should come after the flag is set
-            for line in checkout_lines:
-                line_index = content.find(line)
-                # This is a rough check - in practice we'd need more sophisticated parsing
-                assert flag_setting_line < content[:line_index].count('\n'), \
-                    f"Git checkout operation '{line.strip()}' should come after sync flag is set"

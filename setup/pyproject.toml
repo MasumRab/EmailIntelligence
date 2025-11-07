@@ -1,142 +1,88 @@
-# EmailIntelligence - Optimized Dependencies for System-Managed Python
-# Conditional dependencies to minimize unnecessary downloads
-
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 
 [project]
-name = "emailintelligence"
-version = "0.2.0"
-description = "Email Intelligence with optimized dependencies for system-managed Python environments"
-requires-python = ">=3.11"
-
-# Core dependencies only - always required
+name = "repl-nix-workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
 dependencies = [
-    # Web framework (always needed)
-    "fastapi>=0.115.12",
-    "uvicorn[standard]>=0.34.3",
-    "pydantic>=2.11.5",
-    "python-dotenv>=1.1.0",
-    "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
     "httpx>=0.28.1",
-
-    # Basic UI (always needed)
+    "pydantic>=2.11.5",
+    "python-multipart>=0.0.20",
     "gradio>=4.0.0",
-    "pyngrok>=0.7.0",
-
-    # Basic data handling (always needed)
-    "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
-]
-
-[project.optional-dependencies]
-# ML/AI features - optional, large downloads
-ml = [
+    "pyngrok>=0.7.0",
     "nltk>=3.9.1",
     "textblob>=0.19.0",
-    "transformers>=4.52.4",
-    "accelerate>=1.7.0",
+    "transformers>=4.40.0",
+    "torch>=2.4.0",
+    "accelerate>=0.30.0",
     "sentencepiece>=0.2.0",
-    "scikit-learn>=1.7.0",
+    "scikit-learn>=1.5.0",
     "joblib>=1.5.1",
-    # CPU-only PyTorch (much smaller than GPU versions)
-    "torch>=2.7.1",
-]
-
-# Data science features - optional
-data = [
-    "pandas>=2.0.0",
-    "numpy>=1.26.0",
-    "scipy>=1.11.0",
-]
-
-# Visualization features - optional
-viz = [
-    "matplotlib>=3.8.0",
     "seaborn>=0.13.0",
-    "plotly>=5.18.0",
-]
-
-# Database features - optional based on deployment
-db = [
-    "psycopg2-binary>=2.9.10",
-    "redis>=5.0.0",
-    "notmuch>=0.29",
-]
-
-# Google API features - optional
-google = [
     "google-api-python-client>=2.172.0",
     "google-auth>=2.40.3",
     "google-auth-oauthlib>=1.2.2",
+    "redis>=5.0.0",
+    "notmuch>=0.29",
+    "textblob>=0.19.0",
 ]
 
-# GPU/CUDA features - ONLY install if GPU available
-# WARNING: These are VERY large downloads (GBs) and not needed on CPU-only systems
-gpu = [
-    # DO NOT install these on CPU-only systems!
-    # Use system CUDA/NVIDIA packages instead if available
-]
-
-# Development tools - only for development
+[project.optional-dependencies]
 dev = [
-    # Testing
-    "pytest>=8.4.0",
-    "pytest-cov>=6.0.0",
-    "pytest-asyncio>=1.2.0",
-
-    # Code quality
     "black>=25.1.0",
     "flake8>=7.2.0",
+    "google-api-python-client>=2.172.0",
+    "google-auth>=2.40.3",
+    "google-auth-oauthlib>=1.2.2",
+    "gradio>=5.34.0",
     "isort>=6.0.1",
-    "pylint>=3.3.7",
     "mypy>=1.16.0",
-    "unimport>=1.3.0",
-
-    # Notebooks
-    "jupyter>=1.0.0",
-    "ipykernel>=6.29.0",
-    "ipywidgets>=8.1.0",
-]
-
-# Minimal installation - just core features
-minimal = []
-
-# Full installation - all features except GPU
-full = [
-    "emailintelligence[ml,data,viz,db,google,dev]",
+    "pylint>=3.3.7",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=0.23.0"
 ]
 
 [dependency-groups]
-# Legacy support - prefer optional-dependencies above
 dev = [
-    "pytest>=8.4.0",
-    "pytest-cov>=6.0.0",
+    "black>=25.9.0",
+    "flake8>=7.3.0",
+    "isort>=7.0.0",
+    "mypy>=1.18.2",
+    "pylint>=4.0.2",
+    "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
-    "black>=25.1.0",
-    "flake8>=7.2.0",
-    "isort>=6.0.1",
-    "pylint>=3.3.7",
-    "mypy>=1.16.0",
-    "unimport>=1.3.0",
-    "jupyter>=1.0.0",
-    "ipykernel>=6.29.0",
-    "ipywidgets>=8.1.0",
 ]
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
 
-[tool.setuptools]
-# Exclude large packages from default installation
-include-package-data = false
+[tool.isort]
+profile = "black"
+line_length = 100
 
-[tool.setuptools.packages.find]
-where = ["src"]
-
-# Environment markers for conditional dependencies
-# Note: uv doesn't support marker configuration in pyproject.toml
-# GPU packages should be installed manually only when needed
+[tool.pytest.ini_options]
+addopts = "--asyncio-mode=auto"
+markers = [
+    "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
+]
+norecursedirs = ["backend"]
