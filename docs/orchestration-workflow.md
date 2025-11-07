@@ -24,7 +24,6 @@ The `orchestration-tools` branch serves as the central hub for development envir
 
 ## File Ownership Matrix
 
-<<<<<<< HEAD
 ### Files ONLY in `orchestration-tools` branch (Core Orchestration Files):
 - `scripts/` - All orchestration scripts, utilities, and hooks
 - `scripts/lib/` - Shared utility libraries (common.sh, error_handling.sh, etc.)
