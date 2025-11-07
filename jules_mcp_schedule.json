@@ -1,15 +1,16 @@
 {
-  "schedule_metadata": {
-    "version": "1.0",
-    "created": "2025-11-07T13:30:00Z",
-    "project": "EmailIntelligence",
-    "coordinator": "jules_mcp",
-    "foundation_branch": "scientific",
-    "reference_branch": "main",
-    "total_tasks": 11,
-    "parallel_execution": true,
-    "estimated_duration_days": "16-25"
-  },
+   "schedule_metadata": {
+     "version": "1.0",
+     "created": "2025-11-07T13:30:00Z",
+     "project": "EmailIntelligence",
+     "coordinator": "jules_mcp",
+     "schedule_branch": "feature/jules-mcp-email-intelligence-schedule",
+     "foundation_branch": "scientific",
+     "reference_branch": "main",
+     "total_tasks": 11,
+     "parallel_execution": true,
+     "estimated_duration_days": "16-25"
+   },
 
   "branch_context": {
     "scientific": {
