@@ -88,28 +88,31 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             # Track error rate
             with error_lock:
-                error_counts[500] += 1  # Default to 500 for unhandled exceptions
-                # Alert if error rate is high (simple threshold)
-                total_errors = sum(error_counts.values())
-                if total_errors > 10:  # Simple threshold
-                    logger.warning(f"High error rate detected: {total_errors} errors in session")
+                # Ensure status_code is defined before use
+                if isinstance(exc, (AppException, BaseAppException)):
+                    status_code = exc.status_code
+                elif isinstance(exc, ValidationError):
+                    status_code = 422
+                else:
+                    status_code = 500 # Default to 500 for unhandled exceptions
 
             # Format error response consistently
-            if isinstance(exc, AppException):
-                # Already formatted, add request_id
-                error_response = exc.detail
-                if isinstance(error_response, dict):
-                    error_response["request_id"] = request_id
-                status_code = exc.status_code
-            elif isinstance(exc, BaseAppException):
-                error_response = {
-                    "success": False,
-                    "message": "An internal error occurred",
-                    "error_code": "INTERNAL_ERROR",
-                    "details": str(exc),
-                    "request_id": request_id,
-                }
-                status_code = exc.status_code
+            if isinstance(exc, (AppException, BaseAppException)):
+                if isinstance(exc, AppException):
+                    # Already formatted, add request_id
+                    error_response = exc.detail
+                    if isinstance(error_response, dict):
+                        error_response["request_id"] = request_id
+                    status_code = exc.status_code
+                else:  # BaseAppException
+                    error_response = {
+                        "success": False,
+                        "message": "An internal error occurred",
+                        "error_code": "INTERNAL_ERROR",
+                        "details": str(exc),
+                        "request_id": request_id,
+                    }
+                    status_code = exc.status_code
             elif isinstance(exc, ValidationError):
                 error_response = {
                     "success": False,
