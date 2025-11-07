@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
-from task_queue import Agent
+from ..task_queue import Agent
 
 
 class Capability:

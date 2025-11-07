@@ -323,7 +323,7 @@ def main():
     monitor = AgentHealthMonitor()
     
     # Register some agents
-    from task_queue import Agent
+from ..task_queue import Agent
     api_agent = Agent("api-writer", ["api", "general"], 5)
     guide_agent = Agent("guide-writer", ["guide", "general"], 3)
     

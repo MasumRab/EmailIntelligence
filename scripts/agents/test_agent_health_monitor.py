@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 from agent_health_monitor import AgentHealthMonitor
-from task_queue import Agent
+from ..task_queue import Agent
 
 def test_agent_health_monitor():
     """Test the agent health monitoring system."""
