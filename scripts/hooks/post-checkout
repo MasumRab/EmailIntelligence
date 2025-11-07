@@ -34,9 +34,16 @@ if [[ "$BRANCH" != "orchestration-tools" ]]; then
     fi
 
     # Update orchestration scripts
+    checkout_from_orchestration "scripts/install-hooks.sh"
     checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
     checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
     checkout_from_orchestration "scripts/cleanup_orchestration.sh"
+
+    # Update orchestration lib
+    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^scripts/lib$"; then
+        echo "Synchronizing scripts/lib directory from orchestration-tools"
+        git checkout orchestration-tools -- scripts/lib/ --quiet
+    fi
 
     # Update orchestration documentation
     checkout_from_orchestration "docs/orchestration-workflow.md"
