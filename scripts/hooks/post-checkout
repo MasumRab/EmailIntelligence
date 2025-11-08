@@ -49,7 +49,7 @@ checkout_from_orchestration() {
             # For subtrees, check for conflicts first
             if [[ "$IS_WORKTREE" != true ]]; then
                 if git status --porcelain | grep -q "^.M"; then
-                    echo "Warning: Conflicts detected in working directory. Skipping checkout of $file_path"
+                    echo "Warning: $file_path has local changes in subtree. Skipping checkout to avoid conflicts."
                     return
                 fi
             fi
