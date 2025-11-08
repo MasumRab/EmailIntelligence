@@ -7,12 +7,12 @@ including secret generation, QR code generation, and token verification.
 
 import logging
 import secrets
-from base64 import b64encode
-from io import BytesIO
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple, List
 
 import pyotp
 import qrcode
+from io import BytesIO
+from base64 import b64encode
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,8 @@ class MFAService:
         """
         try:
             totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-                name=username, issuer_name=self.issuer_name
+                name=username,
+                issuer_name=self.issuer_name
             )
 
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -105,9 +106,7 @@ class MFAService:
             codes.append(code)
         return codes
 
-    def verify_backup_code(
-        self, backup_codes: List[str], code: str
-    ) -> Tuple[bool, Optional[List[str]]]:
+    def verify_backup_code(self, backup_codes: List[str], code: str) -> Tuple[bool, Optional[List[str]]]:
         """
         Verify a backup code and return updated list without the used code.
 

@@ -1,14 +1,12 @@
-import asyncio
-
 import pytest
-
+import asyncio
 from src.core.caching import (
-    CacheBackend,
-    CacheConfig,
     CacheManager,
+    CacheConfig,
+    CacheBackend,
     MemoryCacheBackend,
     get_cache_manager,
-    init_cache_manager,
+    init_cache_manager
 )
 
 
@@ -22,7 +20,10 @@ def memory_cache():
 @pytest.fixture
 def redis_cache():
     """Redis cache backend for testing (if available)"""
-    config = CacheConfig(backend=CacheBackend.REDIS, redis_url="redis://localhost:6379")
+    config = CacheConfig(
+        backend=CacheBackend.REDIS,
+        redis_url="redis://localhost:6379"
+    )
     try:
         return CacheManager(config)
     except ImportError:
@@ -85,9 +86,11 @@ class TestMemoryCacheBackend:
     @pytest.mark.asyncio
     async def test_cache_warming(self, memory_cache):
         """Test cache warming functionality"""
-
         async def warming_func():
-            return {"warm_key1": "warm_value1", "warm_key2": "warm_value2"}
+            return {
+                "warm_key1": "warm_value1",
+                "warm_key2": "warm_value2"
+            }
 
         await memory_cache.warm_cache(warming_func, "test_warm")
 

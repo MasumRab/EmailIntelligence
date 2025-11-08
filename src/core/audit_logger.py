@@ -5,17 +5,18 @@ Provides comprehensive event tracking, security monitoring, and compliance loggi
 with structured JSON output and configurable log levels.
 """
 
-import atexit
 import json
 import logging
 import threading
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from queue import Queue
 from typing import Any, Dict, List, Optional
+from queue import Queue
+import atexit
+
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +90,8 @@ class AuditEvent:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         data = asdict(self)
-        data["event_type"] = self.event_type.value
-        data["severity"] = self.severity.value
+        data['event_type'] = self.event_type.value
+        data['severity'] = self.severity.value
         return data
 
 
@@ -104,7 +105,7 @@ class AuditLogger:
         log_file: str = "logs/audit.log",
         json_file: str = "logs/audit.jsonl",
         max_queue_size: int = 1000,
-        flush_interval: int = 5,
+        flush_interval: int = 5
     ):
         self.log_file = Path(log_file)
         self.json_file = Path(json_file)
@@ -121,7 +122,9 @@ class AuditLogger:
 
         # Start background processing thread
         self._processing_thread = threading.Thread(
-            target=self._process_events, daemon=True, name="AuditLogger"
+            target=self._process_events,
+            daemon=True,
+            name="AuditLogger"
         )
         self._processing_thread.start()
 
@@ -134,7 +137,7 @@ class AuditLogger:
         """Log an audit event asynchronously."""
         try:
             self._event_queue.put_nowait(event)
-        except asyncio.QueueFull:
+        except:
             # If queue is full, log immediately to prevent data loss
             logger.warning(f"Audit queue full, logging synchronously: {event.event_id}")
             self._write_event_immediate(event)
@@ -151,7 +154,7 @@ class AuditLogger:
         action: str = "",
         result: str = "success",
         details: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ):
         """Log a security-related event with automatic metadata collection."""
         import uuid
@@ -169,7 +172,7 @@ class AuditLogger:
             action=action,
             result=result,
             details=details or {},
-            metadata=metadata or {},
+            metadata=metadata or {}
         )
 
         self.log_event(event)
@@ -182,7 +185,7 @@ class AuditLogger:
         execution_id: Optional[str] = None,
         node_name: Optional[str] = None,
         duration: Optional[float] = None,
-        error_message: Optional[str] = None,
+        error_message: Optional[str] = None
     ):
         """Log workflow-related events."""
         details = {
@@ -190,7 +193,7 @@ class AuditLogger:
             "execution_id": execution_id,
             "node_name": node_name,
             "duration_seconds": duration,
-            "error_message": error_message,
+            "error_message": error_message
         }
 
         severity = AuditSeverity.LOW
@@ -204,7 +207,7 @@ class AuditLogger:
             resource=f"workflow:{workflow_name}",
             action=f"workflow_{event_type.value}",
             result="failure" if "error" in event_type.value else "success",
-            details=details,
+            details=details
         )
 
     def log_api_access(
@@ -215,7 +218,7 @@ class AuditLogger:
         ip_address: str,
         status_code: int,
         response_time: float,
-        user_agent: Optional[str] = None,
+        user_agent: Optional[str] = None
     ):
         """Log API access events."""
         severity = AuditSeverity.LOW
@@ -235,8 +238,8 @@ class AuditLogger:
                 "method": method,
                 "endpoint": endpoint,
                 "status_code": status_code,
-                "response_time_seconds": response_time,
-            },
+                "response_time_seconds": response_time
+            }
         )
 
     def _process_events(self):
@@ -250,7 +253,7 @@ class AuditLogger:
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except asyncio.TimeoutError:
+            except:
                 pass  # No events available
 
             # Write events
@@ -271,13 +274,13 @@ class AuditLogger:
             if event.details:
                 log_line += f" details={event.details}"
 
-            with open(self.log_file, "a", encoding="utf-8") as f:
-                f.write(log_line + "\n")
+            with open(self.log_file, 'a', encoding='utf-8') as f:
+                f.write(log_line + '\n')
 
             # Write to JSON log
-            with open(self.json_file, "a", encoding="utf-8") as f:
+            with open(self.json_file, 'a', encoding='utf-8') as f:
                 json.dump(event.to_dict(), f, ensure_ascii=False)
-                f.write("\n")
+                f.write('\n')
 
         except Exception as e:
             logger.error(f"Failed to write audit event {event.event_id}: {e}")
@@ -294,7 +297,7 @@ class AuditLogger:
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
-        except asyncio.TimeoutError:
+        except:
             pass
 
         if self._processing_thread.is_alive():

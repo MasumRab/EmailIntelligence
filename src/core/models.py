@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # A default color for categories, can be moved to a config file later
 DEFAULT_CATEGORY_COLOR = "#FFFFFF"
@@ -67,12 +67,12 @@ class EmailCreate(EmailBase):
     attachmentCount: int = 0
     sizeEstimate: int = 0
 
-    @validator("preview", pre=True)
+    @field_validator("preview", mode="before")
     @classmethod
-    def set_preview(cls, v, values):
+    def set_preview(cls, v, info):
         """Sets the preview from the content if not provided."""
-        if not v and values and "content" in values:
-            content = values["content"]
+        if not v and info.data and "content" in info.data:
+            content = info.data["content"]
             return content[:200] + "..." if len(content) > 200 else content
         return v
 
@@ -462,15 +462,8 @@ class SearchResponse(BaseModel):
 class BatchEmailUpdate(BaseModel):
     """Model for a request to update a batch of emails."""
 
-    emailIds: List[int] = Field(alias="email_ids")
+    emailIds: List[int] = Field(alias="email_ids", min_length=1)
     updates: EmailUpdate
-
-    @validator("emailIds")
-    @classmethod
-    def validate_email_ids(cls, v):
-        if not v or len(v) < 1:
-            raise ValueError("emailIds must contain at least one email ID")
-        return v
 
     model_config = ConfigDict(populate_by_name=True)
 
