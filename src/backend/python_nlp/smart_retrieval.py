@@ -16,6 +16,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from .gmail_service import GmailAIService
+
 load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
@@ -50,17 +52,24 @@ class SyncCheckpoint:
     errors_count: int
 
 
-class SmartRetrievalManager:
-    def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
-        self.logger = logging.getLogger(__name__)
+class SmartRetrievalManager(GmailAIService):
+    def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH, rate_config=None, advanced_ai_engine=None, db_manager=None):
+        # Initialize parent GmailAIService
+        super().__init__(rate_config, advanced_ai_engine, db_manager)
+
+        # Initialize SmartRetrievalManager specific attributes
         self.checkpoint_db_path = checkpoint_db_path
-        self.gmail_service = None
         self._init_checkpoint_db()
+
+        # Initialize Gmail credentials for retrieval operations
         creds = self._load_credentials() or self._authenticate()
         if creds and creds.valid:
             if os.path.exists(TOKEN_JSON_PATH):
-                return Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
-            return None
+                self.credentials = Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
+            else:
+                self.credentials = None
+        else:
+            self.credentials = None
 
     def _init_checkpoint_db(self):
         """Initialize the checkpoint database and create tables if needed."""
