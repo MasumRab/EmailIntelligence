@@ -109,7 +109,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                         "success": False,
                         "message": "An internal error occurred",
                         "error_code": "INTERNAL_ERROR",
-                        "details": str(exc),
+                        "details": None,
                         "request_id": request_id,
                     }
                     status_code = exc.status_code
@@ -118,7 +118,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "success": False,
                     "message": "Validation error",
                     "error_code": "VALIDATION_ERROR",
-                    "details": str(exc),
+                    "details": None,  # Do not expose internal error message
                     "request_id": request_id,
                 }
                 status_code = 422
@@ -127,7 +127,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "success": False,
                     "message": "An unexpected error occurred",
                     "error_code": "INTERNAL_ERROR",
-                    "details": str(exc) if settings.debug else None,
+                    "details": None,  # Never expose internal error in response
                     "request_id": request_id,
                 }
                 status_code = 500
