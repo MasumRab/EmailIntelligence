@@ -24,11 +24,123 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
+# Import dotenv for environment file loading
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    load_dotenv = None
+    DOTENV_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("launcher")
+
+
+# --- Hardening Functions ---
+def check_for_merge_conflicts() -> bool:
+    """Check for unresolved merge conflict markers in critical files."""
+    conflict_markers = ["<<<<<<< ", "======= ", ">>>>>>> "]
+    critical_files = [
+        "backend/python_backend/main.py",
+        "backend/python_nlp/nlp_engine.py",
+        "backend/python_backend/database.py",
+        "backend/python_backend/email_routes.py",
+        "backend/python_backend/category_routes.py",
+        "backend/python_backend/gmail_routes.py",
+        "backend/python_backend/filter_routes.py",
+        "backend/python_backend/action_routes.py",
+        "backend/python_backend/dashboard_routes.py",
+        "backend/python_backend/workflow_routes.py",
+        "backend/python_backend/performance_monitor.py",
+        "backend/python_nlp/gmail_integration.py",
+        "backend/python_nlp/gmail_service.py",
+        "backend/python_nlp/smart_filters.py",
+        "backend/python_nlp/smart_retrieval.py",
+        "backend/python_nlp/ai_training.py",
+        "README.md",
+        "pyproject.toml",
+        "requirements.txt",
+        "requirements-dev.txt"
+    ]
+
+    conflicts_found = False
+    for file_path in critical_files:
+        full_path = ROOT_DIR / file_path
+        if full_path.exists():
+            try:
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    for marker in conflict_markers:
+                        if marker in content:
+                            logger.error(f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}")
+                            conflicts_found = True
+            except Exception as e:
+                logger.warning(f"Could not check {file_path} for conflicts: {e}")
+
+    if conflicts_found:
+        logger.error("Please resolve all merge conflicts before proceeding.")
+        return False
+
+    logger.info("No unresolved merge conflicts detected in critical files.")
+    return True
+
+
+def check_required_components() -> bool:
+    """Check for required components and configurations."""
+    issues = []
+
+    # Check Python version
+    current_version = sys.version_info[:2]
+    if not ((3, 11) <= current_version <= (3, 13)):
+        issues.append(f"Python version {current_version} is not compatible. Required: 3.11-3.13")
+
+    # Check key directories
+    required_dirs = ["backend", "client", "server", "shared", "tests"]
+    for dir_name in required_dirs:
+        if not (ROOT_DIR / dir_name).exists():
+            issues.append(f"Required directory '{dir_name}' is missing.")
+
+    # Check key files
+    required_files = ["pyproject.toml", "README.md", "requirements.txt"]
+    for file_name in required_files:
+        if not (ROOT_DIR / file_name).exists():
+            issues.append(f"Required file '{file_name}' is missing.")
+
+    # Check AI models directory
+    models_dir = ROOT_DIR / "models"
+    if not models_dir.exists():
+        logger.warning("AI models directory not found. Creating it...")
+        try:
+            models_dir.mkdir(parents=True, exist_ok=True)
+            logger.info("AI models directory created successfully.")
+        except Exception as e:
+            logger.error(f"Failed to create models directory: {e}")
+            issues.append("Failed to create models directory")
+
+    if issues:
+        for issue in issues:
+            logger.error(issue)
+        return False
+
+    logger.info("All required components are present.")
+    return True
+
+
+def validate_environment() -> bool:
+    """Run comprehensive environment validation."""
+    logger.info("Running environment validation...")
+
+    if not check_for_merge_conflicts():
+        return False
+
+    if not check_required_components():
+        return False
+
+    logger.info("Environment validation passed.")
+    return True
 
 
 # --- Input Validation ---
@@ -42,12 +154,30 @@ def validate_port(port: int) -> int:
 def validate_host(host: str) -> str:
     """Validate host name/address format."""
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+', host):
+    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
         raise ValueError(f"Invalid host: {host}")
     return host
 
 # --- Global state ---
-ROOT_DIR = Path(__file__).resolve().parent
+def find_project_root() -> Path:
+    """Find the project root directory by looking for key files."""
+    current = Path(__file__).resolve().parent
+
+    # Check if we're already in project root
+    if (current / "pyproject.toml").exists() and (current / "README.md").exists():
+        return current
+
+    # Search upwards for project markers
+    for parent in current.parents:
+        if (parent / "pyproject.toml").exists() and (parent / "README.md").exists():
+            return parent
+
+    # Fallback to script directory
+    return current
+
+
+ROOT_DIR = find_project_root()
+processes: List[subprocess.Popen] = []
 
 
 class ProcessManager:
@@ -63,7 +193,7 @@ class ProcessManager:
     def cleanup(self):
         """Explicitly cleanup all managed processes."""
         logger.info("Performing explicit resource cleanup...")
-        for p in self.processes:
+        for p in self.processes[:]:  # Create a copy to iterate over
             if p.poll() is None:
                 logger.info(f"Terminating process {p.pid}...")
                 p.terminate()
@@ -72,6 +202,10 @@ class ProcessManager:
                 except subprocess.TimeoutExpired:
                     logger.warning(f"Process {p.pid} did not terminate gracefully, killing it...")
                     p.kill()
+                    try:
+                        p.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        logger.error(f"Process {p.pid} could not be killed")
         logger.info("Resource cleanup completed.")
         
     def shutdown(self):
@@ -79,13 +213,14 @@ class ProcessManager:
         logger.info("Received SIGINT/SIGTERM, shutting down...")
         self.cleanup()
         logger.info("All services shut down.")
-        
+
+
 process_manager = ProcessManager()
 
 # --- Constants ---
-PYTHON_MIN_VERSION = (3, 10)
+PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
-VENV_DIR = "venv"
+VENV_DIR = ".venv"
 
 # Dependency configuration
 TORCH_VERSION = "torch>=2.4.0"
@@ -123,10 +258,14 @@ def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, sh
     
     logger.info(f"{description}...")
     try:
+        # Use sys.executable for Python commands to ensure we're using the correct Python
+        if cmd[0] == "python":
+            cmd[0] = sys.executable
+
         proc = subprocess.run(cmd, cwd=cwd or ROOT_DIR, shell=shell, capture_output=True, text=True, check=True)
         # Always log stdout for visibility, especially for debugging setup steps.
         if proc.stdout:
-            logger.info(f"stdout from '{' '.join(cmd)}':\n{proc.stdout}")
+            logger.debug(f"stdout from '{' '.join(cmd)}':\n{proc.stdout}")
         if proc.stderr:
             logger.warning(f"stderr from '{' '.join(cmd)}':\n{proc.stderr}")
         return True
@@ -135,6 +274,9 @@ def run_command(cmd: List[str], description: str, cwd: Optional[Path] = None, sh
         logger.error(f"Command failed: {' '.join(cmd) if isinstance(cmd, list) else str(cmd)}")
         logger.error(f"stdout:\n{e.stdout}")
         logger.error(f"stderr:\n{e.stderr}")
+        return False
+    except FileNotFoundError as e:
+        logger.error(f"Command not found: {cmd[0] if cmd else 'Unknown command'}")
         return False
 
 
@@ -149,6 +291,33 @@ def check_python_version():
         )
         sys.exit(1)
     logger.info(f"Python version {sys.version} is compatible.")
+
+
+def get_venv_executable(venv_path: Path, executable: str) -> Path:
+    """Get the path to a specific executable in the virtual environment."""
+    if platform.system() == "Windows":
+        return venv_path / "Scripts" / f"{executable}.exe"
+    else:
+        return venv_path / "bin" / executable
+
+
+def get_venv_executable(venv_path: Path, executable_name: str) -> Path:
+    """
+    Get the absolute path to an executable within the virtual environment.
+
+    This function abstracts the difference in venv structure between
+    Windows ('Scripts') and Unix-like systems ('bin').
+
+    Args:
+        venv_path: The path to the virtual environment directory.
+        executable_name: The name of the executable (e.g., 'python', 'pip').
+
+    Returns:
+        The full path to the executable.
+    """
+    if platform.system() == "Windows":
+        return venv_path / "Scripts" / f"{executable_name}.exe"
+    return venv_path / "bin" / executable_name
 
 
 def get_venv_python_path(venv_path: Path = None) -> Path:
@@ -234,7 +403,7 @@ def setup_dependencies(venv_path: Path, update: bool = False, use_poetry: bool =
         # Install CPU-only PyTorch first for Poetry
         _install_pytorch(venv_python)
 
-        cmd = [str(venv_poetry), "install" if not update else "update"]
+        cmd = [str(venv_poetry), "install"]
         if not update:
             cmd.extend(["--with", "dev"])
 
@@ -423,9 +592,13 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
         )
         return None
 
-    venv_python = get_venv_executable(venv_path, "python")
+    venv_python = get_venv_python_path(venv_path)
 
-    # Use uvicorn to run the FastAPI app directly
+    # Always use uvicorn to run the FastAPI app
+    import os
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+
     cmd = [
         str(venv_python),
         "-m",
@@ -437,10 +610,10 @@ def start_backend(venv_path: Path, host: str, port: int, debug: bool = False):
         str(port),
     ]
     if debug:
-        cmd.append("--reload")
+        cmd.append("--reload")  # Enable auto-reload in debug mode
 
     logger.info(f"Starting Python backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
     return process
 
@@ -452,15 +625,15 @@ def start_gradio_ui(
     venv_python = get_venv_executable(venv_path, "python")
     gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
 
-    cmd = [str(venv_python), str(gradio_path)]
+    cmd = [str(venv_python), str(gradio_path), "--host", host]
+    if port:
+        cmd.extend(["--port", str(port)])
+        logger.info(f"Starting Gradio UI on {host}:{port}")
+    else:
+        logger.info(f"Starting Gradio UI on {host}:7860 (default port)")
+
     if share:
         cmd.append("--share")  # Enable public sharing
-    if port:
-        # Gradio doesn't take port as a command line param directly,
-        # we'd need to modify the app to accept it
-        logger.info("Starting Gradio UI (on default or next available port)")
-    else:
-        logger.info("Starting Gradio UI on default port")
 
     logger.info("Starting Gradio UI...")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
@@ -628,8 +801,9 @@ def main():
     if args.env_file:
         env_path = Path(args.env_file)
         if env_path.exists():
-            from dotenv import load_dotenv
-
+            if not DOTENV_AVAILABLE:
+                logger.error("python-dotenv is not available. Please install it or ensure dependencies are set up correctly.")
+                sys.exit(1)
             load_dotenv(env_path)
             logger.info(f"Loaded environment variables from {env_path}")
         else:
@@ -638,6 +812,9 @@ def main():
 
     # Check Python version
     check_python_version()
+
+    # Set PYTHONPATH for proper imports
+    os.environ["PYTHONPATH"] = str(ROOT_DIR)
 
     # Determine venv path
     venv_path = ROOT_DIR / VENV_DIR
@@ -652,6 +829,11 @@ def main():
         logger.error(
             f"Virtual environment does not exist at {venv_path}. Please run with --setup first."
         )
+        sys.exit(1)
+
+    # Run environment validation unless in setup mode
+    if not validate_environment():
+        logger.error("Environment validation failed. Please resolve issues and try again.")
         sys.exit(1)
 
     _start_selected_services(args, venv_path, host)

@@ -7,12 +7,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_filter_manager
+from .dependencies import get_ai_engine, get_filter_manager, get_workflow_engine
 from .exceptions import AIAnalysisError, DatabaseError
 from .models import EmailResponse  # Changed from .main to .models
 from .models import EmailCreate, EmailUpdate
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
+from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -144,20 +145,20 @@ async def create_email(
     email: EmailCreate,
     background_tasks: BackgroundTasks,
     db: DatabaseManager = Depends(get_db),
-    ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
-    filter_manager: SmartFilterManager = Depends(get_filter_manager),
+    workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """
-    Creates a new email, performs AI analysis, and applies smart filters.
+    Creates a new email by running it through the active workflow.
 
-    The AI analysis and filter application enrich the email data before it's
-    saved to the database.
+    The workflow performs AI analysis, applies smart filters, and enriches the email data
+    before it's saved to the database.
 
     Args:
         request: The incoming request object.
         email: The email data for creation.
         background_tasks: FastAPI's background task runner.
         db: The database manager dependency.
+        workflow_engine: The workflow engine dependency.
 
     Returns:
         The newly created and enriched email object.
@@ -166,21 +167,9 @@ async def create_email(
         HTTPException: If a database error or any other failure occurs.
     """
     try:
-        ai_analysis = await ai_engine.analyze_email(email.subject, email.content, db=db)
+        processed_email_data = await workflow_engine.run_workflow(email.model_dump())
 
-        filter_results = await filter_manager.apply_filters_to_email_data(email.model_dump())
-
-        email_data = email.model_dump()
-        email_data.update(
-            {
-                "confidence": int(ai_analysis.confidence * 100),
-                "categoryId": ai_analysis.category_id,
-                "labels": ai_analysis.suggested_labels,
-                "analysisMetadata": ai_analysis.to_dict(),
-            }
-        )
-
-        created_email_dict = await db.create_email(email_data)
+        created_email_dict = await db.create_email(processed_email_data)
 
         try:
             return EmailResponse(**created_email_dict)

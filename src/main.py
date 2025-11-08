@@ -4,6 +4,7 @@ import logging
 import gradio as gr
 import uvicorn
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from .core.module_manager import ModuleManager
 
@@ -26,6 +27,11 @@ def create_app():
         version="3.0.0",
     )
 
+    @app.get("/")
+    async def root():
+        """Redirect root to Gradio UI."""
+        return RedirectResponse(url="/ui")
+
     # Create the main Gradio UI as a placeholder
     # Modules will add their own tabs and components to this.
     with gr.Blocks(theme=gr.themes.Soft(), title="Email Intelligence Platform") as gradio_app:
@@ -37,8 +43,8 @@ def create_app():
     module_manager.load_modules()
 
     # Mount the Gradio UI onto the FastAPI app
-    # This makes the UI accessible at the '/gradio' endpoint
-    gr.mount_gradio_app(app, gradio_app, path="/")
+    # This makes the UI accessible at the '/ui' endpoint
+    gr.mount_gradio_app(app, gradio_app, path="/ui")
 
     logger.info("Application creation complete. FastAPI and Gradio are integrated.")
     return app

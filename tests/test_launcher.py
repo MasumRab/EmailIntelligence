@@ -56,7 +56,7 @@ class TestVirtualEnvironment:
     @patch("launch.Path.exists", return_value=False)
     def test_create_venv_success(self, mock_exists, mock_venv_create):
         """Test successful venv creation."""
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.logger") as mock_logger:
             create_venv(venv_path)
             mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
@@ -65,7 +65,7 @@ class TestVirtualEnvironment:
     @patch("launch.Path.exists", return_value=True)
     def test_create_venv_already_exists(self, mock_exists):
         """Test when venv already exists."""
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.logger") as mock_logger:
             create_venv(venv_path)
             mock_logger.info.assert_called_with(
@@ -79,7 +79,7 @@ class TestVirtualEnvironment:
         """Test venv recreation when forced."""
         # Mock exists to return True initially, then False after rmtree
         mock_exists.side_effect = [True, False]
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.logger") as mock_logger:
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
@@ -95,7 +95,7 @@ class TestDependencyManagement:
         """Test successful uv installation."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.logger") as mock_logger:
             install_uv(venv_path)
             mock_run.assert_called_once()
@@ -107,7 +107,7 @@ class TestDependencyManagement:
         """Test successful dependency setup."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.logger") as mock_logger:
             setup_dependencies(venv_path)
             mock_logger.info.assert_any_call("Installing project dependencies...")
@@ -118,7 +118,7 @@ class TestDependencyManagement:
         """Test successful NLTK data download."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.logger") as mock_logger:
             download_nltk_data(venv_path)
             mock_logger.info.assert_called_with("NLTK data downloaded successfully.")
@@ -134,7 +134,7 @@ class TestServiceStartup:
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.processes", []):
             result = start_backend(venv_path, "127.0.0.1", 8000)
             assert result == mock_process
@@ -147,7 +147,7 @@ class TestServiceStartup:
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
-        venv_path = ROOT_DIR / "venv"
+        venv_path = ROOT_DIR / ".venv"
         with patch("launch.processes", []):
             result = start_gradio_ui(venv_path, "127.0.0.1")
             assert result == mock_process
