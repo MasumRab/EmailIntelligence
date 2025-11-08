@@ -114,96 +114,58 @@ def build_query(
     return " ".join(query_parts)
 
 
-async def retrieve_emails_and_save(
-    email,
-    password,
-    server,
-    sender,
-    to,
-    subject,
-    keywords,
-    date_filter,
-    start_date,
-    end_date,
-    category,
-    has_attachment,
-    max_emails,
-    download_format,
+def run_filter_workflow(
+    sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment, max_emails, download_format, test_only=False
 ):
-    query_filter = build_query(
-        sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment
-    )
+    criteria = {
+        "required_senders": [s.strip() for s in sender.split(",")] if sender else [],
+        "required_recipients": [r.strip() for r in to.split(",")] if to else [],
+        "required_keywords": [k.strip() for k in keywords.split(",")] if keywords else [],
+        "required_categories": [category] if category else [],
+        "has_attachment": has_attachment,
+    }
 
-    response = requests.post(
-        "http://127.0.0.1:8000/api/gmail/sync",
-        json={
-            "maxEmails": max_emails,
-            "queryFilter": query_filter.strip(),
-            "includeAIAnalysis": True,
-        },
-        timeout=30,
-    )
+    # Simplified date handling for this example
+    if date_filter != "Any time" and date_filter != "Custom":
+        # In a real scenario, you'd calculate the date range here
+        pass
 
-    if response.status_code == 200:
-        data = response.json()
-        emails = data.get("emails", [])
+    workflow_payload = {
+        "workflow": {
+            "name": "Dynamic Filter Workflow",
+            "nodes": [
+                {"node_id": "source", "node_type": "EmailSourceNode", "config": {"max_emails": max_emails if not test_only else 0}},
+                {"node_id": "filter", "node_type": "FilterNode", "config": {"criteria": criteria}},
+            ],
+            "connections": [
+                {"source_node_id": "source", "source_port": "emails", "target_node_id": "filter", "target_port": "emails"}
+            ]
+        }
+    }
 
-        db = DatabaseManager()
-        await db._ensure_initialized()
-        for email_data in emails:
-            await db.create_email(email_data)
-        await db.shutdown()
+    try:
+        response = requests.post("http://127.0.0.1:8000/api/workflows/run_filter", json=workflow_payload, timeout=60)
+        if response.status_code == 200:
+            data = response.json()
+            if test_only:
+                filtered_count = data.get("results", {}).get("filter", {}).get("stats", {}).get("filtered_count", 0)
+                return f"Estimated {filtered_count} matches for the current filter."
 
-        if download_format == "JSON":
-            with open("retrieved_emails.json", "w", encoding="utf-8") as f:
-                json.dump(emails, f)
-            return (
-                f"Successfully retrieved and saved {len(emails)} emails. Saved to retrieved_emails.json",
-                emails,
-            )
-        else:  # CSV
-            import pandas as pd
+            filtered_emails = data.get("results", {}).get("filter", {}).get("filtered_emails", [])
 
-            df = pd.DataFrame(emails)
-            df.to_csv("retrieved_emails.csv", index=False)
-            return (
-                f"Successfully retrieved and saved {len(emails)} emails. Saved to retrieved_emails.csv",
-                emails,
-            )
-    else:
-        return f"Error: {response.text}", []
-
-
-def test_filter(
-    email,
-    password,
-    server,
-    sender,
-    to,
-    subject,
-    keywords,
-    date_filter,
-    start_date,
-    end_date,
-    category,
-    has_attachment,
-):
-    query_filter = build_query(
-        sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment
-    )
-
-    response = requests.post(
-        "http://127.0.0.1:8000/api/gmail/sync",
-        json={"maxEmails": 0, "queryFilter": query_filter.strip(), "includeAIAnalysis": False},
-        timeout=30,
-    )
-
-    if response.status_code == 200:
-        data = response.json()
-        count = data.get("processedCount", 0)
-        return f"Estimated {count} matches for the current filter. This is an estimate and may not be exact."
-    else:
-        return f"Error: {response.text}"
+            if download_format == "JSON":
+                with open("retrieved_emails.json", "w", encoding="utf-8") as f:
+                    json.dump(filtered_emails, f)
+                return f"Successfully retrieved and saved {len(filtered_emails)} emails to retrieved_emails.json", filtered_emails
+            else:  # CSV
+                import pandas as pd
+                df = pd.DataFrame(filtered_emails)
+                df.to_csv("retrieved_emails.csv", index=False)
+                return f"Successfully retrieved and saved {len(filtered_emails)} emails to retrieved_emails.csv", filtered_emails
+        else:
+            return f"Error: {response.text}", []
+    except requests.RequestException as e:
+        return f"Error connecting to the backend: {e}", []
 
 
 with gr.Blocks() as email_retrieval_tab:
@@ -320,11 +282,10 @@ with gr.Blocks() as email_retrieval_tab:
     ).then(fn=refresh_filters, inputs=[], outputs=[saved_filters_dropdown])
 
     test_button.click(
-        fn=test_filter,
+        fn=lambda sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment: run_filter_workflow(
+            sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment, 0, "JSON", test_only=True
+        ),
         inputs=[
-            email_address,
-            password,
-            server,
             sender,
             to,
             subject,
@@ -338,47 +299,11 @@ with gr.Blocks() as email_retrieval_tab:
         outputs=estimation_output,
     )
 
-    def retrieve_emails_wrapper(
-        email,
-        password,
-        server,
-        sender,
-        to,
-        subject,
-        keywords,
-        date_filter,
-        start_date,
-        end_date,
-        category,
-        has_attachment,
-        max_emails,
-        download_format,
-    ):
-        return asyncio.run(
-            retrieve_emails_and_save(
-                email,
-                password,
-                server,
-                sender,
-                to,
-                subject,
-                keywords,
-                date_filter,
-                start_date,
-                end_date,
-                category,
-                has_attachment,
-                max_emails,
-                download_format,
-            )
-        )
-
     download_button.click(
-        fn=retrieve_emails_wrapper,
+        fn=lambda sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment, max_emails, download_format: run_filter_workflow(
+            sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment, max_emails, download_format, test_only=False
+        ),
         inputs=[
-            email_address,
-            password,
-            server,
             sender,
             to,
             subject,

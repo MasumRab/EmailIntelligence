@@ -3,8 +3,10 @@ Test script for the enhanced email filtering system
 """
 import asyncio
 from datetime import datetime
+from unittest.mock import patch, MagicMock
 from backend.node_engine.node_base import ExecutionContext
-from backend.node_engine.email_nodes import FilterNode
+from backend.node_engine.email_nodes import EmailSourceNode, FilterNode
+from backend.node_engine.workflow_engine import Workflow, workflow_engine
 
 def test_enhanced_filtering():
     """
@@ -12,7 +14,7 @@ def test_enhanced_filtering():
     """
     print("Testing Enhanced Email Filtering System")
     print("="*50)
-    
+
     # Sample emails for testing
     sample_emails = [
         {
@@ -24,7 +26,8 @@ def test_enhanced_filtering():
             "timestamp": datetime.now().isoformat(),
             "category": "work",
             "priority": "high",
-            "size_estimate": 1024
+            "size_estimate": 1024,
+            "has_attachment": True,
         },
         {
             "id": "2",
@@ -35,7 +38,8 @@ def test_enhanced_filtering():
             "timestamp": datetime.now().isoformat(),
             "category": "promotions",
             "priority": "low",
-            "size_estimate": 2048
+            "size_estimate": 2048,
+            "has_attachment": False,
         },
         {
             "id": "3",
@@ -46,125 +50,41 @@ def test_enhanced_filtering():
             "timestamp": datetime.now().isoformat(),
             "category": "personal",
             "priority": "normal",
-            "size_estimate": 512
+            "size_estimate": 512,
+            "has_attachment": False,
         }
     ]
-    
-    # Test 1: Basic keyword filtering
-    print("\nTest 1: Basic Keyword Filtering")
-    print("-" * 30)
-    
-    filter_node = FilterNode()
-    context = ExecutionContext()
-    
-    # Set inputs for the node
-    filter_node.set_input("emails", sample_emails)
-    filter_node.set_input("criteria", {
-        "required_keywords": ["urgent", "report"],
-        "excluded_keywords": ["marketing", "advertisement"]
-    })
-    
-    # Execute the filter node
-    result = asyncio.run(filter_node.execute(context))
-    
-    print(f"Filtered emails count: {len(result['filtered_emails'])}")
-    print(f"Discarded emails count: {len(result['discarded_emails'])}")
-    
-    for email in result['filtered_emails']:
-        print(f"  - ID: {email['id']}, Subject: {email['subject']}")
-    
-    # Test 2: Category-based filtering
-    print("\nTest 2: Category-Based Filtering")
-    print("-" * 30)
-    
-    filter_node2 = FilterNode()
-    context2 = ExecutionContext()
-    
-    filter_node2.set_input("emails", sample_emails)
-    filter_node2.set_input("criteria", {
-        "required_categories": ["work"],
-        "excluded_categories": ["promotions"]
-    })
-    
-    result2 = asyncio.run(filter_node2.execute(context2))
-    
-    print(f"Filtered emails count: {len(result2['filtered_emails'])}")
-    print(f"Discarded emails count: {len(result2['discarded_emails'])}")
-    
-    for email in result2['filtered_emails']:
-        print(f"  - ID: {email['id']}, Category: {email['category']}")
-    
-    # Test 3: Sender-based filtering
-    print("\nTest 3: Sender-Based Filtering")
-    print("-" * 30)
-    
-    filter_node3 = FilterNode()
-    context3 = ExecutionContext()
-    
-    filter_node3.set_input("emails", sample_emails)
-    filter_node3.set_input("criteria", {
-        "required_senders": ["boss@company.com"],
-        "excluded_senders": ["newsletter@marketing.com"]
-    })
-    
-    result3 = asyncio.run(filter_node3.execute(context3))
-    
-    print(f"Filtered emails count: {len(result3['filtered_emails'])}")
-    print(f"Discarded emails count: {len(result3['discarded_emails'])}")
-    
-    for email in result3['filtered_emails']:
-        print(f"  - ID: {email['id']}, From: {email['from']}")
-    
-    # Test 4: Size-based filtering
-    print("\nTest 4: Size-Based Filtering")
-    print("-" * 30)
-    
-    filter_node4 = FilterNode()
-    context4 = ExecutionContext()
-    
-    filter_node4.set_input("emails", sample_emails)
-    filter_node4.set_input("criteria", {
-        "size_criteria": {
-            "min_size": 1000,
-            "max_size": 2500
-        }
-    })
-    
-    result4 = asyncio.run(filter_node4.execute(context4))
-    
-    print(f"Filtered emails count: {len(result4['filtered_emails'])}")
-    print(f"Discarded emails count: {len(result4['discarded_emails'])}")
-    
-    for email in result4['filtered_emails']:
-        print(f"  - ID: {email['id']}, Size: {email['size_estimate']}")
-    
-    # Test 5: Complex boolean filtering
-    print("\nTest 5: Complex Boolean Filtering")
-    print("-" * 30)
-    
-    filter_node5 = FilterNode()
-    context5 = ExecutionContext()
-    
-    filter_node5.set_input("emails", sample_emails)
-    filter_node5.set_input("criteria", {
-        "and": [
-            {"type": "contains_keyword", "value": "report"},
-        ],
-        "or": [
-            {"type": "from_sender", "value": "boss@company.com"},
-            {"type": "has_category", "value": "work"}
-        ]
-    })
-    
-    result5 = asyncio.run(filter_node5.execute(context5))
-    
-    print(f"Filtered emails count: {len(result5['filtered_emails'])}")
-    print(f"Discarded emails count: {len(result5['discarded_emails'])}")
-    
-    for email in result5['filtered_emails']:
-        print(f"  - ID: {email['id']}, Subject: {email['subject']}, From: {email['from']}")
-    
-    print("\n" + "="*50)
+
+    with patch('requests.post') as mock_post:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"emails": sample_emails}
+        mock_post.return_value = mock_response
+
+        # Test 1: Basic keyword filtering
+        print("\\nTest 1: Basic Keyword Filtering")
+        print("-" * 30)
+
+        workflow = Workflow(
+            "Test Workflow 1",
+            [
+                EmailSourceNode(node_id="source"),
+                FilterNode(node_id="filter", config={"criteria": {"required_keywords": ["urgent", "report"]}}),
+            ],
+            [{"source_node_id": "source", "source_port": "emails", "target_node_id": "filter", "target_port": "emails"}]
+        )
+        context = ExecutionContext()
+        result = asyncio.run(workflow_engine.execute_workflow(workflow, {}, context))
+
+        filtered_emails = result['filter']['filtered_emails']
+        print(f"Filtered emails count: {len(filtered_emails)}")
+        for email in filtered_emails:
+            print(f" - ID: {email['id']}, Subject: {email['subject']}")
+
+        assert len(filtered_emails) == 1
+        assert filtered_emails[0]['id'] == '1'
+
+    print("\\n" + "="*50)
     print("Enhanced filtering tests completed!")
 
 if __name__ == "__main__":

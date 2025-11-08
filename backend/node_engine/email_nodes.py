@@ -8,6 +8,7 @@ functionality, following the node-based architecture.
 import asyncio
 from datetime import datetime
 from typing import Any, Dict, List
+import requests
 
 from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
 from backend.node_engine.workflow_engine import workflow_engine
@@ -140,22 +141,26 @@ class EmailSourceNode(BaseNode):
 
     async def _fetch_emails(self) -> List[Dict[str, Any]]:
         """Fetch emails from the configured provider."""
-        # This is a placeholder - in real implementation, it would use GmailAIService
-        # or other email providers
-        await asyncio.sleep(0.1)  # Simulate network delay
+        max_emails = self.config.get("max_emails", 100)
+        # In a real implementation, you would pass the query from the UI
+        query_filter = ""
 
-        # Return sample emails for demonstration
-        return [
-            {
-                "id": "1",
-                "subject": "Sample Email Subject",
-                "content": "This is a sample email content for demonstration purposes.",
-                "from": "sender@example.com",
-                "to": ["recipient@example.com"],
-                "timestamp": datetime.now().isoformat(),
-                "labels": ["inbox"],
-            }
-        ]
+        response = requests.post(
+            "http://127.0.0.1:8000/api/gmail/sync",
+            json={
+                "maxEmails": max_emails,
+                "queryFilter": query_filter,
+                "includeAIAnalysis": True,
+            },
+            timeout=30,
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("emails", [])
+        else:
+            print(f"Error fetching emails: {response.text}")
+            return []
 
 
 class PreprocessingNode(BaseNode):
@@ -405,157 +410,82 @@ class FilterNode(BaseNode):
 
     def _matches_criteria(self, email: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
         """Check if an email matches the filtering criteria."""
-        # If no criteria provided, pass everything through
         if not criteria:
             return True
 
-        # Parse individual criteria parts
+        # Handle complex boolean logic first
+        if "and" in criteria:
+            return all(self._matches_criteria(email, c) for c in criteria["and"])
+        if "or" in criteria:
+            return any(self._matches_criteria(email, c) for c in criteria["or"])
+        if "not" in criteria:
+            return not self._matches_criteria(email, criteria["not"])
+
+        # Apply individual filter conditions
+        for key, value in criteria.items():
+            if not self._evaluate_condition(email, key, value):
+                return False
+
+        return True
+
+    def _evaluate_condition(self, email: Dict[str, Any], key: str, value: Any) -> bool:
+        """Evaluate a single filter condition against an email."""
         sender = email.get("from", "").lower()
-        recipients = [r.lower() for r in email.get("to", [])]  # type: ignore
+        recipients = [r.lower() for r in email.get("to", [])]
         subject = email.get("subject", "").lower()
         content = email.get("content", "").lower()
         timestamp_str = email.get("timestamp", "")
         category = email.get("category", "").lower()
         email_size = len(content)
+        has_attachment = email.get("has_attachment", False)
 
-        # Convert timestamp to datetime object if available
         email_date = None
         if timestamp_str:
             try:
                 email_date = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
             except ValueError:
-                pass  # If timestamp format is invalid, keep email_date as None
+                pass
 
-        # 1. Keyword-based filtering
-        required_keywords = criteria.get("required_keywords", [])
-        excluded_keywords = criteria.get("excluded_keywords", [])
-
-        # Check for required keywords in subject or content
-        if required_keywords:
+        if key == "required_keywords":
             text = f"{subject} {content}"
-            if not any(keyword.lower() in text for keyword in required_keywords):
-                return False
-
-        # Check for excluded keywords in subject or content
-        if excluded_keywords:
+            return all(keyword.lower() in text for keyword in value)
+        if key == "excluded_keywords":
             text = f"{subject} {content}"
-            if any(keyword.lower() in text for keyword in excluded_keywords):
+            return not any(keyword.lower() in text for keyword in value)
+        if key == "required_senders":
+            return any(s.lower() in sender for s in value)
+        if key == "excluded_senders":
+            return not any(s.lower() in sender for s in value)
+        if key == "required_recipients":
+            return any(r.lower() in recipients for r in value)
+        if key == "excluded_recipients":
+            return not any(r.lower() in recipients for r in value)
+        if key == "required_categories":
+            return any(cat.lower() in category for cat in value)
+        if key == "excluded_categories":
+            return not any(cat.lower() in category for cat in value)
+        if key == "date_criteria" and email_date:
+            if "after" in value and email_date < datetime.fromisoformat(
+                value["after"].replace("Z", "+00:00")
+            ):
                 return False
-
-        # 2. Sender-based filtering
-        required_senders = criteria.get("required_senders", [])
-        excluded_senders = criteria.get("excluded_senders", [])
-
-        if required_senders and not any(s.lower() in sender for s in required_senders):
-            return False
-
-        if excluded_senders and any(s.lower() in sender for s in excluded_senders):
-            return False
-
-        # 3. Recipient-based filtering
-        required_recipients = criteria.get("required_recipients", [])
-        excluded_recipients = criteria.get("excluded_recipients", [])
-
-        if required_recipients and not any(r.lower() in recipients for r in required_recipients):
-            return False
-
-        if excluded_recipients and any(r.lower() in recipients for r in excluded_recipients):
-            return False
-
-        # 4. Category-based filtering
-        required_categories = [cat.lower() for cat in criteria.get("required_categories", [])]
-        excluded_categories = [cat.lower() for cat in criteria.get("excluded_categories", [])]
-
-        if required_categories and not any(cat.lower() in category for cat in required_categories):
-            return False
-
-        if excluded_categories and any(cat.lower() in category for cat in excluded_categories):
-            return False
-
-        # 5. Date/time-based filtering
-        date_criteria = criteria.get("date_criteria", {})
-        if date_criteria and email_date:
-            if "after" in date_criteria:
-                after_date = datetime.fromisoformat(date_criteria["after"].replace("Z", "+00:00"))
-                if email_date < after_date:
-                    return False
-            if "before" in date_criteria:
-                before_date = datetime.fromisoformat(date_criteria["before"].replace("Z", "+00:00"))
-                if email_date > before_date:
-                    return False
-
-        # 6. Size-based filtering
-        size_criteria = criteria.get("size_criteria", {})
-        if size_criteria:
-            min_size = size_criteria.get("min_size")
-            max_size = size_criteria.get("max_size")
-
+            if "before" in value and email_date > datetime.fromisoformat(
+                value["before"].replace("Z", "+00:00")
+            ):
+                return False
+        if key == "size_criteria":
+            min_size = value.get("min_size")
+            max_size = value.get("max_size")
             if min_size is not None and email_size < min_size:
                 return False
             if max_size is not None and email_size > max_size:
                 return False
+        if key == "required_priority":
+            return email.get("priority", "normal").lower() == value.lower()
+        if key == "has_attachment":
+            return has_attachment == value
 
-        # 7. Priority-based filtering
-        required_priority = criteria.get("required_priority")
-        if required_priority:
-            email_priority = email.get("priority", "normal").lower()
-            if email_priority != required_priority.lower():
-                return False
-
-        # 8. Boolean logic for complex filtering
-        and_conditions = criteria.get("and", [])
-        or_conditions = criteria.get("or", [])
-        not_conditions = criteria.get("not", [])
-
-        # For now, implement basic boolean logic for common fields
-        # In a full implementation, you'd evaluate each condition properly
-
-        if and_conditions:
-            # All conditions in 'and' must be true
-            for condition in and_conditions:
-                if not self._evaluate_condition(email, condition):
-                    return False
-
-        if or_conditions:
-            # At least one condition in 'or' must be true
-            if or_conditions:
-                matches_any = False
-                for condition in or_conditions:
-                    if self._evaluate_condition(email, condition):
-                        matches_any = True
-                        break
-                if not matches_any:
-                    return False
-
-        if not_conditions:
-            # All conditions in 'not' must be false
-            for condition in not_conditions:
-                if self._evaluate_condition(email, condition):
-                    return False
-
-        # Default: if all conditions pass, return True
         return True
-
-    def _evaluate_condition(self, email: Dict[str, Any], condition: Dict[str, Any]) -> bool:
-        """Evaluate a single boolean condition against an email."""
-        # This is a helper for the boolean logic implementation
-        # It checks individual conditions within complex boolean operations
-        condition_type = condition.get("type", "")
-        condition_value = condition.get("value", "")
-
-        if condition_type == "contains_keyword":
-            subject = email.get("subject", "").lower()
-            content = email.get("content", "").lower()
-            return condition_value.lower() in f"{subject} {content}"
-        elif condition_type == "from_sender":
-            sender = email.get("from", "").lower()
-            return condition_value.lower() in sender
-        elif condition_type == "has_category":
-            category = email.get("category", "").lower()
-            return condition_value.lower() == category
-        else:
-            # Default to True if condition type is unknown
-            return True
 
 
 class ActionNode(BaseNode):
