@@ -44,7 +44,7 @@ class NotmuchDataSource(DataSource):
     along with AI-powered analysis and smart filtering.
     """
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: Optional[str] = None, db_manager: Optional['DatabaseManager'] = None):
         # Validate the database path for security if provided
         if db_path is not None:
             try:
@@ -59,7 +59,18 @@ class NotmuchDataSource(DataSource):
             
         self.notmuch_db = None
         self._initialized = False
-        self.db = None
+        # Initialize database manager for caching - accept injected or create default
+        if db_manager is not None:
+            self.db = db_manager
+        else:
+            try:
+                # Import DatabaseManager locally to avoid circular imports
+                from .database import DatabaseManager, SQLiteManager
+                # Use SQLiteManager as concrete implementation instead of abstract DatabaseManager
+                self.db = SQLiteManager()
+            except Exception as e:
+                logger.warning(f"Could not initialize DatabaseManager, proceeding without: {e}")
+                self.db = None  # Allow operation without database manager
         self.ai_engine = None
         self.filter_manager = None
         self._initialized = False
@@ -94,16 +105,12 @@ class NotmuchDataSource(DataSource):
                 logger.error(f"Error opening notmuch database: {e}")
                 self.notmuch_db = None
 
-        # Initialize database manager for caching
-        if self.db is None:
+        # Ensure database manager is initialized if we have one
+        if self.db is not None:
             try:
-                # Import DatabaseManager locally to avoid circular imports
-                from .database import DatabaseManager
-                # Use DatabaseManager as concrete implementation
-                self.db = DatabaseManager()
                 await self.db._ensure_initialized()
             except Exception as e:
-                logger.warning(f"Could not initialize DatabaseManager, proceeding without: {e}")
+                logger.warning(f"DatabaseManager initialization failed, proceeding without: {e}")
                 self.db = None  # Allow operation without database manager
 
         # Initialize AI engine if needed for analysis
@@ -302,9 +309,10 @@ class NotmuchDataSource(DataSource):
         
         # For now, return a mock implementation
         # In a full implementation, this would actually store the email
+        email_hash = str(hash(str(email_data)))[:8]
         result = {
-            "id": "mock_id_" + str(hash(str(email_data)))[:8],
-            "message_id": "mock_message_id_" + str(hash(str(email_data)))[:8],
+            "id": f"mock_id_{email_hash}",
+            "message_id": f"mock_message_id_{email_hash}",
             "subject": email_data.get("subject", ""),
             "sender": email_data.get("sender", ""),
             "date": datetime.now().isoformat(),
