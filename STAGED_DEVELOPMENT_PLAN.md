@@ -16,11 +16,24 @@
 - [x] **MCP Configuration**: Standardized Task Master AI setup across all editors
 
 **Deliverables**:
-- ✅ CI pipeline passes for new commits
+- ✅ CI pipeline configuration updated (but still failing on existing PRs)
 - ✅ All editors can access Task Master AI
 - ✅ Dependency installation works correctly
 
-### Stage 1.2: Core Component Integration (Priority: HIGH)
+### Stage 1.2: Current CI Status Analysis 📊
+**Latest PR CI Failures (as of $(date))**:
+- **PR #197** (feat-enhanced-filtering): `review` ❌, `test` ❌
+- **PR #196** (scientific): `test` ❌, CodeRabbit review in progress
+- **PR #195** (orchestration-tools): `review` ❌
+- **PR #178** (dashboard-features): `review` ❌, `test` ❌
+- **PR #182** (pr-179): `submit-pypi` ❌
+- **PR #169** (modular-ai-platform): `submit-pypi` ❌
+- **PR #170** (docs-cleanup): `CodeQL` ❌
+
+**Root Cause**: Existing PRs still reference old `backend/` paths in CI
+**Solution**: Individual PR rebases required to pick up CI fixes
+
+### Stage 1.3: Core Component Integration (Priority: HIGH)
 - [ ] **SmartRetrievalManager Completion**: Ensure full GmailAIService integration
 - [ ] **DatabaseManager Hybrid Mode**: Test both legacy and config-based initialization
 - [ ] **PathValidator Security**: Verify all path validation utilities work correctly
@@ -39,13 +52,31 @@ python -c "from src.core.security import PathValidator; print('✅')"
 ## Phase 2: Merge Conflict Resolution (Weeks 1-2)
 
 ### Stage 2.1: High-Priority PR Rebase (Priority: CRITICAL)
-**Target**: 13 PRs with DIRTY/CONFLICTING status
+**Target**: 13 PRs with CI failures and merge conflicts
 
-**Priority Order**:
-1. **PR #173** (Approved, minimal conflicts) - Quick win
-2. **PR #195** (Orchestration tools) - Critical infrastructure
-3. **PR #197** (Email filtering) - User-facing feature
-4. **PR #169** (Modular AI platform) - Core architecture
+**Updated Priority Order (based on CI status)**:
+1. **PR #197** (feat-enhanced-filtering) - `review` ❌, `test` ❌ - BLOCKING
+2. **PR #196** (scientific) - `test` ❌ - BLOCKING
+3. **PR #195** (orchestration-tools) - `review` ❌ - BLOCKING
+4. **PR #178** (dashboard-features) - `review` ❌, `test` ❌ - BLOCKING
+5. **PR #173** (merge-clean) - Approved, minimal conflicts - QUICK WIN
+6. **PR #169** (modular-ai-platform) - `submit-pypi` ❌ - PUBLISHING ISSUE
+7. **PR #182** (pr-179) - `submit-pypi` ❌ - PUBLISHING ISSUE
+
+**PyPI Publishing Issues**: PRs #169, #182 failing on `submit-pypi` step
+**Test Failures**: Multiple PRs failing on CI test execution (backend/ path references)
+**Review Failures**: Several PRs failing on automated review steps
+
+### Stage 2.1.1: PyPI Publishing Issue Resolution
+**Affected PRs**: #169, #182
+**Issue**: Package publishing to PyPI failing
+**Investigation Needed**:
+- Check PyPI credentials and permissions
+- Verify package metadata in `pyproject.toml`
+- Test local package building: `uv build`
+- Validate package structure and dependencies
+
+**Quick Fix**: Disable PyPI publishing for these PRs if not essential for merge
 
 **Rebase Process** (for each PR):
 ```bash
@@ -60,11 +91,11 @@ git rebase --continue
 git push --force-with-lease origin <branch-name>
 ```
 
-### Stage 2.2: Feature Branch Assessment (Priority: HIGH)
-- [ ] **Dependency Analysis**: Map PR dependencies and conflicts
-- [ ] **Conflict Categorization**: Identify architectural vs. content conflicts
-- [ ] **Rollback Plans**: Prepare emergency reversion strategies
-- [ ] **Testing Frameworks**: Ensure test suites work post-rebase
+### Stage 2.2: CI Failure Analysis (Priority: HIGH)
+- [ ] **Root Cause Analysis**: Why specific PRs fail (backend/ path references confirmed)
+- [ ] **Pattern Identification**: Which PRs need import path updates vs. other issues
+- [ ] **Quick Wins Identification**: PRs that just need rebase to pick up CI fixes
+- [ ] **Complex Cases**: PRs needing manual code changes before rebase
 
 ### Stage 2.3: Automated Resolution (Priority: MEDIUM)
 - [ ] **Git Merge Driver**: Implement intelligent conflict resolution
@@ -193,6 +224,19 @@ uv run pytest tests/test_integration.py -v
 - **Testing**: pytest with coverage reporting
 - **Security**: Automated scanning and manual reviews
 - **Monitoring**: Performance tracking and alerting
+
+## Timeline Summary (Updated)
+
+| Week | Focus | Key Deliverables | Success Criteria |
+|------|-------|------------------|------------------|
+| **Week 1** | Component validation, critical PR fixes | 7 high-priority PRs fixed, CI infrastructure stable | 50% of blocking CI failures resolved |
+| **Week 2** | Medium-priority PRs, PyPI fixes | All 13 PRs rebased, PyPI publishing resolved | 100% CI failures resolved, pipeline stable |
+| **Week 3** | Integration testing, documentation | Full test suite passes, docs updated | All components integrated successfully |
+| **Week 4** | Process optimization, monitoring | Optimized workflows, monitoring active | Sustainable development pipeline established |
+
+**Current Status**: Week 1 in progress, CI fixes deployed, awaiting PR rebases
+**Next Milestone**: Complete PR #197, #196, #195 rebase (blocking issues)
+**Risk Level**: MEDIUM (known issues, clear resolution path)
 
 ### Timeline Commitments
 - **Daily Standups**: 15-minute progress updates
