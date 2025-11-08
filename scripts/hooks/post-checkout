@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# Post-checkout hook to automatically set up environment and sync orchestration files
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    echo "Orchestration sync already active, skipping to prevent recursion"
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration checks disabled, skipping sync"
+    exit 0
+fi
+
+# Detect worktree vs subtree setup
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    IS_WORKTREE=true
+    IS_SUBTREE=false
+else
+    IS_WORKTREE=false
+    IS_SUBTREE=true
+fi
+
+# Set sync active flag to prevent recursion
+export ORCHESTRATION_SYNC_ACTIVE=1
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ "$BRANCH" != "orchestration-tools" ]]; then
+    # Determine sync strategy based on setup type
+    if [[ "$IS_WORKTREE" == true ]]; then
+        echo "WARNING: Detected WORKTREE setup. Worktrees: safe to checkout directly. Performing full synchronization from orchestration-tools..."
+        perform_full_sync=1
+    else
+        echo "WARNING: Detected SUBTREE setup. Performing conservative synchronization from orchestration-tools. Consider using worktrees for better isolation."
+        perform_full_sync=0
+    fi
+
+    echo "Checking out $BRANCH branch. Synchronizing setup directory from orchestration-tools..."
+
+# Function to safely checkout files from orchestration-tools branch
+checkout_from_orchestration() {
+    local file_path="$1"
+    if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
+        # Check if file differs before checkout
+        if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
+            # For subtrees, check for conflicts first
+            if [[ "$IS_WORKTREE" != true ]]; then
+                if git status --porcelain | grep -q "^.M"; then
+                    echo "Warning: $file_path has local changes in subtree. Skipping checkout to avoid conflicts."
+                    return
+                fi
+            fi
+            echo "Updating $file_path from orchestration-tools"
+            git checkout orchestration-tools -- "$file_path"
+        fi
+    else
+        echo "Info: $file_path not available in orchestration-tools branch (expected for cleaned branch)"
+    fi
+}
+
+    # Update setup directory (full sync only)
+    if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
+        echo "Synchronizing setup directory from orchestration-tools"
+        git checkout orchestration-tools -- setup/
+    fi
+
+    # Update deployment directory (full sync only)
+    if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
+        echo "Synchronizing deployment directory from orchestration-tools"
+        git checkout orchestration-tools -- deployment/
+    fi
+
+    # Update orchestration lib first
+    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^scripts/lib$"; then
+        echo "Synchronizing scripts/lib directory from orchestration-tools"
+        git checkout orchestration-tools -- scripts/lib/
+    fi
+
+    # Update orchestration scripts
+    checkout_from_orchestration "scripts/install-hooks.sh"
+    checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
+    checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
+    checkout_from_orchestration "scripts/cleanup_orchestration.sh"
+
+    # Update orchestration documentation
+    checkout_from_orchestration "docs/orchestration-workflow.md"
+    checkout_from_orchestration "docs/orchestration_summary.md"
+    checkout_from_orchestration "docs/env_management.md"
+
+    # Update shared configuration files
+    checkout_from_orchestration ".flake8"
+    checkout_from_orchestration ".pylintrc"
+    checkout_from_orchestration ".gitignore"
+    checkout_from_orchestration ".gitattributes"
+    checkout_from_orchestration "launch.py"
+    checkout_from_orchestration "pyproject.toml"
+    checkout_from_orchestration "requirements.txt"
+    checkout_from_orchestration "requirements-dev.txt"
+    checkout_from_orchestration "uv.lock"
+
+    # Update Git hooks
+    checkout_from_orchestration "scripts/hooks/pre-commit"
+    checkout_from_orchestration "scripts/hooks/post-commit"
+    checkout_from_orchestration "scripts/hooks/post-merge"
+    checkout_from_orchestration "scripts/hooks/post-push"
+
+    # Conditional Git hook installation/update
+    ORCHESTRATION_BRANCH="${ORCHESTRATION_BRANCH:-orchestration-tools}"
+    CURRENT_ORCH_COMMIT=$(git rev-parse "origin/$ORCHESTRATION_BRANCH" 2>/dev/null)
+    LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
+
+    if [[ -z "$CURRENT_ORCH_COMMIT" ]]; then
+        echo "Warning: Could not determine current commit for $ORCHESTRATION_BRANCH. Skipping conditional hook update."
+    elif [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
+        echo "Orchestration tools branch has new changes. Installing/updating Git hooks..."
+        if [[ -f "scripts/install-hooks.sh" ]]; then
+            bash scripts/install-hooks.sh --quiet
+            if [[ $? -eq 0 ]]; then
+                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
+                echo "Hooks updated and commit ID stored."
+            else
+                echo "Warning: Hook installation failed. Commit ID not updated."
+            fi
+        else
+            echo "Warning: scripts/install-hooks.sh not found. Cannot update hooks."
+        fi
+    else
+        echo "Git hooks are already up-to-date with $ORCHESTRATION_BRANCH."
+    fi
+
+    echo "Orchestration synchronization complete"
+
+    # Check for committed hooks on non-orchestration branches
+    if git ls-files | grep -q "^scripts/hooks/"; then
+        echo "WARNING: Orchestration hooks found committed on non-orchestration branch '$BRANCH'"
+        echo "Removing hooks from index to prevent accidental commits"
+        git rm --cached scripts/hooks/* 2>/dev/null || true
+        echo "If you wish to preserve these hook changes, switch to orchestration-tools branch and commit them there"
+        echo "Then create a PR if needed"
+    fi
+
+    # Unset the recursion prevention flag
+    unset ORCHESTRATION_SYNC_ACTIVE
+fi
