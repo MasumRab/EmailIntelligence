@@ -15,7 +15,7 @@ from .core.settings import AppSettings
 from .api import (
     emails, categories, dashboard, search,
     gmail_service, action_service, filter_service,
-    workflow_service, performance_service
+    workflow_service, performance_service, filter_routes
 )
 from .core.exceptions import (
     DatabaseErrorHandler,
@@ -118,6 +118,7 @@ def create_app() -> FastAPI:
     app.include_router(filter_service.router, prefix="/api/v1", tags=["Filter Service"])
     app.include_router(workflow_service.router, prefix="/api/v1", tags=["Workflow Service"])
     app.include_router(performance_service.router, prefix="/api/v1", tags=["Performance"])
+    app.include_router(filter_routes.router, prefix="/api", tags=["Filter"])
 
     # --- Modular Component Loading ---
     # Dynamically load and register modules from the 'modules' directory.
