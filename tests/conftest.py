@@ -1,21 +1,3 @@
-
-import pytest
-from fastapi.testclient import TestClient
-from src.main import create_app
-from unittest.mock import AsyncMock
-
-@pytest.fixture
-def app():
-    app = create_app()
-    return app
-
-@pytest.fixture
-def client(app):
-    return TestClient(app)
-
-@pytest.fixture
-def mock_db_manager():
-    return AsyncMock()
 import os
 import sys
 
@@ -81,12 +63,11 @@ def setup_test_environment():
     os.makedirs(test_data_dir, exist_ok=True)
 
 
-# FIXME: Import issues on main branch - commenting out problematic imports for now
 # from src.core.database import get_db  # FIXME: get_db function doesn't exist
-# from src.core.data.factory import get_data_source  # FIXME: Import chain broken
+from src.core.factory import get_data_source
 
 # Use the test app instead of the main app
-# from tests.conftest import create_test_app as create_app  # Circular import - removed
+# Use the create_test_app function defined above
 create_app = create_test_app
 
 
@@ -171,12 +152,11 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
-    # FIXME: Dependency injection commented out due to import issues on main branch
     # app.dependency_overrides[get_db] = lambda: mock_db_manager  # FIXME: get_db doesn't exist
-    # app.dependency_overrides[get_data_source] = lambda: mock_db_manager
+    app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
     # del app.dependency_overrides[get_db]  # FIXME: get_db doesn't exist
-    # del app.dependency_overrides[get_data_source]
+    del app.dependency_overrides[get_data_source]

@@ -27,6 +27,16 @@ from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
 
+# Globalized data directory at the project root
+DATA_DIR = "data"
+EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
+EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
+CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
+USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
+
+# TODO(P1, 6h): Refactor global state management to use dependency injection
+# TODO(P2, 4h): Make data directory configurable via environment variables or settings
+
 # Data types
 DATA_TYPE_EMAILS = "emails"
 DATA_TYPE_CATEGORIES = "categories"
@@ -96,14 +106,29 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
-    def __init__(self, config: DatabaseConfig):
+    def __init__(self, config: DatabaseConfig = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
-        self.config = config
-        self.emails_file = config.emails_file
-        self.categories_file = config.categories_file
-        self.users_file = config.users_file
-        self.email_content_dir = config.email_content_dir
-        self.data_dir = config.data_dir
+        # Support both new config-based initialization and legacy initialization
+        if config is not None:
+            # New approach: Use provided DatabaseConfig
+            self.config = config
+            self.emails_file = config.emails_file
+            self.categories_file = config.categories_file
+            self.users_file = config.users_file
+            self.email_content_dir = config.email_content_dir
+            # Derive data_dir from config for backup and schema files if needed
+            if hasattr(config, "data_dir") and config.data_dir:
+                self.data_dir = config.data_dir
+            else:
+                # Try to derive from file paths
+                self.data_dir = os.path.dirname(os.path.dirname(self.emails_file))
+        else:
+            # Legacy approach: Direct data directory initialization
+            self.data_dir = DATA_DIR
+            self.emails_file = EMAILS_FILE
+            self.categories_file = CATEGORIES_FILE
+            self.users_file = USERS_FILE
+            self.email_content_dir = EMAIL_CONTENT_DIR
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -790,3 +815,29 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     manager = DatabaseManager(config=config)
     await manager._ensure_initialized()
     return manager
+
+
+# DEPRECATED: Legacy singleton pattern - kept for backward compatibility
+# TODO: Remove this once all code has been migrated to dependency injection
+_db_manager_instance = None
+
+async def get_db() -> DatabaseManager:
+    """
+    DEPRECATED: Provides backward compatibility for existing code.
+    Use create_database_manager() with explicit configuration instead.
+
+    This function maintains the old singleton pattern for code that hasn't
+    been migrated to proper dependency injection yet.
+    """
+    import warnings
+    warnings.warn(
+        "get_db() is deprecated. Use create_database_manager() with DatabaseConfig instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        _db_manager_instance = DatabaseManager()
+        await _db_manager_instance._ensure_initialized()
+    return _db_manager_instance
