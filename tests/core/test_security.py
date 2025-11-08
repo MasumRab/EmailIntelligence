@@ -2,13 +2,12 @@
 Tests for security utilities.
 """
 
-import pathlib
+import pytest
 import tempfile
+import pathlib
 from unittest.mock import patch
 
-import pytest
-
-from src.core.security import sanitize_path, secure_path_join, validate_path_safety
+from src.core.security import validate_path_safety, sanitize_path, secure_path_join
 
 
 class TestPathValidation:
@@ -150,7 +149,10 @@ class TestDatabaseConfigSecurity:
         from src.core.database import DatabaseConfig
 
         with pytest.raises(ValueError, match="Unsafe.*path"):
-            DatabaseConfig(data_dir="/tmp", emails_file="/etc/passwd")
+            DatabaseConfig(
+                data_dir="/tmp",
+                emails_file="/etc/passwd"
+            )
 
 
 class TestDataMigrationSecurity:
@@ -162,17 +164,16 @@ class TestDataMigrationSecurity:
         import sys
 
         # Test with safe paths (should succeed)
-        result = subprocess.run(
-            [sys.executable, "deployment/data_migration.py", "--help"],
-            capture_output=True,
-            text=True,
-        )
+        result = subprocess.run([
+            sys.executable, "deployment/data_migration.py",
+            "--help"
+        ], capture_output=True, text=True)
 
         # Should show help without errors
         assert result.returncode == 0
         assert "Data Migration Utility" in result.stdout
 
-    @patch("deployment.data_migration.validate_path_safety")
+    @patch('deployment.data_migration.validate_path_safety')
     def test_data_migration_rejects_unsafe_paths(self, mock_validate):
         """Test that data migration rejects unsafe paths."""
         import subprocess
@@ -181,19 +182,12 @@ class TestDataMigrationSecurity:
         # Mock validation to return False for unsafe paths
         mock_validate.return_value = False
 
-        result = subprocess.run(
-            [
-                sys.executable,
-                "deployment/data_migration.py",
-                "validate-json",
-                "--data-dir",
-                "../../../etc",
-                "--db-path",
-                "test.db",
-            ],
-            capture_output=True,
-            text=True,
-        )
+        result = subprocess.run([
+            sys.executable, "deployment/data_migration.py",
+            "validate-json",
+            "--data-dir", "../../../etc",
+            "--db-path", "test.db"
+        ], capture_output=True, text=True)
 
         # Should exit with error due to unsafe path
         assert result.returncode == 1

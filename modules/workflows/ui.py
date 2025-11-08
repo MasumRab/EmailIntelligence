@@ -3,19 +3,9 @@ import logging
 
 import gradio as gr
 
-# Import from the new advanced workflow engine in the core
-from src.core.advanced_workflow_engine import (
-    Workflow,
-    WorkflowRunner,
-    WorkflowManager,
-    get_workflow_manager
-)
-from src.core.advanced_workflow_engine import (
-    EmailInputNode, 
-    NLPProcessorNode, 
-    EmailOutputNode,
-    BaseNode
-)
+from backend.node_engine.node_base import Workflow
+from backend.node_engine.workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_manager import workflow_manager
 
 logger = logging.getLogger(__name__)
 
@@ -32,19 +22,8 @@ def uppercase(text):
     return text.upper()
 
 
-# Import actual node classes from the new advanced workflow engine
-# Note: Using the new node types from the advanced workflow engine
-class EmailSourceNode(EmailInputNode):
-    """Compatibility wrapper for old EmailSourceNode"""
-    pass
-
-class PreprocessingNode(NLPProcessorNode):
-    """Compatibility wrapper for old PreprocessingNode"""
-    pass
-
-class AIAnalysisNode(EmailOutputNode):
-    """Compatibility wrapper for old AIAnalysisNode"""
-    pass
+# Import actual node classes from the Node Engine
+from backend.node_engine.email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode
 
 # A registry of available node types for this proof-of-concept.
 # This allows the UI to instantiate the correct Node objects.
@@ -70,46 +49,44 @@ async def run_workflow_from_json(workflow_json: str, initial_context_json: str) 
         return {"error": f"Invalid JSON input: {e}"}
 
     try:
-        # Create a Node Engine workflow from the new advanced workflow engine
-        workflow_name = workflow_data.get("name", "My Workflow")
-        workflow = Workflow(name=workflow_name)
+        # Create a Node Engine workflow
+        workflow = Workflow(name=workflow_data.get("name", "My Workflow"))
 
-        # Add nodes to the workflow using the new API
+        # Add nodes to the workflow
         for node_def in workflow_data.get("nodes", []):
             node_type = node_def.get("type")
             if node_type in AVAILABLE_NODE_CLASSES:
                 node_class = AVAILABLE_NODE_CLASSES[node_type]
-                # Create node using new workflow's add_node method
-                node_id = workflow.add_node(
-                    node_type=node_type,
+                node = node_class(
                     node_id=node_def["id"],
-                    **node_def.get("config", {})
+                    name=node_def.get("name", node_type),
+                    config=node_def.get("config", {}),
                 )
+                workflow.add_node(node)
             else:
                 return {"error": f"Unknown node type: {node_type}"}
 
-        # Add connections if specified using the new API
+        # Add connections if specified
         for conn_def in workflow_data.get("connections", []):
             workflow.add_connection(
                 source_node_id=conn_def["source_node"],
-                source_output=conn_def["source_output"],
+                source_port=conn_def["source_output"],
                 target_node_id=conn_def["target_node"],
-                target_input=conn_def["target_input"],
+                target_port=conn_def["target_input"],
             )
 
-        # Run the workflow using the new Node Engine
-        workflow_manager = get_workflow_manager()  # Use the global workflow manager
-        execution_result = await workflow_manager.execute_workflow(
-            workflow.workflow_id, 
-            initial_inputs=initial_context
+        # Run the workflow using the Node Engine
+        workflow_engine = WorkflowEngine()
+        execution_context = await workflow_engine.execute_workflow(
+            workflow, initial_inputs=initial_context
         )
 
-        # Return the execution results using the new API
+        # Return the execution results
         return {
-            "status": execution_result.status,
-            "execution_time": execution_result.execution_time,
-            "outputs": execution_result.node_results,
-            "errors": [execution_result.error] if execution_result.error else [],
+            "status": execution_context.metadata.get("status", "unknown"),
+            "execution_time": execution_context.metadata.get("execution_duration", 0),
+            "outputs": execution_context.outputs,
+            "errors": [str(error) for error in execution_context.errors],
         }
 
     except Exception as e:

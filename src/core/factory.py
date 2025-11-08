@@ -5,8 +5,7 @@ from typing import AsyncGenerator
 from .data_source import DataSource
 from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
-from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
-from .caching import init_cache_manager, CacheConfig, CacheBackend
+from .data.repository import DatabaseEmailRepository, EmailRepository
 
 # Optional import for NotmuchDataSource
 try:
@@ -65,43 +64,22 @@ async def get_data_source() -> DataSource:
     global _data_source_instance
     if _data_source_instance is None:
         source_type = os.environ.get("DATA_SOURCE_TYPE", "default")
-
-        # The DatabaseManager may be used by multiple data sources, so we create it upfront.
-        from .database import DatabaseConfig, create_database_manager
-        config = DatabaseConfig()
-        db_manager = await create_database_manager(config)
-
         if source_type == "notmuch":
             if not NOTMUCH_AVAILABLE:
-                raise ImportError(
-                    "NotmuchDataSource requested but notmuch library is not available. "
-                    "Install with: pip install notmuch"
-                )
-            # NotmuchDataSource uses a DatabaseManager for caching.
-            _data_source_instance = NotmuchDataSource(db_manager=db_manager)
+                raise ImportError("NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch")
+            _data_source_instance = NotmuchDataSource()
         else:
-            # The default data source is the database manager itself.
-            _data_source_instance = db_manager
+            _data_source_instance = DatabaseManager()
+            await _data_source_instance.initialize()
     return _data_source_instance
 
 
 async def get_email_repository() -> EmailRepository:
     """
-    Provides the singleton instance of the EmailRepository with Redis/memory caching.
+    Provides the singleton instance of the EmailRepository.
     """
     global _email_repository_instance
     if _email_repository_instance is None:
-        # Initialize cache manager with Redis backend
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-        cache_config = CacheConfig(
-                backend=CacheBackend.REDIS,
-            redis_url=redis_url,
-            default_ttl=600,  # 10 minutes for dashboard data
-            enable_monitoring=True
-        )
-        init_cache_manager(cache_config)
-
         data_source = await get_data_source()
-        base_repository = DatabaseEmailRepository(data_source)
-        _email_repository_instance = CachingEmailRepository(base_repository)
+        _email_repository_instance = DatabaseEmailRepository(data_source)
     return _email_repository_instance

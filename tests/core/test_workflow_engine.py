@@ -3,8 +3,8 @@ Unit tests for the enhanced workflow engine.
 Tests all the new functionality implemented for workflow engine enhancement.
 """
 
-import os
 import sys
+import os
 
 # Add the project root to the path to import correctly
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))

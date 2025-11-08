@@ -1,9 +1,7 @@
 """
 Tests for password hashing functionality
 """
-
 import pytest
-
 from src.core.auth import hash_password, verify_password
 
 

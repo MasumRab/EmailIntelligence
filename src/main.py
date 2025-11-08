@@ -50,15 +50,15 @@ def create_system_status_tab():
             try:
                 dashboard_response = requests.get("http://127.0.0.1:8000/api/dashboard/stats", timeout=2)
                 dashboard_data = dashboard_response.json() if dashboard_response.status_code == 200 else {}
-            except (requests.RequestException, ValueError) as e:
-                dashboard_data = {"error": f"Dashboard API unavailable: {str(e)}"}
+            except:
+                dashboard_data = {"error": "Dashboard API unavailable"}
 
             # Get Gmail performance metrics
             try:
                 gmail_response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=2)
                 gmail_data = gmail_response.json() if gmail_response.status_code == 200 else {}
-            except (requests.RequestException, ValueError) as e:
-                gmail_data = {"error": f"Gmail API unavailable: {str(e)}"}
+            except:
+                gmail_data = {"error": "Gmail API unavailable"}
 
             return {
                 "system_info": system_info,
@@ -70,7 +70,7 @@ def create_system_status_tab():
                 "gmail_status": "Connected" if not gmail_data.get("error") else "Disconnected",
                 "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
-        except (psutil.Error, OSError, ValueError, KeyError) as e:
+        except Exception as e:
             logger.error(f"Error refreshing system status: {e}")
             return {
                 "system_info": {"error": "Unable to retrieve system info"},
@@ -344,8 +344,8 @@ def create_ai_lab_tab():
                 try:
                     # This would call a model management API when implemented
                     return {"models": ["sentiment_model", "topic_model", "intent_model", "urgency_model"], "status": "active"}
-                except Exception as e:
-                    return {"error": f"Model status unavailable: {str(e)}"}
+                except:
+                    return {"error": "Model status unavailable"}
 
             refresh_models_btn.click(fn=refresh_model_status, outputs=[model_status])
 

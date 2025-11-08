@@ -31,14 +31,14 @@ jobs:
           
       - name: Run tests
         run: |
-          uv run pytest src/backend/ modules/ -v --tb=short --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+          uv run pytest backend/ src/ modules/ -v --tb=short --cov=backend --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
 
       - name: Run linting
         run: |
-          uv run flake8 src/backend/
-          uv run black --check src/backend/
-          uv run isort --check-only src/backend/
+          uv run flake8 backend/
+          uv run black --check backend/
+          uv run isort --check-only backend/
 
       - name: Type checking
         run: |
-          uv run mypy src/backend/ --show-error-codes --no-strict-optional
+          uv run mypy backend/ --show-error-codes --no-strict-optional

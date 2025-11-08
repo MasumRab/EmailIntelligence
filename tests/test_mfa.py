@@ -3,11 +3,9 @@ Test suite for MFA implementation
 """
 
 import asyncio
-
 import pytest
-
-from src.core.database import DatabaseManager
 from src.core.mfa import MFAService
+from src.core.database import DatabaseManager
 
 
 @pytest.fixture
@@ -29,7 +27,7 @@ async def test_mfa_secret_generation(mfa_service):
     assert secret is not None
     assert len(secret) > 0
     # Should be base32 encoded
-    assert all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567" for c in secret)
+    assert all(c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567' for c in secret)
 
 
 @pytest.mark.asyncio
@@ -40,7 +38,7 @@ async def test_mfa_qr_code_generation(mfa_service):
     assert qr_code is not None
     assert len(qr_code) > 0
     # Should be base64 encoded PNG
-    assert qr_code.startswith("iVBORw0KGgo")
+    assert qr_code.startswith('iVBORw0KGgo')
 
 
 @pytest.mark.asyncio
@@ -89,7 +87,7 @@ async def test_user_mfa_fields(db_manager):
         "hashed_password": "hashed_password",
         "mfa_enabled": True,
         "mfa_secret": "TESTSECRET",
-        "mfa_backup_codes": ["code1", "code2"],
+        "mfa_backup_codes": ["code1", "code2"]
     }
 
     created_user = await db_manager.create_user(user_data)

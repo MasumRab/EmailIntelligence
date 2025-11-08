@@ -1,8 +1,8 @@
 ================================================================================
 EMAIL INTELLIGENCE PLATFORM - CODEBASE ANALYSIS REPORT
 ================================================================================
-Analysis Date: 2025-11-01 17:11:36
-Total Issues Identified: 43
+Analysis Date: 2025-10-29 04:30:41
+Total Issues Identified: 44
 
 Security Vulnerability (2 issues)
 --------------------------------------------------
@@ -22,12 +22,12 @@ Security Vulnerability (2 issues)
       Effort: 2-8 hours
 
 
-Technical Debt (28 issues)
+Technical Debt (29 issues)
 --------------------------------------------------
-  MEDIUM Risk (28 issues):
-    • TODO: Implement logic to determine optimized strategies
-      File: backend/python_nlp/smart_retrieval.py
-      Line: 437
+  MEDIUM Risk (29 issues):
+    • TODO: Add LLM interaction logic here
+      File: backend/python_nlp/ai_training.py
+      Line: 42
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -35,7 +35,7 @@ Technical Debt (28 issues)
 
     • TODO: Implement CLI logic
       File: backend/python_nlp/smart_retrieval.py
-      Line: 559
+      Line: 150
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -51,7 +51,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 3h): Add support for optional input ports with default values
       File: backend/node_engine/workflow_engine.py
-      Line: 288
+      Line: 282
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -59,7 +59,7 @@ Technical Debt (28 issues)
 
     • TODO: (P3, 4h): Implement input transformation pipeline for incompatible but convertible types
       File: backend/node_engine/workflow_engine.py
-      Line: 294
+      Line: 283
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -67,7 +67,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 4h): Expand type compatibility rules to support all defined DataType combinations
       File: backend/node_engine/workflow_engine.py
-      Line: 323
+      Line: 307
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -75,7 +75,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 3h): Add support for generic types and type parameters
       File: backend/node_engine/workflow_engine.py
-      Line: 330
+      Line: 308
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -83,7 +83,7 @@ Technical Debt (28 issues)
 
     • TODO: (P3, 2h): Implement type coercion for compatible but distinct types
       File: backend/node_engine/workflow_engine.py
-      Line: 337
+      Line: 309
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -99,7 +99,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 4h): Add rate limiting for different user roles and node types
       File: backend/node_engine/security_manager.py
-      Line: 67
+      Line: 60
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -107,7 +107,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 5h): Implement comprehensive node validation with static analysis of config parameters
       File: backend/node_engine/security_manager.py
-      Line: 97
+      Line: 84
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -115,7 +115,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 3h): Add support for dynamic security policies based on user context
       File: backend/node_engine/security_manager.py
-      Line: 105
+      Line: 85
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -123,7 +123,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
       File: backend/node_engine/security_manager.py
-      Line: 190
+      Line: 164
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -131,7 +131,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 2h): Add configurable sanitization policies based on security levels
       File: backend/node_engine/security_manager.py
-      Line: 198
+      Line: 165
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -139,7 +139,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 8h): Implement comprehensive execution sandboxing with resource isolation
       File: backend/node_engine/security_manager.py
-      Line: 253
+      Line: 214
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -147,7 +147,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 4h): Add support for custom execution environments based on node security levels
       File: backend/node_engine/security_manager.py
-      Line: 254
+      Line: 215
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -187,7 +187,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 6h): Refactor global state management to use dependency injection
       File: src/core/database.py
-      Line: 44
+      Line: 28
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -195,7 +195,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 4h): Make data directory configurable via environment variables or settings
       File: src/core/database.py
-      Line: 51
+      Line: 29
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -203,7 +203,15 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
       File: src/core/database.py
-      Line: 203
+      Line: 90
+      Impact: Code maintainability and quality
+      Remediation: Address the TODO comment
+      Timeline: 1-3 months
+      Effort: 1-4 hours
+
+    • TODO: (P2, 6h): Implement proper dependency injection for database manager instance
+      File: src/core/database.py
+      Line: 91
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -211,7 +219,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
       File: src/core/database.py
-      Line: 251
+      Line: 125
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -219,7 +227,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 3h): Implement lazy loading strategy that is more predictable and testable
       File: src/core/database.py
-      Line: 258
+      Line: 126
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -227,7 +235,7 @@ Technical Debt (28 issues)
 
     • TODO: (P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
       File: src/core/database.py
-      Line: 979
+      Line: 582
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -235,7 +243,7 @@ Technical Debt (28 issues)
 
     • TODO: (P2, 4h): Implement search indexing to improve query performance
       File: src/core/database.py
-      Line: 987
+      Line: 583
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -243,7 +251,7 @@ Technical Debt (28 issues)
 
     • TODO: (P3, 3h): Add support for search result caching
       File: src/core/database.py
-      Line: 995
+      Line: 584
       Impact: Code maintainability and quality
       Remediation: Address the TODO comment
       Timeline: 1-3 months
@@ -253,7 +261,7 @@ Technical Debt (28 issues)
 Architecture Concern (1 issues)
 --------------------------------------------------
   MEDIUM Risk (1 issues):
-    • Large module (1023 lines)
+    • Large module (1003 lines)
       File: backend/python_nlp/nlp_engine.py
       Impact: Maintainability and readability
       Remediation: Split into smaller, focused modules
@@ -289,21 +297,21 @@ Maintainability Issue (10 issues)
       Timeline: 2-4 weeks
       Effort: 1-3 days
 
-    • Code duplication (292 occurrences)
+    • Code duplication (279 occurrences)
       File: modules/email/routes.py
       Impact: Maintenance overhead
       Remediation: Extract common code into reusable functions/classes
       Timeline: 2-4 weeks
       Effort: 1-3 days
 
-    • Code duplication (344 occurrences)
+    • Code duplication (325 occurrences)
       File: modules/system_status/__init__.py
       Impact: Maintenance overhead
       Remediation: Extract common code into reusable functions/classes
       Timeline: 2-4 weeks
       Effort: 1-3 days
 
-    • High complexity function 'main' (cyclomatic complexity: 24)
+    • High complexity function 'main' (cyclomatic complexity: 28)
       File: launch.py
       Impact: Code readability and testability
       Remediation: Refactor into smaller, simpler functions
@@ -356,7 +364,7 @@ Maintainability Issue (10 issues)
 SUMMARY BY RISK LEVEL
 ------------------------------
 HIGH: 2 issues
-MEDIUM: 41 issues
+MEDIUM: 42 issues
 
 RECOMMENDATIONS
 --------------------

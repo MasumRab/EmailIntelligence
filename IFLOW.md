@@ -99,35 +99,25 @@ The `launch.py` script is the central tool for managing the development environm
 
 ## AI Models Setup
 
-**Note:** This documentation describes an aspirational architecture. The current repository contains only documentation and does not include training scripts or AI model implementation.
+The application's AI features require trained models. On first run, placeholder files are created. To enable actual AI functionality:
 
-For a full EmailIntelligence deployment with AI capabilities:
-
-1. Prepare labeled datasets for training (sentiment, topic, intent, urgency classification)
-2. Implement training scripts (e.g., `scripts/train_sentiment_model.py`) to load your data
-3. Train models and save them in the expected directory structure:
-   - `models/sentiment/` - Sentiment analysis models (model.pkl, config.json)
+1. Prepare labeled datasets for training
+2. Modify training scripts to load your data
+3. Train models and save them with the exact filenames expected by the application:
+   - `models/sentiment/` - Sentiment analysis models
    - `models/topic/` - Topic classification models
    - `models/intent/` - Intent recognition models
    - `models/urgency/` - Urgency detection models
 
-Models should be organized in the `models/` directory with subdirectories for each model type, including both model weights and configuration files.
+Models are now organized in the `models/` directory with subdirectories for each model type.
 
 ## Environment Configuration
 
-Key environment variables for a full EmailIntelligence deployment:
-- `DATABASE_URL`: Database connection string (e.g., `sqlite:///emailintelligence.db`)
-- `GMAIL_CREDENTIALS_JSON`: Gmail API credentials JSON content
+Key environment variables:
+- `DATABASE_URL`: Database connection string
+- `GMAIL_CREDENTIALS_JSON`: Gmail API credentials
 - `NLP_MODEL_DIR`: Directory for trained NLP models (default: `models/`)
 - `PORT`: Port for the Python FastAPI server (default: `8000`)
-
-To set these variables, create a `.env` file in the project root:
-```
-DATABASE_URL=sqlite:///emailintelligence.db
-GMAIL_CREDENTIALS_JSON={"installed":{"client_id":"..."}}
-NLP_MODEL_DIR=models/
-PORT=8000
-```
 
 ## Development Conventions
 
@@ -140,15 +130,6 @@ PORT=8000
 - Frontend code follows standard React patterns in `client/`
 - Tests are located in `tests/`
 - AI models are organized in `models/` directory by type
-
-**Feature Placement Guidance:**
-- New API endpoints and backend services → `backend/python_backend/`
-- NLP analysis components and AI models → `backend/python_nlp/`
-- Core application logic and UI integration → `src/`
-- Workflow nodes and orchestration → `backend/node_engine/`
-- Reusable components and extensions → `modules/`
-- React UI components and pages → `client/`
-- Test files → `tests/` (matching source structure)
 
 ### Python Development
 

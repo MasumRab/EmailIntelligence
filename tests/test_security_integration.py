@@ -2,21 +2,15 @@
 Integration tests for security components.
 """
 
-from unittest.mock import patch
-
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from unittest.mock import patch
 
-from src.core.audit_logger import audit_logger
-from src.core.middleware import (
-    SecurityHeadersMiddleware,
-    SecurityMiddleware,
-    create_security_headers_middleware,
-    create_security_middleware,
-)
-from src.core.performance_monitor import performance_monitor
+from src.core.middleware import SecurityMiddleware, SecurityHeadersMiddleware, create_security_middleware, create_security_headers_middleware
 from src.core.rate_limiter import api_rate_limiter
+from src.core.audit_logger import audit_logger
+from src.core.performance_monitor import performance_monitor
 
 
 @pytest.fixture
@@ -78,7 +72,7 @@ class TestSecurityMiddleware:
 
     def test_audit_logging_enabled(self, secure_client):
         """Test that audit logging is working."""
-        with patch.object(audit_logger, "log_api_access") as mock_log:
+        with patch.object(audit_logger, 'log_api_access') as mock_log:
             response = secure_client.get("/api/test")
 
             # Verify audit logging was called
@@ -98,7 +92,7 @@ class TestSecurityMiddleware:
 
         # Check that metrics were recorded (may be sampled, so check for any api metrics)
         metrics = performance_monitor.get_aggregated_metrics()
-        api_metrics = {k: v for k, v in metrics.items() if k.startswith("api_")}
+        api_metrics = {k: v for k, v in metrics.items() if k.startswith('api_')}
         # Note: Performance monitoring uses sampling (10%), so metrics may not always be recorded
         # This test verifies the integration works, but doesn't guarantee metrics due to sampling
         assert len(api_metrics) >= 0  # At least no errors occurred
@@ -159,7 +153,7 @@ class TestErrorHandling:
             user_id=None,
             ip_address="invalid_ip",
             status_code=200,
-            response_time=-1.0,  # Invalid response time
+            response_time=-1.0  # Invalid response time
         )
         # Should not raise exception
 
@@ -198,7 +192,7 @@ class TestPerformanceUnderLoad:
                 user_id="perf_test",
                 ip_address="127.0.0.1",
                 status_code=200,
-                response_time=0.1,
+                response_time=0.1
             )
 
         end_time = time.time()
@@ -216,7 +210,10 @@ class TestPerformanceUnderLoad:
         # Record multiple metrics
         for i in range(100):
             performance_monitor.record_metric(
-                f"test_metric_{i}", i, "count", sample_rate=1.0  # Don't sample for performance test
+                f"test_metric_{i}",
+                i,
+                "count",
+                sample_rate=1.0  # Don't sample for performance test
             )
 
         end_time = time.time()
@@ -260,7 +257,7 @@ class TestSecurityCompliance:
             "Strict-Transport-Security",
             "Content-Security-Policy",
             "Referrer-Policy",
-            "Permissions-Policy",
+            "Permissions-Policy"
         ]
 
         for header in required_headers:

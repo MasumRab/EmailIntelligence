@@ -1,6 +1,5 @@
 from .database_source import get_database_data_source
 
-
 async def get_data_source():
     """
     Factory function to get the appropriate data source.

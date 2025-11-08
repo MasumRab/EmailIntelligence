@@ -32,7 +32,7 @@ Email Intelligence is an AI-powered email management application that provides i
 
 ## Technology Stack
 - **Frontend**: React 18, TypeScript, TailwindCSS, Radix UI, Wouter (routing), React Query
-- **Backend**: Express.js, TypeScript, Python (FastAPI/Flask)
+- **Backend**: Python (FastAPI/Flask)
 - **AI/ML**: Python NLP models, scikit-learn
 - **Database**: SQLite, Drizzle ORM
 - **Build Tools**: Vite, esbuild

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from src.core.ai_engine import AIAnalysisResult
+from backend.python_backend.ai_engine import AIAnalysisResult
 
 
 @pytest.fixture

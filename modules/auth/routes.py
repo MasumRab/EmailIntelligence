@@ -12,10 +12,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from src.core.auth import authenticate_user, create_access_token, create_user, get_current_active_user, hash_password, TokenData, require_role, UserRole
-from src.core.factory import get_data_source
-from src.core.data_source import DataSource
+from src.core.database import get_db
 from src.core.mfa import get_mfa_service
-from src.core.settings import settings
+from backend.python_backend.settings import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -55,8 +54,9 @@ class MFASetupResponse(BaseModel):
 
 
 @router.post("/login", response_model=Token)
-async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_source)):
+async def login(user_credentials: UserLogin):
     """Login endpoint to get access token"""
+    db = await get_db()
     user = await authenticate_user(user_credentials.username, user_credentials.password, db)
     
     if not user:
@@ -123,8 +123,9 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
 
 
 @router.post("/mfa/setup", response_model=MFASetupResponse)
-async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
+async def setup_mfa(current_user: TokenData = Depends(get_current_active_user)):
     """Setup MFA for the current user"""
+    db = await get_db()
     
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
@@ -170,10 +171,10 @@ async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), 
 @router.post("/mfa/enable")
 async def enable_mfa(
     mfa_request: EnableMFARequest,
-    current_user: TokenData = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source)
+    current_user: TokenData = Depends(get_current_active_user)
 ):
     """Enable MFA after user has verified the setup"""
+    db = await get_db()
     
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
@@ -218,10 +219,10 @@ async def enable_mfa(
 
 @router.post("/mfa/disable")
 async def disable_mfa(
-    current_user: TokenData = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source)
+    current_user: TokenData = Depends(get_current_active_user)
 ):
     """Disable MFA for the current user"""
+    db = await get_db()
     
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
@@ -244,8 +245,9 @@ async def disable_mfa(
 
 
 @router.post("/register", response_model=Token)
-async def register(user_data: UserCreate, db: DataSource = Depends(get_data_source)):
+async def register(user_data: UserCreate):
     """Register a new user"""
+    db = await get_db()
     user_dict = {
         "username": user_data.username,
         "hashed_password": hash_password(user_data.password),

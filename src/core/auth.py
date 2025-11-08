@@ -9,15 +9,14 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
-from argon2 import PasswordHasher
 
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
-# Database imports removed - use dependency injection with create_database_manager
-from .settings import settings
+from .database import get_db
+from backend.python_backend.settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission, SecurityLevel
@@ -76,42 +75,35 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def hash_password(password: str) -> str:
     """
-    Hash a password using Argon2.
+    Hash a password using SHA-256 with a salt.
 
     Args:
         password: Plain text password
 
     Returns:
-        Argon2 hashed password (including salt and parameters)
+        Hashed password with salt
     """
-    ph = PasswordHasher()
-    return ph.hash(password)
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
+    return f"{password_hash}:{salt}"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Verify a plain password against an Argon2-hashed password.
+    Verify a plain password against a hashed password.
 
     Args:
         plain_password: Plain text password
-        hashed_password: Argon2 hashed password
+        hashed_password: Hashed password with salt
 
     Returns:
         True if passwords match, False otherwise
     """
-    ph = PasswordHasher()
     try:
-        return ph.verify(hashed_password, plain_password)
-    except argon2.exceptions.VerifyMismatchError:
-        # Password verification failed
-        return False
-    except argon2.exceptions.InvalidHashError:
-        # Invalid hash format
-        logger.warning("Invalid password hash format")
-        return False
-    except Exception as e:
-        # Other unexpected errors
-        logger.error(f"Unexpected error during password verification: {e}")
+        password_hash, salt = hashed_password.split(":")
+        return hashlib.sha256((plain_password + salt).encode()).hexdigest() == password_hash
+    except ValueError:
+        # Invalid format
         return False
 
 
@@ -214,8 +206,7 @@ async def verify_token(
         )
     except jwt.PyJWTError:
         raise credentials_exception
-    except Exception as e:
-        logger.error(f"Unexpected error during token verification: {e}")
+    except Exception:
         raise credentials_exception
     
     return token_data

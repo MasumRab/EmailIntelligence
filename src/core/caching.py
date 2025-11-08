@@ -10,13 +10,12 @@ import json
 import logging
 import time
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional, Set, Union
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
 
 try:
     import redis.asyncio as redis
-
     REDIS_AVAILABLE = True
 except ImportError:
     redis = None
@@ -27,14 +26,12 @@ logger = logging.getLogger(__name__)
 
 class CacheBackend(Enum):
     """Supported cache backends"""
-
     MEMORY = "memory"
     REDIS = "redis"
 
 
 class CacheStrategy(Enum):
     """Cache invalidation strategies"""
-
     LRU = "lru"
     TTL = "ttl"
     TAGS = "tags"
@@ -43,7 +40,6 @@ class CacheStrategy(Enum):
 @dataclass
 class CacheConfig:
     """Configuration for cache backends"""
-
     backend: CacheBackend = CacheBackend.MEMORY
     redis_url: Optional[str] = None
     redis_db: int = 0
@@ -55,7 +51,6 @@ class CacheConfig:
 @dataclass
 class CacheStats:
     """Cache performance statistics"""
-
     hits: int = 0
     misses: int = 0
     sets: int = 0
@@ -117,7 +112,7 @@ class MemoryCacheBackend(CacheBackendInterface):
         if key in self._cache:
             entry = self._cache[key]
             # Check TTL
-            if entry.get("expires_at") and time.time() > entry["expires_at"]:
+            if entry.get('expires_at') and time.time() > entry['expires_at']:
                 await self.delete(key)
                 self._stats.misses += 1
                 return None
@@ -128,7 +123,7 @@ class MemoryCacheBackend(CacheBackendInterface):
             self._access_order.append(key)
 
             self._stats.hits += 1
-            return entry["value"]
+            return entry['value']
         else:
             self._stats.misses += 1
             return None
@@ -137,7 +132,11 @@ class MemoryCacheBackend(CacheBackendInterface):
         """Set value in memory cache"""
         expires_at = time.time() + ttl if ttl else None
 
-        self._cache[key] = {"value": value, "expires_at": expires_at, "created_at": time.time()}
+        self._cache[key] = {
+            'value': value,
+            'expires_at': expires_at,
+            'created_at': time.time()
+        }
 
         # Update access order
         if key in self._access_order:
@@ -168,7 +167,7 @@ class MemoryCacheBackend(CacheBackendInterface):
         """Check if key exists in memory cache"""
         if key in self._cache:
             entry = self._cache[key]
-            if entry.get("expires_at") and time.time() > entry["expires_at"]:
+            if entry.get('expires_at') and time.time() > entry['expires_at']:
                 await self.delete(key)
                 return False
             return True
@@ -202,7 +201,7 @@ class RedisCacheBackend(CacheBackendInterface):
             self._redis = redis.Redis.from_url(
                 self.config.redis_url or "redis://localhost:6379",
                 db=self.config.redis_db,
-                decode_responses=True,
+                decode_responses=True
             )
 
     async def get(self, key: str) -> Optional[Any]:
@@ -292,9 +291,7 @@ class CacheManager:
         """Get value from cache"""
         return await self.backend.get(key)
 
-    async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None, tags: Optional[List[str]] = None
-    ) -> bool:
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None, tags: Optional[List[str]] = None) -> bool:
         """Set value in cache with optional tags"""
         success = await self.backend.set(key, value, ttl)
 
