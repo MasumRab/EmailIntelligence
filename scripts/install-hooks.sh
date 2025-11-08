@@ -19,10 +19,6 @@
 #
 # AUTHOR: Orchestration Team
 # VERSION: 2.1.0
-# 
-# NOTE: When orchestration files are updated, run this script to ensure
-# all hooks are properly installed. See docs/orchestration_hook_management.md
-# for complete update procedures.
 
 # Source common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

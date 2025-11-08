@@ -13,15 +13,6 @@ pre-commit>=3.0.0
 pytest>=8.4.0
 pytest-asyncio>=0.23.0
 
-# Advanced testing frameworks (scientific branch)
-hypothesis>=6.100.0  # Property-based testing
-pytest-cov>=4.1.0    # Coverage reporting
-pytest-benchmark>=4.0.0  # Performance benchmarking
-pytest-mock>=3.12.0  # Enhanced mocking
-pytest-xdist>=3.5.0  # Parallel test execution
-mutmut>=2.5.0        # Mutation testing
-coverage>=7.4.0      # Enhanced coverage analysis
-
 # Development tools
 uvicorn[standard]>=0.30.0
 
