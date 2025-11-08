@@ -29,7 +29,7 @@ rm -rf client/ 2>/dev/null
 echo "Removing application data and dependencies..."
 rm -rf data/ 2>/dev/null
 rm -rf node_modules/ 2>/dev/null
-rm -rf tests/ 2>/dev/null
+
 
 # Remove application-specific configuration files
 echo "Removing application-specific configurations..."

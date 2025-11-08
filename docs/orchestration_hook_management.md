@@ -16,8 +16,8 @@ Hooks should be reinstalled when any of the following orchestration files are mo
 
 ### Supporting Scripts
 - `scripts/install-hooks.sh`
-- `scripts/lib/*.sh` (utility libraries)
 - `scripts/cleanup_orchestration.sh`
+- `scripts/cleanup_application_files.sh`
 - `scripts/sync_setup_worktrees.sh`
 
 ## Update Process
@@ -30,6 +30,8 @@ Hooks should be reinstalled when any of the following orchestration files are mo
    ```
 
 2. **Make your changes** to the appropriate orchestration files
+
+3. **Update all cleanup scripts**: If your changes affect what should or should not be cleaned up, ensure both `scripts/cleanup_orchestration.sh` and `scripts/cleanup_application_files.sh` are updated accordingly.
 
 3. **Test your changes locally**:
    ```bash
