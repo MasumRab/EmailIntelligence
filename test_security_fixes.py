@@ -65,7 +65,7 @@ def test_backend_settings():
     # Since the full backend import might have dependencies we don't need for this test,
     # let's directly verify the settings file has the correct implementation
     
-    backend_settings_path = Path("backend/python_backend/settings.py")
+    backend_settings_path = Path("setup/settings.py")
     backend_settings_content = backend_settings_path.read_text()
     
     # Check that the secret key field uses ... as default (meaning it's required)
