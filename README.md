@@ -136,3 +136,19 @@ rm -f performance_metrics_log.jsonl
 - All Git hooks in `scripts/hooks/` are essential for the orchestration workflow
 - This branch serves as the single source of truth for all environment and tooling configurations
 - Changes to orchestration-managed files require PRs through the automated system
+
+## Constitution Compliance
+
+This orchestration system must follow the Orchestration Tools Verification and Review Constitution principles:
+- **Verification-First Development**: All changes must pass comprehensive verification before merging to any target branch (scientific, main, etc.)
+- **Goal-Task Consistency**: All implementation tasks must align with defined project goals
+- **Role-Based Access Control**: Multiple permission levels (Read, Run, Review, Admin) with appropriate authentication for the deployment context
+- **Context-Aware Verification**: Verification includes environment variables, dependency versions, configuration files, infrastructure state, cross-branch compatibility, and context contamination prevention
+- **Token Optimization and Resource Efficiency**: Monitor and optimize token usage to minimize computational overhead
+- **Multi-Branch Validation Strategy**: Support validation against multiple target branch contexts with configurable profiles
+- **Fail-Safe by Default**: Generate detailed diagnostic reports for verification failures but allow merges to proceed with appropriate warnings
+- **Security Requirements**: Appropriate authentication method for deployment context with secure handling of sensitive data
+- **Observability**: Structured logging with correlation IDs and real-time monitoring for all verification processes
+- **Performance & Efficiency**: Optimized execution with parallel processing and caching of expensive operations
+- **Reliability**: 99.9% uptime with automatic retry mechanisms and graceful failure handling
+- **Extensibility**: Plugin architecture for new test scenarios that can be added via configuration
