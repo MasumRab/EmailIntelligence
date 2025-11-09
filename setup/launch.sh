@@ -7,4 +7,4 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Execute the actual launch.sh in the setup subtree with all arguments
-exec "$SCRIPT_DIR/setup/launch.sh" "$@"
+exec "$SCRIPT_DIR/setup/launch.sh" "$@"# Updated launcher
