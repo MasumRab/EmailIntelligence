@@ -1,14 +1,14 @@
 ---
 
-description: "Task list for orchestration tools verification system"
+description: "Task list for orchestration tools verification and consistency system"
 ---
 
-# Tasks: Orchestration Tools Verification and Review
+# Tasks: Orchestration Tools Verification and Review with Consistency
 
 **Input**: Design documents from `/specs/001-orchestration-tools-verification-review/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Constitution Compliance**: All tasks must adhere to Orchestration Tools Verification and Review Constitution principles including verification-first development, role-based access control with multiple permission levels, observability requirements, multi-branch validation strategy, and performance efficiency measures.
+**Constitution Compliance**: All tasks must adhere to Orchestration Tools Verification and Review Constitution principles including verification-first development, goal-task consistency, role-based access control with multiple permission levels (appropriate authentication for deployment context), observability requirements, multi-branch validation strategy, context contamination prevention, and performance efficiency measures.
 
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
@@ -31,10 +31,11 @@ description: "Task list for orchestration tools verification system"
 
 Each feature implementation must include tasks to satisfy the following constitution principles:
 - **Verification-First Development**: Include comprehensive verification tasks that must pass before merge to any target branch
-- **Role-Based Access Control**: Implement API key-based authentication with multiple permission levels (Read, Run, Review, Admin)
-- **Context-Aware Verification**: Include verification of environment variables, dependency versions, configuration files, infrastructure state, and cross-branch compatibility
-- **Multi-Branch Validation Strategy**: Support validation against multiple target branch contexts with configurable profiles
-- **Security Requirements**: Ensure 99.9% authentication success rate and secure handling of sensitive data
+- **Goal-Task Consistency**: Implement mechanisms to verify alignment between project goals and implementation tasks
+- **Role-Based Access Control**: Implement multiple permission levels (Read, Run, Review, Admin) with appropriate authentication for the deployment context
+- **Context-Aware Verification**: Include verification of environment variables, dependency versions, configuration files, infrastructure state, cross-branch compatibility, and context contamination prevention
+- **Token Optimization**: Implement monitoring and optimization of token usage to minimize computational overhead
+- **Security Requirements**: Implement appropriate authentication method for deployment context with secure handling of sensitive data
 - **Observability**: Log all verification results with structured logging, correlation IDs, and real-time monitoring
 - **Performance & Efficiency**: Optimize with parallel processing and caching of expensive operations
 - **Reliability**: Maintain 99.9% uptime with automatic retry mechanisms and graceful failure handling
@@ -59,13 +60,14 @@ Each feature implementation must include tasks to satisfy the following constitu
 Examples of foundational tasks (adjust based on your project):
 
 - [ ] T004 [P] Create base models/entities that all stories depend on in orchestration-tools/src/models/
-- [ ] T005 [P] Implement authentication/authorization framework with API key management
+- [ ] T005 [P] Implement authentication/authorization framework with role-based access control
 - [ ] T006 [P] Setup API routing and middleware structure
 - [ ] T007 Create base verification models and context verification entities
 - [ ] T008 Configure error handling and structured logging infrastructure with correlation IDs
 - [ ] T009 Setup environment configuration management from config/verification_profiles.yaml
 - [ ] T010 Implement basic Git service for interacting with repositories
 - [ ] T011 Create configuration loading system for verification profiles
+- [ ] T012 Establish goal-task consistency tracking framework
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -81,21 +83,21 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T012 [P] [US1] Contract test for verification API in tests/contract/test_verification_api.py
-- [ ] T013 [P] [US1] Integration test for test scenario execution in tests/integration/test_scenario_execution.py
+- [ ] T013 [P] [US1] Contract test for verification API in tests/contract/test_verification_api.py
+- [ ] T014 [P] [US1] Integration test for test scenario execution in tests/integration/test_scenario_execution.py
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Create VerificationResult model in orchestration-tools/src/models/verification.py
-- [ ] T015 [P] [US1] Create VerificationProfile model in orchestration-tools/src/models/profile.py
-- [ ] T016 [US1] Implement VerificationService in orchestration-tools/src/services/verification_service.py
-- [ ] T017 [US1] Implement extended test scenario framework in orchestration-tools/src/lib/test_scenarios.py
-- [ ] T018 [US1] Create test scenario execution engine in orchestration-tools/src/services/test_executor.py
-- [ ] T019 [US1] Add validation and error handling for test scenarios
-- [ ] T020 [US1] Add structured logging for test scenario execution with correlation IDs
-- [ ] T021 [US1] Create CLI command for running verification in orchestration-tools/src/cli/orchestration_cli.py
-- [ ] T022 [US1] Implement result aggregation and reporting for test scenarios
-- [ ] T023 [US1] Add metrics collection for test scenario execution
+- [ ] T015 [P] [US1] Create VerificationResult model in orchestration-tools/src/models/verification.py
+- [ ] T016 [P] [US1] Create VerificationProfile model in orchestration-tools/src/models/profile.py
+- [ ] T017 [US1] Implement VerificationService in orchestration-tools/src/services/verification_service.py
+- [ ] T018 [US1] Implement extended test scenario framework in orchestration-tools/src/lib/test_scenarios.py
+- [ ] T019 [US1] Create test scenario execution engine in orchestration-tools/src/services/test_executor.py
+- [ ] T020 [US1] Add validation and error handling for test scenarios
+- [ ] T021 [US1] Add structured logging for test scenario execution with correlation IDs
+- [ ] T022 [US1] Create CLI command for running verification in orchestration-tools/src/cli/orchestration_cli.py
+- [ ] T023 [US1] Implement result aggregation and reporting for test scenarios
+- [ ] T024 [US1] Add metrics collection for test scenario execution
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -109,12 +111,11 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T024 [P] [US2] Contract test for context verification API in tests/contract/test_context_verification.py
-- [ ] T025 [P] [US2] Integration test for context validation in tests/integration/test_context_validation.py
+- [ ] T025 [P] [US2] Contract test for context verification API in tests/contract/test_context_verification.py
+- [ ] T026 [P] [US2] Integration test for context validation in tests/integration/test_context_validation.py
 
 ### Implementation for User Story 2
 
-- [ ] T026 [P] [US2] Create VerificationCheck model in orchestration-tools/src/models/verification_check.py
 - [ ] T027 [P] [US2] Create ContextVerificationService in orchestration-tools/src/services/context_verification_service.py
 - [ ] T028 [US2] Implement environment variable validation in orchestration-tools/src/services/context_verification_service.py
 - [ ] T029 [US2] Implement dependency version verification in orchestration-tools/src/services/context_verification_service.py
@@ -124,6 +125,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T033 [US2] Create context verification configuration in config/auth_config.yaml
 - [ ] T034 [US2] Add structured logging for context checks with correlation IDs
 - [ ] T035 [US2] Integrate with existing CLI for context validation
+- [ ] T036 [US2] Implement context contamination detection in context verification service
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -137,42 +139,120 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T036 [P] [US3] Contract test for branch integration API in tests/contract/test_branch_integration.py
-- [ ] T037 [P] [US3] Integration test for multi-branch validation in tests/integration/test_multi_branch_validation.py
+- [ ] T037 [P] [US3] Contract test for branch integration API in tests/contract/test_branch_integration.py
+- [ ] T038 [P] [US3] Integration test for multi-branch validation in tests/integration/test_multi_branch_validation.py
 
 ### Implementation for User Story 3
 
-- [ ] T038 [P] [US3] Create Branch model in orchestration-tools/src/models/branch.py
-- [ ] T039 [US3] Implement GitService for multi-branch operations in orchestration-tools/src/services/git_service.py
-- [ ] T040 [US3] Implement branch compatibility checker in orchestration-tools/src/services/compatibility_checker.py
-- [ ] T041 [US3] Create branch-specific verification profiles in config/verification_profiles.yaml
-- [ ] T042 [US3] Add multi-branch validation to main verification workflow
-- [ ] T043 [US3] Implement target branch environment validation
-- [ ] T044 [US3] Add branch integration status reporting
-- [ ] T045 [US3] Create branch integration CLI command in orchestration-tools/src/cli/branch_cli.py
+- [ ] T039 [P] [US3] Create Branch model in orchestration-tools/src/models/branch.py
+- [ ] T040 [US3] Implement GitService for multi-branch operations in orchestration-tools/src/services/git_service.py
+- [ ] T041 [US3] Implement branch compatibility checker in orchestration-tools/src/services/compatibility_checker.py
+- [ ] T042 [US3] Create branch-specific verification profiles in config/verification_profiles.yaml
+- [ ] T043 [US3] Add multi-branch validation to main verification workflow
+- [ ] T044 [US3] Implement target branch environment validation
+- [ ] T045 [US3] Add branch integration status reporting
+- [ ] T046 [US3] Create branch integration CLI command in orchestration-tools/src/cli/branch_cli.py
+
+**Checkpoint**: At this point, User Stories 1, 2 AND 3 should all work independently
+
+---
+
+## Phase 6: User Story 4 - Consistency Verification (Priority: P1)
+
+**Goal**: Ensure that the main goals of the orchestration branch align consistently with all related tasks, to maintain clear objectives and prevent scope drift
+
+**Independent Test**: Can be fully tested by reviewing the mapping between orchestration goals and individual tasks to verify alignment exists.
+
+### Tests for User Story 4 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T047 [P] [US4] Contract test for goal-task consistency API in tests/contract/test_consistency_api.py
+- [ ] T048 [P] [US4] Integration test for goal-task alignment in tests/integration/test_goal_task_alignment.py
+
+### Implementation for User Story 4
+
+- [ ] T049 [P] [US4] Create Goal model in orchestration-tools/src/models/goal.py
+- [ ] T050 [P] [US4] Create Task model in orchestration-tools/src/models/task.py
+- [ ] T051 [US4] Implement GoalTaskConsistencyService in orchestration-tools/src/services/consistency_service.py
+- [ ] T052 [US4] Add goal-task alignment validation to verification workflow
+- [ ] T053 [US4] Create consistency check reporting functionality
+- [ ] T054 [US4] Implement discrepancy detection and documentation
+- [ ] T055 [US4] Add structured logging for consistency checks with correlation IDs
+- [ ] T056 [US4] Create CLI command for consistency verification in orchestration-tools/src/cli/consistency_cli.py
+- [ ] T057 [US4] Implement metrics collection for goal-task alignment
+
+**Checkpoint**: At this point, User Stories 1, 2, 3 AND 4 should all work independently
+
+---
+
+## Phase 7: User Story 5 - Context Contamination Prevention (Priority: P2)
+
+**Goal**: Identify and prevent context contamination within the tools framework to maintain clean separation of concerns and minimize token wastage
+
+**Independent Test**: Can be fully tested by analyzing context boundaries and identifying potential contamination points in the tools framework.
+
+### Tests for User Story 5 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T058 [P] [US5] Contract test for context contamination prevention API in tests/contract/test_contamination_prevention.py
+- [ ] T059 [P] [US5] Integration test for context boundary validation in tests/integration/test_context_boundary_validation.py
+
+### Implementation for User Story 5
+
+- [ ] T060 [P] [US5] Create ContextBoundary model in orchestration-tools/src/models/context_boundary.py
+- [ ] T061 [US5] Create ContaminationPoint model in orchestration-tools/src/models/contamination_point.py
+- [ ] T062 [US5] Implement ContextContaminationService in orchestration-tools/src/services/context_contamination_service.py
+- [ ] T063 [US5] Add context boundary analysis to verification workflow
+- [ ] T064 [US5] Implement contamination point identification and prevention
+- [ ] T065 [US5] Create context isolation validation
+- [ ] T066 [US5] Add structured logging for contamination prevention with correlation IDs
+- [ ] T067 [US5] Create CLI command for context contamination analysis in orchestration-tools/src/cli/contamination_cli.py
+- [ ] T068 [US5] Implement metrics collection for contamination prevention
+
+**Checkpoint**: At this point, User Stories 1, 2, 3, 4 AND 5 should all work independently
+
+---
+
+## Phase 8: User Story 6 - Token Optimization (Priority: P3)
+
+**Goal**: Organize the tools framework to minimize token wastage during instruction processing, ensuring efficient resource utilization
+
+**Independent Test**: Can be tested by measuring token usage before and after framework optimization to ensure minimal wastage.
+
+### Tests for User Story 6 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T069 [P] [US6] Contract test for token optimization API in tests/contract/test_token_optimization.py
+- [ ] T070 [P] [US6] Integration test for resource efficiency in tests/integration/test_resource_efficiency.py
+
+### Implementation for User Story 6
+
+- [ ] T071 [P] [US6] Create TokenUsage model in orchestration-tools/src/models/token_usage.py
+- [ ] T072 [US6] Implement TokenOptimizationService in orchestration-tools/src/services/token_optimization_service.py
+- [ ] T073 [US6] Add token usage monitoring to verification workflow
+- [ ] T074 [US6] Implement resource efficiency algorithms
+- [ ] T075 [US6] Create token usage optimization functionality
+- [ ] T076 [US6] Add structured logging for token optimization with correlation IDs
+- [ ] T077 [US6] Create CLI command for token usage analysis in orchestration-tools/src/cli/token_cli.py
+- [ ] T078 [US6] Implement metrics collection for token efficiency
+- [ ] T079 [US6] Integrate with configuration system for performance tuning
 
 **Checkpoint**: All user stories should now be independently functional
 
 ---
 
-[Add more user story phases as needed, following the same pattern]
-
----
-
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 9: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T046 [P] Documentation updates in docs/verification_guide.md
-- [ ] T047 Code cleanup and refactoring
-- [ ] T048 Performance optimization across all stories
-- [ ] T049 [P] Additional unit tests (if requested) in tests/unit/
-- [ ] T050 Security hardening
-- [ ] T051 Run quickstart.md validation
-- [ ] T052 Implement real-time monitoring for verification processes
-- [ ] T053 Add automatic retry mechanisms for transient failures
-- [ ] T054 Create dashboard for verification status and trends
-- [ ] T055 Setup automated notifications for verification results
+- [ ] T080 [P] Documentation updates in docs/verification_guide.md
+- [ ] T081 Code cleanup and refactoring
+- [ ] T082 Performance optimization across all stories
+- [ ] T083 [P] Additional unit tests (if requested) in tests/unit/
+- [ ] T084 Security hardening
+- [ ] T085 Run quickstart.md validation
+- [ ] T086 Implement real-time monitoring for verification processes
+- [ ] T087 Add automatic retry mechanisms for transient failures
+- [ ] T088 Create dashboard for verification status and trends
+- [ ] T089 Setup automated notifications for verification results
+- [ ] T090 Final constitution alignment validation
 
 ---
 
@@ -192,6 +272,9 @@ Examples of foundational tasks (adjust based on your project):
 - **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
 - **User Story 2 (P1)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
 - **User Story 3 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1/US2 but should be independently testable
+- **User Story 4 (P1)**: Can start after Foundational (Phase 2) - May use foundation from other stories but should be independently testable
+- **User Story 5 (P2)**: Can start after Foundational (Phase 2) - May integrate with US2 for context verification but should be independently testable
+- **User Story 6 (P3)**: Can start after Foundational (Phase 2) - May integrate with other stories for efficiency but should be independently testable
 
 ### Within Each User Story
 
@@ -242,7 +325,10 @@ Task: "Create VerificationProfile model in orchestration-tools/src/models/profil
 2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
 3. Add User Story 2 → Test independently → Deploy/Demo
 4. Add User Story 3 → Test independently → Deploy/Demo
-5. Each story adds value without breaking previous stories
+5. Add User Story 4 → Test independently → Deploy/Demo
+6. Add User Story 5 → Test independently → Deploy/Demo
+7. Add User Story 6 → Test independently → Deploy/Demo
+8. Each story adds value without breaking previous stories
 
 ### Parallel Team Strategy
 
@@ -253,6 +339,9 @@ With multiple developers:
    - Developer A: User Story 1
    - Developer B: User Story 2
    - Developer C: User Story 3
+   - Developer D: User Story 4
+   - Developer E: User Story 5
+   - Developer F: User Story 6
 3. Stories complete and integrate independently
 
 ---
