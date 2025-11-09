@@ -25,21 +25,15 @@ if git diff --cached --name-only | grep -q "^scripts/sync_setup_worktrees.sh$"; 
     fi
 fi
 
-# Check if shared config files have changes
-SHARED_CONFIG_FILES=(
+# Orchestration-managed configuration files (synced across branches)
+ORCHESTRATION_CONFIG_FILES=(
     ".flake8"
     ".pylintrc"
-    "tsconfig.json"
-    "package.json"
-    "tailwind.config.ts"
-    "vite.config.ts"
-    "drizzle.config.ts"
-    "components.json"
     ".gitignore"
     ".gitattributes"
 )
 
-for config_file in "${SHARED_CONFIG_FILES[@]}"; do
+for config_file in "${ORCHESTRATION_CONFIG_FILES[@]}"; do
     if git diff --cached --name-only | grep -q "^${config_file}$"; then
         if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
             echo "WARNING: Changes to shared config file '${config_file}' detected on '$CURRENT_BRANCH' branch."
