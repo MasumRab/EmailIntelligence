@@ -61,15 +61,15 @@ checkout_from_orchestration() {
     fi
 }
 
-    # Update setup directory (full sync only)
+    # Update setup directory (full sync only) - includes setup_env* files
     if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
-        echo "Synchronizing setup directory from orchestration-tools"
+        echo "Synchronizing setup directory from orchestration-tools (including setup_env* files)"
         git checkout orchestration-tools -- setup/
     fi
 
-    # Update deployment directory (full sync only)
+    # Update deployment directory (full sync only) - includes setup_env.py
     if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
-        echo "Synchronizing deployment directory from orchestration-tools"
+        echo "Synchronizing deployment directory from orchestration-tools (including setup_env.py)"
         git checkout orchestration-tools -- deployment/
     fi
 
