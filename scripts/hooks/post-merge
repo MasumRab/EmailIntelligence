@@ -34,7 +34,7 @@ fi
 checkout_from_orchestration() {
 local file_path="$1"
 # Check if orchestration-tools branch exists
-if ! git show-ref --verify --quiet refs/heads/orchestration-tools && 
+if ! git show-ref --verify --quiet refs/heads/orchestration-tools && \
 ! git ls-remote --exit-code --heads origin orchestration-tools >/dev/null 2>&1; then
 echo "Warning: orchestration-tools branch not available for $file_path"
 return 1
@@ -67,55 +67,30 @@ WORKTREE_NAME="$(basename "$WORKTREE_ROOT")"
 
 # Only apply orchestration to main/scientific branches
 if [[ "$WORKTREE_NAME" == "main" ]] || [[ "$WORKTREE_NAME" == "scientific" ]]; then
-echo "Detected $WORKTREE_NAME worktree - applying orchestration setup..."
+    echo "Detected $WORKTREE_NAME worktree - applying orchestration setup..."
 
-# Create temporary orchestration worktree to get setup files
-TEMP_ORCH="/tmp/orch-setup-$$"
-ORCH_WORKTREE_CREATED=false
-
-# Ensure cleanup on exit
-cleanup_temp_worktree() {
-if [[ "$ORCH_WORKTREE_CREATED" == true ]]; then
-    git worktree remove --force "$TEMP_ORCH" 2>/dev/null || echo "Warning: Failed to remove temp worktree"
-        fi
-rm -rf "$TEMP_ORCH" 2>/dev/null || true
-}
-trap cleanup_temp_worktree EXIT
-
-    mkdir -p "$TEMP_ORCH" || {
-echo "Error: Failed to create temp directory $TEMP_ORCH"
-exit 1
-}
+    # Create temporary orchestration worktree to get setup files
+    TEMP_ORCH="/tmp/orch-setup-$$"
+    mkdir -p "$TEMP_ORCH"
 
     # Checkout orchestration-tools branch temporarily
-if git worktree add "$TEMP_ORCH" origin/orchestration-tools 2>/dev/null; then
-ORCH_WORKTREE_CREATED=true
-echo "Created temporary worktree for orchestration setup"
+    if git worktree add "$TEMP_ORCH" origin/orchestration-tools 2>/dev/null; then
+        # Copy setup files
+        cp -r "$TEMP_ORCH/setup/"* . 2>/dev/null || true
 
-# Copy setup files with error checking
-    if [[ -d "$TEMP_ORCH/setup" ]]; then
-    if ! cp -r "$TEMP_ORCH/setup/"* . 2>/dev/null; then
-            echo "Warning: Failed to copy some setup files"
-            fi
-        else
-            echo "Warning: No setup directory found in orchestration-tools"
-        fi
-
-        # Copy shared configs with error checking
+        # Copy shared configs
         for config in .flake8 .pylintrc tsconfig.json package.json tailwind.config.ts vite.config.ts drizzle.config.ts components.json .gitignore .gitattributes; do
-            if [[ -f "$TEMP_ORCH/$config" ]]; then
-                if ! cp "$TEMP_ORCH/$config" . 2>/dev/null; then
-                    echo "Warning: Failed to copy $config"
-                fi
-            fi
+            cp "$TEMP_ORCH/$config" . 2>/dev/null || true
         done
 
         # Apply branch-specific configuration
         if [[ -d "$TEMP_ORCH/configs/$WORKTREE_NAME" ]]; then
-            if ! cp -r "$TEMP_ORCH/configs/$WORKTREE_NAME/"* . 2>/dev/null; then
-                echo "Warning: Failed to copy branch-specific configs for $WORKTREE_NAME"
-            fi
+            cp -r "$TEMP_ORCH/configs/$WORKTREE_NAME/"* . 2>/dev/null || true
         fi
+
+        # Cleanup temp worktree
+        git worktree remove --force "$TEMP_ORCH" 2>/dev/null || true
+        rm -rf "$TEMP_ORCH" 2>/dev/null || true
 
         echo "✓ Orchestration setup applied to $WORKTREE_NAME worktree"
     else
