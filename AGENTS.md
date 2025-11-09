@@ -16,10 +16,10 @@
 **If working on `main` or orchestration-tools-*:** Use this guide (below)
 
 **Environment Compatibility:**
-- **Jules** (Sourcegraph's agentic IDE): NOT compatible with this guide
+- **Jules** (Google's agentic IDE at jules.google.com): NOT compatible with this guide
   - Refer to your Jules-specific agent documentation
-  - Contact your Sourcegraph team for Jules integration patterns
   - Jules has its own task management and workflow systems
+  - Contact Google for Jules integration patterns
 
 - **Non-Jules** (VS Code+Claude, Cursor, Windsurf, Amp): COMPATIBLE with this guide
   - Task Master CLI and MCP server are configured below
