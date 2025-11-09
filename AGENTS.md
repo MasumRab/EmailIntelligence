@@ -45,6 +45,14 @@ task-master generate                                         # Update task markd
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
 
+### Linting & Code Quality Configuration
+
+- `.flake8` - Flake8 linting rules with exclusions for venv, node_modules, __pycache__, build artifacts
+- `.pylintrc` - Pylint configuration with excluded paths and complexity limits
+- `setup.cfg` - Pytest, isort, and tool configurations with proper ignore patterns
+- `.github/workflows/test.yml` - CI/CD test workflow (Python 3.9, 3.10, 3.11)
+- `.github/workflows/lint.yml` - CI/CD linting workflow (flake8, pylint, black, isort)
+
 ### Claude Code Integration Files
 
 - `CLAUDE.md` - Auto-loaded context for Claude Code (this file)
