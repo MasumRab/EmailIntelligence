@@ -1,5 +1,22 @@
 # Task Master AI - Agent Integration Guide
 
+## ⚠️ Caveat: Non-Jules Environment Only
+
+**Important:** This guide is intended for **non-Jules development environments**. 
+
+**If you are using Jules (Sourcegraph's agentic IDE):**
+- This guidance may not apply directly
+- Refer to your Jules-specific agent documentation
+- Contact your Sourcegraph team for Jules integration patterns
+- Jules has its own task management and workflow systems
+
+**For other environments** (VS Code with Claude, Cursor, Windsurf, Amp, etc.):
+- This guide applies fully
+- Task Master CLI and MCP server are configured below
+- Standard development workflows using non-Jules agents
+
+---
+
 ## Essential Commands
 
 ### Core Workflow Commands
