@@ -1,19 +1,29 @@
 # Task Master AI - Agent Integration Guide
 
-## ⚠️ Caveat: Non-Jules Environment Only
+## ⚠️ Branch-Specific Guidance
 
-**Important:** This guide is intended for **non-Jules development environments**. 
+**Select your branch below to find the correct agent documentation:**
 
-**If you are using Jules (Sourcegraph's agentic IDE):**
-- This guidance may not apply directly
-- Refer to your Jules-specific agent documentation
-- Contact your Sourcegraph team for Jules integration patterns
-- Jules has its own task management and workflow systems
+### 🌳 Scientific Branch
+**If working on the `scientific` branch:** Use the scientific branch AGENTS.md instead
+- Focuses on FastAPI backend, email processing, AI analysis, API routes
+- Includes build/test commands (uv sync, pytest, coverage)
+- Code style: absolute imports, PascalCase classes, snake_case functions
+- Architecture: src/backend/, src/core/, modules/ (plugins), tests/
+- **Switch to scientific branch documentation** for development guidance
 
-**For other environments** (VS Code with Claude, Cursor, Windsurf, Amp, etc.):
-- This guide applies fully
-- Task Master CLI and MCP server are configured below
-- Standard development workflows using non-Jules agents
+### 📋 Main & orchestration-tools Branches
+**If working on `main` or orchestration-tools-*:** Use this guide (below)
+
+**Environment Compatibility:**
+- **Jules** (Sourcegraph's agentic IDE): NOT compatible with this guide
+  - Refer to your Jules-specific agent documentation
+  - Contact your Sourcegraph team for Jules integration patterns
+  - Jules has its own task management and workflow systems
+
+- **Non-Jules** (VS Code+Claude, Cursor, Windsurf, Amp): COMPATIBLE with this guide
+  - Task Master CLI and MCP server are configured below
+  - Standard development workflows for non-Jules agents apply
 
 ---
 
