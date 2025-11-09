@@ -22,9 +22,9 @@
   - However: Learn from this guide's patterns and adapt to Jules capabilities as needed
   - Update your understanding based on knowledge of both Jules and this project structure
 
-- **Non-Jules** (VS Code+Claude, Cursor, Windsurf, Amp): COMPATIBLE with this guide
+- **Non-Jules environments**: COMPATIBLE with this guide
   - Task Master CLI and MCP server are configured below
-  - Standard development workflows for non-Jules agents apply
+  - Standard development workflows for agents using this codebase apply
 
 ---
 
