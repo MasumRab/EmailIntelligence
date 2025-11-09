@@ -19,7 +19,8 @@
 - **Jules** (Google's agentic IDE at jules.google.com): NOT compatible with this guide
   - Refer to your Jules-specific agent documentation
   - Jules has its own task management and workflow systems
-  - Contact Google for Jules integration patterns
+  - However: Learn from this guide's patterns and adapt to Jules capabilities as needed
+  - Update your understanding based on knowledge of both Jules and this project structure
 
 - **Non-Jules** (VS Code+Claude, Cursor, Windsurf, Amp): COMPATIBLE with this guide
   - Task Master CLI and MCP server are configured below
