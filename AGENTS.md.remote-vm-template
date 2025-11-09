@@ -1,0 +1,395 @@
+# AGENTS.md - Remote Virtual Machine Template
+
+## ⚠️ Environment Compatibility Matrix
+
+**Select your remote VM environment below for specific guidance:**
+
+### 🌐 GitHub Codespaces
+**Compatible**: Full support with auto-loading and dotfiles integration
+- Loads automatically via devcontainer.json
+- Supports branch-specific contexts
+- Integrates with VS Code remote development
+
+### 🖥️ VS Code Remote SSH/Containers
+**Compatible**: Standard AGENTS.md with local path resolution
+- Uses local AGENTS.md file
+- Supports all Task Master features
+- Manual context switching required
+
+### 🔧 Dev Containers (Local)
+**Compatible**: Container-aware configurations
+- Auto-loads on container startup
+- Supports volume mounting
+- Branch detection works normally
+
+### 🚫 Jules (Google's Agentic IDE)
+**NOT Compatible**: Uses proprietary task management system
+- Refer to Jules-specific documentation
+- AGENTS.md patterns may conflict
+- Use Jules native workflows instead
+
+---
+
+## Core Requirements for Remote VM AGENTS.md
+
+### 1. Environment-Aware Auto-Detection
+
+**MANDATORY**: AGENTS.md must detect and adapt to remote VM environment automatically.
+
+```markdown
+## Environment Detection
+
+**Current Environment**: [Auto-detected: Codespaces/GitHub/SSH/Local]
+**Branch**: [Auto-detected: main/feature/dev]
+**Agent ID**: [Auto-generated: vm-{timestamp}-{random}]
+
+### Auto-Loading Status
+- ✅ Environment detected: GitHub Codespaces
+- ✅ Branch resolved: feature/agent-context
+- ✅ Context loaded: Branch-specific profile active
+- ✅ Permissions applied: Remote VM restrictions active
+```
+
+### 2. Remote VM Security Boundaries
+
+**MANDATORY**: Strict security controls for remote execution environments.
+
+```markdown
+## Security & Permissions (Remote VM)
+
+### Execution Permissions
+- ❌ **Code Execution**: DISABLED (security risk in remote VMs)
+- ❌ **Shell Commands**: DISABLED (potential system compromise)
+- ✅ **File Operations**: LIMITED (project directory only)
+- ✅ **Read Operations**: ALLOWED (documentation, configs)
+
+### Resource Limits
+- **Max Context Length**: 2048 tokens (remote VM optimization)
+- **Execution Timeout**: 30 seconds per operation
+- **Concurrent Operations**: 1 (sequential processing)
+- **Memory Limit**: 512MB per session
+
+### Network Restrictions
+- **API Calls**: Whitelisted domains only
+- **External Services**: Pre-approved endpoints
+- **File Downloads**: DISABLED
+```
+
+### 3. Branch Context Isolation
+
+**MANDATORY**: Prevent context contamination between branches in shared remote environments.
+
+```markdown
+## Branch Context Management
+
+### Active Context Profile
+**Branch**: feature/agent-context
+**Profile ID**: context-profile-feature-agent-context
+**Isolation Level**: Strict (no cross-branch access)
+
+### Context Boundaries
+- **Accessible Files**: ./src/, ./tests/, ./docs/
+- **Blocked Files**: ../*, .env, secrets/
+- **Allowed Operations**: Read, Write (project scope only)
+
+### Context Switching
+When branch changes detected:
+1. Save current context state
+2. Clear cached permissions
+3. Load new branch profile
+4. Validate environment compatibility
+5. Apply new security boundaries
+```
+
+### 4. Remote VM Performance Optimizations
+
+**MANDATORY**: Optimize for remote VM resource constraints and network latency.
+
+```markdown
+## Performance Optimizations
+
+### Token Efficiency
+- **Context Compression**: 60% reduction target
+- **Lazy Loading**: Load context on-demand
+- **Caching Strategy**: 24-hour cache TTL
+- **Delta Updates**: Send only changes
+
+### Network Awareness
+- **Connection Monitoring**: Auto-detect connectivity issues
+- **Retry Logic**: 3 attempts with exponential backoff
+- **Offline Mode**: Continue with cached context
+- **Sync Intervals**: 5-minute update cycles
+
+### Resource Management
+- **Memory Usage**: <256MB baseline
+- **CPU Usage**: <10% single core
+- **Storage**: <100MB for caches/logs
+- **Cleanup**: Auto-remove old caches weekly
+```
+
+### 5. Multi-Agent Coordination
+
+**MANDATORY**: Handle multiple agents working in shared remote VM environments.
+
+```markdown
+## Multi-Agent Environment
+
+### Agent Identification
+**Current Agent**: vm-agent-{session-id}
+**Session Type**: Remote VM (shared environment)
+**Coordination Mode**: Sequential access
+
+### Conflict Prevention
+- **File Locking**: Exclusive access to modified files
+- **Operation Queuing**: Sequential execution of commands
+- **State Synchronization**: Shared context state across agents
+- **Audit Logging**: Track all agent operations
+
+### Resource Sharing
+- **Context Cache**: Shared between agents (read-only)
+- **File Access**: Coordinated via locking mechanism
+- **Network Calls**: Rate-limited and queued
+```
+
+### 6. Error Handling & Recovery
+
+**MANDATORY**: Robust error handling for remote VM connectivity issues.
+
+```markdown
+## Error Recovery Mechanisms
+
+### Connection Failures
+- **Auto-Reconnect**: 5 attempts with 30s intervals
+- **Offline Mode**: Continue with cached operations
+- **Graceful Degradation**: Reduce functionality when offline
+- **User Notification**: Clear status indicators
+
+### Context Corruption
+- **Integrity Checks**: MD5 validation of context files
+- **Backup Recovery**: Automatic rollback to last good state
+- **Reinitialization**: Clean restart when corruption detected
+- **Logging**: Detailed error reports for debugging
+
+### Resource Exhaustion
+- **Memory Monitoring**: Auto-cleanup when limits approached
+- **Timeout Handling**: Cancel long-running operations
+- **Queue Management**: Prevent resource starvation
+```
+
+### 7. Remote VM Integration Points
+
+**MANDATORY**: Integrate with remote VM platform features and APIs.
+
+```markdown
+## Platform Integration
+
+### GitHub Codespaces
+```json
+// .devcontainer/devcontainer.json
+{
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["AGENTS.md"],
+      "settings": {
+        "agent.context.enabled": true,
+        "agent.security.remoteVm": true
+      }
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder}/.taskmaster,target=/workspaces/.taskmaster,type=bind"
+  ]
+}
+```
+
+### VS Code Remote Extensions
+```json
+// .vscode/settings.json
+{
+  "agent.context.remoteVm": true,
+  "agent.security.restrictions": "remote",
+  "agent.performance.optimization": true,
+  "agent.networking.offlineMode": true
+}
+```
+
+### Dotfiles Integration
+```bash
+# ~/.dotfiles/install.sh
+#!/bin/bash
+
+# Create AGENTS.md symlink for remote VMs
+if [ -f "$HOME/.dotfiles/AGENTS.md" ]; then
+    ln -sf "$HOME/.dotfiles/AGENTS.md" "$HOME/AGENTS.md"
+fi
+
+# Set remote VM environment variables
+export AGENT_REMOTE_VM=true
+export AGENT_SECURITY_LEVEL=remote
+export AGENT_PERFORMANCE_MODE=optimized
+```
+
+## Configuration Examples
+
+### Basic Remote VM Setup
+
+```bash
+# Initialize for remote VM environment
+task-master init --remote-vm
+
+# Configure security restrictions
+task-master config set security.level remote
+task-master config set performance.optimization true
+task-master config set networking.offline_mode true
+
+# Set resource limits
+task-master config set limits.memory_mb 512
+task-master config set limits.timeout_seconds 30
+task-master config set limits.concurrent_operations 1
+```
+
+### Branch-Specific Remote Configurations
+
+```json
+// .taskmaster/config.json
+{
+  "remoteVm": {
+    "enabled": true,
+    "securityLevel": "remote",
+    "performanceMode": "optimized",
+    "networking": {
+      "offlineMode": true,
+      "retryAttempts": 3,
+      "timeoutSeconds": 30
+    },
+    "resources": {
+      "maxMemoryMb": 512,
+      "maxCpuPercent": 10,
+      "cacheTtlHours": 24
+    }
+  },
+  "branchContexts": {
+    "main": {
+      "permissions": ["read", "write"],
+      "restrictions": ["no-exec", "no-shell"]
+    },
+    "feature/*": {
+      "permissions": ["read", "write", "test"],
+      "restrictions": ["no-exec", "no-shell", "limited-network"]
+    }
+  }
+}
+```
+
+## Testing & Validation Requirements
+
+### Automated Testing Suite
+
+**MANDATORY**: Comprehensive testing for remote VM compatibility.
+
+```markdown
+## Remote VM Testing Requirements
+
+### Environment Simulation
+- [ ] Test in GitHub Codespaces environment
+- [ ] Test in VS Code Remote SSH setup
+- [ ] Test in Dev Container configurations
+- [ ] Test with network connectivity issues
+
+### Security Validation
+- [ ] Verify execution permissions are blocked
+- [ ] Confirm file access restrictions work
+- [ ] Test network call limitations
+- [ ] Validate resource limit enforcement
+
+### Performance Testing
+- [ ] Measure context loading times (<5 seconds)
+- [ ] Test memory usage (<256MB)
+- [ ] Validate CPU usage (<10%)
+- [ ] Check network efficiency (token optimization)
+
+### Reliability Testing
+- [ ] Test connection failure recovery
+- [ ] Validate offline mode functionality
+- [ ] Check context corruption recovery
+- [ ] Test multi-agent coordination
+```
+
+### Manual Validation Checklist
+
+```markdown
+## Manual Testing Checklist
+
+### Setup Verification
+- [ ] AGENTS.md auto-loads on VM startup
+- [ ] Environment detection works correctly
+- [ ] Branch context loads appropriately
+- [ ] Security restrictions are applied
+
+### Functionality Testing
+- [ ] Task Master commands work in remote environment
+- [ ] File operations respect boundaries
+- [ ] Network calls are properly restricted
+- [ ] Performance optimizations are active
+
+### Error Scenario Testing
+- [ ] Test behavior during network outages
+- [ ] Verify recovery from connection failures
+- [ ] Check offline mode functionality
+- [ ] Validate resource limit handling
+```
+
+## Deployment & Maintenance
+
+### Deployment Strategy
+
+```markdown
+## Remote VM Deployment
+
+### Automated Deployment
+1. Detect remote VM environment on startup
+2. Load appropriate AGENTS.md configuration
+3. Apply security restrictions automatically
+4. Initialize performance optimizations
+5. Set up error recovery mechanisms
+
+### Manual Configuration
+1. Place AGENTS.md in project root or dotfiles
+2. Configure devcontainer.json for auto-loading
+3. Set up VS Code remote settings
+4. Test all functionality in target environment
+
+### Update Mechanism
+1. Version check on startup
+2. Automatic update notifications
+3. Safe rollback on update failures
+4. Configuration migration support
+```
+
+### Maintenance Requirements
+
+```markdown
+## Ongoing Maintenance
+
+### Monitoring & Logging
+- **Performance Metrics**: Track loading times, resource usage
+- **Error Reporting**: Log failures and recovery actions
+- **Security Events**: Audit all permission checks
+- **Usage Analytics**: Monitor feature adoption
+
+### Update Strategy
+- **Version Compatibility**: Ensure backward compatibility
+- **Rolling Updates**: Gradual rollout to prevent disruptions
+- **Rollback Plan**: Quick reversion capability
+- **Communication**: User notification of changes
+
+### Support & Troubleshooting
+- **Diagnostic Tools**: Built-in health checks
+- **Log Analysis**: Structured error reporting
+- **Remote Assistance**: Debug access for support
+- **Documentation**: Updated troubleshooting guides
+```
+
+---
+
+*This template provides a comprehensive framework for AGENTS.md files in remote virtual machine environments. Customize the specific configurations based on your target platforms and security requirements.*

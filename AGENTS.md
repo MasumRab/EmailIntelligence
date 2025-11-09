@@ -1,5 +1,53 @@
 # Task Master AI - Agent Integration Guide
 
+## ⚠️ Branch-Specific Guidance
+
+**Select your branch below to find the correct agent documentation:**
+
+### 🌳 Scientific Branch
+**If working on the `scientific` branch:** Use the scientific branch AGENTS.md instead
+- Focuses on FastAPI backend, email processing, AI analysis, API routes
+- Includes build/test commands (uv sync, pytest, coverage)
+- Code style: absolute imports, PascalCase classes, snake_case functions
+- Architecture: src/backend/, src/core/, modules/ (plugins), tests/
+- **Switch to scientific branch documentation** for development guidance
+
+### 📋 Main & orchestration-tools Branches
+**If working on `main` or orchestration-tools-*:** Use this guide (below)
+
+**Environment Compatibility:**
+- **Jules** (Google's agentic IDE at jules.google.com): NOT compatible with this guide
+  - Refer to your Jules-specific agent documentation
+  - Jules has its own task management and workflow systems
+  - However: Learn from this guide's patterns and adapt to Jules capabilities as needed
+  - Update your understanding based on knowledge of both Jules and this project structure
+
+- **Non-Jules environments**: COMPATIBLE with this guide
+  - Task Master CLI and MCP server are configured below
+  - Standard development workflows for agents using this codebase apply
+
+---
+
+## Dual Task Management Systems
+
+This project provides **two complementary task management systems** that are both accessible to agents when tools are enabled and available:
+
+### 🎯 Primary: Task Master AI (`task-master-ai`)
+- **Purpose**: Advanced AI-assisted task breakdown and management
+- **Access**: CLI commands (`task-master`) and MCP tools (`get_tasks`, `add_task`, etc.)
+- **Best for**: Complex multi-step features, AI-assisted planning, detailed task hierarchies
+- **Status**: ✅ **Fully implemented** with 10 active tasks from PRD
+
+### 📋 Fallback: Backlog.md MCP System
+- **Purpose**: Lightweight task tracking and project management
+- **Access**: MCP resources (`backlog://workflow/overview`) and tools (`backlog.get_workflow_overview()`)
+- **Best for**: Simple task tracking, team coordination, when Taskmaster is unavailable
+- **Status**: ✅ **Configured** with project-specific settings
+
+**Both systems are accessible simultaneously** - use Taskmaster for detailed work and Backlog.md MCP for overview and coordination.
+
+---
+
 ## Essential Commands
 
 ### Core Workflow Commands
@@ -44,6 +92,14 @@ task-master generate                                         # Update task markd
 - `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
+
+### Linting & Code Quality Configuration
+
+- `.flake8` - Flake8 linting rules with exclusions for venv, node_modules, __pycache__, build artifacts
+- `.pylintrc` - Pylint configuration with excluded paths and complexity limits
+- `setup.cfg` - Pytest, isort, and tool configurations with proper ignore patterns
+- `.github/workflows/test.yml` - CI/CD test workflow (Python 3.9, 3.10, 3.11)
+- `.github/workflows/lint.yml` - CI/CD linting workflow (flake8, pylint, black, isort)
 
 ### Claude Code Integration Files
 
@@ -422,10 +478,26 @@ _This guide ensures Claude Code has immediate access to Task Master's essential 
 
 ## BACKLOG WORKFLOW INSTRUCTIONS
 
-This project uses Backlog.md MCP for all task and project management activities.
+This project uses **dual task management systems** for comprehensive project coordination:
+
+## 🎯 Task Master AI (Primary)
+- **Advanced AI-assisted task management** with detailed breakdown and planning
+- **Access**: CLI (`task-master`) and MCP tools (`get_tasks`, `add_task`, etc.)
+- **Documentation**: See @`taskmaster.instructions.md` and @`dev_workflow.instructions.md`
+- **Current Status**: ✅ **10 active tasks** loaded from PRD, fully operational
+
+## 📋 Backlog.md MCP (Fallback/Complementary)
+- **Lightweight task tracking** for overview and coordination
+- **Access**: MCP resources (`backlog://workflow/overview`) and tools (`backlog.get_workflow_overview()`)
+- **Documentation**: See @`backlog.instructions.md`
 
 **CRITICAL GUIDANCE**
 
+- **Primary Workflow**: Use Task Master AI for detailed task management and implementation
+- **Fallback System**: Use Backlog.md MCP when Taskmaster is unavailable or for high-level coordination
+- **Both systems are accessible** simultaneously if tools are enabled
+
+**For Backlog.md MCP:**
 - If your client supports MCP resources, read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
 - If your client only supports tools or the above request fails, call `backlog.get_workflow_overview()` tool to load the tool-oriented overview (it lists the matching guide tools).
 
