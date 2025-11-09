@@ -320,3 +320,10 @@ You MUST read the overview resource to understand the complete workflow. The inf
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
+
+## Active Technologies
+- Python 3.11+ + GitPython, (potentially a diffing library) (001-rebase-analysis)
+- Git repository (001-rebase-analysis)
+
+## Recent Changes
+- 001-rebase-analysis: Added Python 3.11+ + GitPython, (potentially a diffing library)
