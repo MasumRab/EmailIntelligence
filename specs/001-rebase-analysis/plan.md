@@ -48,51 +48,19 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+├── core/ # Core logic for Git operations, intention inference, discrepancy detection
+└── cli/  # Main CLI entry point for the rebase analysis tool
 
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+scripts/
+├── rebase_analysis_tool.py # The main script orchestrating the analysis
+├── common.sh               # Shared utilities for scripts
+└── update-agent-context.sh # The updated agent context script
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: The core rebase analysis logic will reside in `src/core/`, with the main CLI entry point in `src/cli/`. The `scripts/` directory will house `rebase_analysis_tool.py` as an orchestrator script for easy execution across branches, leveraging `scripts/common.sh` for shared utilities.
 
 ## Complexity Tracking
 
