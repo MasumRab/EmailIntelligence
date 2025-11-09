@@ -1,0 +1,227 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-11-10",
+  "purpose": "Centralized discovery and loading of tool-specific instructions and configurations",
+  "instructions": [
+    {
+      "id": "dev_workflow",
+      "name": "Development Workflow Instructions",
+      "path": ".github/instructions/dev_workflow.instructions.md",
+      "contexts": ["development", "implementation", "debugging", "setup"],
+      "priority": 1,
+      "applies_to": ["all"]
+    },
+    {
+      "id": "taskmaster",
+      "name": "Task Master Instructions",
+      "path": ".github/instructions/taskmaster.instructions.md",
+      "contexts": ["task", "planning", "project-management", "orchestration"],
+      "priority": 2,
+      "applies_to": ["all"]
+    },
+    {
+      "id": "self_improve",
+      "name": "Self-Improvement Patterns",
+      "path": ".github/instructions/self_improve.instructions.md",
+      "contexts": ["improvement", "optimization", "refactoring"],
+      "priority": 3,
+      "applies_to": ["all"]
+    },
+    {
+      "id": "vscode_rules",
+      "name": "VS Code Integration Rules",
+      "path": ".github/instructions/vscode_rules.instructions.md",
+      "contexts": ["ide", "development", "configuration"],
+      "priority": 4,
+      "applies_to": ["vscode", "cursor", "windsurf"]
+    }
+  ],
+  "tools": {
+    "amp": {
+      "name": "Amp (ampcode.com)",
+      "type": "web",
+      "contexts": [".amp-settings.json", "AGENTS.md", "thread context"],
+      "rules_path": null,
+      "config_files": [".amp-settings.json"],
+      "discovery": "Auto-load AGENTS.md + thread context",
+      "priority": 1,
+      "status": "active",
+      "notes": "Largest context window (~150k tokens), thread persistence"
+    },
+    "claude_code": {
+      "name": "Claude Code (VSCode/Cursor)",
+      "type": "ide_extension",
+      "contexts": ["CLAUDE.md", ".vscode/settings.json", ".claude/settings.json"],
+      "rules_path": null,
+      "config_files": [".vscode/settings.json", ".claude/settings.json"],
+      "discovery": "Auto-load CLAUDE.md if exists",
+      "priority": 2,
+      "status": "active",
+      "notes": "VSCode integration, MCP support"
+    },
+    "cursor": {
+      "name": "Cursor IDE",
+      "type": "ide",
+      "contexts": [".cursor/mcp.json", ".cursor/rules/"],
+      "rules_path": ".cursor/rules/",
+      "config_files": [".cursor/mcp.json"],
+      "discovery": "Load .cursor/mcp.json + .cursor/rules/",
+      "priority": 2,
+      "status": "active",
+      "notes": "Full MCP integration available"
+    },
+    "gemini": {
+      "name": "Gemini (Google)",
+      "type": "code_integration",
+      "contexts": [".gemini/settings.json", "GEMINI.md"],
+      "rules_path": null,
+      "config_files": [".gemini/settings.json"],
+      "discovery": "Load .gemini/settings.json",
+      "priority": 3,
+      "status": "configured",
+      "notes": "Google's code integration"
+    },
+    "windsurf": {
+      "name": "Windsurf",
+      "type": "ide",
+      "contexts": [".windsurf/rules/", ".windsurf/ config"],
+      "rules_path": ".windsurf/rules/",
+      "config_files": [".windsurf/settings.json"],
+      "discovery": "Load .windsurf/ config and rules",
+      "priority": 3,
+      "status": "configured",
+      "notes": "IDE with AI integration"
+    },
+    "zed": {
+      "name": "Zed Editor",
+      "type": "ide",
+      "contexts": [".zed/settings"],
+      "rules_path": null,
+      "config_files": [".zed/settings.json"],
+      "discovery": "Load Zed-specific config",
+      "priority": 3,
+      "status": "configured",
+      "notes": "Modern editor with AI support"
+    },
+    "kilo": {
+      "name": "Kilo",
+      "type": "code_agent",
+      "contexts": [".kilo/mcp.json", ".kilo/rules/"],
+      "rules_path": ".kilo/rules/",
+      "config_files": [".kilo/mcp.json"],
+      "discovery": "Load .kilo/mcp.json + rules",
+      "priority": 4,
+      "status": "configured",
+      "notes": "Code agent with MCP support"
+    },
+    "kiro": {
+      "name": "Kiro",
+      "type": "variant_agent",
+      "contexts": [".kiro/settings/", ".kiro/steering/"],
+      "rules_path": ".kiro/steering/",
+      "config_files": [".kiro/settings/"],
+      "discovery": "Load .kiro/ config and steering",
+      "priority": 4,
+      "status": "configured",
+      "notes": "Variant agent configuration"
+    },
+    "roo": {
+      "name": "Roo",
+      "type": "code_explorer",
+      "contexts": [".roo/mcp.json", ".roo/rules/"],
+      "rules_path": ".roo/rules/",
+      "config_files": [".roo/mcp.json"],
+      "discovery": "Load .roo/mcp.json + rules",
+      "priority": 4,
+      "status": "configured",
+      "notes": "Code exploration agent"
+    },
+    "trae": {
+      "name": "Trae",
+      "type": "specialized_tool",
+      "contexts": [".trae/rules/"],
+      "rules_path": ".trae/rules/",
+      "config_files": [],
+      "discovery": "Load .trae/rules/",
+      "priority": 4,
+      "status": "configured",
+      "notes": "Specialized tool rules"
+    },
+    "qwen": {
+      "name": "Qwen (Alibaba)",
+      "type": "language_model",
+      "contexts": [".qwen/PROJECT_SUMMARY.md"],
+      "rules_path": null,
+      "config_files": [],
+      "discovery": "Load .qwen/ if exists",
+      "priority": 5,
+      "status": "placeholder",
+      "notes": "Qwen model integration - needs configuration"
+    },
+    "cline": {
+      "name": "Cline",
+      "type": "code_agent",
+      "contexts": [".clinerules/"],
+      "rules_path": ".clinerules/",
+      "config_files": [".clinerules/cline_rules.md"],
+      "discovery": "Load .clinerules/ directory",
+      "priority": 4,
+      "status": "configured",
+      "notes": "Cline agent with rules directory"
+    }
+  },
+  "discovery_order": {
+    "on_startup": [
+      "Check tool identity (Amp, Claude Code, Cursor, etc.)",
+      "Load tool-specific config from this manifest",
+      "Load .github/instructions/manifest.json",
+      "Load AGENTS.md",
+      "Load tool-specific rules/settings from dotdir"
+    ],
+    "on_request": [
+      "Identify context type from request",
+      "Search .github/instructions/ for matching files",
+      "Load instructions in priority order",
+      "Merge with tool-specific rules if applicable"
+    ]
+  },
+  "context_loading_rules": {
+    "precedence": [
+      "Tool-specific dotdir config (highest)",
+      ".github/instructions/manifest.json",
+      "AGENTS.md",
+      "Fallback to tool defaults (lowest)"
+    ],
+    "on_conflict": "Tool-specific config takes precedence over AGENTS.md, unless marked as OVERRIDE_AGENTS_TRUE in instruction"
+  },
+  "backlog_items": [
+    {
+      "id": "tool_qwen_setup",
+      "title": "Configure Qwen integration",
+      "status": "pending",
+      "priority": "low",
+      "notes": "Setup .qwen/ directory and configurations"
+    },
+    {
+      "id": "tool_speckit_integration",
+      "title": "Add SpecKit tool integration",
+      "status": "pending",
+      "priority": "medium",
+      "notes": "Mentioned in requirements but not yet configured - needs investigation and setup"
+    },
+    {
+      "id": "instruction_consolidation",
+      "title": "Consolidate scattered tool instructions",
+      "status": "in_progress",
+      "priority": "high",
+      "notes": "Move tool-specific rules from dotdirs to .github/instructions/ as canonical source"
+    },
+    {
+      "id": "auto_discovery_script",
+      "title": "Create tool-agnostic discovery mechanism",
+      "status": "pending",
+      "priority": "medium",
+      "notes": "Configuration-driven (JSON/YAML) not script-based for cross-environment support"
+    }
+  ]
+}

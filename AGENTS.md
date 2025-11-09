@@ -1,5 +1,18 @@
 # Task Master AI - Agent Integration Guide
 
+## Pre-Response Context Loading
+
+**Before responding to any query:**
+
+1. Check `.github/instructions/tools-manifest.json` for your tool's configuration
+2. Load instructions matching query context from `.github/instructions/` directory
+3. Apply tool-specific rules from dotdir (`.cursor/`, `.gemini/`, etc.) if applicable
+4. Use AGENTS.md as baseline guidance for Task Master workflows
+
+**Tool Discovery:** See `.github/instructions/tools-manifest.json` for complete tool inventory
+
+---
+
 ## Essential Commands
 
 ### Core Workflow Commands
