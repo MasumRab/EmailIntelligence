@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Post-commit hook for worktree orchestration
+# Runs synchronization scripts after commits to orchestration-tools branch
+
+set -e
+
+# Get current branch
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Only run sync if we're on orchestration-tools branch and sync script exists
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]] && [[ -f "scripts/sync_setup_worktrees.sh" ]]; then
+    echo "Setup synchronization triggered after commit to orchestration-tools"
+    read -p "Run synchronization to update worktrees? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        bash scripts/sync_setup_worktrees.sh
+    else
+        echo "Synchronization skipped."
+    fi
+fi

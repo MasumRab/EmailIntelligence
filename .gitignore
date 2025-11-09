@@ -80,10 +80,3 @@ performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
 worktrees/
-
-# Backup files
-*.bak
-*~
-*.backup
-backlog/config.yml.bak
-original_readme.md
