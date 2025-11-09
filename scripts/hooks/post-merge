@@ -3,21 +3,6 @@
 # Post-merge hook for worktree setup synchronization
 # This hook updates shared setup files and orchestration scripts from the orchestration-tools branch
 
-# Recursion prevention: Exit if sync is already active
-if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
-    echo "Orchestration sync already active, skipping to prevent recursion"
-    exit 0
-fi
-
-# Check for disable flag
-if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
-    echo "Orchestration checks disabled, skipping sync"
-    exit 0
-fi
-
-# Set sync active flag to prevent recursion
-export ORCHESTRATION_SYNC_ACTIVE=1
-
 set -e
 
 # Get the current worktree path
@@ -122,6 +107,3 @@ cp scripts/hooks/post-push .git/hooks/ 2>/dev/null || true
 chmod +x .git/hooks/post-merge .git/hooks/pre-commit .git/hooks/post-commit .git/hooks/post-push 2>/dev/null || true
 
 echo "Setup synchronization complete"
-
-# Unset the recursion prevention flag
-unset ORCHESTRATION_SYNC_ACTIVE
