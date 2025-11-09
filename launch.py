@@ -14,7 +14,7 @@ import os
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Path to the actual launch.py in the setup subtree
-setup_launch_path = os.path.join(script_dir, 'setup', 'launch.py')
+setup_launch_path = os.path.join(script_dir, "setup", "launch.py")
 
 if __name__ == "__main__":
     # Forward all arguments to the actual launch.py in the setup directory

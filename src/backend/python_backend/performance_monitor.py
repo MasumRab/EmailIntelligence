@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import psutil
 
@@ -71,7 +71,10 @@ class PerformanceMonitor:
                 cpu_percent = psutil.cpu_percent(interval=1)
                 self._metrics.append(
                     PerformanceMetric(
-                        timestamp=timestamp, value=cpu_percent, unit="%", source="cpu_usage"
+                        timestamp=timestamp,
+                        value=cpu_percent,
+                        unit="%",
+                        source="cpu_usage",
                     )
                 )
 
@@ -79,7 +82,10 @@ class PerformanceMonitor:
                 memory = psutil.virtual_memory()
                 self._metrics.append(
                     PerformanceMetric(
-                        timestamp=timestamp, value=memory.percent, unit="%", source="memory_usage"
+                        timestamp=timestamp,
+                        value=memory.percent,
+                        unit="%",
+                        source="memory_usage",
                     )
                 )
 
@@ -88,7 +94,10 @@ class PerformanceMonitor:
                 disk_percent = (disk.used / disk.total) * 100
                 self._metrics.append(
                     PerformanceMetric(
-                        timestamp=timestamp, value=disk_percent, unit="%", source="disk_usage"
+                        timestamp=timestamp,
+                        value=disk_percent,
+                        unit="%",
+                        source="disk_usage",
                     )
                 )
 
@@ -206,7 +215,9 @@ class PerformanceMonitor:
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
 
-    def get_model_performance(self, model_name: str, minutes: int = 5) -> List[PerformanceMetric]:
+    def get_model_performance(
+        self, model_name: str, minutes: int = 5
+    ) -> List[PerformanceMetric]:
         """Get performance metrics for a specific model"""
         with self._lock:
             if model_name not in self._model_performance:
@@ -220,7 +231,9 @@ class PerformanceMonitor:
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
 
-    def get_avg_model_performance(self, model_name: str, minutes: int = 5) -> Optional[float]:
+    def get_avg_model_performance(
+        self, model_name: str, minutes: int = 5
+    ) -> Optional[float]:
         """Get average performance for a model in the last specified minutes"""
         metrics = self.get_model_performance(model_name, minutes)
         if not metrics:
@@ -250,7 +263,9 @@ class PerformanceMonitor:
         """Get the error rate in the last specified minutes"""
         with self._lock:
             cutoff_time = time.time() - (minutes * 60)
-            recent_events = [event for event in self._events if event.start_time >= cutoff_time]
+            recent_events = [
+                event for event in self._events if event.start_time >= cutoff_time
+            ]
 
             if not recent_events:
                 return 0.0

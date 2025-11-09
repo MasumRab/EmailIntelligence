@@ -67,7 +67,9 @@ class SentimentModel:
             polarity = (
                 confidence
                 if prediction == "positive"
-                else -confidence if prediction == "negative" else 0.0
+                else -confidence
+                if prediction == "negative"
+                else 0.0
             )
             return {
                 "sentiment": str(prediction),
@@ -92,7 +94,9 @@ class SentimentModel:
             is not available or fails.
         """
         if not self.has_nltk or not TextBlob:
-            self.logger.warning("TextBlob analysis skipped: NLTK or TextBlob not available.")
+            self.logger.warning(
+                "TextBlob analysis skipped: NLTK or TextBlob not available."
+            )
             return None
         try:
             blob = TextBlob(text)

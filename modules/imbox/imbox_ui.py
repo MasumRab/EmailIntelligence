@@ -62,8 +62,12 @@ with gr.Blocks() as imbox_tab:
         with gr.Column():
             gr.Markdown("## Sender Labeling")
             sender_email = gr.Textbox(label="Sender Email")
-            label = gr.Dropdown(label="Label", choices=["Important", "Not Important", "Spam"])
+            label = gr.Dropdown(
+                label="Label", choices=["Important", "Not Important", "Spam"]
+            )
             save_label_button = gr.Button("Save Label")
             status = gr.Textbox(label="Status", interactive=False)
 
-    save_label_button.click(fn=save_sender_label, inputs=[sender_email, label], outputs=[status])
+    save_label_button.click(
+        fn=save_sender_label, inputs=[sender_email, label], outputs=[status]
+    )

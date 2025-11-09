@@ -10,9 +10,8 @@ Manages the loading, registration, and execution of plugins in the system.
 import importlib
 import inspect
 import logging
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Dict, Optional
 
 from backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
 
@@ -51,7 +50,9 @@ class PluginManager:
                             if issubclass(obj, ProcessingNode):
                                 # Create an instance and register it
                                 plugin_instance = obj()
-                                self._processing_nodes[plugin_instance.name] = plugin_instance
+                                self._processing_nodes[plugin_instance.name] = (
+                                    plugin_instance
+                                )
                                 logger.info(
                                     f"Loaded processing node plugin: {plugin_instance.name}"
                                 )
@@ -59,7 +60,9 @@ class PluginManager:
                                 # Create an instance and register it
                                 plugin_instance = obj()
                                 self._ui_plugins[plugin_instance.name] = plugin_instance
-                                logger.info(f"Loaded UI component plugin: {plugin_instance.name}")
+                                logger.info(
+                                    f"Loaded UI component plugin: {plugin_instance.name}"
+                                )
                             elif issubclass(obj, BasePlugin):
                                 # Create an instance and register it
                                 plugin_instance = obj()

@@ -3,9 +3,7 @@ DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 """
 
-import json
 import logging
-import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -24,7 +22,9 @@ performance_monitor = PerformanceMonitor()
 
 @router.get("/api/filters")
 @log_performance
-async def get_filters(request: Request, current_user: str = Depends(get_current_active_user)):
+async def get_filters(
+    request: Request, current_user: str = Depends(get_current_active_user)
+):
     """Get all active email filters
 
     Requires authentication.
@@ -76,12 +76,16 @@ async def generate_intelligent_filters(
         return {"filters_created": len(created_filters), "filters": created_filters}
     except Exception as e:
         logger.error(f"Error generating intelligent filters: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate intelligent filters")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate intelligent filters"
+        )
 
 
 @router.post("/api/filters/prune")
 @log_performance
-async def prune_filters(request: Request, current_user: str = Depends(get_current_active_user)):
+async def prune_filters(
+    request: Request, current_user: str = Depends(get_current_active_user)
+):
     """Prune ineffective filters
 
     Requires authentication.

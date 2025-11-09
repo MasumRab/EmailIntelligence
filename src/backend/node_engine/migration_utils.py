@@ -84,7 +84,9 @@ class WorkflowMigrationService:
 
         # Create the new node-based workflow
         node_workflow = NodeWorkflow(
-            workflow_id=config.get("workflow_id"), name=workflow_name, description=description
+            workflow_id=config.get("workflow_id"),
+            name=workflow_name,
+            description=description,
         )
 
         # Create the standard email processing pipeline
@@ -113,7 +115,8 @@ class WorkflowMigrationService:
 
         # 4. Filter Node (basic implementation)
         filter_node = FilterNode(
-            name="Filter (Migrated)", node_id="filter_" + workflow_name.lower().replace(" ", "_")
+            name="Filter (Migrated)",
+            node_id="filter_" + workflow_name.lower().replace(" ", "_"),
         )
         node_workflow.add_node(filter_node)
 
@@ -255,7 +258,9 @@ class WorkflowMigrationManager:
 
     def __init__(self):
         self.migration_service = WorkflowMigrationService()
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
     def migrate_all_legacy_workflows(self, legacy_workflows_dir: str) -> Dict[str, Any]:
         """
@@ -283,9 +288,13 @@ class WorkflowMigrationManager:
         for workflow_file in legacy_dir.glob("*.json"):
             try:
                 # Migrate individual file
-                result = self.migration_service.migrate_workflow_file(str(workflow_file))
+                result = self.migration_service.migrate_workflow_file(
+                    str(workflow_file)
+                )
                 summary["successful_migrations"] += 1
-                summary["migrated_files"].append({"original": str(workflow_file), "result": result})
+                summary["migrated_files"].append(
+                    {"original": str(workflow_file), "result": result}
+                )
                 self.logger.info(f"Successfully migrated: {workflow_file.name}")
             except Exception as e:
                 summary["failed_migrations"] += 1
@@ -324,8 +333,10 @@ class WorkflowMigrationManager:
                 "filter": "FilterNode",
                 "action": "ActionNode",
             },
-            "connection_pattern": ("Linear pipeline: source -> preprocessing -> "
-                                   "ai_analysis -> filter -> action"),
+            "connection_pattern": (
+                "Linear pipeline: source -> preprocessing -> "
+                "ai_analysis -> filter -> action"
+            ),
         }
 
         return plan
@@ -340,12 +351,16 @@ def migrate_legacy_workflow(
     legacy_config: Dict[str, Any], workflow_name: str = None
 ) -> NodeWorkflow:
     """Migrate a legacy workflow configuration to node-based format."""
-    return migration_manager.migration_service.migrate_legacy_workflow(legacy_config, workflow_name)
+    return migration_manager.migration_service.migrate_legacy_workflow(
+        legacy_config, workflow_name
+    )
 
 
 def migrate_workflow_file(file_path: str, output_path: str = None) -> str:
     """Migrate a legacy workflow file to node-based format."""
-    return migration_manager.migration_service.migrate_workflow_file(file_path, output_path)
+    return migration_manager.migration_service.migrate_workflow_file(
+        file_path, output_path
+    )
 
 
 def get_migration_report(legacy_config: Dict[str, Any]) -> Dict[str, Any]:

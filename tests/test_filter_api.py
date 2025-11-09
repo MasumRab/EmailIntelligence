@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
 from backend.python_nlp.smart_filters import EmailFilter
 from datetime import datetime
 
@@ -18,7 +17,8 @@ def mock_filter_manager():
 def mock_performance_monitor():
     """Fixture to mock the performance monitor."""
     with patch(
-        "server.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
+        "server.python_backend.filter_routes.performance_monitor",
+        new_callable=AsyncMock,
     ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm
@@ -75,7 +75,9 @@ def test_generate_intelligent_filters_success(
 ):
     """Test successful generation of intelligent filters."""
     mock_db_manager.get_recent_emails.return_value = [{"id": 1}]
-    mock_filter_manager.create_intelligent_filters.return_value = [{"name": "Intelligent Filter"}]
+    mock_filter_manager.create_intelligent_filters.return_value = [
+        {"name": "Intelligent Filter"}
+    ]
 
     response = client.post("/api/filters/generate-intelligent")
 

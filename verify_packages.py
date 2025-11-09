@@ -9,6 +9,7 @@ import subprocess
 import importlib
 from pathlib import Path
 
+
 def run_command(cmd):
     """Run a command and return output"""
     try:
@@ -16,30 +17,53 @@ def run_command(cmd):
         if isinstance(cmd, str):
             # For shell commands that need shell features, use shlex.split
             import shlex
+
             cmd = shlex.split(cmd)
         result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
         return result.returncode == 0, result.stdout.strip()
     except Exception:
         return False, ""
 
+
 def check_package_availability():
     """Check package availability in different contexts"""
 
     packages_to_check = [
         # Core scientific
-        'numpy', 'scipy', 'matplotlib', 'pandas', 'seaborn', 'plotly', 'sklearn', 'joblib',
+        "numpy",
+        "scipy",
+        "matplotlib",
+        "pandas",
+        "seaborn",
+        "plotly",
+        "sklearn",
+        "joblib",
         # Web framework
-        'fastapi', 'uvicorn', 'pydantic', 'httpx', 'dotenv',
+        "fastapi",
+        "uvicorn",
+        "pydantic",
+        "httpx",
+        "dotenv",
         # AI/ML
-        'torch', 'transformers', 'accelerate', 'sentencepiece',
+        "torch",
+        "transformers",
+        "accelerate",
+        "sentencepiece",
         # NLP
-        'nltk', 'textblob',
+        "nltk",
+        "textblob",
         # Web/API
-        'gradio', 'pyngrok',
+        "gradio",
+        "pyngrok",
         # Google
-        'googleapiclient', 'google.auth', 'google_auth_oauthlib',
+        "googleapiclient",
+        "google.auth",
+        "google_auth_oauthlib",
         # Utils
-        'bleach', 'psutil', 'aiosqlite', 'RestrictedPython'
+        "bleach",
+        "psutil",
+        "aiosqlite",
+        "RestrictedPython",
     ]
 
     print("🔍 Checking package availability...")
@@ -51,13 +75,17 @@ def check_package_availability():
 
     for package in packages_to_check:
         try:
-            importlib.import_module(package.replace('.', '_') if '.' in package else package)
+            importlib.import_module(
+                package.replace(".", "_") if "." in package else package
+            )
             # Check if it's from system or venv
-            module = sys.modules[package.replace('.', '_') if '.' in package else package]
-            module_path = getattr(module, '__file__', '')
+            module = sys.modules[
+                package.replace(".", "_") if "." in package else package
+            ]
+            module_path = getattr(module, "__file__", "")
 
-            if module_path and 'site-packages' in module_path:
-                if '/usr/' in module_path:
+            if module_path and "site-packages" in module_path:
+                if "/usr/" in module_path:
                     system_available.append(package)
                 else:
                     venv_available.append(package)
@@ -80,10 +108,12 @@ def check_package_availability():
             print(f"   • {pkg}")
 
     print("\n" + "=" * 80)
-    print(f"📊 Summary: {len(system_available)} system, {len(venv_available)} venv, {len(not_available)} missing")
+    print(
+        f"📊 Summary: {len(system_available)} system, {len(venv_available)} venv, {len(not_available)} missing"
+    )
 
     # Check virtual environment (try standard names)
-    venv_names = ['./venv', './emailintelligence_env', './emailintelligence_venv']
+    venv_names = ["./venv", "./emailintelligence_env", "./emailintelligence_venv"]
     venv_found = False
 
     for venv_name in venv_names:
@@ -98,10 +128,14 @@ def check_package_availability():
                 success, output = run_command([str(pip_exe), "list", "--format=freeze"])
                 if success:
                     # Count lines in output
-                    line_count = len([line for line in output.split('\n') if line.strip()])
+                    line_count = len(
+                        [line for line in output.split("\n") if line.strip()]
+                    )
                     print(f"📦 Virtual environment has {line_count} packages installed")
             else:
-                success, output = run_command(f"source {venv_name}/bin/activate && pip list --format=freeze | wc -l")
+                success, output = run_command(
+                    f"source {venv_name}/bin/activate && pip list --format=freeze | wc -l"
+                )
             if success:
                 print(f"📦 Virtual environment has {output} packages installed")
             break
@@ -112,10 +146,15 @@ def check_package_availability():
     # Check system packages
     success, output = run_command(["dpkg", "-l"])
     if success:
-    # Count python3 packages manually
-        lines = [line for line in output.split("\n") if line.startswith("ii") and "python3" in line]
+        # Count python3 packages manually
+        lines = [
+            line
+            for line in output.split("\n")
+            if line.startswith("ii") and "python3" in line
+        ]
         package_count = str(len(lines))
         print(f"📦 System has {package_count} Python packages installed")
+
 
 if __name__ == "__main__":
     check_package_availability()

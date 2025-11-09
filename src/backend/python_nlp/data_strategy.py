@@ -133,7 +133,9 @@ class DataCollectionStrategy:
             },
         }
 
-    def collect_email_samples(self, source: str, limit: Optional[int] = None) -> List[EmailSample]:
+    def collect_email_samples(
+        self, source: str, limit: Optional[int] = None
+    ) -> List[EmailSample]:
         """
         Collects email samples from a given source.
 
@@ -178,7 +180,9 @@ class DataCollectionStrategy:
                 break
 
             sample = EmailSample(
-                id=self._generate_sample_id(email_data["subject"], email_data["sender"]),
+                id=self._generate_sample_id(
+                    email_data["subject"], email_data["sender"]
+                ),
                 subject=email_data["subject"],
                 content=email_data["content"],
                 sender=email_data["sender"],
@@ -260,26 +264,36 @@ class DataCollectionStrategy:
             "has_numbers": bool(re.search(r"\d+", combined_text)),
             "has_email": bool(
                 re.search(
-                    self.preprocessing_rules["email_patterns"]["email_addresses"], combined_text
+                    self.preprocessing_rules["email_patterns"]["email_addresses"],
+                    combined_text,
                 )
             ),
             "has_phone": bool(
                 re.search(
-                    self.preprocessing_rules["email_patterns"]["phone_numbers"], combined_text
+                    self.preprocessing_rules["email_patterns"]["phone_numbers"],
+                    combined_text,
                 )
             ),
             "has_url": bool(
-                re.search(self.preprocessing_rules["email_patterns"]["urls"], combined_text)
+                re.search(
+                    self.preprocessing_rules["email_patterns"]["urls"], combined_text
+                )
             ),
-            "urgency_keywords": self._count_pattern_matches(combined_text, "urgency_signals"),
+            "urgency_keywords": self._count_pattern_matches(
+                combined_text, "urgency_signals"
+            ),
             "sentiment_keywords": self._count_pattern_matches(
                 combined_text, "sentiment_indicators"
             ),
-            "intent_keywords": self._count_pattern_matches(combined_text, "intent_patterns"),
+            "intent_keywords": self._count_pattern_matches(
+                combined_text, "intent_patterns"
+            ),
         }
         return features
 
-    def _count_pattern_matches(self, text: str, pattern_category: str) -> Dict[str, int]:
+    def _count_pattern_matches(
+        self, text: str, pattern_category: str
+    ) -> Dict[str, int]:
         """Counts keyword matches for a specific pattern category."""
         counts = {}
         patterns = self.annotation_guidelines.get(pattern_category, {})
@@ -310,7 +324,9 @@ class DataCollectionStrategy:
             An AnnotationSchema object containing the structured annotations.
         """
         if external_analysis_results:
-            self.logger.info(f"Using external analysis results for email ID: {email.id}")
+            self.logger.info(
+                f"Using external analysis results for email ID: {email.id}"
+            )
             topic = external_analysis_results.get(
                 "topic", self._predict_topic(email.content, is_fallback=True)
             )
@@ -332,7 +348,9 @@ class DataCollectionStrategy:
             confidence = external_analysis_results.get("confidence", 0.9)
             annotator_id_suffix = "_external"
         else:
-            self.logger.info(f"Using internal basic prediction for email ID: {email.id}")
+            self.logger.info(
+                f"Using internal basic prediction for email ID: {email.id}"
+            )
             topic = self._predict_topic(email.content)
             sentiment = self._predict_sentiment(email.content)
             intent = self._predict_intent(email.content)
@@ -362,7 +380,11 @@ class DataCollectionStrategy:
         for topic, keywords in self.annotation_guidelines["topics"].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             topic_scores[topic] = score
-        result = max(topic_scores, key=topic_scores.get) if any(topic_scores.values()) else "other"
+        result = (
+            max(topic_scores, key=topic_scores.get)
+            if any(topic_scores.values())
+            else "other"
+        )
         self.logger.debug(f"{prefix}Predicted topic: {result}")
         return result
 
@@ -372,7 +394,9 @@ class DataCollectionStrategy:
         self.logger.debug(f"{prefix}Predicting sentiment for text: '{text[:50]}...'")
         text_lower = text.lower()
         sentiment_scores = {}
-        for sentiment, keywords in self.annotation_guidelines["sentiment_indicators"].items():
+        for sentiment, keywords in self.annotation_guidelines[
+            "sentiment_indicators"
+        ].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             sentiment_scores[sentiment] = score
         if sentiment_scores.get("positive", 0) > 0 and sentiment_scores[
@@ -419,7 +443,9 @@ class DataCollectionStrategy:
             score = sum(1 for signal in signals if signal in text_lower)
             urgency_scores[urgency] = score
         result = (
-            max(urgency_scores, key=urgency_scores.get) if any(urgency_scores.values()) else "low"
+            max(urgency_scores, key=urgency_scores.get)
+            if any(urgency_scores.values())
+            else "low"
         )
         self.logger.debug(f"{prefix}Predicted urgency: {result}")
         return result
@@ -427,9 +453,13 @@ class DataCollectionStrategy:
     def _extract_entities(self, text: str) -> List[str]:
         """Extracts named entities (email, phone, URL, date) from text."""
         entities = []
-        emails = re.findall(self.preprocessing_rules["email_patterns"]["email_addresses"], text)
+        emails = re.findall(
+            self.preprocessing_rules["email_patterns"]["email_addresses"], text
+        )
         entities.extend([f"EMAIL:{email}" for email in emails])
-        phones = re.findall(self.preprocessing_rules["email_patterns"]["phone_numbers"], text)
+        phones = re.findall(
+            self.preprocessing_rules["email_patterns"]["phone_numbers"], text
+        )
         entities.extend([f"PHONE:{phone}" for phone in phones])
         urls = re.findall(self.preprocessing_rules["email_patterns"]["urls"], text)
         entities.extend([f"URL:{url}" for url in urls])
@@ -482,7 +512,10 @@ class DataCollectionStrategy:
         if not samples:
             self.logger.warning("No email samples provided for dataset creation")
             return {
-                "metadata": {"creation_date": datetime.now().isoformat(), "sample_count": 0},
+                "metadata": {
+                    "creation_date": datetime.now().isoformat(),
+                    "sample_count": 0,
+                },
                 "samples": [],
                 "statistics": {},
             }
@@ -508,7 +541,9 @@ class DataCollectionStrategy:
 
         return dataset
 
-    def _calculate_dataset_statistics(self, samples: List[EmailSample]) -> Dict[str, Any]:
+    def _calculate_dataset_statistics(
+        self, samples: List[EmailSample]
+    ) -> Dict[str, Any]:
         """Calculates and returns statistics for the dataset."""
         if not samples:
             return {}

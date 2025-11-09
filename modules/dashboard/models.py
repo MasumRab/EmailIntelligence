@@ -1,10 +1,13 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Dict, Optional
+
 
 class WeeklyGrowth(BaseModel):
     """Model representing weekly growth statistics."""
+
     emails: int
     percentage: float
+
 
 class ConsolidatedDashboardStats(BaseModel):
     """Comprehensive dashboard statistics model that consolidates both modular and legacy implementations."""
@@ -27,16 +30,20 @@ class ConsolidatedDashboardStats(BaseModel):
     weekly_growth: Optional[WeeklyGrowth] = None  # From legacy implementation
 
     # Performance monitoring
-    performance_metrics: Optional[Dict[str, float]] = None  # From modular implementation
+    performance_metrics: Optional[Dict[str, float]] = (
+        None  # From modular implementation
+    )
 
     class Config:
         # Allow both field names and aliases during validation
         allow_population_by_field_name = True
         validate_assignment = True
 
+
 # Keep the original DashboardStats for backward compatibility
 class DashboardStats(BaseModel):
     """Legacy modular dashboard stats - kept for backward compatibility."""
+
     total_emails: int
     categorized_emails: Dict[str, int]
     unread_emails: int

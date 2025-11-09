@@ -6,7 +6,6 @@ Creates and manages branch-specific versions of documentation files.
 Automatically generates branch-specific copies when documentation is modified.
 """
 
-import os
 import sys
 import argparse
 import subprocess
@@ -26,7 +25,9 @@ class DocsBranchVersioning:
         try:
             result = subprocess.run(
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                capture_output=True, text=True, check=True
+                capture_output=True,
+                text=True,
+                check=True,
             )
             return result.stdout.strip()
         except subprocess.CalledProcessError:
@@ -37,10 +38,12 @@ class DocsBranchVersioning:
         try:
             result = subprocess.run(
                 ["git", "diff", "--cached", "--name-only"],
-                capture_output=True, text=True, check=True
+                capture_output=True,
+                text=True,
+                check=True,
             )
-            files = result.stdout.strip().split('\n')
-            return [f for f in files if f.startswith('docs/') and f.endswith('.md')]
+            files = result.stdout.strip().split("\n")
+            return [f for f in files if f.startswith("docs/") and f.endswith(".md")]
         except subprocess.CalledProcessError:
             return []
 
@@ -64,6 +67,7 @@ class DocsBranchVersioning:
         try:
             # Copy the file
             import shutil
+
             shutil.copy2(source_path, branch_specific_path)
 
             # Add to git staging
@@ -76,7 +80,9 @@ class DocsBranchVersioning:
             print(f"Error creating branch version for {file_path}: {e}")
             return False
 
-    def process_changes(self, branch: Optional[str] = None, files: Optional[List[str]] = None) -> bool:
+    def process_changes(
+        self, branch: Optional[str] = None, files: Optional[List[str]] = None
+    ) -> bool:
         """Process documentation changes and create branch versions."""
         if branch is None:
             branch = self.get_current_branch()
@@ -98,7 +104,9 @@ class DocsBranchVersioning:
             if self.create_branch_version(file_path, branch):
                 success_count += 1
 
-        print(f"Successfully created {success_count}/{len(files)} branch-specific versions")
+        print(
+            f"Successfully created {success_count}/{len(files)} branch-specific versions"
+        )
         return success_count == len(files)
 
     def cleanup_versions(self, branch: str) -> None:
@@ -121,7 +129,9 @@ def main():
     parser = argparse.ArgumentParser(description="Documentation Branch Versioning")
     parser.add_argument("--branch", help="Specify branch (default: current)")
     parser.add_argument("--files", nargs="*", help="Specific files to process")
-    parser.add_argument("--cleanup", action="store_true", help="Clean up orphaned versions")
+    parser.add_argument(
+        "--cleanup", action="store_true", help="Clean up orphaned versions"
+    )
 
     args = parser.parse_args()
 

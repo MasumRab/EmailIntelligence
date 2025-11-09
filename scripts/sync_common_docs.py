@@ -10,7 +10,7 @@ import sys
 import shutil
 import argparse
 from pathlib import Path
-from typing import List, Optional
+
 
 class DocumentationSync:
     """Handles synchronization of common documentation across worktrees."""
@@ -51,7 +51,9 @@ class DocumentationSync:
             target_dir.mkdir(parents=True, exist_ok=True)
 
             try:
-                self._sync_directory(self.inheritance_base, target_dir, self.conflict_strategy)
+                self._sync_directory(
+                    self.inheritance_base, target_dir, self.conflict_strategy
+                )
                 self.print_success("Synced to docs-main worktree")
             except Exception as e:
                 self.print_error(f"Failed to sync to docs-main: {e}")
@@ -67,7 +69,9 @@ class DocumentationSync:
             target_dir.mkdir(parents=True, exist_ok=True)
 
             try:
-                self._sync_directory(self.inheritance_base, target_dir, self.conflict_strategy)
+                self._sync_directory(
+                    self.inheritance_base, target_dir, self.conflict_strategy
+                )
                 self.print_success("Synced to docs-scientific worktree")
             except Exception as e:
                 self.print_error(f"Failed to sync to docs-scientific: {e}")
@@ -123,23 +127,32 @@ class DocumentationSync:
         if main_worktree.exists():
             common_count = len(list((main_worktree / "docs" / "common").rglob("*.md")))
             branch_count = len(list((main_worktree / "docs" / "main").rglob("*.md")))
-            print(f"docs-main: {common_count} common docs, {branch_count} branch-specific docs")
+            print(
+                f"docs-main: {common_count} common docs, {branch_count} branch-specific docs"
+            )
         else:
             print("docs-main: NOT FOUND")
 
         # Check scientific worktree
         scientific_worktree = self.worktrees_dir / "docs-scientific"
         if scientific_worktree.exists():
-            common_count = len(list((scientific_worktree / "docs" / "common").rglob("*.md")))
-            branch_count = len(list((scientific_worktree / "docs" / "scientific").rglob("*.md")))
-            print(f"docs-scientific: {common_count} common docs, {branch_count} branch-specific docs")
+            common_count = len(
+                list((scientific_worktree / "docs" / "common").rglob("*.md"))
+            )
+            branch_count = len(
+                list((scientific_worktree / "docs" / "scientific").rglob("*.md"))
+            )
+            print(
+                f"docs-scientific: {common_count} common docs, {branch_count} branch-specific docs"
+            )
         else:
             print("docs-scientific: NOT FOUND")
 
-    def _sync_directory(self, source: Path, target: Path, conflict_strategy: str = "overwrite"):
+    def _sync_directory(
+        self, source: Path, target: Path, conflict_strategy: str = "overwrite"
+    ):
         """Sync contents of source directory to target directory with conflict resolution."""
         import filecmp
-        from datetime import datetime
 
         conflicts = []
         updates = []
@@ -177,7 +190,9 @@ class DocumentationSync:
         if conflicts:
             print(f"  Resolved {len(conflicts)} conflicts")
 
-    def _handle_conflict(self, source_path: Path, target_path: Path, relative_path: Path, strategy: str) -> bool:
+    def _handle_conflict(
+        self, source_path: Path, target_path: Path, relative_path: Path, strategy: str
+    ) -> bool:
         """Handle file conflicts based on the specified strategy.
 
         Returns True if conflict was detected and handled, False if file was updated normally.
@@ -192,7 +207,9 @@ class DocumentationSync:
         elif strategy == "backup":
             # Create backup of target before overwriting
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_path = target_path.with_suffix(f"{target_path.suffix}.backup_{timestamp}")
+            backup_path = target_path.with_suffix(
+                f"{target_path.suffix}.backup_{timestamp}"
+            )
             shutil.copy2(target_path, backup_path)
             print(f"    Backed up conflicting file: {backup_path.name}")
             shutil.copy2(source_path, target_path)
@@ -217,35 +234,42 @@ class DocumentationSync:
 
         else:
             # Unknown strategy - default to overwrite
-            self.print_warning(f"Unknown conflict strategy '{strategy}', using 'overwrite'")
+            self.print_warning(
+                f"Unknown conflict strategy '{strategy}', using 'overwrite'"
+            )
             shutil.copy2(source_path, target_path)
             return False
+
 
 def main():
     parser = argparse.ArgumentParser(
         description="Worktree Documentation Inheritance Sync Script"
     )
     parser.add_argument(
-        "--sync-from-base", "-b",
+        "--sync-from-base",
+        "-b",
         action="store_true",
-        help="Sync from inheritance base to all worktrees"
+        help="Sync from inheritance base to all worktrees",
     )
     parser.add_argument(
-        "--sync-between", "-s",
+        "--sync-between",
+        "-s",
         nargs=2,
         metavar=("SOURCE", "TARGET"),
-        help="Sync common docs between specific worktrees"
+        help="Sync common docs between specific worktrees",
     )
     parser.add_argument(
-        "--status", "-t",
+        "--status",
+        "-t",
         action="store_true",
-        help="Check worktree documentation status"
+        help="Check worktree documentation status",
     )
     parser.add_argument(
-        "--conflict-strategy", "-c",
+        "--conflict-strategy",
+        "-c",
         choices=["overwrite", "backup", "skip", "newer"],
         default="overwrite",
-        help="Strategy for handling file conflicts (default: overwrite)"
+        help="Strategy for handling file conflicts (default: overwrite)",
     )
 
     args = parser.parse_args()
@@ -271,6 +295,7 @@ def main():
         sync.check_worktree_status()
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

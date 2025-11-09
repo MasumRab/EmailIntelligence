@@ -1,7 +1,4 @@
 from datetime import datetime
-from unittest.mock import MagicMock
-
-import pytest
 
 
 def create_mock_email(email_id: int, subject: str, **kwargs) -> dict:
@@ -116,7 +113,9 @@ def test_create_email(client, mock_db_manager, mock_workflow_engine):
     # The database receives the processed data. We need to pop the subject
     # because it's a positional argument in the helper.
     subject = processed_data_from_workflow.pop("subject")
-    created_email_from_db = create_mock_email(1, subject, **processed_data_from_workflow)
+    created_email_from_db = create_mock_email(
+        1, subject, **processed_data_from_workflow
+    )
     mock_db_manager.create_email.return_value = created_email_from_db
 
     # Restore the subject for the original dictionary that we'll check against
@@ -162,7 +161,9 @@ def test_get_emails_db_error(client, mock_db_manager):
     class MockDBError(Exception):
         pass
 
-    mock_db_manager.get_all_emails.side_effect = MockDBError("Database connection failed")
+    mock_db_manager.get_all_emails.side_effect = MockDBError(
+        "Database connection failed"
+    )
 
     response = client.get("/api/emails")
 
@@ -170,16 +171,21 @@ def test_get_emails_db_error(client, mock_db_manager):
     assert response.json() == {"detail": "Database service unavailable."}
 
 
-def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_ai_engine):
+def test_plugin_workflow_e2e(
+    client_with_real_workflows, mock_db_manager, mock_ai_engine
+):
     """
     Tests the full end-to-end flow of activating and using a workflow from a plugin.
     This uses a client with a real workflow engine to test discovery.
     """
     # 1. Activate the workflow from the example plugin
-    activate_response = client_with_real_workflows.put("/api/workflows/active/example_uppercase")
+    activate_response = client_with_real_workflows.put(
+        "/api/workflows/active/example_uppercase"
+    )
     assert activate_response.status_code == 200
     assert (
-        activate_response.json()["message"] == "Active legacy workflow set to 'example_uppercase'."
+        activate_response.json()["message"]
+        == "Active legacy workflow set to 'example_uppercase'."
     )
 
     # 2. Prepare the email data
@@ -201,7 +207,9 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
     mock_db_manager.create_email.return_value = create_mock_email(10, **processed_data)
 
     # 3. Create the email, which will trigger the newly activated workflow
-    create_response = client_with_real_workflows.post("/api/emails", json=new_email_data)
+    create_response = client_with_real_workflows.post(
+        "/api/emails", json=new_email_data
+    )
 
     # 4. Assert that the workflow was correctly applied
     assert create_response.status_code == 200

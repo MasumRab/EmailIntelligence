@@ -24,7 +24,9 @@ class ExampleUppercaseNode(BaseNode):
     This demonstrates how to create custom node types for the Node Engine.
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+    def __init__(
+        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+    ):
         super().__init__(
             node_id, name or "Example Uppercase", "Converts email subject to uppercase"
         )
@@ -64,7 +66,9 @@ class ExampleUppercaseNode(BaseNode):
                 processed_email["processed_by"] = "example_uppercase_node"
                 processed_emails.append(processed_email)
 
-            logger.info(f"Processed {len(processed_emails)} emails with uppercase transformation")
+            logger.info(
+                f"Processed {len(processed_emails)} emails with uppercase transformation"
+            )
 
             return {"processed_emails": processed_emails}
 

@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from src.core.factory import get_email_repository
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 import json
 import sys
 import os
@@ -11,18 +11,17 @@ import os
 # The SECRET_KEY is generated randomly for each test session for security
 
 # Add the project root to the path to avoid gradio import issues
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 # Import routes directly to avoid gradio dependency
 from modules.dashboard.routes import router as dashboard_router
-from modules.dashboard.models import ConsolidatedDashboardStats
 
 # Mock data
 mock_emails = [
-    {'is_read': True, 'category': 'Work'},
-    {'is_read': False, 'category': 'Personal'},
-    {'is_read': True, 'category': 'Work'},
-    {'is_read': False, 'category': 'Uncategorized'},
+    {"is_read": True, "category": "Work"},
+    {"is_read": False, "category": "Personal"},
+    {"is_read": True, "category": "Work"},
+    {"is_read": False, "category": "Uncategorized"},
 ]
 
 mock_performance_log = [
@@ -33,25 +32,28 @@ mock_performance_log = [
 
 # Create a mock repository
 mock_repository = MagicMock()
-mock_repository.get_dashboard_aggregates = AsyncMock(return_value={
-    'total_emails': 4,
-    'auto_labeled': 3,
-    'categories_count': 3,
-    'unread_count': 2,
-    'weekly_growth': {'emails': 4, 'percentage': 0.0}
-})
-mock_repository.get_category_breakdown = AsyncMock(return_value={
-    "Work": 2,
-    "Personal": 1,
-    "Uncategorized": 1
-})
+mock_repository.get_dashboard_aggregates = AsyncMock(
+    return_value={
+        "total_emails": 4,
+        "auto_labeled": 3,
+        "categories_count": 3,
+        "unread_count": 2,
+        "weekly_growth": {"emails": 4, "percentage": 0.0},
+    }
+)
+mock_repository.get_category_breakdown = AsyncMock(
+    return_value={"Work": 2, "Personal": 1, "Uncategorized": 1}
+)
+
 
 async def override_get_email_repository():
     return mock_repository
 
+
 # Mock authentication dependency
 async def mock_get_current_user():
     return "test_user"
+
 
 # Create a minimal FastAPI app for testing
 app = FastAPI()
@@ -59,8 +61,10 @@ app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"]
 app.dependency_overrides[get_email_repository] = override_get_email_repository
 # Mock authentication for testing
 from src.core.auth import get_current_active_user
+
 app.dependency_overrides[get_current_active_user] = mock_get_current_user
 client = TestClient(app)
+
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_and_teardown_mock_log():
@@ -83,6 +87,7 @@ def setup_and_teardown_mock_log():
     # Teardown: remove the mock log file
     os.remove(log_file_path)
 
+
 def test_get_dashboard_stats():
     response = client.get("/api/dashboard/stats")
     assert response.status_code == 200
@@ -97,8 +102,11 @@ def test_get_dashboard_stats():
     # Test new consolidated fields
     assert data["time_saved"] == "0h 6m"  # 3 auto_labeled * 2 minutes = 6 minutes
     assert data["auto_labeled"] == 3  # Should be included from aggregates
-    assert data["categories"] == 3   # Should be included from aggregates
-    assert data["weekly_growth"] == {"emails": 4, "percentage": 0.0}  # Should be included from aggregates
+    assert data["categories"] == 3  # Should be included from aggregates
+    assert data["weekly_growth"] == {
+        "emails": 4,
+        "percentage": 0.0,
+    }  # Should be included from aggregates
 
     # Test performance metrics
     assert "get_emails" in data["performance_metrics"]
@@ -111,7 +119,9 @@ def test_get_dashboard_stats_repository_error():
     """Test dashboard stats when repository raises an exception."""
     # Temporarily make repository raise an exception
     original_method = mock_repository.get_dashboard_aggregates
-    mock_repository.get_dashboard_aggregates = AsyncMock(side_effect=Exception("Database connection failed"))
+    mock_repository.get_dashboard_aggregates = AsyncMock(
+        side_effect=Exception("Database connection failed")
+    )
 
     try:
         response = client.get("/api/dashboard/stats")
@@ -153,9 +163,9 @@ def test_time_saved_calculation():
     """Test the time_saved calculation logic directly."""
     # Test cases for time_saved calculation
     test_cases = [
-        (0, "0h 0m"),    # 0 auto-labeled emails
-        (1, "0h 2m"),    # 1 * 2 minutes = 2 minutes
-        (30, "1h 0m"),   # 30 * 2 = 60 minutes = 1 hour
+        (0, "0h 0m"),  # 0 auto-labeled emails
+        (1, "0h 2m"),  # 1 * 2 minutes = 2 minutes
+        (30, "1h 0m"),  # 30 * 2 = 60 minutes = 1 hour
         (45, "1h 30m"),  # 45 * 2 = 90 minutes = 1h 30m
         (75, "2h 30m"),  # 75 * 2 = 150 minutes = 2h 30m
     ]
@@ -165,4 +175,6 @@ def test_time_saved_calculation():
         time_saved_hours = time_saved_minutes // 60
         time_saved_remaining_minutes = time_saved_minutes % 60
         actual = f"{time_saved_hours}h {time_saved_remaining_minutes}m"
-        assert actual == expected, f"For {auto_labeled} auto-labeled emails, expected {expected}, got {actual}"
+        assert actual == expected, (
+            f"For {auto_labeled} auto-labeled emails, expected {expected}, got {actual}"
+        )

@@ -6,8 +6,7 @@ and its implementations, ensuring proper interface compliance and functionality.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, List, Any, Optional
+from unittest.mock import AsyncMock
 
 from src.core.data_source import DataSource
 from src.core.notmuch_data_source import NotmuchDataSource
@@ -26,24 +25,26 @@ class TestDataSourceInterface:
         """Test that all required abstract methods are defined."""
         # Check that these methods exist and are abstract
         required_methods = [
-            'create_email',
-            'get_email_by_id',
-            'get_all_categories',
-            'create_category',
-            'get_emails',
-            'update_email_by_message_id',
-            'get_email_by_message_id',
-            'get_all_emails',
-            'search_emails',
-            'get_emails_by_category',
-            'update_email',
-            'delete_email',
-            'get_dashboard_aggregates',
-            'get_category_breakdown'
+            "create_email",
+            "get_email_by_id",
+            "get_all_categories",
+            "create_category",
+            "get_emails",
+            "update_email_by_message_id",
+            "get_email_by_message_id",
+            "get_all_emails",
+            "search_emails",
+            "get_emails_by_category",
+            "update_email",
+            "delete_email",
+            "get_dashboard_aggregates",
+            "get_category_breakdown",
         ]
 
         for method_name in required_methods:
-            assert hasattr(DataSource, method_name), f"Missing abstract method: {method_name}"
+            assert hasattr(DataSource, method_name), (
+                f"Missing abstract method: {method_name}"
+            )
 
 
 class TestNotmuchDataSource:
@@ -97,7 +98,9 @@ class TestNotmuchDataSource:
         assert len(result) == 0
 
         # Test with parameters
-        result = await notmuch_ds.get_emails(limit=10, offset=5, category_id=1, is_unread=True)
+        result = await notmuch_ds.get_emails(
+            limit=10, offset=5, category_id=1, is_unread=True
+        )
         assert isinstance(result, list)
 
     @pytest.mark.asyncio
@@ -143,16 +146,16 @@ class TestNotmuchDataSource:
         """Test that NotmuchDataSource properly implements DataSource interface."""
         # All methods should exist and be callable
         methods_to_test = [
-            ('create_email', [{"test": "data"}]),
-            ('get_email_by_id', [1]),
-            ('get_all_categories', []),
-            ('create_category', [{"name": "test"}]),
-            ('get_emails', []),
-            ('get_all_emails', []),
-            ('search_emails', ["query"]),
-            ('get_emails_by_category', ["test"]),
-            ('update_email', [1, {"test": "update"}]),
-            ('delete_email', [1]),
+            ("create_email", [{"test": "data"}]),
+            ("get_email_by_id", [1]),
+            ("get_all_categories", []),
+            ("create_category", [{"name": "test"}]),
+            ("get_emails", []),
+            ("get_all_emails", []),
+            ("search_emails", ["query"]),
+            ("get_emails_by_category", ["test"]),
+            ("update_email", [1, {"test": "update"}]),
+            ("delete_email", [1]),
         ]
 
         for method_name, args in methods_to_test:
@@ -166,11 +169,17 @@ class TestNotmuchDataSource:
                 result = await method()
 
             # Result should be of expected type (None for single items, list for collections)
-            if method_name in ['get_all_categories', 'get_emails', 'get_all_emails', 'search_emails', 'get_emails_by_category']:
+            if method_name in [
+                "get_all_categories",
+                "get_emails",
+                "get_all_emails",
+                "search_emails",
+                "get_emails_by_category",
+            ]:
                 assert isinstance(result, list)
-            elif method_name in ['get_dashboard_aggregates', 'get_category_breakdown']:
+            elif method_name in ["get_dashboard_aggregates", "get_category_breakdown"]:
                 assert isinstance(result, dict)
-            elif method_name == 'delete_email':
+            elif method_name == "delete_email":
                 assert isinstance(result, bool)
             else:
                 assert result is None or isinstance(result, dict)
@@ -182,7 +191,13 @@ class TestNotmuchDataSource:
 
         # Should return a dictionary with expected keys
         assert isinstance(result, dict)
-        expected_keys = ["total_emails", "auto_labeled", "categories_count", "unread_count", "weekly_growth"]
+        expected_keys = [
+            "total_emails",
+            "auto_labeled",
+            "categories_count",
+            "unread_count",
+            "weekly_growth",
+        ]
         for key in expected_keys:
             assert key in result
 
@@ -231,20 +246,36 @@ class TestDatabaseManagerDataSource:
         """Test that DatabaseManager properly implements DataSource interface."""
         # Should have all required methods
         required_methods = [
-            'create_email', 'get_email_by_id', 'get_all_categories', 'create_category',
-            'get_emails', 'update_email_by_message_id', 'get_email_by_message_id',
-            'get_all_emails', 'search_emails', 'get_emails_by_category',
-            'update_email', 'delete_email', 'get_dashboard_aggregates', 'get_category_breakdown'
+            "create_email",
+            "get_email_by_id",
+            "get_all_categories",
+            "create_category",
+            "get_emails",
+            "update_email_by_message_id",
+            "get_email_by_message_id",
+            "get_all_emails",
+            "search_emails",
+            "get_emails_by_category",
+            "update_email",
+            "delete_email",
+            "get_dashboard_aggregates",
+            "get_category_breakdown",
         ]
 
         for method_name in required_methods:
-            assert hasattr(mock_db_manager, method_name), f"Missing method: {method_name}"
-            assert callable(getattr(mock_db_manager, method_name)), f"Method {method_name} is not callable"
+            assert hasattr(mock_db_manager, method_name), (
+                f"Missing method: {method_name}"
+            )
+            assert callable(getattr(mock_db_manager, method_name)), (
+                f"Method {method_name} is not callable"
+            )
 
     @pytest.mark.asyncio
     async def test_database_manager_create_email(self, mock_db_manager):
         """Test DatabaseManager create_email method."""
-        mock_db_manager.create_email = AsyncMock(return_value={"id": 1, "subject": "Test"})
+        mock_db_manager.create_email = AsyncMock(
+            return_value={"id": 1, "subject": "Test"}
+        )
 
         email_data = {"subject": "Test Email", "content": "Test content"}
         result = await mock_db_manager.create_email(email_data)
@@ -255,7 +286,9 @@ class TestDatabaseManagerDataSource:
     @pytest.mark.asyncio
     async def test_database_manager_get_email_by_id(self, mock_db_manager):
         """Test DatabaseManager get_email_by_id method."""
-        mock_db_manager.get_email_by_id = AsyncMock(return_value={"id": 1, "subject": "Test"})
+        mock_db_manager.get_email_by_id = AsyncMock(
+            return_value={"id": 1, "subject": "Test"}
+        )
 
         result = await mock_db_manager.get_email_by_id(1)
 
@@ -263,13 +296,19 @@ class TestDatabaseManagerDataSource:
         assert result == {"id": 1, "subject": "Test"}
 
     @pytest.mark.asyncio
-    async def test_database_manager_get_email_by_id_without_content(self, mock_db_manager):
+    async def test_database_manager_get_email_by_id_without_content(
+        self, mock_db_manager
+    ):
         """Test DatabaseManager get_email_by_id method without content."""
-        mock_db_manager.get_email_by_id = AsyncMock(return_value={"id": 1, "subject": "Test"})
+        mock_db_manager.get_email_by_id = AsyncMock(
+            return_value={"id": 1, "subject": "Test"}
+        )
 
         result = await mock_db_manager.get_email_by_id(1, include_content=False)
 
-        mock_db_manager.get_email_by_id.assert_called_once_with(1, include_content=False)
+        mock_db_manager.get_email_by_id.assert_called_once_with(
+            1, include_content=False
+        )
         assert result == {"id": 1, "subject": "Test"}
 
     @pytest.mark.asyncio
@@ -280,7 +319,7 @@ class TestDatabaseManagerDataSource:
             "auto_labeled": 2,
             "categories_count": 2,
             "unread_count": 2,
-            "weekly_growth": {"emails": 3, "percentage": 0.0}
+            "weekly_growth": {"emails": 3, "percentage": 0.0},
         }
         mock_db_manager.get_dashboard_aggregates.return_value = expected
 
@@ -292,11 +331,7 @@ class TestDatabaseManagerDataSource:
     @pytest.mark.asyncio
     async def test_database_manager_get_category_breakdown(self, mock_db_manager):
         """Test DatabaseManager get_category_breakdown method."""
-        expected = {
-            "Work": 3,
-            "Personal": 1,
-            "Spam": 1
-        }
+        expected = {"Work": 3, "Personal": 1, "Spam": 1}
         mock_db_manager.get_category_breakdown.return_value = expected
 
         result = await mock_db_manager.get_category_breakdown(limit=3)
@@ -311,10 +346,11 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_default(self, monkeypatch):
         """Test get_data_source with default configuration."""
-        from src.core.factory import get_data_source, _data_source_instance
+        from src.core.factory import get_data_source
 
         # Reset global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock environment variable
@@ -325,7 +361,9 @@ class TestDataSourceFactory:
         mock_create_db_manager = AsyncMock(return_value=mock_db_manager)
 
         with monkeypatch.context() as m:
-            m.setattr("src.core.database.create_database_manager", mock_create_db_manager)
+            m.setattr(
+                "src.core.database.create_database_manager", mock_create_db_manager
+            )
             data_source = await get_data_source()
 
         assert data_source is mock_db_manager
@@ -333,10 +371,11 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_notmuch(self, monkeypatch):
         """Test get_data_source with notmuch configuration."""
-        from src.core.factory import get_data_source, _data_source_instance
+        from src.core.factory import get_data_source
 
         # Reset global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock environment variable
@@ -348,10 +387,11 @@ class TestDataSourceFactory:
     @pytest.mark.asyncio
     async def test_get_data_source_singleton(self, monkeypatch):
         """Test that get_data_source returns singleton instance."""
-        from src.core.factory import get_data_source, _data_source_instance
+        from src.core.factory import get_data_source
 
         # Reset global instance
         import src.core.factory
+
         src.core.factory._data_source_instance = None
 
         # Mock environment variable
@@ -380,13 +420,13 @@ class TestDataSourceIntegration:
 
         # Check a few key methods
         sig_create = inspect.signature(ds.create_email)
-        assert 'email_data' in sig_create.parameters
+        assert "email_data" in sig_create.parameters
 
         sig_get_emails = inspect.signature(ds.get_emails)
-        assert 'limit' in sig_get_emails.parameters
-        assert 'offset' in sig_get_emails.parameters
-        assert 'category_id' in sig_get_emails.parameters
-        assert 'is_unread' in sig_get_emails.parameters
+        assert "limit" in sig_get_emails.parameters
+        assert "offset" in sig_get_emails.parameters
+        assert "category_id" in sig_get_emails.parameters
+        assert "is_unread" in sig_get_emails.parameters
 
     @pytest.mark.asyncio
     async def test_datasource_polymorphism(self):
@@ -395,7 +435,7 @@ class TestDataSourceIntegration:
         notmuch_ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
 
         # Both should implement the same interface
-        methods = ['create_email', 'get_email_by_id', 'get_all_emails', 'search_emails']
+        methods = ["create_email", "get_email_by_id", "get_all_emails", "search_emails"]
 
         for method_name in methods:
             assert hasattr(notmuch_ds, method_name)

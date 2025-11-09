@@ -1,5 +1,4 @@
-from playwright.sync_api import expect, sync_playwright
-
+from playwright.sync_api import sync_playwright
 
 
 def run_verification():
@@ -9,14 +8,19 @@ def run_verification():
 
         # Capture console errors
         errors = []
-        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+        page.on(
+            "console",
+            lambda msg: errors.append(msg.text) if msg.type == "error" else None,
+        )
 
         # Capture failed network requests
         failed_requests = []
 
         def handle_response(response):
             if not response.ok:
-                failed_requests.append(f"URL: {response.url}, Status: {response.status}")
+                failed_requests.append(
+                    f"URL: {response.url}, Status: {response.status}"
+                )
 
         page.on("response", handle_response)
 

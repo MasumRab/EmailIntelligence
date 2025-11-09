@@ -1,5 +1,4 @@
 import argparse
-import os
 import subprocess
 import sys
 
@@ -28,12 +27,20 @@ def run_compose_command(environment, command, service=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Manage EmailIntelligence Docker deployments.")
-    parser.add_argument("environment", choices=["dev", "prod"], help="Deployment environment.")
-    parser.add_argument(
-        "command", choices=["up", "down", "build", "logs"], help="Docker Compose command."
+    parser = argparse.ArgumentParser(
+        description="Manage EmailIntelligence Docker deployments."
     )
-    parser.add_argument("service", nargs="?", help="Optional service name to apply command to.")
+    parser.add_argument(
+        "environment", choices=["dev", "prod"], help="Deployment environment."
+    )
+    parser.add_argument(
+        "command",
+        choices=["up", "down", "build", "logs"],
+        help="Docker Compose command.",
+    )
+    parser.add_argument(
+        "service", nargs="?", help="Optional service name to apply command to."
+    )
 
     args = parser.parse_args()
 

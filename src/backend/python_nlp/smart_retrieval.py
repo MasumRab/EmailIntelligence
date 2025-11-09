@@ -1,20 +1,12 @@
-import argparse
-import asyncio
-import json
 import logging
 import os
 import sqlite3
-import sys
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
-from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 
 load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
@@ -23,7 +15,9 @@ CREDENTIALS_PATH = "credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 # Define the project's root directory and default path for the checkpoint database
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 DEFAULT_CHECKPOINT_DB_PATH = os.path.join(PROJECT_ROOT, "sync_checkpoints.db")
 
 
@@ -69,7 +63,7 @@ class SmartRetrievalManager:
             cursor = conn.cursor()
 
             # Create sync_checkpoints table if it doesn't exist
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS sync_checkpoints (
                     strategy_name TEXT PRIMARY KEY,
                     last_sync_date TEXT,
@@ -78,7 +72,7 @@ class SmartRetrievalManager:
                     next_page_token TEXT,
                     errors_count INTEGER DEFAULT 0
                 )
-            ''')
+            """)
 
             conn.commit()
             self.logger.info("Checkpoint database initialized successfully.")
@@ -88,7 +82,8 @@ class SmartRetrievalManager:
         finally:
             if conn:
                 conn.close()
-# 
+
+    #
     def _store_credentials(self, creds: Credentials):
         try:
             with open(TOKEN_JSON_PATH, "w") as token_file:
@@ -96,7 +91,8 @@ class SmartRetrievalManager:
             self.logger.info("Credentials stored successfully.")
         except Exception as e:
             self.logger.error(
-                f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
+                f"An unexpected error occurred during the OAuth flow: {e}",
+                exc_info=True,
             )
             return None
 
@@ -122,7 +118,7 @@ class SmartRetrievalManager:
         if checkpoint and checkpoint.last_sync_date:
             # Gmail API uses 'after:' filter for date-based queries
             # Convert to YYYY/MM/DD format expected by Gmail
-            date_filter = checkpoint.last_sync_date.strftime('%Y/%m/%d')
+            date_filter = checkpoint.last_sync_date.strftime("%Y/%m/%d")
             if base_query:
                 return f"{base_query} after:{date_filter}"
             else:
@@ -156,24 +152,33 @@ class SmartRetrievalManager:
             cursor = conn.cursor()
 
             # Convert datetime to ISO format string for storage
-            last_sync_str = checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
+            last_sync_str = (
+                checkpoint.last_sync_date.isoformat()
+                if checkpoint.last_sync_date
+                else None
+            )
 
             # Use INSERT OR REPLACE to handle both new and existing checkpoints
-            cursor.execute('''
+            cursor.execute(
+                """
             INSERT OR REPLACE INTO sync_checkpoints
             (strategy_name, last_sync_date, last_history_id, processed_count, next_page_token, errors_count)
             VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-            checkpoint.strategy_name,
-            last_sync_str,
-            checkpoint.last_history_id,
-            checkpoint.processed_count,
-            checkpoint.next_page_token,
-            checkpoint.errors_count
-            ))
+            """,
+                (
+                    checkpoint.strategy_name,
+                    last_sync_str,
+                    checkpoint.last_history_id,
+                    checkpoint.processed_count,
+                    checkpoint.next_page_token,
+                    checkpoint.errors_count,
+                ),
+            )
 
             conn.commit()
-            self.logger.info(f"Checkpoint saved for strategy: {checkpoint.strategy_name}")
+            self.logger.info(
+                f"Checkpoint saved for strategy: {checkpoint.strategy_name}"
+            )
 
         except sqlite3.Error as e:
             self.logger.error(f"Failed to save checkpoint: {e}")
@@ -181,8 +186,10 @@ class SmartRetrievalManager:
         finally:
             if conn:
                 conn.close()
-# 
-# 
+
+
+#
+#
 # async def main_cli():
 #     """Provides a command-line interface for the SmartGmailRetriever."""
 #     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
@@ -191,17 +198,17 @@ class SmartRetrievalManager:
 #     parser.add_argument("--time-budget", type=int, default=30, help="Time budget in minutes")
 #     parser.add_argument("--output", help="Output file path (JSON format)")
 #     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-#     
+#
 #     args = parser.parse_args()
-#     
+#
 #     # Set up logging based on verbose flag
 #     log_level = logging.DEBUG if args.verbose else logging.INFO
 #     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
-#     
+#
 #     try:
 #         # Initialize SmartRetrievalManager
 #         retriever = SmartRetrievalManager()
-#     
+#
 #         # Parse strategies if provided (for now, just use defaults)
 #         strategies = None
 #         if args.strategies:
@@ -219,14 +226,14 @@ class SmartRetrievalManager:
 #                     exclude_folders=[],
 #                         date_range_days=30
 #                 ))
-#     
+#
 #             # Execute smart retrieval
 #             result = await retriever.execute_smart_retrieval(
 #                 strategies=strategies,
 #                 max_api_calls=args.max_api_calls,
 #                 time_budget_minutes=args.time_budget
 #             )
-#     
+#
 #             # Handle output
 #             if args.output:
 #                 # Save to JSON file
@@ -236,14 +243,14 @@ class SmartRetrievalManager:
 #             else:
 #                 # Print to console
 #                 print(json.dumps(result, indent=2, default=str))
-#     
+#
 #     except Exception as e:
 #         print(f"Error: {e}", file=sys.stderr)
 #         if args.verbose:
 #             import traceback
 #             traceback.print_exc()
 #         sys.exit(1)
-#     
-#     
+#
+#
 #     if __name__ == "__main__":
 #     asyncio.run(main_cli())

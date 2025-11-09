@@ -6,11 +6,9 @@ Determines whether documentation should be shared between branches or kept separ
 based on content analysis and executes the appropriate merge strategy.
 """
 
-import os
 import json
-import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 from datetime import datetime
 
 
@@ -24,50 +22,61 @@ class DocsMergeStrategist:
     def load_review_queue(self) -> Dict:
         """Load the current review queue."""
         if self.review_queue_file.exists():
-            with open(self.review_queue_file, 'r') as f:
+            with open(self.review_queue_file, "r") as f:
                 return json.load(f)
         return {"pending_reviews": [], "completed_reviews": []}
 
     def save_review_queue(self, queue: Dict):
         """Save the review queue."""
         self.review_queue_file.parent.mkdir(exist_ok=True)
-        with open(self.review_queue_file, 'w') as f:
+        with open(self.review_queue_file, "w") as f:
             json.dump(queue, f, indent=2)
 
     def load_merge_history(self) -> List[Dict]:
         """Load merge history."""
         if self.merge_history_file.exists():
-            with open(self.merge_history_file, 'r') as f:
+            with open(self.merge_history_file, "r") as f:
                 return json.load(f)
         return []
 
     def save_merge_history(self, history: List[Dict]):
         """Save merge history."""
         self.merge_history_file.parent.mkdir(exist_ok=True)
-        with open(self.merge_history_file, 'w') as f:
+        with open(self.merge_history_file, "w") as f:
             json.dump(history, f, indent=2)
 
     def determine_strategy(self, analysis: Dict) -> str:
         """Determine merge strategy based on analysis."""
-        if 'error' in analysis:
+        if "error" in analysis:
             return "ERROR"
 
-        if analysis.get('recommendation') in ['SCIENTIFIC_ONLY', 'MAIN_ONLY']:
+        if analysis.get("recommendation") in ["SCIENTIFIC_ONLY", "MAIN_ONLY"]:
             return "BRANCH_SPECIFIC"
 
-        goal_similarity = analysis['goal_analysis']['similarity']
-        audience_overlap = len(analysis['audience_analysis']['overlap'])
-        audience_differences = (len(analysis['audience_analysis']['main_unique']) +
-                               len(analysis['audience_analysis']['scientific_unique']))
+        goal_similarity = analysis["goal_analysis"]["similarity"]
+        audience_overlap = len(analysis["audience_analysis"]["overlap"])
+        audience_differences = len(analysis["audience_analysis"]["main_unique"]) + len(
+            analysis["audience_analysis"]["scientific_unique"]
+        )
 
-        tech_main = analysis['technical_analysis']['main']['technical_score']
-        tech_scientific = analysis['technical_analysis']['scientific']['technical_score']
+        tech_main = analysis["technical_analysis"]["main"]["technical_score"]
+        tech_scientific = analysis["technical_analysis"]["scientific"][
+            "technical_score"
+        ]
         tech_diff = abs(tech_main - tech_scientific)
 
         # Decision matrix
-        if goal_similarity > 0.8 and audience_differences <= audience_overlap and tech_diff < 2:
+        if (
+            goal_similarity > 0.8
+            and audience_differences <= audience_overlap
+            and tech_diff < 2
+        ):
             return "SHARE"
-        elif goal_similarity < 0.3 or audience_differences > audience_overlap * 2 or tech_diff > 5:
+        elif (
+            goal_similarity < 0.3
+            or audience_differences > audience_overlap * 2
+            or tech_diff > 5
+        ):
             return "BRANCH_SPECIFIC"
         else:
             return "MANUAL_REVIEW"
@@ -82,11 +91,11 @@ class DocsMergeStrategist:
             "branch": branch,
             "change_type": "content_update",
             "analysis": analysis,
-            "strategy": analysis.get('recommendation', 'UNKNOWN'),
+            "strategy": analysis.get("recommendation", "UNKNOWN"),
             "created_at": datetime.now().isoformat(),
             "status": "pending",
             "reviewers": ["team-lead", "tech-writer"],
-            "priority": "medium"
+            "priority": "medium",
         }
 
         queue["pending_reviews"].append(review_request)
@@ -100,43 +109,47 @@ class DocsMergeStrategist:
 
     def create_review_markdown(self, review_request: Dict):
         """Create a markdown file for manual review."""
-        doc_path = review_request['doc_path']
-        review_id = review_request['id']
+        doc_path = review_request["doc_path"]
+        review_id = review_request["id"]
 
         review_file = Path(f"docs/reviews/review_{review_id}.md")
 
-        analysis = review_request['analysis']
+        analysis = review_request["analysis"]
 
         # Handle different analysis types
-        if 'error' in analysis:
+        if "error" in analysis:
             content = f"""# Documentation Review: {Path(doc_path).name}
 
 **Review ID**: {review_id}
 **Document**: {doc_path}
-**Branch**: {review_request['branch']}
-**Created**: {review_request['created_at']}
-**Status**: {review_request['status']}
+**Branch**: {review_request["branch"]}
+**Created**: {review_request["created_at"]}
+**Status**: {review_request["status"]}
 
 ## Analysis Summary
 
-**Error**: {analysis['error']}
+**Error**: {analysis["error"]}
 
-## Recommended Strategy: {review_request['strategy']}
+## Recommended Strategy: {review_request["strategy"]}
 
 ## Review Decision
 
 **Decision**: [ ] SHARE  [ ] BRANCH_SPECIFIC  [ ] MANUAL_REVIEW
 **Reasoning**:
 """
-        elif analysis.get('recommendation') in ['SCIENTIFIC_ONLY', 'MAIN_ONLY']:
-            branch_name = 'scientific' if analysis['recommendation'] == 'SCIENTIFIC_ONLY' else 'main'
+        elif analysis.get("recommendation") in ["SCIENTIFIC_ONLY", "MAIN_ONLY"]:
+            branch_name = (
+                "scientific"
+                if analysis["recommendation"] == "SCIENTIFIC_ONLY"
+                else "main"
+            )
             content = f"""# Documentation Review: {Path(doc_path).name}
 
 **Review ID**: {review_id}
 **Document**: {doc_path}
-**Branch**: {review_request['branch']}
-**Created**: {review_request['created_at']}
-**Status**: {review_request['status']}
+**Branch**: {review_request["branch"]}
+**Created**: {review_request["created_at"]}
+**Status**: {review_request["status"]}
 
 ## Analysis Summary
 
@@ -144,7 +157,7 @@ class DocsMergeStrategist:
 
 This documentation file exists only on the `{branch_name}` branch and not on the other branch.
 
-## Recommended Strategy: {review_request['strategy']}
+## Recommended Strategy: {review_request["strategy"]}
 
 ## Review Decision
 
@@ -157,28 +170,28 @@ This documentation file exists only on the `{branch_name}` branch and not on the
 
 **Review ID**: {review_id}
 **Document**: {doc_path}
-**Branch**: {review_request['branch']}
-**Created**: {review_request['created_at']}
-**Status**: {review_request['status']}
+**Branch**: {review_request["branch"]}
+**Created**: {review_request["created_at"]}
+**Status**: {review_request["status"]}
 
 ## Analysis Summary
 
-### Goal Similarity: {analysis.get('goal_analysis', {}).get('similarity', 'N/A')}
-- **Main Goals**: {len(analysis.get('goal_analysis', {}).get('main_goals', []))}
-- **Scientific Goals**: {len(analysis.get('goal_analysis', {}).get('scientific_goals', []))}
-- **Overlapping Goals**: {analysis.get('goal_analysis', {}).get('overlap', 0)}
-- **Different Goals**: {analysis.get('goal_analysis', {}).get('differences', 0)}
+### Goal Similarity: {analysis.get("goal_analysis", {}).get("similarity", "N/A")}
+- **Main Goals**: {len(analysis.get("goal_analysis", {}).get("main_goals", []))}
+- **Scientific Goals**: {len(analysis.get("goal_analysis", {}).get("scientific_goals", []))}
+- **Overlapping Goals**: {analysis.get("goal_analysis", {}).get("overlap", 0)}
+- **Different Goals**: {analysis.get("goal_analysis", {}).get("differences", 0)}
 
 ### Audience Analysis
-- **Overlap**: {', '.join(analysis.get('audience_analysis', {}).get('overlap', [])) or 'None'}
-- **Main Only**: {', '.join(analysis.get('audience_analysis', {}).get('main_unique', [])) or 'None'}
-- **Scientific Only**: {', '.join(analysis.get('audience_analysis', {}).get('scientific_unique', [])) or 'None'}
+- **Overlap**: {", ".join(analysis.get("audience_analysis", {}).get("overlap", [])) or "None"}
+- **Main Only**: {", ".join(analysis.get("audience_analysis", {}).get("main_unique", [])) or "None"}
+- **Scientific Only**: {", ".join(analysis.get("audience_analysis", {}).get("scientific_unique", [])) or "None"}
 
 ### Technical Depth
-- **Main**: {analysis.get('technical_analysis', {}).get('main', {}).get('level', 'N/A')} ({analysis.get('technical_analysis', {}).get('main', {}).get('technical_score', 0):.2f})
-- **Scientific**: {analysis.get('technical_analysis', {}).get('scientific', {}).get('level', 'N/A')} ({analysis.get('technical_analysis', {}).get('scientific', {}).get('technical_score', 0):.2f})
+- **Main**: {analysis.get("technical_analysis", {}).get("main", {}).get("level", "N/A")} ({analysis.get("technical_analysis", {}).get("main", {}).get("technical_score", 0):.2f})
+- **Scientific**: {analysis.get("technical_analysis", {}).get("scientific", {}).get("level", "N/A")} ({analysis.get("technical_analysis", {}).get("scientific", {}).get("technical_score", 0):.2f})
 
-## Recommended Strategy: {review_request['strategy']}
+## Recommended Strategy: {review_request["strategy"]}
 
 ## Review Decision
 
@@ -187,7 +200,7 @@ This documentation file exists only on the `{branch_name}` branch and not on the
 """
 
         review_file.parent.mkdir(exist_ok=True)
-        with open(review_file, 'w') as f:
+        with open(review_file, "w") as f:
             f.write(content)
 
         print(f"Review file created: {review_file}")
@@ -203,12 +216,14 @@ This documentation file exists only on the `{branch_name}` branch and not on the
         # 3. Commit the changes
 
         history = self.load_merge_history()
-        history.append({
-            "timestamp": datetime.now().isoformat(),
-            "doc_path": doc_path,
-            "strategy": "SHARE",
-            "action": "merged_to_both_branches"
-        })
+        history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "doc_path": doc_path,
+                "strategy": "SHARE",
+                "action": "merged_to_both_branches",
+            }
+        )
         self.save_merge_history(history)
 
     def execute_branch_specific_strategy(self, doc_path: str):
@@ -217,15 +232,19 @@ This documentation file exists only on the `{branch_name}` branch and not on the
 
         # Keep the branch-specific versions as-is
         history = self.load_merge_history()
-        history.append({
-            "timestamp": datetime.now().isoformat(),
-            "doc_path": doc_path,
-            "strategy": "BRANCH_SPECIFIC",
-            "action": "kept_separate_versions"
-        })
+        history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "doc_path": doc_path,
+                "strategy": "BRANCH_SPECIFIC",
+                "action": "kept_separate_versions",
+            }
+        )
         self.save_merge_history(history)
 
-    def execute_strategy(self, strategy: str, doc_path: str, analysis: Dict = None, branch: str = None):
+    def execute_strategy(
+        self, strategy: str, doc_path: str, analysis: Dict = None, branch: str = None
+    ):
         """Execute the determined strategy."""
         if strategy == "SHARE":
             self.execute_share_strategy(doc_path)
@@ -274,7 +293,9 @@ This documentation file exists only on the `{branch_name}` branch and not on the
             "completed_reviews": len(queue["completed_reviews"]),
             "total_decisions": len(history),
             "share_decisions": len([h for h in history if h["strategy"] == "SHARE"]),
-            "branch_specific_decisions": len([h for h in history if h["strategy"] == "BRANCH_SPECIFIC"])
+            "branch_specific_decisions": len(
+                [h for h in history if h["strategy"] == "BRANCH_SPECIFIC"]
+            ),
         }
 
 
@@ -285,7 +306,9 @@ def main():
     parser.add_argument("--analyze", help="Analyze and determine strategy for document")
     parser.add_argument("--execute", help="Execute strategy for document")
     parser.add_argument("--review", help="Create review request for document")
-    parser.add_argument("--approve", help="Approve review (format: review_id:decision:reason)")
+    parser.add_argument(
+        "--approve", help="Approve review (format: review_id:decision:reason)"
+    )
     parser.add_argument("--status", action="store_true", help="Show review status")
     parser.add_argument("--branch", default="main", help="Branch for analysis")
 
@@ -302,6 +325,7 @@ def main():
     if args.analyze:
         # Import the analyzer
         from docs_content_analyzer import DocsContentAnalyzer
+
         analyzer = DocsContentAnalyzer()
         analysis = analyzer.compare_branches(args.analyze)
         strategy = strategist.determine_strategy(analysis)
@@ -314,6 +338,7 @@ def main():
 
     elif args.review:
         from docs_content_analyzer import DocsContentAnalyzer
+
         analyzer = DocsContentAnalyzer()
         analysis = analyzer.compare_branches(args.review)
         strategist.create_review_request(args.review, analysis, args.branch)

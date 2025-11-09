@@ -30,7 +30,7 @@ class ExampleAiEnhancerPlugin(PluginInterface):
         self._enhancement_stats = {
             "emails_processed": 0,
             "enhancements_applied": 0,
-            "average_confidence_boost": 0.0
+            "average_confidence_boost": 0.0,
         }
 
     def get_metadata(self) -> PluginMetadata:
@@ -43,7 +43,7 @@ class ExampleAiEnhancerPlugin(PluginInterface):
             description="Enhances AI analysis with additional processing and insights",
             security_level=PluginSecurityLevel.STANDARD,
             permissions=["ai_access", "data_read"],
-            tags=["ai", "enhancement", "analysis"]
+            tags=["ai", "enhancement", "analysis"],
         )
 
     async def initialize(self, config: Dict[str, Any]) -> bool:
@@ -70,7 +70,9 @@ class ExampleAiEnhancerPlugin(PluginInterface):
     async def shutdown(self) -> bool:
         """Shutdown the plugin and cleanup resources."""
         try:
-            logger.info(f"AI Enhancer plugin shutdown. Stats: {self._enhancement_stats}")
+            logger.info(
+                f"AI Enhancer plugin shutdown. Stats: {self._enhancement_stats}"
+            )
             self._initialized = False
             return True
         except Exception as e:
@@ -84,7 +86,7 @@ class ExampleAiEnhancerPlugin(PluginInterface):
             "sentiment_boost",
             "keyword_extraction",
             "confidence_scoring",
-            "data_preprocessing"
+            "data_preprocessing",
         ]
 
     def get_required_permissions(self) -> List[str]:
@@ -139,7 +141,26 @@ class ExampleAiEnhancerPlugin(PluginInterface):
 
         # Simple keyword extraction (could be enhanced with NLP)
         words = text.lower().split()
-        stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "is", "are", "was", "were"}
+        stop_words = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "is",
+            "are",
+            "was",
+            "were",
+        }
         keywords = [word for word in words if len(word) > 3 and word not in stop_words]
 
         # Return top 5 unique keywords
@@ -153,8 +174,24 @@ class ExampleAiEnhancerPlugin(PluginInterface):
         text_lower = text.lower()
 
         # Look for sentiment indicators that might have been missed
-        positive_indicators = ["great", "excellent", "wonderful", "fantastic", "amazing", "love", "awesome"]
-        negative_indicators = ["terrible", "awful", "horrible", "hate", "worst", "disaster", "problem"]
+        positive_indicators = [
+            "great",
+            "excellent",
+            "wonderful",
+            "fantastic",
+            "amazing",
+            "love",
+            "awesome",
+        ]
+        negative_indicators = [
+            "terrible",
+            "awful",
+            "horrible",
+            "hate",
+            "worst",
+            "disaster",
+            "problem",
+        ]
 
         has_positive = any(indicator in text_lower for indicator in positive_indicators)
         has_negative = any(indicator in text_lower for indicator in negative_indicators)
@@ -173,7 +210,7 @@ class ExampleAiEnhancerPlugin(PluginInterface):
         return {
             "enhancement_stats": self._enhancement_stats.copy(),
             "configuration": self._config.copy(),
-            "capabilities": self.get_capabilities()
+            "capabilities": self.get_capabilities(),
         }
 
     async def preprocess_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -186,13 +223,13 @@ class ExampleAiEnhancerPlugin(PluginInterface):
 
             # Add preprocessing metadata
             processed_data["preprocessed_by"] = "example_ai_enhancer"
-            processed_data["preprocessing_timestamp"] = __import__('time').time()
+            processed_data["preprocessing_timestamp"] = __import__("time").time()
 
             # Basic text cleaning (could be enhanced)
             if "content" in processed_data:
                 content = processed_data["content"]
                 # Remove excessive whitespace
-                content = ' '.join(content.split())
+                content = " ".join(content.split())
                 processed_data["content"] = content
 
             return processed_data

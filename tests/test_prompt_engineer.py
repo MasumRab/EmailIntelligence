@@ -4,7 +4,6 @@ from backend.python_nlp.ai_training import PromptEngineer
 
 
 class TestPromptEngineer(unittest.TestCase):
-
     def test_fill(self):
         template = "Hello, {name}!"
         engineer = PromptEngineer(template)

@@ -1,6 +1,5 @@
-import importlib
 import json
-from unittest.mock import MagicMock, call, mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
@@ -37,13 +36,15 @@ def test_discover_models_success(model_manager):
         patch("os.listdir", return_value=["sentiment-test.json", "topic-test.json"]),
         patch("builtins.open", m),
     ):
-
         model_manager.discover_models()
 
         assert len(model_manager.list_models()) == 2
         assert "sentiment-test" in model_manager._model_metadata
         assert "topic-test" in model_manager._model_metadata
-        assert model_manager._model_metadata["sentiment-test"]["module"] == "test.sentiment_module"
+        assert (
+            model_manager._model_metadata["sentiment-test"]["module"]
+            == "test.sentiment_module"
+        )
 
 
 def test_discover_models_file_not_found(model_manager):

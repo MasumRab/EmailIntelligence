@@ -9,11 +9,10 @@ node-based workflows, inspired by ComfyUI's interface design.
 """
 
 import json
-from typing import Any, Dict, List, Optional
 
 import gradio as gr
 
-from backend.node_engine.node_base import Connection, Workflow
+from backend.node_engine.node_base import Workflow
 from backend.node_engine.workflow_manager import get_workflow_manager
 from backend.plugins.plugin_manager import plugin_manager
 
@@ -62,15 +61,21 @@ def create_workflow_editor_ui():
                 workflow_description = gr.Textbox(label="Description", lines=2)
 
                 with gr.Row():
-                    save_workflow_btn = gr.Button("💾 Save Workflow", variant="secondary")
-                    load_workflow_btn = gr.Button("📂 Load Workflow", variant="secondary")
+                    save_workflow_btn = gr.Button(
+                        "💾 Save Workflow", variant="secondary"
+                    )
+                    load_workflow_btn = gr.Button(
+                        "📂 Load Workflow", variant="secondary"
+                    )
 
                 workflow_list = gr.Dropdown(
                     choices=workflow_manager.list_workflows(), label="Saved Workflows"
                 )
 
                 with gr.Row():
-                    create_workflow_btn = gr.Button("➕ Create New", variant="secondary")
+                    create_workflow_btn = gr.Button(
+                        "➕ Create New", variant="secondary"
+                    )
                     delete_workflow_btn = gr.Button("🗑️ Delete", variant="secondary")
 
                 gr.Markdown("### 🚀 Execute Workflow")
@@ -197,9 +202,15 @@ def create_workflow_editor_ui():
                         workflow_manager.list_workflows(),
                     )
                 else:
-                    return "❌ Failed to save workflow", workflow_manager.list_workflows()
+                    return (
+                        "❌ Failed to save workflow",
+                        workflow_manager.list_workflows(),
+                    )
             except Exception as e:
-                return f"❌ Error saving workflow: {str(e)}", workflow_manager.list_workflows()
+                return (
+                    f"❌ Error saving workflow: {str(e)}",
+                    workflow_manager.list_workflows(),
+                )
 
         def load_selected_workflow(workflow_filename: str):
             try:
@@ -247,7 +258,9 @@ def create_workflow_editor_ui():
                 return {"error": str(e)}
 
         # Connect events
-        add_node_btn.click(fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json)
+        add_node_btn.click(
+            fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json
+        )
 
         save_workflow_btn.click(
             fn=save_current_workflow,

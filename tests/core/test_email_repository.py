@@ -33,7 +33,9 @@ def email_repository(db_data_source):
 @pytest.mark.asyncio
 async def test_get_emails(email_repository, mock_db_manager):
     """Test that get_emails calls the data source correctly."""
-    await email_repository.get_emails(limit=50, offset=10, category_id=1, is_unread=True)
+    await email_repository.get_emails(
+        limit=50, offset=10, category_id=1, is_unread=True
+    )
     mock_db_manager.get_emails.assert_called_once_with(
         limit=50, offset=10, category_id=1, is_unread=True
     )

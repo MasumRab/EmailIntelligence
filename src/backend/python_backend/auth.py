@@ -31,11 +31,15 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )
     return encoded_jwt
 
 
-async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> TokenData:
+async def verify_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
 
@@ -49,7 +53,9 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
     )
     try:
         payload = jwt.decode(
-            credentials.credentials, settings.secret_key, algorithms=[settings.algorithm]
+            credentials.credentials,
+            settings.secret_key,
+            algorithms=[settings.algorithm],
         )
         username: str = payload.get("sub")
         if username is None:

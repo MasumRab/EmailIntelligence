@@ -29,7 +29,9 @@ def install_packages():
 
     print("Installing code quality packages...")
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade"] + packages)
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "--upgrade"] + packages
+        )
         print("Successfully installed packages.")
     except subprocess.CalledProcessError as e:
         print(f"Error installing packages: {e}")
@@ -113,7 +115,10 @@ line_length = 100
             existing_content = f.read()
 
         # Check if black and isort configs already exist
-        if "[tool.black]" not in existing_content and "[tool.isort]" not in existing_content:
+        if (
+            "[tool.black]" not in existing_content
+            and "[tool.isort]" not in existing_content
+        ):
             with open("pyproject.toml", "a") as f:
                 f.write("\n\n" + pyproject_toml)
     else:

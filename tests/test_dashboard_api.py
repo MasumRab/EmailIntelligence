@@ -7,13 +7,16 @@ import pytest
 def mock_performance_monitor():
     """Fixture to mock the performance monitor used in dashboard routes."""
     with patch(
-        "backend.python_backend.dashboard_routes.performance_monitor", new_callable=AsyncMock
+        "backend.python_backend.dashboard_routes.performance_monitor",
+        new_callable=AsyncMock,
     ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm
 
 
-def test_get_dashboard_stats_success(client, mock_db_manager: AsyncMock, mock_performance_monitor):
+def test_get_dashboard_stats_success(
+    client, mock_db_manager: AsyncMock, mock_performance_monitor
+):
     """Test successful retrieval of dashboard stats."""
     mock_stats_data = {
         "total_emails": 1000,
@@ -34,7 +37,9 @@ def test_get_dashboard_stats_success(client, mock_db_manager: AsyncMock, mock_pe
     mock_db_manager.get_dashboard_stats.assert_called_once()
 
 
-def test_get_dashboard_stats_db_error(client, mock_db_manager: AsyncMock, mock_performance_monitor):
+def test_get_dashboard_stats_db_error(
+    client, mock_db_manager: AsyncMock, mock_performance_monitor
+):
     """Test database error when fetching dashboard stats."""
     mock_db_manager.get_dashboard_stats.side_effect = Exception("DB Error")
 
@@ -55,7 +60,9 @@ def test_get_performance_overview_success(client, mock_performance_monitor: Asyn
         "alerts": [],
         "recommendations": [],
     }
-    mock_performance_monitor.get_real_time_dashboard.return_value = mock_performance_data
+    mock_performance_monitor.get_real_time_dashboard.return_value = (
+        mock_performance_data
+    )
 
     response = client.get("/api/performance/overview")
 

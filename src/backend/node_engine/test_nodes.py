@@ -8,13 +8,10 @@ This module contains tests to verify that the node system works as expected.
 """
 
 import asyncio
-import json
 
 from backend.node_engine.email_nodes import (
-    ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
-    FilterNode,
     PreprocessingNode,
 )
 from backend.node_engine.node_base import Workflow

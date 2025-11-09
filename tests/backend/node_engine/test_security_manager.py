@@ -54,7 +54,9 @@ def test_editor_can_execute_safe_workflow(security_manager_fixture):
     sm = security_manager_fixture
     editor_user = MockUser("editor_user")
     safe_workflow = MockWorkflow("wf2", "Safe Workflow", "owner_user", is_safe=True)
-    unsafe_workflow = MockWorkflow("wf3", "Unsafe Workflow", "owner_user", is_safe=False)
+    unsafe_workflow = MockWorkflow(
+        "wf3", "Unsafe Workflow", "owner_user", is_safe=False
+    )
 
     assert sm.has_permission(editor_user, "execute", safe_workflow) is True
     assert sm.has_permission(editor_user, "execute", unsafe_workflow) is False
@@ -84,8 +86,12 @@ def test_basic_user_cannot_execute_or_edit(security_manager_fixture):
 def test_basic_user_can_view_public_workflow(security_manager_fixture):
     sm = security_manager_fixture
     basic_user = MockUser("basic_user")
-    public_workflow = MockWorkflow("wf7", "Public Workflow", "owner_user", is_public=True)
-    private_workflow = MockWorkflow("wf8", "Private Workflow", "owner_user", is_public=False)
+    public_workflow = MockWorkflow(
+        "wf7", "Public Workflow", "owner_user", is_public=True
+    )
+    private_workflow = MockWorkflow(
+        "wf8", "Private Workflow", "owner_user", is_public=False
+    )
 
     assert sm.has_permission(basic_user, "view", public_workflow) is True
     assert sm.has_permission(basic_user, "view", private_workflow) is False
@@ -95,7 +101,9 @@ def test_owner_can_execute_and_edit_their_workflow(security_manager_fixture):
     sm = security_manager_fixture
     owner_user = MockUser("owner_user")
     owned_workflow = MockWorkflow("wf9", "Owned Workflow", "owner_user", is_safe=False)
-    other_workflow = MockWorkflow("wf10", "Other Workflow", "another_user", is_safe=True)
+    other_workflow = MockWorkflow(
+        "wf10", "Other Workflow", "another_user", is_safe=True
+    )
 
     assert (
         sm.has_permission(owner_user, "execute", owned_workflow) is True
@@ -108,7 +116,9 @@ def test_owner_can_execute_and_edit_their_workflow(security_manager_fixture):
 def test_anonymous_user_no_permissions(security_manager_fixture):
     sm = security_manager_fixture
     anonymous_user = MockUser("anonymous")
-    workflow = MockWorkflow("wf11", "Anon Workflow", "owner_user", is_safe=True, is_public=False)
+    workflow = MockWorkflow(
+        "wf11", "Anon Workflow", "owner_user", is_safe=True, is_public=False
+    )
 
     assert sm.has_permission(anonymous_user, "execute", workflow) is False
     assert sm.has_permission(anonymous_user, "edit", workflow) is False

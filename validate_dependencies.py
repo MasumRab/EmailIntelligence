@@ -6,9 +6,9 @@ This script validates that the project uses consistent dependency management
 and prevents mixed usage of uv and Poetry.
 """
 
-import os
 import sys
 from pathlib import Path
+
 
 def validate_dependency_management():
     """Validate that only uv is used for dependency management."""
@@ -23,7 +23,9 @@ def validate_dependency_management():
 
     for poetry_file in poetry_files:
         if (project_root / poetry_file).exists():
-            errors.append(f"Found Poetry file: {poetry_file}. This project uses uv for dependency management.")
+            errors.append(
+                f"Found Poetry file: {poetry_file}. This project uses uv for dependency management."
+            )
 
     # Check for uv.lock (should exist)
     uv_lock = project_root / "uv.lock"
@@ -49,6 +51,7 @@ def validate_dependency_management():
     print("  - uv.lock file present")
     print("  - No Poetry files found")
     return True
+
 
 if __name__ == "__main__":
     success = validate_dependency_management()

@@ -1,6 +1,3 @@
-import asyncio
-from unittest.mock import AsyncMock, MagicMock
-
 import pytest
 
 from src.core.advanced_workflow_engine import (
@@ -159,7 +156,9 @@ async def test_manager_end_to_end_execution(manager):
     wf = manager.create_workflow(name="E2E Test")
     node1_id = wf.add_node("MockSimpleNode", node_id="node1")
 
-    result = await manager.execute_workflow(wf.workflow_id, initial_inputs={"input_val": 10})
+    result = await manager.execute_workflow(
+        wf.workflow_id, initial_inputs={"input_val": 10}
+    )
 
     assert result.status == "success"
     assert result.node_results["node1"]["output_val"] == 20

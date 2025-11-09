@@ -11,16 +11,18 @@ import logging
 import os
 import re
 import sqlite3
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from src.core.security import PathValidator
 
 # Define paths for data storage
 # Use the project's data directory for database files to avoid cluttering the root
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
@@ -148,7 +150,9 @@ class SmartFilterManager:
                 return
             except sqlite3.OperationalError as e:
                 if "database is locked" in str(e) and attempt < retries - 1:
-                    self.logger.warning(f"Database locked, retrying ({attempt + 1}/{retries}): {e}")
+                    self.logger.warning(
+                        f"Database locked, retrying ({attempt + 1}/{retries}): {e}"
+                    )
                     import time
 
                     time.sleep(0.1 * (attempt + 1))  # Exponential backoff
@@ -235,9 +239,15 @@ class SmartFilterManager:
 
     def _load_pruning_criteria(self) -> Dict[str, Any]:
         """Loads the criteria used for pruning ineffective filters."""
-        return {"effectiveness_threshold": 0.3, "usage_threshold": 10, "age_threshold_days": 90}
+        return {
+            "effectiveness_threshold": 0.3,
+            "usage_threshold": 10,
+            "age_threshold_days": 90,
+        }
 
-    def create_intelligent_filters(self, email_samples: List[Dict[str, Any]]) -> List[EmailFilter]:
+    def create_intelligent_filters(
+        self, email_samples: List[Dict[str, Any]]
+    ) -> List[EmailFilter]:
         """
         Analyzes email samples to intelligently generate and store new filters.
 
@@ -256,7 +266,9 @@ class SmartFilterManager:
         self.logger.info(f"Created {len(created_filters)} intelligent filters")
         return created_filters
 
-    def _create_filters_from_templates(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
+    def _create_filters_from_templates(
+        self, patterns: Dict[str, Any]
+    ) -> List[EmailFilter]:
         """Creates filters from templates that match the analyzed patterns."""
         filters = []
         for name, template in self.filter_templates.items():
@@ -266,7 +278,9 @@ class SmartFilterManager:
                 filters.append(filter_obj)
         return filters
 
-    def _extract_patterns_from_single_email(self, email: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_patterns_from_single_email(
+        self, email: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Extracts key patterns from a single email."""
         patterns = {}
         if domain := self._extract_domain(email.get("senderEmail", "")):
@@ -275,7 +289,9 @@ class SmartFilterManager:
             patterns["subject_keywords"] = keywords
         return patterns
 
-    def _analyze_email_patterns(self, email_samples: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _analyze_email_patterns(
+        self, email_samples: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Aggregates patterns found across a list of email samples."""
         aggregated = {"sender_domains": Counter(), "subject_keywords": Counter()}
         for email in email_samples:
@@ -292,17 +308,28 @@ class SmartFilterManager:
 
     def _extract_keywords(self, text: str) -> List[str]:
         """Extracts meaningful keywords from a string of text."""
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        return [
+            word
+            for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower())
+            if len(word) > 3
+        ]
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
-        return any(ind in email.get("senderEmail", "").lower() for ind in ["noreply", "automated"])
+        return any(
+            ind in email.get("senderEmail", "").lower()
+            for ind in ["noreply", "automated"]
+        )
 
-    def _should_create_filter(self, template: Dict[str, Any], patterns: Dict[str, Any]) -> bool:
+    def _should_create_filter(
+        self, template: Dict[str, Any], patterns: Dict[str, Any]
+    ) -> bool:
         """Determines if a filter should be created based on a template and discovered patterns."""
         return True  # Simplified logic
 
-    def _create_filter_from_template(self, name: str, template: Dict[str, Any]) -> EmailFilter:
+    def _create_filter_from_template(
+        self, name: str, template: Dict[str, Any]
+    ) -> EmailFilter:
         """Creates an EmailFilter object from a template."""
         return EmailFilter(
             f"template_{name}",
@@ -376,7 +403,9 @@ class SmartFilterManager:
         """Evaluates a single filter to decide if it should be kept, pruned, or disabled."""
         return "keep"  # Simplified
 
-    def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
+    def _apply_filter_to_email(
+        self, filter_obj: EmailFilter, email: Dict[str, Any]
+    ) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
         if "from_patterns" in criteria and not any(
@@ -385,16 +414,15 @@ class SmartFilterManager:
         ):
             return False
         if "subject_keywords" in criteria and not any(
-            k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
+            k.lower() in email.get("subject", "").lower()
+            for k in criteria["subject_keywords"]
         ):
             return False
         return True
 
     def _save_filter(self, filter_obj: EmailFilter):
         """Saves a filter to the database."""
-        query = (
-            "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        )
+        query = "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         params = (
             filter_obj.filter_id,
             filter_obj.name,
@@ -455,7 +483,9 @@ class SmartFilterManager:
 def main():
     """Demonstrates the usage of the SmartFilterManager."""
     manager = SmartFilterManager()
-    sample_emails = [{"senderEmail": "urgent@company.com", "subject": "Urgent: Action Required"}]
+    sample_emails = [
+        {"senderEmail": "urgent@company.com", "subject": "Urgent: Action Required"}
+    ]
     filters = manager.create_intelligent_filters(sample_emails)
     print(f"Created {len(filters)} filters.")
     if filters:

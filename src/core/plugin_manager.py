@@ -7,7 +7,6 @@ marketplace integration, and runtime monitoring for extensible functionality.
 
 import asyncio
 import hashlib
-import json
 import logging
 import shutil
 import tempfile
@@ -21,7 +20,6 @@ from urllib.request import urlopen
 from .plugin_base import (
     HookSystem,
     PluginInstance,
-    PluginInterface,
     PluginMetadata,
     PluginRegistry,
     PluginSecurityLevel,
@@ -207,7 +205,9 @@ class PluginManager:
         """Get the security sandbox."""
         return self.registry.get_security_sandbox()
 
-    async def get_marketplace_plugins(self, refresh: bool = False) -> List[Dict[str, Any]]:
+    async def get_marketplace_plugins(
+        self, refresh: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get available plugins from the marketplace."""
         try:
             if refresh or self._should_refresh_marketplace_cache():
@@ -255,12 +255,16 @@ class PluginManager:
             "background_tasks_active": len(self._background_tasks),
             "plugins_dir": str(self.plugins_dir),
             "security_levels": {
-                level.value: len([p for p in plugins if p.get("security_level") == level.value])
+                level.value: len(
+                    [p for p in plugins if p.get("security_level") == level.value]
+                )
                 for level in PluginSecurityLevel
             },
         }
 
-    async def execute_plugin_method(self, plugin_id: str, method_name: str, *args, **kwargs) -> Any:
+    async def execute_plugin_method(
+        self, plugin_id: str, method_name: str, *args, **kwargs
+    ) -> Any:
         """Execute a method on a loaded plugin safely."""
         if plugin_id not in self.registry._instances:
             raise ValueError(f"Plugin {plugin_id} is not loaded")
@@ -278,8 +282,12 @@ class PluginManager:
 
         # Execute with security validation
         security_level = instance.metadata.security_level
-        if not self._validate_method_execution(plugin_object, method_name, security_level):
-            raise SecurityError(f"Method execution not allowed for security level {security_level}")
+        if not self._validate_method_execution(
+            plugin_object, method_name, security_level
+        ):
+            raise SecurityError(
+                f"Method execution not allowed for security level {security_level}"
+            )
 
         try:
             if asyncio.iscoroutinefunction(method):
@@ -287,7 +295,9 @@ class PluginManager:
             else:
                 return method(*args, **kwargs)
         except Exception as e:
-            logger.error(f"Plugin method execution failed: {plugin_id}.{method_name}: {e}")
+            logger.error(
+                f"Plugin method execution failed: {plugin_id}.{method_name}: {e}"
+            )
             raise
 
     async def _get_plugin_from_marketplace(
@@ -305,7 +315,9 @@ class PluginManager:
 
             # Check version
             if version and entry.version != version:
-                logger.warning(f"Requested version {version} not available for {plugin_id}")
+                logger.warning(
+                    f"Requested version {version} not available for {plugin_id}"
+                )
                 return None
 
             return entry
@@ -314,7 +326,9 @@ class PluginManager:
             logger.error(f"Failed to get plugin from marketplace: {e}")
             return None
 
-    async def _download_and_install_plugin(self, plugin_info: PluginMarketplaceEntry) -> bool:
+    async def _download_and_install_plugin(
+        self, plugin_info: PluginMarketplaceEntry
+    ) -> bool:
         """Download and install a plugin from the marketplace."""
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -326,7 +340,9 @@ class PluginManager:
 
                 # Verify checksum
                 if not await self._verify_checksum(download_path, plugin_info.checksum):
-                    logger.error(f"Checksum verification failed for {plugin_info.plugin_id}")
+                    logger.error(
+                        f"Checksum verification failed for {plugin_info.plugin_id}"
+                    )
                     return False
 
                 # Extract archive
@@ -350,7 +366,9 @@ class PluginManager:
                     plugin_dir.mkdir()
                     for file_path in extract_path.iterdir():
                         if file_path.is_file():
-                            shutil.move(str(file_path), str(plugin_dir / file_path.name))
+                            shutil.move(
+                                str(file_path), str(plugin_dir / file_path.name)
+                            )
 
                 # Register the plugin
                 metadata = PluginMetadata(
@@ -364,7 +382,9 @@ class PluginManager:
                 return await self.registry.register_plugin(metadata)
 
         except Exception as e:
-            logger.error(f"Failed to download and install plugin {plugin_info.plugin_id}: {e}")
+            logger.error(
+                f"Failed to download and install plugin {plugin_info.plugin_id}: {e}"
+            )
             return False
 
     async def _download_file(self, url: str, dest_path: Path):
@@ -432,7 +452,10 @@ class PluginManager:
         dangerous_methods = ["__del__", "system", "exec", "eval", "__import__"]
 
         if method_name in dangerous_methods:
-            if security_level in [PluginSecurityLevel.SANDBOXED, PluginSecurityLevel.STANDARD]:
+            if security_level in [
+                PluginSecurityLevel.SANDBOXED,
+                PluginSecurityLevel.STANDARD,
+            ]:
                 return False
 
         return True
@@ -457,7 +480,9 @@ class PluginManager:
                     try:
                         validation = await self.validate_plugin(plugin_id)
                         if not validation.get("valid", True):
-                            logger.warning(f"Plugin {plugin_id} health check failed: {validation}")
+                            logger.warning(
+                                f"Plugin {plugin_id} health check failed: {validation}"
+                            )
                     except Exception as e:
                         logger.error(f"Health check failed for plugin {plugin_id}: {e}")
 

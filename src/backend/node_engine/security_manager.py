@@ -22,13 +22,11 @@ except ImportError:
 @dataclass
 class ResourceLimits:
     """Defines resource limits for workflow execution."""
+
     max_api_calls: int = 1000
     max_execution_time: int = 300  # seconds
     max_memory_mb: int = 512
     max_concurrent_nodes: int = 10
-
-
-from .node_base import SecurityLevel  # Import after ResourceLimits is defined
 
 
 class SecurityManager:
@@ -39,7 +37,9 @@ class SecurityManager:
     def __init__(self, user_roles: Dict[str, List[str]] = None):
         self.user_roles = user_roles or {}
         self._api_call_counts: Dict[str, int] = {}
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
     def has_permission(self, user: Any, action: str, resource: Any) -> bool:
         """
@@ -88,12 +88,16 @@ class SecurityManager:
                 # Only allow execution of workflows marked as 'safe' for non-admins
                 # and if the user has 'editor' role or is the owner
                 is_owner = getattr(resource, "owner_id", None) == user_id
-                return (getattr(resource, "is_safe", False) and "editor" in roles) or is_owner
+                return (
+                    getattr(resource, "is_safe", False) and "editor" in roles
+                ) or is_owner
 
             # For workflow editing
             if action == "edit":
                 # Only owner or admin can edit
-                return getattr(resource, "owner_id", None) == user_id or "editor" in roles
+                return (
+                    getattr(resource, "owner_id", None) == user_id or "editor" in roles
+                )
 
             # For viewing workflows
             if action == "view":
@@ -217,8 +221,12 @@ class InputSanitizer:
             sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
                 "onload", "onload&#58;"
             )
-            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
-            sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
+            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace(
+                "<object", "&lt;object"
+            )
+            sanitized = sanitized.replace("<embed", "&lt;embed").replace(
+                "<form", "&lt;form"
+            )
 
         return sanitized
 
@@ -283,12 +291,16 @@ class ExecutionSandbox:
 
     def __init__(self, security_manager: SecurityManager):
         self.security_manager = security_manager
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
     # TODO(P1, 8h): Implement comprehensive execution sandboxing with resource isolation
     # TODO(P2, 4h): Add support for custom execution environments based on node security levels
 
-    async def execute_with_timeout(self, coro: Callable, timeout: int, *args, **kwargs) -> Any:
+    async def execute_with_timeout(
+        self, coro: Callable, timeout: int, *args, **kwargs
+    ) -> Any:
         """Execute a coroutine with a timeout."""
         try:
             result = await asyncio.wait_for(coro(*args, **kwargs), timeout=timeout)
@@ -296,7 +308,9 @@ class ExecutionSandbox:
         except asyncio.TimeoutError:
             raise RuntimeError(f"Execution timed out after {timeout} seconds")
 
-    def validate_input_types(self, inputs: Dict[str, Any], expected_types: Dict[str, type]) -> bool:
+    def validate_input_types(
+        self, inputs: Dict[str, Any], expected_types: Dict[str, type]
+    ) -> bool:
         """Validate input types against expected types."""
         for port_name, expected_type in expected_types.items():
             if port_name in inputs:
@@ -313,7 +327,9 @@ class AuditLogger:
     """Logs execution events for audit and debugging."""
 
     def __init__(self, log_file: str = "logs/workflow_audit.log"):
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
         self.logger.setLevel(logging.INFO)
 
         # Create logs directory if it doesn't exist
@@ -324,16 +340,26 @@ class AuditLogger:
         # Create file handler
         from logging.handlers import RotatingFileHandler
 
-        handler = RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5)
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        handler = RotatingFileHandler(
+            log_file, maxBytes=10 * 1024 * 1024, backupCount=5
+        )
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
 
-    def log_workflow_start(self, workflow_id: str, workflow_name: str, user_id: str = None):
+    def log_workflow_start(
+        self, workflow_id: str, workflow_name: str, user_id: str = None
+    ):
         """Log workflow execution start."""
-        self.logger.info(f"WORKFLOW_START: id={workflow_id}, name={workflow_name}, user={user_id}")
+        self.logger.info(
+            f"WORKFLOW_START: id={workflow_id}, name={workflow_name}, user={user_id}"
+        )
 
-    def log_workflow_end(self, workflow_id: str, status: str, duration: float, user_id: str = None):
+    def log_workflow_end(
+        self, workflow_id: str, status: str, duration: float, user_id: str = None
+    ):
         """Log workflow execution end."""
         self.logger.info(
             f"WORKFLOW_END: id={workflow_id}, status={status}, "
@@ -341,7 +367,12 @@ class AuditLogger:
         )
 
     def log_node_execution(
-        self, workflow_id: str, node_id: str, node_name: str, status: str, duration: float
+        self,
+        workflow_id: str,
+        node_id: str,
+        node_name: str,
+        status: str,
+        duration: float,
     ):
         """Log node execution."""
         self.logger.info(
@@ -361,13 +392,19 @@ class ResourceManager:
         self.max_concurrent_workflows = max_concurrent_workflows
         self.current_workflows = 0
         self.workflow_queue = asyncio.Queue()
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
         self._resource_usage = {}
 
-    async def acquire_resources(self, workflow_id: str, required_resources: ResourceLimits) -> bool:
+    async def acquire_resources(
+        self, workflow_id: str, required_resources: ResourceLimits
+    ) -> bool:
         """Acquire resources for a workflow."""
         if self.current_workflows >= self.max_concurrent_workflows:
-            self.logger.info(f"Max concurrent workflows reached. Workflow {workflow_id} queued.")
+            self.logger.info(
+                f"Max concurrent workflows reached. Workflow {workflow_id} queued."
+            )
             await self.workflow_queue.put(workflow_id)
             return False
 

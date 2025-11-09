@@ -7,15 +7,12 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from backend.node_engine.workflow_engine import WorkflowEngine
 from src.core.auth import get_current_active_user
 
-from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
-from .ai_engine import AdvancedAIEngine
-from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_email_service, get_filter_manager, get_workflow_engine
-from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
+from .dependencies import get_email_service, get_workflow_engine
+from .exceptions import DatabaseError
 from .models import EmailCreate, EmailResponse, EmailUpdate
 from .performance_monitor import log_performance
 from .services.email_service import EmailService
-from .utils import create_log_data, handle_pydantic_validation
+from .utils import create_log_data
 from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
@@ -53,14 +50,18 @@ async def get_emails(
         if search:
             result = await email_service.search_emails(search, limit)
         else:
-            result = await email_service.get_emails(category_id, limit, offset, is_unread)
+            result = await email_service.get_emails(
+                category_id, limit, offset, is_unread
+            )
         return [EmailResponse(**email) for email in result]
     except Exception as e:
         logger.error(f"Failed to get emails: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve emails")
 
 
-@router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
+@router.get(
+    "/api/emails/{email_id}", response_model=EmailResponse
+)  # Changed to EmailResponse
 @log_performance(operation="get_email")
 async def get_email_by_id(
     email_id: int,
@@ -133,7 +134,9 @@ async def create_email(
         )
 
 
-@router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
+@router.put(
+    "/api/emails/{email_id}", response_model=EmailResponse
+)  # Changed to EmailResponse
 @log_performance(operation="update_email")
 async def update_email(
     request: Request,

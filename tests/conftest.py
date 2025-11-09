@@ -3,13 +3,16 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+
 # Set up test environment immediately on import to handle early imports
 def _setup_test_env_early():
     """Set up minimal environment for early imports."""
     import secrets
+
     if "SECRET_KEY" not in os.environ:
         os.environ["SECRET_KEY"] = secrets.token_urlsafe(32)
     os.environ.setdefault("DATA_DIR", "./test_data")
+
 
 _setup_test_env_early()
 
@@ -84,11 +87,17 @@ def download_nltk_data():
         import nltk
 
         # Use NLTK's programmatic download for better reliability
-        packages = ["punkt", "punkt_tab", "stopwords", "wordnet", "averaged_perceptron_tagger"]
+        packages = [
+            "punkt",
+            "punkt_tab",
+            "stopwords",
+            "wordnet",
+            "averaged_perceptron_tagger",
+        ]
         for package in packages:
             try:
                 nltk.download(package, quiet=True)
-            except Exception as e:
+            except Exception:
                 # Some packages might fail, continue with others
                 pass
     except ImportError:
@@ -104,7 +113,7 @@ def download_nltk_data():
             from textblob import download_corpora
 
             download_corpora()
-        except Exception as e:
+        except Exception:
             # Try command line approach as fallback
             try:
                 subprocess.run(

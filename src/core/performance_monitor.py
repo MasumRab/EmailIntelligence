@@ -184,10 +184,8 @@ import atexit
 # Enhanced performance monitoring system with additional features
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -247,14 +245,18 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
+        self._metrics_buffer: deque[PerformanceMetric] = deque(
+            maxlen=max_metrics_buffer
+        )
         self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
 
         # Threading and async
         self._buffer_lock = threading.Lock()
         self._stop_event = threading.Event()
         self._processing_thread = threading.Thread(
-            target=self._process_metrics_background, daemon=True, name="PerformanceMonitor"
+            target=self._process_metrics_background,
+            daemon=True,
+            name="PerformanceMonitor",
         )
 
         # Start background processing
@@ -324,9 +326,15 @@ class OptimizedPerformanceMonitor:
                 try:
                     return func(*args, **kwargs)
                 finally:
-                    duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
+                    duration = (
+                        time.perf_counter() - start_time
+                    ) * 1000  # Convert to milliseconds
                     self.record_metric(
-                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
+                        name=name,
+                        value=duration,
+                        unit="ms",
+                        tags=tags,
+                        sample_rate=sample_rate,
                     )
 
             return wrapper
@@ -346,12 +354,18 @@ class OptimizedPerformanceMonitor:
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
                     self.record_metric(
-                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
+                        name=name,
+                        value=duration,
+                        unit="ms",
+                        tags=tags,
+                        sample_rate=sample_rate,
                     )
 
             return TimerContext()
 
-    def get_aggregated_metrics(self, name: Optional[str] = None) -> Dict[str, AggregatedMetric]:
+    def get_aggregated_metrics(
+        self, name: Optional[str] = None
+    ) -> Dict[str, AggregatedMetric]:
         """
         Get current aggregated metrics.
 
@@ -366,7 +380,9 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
+    def get_recent_metrics(
+        self, name: str, limit: int = 100
+    ) -> List[PerformanceMetric]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]

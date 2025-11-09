@@ -71,7 +71,9 @@ class TestSecurityMiddleware:
         api_rate_limiter._limiters.clear()
 
         # Test normal request
-        allowed, headers = await api_rate_limiter.check_rate_limit("/api/test", "test_client")
+        allowed, headers = await api_rate_limiter.check_rate_limit(
+            "/api/test", "test_client"
+        )
         assert allowed
         assert "X-RateLimit-Limit" in headers
         assert "X-RateLimit-Remaining" in headers
@@ -176,7 +178,9 @@ class TestPerformanceUnderLoad:
 
         # Make multiple requests quickly
         for i in range(10):
-            allowed, _ = await api_rate_limiter.check_rate_limit(f"/api/test{i}", "perf_client")
+            allowed, _ = await api_rate_limiter.check_rate_limit(
+                f"/api/test{i}", "perf_client"
+            )
 
         end_time = time.time()
         duration = end_time - start_time
@@ -216,7 +220,10 @@ class TestPerformanceUnderLoad:
         # Record multiple metrics
         for i in range(100):
             performance_monitor.record_metric(
-                f"test_metric_{i}", i, "count", sample_rate=1.0  # Don't sample for performance test
+                f"test_metric_{i}",
+                i,
+                "count",
+                sample_rate=1.0,  # Don't sample for performance test
             )
 
         end_time = time.time()

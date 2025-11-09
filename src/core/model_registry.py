@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,9 @@ class ModelRegistry:
         # Create models directory if it doesn't exist
         self.models_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info(f"ModelRegistry initialized with models directory: {self.models_dir}")
+        logger.info(
+            f"ModelRegistry initialized with models directory: {self.models_dir}"
+        )
 
     async def discover_models(self) -> List[str]:
         """Discover and register all available models in the models directory."""
@@ -115,7 +117,9 @@ class ModelRegistry:
                                 discovered_models.append(model_id)
                                 logger.info(f"Loaded existing model: {model_id}")
                         except Exception as e:
-                            logger.warning(f"Failed to load metadata for {model_id}: {e}")
+                            logger.warning(
+                                f"Failed to load metadata for {model_id}: {e}"
+                            )
                     else:
                         # Try to auto-discover model files
                         model_files = list(model_dir.glob("*.pkl")) + list(
@@ -208,7 +212,9 @@ class ModelRegistry:
                     metadata=metadata,
                     model_object=model_object,
                     memory_usage=await self._estimate_memory_usage(model_object),
-                    gpu_memory_usage=await self._estimate_gpu_memory_usage(model_object),
+                    gpu_memory_usage=await self._estimate_gpu_memory_usage(
+                        model_object
+                    ),
                 )
 
                 self._loaded_models[model_id] = instance
@@ -320,12 +326,22 @@ class ModelRegistry:
                 "model_id": model_id,
                 "load_count": metadata.load_count,
                 "usage_count": metadata.usage_count,
-                "average_load_time": metadata.performance_metrics.get("avg_load_time", 0),
-                "average_inference_time": metadata.performance_metrics.get("avg_inference_time", 0),
+                "average_load_time": metadata.performance_metrics.get(
+                    "avg_load_time", 0
+                ),
+                "average_inference_time": metadata.performance_metrics.get(
+                    "avg_inference_time", 0
+                ),
                 "error_rate": metadata.performance_metrics.get("error_rate", 0),
-                "memory_efficiency": metadata.performance_metrics.get("memory_efficiency", 1.0),
-                "last_health_check": metadata.performance_metrics.get("last_health_check"),
-                "uptime_percentage": metadata.performance_metrics.get("uptime_percentage", 100.0),
+                "memory_efficiency": metadata.performance_metrics.get(
+                    "memory_efficiency", 1.0
+                ),
+                "last_health_check": metadata.performance_metrics.get(
+                    "last_health_check"
+                ),
+                "uptime_percentage": metadata.performance_metrics.get(
+                    "uptime_percentage", 100.0
+                ),
             }
 
             if model_id in self._loaded_models:
@@ -342,7 +358,12 @@ class ModelRegistry:
 
     async def validate_model(self, model_id: str) -> Dict[str, Any]:
         """Perform comprehensive validation on a model."""
-        validation_results = {"model_id": model_id, "valid": False, "checks": {}, "issues": []}
+        validation_results = {
+            "model_id": model_id,
+            "valid": False,
+            "checks": {},
+            "issues": [],
+        }
 
         if model_id not in self._registry:
             validation_results["issues"].append("Model not registered")
@@ -360,24 +381,36 @@ class ModelRegistry:
         validation_results["checks"]["metadata"] = self._validate_metadata(metadata)
 
         # Check model file integrity
-        validation_results["checks"]["file_integrity"] = await self._validate_model_file(metadata)
+        validation_results["checks"][
+            "file_integrity"
+        ] = await self._validate_model_file(metadata)
 
         # Check dependencies
-        validation_results["checks"]["dependencies"] = self._validate_dependencies(metadata)
+        validation_results["checks"]["dependencies"] = self._validate_dependencies(
+            metadata
+        )
 
         # Load test
-        validation_results["checks"]["load_test"] = await self._test_model_loading(model_id)
+        validation_results["checks"]["load_test"] = await self._test_model_loading(
+            model_id
+        )
 
         # Performance test
-        validation_results["checks"]["performance"] = await self._test_model_performance(model_id)
+        validation_results["checks"][
+            "performance"
+        ] = await self._test_model_performance(model_id)
 
         # Calculate overall validity
         checks_passed = sum(
-            1 for check in validation_results["checks"].values() if check.get("passed", False)
+            1
+            for check in validation_results["checks"].values()
+            if check.get("passed", False)
         )
         total_checks = len(validation_results["checks"])
         validation_results["valid"] = checks_passed == total_checks
-        validation_results["score"] = checks_passed / total_checks if total_checks > 0 else 0
+        validation_results["score"] = (
+            checks_passed / total_checks if total_checks > 0 else 0
+        )
 
         # Update health status
         if validation_results["valid"]:
@@ -419,7 +452,8 @@ class ModelRegistry:
                 # Unload if not used in last hour and memory usage is high
                 if (
                     time_since_access > 3600
-                    and memory_usage > self._auto_unload_threshold_mb * 1024 * 1024  # 1 hour
+                    and memory_usage
+                    > self._auto_unload_threshold_mb * 1024 * 1024  # 1 hour
                 ):
                     models_to_unload.append(model_id)
 
@@ -429,12 +463,18 @@ class ModelRegistry:
                     instance = self._loaded_models.get(model_id)
                     if instance:
                         optimization_results["freed_memory"] += instance.memory_usage
-                        optimization_results["freed_gpu_memory"] += instance.gpu_memory_usage
+                        optimization_results["freed_gpu_memory"] += (
+                            instance.gpu_memory_usage
+                        )
                         optimization_results["unloaded_models"].append(model_id)
 
             # Update current usage
-            total_memory = sum(inst.memory_usage for inst in self._loaded_models.values())
-            total_gpu_memory = sum(inst.gpu_memory_usage for inst in self._loaded_models.values())
+            total_memory = sum(
+                inst.memory_usage for inst in self._loaded_models.values()
+            )
+            total_gpu_memory = sum(
+                inst.gpu_memory_usage for inst in self._loaded_models.values()
+            )
 
             optimization_results["current_memory_usage"] = total_memory
             optimization_results["current_gpu_memory_usage"] = total_gpu_memory
@@ -484,7 +524,9 @@ class ModelRegistry:
 
             model_path = metadata.path
             if model_path.exists():
-                model = AutoModelForSequenceClassification.from_pretrained(str(model_path))
+                model = AutoModelForSequenceClassification.from_pretrained(
+                    str(model_path)
+                )
                 tokenizer = AutoTokenizer.from_pretrained(str(model_path))
                 return {"model": model, "tokenizer": tokenizer}
             else:
@@ -536,7 +578,9 @@ class ModelRegistry:
     async def _check_memory_limits(self) -> bool:
         """Check if loading a new model would exceed memory limits."""
         total_memory = sum(inst.memory_usage for inst in self._loaded_models.values())
-        total_gpu_memory = sum(inst.gpu_memory_usage for inst in self._loaded_models.values())
+        total_gpu_memory = sum(
+            inst.gpu_memory_usage for inst in self._loaded_models.values()
+        )
 
         memory_ok = total_memory < (self._max_memory_mb * 1024 * 1024)
         gpu_memory_ok = total_gpu_memory < (self._max_gpu_memory_mb * 1024 * 1024)
@@ -668,9 +712,9 @@ class ModelRegistry:
 
                     # Calculate average
                     load_times = metadata.performance_metrics["load_times"]
-                    metadata.performance_metrics["avg_load_time"] = sum(load_times) / len(
+                    metadata.performance_metrics["avg_load_time"] = sum(
                         load_times
-                    )
+                    ) / len(load_times)
 
                 return {"passed": True, "load_time": load_time}
             else:
@@ -707,9 +751,9 @@ class ModelRegistry:
 
             # Calculate average
             inference_times = metadata.performance_metrics["inference_times"]
-            metadata.performance_metrics["avg_inference_time"] = sum(inference_times) / len(
+            metadata.performance_metrics["avg_inference_time"] = sum(
                 inference_times
-            )
+            ) / len(inference_times)
 
             return {"passed": True, "inference_time": inference_time}
 

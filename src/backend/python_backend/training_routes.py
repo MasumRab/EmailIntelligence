@@ -63,7 +63,9 @@ async def start_training(
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
+async def get_training_status(
+    job_id: str, current_user: str = Depends(get_current_active_user)
+):
     """
     Get the status of a training job.
 
@@ -90,8 +92,6 @@ async def run_training(job_id: str, model_config: ModelConfig):
     """
     try:
         import os
-        import random
-        import time
 
         import pandas as pd
         from sklearn.feature_extraction.text import TfidfVectorizer
@@ -156,9 +156,9 @@ async def run_training(job_id: str, model_config: ModelConfig):
         joblib.dump((model, vectorizer), model_path)
 
         training_jobs[job_id]["status"] = "completed"
-        training_jobs[job_id][
-            "message"
-        ] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
+        training_jobs[job_id]["message"] = (
+            f"Training completed successfully. Accuracy: {accuracy:.2f}"
+        )
         training_jobs[job_id]["accuracy"] = accuracy
         training_jobs[job_id]["model_path"] = model_path
 

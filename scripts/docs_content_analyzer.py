@@ -6,12 +6,11 @@ Compares documentation content between branches and analyzes differences
 in purpose, audience, and technical depth to determine sharing strategies.
 """
 
-import os
 import re
 import difflib
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 import json
 
 
@@ -26,7 +25,9 @@ class DocsContentAnalyzer:
         try:
             result = subprocess.run(
                 ["git", "show", f"{branch}:{file_path}"],
-                capture_output=True, text=True, check=True
+                capture_output=True,
+                text=True,
+                check=True,
             )
             return result.stdout
         except subprocess.CalledProcessError:
@@ -38,9 +39,7 @@ class DocsContentAnalyzer:
         lines2 = content2.splitlines(keepends=True)
 
         diff = difflib.unified_diff(
-            lines1, lines2,
-            fromfile="main", tofile="scientific",
-            lineterm=""
+            lines1, lines2, fromfile="main", tofile="scientific", lineterm=""
         )
         return "".join(diff)
 
@@ -50,12 +49,12 @@ class DocsContentAnalyzer:
 
         # Look for common goal indicators
         goal_patterns = [
-            r'goal[s]?[:\s]+(.+)',
-            r'purpose[:\s]+(.+)',
-            r'objective[s]?[:\s]+(.+)',
-            r'intended\s+to\s+(.+)',
-            r'design\s+to\s+(.+)',
-            r'aim[s]?[:\s]+(.+)',
+            r"goal[s]?[:\s]+(.+)",
+            r"purpose[:\s]+(.+)",
+            r"objective[s]?[:\s]+(.+)",
+            r"intended\s+to\s+(.+)",
+            r"design\s+to\s+(.+)",
+            r"aim[s]?[:\s]+(.+)",
         ]
 
         content_lower = content.lower()
@@ -64,10 +63,24 @@ class DocsContentAnalyzer:
             goals.extend(matches)
 
         # Extract from headings that might indicate purpose
-        heading_pattern = r'^#{1,3}\s+(.+)$'
+        heading_pattern = r"^#{1,3}\s+(.+)$"
         headings = re.findall(heading_pattern, content, re.MULTILINE)
-        goals.extend([h.lower() for h in headings if any(word in h.lower()
-                      for word in ['overview', 'introduction', 'purpose', 'goals', 'objectives'])])
+        goals.extend(
+            [
+                h.lower()
+                for h in headings
+                if any(
+                    word in h.lower()
+                    for word in [
+                        "overview",
+                        "introduction",
+                        "purpose",
+                        "goals",
+                        "objectives",
+                    ]
+                )
+            ]
+        )
 
         return list(set(goals))  # Remove duplicates
 
@@ -76,10 +89,10 @@ class DocsContentAnalyzer:
         audiences = []
 
         audience_indicators = [
-            r'audience[:\s]+(.+)',
-            r'intended\s+for[:\s]+(.+)',
-            r'target\s+users?[:\s]+(.+)',
-            r'for\s+(developers|users|administrators|researchers|scientists)',
+            r"audience[:\s]+(.+)",
+            r"intended\s+for[:\s]+(.+)",
+            r"target\s+users?[:\s]+(.+)",
+            r"for\s+(developers|users|administrators|researchers|scientists)",
         ]
 
         content_lower = content.lower()
@@ -92,19 +105,39 @@ class DocsContentAnalyzer:
     def analyze_technical_depth(self, content: str) -> Dict:
         """Analyze the technical depth of documentation."""
         # Count technical indicators
-        code_blocks = len(re.findall(r'```', content))
-        technical_terms = len(re.findall(r'\b(api|algorithm|implementation|architecture|framework|protocol)\b', content, re.IGNORECASE))
-        complexity_indicators = len(re.findall(r'\b(advanced|complex|optimization|scalability|performance)\b', content, re.IGNORECASE))
+        code_blocks = len(re.findall(r"```", content))
+        technical_terms = len(
+            re.findall(
+                r"\b(api|algorithm|implementation|architecture|framework|protocol)\b",
+                content,
+                re.IGNORECASE,
+            )
+        )
+        complexity_indicators = len(
+            re.findall(
+                r"\b(advanced|complex|optimization|scalability|performance)\b",
+                content,
+                re.IGNORECASE,
+            )
+        )
 
         # Calculate technical score
-        technical_score = (code_blocks * 2 + technical_terms + complexity_indicators * 1.5) / max(len(content.split()), 1) * 1000
+        technical_score = (
+            (code_blocks * 2 + technical_terms + complexity_indicators * 1.5)
+            / max(len(content.split()), 1)
+            * 1000
+        )
 
         return {
-            'code_blocks': code_blocks,
-            'technical_terms': technical_terms,
-            'complexity_indicators': complexity_indicators,
-            'technical_score': technical_score,
-            'level': 'high' if technical_score > 5 else 'medium' if technical_score > 2 else 'low'
+            "code_blocks": code_blocks,
+            "technical_terms": technical_terms,
+            "complexity_indicators": complexity_indicators,
+            "technical_score": technical_score,
+            "level": "high"
+            if technical_score > 5
+            else "medium"
+            if technical_score > 2
+            else "low",
         }
 
     def calculate_similarity(self, goals1: List[str], goals2: List[str]) -> float:
@@ -124,17 +157,29 @@ class DocsContentAnalyzer:
 
     def generate_recommendation(self, analysis: Dict) -> str:
         """Generate sharing recommendation based on analysis."""
-        goal_similarity = analysis['goal_analysis']['similarity']
-        audience_overlap = len(analysis['audience_analysis']['overlap'])
-        audience_differences = len(analysis['audience_analysis']['main_unique']) + len(analysis['audience_analysis']['scientific_unique'])
+        goal_similarity = analysis["goal_analysis"]["similarity"]
+        audience_overlap = len(analysis["audience_analysis"]["overlap"])
+        audience_differences = len(analysis["audience_analysis"]["main_unique"]) + len(
+            analysis["audience_analysis"]["scientific_unique"]
+        )
 
-        tech_diff = abs(analysis['technical_analysis']['main']['technical_score'] -
-                       analysis['technical_analysis']['scientific']['technical_score'])
+        tech_diff = abs(
+            analysis["technical_analysis"]["main"]["technical_score"]
+            - analysis["technical_analysis"]["scientific"]["technical_score"]
+        )
 
         # Decision logic
-        if goal_similarity > 0.8 and audience_differences < audience_overlap * 2 and tech_diff < 2:
+        if (
+            goal_similarity > 0.8
+            and audience_differences < audience_overlap * 2
+            and tech_diff < 2
+        ):
             return "SHARE"
-        elif goal_similarity < 0.3 or audience_differences > audience_overlap * 3 or tech_diff > 5:
+        elif (
+            goal_similarity < 0.3
+            or audience_differences > audience_overlap * 3
+            or tech_diff > 5
+        ):
             return "BRANCH_SPECIFIC"
         else:
             return "MANUAL_REVIEW"
@@ -145,12 +190,12 @@ class DocsContentAnalyzer:
         scientific_content = self.get_file_content(self.scientific_branch, doc_path)
 
         if not main_content and not scientific_content:
-            return {'error': 'File not found in either branch'}
+            return {"error": "File not found in either branch"}
 
         if not main_content:
-            return {'recommendation': 'SCIENTIFIC_ONLY'}
+            return {"recommendation": "SCIENTIFIC_ONLY"}
         if not scientific_content:
-            return {'recommendation': 'MAIN_ONLY'}
+            return {"recommendation": "MAIN_ONLY"}
 
         # Extract and analyze components
         main_goals = self.extract_goals(main_content)
@@ -159,37 +204,41 @@ class DocsContentAnalyzer:
         scientific_audience = self.extract_audience(scientific_content)
 
         analysis = {
-            'text_diff': self.generate_text_diff(main_content, scientific_content),
-            'goal_analysis': {
-                'main_goals': main_goals,
-                'scientific_goals': scientific_goals,
-                'similarity': self.calculate_similarity(main_goals, scientific_goals),
-                'overlap': len(set(main_goals) & set(scientific_goals)),
-                'differences': len(set(main_goals) ^ set(scientific_goals))
+            "text_diff": self.generate_text_diff(main_content, scientific_content),
+            "goal_analysis": {
+                "main_goals": main_goals,
+                "scientific_goals": scientific_goals,
+                "similarity": self.calculate_similarity(main_goals, scientific_goals),
+                "overlap": len(set(main_goals) & set(scientific_goals)),
+                "differences": len(set(main_goals) ^ set(scientific_goals)),
             },
-            'audience_analysis': {
-                'main_audience': main_audience,
-                'scientific_audience': scientific_audience,
-                'overlap': list(set(main_audience) & set(scientific_audience)),
-                'main_unique': list(set(main_audience) - set(scientific_audience)),
-                'scientific_unique': list(set(scientific_audience) - set(main_audience))
+            "audience_analysis": {
+                "main_audience": main_audience,
+                "scientific_audience": scientific_audience,
+                "overlap": list(set(main_audience) & set(scientific_audience)),
+                "main_unique": list(set(main_audience) - set(scientific_audience)),
+                "scientific_unique": list(
+                    set(scientific_audience) - set(main_audience)
+                ),
             },
-            'technical_analysis': {
-                'main': self.analyze_technical_depth(main_content),
-                'scientific': self.analyze_technical_depth(scientific_content)
-            }
+            "technical_analysis": {
+                "main": self.analyze_technical_depth(main_content),
+                "scientific": self.analyze_technical_depth(scientific_content),
+            },
         }
 
-        analysis['recommendation'] = self.generate_recommendation(analysis)
+        analysis["recommendation"] = self.generate_recommendation(analysis)
 
         return analysis
 
-    def save_analysis(self, doc_path: str, analysis: Dict, output_file: Optional[str] = None):
+    def save_analysis(
+        self, doc_path: str, analysis: Dict, output_file: Optional[str] = None
+    ):
         """Save analysis results to file."""
         if output_file is None:
             output_file = f"docs/analysis_{Path(doc_path).stem}.json"
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(analysis, f, indent=2)
 
         print(f"Analysis saved to {output_file}")

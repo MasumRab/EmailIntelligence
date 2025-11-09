@@ -25,15 +25,25 @@ def test_topological_sort():
 
     # Create connections: A -> B -> C
     connections = [
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
-        {"from": {"node_id": "B", "output": "output"}, "to": {"node_id": "C", "input": "input"}},
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
+        {
+            "from": {"node_id": "B", "output": "output"},
+            "to": {"node_id": "C", "input": "input"},
+        },
     ]
 
-    workflow = Workflow("test_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections)
+    workflow = Workflow(
+        "test_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections
+    )
 
     # Check the execution order
     execution_order = workflow.get_execution_order()
-    assert execution_order == ["A", "B", "C"], f"Expected ['A', 'B', 'C'], got {execution_order}"
+    assert execution_order == ["A", "B", "C"], (
+        f"Expected ['A', 'B', 'C'], got {execution_order}"
+    )
 
 
 def test_workflow_validation():
@@ -48,7 +58,10 @@ def test_workflow_validation():
 
     # Create connections
     connections = [
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
     ]
 
     workflow = Workflow("test_workflow", {"A": node_a, "B": node_b}, connections)
@@ -64,10 +77,12 @@ def test_workflow_validation():
             "to": {"node_id": "B", "input": "input"},
         },
     ]
-    invalid_workflow = Workflow("invalid_workflow", {"A": node_a, "B": node_b}, invalid_connections)
+    invalid_workflow = Workflow(
+        "invalid_workflow", {"A": node_a, "B": node_b}, invalid_connections
+    )
 
     is_valid, errors = invalid_workflow.validate()
-    assert not is_valid, f"Workflow should be invalid, but validation passed"
+    assert not is_valid, "Workflow should be invalid, but validation passed"
     assert len(errors) > 0, "Should have validation errors"
 
 
@@ -80,11 +95,19 @@ def test_conditional_execution():
     # Create a node with a conditional expression
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
     node_b = Node(
-        "B", "Node B", dummy_operation, ["input"], ["output"], conditional_expression="value > 5"
+        "B",
+        "Node B",
+        dummy_operation,
+        ["input"],
+        ["output"],
+        conditional_expression="value > 5",
     )
 
     connections = [
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
     ]
 
     workflow = Workflow("conditional_workflow", {"A": node_a, "B": node_b}, connections)
@@ -113,13 +136,24 @@ def test_error_handling_and_recovery():
     # Create nodes
     node_a = Node("A", "Node A", good_operation, ["input"], ["output"])
     node_b = Node(
-        "B", "Node B", failing_operation, ["input"], ["output"], failure_strategy="continue"
+        "B",
+        "Node B",
+        failing_operation,
+        ["input"],
+        ["output"],
+        failure_strategy="continue",
     )
     node_c = Node("C", "Node C", good_operation, ["input"], ["output"])
 
     connections = [
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
-        {"from": {"node_id": "B", "output": "output"}, "to": {"node_id": "C", "input": "input"}},
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
+        {
+            "from": {"node_id": "B", "output": "output"},
+            "to": {"node_id": "C", "input": "input"},
+        },
     ]
 
     workflow = Workflow(
@@ -147,13 +181,24 @@ def test_memory_optimization():
     node_d = Node("D", "Node D", dummy_operation, ["input"], ["output"])
 
     connections = [
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
-        {"from": {"node_id": "B", "output": "output"}, "to": {"node_id": "C", "input": "input"}},
-        {"from": {"node_id": "C", "output": "output"}, "to": {"node_id": "D", "input": "input"}},
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
+        {
+            "from": {"node_id": "B", "output": "output"},
+            "to": {"node_id": "C", "input": "input"},
+        },
+        {
+            "from": {"node_id": "C", "output": "output"},
+            "to": {"node_id": "D", "input": "input"},
+        },
     ]
 
     workflow = Workflow(
-        "memory_opt_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
+        "memory_opt_workflow",
+        {"A": node_a, "B": node_b, "C": node_c, "D": node_d},
+        connections,
     )
     runner = WorkflowRunner(workflow)
 
@@ -179,16 +224,32 @@ def test_parallel_execution():
     node_d = Node("D", "Node D", combine_operation, ["input1", "input2"], ["output"])
 
     connections = [
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "C", "input": "input"}},
-        {"from": {"node_id": "B", "output": "output"}, "to": {"node_id": "D", "input": "input1"}},
-        {"from": {"node_id": "C", "output": "output"}, "to": {"node_id": "D", "input": "input2"}},
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "C", "input": "input"},
+        },
+        {
+            "from": {"node_id": "B", "output": "output"},
+            "to": {"node_id": "D", "input": "input1"},
+        },
+        {
+            "from": {"node_id": "C", "output": "output"},
+            "to": {"node_id": "D", "input": "input2"},
+        },
     ]
 
     workflow = Workflow(
-        "parallel_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
+        "parallel_workflow",
+        {"A": node_a, "B": node_b, "C": node_c, "D": node_d},
+        connections,
     )
-    runner = WorkflowRunner(workflow, max_concurrent=3)  # Allow up to 3 nodes to run in parallel
+    runner = WorkflowRunner(
+        workflow, max_concurrent=3
+    )  # Allow up to 3 nodes to run in parallel
 
     # Run with parallel execution
     result = runner.run({"input": 1}, parallel_execution=True)
@@ -207,7 +268,10 @@ def test_metrics_collection():
     node_b = Node("B", "Node B", dummy_operation, ["input"], ["output"])
 
     connections = [
-        {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
+        {
+            "from": {"node_id": "A", "output": "output"},
+            "to": {"node_id": "B", "input": "input"},
+        },
     ]
 
     workflow = Workflow("metrics_workflow", {"A": node_a, "B": node_b}, connections)

@@ -4,21 +4,22 @@ Automated Documentation Synchronization System
 Provides scheduled sync, monitoring, and automated conflict resolution.
 """
 
-import os
 import sys
 import json
 import time
 import logging
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict
 import argparse
 
 try:
     import schedule
+
     SCHEDULE_AVAILABLE = True
 except ImportError:
     SCHEDULE_AVAILABLE = False
+
 
 class AutoDocSync:
     """Automated documentation synchronization system."""
@@ -32,7 +33,7 @@ class AutoDocSync:
     def _load_config(self) -> Dict:
         """Load configuration from JSON file."""
         try:
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path, "r") as f:
                 return json.load(f)
         except FileNotFoundError:
             print(f"Config file not found: {self.config_path}")
@@ -43,8 +44,8 @@ class AutoDocSync:
 
     def _setup_logging(self):
         """Set up logging based on configuration."""
-        log_config = self.config.get('monitoring', {})
-        log_file = log_config.get('log_file', 'logs/docs_sync.log')
+        log_config = self.config.get("monitoring", {})
+        log_file = log_config.get("log_file", "logs/docs_sync.log")
 
         # Ensure log directory exists
         log_path = self.project_root / log_file
@@ -53,15 +54,15 @@ class AutoDocSync:
         logging.basicConfig(
             filename=str(log_path),
             level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
+            format="%(asctime)s - %(levelname)s - %(message)s",
         )
 
         # Also log to console
         console = logging.StreamHandler()
         console.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(levelname)s - %(message)s')
+        formatter = logging.Formatter("%(levelname)s - %(message)s")
         console.setFormatter(formatter)
-        logging.getLogger('').addHandler(console)
+        logging.getLogger("").addHandler(console)
 
         self.logger = logging.getLogger(__name__)
 
@@ -92,8 +93,10 @@ class AutoDocSync:
         """Sync from inheritance base to all worktrees."""
         from sync_common_docs import DocumentationSync
 
-        sync_config = self.config.get('sync_rules', {})
-        conflict_strategy = self.config.get('conflict_resolution', {}).get('default_strategy', 'backup')
+        sync_config = self.config.get("sync_rules", {})
+        conflict_strategy = self.config.get("conflict_resolution", {}).get(
+            "default_strategy", "backup"
+        )
 
         sync = DocumentationSync(self.project_root, conflict_strategy)
         success = sync.sync_from_inheritance_base()
@@ -110,7 +113,9 @@ class AutoDocSync:
         # For now, sync main to scientific to keep scientific up to date
         from sync_common_docs import DocumentationSync
 
-        conflict_strategy = self.config.get('conflict_resolution', {}).get('default_strategy', 'backup')
+        conflict_strategy = self.config.get("conflict_resolution", {}).get(
+            "default_strategy", "backup"
+        )
         sync = DocumentationSync(self.project_root, conflict_strategy)
 
         try:
@@ -124,11 +129,15 @@ class AutoDocSync:
 
     def _cleanup_old_backups(self):
         """Clean up old backup files."""
-        retention_days = self.config.get('conflict_resolution', {}).get('backup_retention_days', 30)
+        retention_days = self.config.get("conflict_resolution", {}).get(
+            "backup_retention_days", 30
+        )
         cutoff_date = datetime.now() - timedelta(days=retention_days)
 
-        worktrees = self.config.get('sync_rules', {}).get('worktrees', [])
-        common_path = self.config.get('sync_rules', {}).get('common_docs_path', 'docs/common/docs')
+        worktrees = self.config.get("sync_rules", {}).get("worktrees", [])
+        common_path = self.config.get("sync_rules", {}).get(
+            "common_docs_path", "docs/common/docs"
+        )
 
         backup_count = 0
         for worktree in worktrees:
@@ -137,16 +146,24 @@ class AutoDocSync:
                 for backup_file in worktree_path.glob("*.backup_*"):
                     try:
                         # Extract timestamp from filename (format: filename.backup_YYMMDD_HHMMSS)
-                        parts = backup_file.name.split('_')
+                        parts = backup_file.name.split("_")
                         if len(parts) >= 2:
-                            timestamp_str = parts[-1]  # Last part should be the timestamp
+                            timestamp_str = parts[
+                                -1
+                            ]  # Last part should be the timestamp
                             # Handle both YYYYMMDD_HHMMSS and YYMMDD_HHMMSS formats
                             if len(timestamp_str) == 15:  # YYYYMMDD_HHMMSS
-                                file_date = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+                                file_date = datetime.strptime(
+                                    timestamp_str, "%Y%m%d_%H%M%S"
+                                )
                             elif len(timestamp_str) == 13:  # YYMMDD_HHMMSS
-                                file_date = datetime.strptime(timestamp_str, "%y%m%d_%H%M%S")
+                                file_date = datetime.strptime(
+                                    timestamp_str, "%y%m%d_%H%M%S"
+                                )
                             else:
-                                raise ValueError(f"Unexpected timestamp format: {timestamp_str}")
+                                raise ValueError(
+                                    f"Unexpected timestamp format: {timestamp_str}"
+                                )
                         else:
                             raise ValueError("Invalid backup filename format")
 
@@ -155,45 +172,55 @@ class AutoDocSync:
                             backup_count += 1
                             self.logger.info(f"Removed old backup: {backup_file}")
                     except (ValueError, OSError) as e:
-                        self.logger.warning(f"Error processing backup file {backup_file}: {e}")
+                        self.logger.warning(
+                            f"Error processing backup file {backup_file}: {e}"
+                        )
 
         if backup_count > 0:
             self.logger.info(f"Cleaned up {backup_count} old backup files")
 
     def _update_metrics(self):
         """Update synchronization metrics."""
-        if not self.config.get('monitoring', {}).get('enable_metrics', False):
+        if not self.config.get("monitoring", {}).get("enable_metrics", False):
             return
 
-        metrics_file = self.config.get('monitoring', {}).get('metrics_file', 'logs/docs_sync_metrics.json')
+        metrics_file = self.config.get("monitoring", {}).get(
+            "metrics_file", "logs/docs_sync_metrics.json"
+        )
         metrics_path = self.project_root / metrics_file
         metrics_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Collect current metrics
         metrics = {
-            'timestamp': datetime.now().isoformat(),
-            'worktrees': {},
-            'total_syncs': 0
+            "timestamp": datetime.now().isoformat(),
+            "worktrees": {},
+            "total_syncs": 0,
         }
 
-        worktrees = self.config.get('sync_rules', {}).get('worktrees', [])
+        worktrees = self.config.get("sync_rules", {}).get("worktrees", [])
         for worktree in worktrees:
             worktree_path = self.project_root / "worktrees" / worktree
             if worktree_path.exists():
-                common_count = len(list((worktree_path / "docs" / "common" / "docs").glob("*.md")))
-                branch_path = self.config.get('sync_rules', {}).get('branch_docs_paths', {}).get(worktree, f"docs/{worktree.split('-')[1]}")
+                common_count = len(
+                    list((worktree_path / "docs" / "common" / "docs").glob("*.md"))
+                )
+                branch_path = (
+                    self.config.get("sync_rules", {})
+                    .get("branch_docs_paths", {})
+                    .get(worktree, f"docs/{worktree.split('-')[1]}")
+                )
                 branch_count = len(list((worktree_path / branch_path).glob("*.md")))
 
-                metrics['worktrees'][worktree] = {
-                    'common_docs': common_count,
-                    'branch_docs': branch_count,
-                    'total_docs': common_count + branch_count
+                metrics["worktrees"][worktree] = {
+                    "common_docs": common_count,
+                    "branch_docs": branch_count,
+                    "total_docs": common_count + branch_count,
                 }
 
         # Load existing metrics and append
         if metrics_path.exists():
             try:
-                with open(metrics_path, 'r') as f:
+                with open(metrics_path, "r") as f:
                     existing_metrics = json.load(f)
                     existing_metrics.append(metrics)
                     metrics = existing_metrics[-100:]  # Keep last 100 entries
@@ -203,23 +230,25 @@ class AutoDocSync:
             metrics = [metrics]
 
         # Save metrics
-        with open(metrics_path, 'w') as f:
+        with open(metrics_path, "w") as f:
             json.dump(metrics, f, indent=2)
 
     def start_scheduler(self):
         """Start the automated scheduler."""
         if not SCHEDULE_AVAILABLE:
-            self.logger.error("schedule module not available. Install with: pip install schedule")
+            self.logger.error(
+                "schedule module not available. Install with: pip install schedule"
+            )
             return
 
-        automation_config = self.config.get('automation', {})
-        schedule_config = automation_config.get('sync_schedule', 'daily')
-        sync_time = automation_config.get('sync_time', '02:00')
+        automation_config = self.config.get("automation", {})
+        schedule_config = automation_config.get("sync_schedule", "daily")
+        sync_time = automation_config.get("sync_time", "02:00")
 
-        if schedule_config == 'daily':
+        if schedule_config == "daily":
             schedule.every().day.at(sync_time).do(self.run_scheduled_sync)
             self.logger.info(f"Scheduled daily sync at {sync_time}")
-        elif schedule_config == 'hourly':
+        elif schedule_config == "hourly":
             schedule.every().hour.do(self.run_scheduled_sync)
             self.logger.info("Scheduled hourly sync")
         else:
@@ -236,23 +265,21 @@ class AutoDocSync:
         except KeyboardInterrupt:
             self.logger.info("Scheduler stopped by user")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Automated Documentation Sync System")
     parser.add_argument(
-        "--config", "-c",
+        "--config",
+        "-c",
         type=Path,
         default=Path(__file__).parent / "sync_config.json",
-        help="Path to configuration file"
+        help="Path to configuration file",
     )
     parser.add_argument(
-        "--run-once", "-r",
-        action="store_true",
-        help="Run sync once and exit"
+        "--run-once", "-r", action="store_true", help="Run sync once and exit"
     )
     parser.add_argument(
-        "--schedule", "-s",
-        action="store_true",
-        help="Start scheduled sync (default)"
+        "--schedule", "-s", action="store_true", help="Start scheduled sync (default)"
     )
 
     args = parser.parse_args()
@@ -268,6 +295,7 @@ def main():
     else:
         # Default to scheduled mode
         sync_system.start_scheduler()
+
 
 if __name__ == "__main__":
     main()

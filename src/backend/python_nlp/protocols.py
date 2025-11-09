@@ -6,8 +6,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from ..python_backend.ai_engine import AdvancedAIEngine
-    from ..python_backend.database import DatabaseManager
+    pass
 
 
 class DatabaseProtocol(ABC):

@@ -6,7 +6,6 @@ Orchestrates the documentation branch workflow by triggering analysis,
 strategy determination, and review creation when documentation changes are detected.
 """
 
-import os
 import sys
 import subprocess
 from pathlib import Path
@@ -23,9 +22,11 @@ class DocsWorkflowTrigger:
             # Get commits that modified docs/ in the last commit
             result = subprocess.run(
                 ["git", "log", "--oneline", "-1", "--grep", "docs:"],
-                capture_output=True, text=True, check=True
+                capture_output=True,
+                text=True,
+                check=True,
             )
-            return result.stdout.strip().split('\n') if result.stdout.strip() else []
+            return result.stdout.strip().split("\n") if result.stdout.strip() else []
         except subprocess.CalledProcessError:
             return []
 
@@ -34,10 +35,18 @@ class DocsWorkflowTrigger:
         try:
             result = subprocess.run(
                 ["git", "show", "--name-only", "--pretty=format:", "HEAD"],
-                capture_output=True, text=True, check=True
+                capture_output=True,
+                text=True,
+                check=True,
             )
-            files = result.stdout.strip().split('\n')
-            return [f for f in files if f.startswith('docs/') and f.endswith('.md') and not f.startswith('docs/reviews/')]
+            files = result.stdout.strip().split("\n")
+            return [
+                f
+                for f in files
+                if f.startswith("docs/")
+                and f.endswith(".md")
+                and not f.startswith("docs/reviews/")
+            ]
         except subprocess.CalledProcessError:
             return []
 
@@ -54,10 +63,17 @@ class DocsWorkflowTrigger:
 
             # Run content analyzer
             try:
-                result = subprocess.run([
-                    sys.executable, str(self.scripts_dir / "docs_content_analyzer.py"),
-                    doc_file, "--save"
-                ], capture_output=True, text=True, check=True)
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(self.scripts_dir / "docs_content_analyzer.py"),
+                        doc_file,
+                        "--save",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
 
                 print(f"✓ Analysis completed for {doc_file}")
 
@@ -78,10 +94,17 @@ class DocsWorkflowTrigger:
 
             try:
                 # Run merge strategist
-                result = subprocess.run([
-                    sys.executable, str(self.scripts_dir / "docs_merge_strategist.py"),
-                    "--review", doc_file
-                ], capture_output=True, text=True, check=True)
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(self.scripts_dir / "docs_merge_strategist.py"),
+                        "--review",
+                        doc_file,
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
 
                 print(f"✓ Strategy processed for {doc_file}")
                 print(result.stdout.strip())
@@ -124,10 +147,16 @@ class DocsWorkflowTrigger:
         # Step 3: Show status
         print("\n📋 Step 3: Review Status")
         try:
-            result = subprocess.run([
-                sys.executable, str(self.scripts_dir / "docs_review_manager.py"),
-                "--dashboard"
-            ], capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(self.scripts_dir / "docs_review_manager.py"),
+                    "--dashboard",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
 
             print(result.stdout.strip())
 

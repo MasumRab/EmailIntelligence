@@ -11,8 +11,6 @@ Usage:
 
 import argparse
 import logging
-import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -55,7 +53,9 @@ def setup_python_environment(dev_mode=False):
     if dev_mode:
         return run_command(f"{sys.executable} -m pip install -r requirements.txt")
     else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt --no-dev")
+        return run_command(
+            f"{sys.executable} -m pip install -r requirements.txt --no-dev"
+        )
 
 
 def setup_node_environment(dev_mode=False):
@@ -80,7 +80,9 @@ def setup_database():
 
     # Check if PostgreSQL is installed
     if not run_command("psql --version"):
-        logger.error("PostgreSQL is not installed. Please install PostgreSQL and try again.")
+        logger.error(
+            "PostgreSQL is not installed. Please install PostgreSQL and try again."
+        )
         return False
 
     # Create the database if it doesn't exist
@@ -126,8 +128,18 @@ def setup_directories():
     directories = [
         PROJECT_ROOT / "deployment" / "nginx" / "ssl",
         PROJECT_ROOT / "deployment" / "nginx" / "letsencrypt",
-        PROJECT_ROOT / "deployment" / "monitoring" / "grafana" / "provisioning" / "dashboards",
-        PROJECT_ROOT / "deployment" / "monitoring" / "grafana" / "provisioning" / "datasources",
+        PROJECT_ROOT
+        / "deployment"
+        / "monitoring"
+        / "grafana"
+        / "provisioning"
+        / "dashboards",
+        PROJECT_ROOT
+        / "deployment"
+        / "monitoring"
+        / "grafana"
+        / "provisioning"
+        / "datasources",
     ]
 
     for directory in directories:
@@ -143,9 +155,15 @@ def setup_directories():
 
 def main():
     """Main entry point for the environment setup script."""
-    parser = argparse.ArgumentParser(description="Environment Setup Script for EmailIntelligence")
-    parser.add_argument("--dev", action="store_true", help="Set up development environment")
-    parser.add_argument("--force", action="store_true", help="Force overwrite of existing files")
+    parser = argparse.ArgumentParser(
+        description="Environment Setup Script for EmailIntelligence"
+    )
+    parser.add_argument(
+        "--dev", action="store_true", help="Set up development environment"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Force overwrite of existing files"
+    )
     args = parser.parse_args()
 
     logger.info("Setting up EmailIntelligence environment...")

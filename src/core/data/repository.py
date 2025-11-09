@@ -1,16 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from src.core.data_source import DataSource
-from src.core.caching import get_cache_manager, CacheConfig, CacheBackend
+from src.core.caching import get_cache_manager
 import asyncio
-import time
 
 
 class EmailRepository(ABC):
     """Abstract base class for email repository."""
 
     @abstractmethod
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_email(
+        self, email_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new email record."""
         pass
 
@@ -27,7 +28,9 @@ class EmailRepository(ABC):
         pass
 
     @abstractmethod
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_category(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new category."""
         pass
 
@@ -57,7 +60,9 @@ class EmailRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def get_all_emails(
+        self, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """Retrieves all emails with pagination."""
         pass
 
@@ -69,7 +74,9 @@ class EmailRepository(ABC):
         pass
 
     @abstractmethod
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def search_emails(
+        self, search_term: str, limit: int = 50
+    ) -> List[Dict[str, Any]]:
         """Searches emails."""
         pass
 
@@ -113,7 +120,9 @@ class DatabaseEmailRepository(EmailRepository):
     def __init__(self, data_source: DataSource):
         self.data_source = data_source
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_email(
+        self, email_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new email record."""
         return await self.data_source.create_email(email_data)
 
@@ -127,7 +136,9 @@ class DatabaseEmailRepository(EmailRepository):
         """Retrieves all categories."""
         return await self.data_source.get_all_categories()
 
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_category(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new category."""
         return await self.data_source.create_category(category_data)
 
@@ -145,15 +156,21 @@ class DatabaseEmailRepository(EmailRepository):
         self, message_id: str, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Updates an email by its message ID."""
-        return await self.data_source.update_email_by_message_id(message_id, update_data)
+        return await self.data_source.update_email_by_message_id(
+            message_id, update_data
+        )
 
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Retrieves an email by its message ID."""
-        return await self.data_source.get_email_by_message_id(message_id, include_content)
+        return await self.data_source.get_email_by_message_id(
+            message_id, include_content
+        )
 
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def get_all_emails(
+        self, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """Retrieves all emails with pagination."""
         return await self.data_source.get_all_emails(limit, offset)
 
@@ -163,7 +180,9 @@ class DatabaseEmailRepository(EmailRepository):
         """Retrieves emails by category."""
         return await self.data_source.get_emails_by_category(category_id, limit, offset)
 
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def search_emails(
+        self, search_term: str, limit: int = 50
+    ) -> List[Dict[str, Any]]:
         """Searches emails."""
         return await self.data_source.search_emails(search_term, limit)
 
@@ -207,7 +226,9 @@ class CachingEmailRepository(EmailRepository):
         await self.cache_manager.delete(self._dashboard_key)
         await self.cache_manager.delete(self._category_breakdown_key)
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_email(
+        self, email_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new email record."""
         # Invalidate cache when data changes
         await self._invalidate_dashboard_cache()
@@ -223,7 +244,9 @@ class CachingEmailRepository(EmailRepository):
         """Retrieves all categories."""
         return await self.repository.get_all_categories()
 
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_category(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new category."""
         # Invalidate cache when data changes
         async with self._cache_lock:
@@ -255,9 +278,13 @@ class CachingEmailRepository(EmailRepository):
         self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Retrieves an email by its message ID."""
-        return await self.repository.get_email_by_message_id(message_id, include_content)
+        return await self.repository.get_email_by_message_id(
+            message_id, include_content
+        )
 
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def get_all_emails(
+        self, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """Retrieves all emails with pagination."""
         return await self.repository.get_all_emails(limit, offset)
 
@@ -267,7 +294,9 @@ class CachingEmailRepository(EmailRepository):
         """Retrieves emails by category."""
         return await self.repository.get_emails_by_category(category_id, limit, offset)
 
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def search_emails(
+        self, search_term: str, limit: int = 50
+    ) -> List[Dict[str, Any]]:
         """Searches emails."""
         return await self.repository.search_emails(search_term, limit)
 

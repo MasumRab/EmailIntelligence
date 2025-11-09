@@ -12,7 +12,7 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 try:
     import redis.asyncio as redis
@@ -137,7 +137,11 @@ class MemoryCacheBackend(CacheBackendInterface):
         """Set value in memory cache"""
         expires_at = time.time() + ttl if ttl else None
 
-        self._cache[key] = {"value": value, "expires_at": expires_at, "created_at": time.time()}
+        self._cache[key] = {
+            "value": value,
+            "expires_at": expires_at,
+            "created_at": time.time(),
+        }
 
         # Update access order
         if key in self._access_order:
@@ -190,7 +194,9 @@ class RedisCacheBackend(CacheBackendInterface):
 
     def __init__(self, config: CacheConfig):
         if not REDIS_AVAILABLE:
-            raise ImportError("Redis is not available. Install redis-py to use Redis caching.")
+            raise ImportError(
+                "Redis is not available. Install redis-py to use Redis caching."
+            )
 
         self.config = config
         self._redis: Optional[redis.Redis] = None
@@ -293,7 +299,11 @@ class CacheManager:
         return await self.backend.get(key)
 
     async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None, tags: Optional[List[str]] = None
+        self,
+        key: str,
+        value: Any,
+        ttl: Optional[int] = None,
+        tags: Optional[List[str]] = None,
     ) -> bool:
         """Set value in cache with optional tags"""
         success = await self.backend.set(key, value, ttl)
