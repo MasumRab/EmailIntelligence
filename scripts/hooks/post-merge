@@ -44,9 +44,9 @@ checkout_from_orchestration() {
     fi
 }
 
-# Update setup directory - includes setup_env* files
+# Update setup directory
 if [ -d "setup" ]; then
-    echo "Synchronizing setup directory from orchestration-tools (including setup_env* files)"
+    echo "Synchronizing setup directory from orchestration-tools"
     # Checkout entire setup directory
     git checkout orchestration-tools -- setup/
 fi
