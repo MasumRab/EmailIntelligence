@@ -26,3 +26,4 @@ exclude =
 per-file-ignores =
     __init__.py: F401
     tests/*: F401, F811
+exclude = .venv
