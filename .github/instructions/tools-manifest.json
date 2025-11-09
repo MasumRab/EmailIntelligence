@@ -34,6 +34,64 @@
       "contexts": ["ide", "development", "configuration"],
       "priority": 4,
       "applies_to": ["vscode", "cursor", "windsurf"]
+    },
+    {
+      "id": "model_context_strategy",
+      "name": "Model Context Strategy Guide",
+      "path": "MODEL_CONTEXT_STRATEGY.md",
+      "contexts": ["model-context", "architecture", "best-practices"],
+      "priority": 1,
+      "applies_to": ["all"],
+      "description": "Three-tier context system for AI models, defining how context is distributed across universal, model-specific, and domain documentation"
+    },
+    {
+      "id": "model_context_claude",
+      "name": "Claude AI Assistant Context",
+      "path": "CLAUDE.md",
+      "contexts": ["model-context", "claude-code", "mcp"],
+      "priority": 2,
+      "applies_to": ["claude_code"]
+    },
+    {
+      "id": "model_context_gemini",
+      "name": "Gemini CLI Context",
+      "path": "GEMINI.md",
+      "contexts": ["model-context", "gemini", "mcp"],
+      "priority": 2,
+      "applies_to": ["gemini"]
+    },
+    {
+      "id": "model_context_qwen",
+      "name": "Qwen CLI Context",
+      "path": "QWEN.md",
+      "contexts": ["model-context", "qwen", "mcp"],
+      "priority": 2,
+      "applies_to": ["qwen"],
+      "status": "configured"
+    },
+    {
+      "id": "model_context_crush",
+      "name": "Crush IDE Context",
+      "path": "CRUSH.md",
+      "contexts": ["model-context", "crush", "ide"],
+      "priority": 2,
+      "applies_to": ["crush"]
+    },
+    {
+      "id": "model_context_llxprt",
+      "name": "LLxPRT Reasoning Context",
+      "path": "LLXPRT.md",
+      "contexts": ["model-context", "reasoning", "planning"],
+      "priority": 2,
+      "applies_to": ["llxprt"]
+    },
+    {
+      "id": "model_context_iflow",
+      "name": "Iflow Cursor Context",
+      "path": "IFLOW.md",
+      "contexts": ["model-context", "cursor", "inline-assistance"],
+      "priority": 2,
+      "applies_to": ["iflow"]
     }
   ],
   "tools": {
@@ -202,13 +260,7 @@
       "priority": "low",
       "notes": "Setup .qwen/ directory and configurations"
     },
-    {
-      "id": "tool_speckit_integration",
-      "title": "Add SpecKit tool integration",
-      "status": "pending",
-      "priority": "medium",
-      "notes": "Mentioned in requirements but not yet configured - needs investigation and setup"
-    },
+
     {
       "id": "instruction_consolidation",
       "title": "Consolidate scattered tool instructions",
