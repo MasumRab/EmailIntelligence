@@ -3,6 +3,7 @@
 # Post-merge hook for worktree setup synchronization
 # This hook updates shared setup files and orchestration scripts from the orchestration-tools branch
 
+<<<<<<< HEAD
 # Recursion prevention: Exit if sync is already active
 if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
     echo "Orchestration sync already active, skipping to prevent recursion"
@@ -19,6 +20,9 @@ fi
 export ORCHESTRATION_SYNC_ACTIVE=1
 
 # Note: Not using 'set -e' to allow graceful error handling and continue processing
+=======
+set -e
+>>>>>>> recover-lost-commit
 
 # Get the current worktree path
 WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
@@ -32,6 +36,7 @@ fi
 
 # Function to safely checkout files from orchestration-tools branch
 checkout_from_orchestration() {
+<<<<<<< HEAD
 local file_path="$1"
 # Check if orchestration-tools branch exists
 if ! git show-ref --verify --quiet refs/heads/orchestration-tools && \
@@ -58,6 +63,23 @@ if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_
 # Update setup directory - includes setup_env* files
 if [ -d "setup" ]; then
     echo "Synchronizing setup directory from orchestration-tools (including setup_env* files)"
+=======
+    local file_path="$1"
+    if git ls-tree -r orchestration-tools --name-only | grep -q "^$file_path$"; then
+        # Check if file differs before checkout
+        if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
+            echo "Updating $file_path from orchestration-tools"
+            git checkout orchestration-tools -- "$file_path"
+        fi
+    else
+        echo "Warning: $file_path not found in orchestration-tools branch"
+    fi
+}
+
+# Update setup directory
+if [ -d "setup" ]; then
+    echo "Synchronizing setup directory from orchestration-tools"
+>>>>>>> recover-lost-commit
     # Checkout entire setup directory
     git checkout orchestration-tools -- setup/
 fi
@@ -136,3 +158,19 @@ echo "Setup synchronization complete"
 
 # Unset the recursion prevention flag
 unset ORCHESTRATION_SYNC_ACTIVE
+=======
+# Update Git hooks
+checkout_from_orchestration "scripts/hooks/post-merge"
+checkout_from_orchestration "scripts/hooks/pre-commit"
+checkout_from_orchestration "scripts/hooks/post-commit"
+checkout_from_orchestration "scripts/hooks/post-push"
+
+# Install hooks to .git/hooks/
+cp scripts/hooks/post-merge .git/hooks/ 2>/dev/null || true
+cp scripts/hooks/pre-commit .git/hooks/ 2>/dev/null || true
+cp scripts/hooks/post-commit .git/hooks/ 2>/dev/null || true
+cp scripts/hooks/post-push .git/hooks/ 2>/dev/null || true
+chmod +x .git/hooks/post-merge .git/hooks/pre-commit .git/hooks/post-commit .git/hooks/post-push 2>/dev/null || true
+
+echo "Setup synchronization complete"
+>>>>>>> recover-lost-commit

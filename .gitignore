@@ -70,6 +70,7 @@ config/llm_guidelines.local.json
 !.semgrep/
 !.gitignore
 !.git/hooks/
+<<<<<<< HEAD
 !.flake8
 !.pylintrc
 !.github/
@@ -141,3 +142,4 @@ QWEN.md
 !docs/agents/AIDER.md
 !docs/agents/CURSOR.md
 !docs/agents/AMP.md
+

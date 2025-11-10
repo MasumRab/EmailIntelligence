@@ -180,7 +180,6 @@ def main():
     # Initialize services (only if core modules are available)
     if initialize_all_services and get_container:
         initialize_all_services(get_container())
-
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
 
@@ -238,7 +237,6 @@ def main():
 
     # Add all legacy arguments for backward compatibility
     _add_legacy_args(parser)
-
     args = parser.parse_args()
 
     # Handle command pattern vs legacy arguments
@@ -317,7 +315,6 @@ def _handle_legacy_args(args) -> int:
         check_python_version()
 
     logging.getLogger().setLevel(getattr(args, "loglevel", "INFO"))
-
     if DOTENV_AVAILABLE:
         # Load user customizations from launch-user.env if it exists
         user_env_file = ROOT_DIR / "launch-user.env"
@@ -386,7 +383,6 @@ def _handle_legacy_args(args) -> int:
             logger.info(
                 f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}"
             )
-
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
 

@@ -11,6 +11,7 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 # Check if setup/ directory has changes
 if git diff --cached --name-only | grep -q "^setup/"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+<<<<<<< HEAD
         echo "ERROR: Changes to setup/ files should only be made in the 'orchestration-tools' branch."
         echo "Please commit setup changes to orchestration-tools branch instead."
         echo ""
@@ -20,12 +21,18 @@ if git diff --cached --name-only | grep -q "^setup/"; then
         echo "3. Apply stash: git stash pop"
         echo "4. Commit there, then merge back"
         exit 1
+=======
+        echo "WARNING: Changes to setup/ files detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
+        echo "Proceeding with commit, but ensure PR is created after push."
+>>>>>>> recover-lost-commit
     fi
 fi
 
 # Check if orchestration scripts have changes
 if git diff --cached --name-only | grep -q "^scripts/sync_setup_worktrees.sh$"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+<<<<<<< HEAD
         echo "ERROR: Changes to orchestration scripts should only be made in the 'orchestration-tools' branch."
         exit 1
     fi
@@ -35,6 +42,23 @@ fi
 ORCHESTRATION_CONFIG_FILES=(
     ".flake8"
     ".pylintrc"
+=======
+        echo "WARNING: Changes to orchestration scripts detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
+    fi
+fi
+
+# Check if shared config files have changes
+SHARED_CONFIG_FILES=(
+    ".flake8"
+    ".pylintrc"
+    "tsconfig.json"
+    "package.json"
+    "tailwind.config.ts"
+    "vite.config.ts"
+    "drizzle.config.ts"
+    "components.json"
+>>>>>>> recover-lost-commit
     ".gitignore"
     ".gitattributes"
 )
@@ -45,6 +69,13 @@ for config_file in "${ORCHESTRATION_CONFIG_FILES[@]}"; do
         if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
             echo "ERROR: Changes to shared config file '${config_file}' should only be made in the 'orchestration-tools' branch."
             exit 1
+=======
+for config_file in "${SHARED_CONFIG_FILES[@]}"; do
+    if git diff --cached --name-only | grep -q "^${config_file}$"; then
+        if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+            echo "WARNING: Changes to shared config file '${config_file}' detected on '$CURRENT_BRANCH' branch."
+            echo "This will require a pull request to 'orchestration-tools' for approval."
+>>>>>>> recover-lost-commit
         fi
     fi
 done
@@ -52,6 +83,7 @@ done
 # Check if hooks have changes
 if git diff --cached --name-only | grep -q "^scripts/hooks/"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+<<<<<<< HEAD
         echo "ERROR: Changes to Git hooks should only be made in the 'orchestration-tools' branch."
         exit 1
     fi
@@ -145,4 +177,11 @@ if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
     echo "✅ Orchestration files validation passed"
 fi
 
+=======
+        echo "WARNING: Changes to Git hooks detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
+    fi
+fi
+
+>>>>>>> recover-lost-commit
 echo "Pre-commit validation passed"

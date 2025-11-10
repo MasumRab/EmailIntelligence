@@ -74,6 +74,7 @@ MANAGED_FILES=(
     "setup/launch.py"
     "setup/launch.bat"
     "setup/launch.sh"
+<<<<<<< HEAD
     "setup/pyproject.toml"
     "setup/requirements.txt"
     "setup/requirements-dev.txt"
@@ -107,6 +108,28 @@ MANAGED_FILES=(
     "tests/test_sync.py"
     "tests/test_basic_validation.py"
     "pytest.ini"
+=======
+    "scripts/sync_setup_worktrees.sh"
+    ".flake8"
+    ".pylintrc"
+>>>>>>> recover-lost-commit
+    "tsconfig.json"
+    "package.json"
+    "tailwind.config.ts"
+    "vite.config.ts"
+    "drizzle.config.ts"
+    "components.json"
+<<<<<<< HEAD
+    "tests/conftest.py"
+    "tests/test_hooks.py"
+    "tests/test_launch.py"
+    "tests/test_sync.py"
+    "tests/test_basic_validation.py"
+    "pytest.ini"
+=======
+    ".gitignore"
+    ".gitattributes"
+>>>>>>> recover-lost-commit
 )
 
 # Check if commit contains managed files

@@ -20,7 +20,11 @@ while read local_ref local_sha remote_ref remote_sha; do
         # Could trigger: CI, notifications, worktree sync
         exit 0
 
+<<<<<<< HEAD
     elif [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+=======
+    elif [[ "$CURRENT_BRANCH" != "orchestration-tools" && "$CURRENT_BRANCH" != "main" ]]; then
+>>>>>>> recover-lost-commit
         # Other branch pushed - check for orchestration changes
         check_orchestration_changes "$local_sha" "$remote_sha"
     fi
@@ -55,6 +59,22 @@ check_orchestration_changes() {
         "scripts/cleanup_orchestration.sh"
         ".flake8"
         ".pylintrc"
+=======
+    # Check if managed files were changed in this push
+    MANAGED_FILES=(
+        "setup/launch.py"
+        "setup/launch.bat"
+        "setup/launch.sh"
+        "scripts/sync_setup_worktrees.sh"
+        ".flake8"
+        ".pylintrc"
+        "tsconfig.json"
+        "package.json"
+        "tailwind.config.ts"
+        "vite.config.ts"
+        "drizzle.config.ts"
+        "components.json"
+>>>>>>> recover-lost-commit
         ".gitignore"
         ".gitattributes"
     )
@@ -62,7 +82,11 @@ check_orchestration_changes() {
     CHANGED_FILES=$(git diff --name-only "$old_sha" "$new_sha")
 
     ORCHESTRATION_CHANGES=false
+<<<<<<< HEAD
     for file in "${ORCHESTRATION_MANAGED_FILES[@]}"; do
+=======
+    for file in "${MANAGED_FILES[@]}"; do
+>>>>>>> recover-lost-commit
         if echo "$CHANGED_FILES" | grep -q "^${file}$"; then
             ORCHESTRATION_CHANGES=true
             break
@@ -70,7 +94,11 @@ check_orchestration_changes() {
     done
 
     if [[ "$ORCHESTRATION_CHANGES" == true ]]; then
+<<<<<<< HEAD
         CHANGED_ORCHESTRATION_FILES=$(echo "$CHANGED_FILES" | grep -E "$(printf '%s|' "${ORCHESTRATION_MANAGED_FILES[@]}" | sed 's/|$//')")
+=======
+        CHANGED_ORCHESTRATION_FILES=$(echo "$CHANGED_FILES" | grep -E "$(printf '%s|' "${MANAGED_FILES[@]}" | sed 's/|$//')")
+>>>>>>> recover-lost-commit
 
         echo "⚠️  ORCHESTRATION CHANGES DETECTED on branch '$CURRENT_BRANCH'"
         echo "   Files changed: $CHANGED_ORCHESTRATION_FILES"
@@ -116,8 +144,13 @@ create_automatic_pr() {
     local pr_body=$(cat << EOF
 ## 🤖 Automatically Created Draft PR
 
+<<<<<<< HEAD
 **Source Branch:** \`$branch\`
 **Commit:** \`$commit_sha\`
+=======
+**Source Branch:** \`$branch\`  
+**Commit:** \`$commit_sha\`  
+>>>>>>> recover-lost-commit
 **Detected:** Orchestration-managed files changed
 
 ### Files Changed
@@ -201,5 +234,6 @@ show_manual_pr_instructions() {
     echo "🔧 For urgent fixes only:"
     echo "   ./scripts/reverse_sync_orchestration.sh $branch $commit_sha"
 }
+
 
 echo "Post-push hook completed"
