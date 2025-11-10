@@ -43,9 +43,7 @@ def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
     print(f"Running command: {' '.join(cmd)}")
     try:
         # Run from the project's root directory to ensure all modules are found
-        result = subprocess.run(
-            cmd, check=True, cwd=ROOT_DIR, text=True, capture_output=True
-        )
+        result = subprocess.run(cmd, check=True, cwd=ROOT_DIR, text=True, capture_output=True)
         print(result.stdout)
         if result.stderr:
             print("Errors:\n", result.stderr)
@@ -96,7 +94,6 @@ class TestStages:
         print("\n--- Running Security Tests ---")
         print("No security tests configured. Skipping.")
         return True
-
 
 # The launch script expects to import this specific object.
 test_stages = TestStages()
