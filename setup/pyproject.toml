@@ -29,6 +29,7 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+    "GitPython>=3.1.40",
 ]
 
 [project.optional-dependencies]

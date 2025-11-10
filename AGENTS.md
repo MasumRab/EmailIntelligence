@@ -516,3 +516,10 @@ You MUST read the overview resource to understand the complete workflow. The inf
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
+
+## Active Technologies
+- Python 3.11 (based on project requirements and existing codebase) + GitPython (for branch detection), pytest (for testing), pathlib (for file operations) (001-agent-context-control)
+- File-based context profiles stored in project directories with JSON/YAML format (001-agent-context-control)
+
+## Recent Changes
+- 001-agent-context-control: Added Python 3.11 (based on project requirements and existing codebase) + GitPython (for branch detection), pytest (for testing), pathlib (for file operations)
