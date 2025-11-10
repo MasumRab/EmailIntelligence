@@ -71,6 +71,79 @@ echo ""
 
 # Define managed files
 MANAGED_FILES=(
+#!/bin/bash
+# Reverse sync script: Pull approved changes from feature branches into orchestration-tools
+# Usage: ./reverse_sync_orchestration.sh <source_branch> <commit_sha>
+#
+# This script is for controlled reverse synchronization of orchestration-managed files.
+# It should only be run after review and approval.
+
+set -e
+
+if [[ $# -lt 2 ]]; then
+    echo "Usage: $0 <source_branch> <commit_sha> [--dry-run]"
+    echo ""
+    echo "Pull approved changes from feature branch into orchestration-tools"
+    echo ""
+    echo "Arguments:"
+    echo "  source_branch  Branch containing the approved changes"
+    echo "  commit_sha     Specific commit SHA to cherry-pick"
+    echo "  --dry-run      Show what would be done without making changes"
+    echo ""
+    echo "Example:"
+    echo "  $0 feature/fix-launch-bug abc123"
+    exit 1
+fi
+
+SOURCE_BRANCH="$1"
+COMMIT_SHA="$2"
+DRY_RUN=false
+
+if [[ "$3" == "--dry-run" ]]; then
+    DRY_RUN=true
+fi
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Validate inputs
+if ! git show-ref --verify --quiet "refs/heads/$SOURCE_BRANCH"; then
+    echo -e "${RED}Error: Source branch '$SOURCE_BRANCH' does not exist${NC}"
+    exit 1
+fi
+
+if ! git cat-file -e "$COMMIT_SHA" 2>/dev/null; then
+    echo -e "${RED}Error: Commit '$COMMIT_SHA' does not exist${NC}"
+    exit 1
+fi
+
+# Check if we're on orchestration-tools
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+    echo -e "${RED}Error: Must be on orchestration-tools branch to run reverse sync${NC}"
+    echo -e "${YELLOW}Run: git checkout orchestration-tools${NC}"
+    exit 1
+fi
+
+echo -e "${BLUE}Reverse Sync: $SOURCE_BRANCH ($COMMIT_SHA) → orchestration-tools${NC}"
+echo ""
+
+# Show commit details
+echo -e "${YELLOW}Commit details:${NC}"
+git show --no-patch --format="Author: %an <%ae>%nDate: %ad%nSubject: %s%n" "$COMMIT_SHA"
+echo ""
+
+# Check what files are changed in this commit
+echo -e "${YELLOW}Files changed in commit:${NC}"
+git show --name-only --format="" "$COMMIT_SHA"
+echo ""
+
+# Define managed files
+MANAGED_FILES=(
     "setup/launch.py"
     "setup/launch.bat"
     "setup/launch.sh"
@@ -85,17 +158,29 @@ MANAGED_FILES=(
     "setup/services.py"
     "setup/test_config.py"
     "setup/test_stages.py"
-        "setup/utils.py"
-        "setup/validation.py"
-        "setup/README.md"
-        "scripts/sync_setup_worktrees.sh"
-        "scripts/reverse_sync_orchestration.sh"
-        "scripts/cleanup_orchestration.sh"
-        ".flake8"
-        ".pylintrc"
-        ".gitignore"
-        ".gitattributes"
-    )
+    "setup/utils.py"
+    "setup/validation.py"
+    "setup/README.md"
+    "scripts/sync_setup_worktrees.sh"
+    "scripts/reverse_sync_orchestration.sh"
+    "scripts/cleanup_orchestration.sh"
+    ".flake8"
+    ".pylintrc"
+    ".gitignore"
+    ".gitattributes"
+    "tsconfig.json"
+    "package.json"
+    "tailwind.config.ts"
+    "vite.config.ts"
+    "drizzle.config.ts"
+    "components.json"
+    "tests/conftest.py"
+    "tests/test_hooks.py"
+    "tests/test_launch.py"
+    "tests/test_sync.py"
+    "tests/test_basic_validation.py"
+    "pytest.ini"
+)
 
 # Check if commit contains managed files
 COMMIT_FILES=$(git show --name-only --format="" "$COMMIT_SHA")
