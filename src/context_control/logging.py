@@ -9,7 +9,7 @@ from pathlib import Path
 def setup_logging(
     level: str = "INFO",
     log_file: Optional[str] = None,
-    format_string: Optional[str] = None
+    format_string: Optional[str] = None,
 ) -> logging.Logger:
     """Setup logging configuration for the context control library.
 
@@ -32,8 +32,7 @@ def setup_logging(
     # Default format
     if format_string is None:
         format_string = (
-            "%(asctime)s - %(name)s - %(levelname)s - "
-            "[%(context_id)s] %(message)s"
+            "%(asctime)s - %(name)s - %(levelname)s - " "[%(context_id)s] %(message)s"
         )
 
     formatter = logging.Formatter(format_string)
@@ -79,15 +78,14 @@ class ContextAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         """Process the logging record to include context_id."""
         # Merge our context extra with any existing extra
-        extra = kwargs.get('extra', {})
+        extra = kwargs.get("extra", {})
         extra.update(self.extra)
-        kwargs['extra'] = extra
+        kwargs["extra"] = extra
         return msg, kwargs
 
 
 def get_context_logger(
-    context_id: Optional[str] = None,
-    name: str = "context_control"
+    context_id: Optional[str] = None, name: str = "context_control"
 ) -> ContextAdapter:
     """Get a context-aware logger that includes context_id in all log messages.
 

@@ -40,19 +40,12 @@ def detect_branch(repo_path: Optional[Path] = None) -> str:
         return branch_name
 
     except git.InvalidGitRepositoryError:
-        raise EnvironmentDetectionError(
-            "Not a valid Git repository",
-            context_id=None
-        )
+        raise EnvironmentDetectionError("Not a valid Git repository", context_id=None)
     except git.GitCommandError as e:
-        raise EnvironmentDetectionError(
-            f"Git command failed: {e}",
-            context_id=None
-        )
+        raise EnvironmentDetectionError(f"Git command failed: {e}", context_id=None)
     except Exception as e:
         raise EnvironmentDetectionError(
-            f"Unexpected error during branch detection: {e}",
-            context_id=None
+            f"Unexpected error during branch detection: {e}", context_id=None
         )
 
 

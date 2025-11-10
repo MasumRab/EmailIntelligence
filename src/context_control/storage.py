@@ -63,7 +63,7 @@ class ProfileStorage:
             return self._cache[cache_key]
 
         try:
-            with open(profile_file, 'r', encoding='utf-8') as f:
+            with open(profile_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             profile = ContextProfile(**data)
@@ -76,7 +76,9 @@ class ProfileStorage:
             logger.error(f"Invalid profile file {profile_file}: {e}")
             return None
 
-    def save_profile_to_file(self, profile: ContextProfile, profile_file: Optional[Path] = None) -> bool:
+    def save_profile_to_file(
+        self, profile: ContextProfile, profile_file: Optional[Path] = None
+    ) -> bool:
         """Save a context profile to a JSON file.
 
         Args:
@@ -94,7 +96,7 @@ class ProfileStorage:
         try:
             profile_file.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(profile_file, 'w', encoding='utf-8') as f:
+            with open(profile_file, "w", encoding="utf-8") as f:
                 json.dump(profile.dict(), f, indent=2, ensure_ascii=False)
 
             # Update cache
@@ -135,5 +137,5 @@ class ProfileStorage:
         """
         return {
             "cached_profiles": len(self._cache),
-            "cache_keys": list(self._cache.keys())
+            "cache_keys": list(self._cache.keys()),
         }

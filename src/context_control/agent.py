@@ -50,7 +50,9 @@ class AgentAdapter:
 
         # Apply project configuration settings
         if self.project_config:
-            project_settings = self._extract_agent_relevant_settings(self.project_config)
+            project_settings = self._extract_agent_relevant_settings(
+                self.project_config
+            )
             settings.update(project_settings)
 
         # Add agent-specific settings (these override everything)
@@ -61,7 +63,9 @@ class AgentAdapter:
 
         return settings
 
-    def _extract_agent_relevant_settings(self, project_config: ProjectConfig) -> Dict[str, Any]:
+    def _extract_agent_relevant_settings(
+        self, project_config: ProjectConfig
+    ) -> Dict[str, Any]:
         """Extract agent-relevant settings from project configuration.
 
         Args:
@@ -73,11 +77,11 @@ class AgentAdapter:
         settings = {}
 
         # Map project config to agent settings
-        settings['max_context_length'] = project_config.max_context_length
-        settings['enable_code_execution'] = project_config.enable_code_execution
-        settings['enable_file_writing'] = project_config.enable_file_writing
-        settings['enable_shell_commands'] = project_config.enable_shell_commands
-        settings['preferred_models'] = project_config.preferred_models
+        settings["max_context_length"] = project_config.max_context_length
+        settings["enable_code_execution"] = project_config.enable_code_execution
+        settings["enable_file_writing"] = project_config.enable_file_writing
+        settings["enable_shell_commands"] = project_config.enable_shell_commands
+        settings["preferred_models"] = project_config.preferred_models
 
         # Add custom settings
         settings.update(project_config.custom_settings)
@@ -91,7 +95,7 @@ class AgentAdapter:
             True if code execution is allowed
         """
         settings = self.get_agent_settings()
-        return settings.get('enable_code_execution', False)
+        return settings.get("enable_code_execution", False)
 
     def can_write_files(self) -> bool:
         """Check if the agent can write files.
@@ -100,7 +104,7 @@ class AgentAdapter:
             True if file writing is allowed
         """
         settings = self.get_agent_settings()
-        return settings.get('enable_file_writing', False)
+        return settings.get("enable_file_writing", False)
 
     def can_run_shell_commands(self) -> bool:
         """Check if the agent can run shell commands.
@@ -109,7 +113,7 @@ class AgentAdapter:
             True if shell commands are allowed
         """
         settings = self.get_agent_settings()
-        return settings.get('enable_shell_commands', False)
+        return settings.get("enable_shell_commands", False)
 
     def get_max_context_length(self) -> int:
         """Get the maximum context length for the agent.
@@ -118,7 +122,7 @@ class AgentAdapter:
             Maximum context length
         """
         settings = self.get_agent_settings()
-        return settings.get('max_context_length', 4096)
+        return settings.get("max_context_length", 4096)
 
     def get_preferred_models(self) -> List[str]:
         """Get the preferred AI models for the agent.
@@ -127,7 +131,7 @@ class AgentAdapter:
             List of preferred model names
         """
         settings = self.get_agent_settings()
-        return settings.get('preferred_models', ['gpt-4', 'claude-3'])
+        return settings.get("preferred_models", ["gpt-4", "claude-3"])
 
     def adapt_function_call(self, func_name: str, *args, **kwargs) -> tuple:
         """Adapt a function call based on agent permissions.
@@ -143,15 +147,21 @@ class AgentAdapter:
         # Check permissions based on function type
         if self._is_code_execution_function(func_name):
             if not self.can_execute_code():
-                raise PermissionError(f"Agent '{self.context.agent_id}' is not allowed to execute code")
+                raise PermissionError(
+                    f"Agent '{self.context.agent_id}' is not allowed to execute code"
+                )
 
         if self._is_file_writing_function(func_name):
             if not self.can_write_files():
-                raise PermissionError(f"Agent '{self.context.agent_id}' is not allowed to write files")
+                raise PermissionError(
+                    f"Agent '{self.context.agent_id}' is not allowed to write files"
+                )
 
         if self._is_shell_function(func_name):
             if not self.can_run_shell_commands():
-                raise PermissionError(f"Agent '{self.context.agent_id}' is not allowed to run shell commands")
+                raise PermissionError(
+                    f"Agent '{self.context.agent_id}' is not allowed to run shell commands"
+                )
 
         # Apply context length limits if applicable
         if self._is_context_sensitive_function(func_name):
@@ -171,8 +181,15 @@ class AgentAdapter:
             True if function involves code execution
         """
         code_functions = [
-            'exec', 'eval', 'compile', 'run_code', 'execute_code',
-            'run_python', 'run_script', 'subprocess', 'os.system'
+            "exec",
+            "eval",
+            "compile",
+            "run_code",
+            "execute_code",
+            "run_python",
+            "run_script",
+            "subprocess",
+            "os.system",
         ]
         return any(pattern in func_name.lower() for pattern in code_functions)
 
@@ -186,8 +203,14 @@ class AgentAdapter:
             True if function involves file writing
         """
         write_functions = [
-            'write_file', 'save_file', 'create_file', 'open',
-            'write', 'save', 'dump', 'export'
+            "write_file",
+            "save_file",
+            "create_file",
+            "open",
+            "write",
+            "save",
+            "dump",
+            "export",
         ]
         return any(pattern in func_name.lower() for pattern in write_functions)
 
@@ -201,8 +224,15 @@ class AgentAdapter:
             True if function involves shell commands
         """
         shell_functions = [
-            'run_command', 'shell', 'bash', 'sh', 'system',
-            'popen', 'call', 'run', 'subprocess'
+            "run_command",
+            "shell",
+            "bash",
+            "sh",
+            "system",
+            "popen",
+            "call",
+            "run",
+            "subprocess",
         ]
         return any(pattern in func_name.lower() for pattern in shell_functions)
 
@@ -216,12 +246,20 @@ class AgentAdapter:
             True if function is context-sensitive
         """
         context_functions = [
-            'generate', 'complete', 'chat', 'ask', 'query',
-            'analyze', 'summarize', 'translate'
+            "generate",
+            "complete",
+            "chat",
+            "ask",
+            "query",
+            "analyze",
+            "summarize",
+            "translate",
         ]
         return any(pattern in func_name.lower() for pattern in context_functions)
 
-    def _limit_context_length(self, kwargs: Dict[str, Any], max_length: int) -> Dict[str, Any]:
+    def _limit_context_length(
+        self, kwargs: Dict[str, Any], max_length: int
+    ) -> Dict[str, Any]:
         """Limit context length in function arguments.
 
         Args:
@@ -234,7 +272,7 @@ class AgentAdapter:
         adapted_kwargs = kwargs.copy()
 
         # Look for common context parameters
-        context_keys = ['prompt', 'message', 'text', 'input', 'query', 'context']
+        context_keys = ["prompt", "message", "text", "input", "query", "context"]
 
         for key in context_keys:
             if key in adapted_kwargs and isinstance(adapted_kwargs[key], str):
@@ -257,12 +295,16 @@ class AgentAdapter:
         settings = self.get_agent_settings()
 
         return {
-            'agent_id': self.context.agent_id,
-            'can_execute_code': self.can_execute_code(),
-            'can_write_files': self.can_write_files(),
-            'can_run_shell_commands': self.can_run_shell_commands(),
-            'max_context_length': self.get_max_context_length(),
-            'preferred_models': self.get_preferred_models(),
-            'project_name': self.project_config.project_name if self.project_config else None,
-            'project_type': self.project_config.project_type if self.project_config else None,
+            "agent_id": self.context.agent_id,
+            "can_execute_code": self.can_execute_code(),
+            "can_write_files": self.can_write_files(),
+            "can_run_shell_commands": self.can_run_shell_commands(),
+            "max_context_length": self.get_max_context_length(),
+            "preferred_models": self.get_preferred_models(),
+            "project_name": (
+                self.project_config.project_name if self.project_config else None
+            ),
+            "project_type": (
+                self.project_config.project_type if self.project_config else None
+            ),
         }

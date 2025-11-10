@@ -83,12 +83,16 @@ class ContextIsolator:
 
             conflicts = accessible_set & restricted_set
             if conflicts:
-                logger.error(f"Context integrity violation: conflicting permissions for {conflicts}")
+                logger.error(
+                    f"Context integrity violation: conflicting permissions for {conflicts}"
+                )
                 return False
 
             # Check that context has proper boundaries
             if not self.context.accessible_files and not self.context.restricted_files:
-                logger.warning("Context has no file access boundaries - potential security risk")
+                logger.warning(
+                    "Context has no file access boundaries - potential security risk"
+                )
                 # This is a warning, not an error, as some contexts might be unrestricted
 
             return True
@@ -104,14 +108,14 @@ class ContextIsolator:
             Dictionary with access statistics
         """
         total_accesses = len(self._access_log)
-        allowed_accesses = sum(1 for log in self._access_log if log['allowed'])
+        allowed_accesses = sum(1 for log in self._access_log if log["allowed"])
         blocked_accesses = total_accesses - allowed_accesses
 
         return {
-            'total_accesses': total_accesses,
-            'allowed_accesses': allowed_accesses,
-            'blocked_accesses': blocked_accesses,
-            'access_log': self._access_log[-100:]  # Last 100 entries
+            "total_accesses": total_accesses,
+            "allowed_accesses": allowed_accesses,
+            "blocked_accesses": blocked_accesses,
+            "access_log": self._access_log[-100:],  # Last 100 entries
         }
 
     def _normalize_path(self, file_path: str) -> str:
@@ -170,10 +174,10 @@ class ContextIsolator:
             reason: Reason for the access decision
         """
         log_entry = {
-            'file_path': file_path,
-            'allowed': allowed,
-            'reason': reason,
-            'timestamp': None  # Would use datetime in real implementation
+            "file_path": file_path,
+            "allowed": allowed,
+            "reason": reason,
+            "timestamp": None,  # Would use datetime in real implementation
         }
 
         self._access_log.append(log_entry)
@@ -228,7 +232,7 @@ class IsolationManager:
 
         # Check for overlapping accessible files between different contexts
         for i, ctx1 in enumerate(contexts):
-            for j, ctx2 in enumerate(contexts[i+1:], i+1):
+            for j, ctx2 in enumerate(contexts[i + 1 :], i + 1):
                 if ctx1.agent_id == ctx2.agent_id:
                     continue  # Same agent, skip
 
@@ -261,7 +265,9 @@ class IsolationManager:
         for context in contexts:
             isolator = self.get_isolator(context)
             if not isolator.validate_context_integrity():
-                logger.error(f"Context integrity violation for agent '{context.agent_id}'")
+                logger.error(
+                    f"Context integrity violation for agent '{context.agent_id}'"
+                )
                 return False
 
         return True

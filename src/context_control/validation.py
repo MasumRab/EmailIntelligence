@@ -1,6 +1,5 @@
 """Comprehensive validation for context control components."""
 
-from pathlib import Path
 from typing import List, Dict, Any, Optional
 import re
 
@@ -50,7 +49,9 @@ class ContextValidator:
                 errors.append(f"Invalid file pattern: '{pattern}'")
 
         # Check for conflicting patterns
-        conflicts = self._find_conflicting_patterns(profile.allowed_files, profile.blocked_files)
+        conflicts = self._find_conflicting_patterns(
+            profile.allowed_files, profile.blocked_files
+        )
         if conflicts:
             errors.append(f"Conflicting file patterns: {conflicts}")
 
@@ -63,7 +64,7 @@ class ContextValidator:
             is_valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
-            context_id=context.profile_id
+            context_id=profile.id,
         )
 
     def validate_project_config(self, config: ProjectConfig) -> ContextValidationResult:
@@ -85,9 +86,19 @@ class ContextValidator:
             errors.append(f"Invalid project name: '{config.project_name}'")
 
         # Validate project type
-        valid_types = ['python', 'javascript', 'web', 'api', 'library', 'data', 'generic']
+        valid_types = [
+            "python",
+            "javascript",
+            "web",
+            "api",
+            "library",
+            "data",
+            "generic",
+        ]
         if config.project_type not in valid_types:
-            errors.append(f"Invalid project type: '{config.project_type}'. Must be one of {valid_types}")
+            errors.append(
+                f"Invalid project type: '{config.project_type}'. Must be one of {valid_types}"
+            )
 
         # Validate context length
         if config.max_context_length < 100:
@@ -99,22 +110,29 @@ class ContextValidator:
         if not config.preferred_models:
             warnings.append("No preferred models specified")
         else:
-            invalid_models = [m for m in config.preferred_models if not self._is_valid_model_name(m)]
+            invalid_models = [
+                m for m in config.preferred_models if not self._is_valid_model_name(m)
+            ]
             if invalid_models:
                 errors.append(f"Invalid model names: {invalid_models}")
 
         # Validate boolean flags make sense for project type
-        if config.project_type == 'data' and not config.enable_file_writing:
+        if config.project_type == "data" and not config.enable_file_writing:
             warnings.append("Data projects typically need file writing enabled")
 
-        if config.project_type in ['python', 'javascript'] and not config.enable_code_execution:
-            warnings.append(f"{config.project_type.capitalize()} projects typically need code execution enabled")
+        if (
+            config.project_type in ["python", "javascript"]
+            and not config.enable_code_execution
+        ):
+            warnings.append(
+                f"{config.project_type.capitalize()} projects typically need code execution enabled"
+            )
 
         return ContextValidationResult(
             is_valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
-            context_id=config.project_name
+            context_id=f"project_config_{config.project_name}",
         )
 
     def _is_valid_project_name(self, name: str) -> bool:
@@ -131,7 +149,8 @@ class ContextValidator:
 
         # Allow alphanumeric, hyphens, underscores, dots, spaces
         import re
-        pattern = r'^[a-zA-Z0-9._\-\s]+$'
+
+        pattern = r"^[a-zA-Z0-9._\-\s]+$"
         return bool(re.match(pattern, name))
 
     def _is_valid_model_name(self, name: str) -> bool:
@@ -148,7 +167,8 @@ class ContextValidator:
 
         # Allow common model name patterns
         import re
-        pattern = r'^[a-zA-Z0-9._\-/]+$'
+
+        pattern = r"^[a-zA-Z0-9._\-/]+$"
         return bool(re.match(pattern, name))
 
     def validate_context(self, context: AgentContext) -> ContextValidationResult:
@@ -174,14 +194,13 @@ class ContextValidator:
             errors.append("Profile ID is required")
 
         # Validate environment type
-        valid_env_types = ['development', 'staging', 'production', 'detached']
+        valid_env_types = ["development", "staging", "production", "detached"]
         if context.environment_type not in valid_env_types:
             errors.append(f"Invalid environment type: '{context.environment_type}'")
 
         # Validate file permissions
         conflicts = self._find_conflicting_patterns(
-            context.accessible_files,
-            context.restricted_files
+            context.accessible_files, context.restricted_files
         )
         if conflicts:
             errors.append(f"Conflicting file permissions: {conflicts}")
@@ -191,20 +210,18 @@ class ContextValidator:
             warnings.append("Context has no file access boundaries")
 
         # Validate timestamps
-        if context.activated_at > context.last_validated:
+        if context.last_validated and context.activated_at > context.last_validated:
             errors.append("Context was validated before activation")
 
         return ContextValidationResult(
             is_valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
-            context_id=context.profile_id
+            context_id=context.profile_id,
         )
 
     def validate_profile_context_compatibility(
-        self,
-        profile: ContextProfile,
-        context: AgentContext
+        self, profile: ContextProfile, context: AgentContext
     ) -> ContextValidationResult:
         """Validate compatibility between a profile and context.
 
@@ -220,12 +237,16 @@ class ContextValidator:
 
         # Check profile ID match
         if profile.id != context.profile_id:
-            errors.append(f"Profile ID mismatch: profile='{profile.id}', context='{context.profile_id}'")
+            errors.append(
+                f"Profile ID mismatch: profile='{profile.id}', context='{context.profile_id}'"
+            )
 
         # Check branch compatibility
         if context.branch_name:
             if not self._branch_matches_profile(context.branch_name, profile):
-                errors.append(f"Branch '{context.branch_name}' not compatible with profile '{profile.id}'")
+                errors.append(
+                    f"Branch '{context.branch_name}' not compatible with profile '{profile.id}'"
+                )
 
         # Check file permissions alignment
         profile_allowed = set(profile.allowed_files)
@@ -236,18 +257,22 @@ class ContextValidator:
         # Context should not allow more than profile allows
         extra_allowed = context_allowed - profile_allowed
         if extra_allowed:
-            errors.append(f"Context allows files not permitted by profile: {extra_allowed}")
+            errors.append(
+                f"Context allows files not permitted by profile: {extra_allowed}"
+            )
 
         # Context should not block less than profile blocks
         missing_blocks = profile_blocked - context_blocked
         if missing_blocks:
-            warnings.append(f"Context does not block files blocked by profile: {missing_blocks}")
+            warnings.append(
+                f"Context does not block files blocked by profile: {missing_blocks}"
+            )
 
         return ContextValidationResult(
             is_valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
-            context_id=context.profile_id
+            context_id=context.profile_id,
         )
 
     def _is_valid_id(self, id_str: str) -> bool:
@@ -263,7 +288,7 @@ class ContextValidator:
             return False
 
         # Allow alphanumeric, hyphens, underscores, dots
-        pattern = r'^[a-zA-Z0-9._-]+$'
+        pattern = r"^[a-zA-Z0-9._-]+$"
         return bool(re.match(pattern, id_str))
 
     def _is_valid_branch_pattern(self, pattern: str) -> bool:
@@ -279,7 +304,9 @@ class ContextValidator:
             return False
 
         # Allow glob patterns with common branch naming
-        allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?')
+        allowed_chars = set(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?"
+        )
         return all(c in allowed_chars for c in pattern)
 
     def _is_valid_file_pattern(self, pattern: str) -> bool:
@@ -295,10 +322,14 @@ class ContextValidator:
             return False
 
         # Allow common glob patterns
-        allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?[]{}')
+        allowed_chars = set(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?[]{}"
+        )
         return all(c in allowed_chars for c in pattern)
 
-    def _find_conflicting_patterns(self, allowed: List[str], blocked: List[str]) -> List[str]:
+    def _find_conflicting_patterns(
+        self, allowed: List[str], blocked: List[str]
+    ) -> List[str]:
         """Find patterns that appear in both allowed and blocked lists.
 
         Args:
@@ -332,7 +363,9 @@ class ContextValidator:
 
         return errors
 
-    def _branch_matches_profile(self, branch_name: str, profile: ContextProfile) -> bool:
+    def _branch_matches_profile(
+        self, branch_name: str, profile: ContextProfile
+    ) -> bool:
         """Check if a branch matches a profile's patterns.
 
         Args:

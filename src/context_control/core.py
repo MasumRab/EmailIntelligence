@@ -27,14 +27,16 @@ class ContextController:
             config: Optional configuration override
         """
         self.config = config or get_current_config()
+        # Ensure global config is set for components that need it
+        if config and not hasattr(get_current_config, '_config') or get_current_config.__globals__.get('_config') is None:
+            from .config import init_config
+            init_config(override_config=self.config.dict() if hasattr(self.config, 'dict') else None)
         self.storage = ProfileStorage(self.config)
         self._context_cache: Dict[str, AgentContext] = {}
         logger.info("Context controller initialized")
 
     def get_context_for_branch(
-        self,
-        branch_name: Optional[str] = None,
-        agent_id: str = "default"
+        self, branch_name: Optional[str] = None, agent_id: str = "default"
     ) -> AgentContext:
         # Ensure branch_name is a string
         if branch_name is None:
@@ -68,11 +70,17 @@ class ContextController:
         if not profile:
             raise ContextNotFoundError(
                 f"No context profile found for branch '{branch_name}'",
-                context_id=branch_name
+                context_id=branch_name,
             )
 
         # Load project configuration - prefer profile config, fallback to directory
-        project_config = profile.project_config if profile.project_config else load_project_config()
+        if profile.project_config:
+            project_config = profile.project_config
+        else:
+            # Create a project loader with our config
+            from .project import ProjectConfigLoader
+            loader = ProjectConfigLoader(self.config)
+            project_config = loader.load_project_config()
 
         # Create agent context
         context = AgentContext(
@@ -82,7 +90,7 @@ class ContextController:
             environment_type=self._determine_environment_type(branch_name),
             accessible_files=self._resolve_accessible_files(profile),
             restricted_files=self._resolve_restricted_files(profile),
-            agent_settings=profile.agent_settings  # Inherit agent settings from profile
+            agent_settings=profile.agent_settings,  # Inherit agent settings from profile
         )
 
         # Attach project config to context for agent adaptation
@@ -139,6 +147,7 @@ class ContextController:
         if "*" in pattern:
             # Convert glob pattern to regex
             import fnmatch
+
             return fnmatch.fnmatch(branch_name, pattern)
 
         return branch_name == pattern
@@ -236,7 +245,9 @@ class ContextController:
             if context.branch_name:
                 profile_for_branch = self._find_profile_for_branch(context.branch_name)
                 if profile_for_branch and profile_for_branch.id != context.profile_id:
-                    errors.append(f"Context profile ID mismatch for branch '{context.branch_name}': expected {profile_for_branch.id}, got {context.profile_id}")
+                    errors.append(
+                        f"Context profile ID mismatch for branch '{context.branch_name}': expected {profile_for_branch.id}, got {context.profile_id}"
+                    )
 
         # Check for conflicting file permissions
         accessible_set = set(context.accessible_files)
@@ -254,7 +265,7 @@ class ContextController:
             is_valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
-            context_id=context.profile_id
+            context_id=context.profile_id,
         )
 
     def clear_cache(self):
