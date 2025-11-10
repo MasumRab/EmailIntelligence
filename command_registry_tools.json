@@ -1,0 +1,302 @@
+{
+  "registry_version": "1.0.0",
+  "description": "Centralized tool installation registry",
+  "tools": {
+    "qwen": {
+      "name": "qwen",
+      "description": "Qwen Code AI Assistant",
+      "category": "ai-assistant",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": ["python", "pip"],
+      "install_commands": {
+        "linux": [
+          "pip install qwen-code",
+          "qwen --setup"
+        ],
+        "macos": [
+          "pip install qwen-code",
+          "qwen --setup"
+        ],
+        "windows": [
+          "pip install qwen-code",
+          "qwen --setup"
+        ]
+      },
+      "verify_commands": [
+        "qwen --version"
+      ],
+      "environment_variables": {
+        "QWEN_API_KEY": "your_qwen_api_key_here"
+      },
+      "version": "1.0.0",
+      "documentation": "https://github.com/QwenLM/Qwen",
+      "tags": ["ai", "coding", "assistant"]
+    },
+    "gemini": {
+      "name": "gemini",
+      "description": "Google Gemini CLI",
+      "category": "ai-assistant",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": ["python", "pip"],
+      "install_commands": {
+        "linux": [
+          "pip install google-genai",
+          "pip install gemini-cli"
+        ],
+        "macos": [
+          "pip install google-genai",
+          "pip install gemini-cli"
+        ],
+        "windows": [
+          "pip install google-genai",
+          "pip install gemini-cli"
+        ]
+      },
+      "verify_commands": [
+        "gemini --version"
+      ],
+      "environment_variables": {
+        "GOOGLE_API_KEY": "your_google_api_key_here"
+      },
+      "version": "1.0.0",
+      "documentation": "https://ai.google.dev/docs",
+      "tags": ["ai", "google", "gemini"]
+    },
+    "amp": {
+      "name": "amp",
+      "description": "AMP AI Assistant",
+      "category": "ai-assistant",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": ["node", "npm"],
+      "install_commands": {
+        "linux": [
+          "npm install -g @amperka/amp-cli",
+          "amp --setup"
+        ],
+        "macos": [
+          "npm install -g @amperka/amp-cli",
+          "amp --setup"
+        ],
+        "windows": [
+          "npm install -g @amperka/amp-cli",
+          "amp --setup"
+        ]
+      },
+      "verify_commands": [
+        "amp --version"
+      ],
+      "environment_variables": {},
+      "version": "1.0.0",
+      "documentation": "https://github.com/amperka/amp",
+      "tags": ["ai", "assistant", "npm"]
+    },
+    "cursor": {
+      "name": "cursor",
+      "description": "Cursor AI Code Editor",
+      "category": "ide",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": [],
+      "install_commands": {
+        "linux": [
+          "curl -fsSL https://cdn.cursor.sh/versions/latest/cursor.deb -o cursor.deb",
+          "sudo dpkg -i cursor.deb",
+          "rm cursor.deb"
+        ],
+        "macos": [
+          "brew install cursor"
+        ],
+        "windows": [
+          "winget install cursor.cursor"
+        ]
+      },
+      "verify_commands": [
+        "cursor --version"
+      ],
+      "environment_variables": {},
+      "version": "1.0.0",
+      "documentation": "https://cursor.sh/docs",
+      "tags": ["ide", "editor", "ai"]
+    },
+    "iflow": {
+      "name": "iflow",
+      "description": "IFLOW Workflow System",
+      "category": "workflow",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": ["python", "pip"],
+      "install_commands": {
+        "linux": [
+          "pip install iflow-workflow",
+          "iflow --init"
+        ],
+        "macos": [
+          "pip install iflow-workflow",
+          "iflow --init"
+        ],
+        "windows": [
+          "pip install iflow-workflow",
+          "iflow --init"
+        ]
+      },
+      "verify_commands": [
+        "iflow --version"
+      ],
+      "environment_variables": {},
+      "version": "1.0.0",
+      "documentation": "Local IFLOW.md documentation",
+      "tags": ["workflow", "automation"]
+    },
+    "aider": {
+      "name": "aider",
+      "description": "AI Coding Assistant",
+      "category": "ai-assistant",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": ["python", "pip"],
+      "install_commands": {
+        "linux": [
+          "pip install aider-chat",
+          "aider --install"
+        ],
+        "macos": [
+          "pip install aider-chat",
+          "aider --install"
+        ],
+        "windows": [
+          "pip install aider-chat",
+          "aider --install"
+        ]
+      },
+      "verify_commands": [
+        "aider --version"
+      ],
+      "environment_variables": {
+        "ANTHROPIC_API_KEY": "your_anthropic_key_here",
+        "OPENAI_API_KEY": "your_openai_key_here"
+      },
+      "version": "1.0.0",
+      "documentation": "https://aider.chat/docs",
+      "tags": ["ai", "coding", "assistant"]
+    },
+    "llxprt": {
+      "name": "llxprt",
+      "description": "LLXPRT Export Tool",
+      "category": "utility",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": ["python", "pip"],
+      "install_commands": {
+        "linux": [
+          "pip install llxprt",
+          "llxprt --configure"
+        ],
+        "macos": [
+          "pip install llxprt",
+          "llxprt --configure"
+        ],
+        "windows": [
+          "pip install llxprt",
+          "llxprt --configure"
+        ]
+      },
+      "verify_commands": [
+        "llxprt --version"
+      ],
+      "environment_variables": {},
+      "version": "1.0.0",
+      "documentation": "Local LLXPRT.md documentation",
+      "tags": ["export", "utility"]
+    },
+    "crush": {
+      "name": "crush",
+      "description": "CRUSH Compression Tool",
+      "category": "utility",
+      "platforms": ["linux", "macos", "windows"],
+      "dependencies": ["python", "pip"],
+      "install_commands": {
+        "linux": [
+          "pip install crush-toolkit",
+          "crush --setup"
+        ],
+        "macos": [
+          "pip install crush-toolkit",
+          "crush --setup"
+        ],
+        "windows": [
+          "pip install crush-toolkit",
+          "crush --setup"
+        ]
+      },
+      "verify_commands": [
+        "crush --version"
+      ],
+      "environment_variables": {},
+      "version": "1.0.0",
+      "documentation": "Local CRUSH.md documentation",
+      "tags": ["compression", "utility"]
+    }
+  },
+  "installation_script": {
+    "description": "Automated tool installation script",
+    "commands": [
+      "#!/bin/bash",
+      "set -e",
+      "",
+      "detect_platform() {",
+      "    case \"$(uname -s)\" in",
+      "        Linux*)  PLATFORM=\"linux\" ;;",
+      "        Darwin*) PLATFORM=\"macos\" ;;",
+      "        CYGWIN*|MINGW*) PLATFORM=\"windows\" ;;",
+      "        *) PLATFORM=\"unknown\" ;;",
+      "    esac",
+      "}",
+      "",
+      "install_tool() {",
+      "    local tool_name=$1",
+      "    echo \"Installing $tool_name...\"",
+      "    ",
+      "    # Get installation commands for current platform",
+      "    local commands=$(jq -r \".tools.$tool_name.install_commands.$PLATFORM[]\" command_registry_tools.json 2>/dev/null)",
+      "    ",
+      "    if [ \"$commands\" = \"null\" ] || [ -z \"$commands\" ]; then",
+      "        echo \"No installation commands found for $tool_name on $PLATFORM\"",
+      "        return 1",
+      "    fi",
+      "    ",
+      "    # Execute each command",
+      "    echo \"$commands\" | while IFS= read -r cmd; do",
+      "        if [ \"$cmd\" != \"null\" ] && [ -n \"$cmd\" ]; then",
+      "            echo \"Running: $cmd\"",
+      "            eval \"$cmd\" || {",
+      "                echo \"Failed to execute: $cmd\"",
+      "                return 1",
+      "            }",
+      "        fi",
+      "    done",
+      "    ",
+      "    echo \"$tool_name installed successfully\"",
+      "}",
+      "",
+      "main() {",
+      "    detect_platform",
+      "    echo \"Detected platform: $PLATFORM\"",
+      "    ",
+      "    for tool in \"$@\"; do",
+      "        install_tool \"$tool\" || echo \"Failed to install $tool\"",
+      "    done",
+      "}",
+      "",
+      "main \"$@\""
+    ]
+  },
+  "usage_examples": [
+    "# Install single tool",
+    "bash install_tools.sh qwen",
+    "",
+    "# Install multiple tools",
+    "bash install_tools.sh qwen gemini aider",
+    "",
+    "# Install all tools",
+    "bash install_tools.sh $(jq -r '.tools | keys[]' command_registry_tools.json)",
+    "",
+    "# Check available tools",
+    "jq -r '.tools | keys[]' command_registry_tools.json"
+  ]
+}
