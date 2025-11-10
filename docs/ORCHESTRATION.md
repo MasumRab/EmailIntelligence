@@ -29,15 +29,38 @@ git push origin orchestration-tools
 # Done. Other branches sync automatically.
 ```
 
-## Disable Hooks (If Needed)
+## Disable/Enable Hooks
 
-When you need to work on setup independently without auto-sync:
+### Global Disable/Enable (Recommended)
 
 ```bash
 ./scripts/disable-hooks.sh      # Disable automatic sync
 # ... work freely on setup files ...
 ./scripts/enable-hooks.sh       # Re-enable when done
 ```
+
+### Per-Branch Control (Advanced)
+
+Control orchestration hooks on individual branches without affecting others:
+
+```bash
+# Enable hooks on current branch (even if not on orchestration-tools)
+git config hooks.orchestration-tools.enable true
+
+# Disable hooks on current branch
+git config hooks.orchestration-tools.enable false
+
+# Reset to default behavior (hooks only run on orchestration-tools)
+git config --unset hooks.orchestration-tools.enable
+
+# Check current setting
+git config hooks.orchestration-tools.enable
+```
+
+**Default behavior:**
+- Hooks run automatically on `orchestration-tools` branch
+- Hooks check for orchestration-managed file changes on other branches
+- Can override per-branch with `git config` to enable/disable independently
 
 ## What Files Sync
 
@@ -69,8 +92,12 @@ All branches have latest setup ✓
 | Task | Command |
 |------|---------|
 | Check if hooks enabled | `ls -la .git/hooks/post-*` |
-| Disable hooks | `./scripts/disable-hooks.sh` |
-| Enable hooks | `./scripts/enable-hooks.sh` |
+| Disable hooks globally | `./scripts/disable-hooks.sh` |
+| Enable hooks globally | `./scripts/enable-hooks.sh` |
+| Enable hooks on current branch | `git config hooks.orchestration-tools.enable true` |
+| Disable hooks on current branch | `git config hooks.orchestration-tools.enable false` |
+| Check branch hook setting | `git config hooks.orchestration-tools.enable` |
+| Reset to default behavior | `git config --unset hooks.orchestration-tools.enable` |
 | Sync manually | `./scripts/sync_setup_worktrees.sh` |
 | View orchestration files | `git ls-tree -r orchestration-tools \| grep setup` |
 | Compare with orchestration | `git diff orchestration-tools:setup/ -- setup/` |

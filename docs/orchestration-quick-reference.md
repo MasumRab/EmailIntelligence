@@ -88,8 +88,12 @@ git diff orchestration-tools:setup/ -- setup/
 | Task | Command | When |
 |------|---------|------|
 | Check hook status | `ls -la .git/hooks/` | Before starting work |
-| Disable hooks | `./scripts/disable-hooks.sh` | Working independently on setup |
-| Enable hooks | `./scripts/enable-hooks.sh` | Done with independent work |
+| Disable hooks globally | `./scripts/disable-hooks.sh` | Working independently on setup |
+| Enable hooks globally | `./scripts/enable-hooks.sh` | Done with independent work |
+| **Enable hooks on current branch** | **`git config hooks.orchestration-tools.enable true`** | **Need orchestration sync on non-orchestration-tools branch** |
+| **Disable hooks on current branch** | **`git config hooks.orchestration-tools.enable false`** | **Need to prevent orchestration sync on this branch only** |
+| **Check branch hook setting** | **`git config hooks.orchestration-tools.enable`** | **See if hooks controlled per-branch** |
+| **Reset to default behavior** | **`git config --unset hooks.orchestration-tools.enable`** | **Revert branch-specific hook control** |
 | Sync files manually | `./scripts/sync_setup_worktrees.sh` | After merging, if sync didn't auto-run |
 | Reverse sync | `./scripts/reverse_sync_orchestration.sh <branch> <sha>` | Approved feature branch changes |
 | Check orchestration files | `git ls-tree -r orchestration-tools \| grep setup` | Verify what's managed |
@@ -148,7 +152,8 @@ Do you need to change setup files?
 2. **Hooks handle propagation automatically** - no manual sync needed usually
 3. **Feature branches with setup changes create draft PRs** - ensures review
 4. **Reverse sync is for approved changes** - controlled merge path
-5. **Hooks can be disabled** - for independent work, then re-enabled
+5. **Hooks can be disabled globally** - for independent work, then re-enabled
+6. **Hooks can be controlled per-branch** - use `git config hooks.orchestration-tools.enable [true/false]` for branch-specific control
 
 ## Getting Help
 
