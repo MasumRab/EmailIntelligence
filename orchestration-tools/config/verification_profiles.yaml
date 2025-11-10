@@ -1,0 +1,114 @@
+profiles:
+  default:
+    name: "default"
+    description: "Default verification profile for basic checks"
+    scenarios:
+      - test_git_operations
+      - test_environment_variables
+      - test_configuration_files
+    context_checks:
+      - environment_variables
+      - dependency_versions
+      - configuration_files
+    branch_checks:
+      - branch_exists
+      - branch_up_to_date
+    consistency_checks:
+      - goal_task_alignment
+    timeout: 3600
+    parallel: true
+    enabled: true
+
+  comprehensive:
+    name: "comprehensive"
+    description: "Comprehensive verification with all checks"
+    scenarios:
+      - test_git_operations
+      - test_environment_variables
+      - test_configuration_files
+      - test_dependencies
+      - test_infrastructure_state
+      - test_branch_compatibility
+      - test_goal_task_consistency
+      - test_context_boundaries
+      - test_token_optimization
+    context_checks:
+      - environment_variables
+      - dependency_versions
+      - configuration_files
+      - infrastructure_state
+      - git_state
+      - branch_state
+      - permissions
+    branch_checks:
+      - branch_exists
+      - branch_up_to_date
+      - branch_compatible
+      - target_branch_environment
+    consistency_checks:
+      - goal_task_alignment
+      - scope_drift_detection
+    timeout: 7200
+    parallel: true
+    enabled: true
+
+  quick:
+    name: "quick"
+    description: "Quick verification with minimal checks"
+    scenarios:
+      - test_git_operations
+      - test_environment_variables
+    context_checks:
+      - environment_variables
+    branch_checks:
+      - branch_exists
+    consistency_checks: []
+    timeout: 600
+    parallel: true
+    enabled: true
+
+  pre_merge:
+    name: "pre_merge"
+    description: "Pre-merge verification before pushing to target branch"
+    scenarios:
+      - test_git_operations
+      - test_environment_variables
+      - test_configuration_files
+      - test_branch_compatibility
+      - test_goal_task_consistency
+    context_checks:
+      - environment_variables
+      - dependency_versions
+      - configuration_files
+      - git_state
+      - branch_state
+    branch_checks:
+      - branch_exists
+      - branch_up_to_date
+      - branch_compatible
+      - target_branch_environment
+    consistency_checks:
+      - goal_task_alignment
+    timeout: 5400
+    parallel: true
+    enabled: true
+
+  formal_verification:
+    name: "formal_verification"
+    description: "Formal verification with coverage metrics"
+    scenarios:
+      - test_verification_logic
+      - test_consistency_checks
+      - test_context_contamination
+      - test_formal_verification_coverage
+    context_checks:
+      - environment_variables
+      - dependency_versions
+      - configuration_files
+    branch_checks:
+      - branch_exists
+    consistency_checks:
+      - goal_task_alignment
+    timeout: 10800
+    parallel: false
+    enabled: true
