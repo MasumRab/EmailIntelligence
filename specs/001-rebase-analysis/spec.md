@@ -114,6 +114,20 @@ As a developer, I want to easily access and run the rebase analysis and intent v
 
 ## Clarifications
 
-- **Original intentions are inferred from commit messages and linked issue/PR descriptions.**
-- **The "chronological story of changes" is configurable: high-level summary by default, with an option to expand to detailed diffs.**
-- **A "discrepancy" constitutes functional and significant structural changes that deviate from original intentions.**
+### Session 2025-11-10
+- Q: What are the reliability and availability expectations for the analysis tool? → A: High reliability, with error handling and retry mechanisms.
+- Q: What are the target latency and throughput for the analysis tool? → A: Analysis of 100 commits in <5 seconds.
+- Q: What specific attributes should be captured for a "Commit" entity beyond message, author, and changes? → A: timestamp, parent_shas, file_changes_summary
+- Q: Does the system integrate with any external services beyond Git (e.g., issue trackers, code review platforms)? If so, what are their expected failure modes? → A: Only Git, no other external services.
+- Q: What are the authentication and authorization mechanisms for accessing Git repositories and running the tool? → A: SSH keys for Git access, local file permissions for tool execution.
+- Q: How should the UI/CLI behave when an analysis is in progress, encounters an error, or returns no results? → A: Show progress bar, display detailed error message, "No rebased branches found" message.
+
+### Non-Functional Requirements
+- **NFR-001**: The analysis tool MUST process 100 commits in less than 5 seconds.
+- **NFR-002**: The system MUST NOT integrate with any external services beyond Git.
+- **NFR-003**: The system MUST use SSH keys for Git repository access and local file permissions for tool execution.
+- **NFR-004**: The UI/CLI MUST show a progress bar during analysis, display detailed error messages on failure, and a "No rebased branches found" message when no results are returned.
+
+### Key Entities *(include if feature involves data)*
+
+- **Commit**: Represents a change in the repository history, including message, author, changes, timestamp, parent_shas, and a summary of file changes.

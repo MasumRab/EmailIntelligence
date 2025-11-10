@@ -1,16 +1,33 @@
-# Research Findings: Rebase Analysis and Intent Verification
+# Research for Orchestration Tools Analysis and File Restoration
 
-## Performance Goals
-**Decision**: Analysis of a 1000-commit rebase in under 10 seconds
-**Rationale**: This provides a reasonable target for responsiveness for a moderately sized rebase operation, balancing user experience with computational feasibility.
-**Alternatives considered**: More aggressive targets (e.g., 5 seconds) were considered but deemed potentially over-optimistic without further investigation into Git history parsing performance.
+This document outlines the research required to understand the processes surrounding the `orchestration-tools` and to restore lost files.
 
-## Constraints
-**Decision**: Must not require network access for core analysis
-**Rationale**: Core Git operations are often performed locally. Requiring network access for the primary analysis would introduce unnecessary dependencies and potential latency, hindering local development workflows.
-**Alternatives considered**: Allowing optional network access for fetching additional context (e.g., linked issue/PR details) was considered but separated from core analysis to maintain the primary constraint.
+## Research Tasks
 
-## Scale/Scope
-**Decision**: Handle repositories with up to 50,000 commits
-**Rationale**: This covers a significant range of typical Git repositories, from small to large projects, ensuring broad applicability without over-engineering for extremely massive repositories initially.
-**Alternatives considered**: Higher scales (e.g., 100,000+ commits) were considered but deferred to future optimizations if performance benchmarks are met and demand arises.
+1.  **Analyze Git History**:
+    - **Task**: Analyze the git history of the `orchestration-tools` and `orchestration-tools-changes` branches to understand their relationship and commit flow.
+    - **Method**: Use `git log --graph --oneline --all` and `git log orchestration-tools..orchestration-tools-changes` to visualize the history and differences.
+
+2.  **Investigate Extraction Process**:
+    - **Task**: Investigate the process for extracting changes from `orchestration-tools` and pushing them to `orchestration-tools-changes`.
+    - **Method**: Search the codebase for scripts that mention these branches. Look for files in `scripts/` directory.
+
+3.  **Analyze Push Necessity**:
+    - **Task**: Analyze the necessity of pushes from `orchestration-tools` to `orchestration-tools-changes`.
+    - **Method**: Review the commit messages and changes in `orchestration-tools-changes` to understand its purpose.
+
+4.  **Analyze Subset Pushes**:
+    - **Task**: Analyze pushes from subsets of `orchestration-tools` files to other branches.
+    - **Method**: Use `git log -- <file_path>` to trace the history of specific files and identify when they were moved to other branches.
+
+5.  **Develop Restoration Strategy**:
+    - **Task**: Develop a strategy to identify and restore lost files across multiple branches.
+    - **Method**: Use `git reflog` and `git fsck --lost-found` to find orphaned commits and blobs.
+
+6.  **Propose Integration Method**:
+    - **Task**: Propose a method to integrate the restored files into the "current latest state" of the repository.
+    - **Method**: Based on the findings, propose a strategy using `git cherry-pick`, `git merge`, or a manual merge process.
+
+## Research Findings
+
+*This section will be filled in as research is completed.*

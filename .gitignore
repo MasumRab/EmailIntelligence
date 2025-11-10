@@ -73,6 +73,7 @@ config/llm_guidelines.local.json
 !.flake8
 !.pylintrc
 !.github/
+!.specify/**
 
 # Python cache
 __pycache__/
