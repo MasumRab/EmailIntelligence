@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [Agent Context Control](#agent-context-control)
 - [Project Overview](#project-overview)
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
@@ -19,6 +20,28 @@
 - [Database](#database)
 - [Extension System](#extension-system)
 - [Debugging Hangs](#debugging-hangs)
+
+## Agent Context Control
+
+This project implements an AI agent context control system to prevent context contamination across different development branches. The system automatically detects the current Git branch and applies appropriate access controls and environment settings.
+
+### Branch-Specific Profiles
+
+- **orchestration-tools**: Full access to orchestration scripts, tools, and infrastructure
+- **main**: Access to core application code, documentation, and development tools
+- **scientific**: Focus on AI analysis, email processing, and backend services
+
+### Usage
+
+```bash
+# Check current context
+./scripts/context-control
+
+# Validate context (for CI/CD)
+./scripts/context-control --validate
+```
+
+The system ensures AI agents work within appropriate boundaries for each branch, maintaining code quality and preventing accidental cross-contamination of development contexts.
 
 ## Project Overview
 
