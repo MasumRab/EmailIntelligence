@@ -1,0 +1,72 @@
+authentication:
+  method: "token"
+  
+  # Token-based authentication configuration
+  tokens:
+    # Development tokens (use different tokens for production)
+    dev_read_token: "dev-read-token-12345"
+    dev_run_token: "dev-run-token-67890"
+    dev_review_token: "dev-review-token-abcde"
+    dev_admin_token: "dev-admin-token-fghij"
+
+authorization:
+  # Permission levels and their hierarchy
+  # Lower number = less permissions, Higher number = more permissions
+  levels:
+    read: 0       # Can view results
+    run: 1        # Can execute verifications
+    review: 2     # Can review and approve results
+    admin: 3      # Full administrative access
+
+  # Token to permission level mapping
+  token_permissions:
+    dev_read_token: "read"
+    dev_run_token: "run"
+    dev_review_token: "review"
+    dev_admin_token: "admin"
+
+  # Default permission level for unauthenticated requests
+  default_level: "read"
+
+  # Required permission levels for operations
+  required_permissions:
+    view_results: "read"
+    run_verification: "run"
+    approve_merge: "review"
+    manage_profiles: "admin"
+    manage_auth: "admin"
+    view_logs: "read"
+    export_results: "run"
+
+security:
+  # Token expiration in hours (0 = never expire)
+  token_expiration: 0
+
+  # Enable encryption for sensitive data
+  enable_encryption: true
+
+  # Encryption key path (relative to project root)
+  encryption_key_path: ".keys/encryption.key"
+
+  # Hash algorithm for token validation
+  hash_algorithm: "sha256"
+
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    max_requests_per_minute: 60
+    max_requests_per_hour: 3600
+
+logging:
+  # Log all authentication attempts
+  log_auth_attempts: true
+
+  # Log authorization failures
+  log_auth_failures: true
+
+  # Log sensitive operations
+  log_sensitive_operations: true
+
+  # Redact sensitive data in logs
+  redact_tokens: true
+  redact_keys: true
