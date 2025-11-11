@@ -48,7 +48,8 @@ specs/001-history-analysis/
 src/
 ├── models/
 ├── services/
-└── cli/
+├── cli/
+└── lib/
 
 tests/
 ├── contract/
