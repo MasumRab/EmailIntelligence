@@ -7,13 +7,13 @@ from typing import Any, Dict
 
 from src.core.ai_engine import AdvancedAIEngine
 from src.core.database import DatabaseManager
-from backend.python_nlp.smart_filters import SmartFilterManager
+from src.backend.python_nlp.smart_filters import SmartFilterManager
 
 # Note: Plugins need to import from the main application's modules.
 # This requires the main application to be installed as a package or
 # for the PYTHONPATH to be set up correctly.
-from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
-from backend.node_engine.workflow_engine import WorkflowEngine
+from src.backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
+from src.backend.node_engine.workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 

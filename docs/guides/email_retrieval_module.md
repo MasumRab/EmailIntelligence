@@ -418,8 +418,8 @@ export GMAIL_CREDENTIALS_JSON='{"installed":{"client_id":"...","client_secret":"
 
 ### Runtime Configuration
 ```python
-from backend.python_nlp.gmail_integration import GmailDataCollector, RateLimitConfig
-from backend.python_nlp.data_strategy import DataCollectionStrategy
+from src.backend.python_nlp.gmail_integration import GmailDataCollector, RateLimitConfig
+from src.backend.python_nlp.data_strategy import DataCollectionStrategy
 
 # Configure rate limiting
 rate_config = RateLimitConfig(
@@ -452,7 +452,7 @@ strategy = DataCollectionStrategy(
 
 ```python
 import asyncio
-from backend.python_nlp.gmail_integration import GmailDataCollector
+from src.backend.python_nlp.gmail_integration import GmailDataCollector
 
 async def fetch_recent_emails():
     """Fetch recent emails from Gmail."""
@@ -483,9 +483,9 @@ asyncio.run(fetch_recent_emails())
 
 ```python
 import asyncio
-from backend.python_nlp.gmail_service import GmailAIService
-from backend.python_backend.database import DatabaseManager
-from backend.python_backend.ai_engine import AdvancedAIEngine
+from src.backend.python_nlp.gmail_service import GmailAIService
+from src.backend.python_backend.database import DatabaseManager
+from src.backend.python_backend.ai_engine import AdvancedAIEngine
 
 async def process_emails_with_ai():
     """Process emails with AI analysis and database storage."""
@@ -927,7 +927,7 @@ client = EmailClient()
 emails = client.fetch("inbox", limit=50)
 
 # New approach
-from backend.python_nlp.gmail_integration import GmailDataCollector
+from src.backend.python_nlp.gmail_integration import GmailDataCollector
 collector = GmailDataCollector()
 await collector.authenticate()
 emails = await collector.fetch_emails("in:inbox", max_results=50)

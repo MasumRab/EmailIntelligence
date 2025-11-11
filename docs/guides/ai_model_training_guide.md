@@ -190,7 +190,7 @@ test_df.to_csv('data/test.csv', index=False)
 
 #### Configuration Example
 ```python
-from backend.python_nlp.ai_training import ModelConfig
+from src.backend.python_nlp.ai_training import ModelConfig
 
 # Sentiment Analysis Configuration
 sentiment_config = ModelConfig(
@@ -265,8 +265,8 @@ import argparse
 import logging
 import pandas as pd
 from sklearn.metrics import classification_report, accuracy_score
-from backend.python_nlp.ai_training import ModelConfig
-from backend.python_nlp.model_trainer import ModelTrainer
+from src.backend.python_nlp.ai_training import ModelConfig
+from src.backend.python_nlp.model_trainer import ModelTrainer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -499,7 +499,7 @@ MODEL_PATHS = {
 ### Step 3: Deploy and Test
 
 ```python
-from backend.python_nlp.nlp_engine import NLPEngine
+from src.backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize engine with new models
 engine = NLPEngine()

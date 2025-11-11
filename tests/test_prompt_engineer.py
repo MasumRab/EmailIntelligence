@@ -1,6 +1,6 @@
 import unittest
 
-from backend.python_nlp.ai_training import PromptEngineer
+from src.backend.python_nlp.ai_training import PromptEngineer
 
 
 class TestPromptEngineer(unittest.TestCase):

@@ -72,7 +72,7 @@ To create a custom node, inherit from `BaseNode` and implement:
 
 Example:
 ```python
-from backend.node_engine.node_base import BaseNode, NodePort, DataType
+from src.backend.node_engine.node_base import BaseNode, NodePort, DataType
 
 class CustomEmailNode(BaseNode):
     def __init__(self, config=None, node_id=None, name=None):
@@ -104,7 +104,7 @@ class CustomEmailNode(BaseNode):
         }
 
 # Register the node
-from backend.node_engine.workflow_engine import workflow_engine
+from src.backend.node_engine.workflow_engine import workflow_engine
 workflow_engine.register_node_type(CustomEmailNode)
 ```
 
@@ -120,7 +120,7 @@ The node-based workflow system can be integrated with existing APIs:
 
 ### Creating Workflows
 ```python
-from backend.node_engine.node_base import Workflow, Connection
+from src.backend.node_engine.node_base import Workflow, Connection
 
 workflow = Workflow(name="My Email Processing Pipeline")
 
@@ -151,14 +151,14 @@ workflow.add_connection(Connection(
 
 ### Executing Workflows
 ```python
-from backend.node_engine.workflow_engine import workflow_engine
+from src.backend.node_engine.workflow_engine import workflow_engine
 
 context = await workflow_engine.execute_workflow(workflow, user_id="example_user")
 ```
 
 ### Saving and Loading Workflows
 ```python
-from backend.node_engine.workflow_manager import workflow_manager
+from src.backend.node_engine.workflow_manager import workflow_manager
 
 # Save workflow
 file_path = workflow_manager.save_workflow(workflow)

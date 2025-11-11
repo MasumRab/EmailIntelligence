@@ -54,8 +54,8 @@ from src.core.workflow_engine import Node, Workflow, WorkflowRunner
 from src.core.advanced_workflow_engine import WorkflowManager
 
 # After
-from backend.node_engine.workflow_engine import Node, Workflow, WorkflowRunner
-from backend.node_engine.workflow_manager import WorkflowManager
+from src.backend.node_engine.workflow_engine import Node, Workflow, WorkflowRunner
+from src.backend.node_engine.workflow_manager import WorkflowManager
 ```
 
 #### 1.3 Deprecation Implementation

@@ -42,7 +42,7 @@ import pandas as pd
 from fastapi import FastAPI
 
 # Local modules
-from backend.python_nlp.utils import format_text
+from src.backend.python_nlp.utils import format_text
 ```
 
 ### Whitespace
