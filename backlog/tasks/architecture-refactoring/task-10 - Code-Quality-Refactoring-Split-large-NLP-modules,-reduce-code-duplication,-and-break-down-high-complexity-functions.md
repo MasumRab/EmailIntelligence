@@ -1,3 +1,4 @@
+<<<<<<< HEAD:backlog/tasks/architecture-refactoring/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md
 ---
 id: task-10
 title: >-
@@ -36,3 +37,5 @@ Address identified code quality issues: large modules, duplication, and high com
 ---
 **Migration Context:** This task is part of the larger [Backend Migration to src/ (task-18)](backlog/tasks/task-18 - Backend-Migration-to-src.md) effort. Refer to the [Backend Migration Guide](docs/backend_migration_guide.md) for overall strategy and details.
 <!-- SECTION:NOTES:END -->
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d:backlog/tasks/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md

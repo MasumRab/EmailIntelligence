@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pytest
 from unittest.mock import AsyncMock, patch
 from src.core.models import EmailCreate, EmailUpdate
@@ -132,3 +133,5 @@ async def _create_mock_email(id: int, subject: str) -> dict:
 
 #     assert response.status_code == 404
 #     mock_db_manager.update_email.assert_called_once_with(email_id, update_data)
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

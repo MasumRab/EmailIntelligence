@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Tests for password hashing functionality
 """
@@ -32,3 +33,5 @@ def test_verify_password_invalid_format():
     # Should handle invalid format gracefully
     assert verify_password("password", "invalid_format") is False
     assert verify_password("password", "") is False
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

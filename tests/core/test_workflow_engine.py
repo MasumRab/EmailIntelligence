@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Unit tests for the enhanced workflow engine.
 Tests all the new functionality implemented for workflow engine enhancement.
@@ -251,3 +252,5 @@ if __name__ == "__main__":
     print("✓ Metrics collection test passed")
 
     print("\nAll tests passed! 🎉")
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

@@ -2,10 +2,22 @@
 
 # Post-push hook for all branches
 # Handles orchestration sync and reverse flow coordination
+# Can be enabled/disabled on any branch via: git config hooks.orchestration-tools.enable [true/false]
 
 set -e
 
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Check if orchestration hooks are explicitly enabled on this branch
+HOOKS_ENABLED=$(git config --get hooks.orchestration-tools.enable || echo "default")
+
+# Determine if we should run orchestration checks (default: skip on orchestration-tools, check others)
+SHOULD_CHECK_ORCHESTRATION=false
+if [[ "$HOOKS_ENABLED" == "true" ]]; then
+    SHOULD_CHECK_ORCHESTRATION=true
+elif [[ "$HOOKS_ENABLED" != "false" ]] && [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+    SHOULD_CHECK_ORCHESTRATION=true
+fi
 
 # Parse push output from stdin (Git provides ref info)
 while read local_ref local_sha remote_ref remote_sha; do
@@ -20,7 +32,7 @@ while read local_ref local_sha remote_ref remote_sha; do
         # Could trigger: CI, notifications, worktree sync
         exit 0
 
-    elif [[ "$CURRENT_BRANCH" != "orchestration-tools" && "$CURRENT_BRANCH" != "main" ]]; then
+    elif [[ "$SHOULD_CHECK_ORCHESTRATION" == true ]]; then
         # Other branch pushed - check for orchestration changes
         check_orchestration_changes "$local_sha" "$remote_sha"
     fi
@@ -105,8 +117,8 @@ create_automatic_pr() {
     local pr_body=$(cat << EOF
 ## 🤖 Automatically Created Draft PR
 
-**Source Branch:** \`$branch\`  
-**Commit:** \`$commit_sha\`  
+**Source Branch:** \`$branch\`
+**Commit:** \`$commit_sha\`
 **Detected:** Orchestration-managed files changed
 
 ### Files Changed
@@ -189,7 +201,6 @@ show_manual_pr_instructions() {
     echo ""
     echo "🔧 For urgent fixes only:"
     echo "   ./scripts/reverse_sync_orchestration.sh $branch $commit_sha"
-}
 }
 
 echo "Post-push hook completed"

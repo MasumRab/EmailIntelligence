@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from typing import List, Dict, Any
 from .data_source import DataSource
 from ..database import DatabaseManager, create_database_manager, DatabaseConfig
@@ -106,3 +107,8 @@ async def get_database_data_source() -> DatabaseDataSource:
         config = DatabaseConfig()
         db_manager = await create_database_manager(config)
         return DatabaseDataSource(db_manager)
+=======
+
+class DatabaseDataSource:
+    pass
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

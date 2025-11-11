@@ -1,4 +1,5 @@
 """
+<<<<<<< HEAD
 Security Framework for Email Intelligence Platform
 
 Implements enterprise-grade security features for the node-based workflow system,
@@ -13,8 +14,17 @@ import asyncio
 import hashlib
 import hmac
 import json
+=======
+Core security functionalities for the Email Intelligence Platform.
+This module includes input validation, data sanitization, and other
+security-related utilities to protect against common vulnerabilities.
+"""
+
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 import logging
+import os
 import re
+<<<<<<< HEAD
 import secrets
 import time
 from abc import ABC, abstractmethod
@@ -23,19 +33,34 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 from pathlib import Path
+=======
+from typing import Any, Dict, List
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
 logger = logging.getLogger(__name__)
 
+# --- Constants for Sanitization ---
+# Stricter regex for path validation to disallow '..'
+SAFE_PATH_REGEX = re.compile(r"^[a-zA-Z0-9._-]+$")
 
-class SecurityLevel(Enum):
-    """Security levels for different operations and data access"""
+# Regex to detect potentially sensitive key-value pairs in strings
+# Looks for common key names followed by variations of separators and the value.
+SENSITIVE_KEY_REGEX = re.compile(
+    r"""
+    (['"]?
+    (password|secret|token|api_key|access_key|private_key|key|credentials|auth)
+    ['"]?
+    \s*[:=]\s*)
+    (['"]?
+    [^'"\s,}\]]+
+    ['"]?)
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+REDACTED_MESSAGE = "[REDACTED]"
 
-    PUBLIC = "public"
-    INTERNAL = "internal"
-    CONFIDENTIAL = "confidential"
-    RESTRICTED = "restricted"
 
-
+<<<<<<< HEAD
 class Permission(Enum):
     """Permission types for fine-grained access control"""
 
@@ -179,31 +204,24 @@ def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
         logger.warning(f"Error during path sanitization: {e}")
         return None
 
+=======
+# --- Data Sanitization ---
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
 class DataSanitizer:
-    """Sanitizes data to prevent injection and other security issues"""
+    """A class to handle redaction of sensitive data from logs and outputs."""
 
-    @staticmethod
-    def sanitize_input(data: Any) -> Any:
+    def __init__(self, sensitive_keys: List[str] = None, redaction_string: str = REDACTED_MESSAGE):
         """
-        Sanitize input data to prevent injection attacks
+        Initializes the DataSanitizer with a list of sensitive keys.
         """
-        if isinstance(data, str):
-            # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace("<script", "&lt;script").replace("javascript:", "javascript-")
-            return sanitized
-        elif isinstance(data, dict):
-            sanitized_dict = {}
-            for key, value in data.items():
-                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(
-                    value
-                )
-            return sanitized_dict
-        elif isinstance(data, list):
-            return [DataSanitizer.sanitize_input(item) for item in data]
-        else:
-            return data
+        if sensitive_keys is None:
+            sensitive_keys = [
+                "password", "secret", "token", "api_key",
+                "access_key", "private_key", "credentials", "auth"
+            ]
 
+<<<<<<< HEAD
     @staticmethod
     def sanitize_output(data: Any) -> Any:
         """
@@ -238,246 +256,70 @@ class DataSanitizer:
             return [DataSanitizer.sanitize_output(item) for item in data]
         else:
             return data
+=======
+        self.sensitive_keys = sensitive_keys
+        self.redaction_string = redaction_string
+        self.sensitive_key_pattern = self._build_sensitive_key_regex(self.sensitive_keys)
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
+    def _build_sensitive_key_regex(self, keys: List[str]) -> re.Pattern:
+        """Builds a regex to find sensitive key-value pairs from a list of keys."""
+        key_pattern = "|".join(re.escape(key) for key in keys)
 
-class AuditLogger:
-    """Logs security-related events for audit purposes"""
-
-    def __init__(self):
-        self.logger = logging.getLogger("security.audit")
-
-    def log_access_attempt(
-        self,
-        context: SecurityContext,
-        resource: str,
-        permission: Permission,
-        success: bool,
-        details: str = "",
-    ):
-        """Log an access attempt to a resource"""
-        log_entry = {
-            "timestamp": time.time(),
-            "user_id": context.user_id,
-            "session_token": context.session_token,
-            "resource": resource,
-            "permission": permission.value,
-            "success": success,
-            "ip_address": context.ip_address,
-            "details": details,
-        }
-        self.logger.info(f"ACCESS_ATTEMPT: {json.dumps(log_entry)}")
-
-    def log_execution(
-        self,
-        context: SecurityContext,
-        node_type: str,
-        inputs: Dict[str, Any],
-        outputs: Dict[str, Any],
-    ):
-        """Log a node execution for audit purposes"""
-        log_entry = {
-            "timestamp": time.time(),
-            "user_id": context.user_id,
-            "session_token": context.session_token,
-            "node_type": node_type,
-            "execution_id": str(uuid4()),
-            "ip_address": context.ip_address,
-            "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
-        }
-        self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
-
-    def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
-        """Log a security violation"""
-        log_entry = {
-            "timestamp": time.time(),
-            "user_id": context.user_id,
-            "session_token": context.session_token,
-            "violation_type": violation_type,
-            "details": details,
-            "ip_address": context.ip_address,
-        }
-        self.logger.warning(f"SECURITY_VIOLATION: {json.dumps(log_entry)}")
-
-
-class ExecutionSandbox:
-    """Provides a secure execution environment for nodes"""
-
-    def __init__(self, context: SecurityContext):
-        self.context = context
-        self.audit_logger = AuditLogger()
-
-    async def execute_with_security(self, execute_func, *args, **kwargs):
-        """
-        Execute a function with security checks and monitoring
-        """
-        # Log the execution attempt
-        self.audit_logger.log_execution(
-            context=self.context,
-            node_type=execute_func.__name__ if hasattr(execute_func, "__name__") else "unknown",
-            inputs=kwargs,
-            outputs={},
+        # Group 1: The entire key part, including separator and opening quote for the value.
+        # Group 2: The opening quote for the value, which should be matched at the end.
+        return re.compile(
+            r"""
+            ( # Group 1: Key part up to the value's opening quote
+                ['"]?                  # Optional opening quote for the key
+                (?:{key_pattern})      # The sensitive key itself
+                ['"]?                  # Optional closing quote for the key
+                \s*[:=]\s*              # Separator
+                (['"]?)                # Group 2: Optional opening quote for the value
+            )
+            (?:[^\s,'"{{}}]+)          # The value itself (non-capturing group)
+            \2                         # Match the same quote as Group 2
+            """.format(key_pattern=key_pattern),
+            re.IGNORECASE | re.VERBOSE
         )
 
-        # Perform security checks
-        if time.time() > self.context.expires_at:
-            self.audit_logger.log_security_violation(
-                self.context,
-                "EXPIRED_SESSION",
-                f"Attempted execution with expired session (expired at {self.context.expires_at})",
-            )
-            raise PermissionError("Session has expired")
+    def redact(self, data: Any) -> Any:
+        """
+        Recursively redacts sensitive information from various data structures.
+        """
+        if isinstance(data, dict):
+            return {key: self.redact(value) for key, value in data.items()}
+        elif isinstance(data, list):
+            return [self.redact(item) for item in data]
+        elif isinstance(data, str):
+            return self.redact_string(data)
+        return data
 
-        # Sanitize inputs
-        sanitized_args = [DataSanitizer.sanitize_input(arg) for arg in args]
-        sanitized_kwargs = {k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()}
+    def redact_string(self, text: str) -> str:
+        """
+        Redacts sensitive key-value pairs from a string.
+        """
+        def repl(m):
+            # m.group(1) is the key part (e.g., 'password": "')
+            # m.group(2) is the quote character
+            # We replace the whole match with key part + redacted string + closing quote
+            return f"{m.group(1)}{self.redaction_string}{m.group(2)}"
 
-        try:
-            # Execute the function in a controlled environment
-            result = await execute_func(*sanitized_args, **sanitized_kwargs)
+        return self.sensitive_key_pattern.sub(repl, text)
 
-            # Sanitize outputs
-            sanitized_result = DataSanitizer.sanitize_output(result)
+# Default instance for convenience
+default_sanitizer = DataSanitizer()
 
-            return sanitized_result
-
-        except Exception as e:
-            self.audit_logger.log_security_violation(
-                self.context, "EXECUTION_ERROR", f"Error during execution: {str(e)}"
-            )
-            raise
-
-
-class SecurityManager:
+def sanitize_data(data: Any) -> Any:
     """
-    Centralized security manager for the Email Intelligence Platform
+    Sanitizes data by redacting sensitive information using the default sanitizer.
     """
-
-    def __init__(self):
-        self.validator = SecurityValidator()
-        self.sanitizer = DataSanitizer()
-        self.audit_logger = AuditLogger()
-        self.active_sessions: Dict[str, SecurityContext] = {}
-        self.secret_key = secrets.token_urlsafe(32)  # In production, load from secure storage
-
-    def create_session(
-        self,
-        user_id: str,
-        permissions: List[Permission],
-        security_level: SecurityLevel,
-        allowed_resources: Optional[List[str]] = None,
-        duration_hours: float = 8.0,
-        ip_address: Optional[str] = None,
-        origin: Optional[str] = None,
-    ) -> SecurityContext:
-        """Create a new security session"""
-        session_token = secrets.token_urlsafe(32)
-
-        context = SecurityContext(
-            user_id=user_id,
-            permissions=permissions,
-            security_level=security_level,
-            session_token=session_token,
-            created_at=time.time(),
-            expires_at=time.time() + (duration_hours * 3600),
-            allowed_resources=allowed_resources or [],
-            ip_address=ip_address,
-            origin=origin,
-        )
-
-        self.active_sessions[session_token] = context
-        return context
-
-    def validate_session(self, session_token: str) -> Optional[SecurityContext]:
-        """Validate a session token and return the context"""
-        if session_token not in self.active_sessions:
-            return None
-
-        context = self.active_sessions[session_token]
-
-        if time.time() > context.expires_at:
-            # Clean up expired session
-            del self.active_sessions[session_token]
-            return None
-
-        return context
-
-    def generate_signed_token(self, data: Dict[str, Any]) -> str:
-        """Generate a signed token for secure data transmission"""
-        json_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
-        signature = hmac.new(
-            self.secret_key.encode(), json_data.encode(), hashlib.sha256
-        ).hexdigest()
-        return f"{json_data}.{signature}"
-
-    def verify_signed_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verify a signed token and return the data"""
-        if "." not in token:
-            return None
-
-        try:
-            json_part, signature_part = token.rsplit(".", 1)
-            expected_signature = hmac.new(
-                self.secret_key.encode(), json_part.encode(), hashlib.sha256
-            ).hexdigest()
-
-            if not hmac.compare_digest(expected_signature, signature_part):
-                return None
-
-            return json.loads(json_part)
-        except (json.JSONDecodeError, ValueError):
-            return None
-
-    def cleanup_expired_sessions(self):
-        """Remove expired sessions from memory"""
-        current_time = time.time()
-        expired_tokens = [
-            token
-            for token, context in self.active_sessions.items()
-            if current_time > context.expires_at
-        ]
-
-        for token in expired_tokens:
-            del self.active_sessions[token]
-
-        if expired_tokens:
-            logger.info(f"Cleaned up {len(expired_tokens)} expired sessions")
-
-    async def secure_execute_node(
-        self, session_token: str, node_type: str, inputs: Dict[str, Any], execute_func
-    ) -> Dict[str, Any]:
-        """Securely execute a node with full security checks"""
-        context = self.validate_session(session_token)
-        if not context:
-            raise PermissionError("Invalid or expired session")
-
-        # Validate access to execute this node type
-        if not self.validator.validate_access(context, node_type, Permission.EXECUTE):
-            self.audit_logger.log_access_attempt(
-                context,
-                node_type,
-                Permission.EXECUTE,
-                False,
-                "Insufficient permissions to execute node",
-            )
-            raise PermissionError(f"Insufficient permissions to execute {node_type}")
-
-        # Validate data access
-        if not self.validator.validate_data_access(context, inputs):
-            self.audit_logger.log_security_violation(
-                context,
-                "DATA_ACCESS_VIOLATION",
-                f"Attempted to access sensitive data through {node_type}",
-            )
-            raise PermissionError("Attempted to access sensitive data")
-
-        # Create sandbox and execute
-        sandbox = ExecutionSandbox(context)
-        return await sandbox.execute_with_security(execute_func, **inputs)
+    return default_sanitizer.redact(data)
 
 
-# Global security manager instance
-security_manager = SecurityManager()
+# --- Input Validation ---
 
+<<<<<<< HEAD
 
 def get_security_manager() -> SecurityManager:
     """Get the global security manager instance"""
@@ -591,16 +433,18 @@ class PathValidator:
 def validate_path_safety(
     path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
 ) -> bool:
+=======
+def validate_path_safety(path: str, base_dir: str = None) -> bool:
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
     """
-    Validate that a path is safe and doesn't contain directory traversal attempts.
+    Validates a path to prevent directory traversal attacks.
+    Ensures the path is within the intended directory and contains no malicious components.
 
-    Args:
-        path: The path to validate
-        base_dir: Optional base directory to resolve relative to
-
-    Returns:
-        True if path is safe, False otherwise
+    - Disallows absolute paths.
+    - Prevents ".." components to stop directory traversal.
+    - If base_dir is provided, ensures the resolved path is within base_dir.
     """
+<<<<<<< HEAD
     import pathlib
 
     try:
@@ -632,9 +476,17 @@ def validate_path_safety(
         return True
     except Exception as e:
         logger.error(f"Error validating path {path}: {e}")
+=======
+    if not isinstance(path, str) or not path:
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
         return False
 
+    # 1. Disallow absolute paths
+    if os.path.isabs(path):
+        logger.warning(f"Path validation failed: Absolute path detected '{path}'")
+        return False
 
+<<<<<<< HEAD
 def sanitize_path(
     path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
 ) -> Optional[str]:
@@ -672,45 +524,120 @@ def sanitize_path(
     except Exception as e:
         logger.warning(f"Error during path sanitization: {e}")
         return None
+=======
+    # 2. Check for directory traversal attempts
+    if ".." in path.split(os.path.sep):
+        logger.warning(f"Path validation failed: Directory traversal attempt in '{path}'")
+        return False
 
+    # 3. Normalize the path to resolve any redundant separators
+    normalized_path = os.path.normpath(path)
 
+    # 4. If a base directory is provided, check that the path is contained within it
+    if base_dir:
+        # Ensure base_dir is an absolute path for reliable comparison
+        abs_base_dir = os.path.abspath(base_dir)
+
+        # Resolve the full path of the user-provided path relative to the base directory
+        full_path = os.path.abspath(os.path.join(abs_base_dir, normalized_path))
+
+        # Check if the resolved path is a subdirectory of the base directory
+        if not full_path.startswith(abs_base_dir):
+            logger.warning(
+                f"Path validation failed: Path '{full_path}' is outside of base directory '{abs_base_dir}'"
+            )
+            return False
+
+    return True
+
+def sanitize_path(path: str) -> str:
+    """
+    Sanitizes a path by removing potentially malicious characters and components.
+    This is a stronger measure than validation alone, intended to produce a safe
+    version of a given path.
+    """
+    if not isinstance(path, str) or not path:
+        return ""
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+
+    # Split the path into components
+    parts = path.split(os.path.sep)
+
+<<<<<<< HEAD
 def secure_path_join(
     base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]
 ) -> Optional[pathlib.Path]:
-    """
-    Securely join paths, preventing directory traversal attacks.
+=======
+    # Filter out any dangerous components ('..', '.', etc.)
+    safe_parts = [part for part in parts if part and part not in ('.', '..')]
 
-    Args:
-        base_dir: Base directory
-        *paths: Path components to join
+    # Further sanitize each part to remove unsafe characters
+    sanitized_parts = [SAFE_PATH_REGEX.sub('', part) for part in safe_parts]
 
-    Returns:
-        Joined path if safe, None otherwise
+    # Rejoin the sanitized parts
+    return os.path.join(*sanitized_parts)
+
+def validate_email_format(email: str) -> bool:
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
     """
+    Validates if a string is a correctly formatted email address.
+    """
+<<<<<<< HEAD
     import pathlib
 
     try:
         # Start with base directory
         result_path = pathlib.Path(base_dir)
+=======
+    # A simple but effective regex for email validation
+    email_regex = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    return email_regex.match(email) is not None
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
-        # Join each path component securely
-        for path_component in paths:
-            component_path = pathlib.Path(path_component)
+def validate_user_input(
+    data: Dict[str, Any],
+    required_fields: List[str],
+    field_validators: Dict[str, callable] = None
+) -> List[str]:
+    """
+    A generic utility to validate user-provided data dictionaries.
 
-            # Check each component for traversal
-            if not validate_path_safety(component_path):
-                return None
+    - Checks for the presence of all required fields.
+    - Applies specific validation functions to fields if provided.
 
+<<<<<<< HEAD
             # Only allow simple filenames/directories (no absolute paths or traversal)
             if component_path.is_absolute() or ".." in str(component_path):
                 logger.warning(f"Unsafe path component: {path_component}")
                 return None
+=======
+    Returns a list of validation error messages. An empty list means success.
+    """
+    errors = []
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
-            result_path = result_path / component_path
+    # 1. Check for missing required fields
+    for field in required_fields:
+        if field not in data or data[field] is None:
+            errors.append(f"Missing required field: '{field}'")
 
+<<<<<<< HEAD
         # Final validation
         return result_path if validate_path_safety(result_path, base_dir) else None
 
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
+=======
+    if errors:
+        return errors  # Return early if required fields are missing
+
+    # 2. Apply custom validators for specific fields
+    if field_validators:
+        for field, validator in field_validators.items():
+            if field in data:
+                if not validator(data[field]):
+                    errors.append(f"Invalid format for field: '{field}'")
+
+    return errors
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

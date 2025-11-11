@@ -1,3 +1,4 @@
+<<<<<<< HEAD:backlog/tasks/architecture-refactoring/task-7 - Phase-2-Import-Consolidation-Update-all-imports-to-use-Node-Engine-as-primary-workflow-system.md
 ---
 id: task-7
 title: >-
@@ -36,3 +37,5 @@ Update imports across 26+ files to use Node Engine instead of Basic and Advanced
 ---
 **Migration Context:** This task is part of the larger [Backend Migration to src/ (task-18)](backlog/tasks/task-18 - Backend-Migration-to-src.md) effort. Refer to the [Backend Migration Guide](docs/backend_migration_guide.md) for overall strategy and details.
 <!-- SECTION:NOTES:END -->
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d:backlog/tasks/task-7 - Phase-2-Import-Consolidation-Update-all-imports-to-use-Node-Engine-as-primary-workflow-system.md

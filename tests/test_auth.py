@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Tests for authentication functionality
 """
@@ -32,3 +33,5 @@ def test_protected_endpoint_requires_auth():
         
         # Should work with valid token (after proper setup)
         # This test would require a valid token which is complex to set up in this context
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

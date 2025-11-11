@@ -27,6 +27,7 @@ from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 # Globalized data directory at the project root
 DATA_DIR = "data"
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
@@ -37,6 +38,8 @@ USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
 # TODO(P1, 6h): Refactor global state management to use dependency injection
 # TODO(P2, 4h): Make data directory configurable via environment variables or settings
 
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 # Data types
 DATA_TYPE_EMAILS = "emails"
 DATA_TYPE_CATEGORIES = "categories"
@@ -106,6 +109,7 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
+<<<<<<< HEAD
     def __init__(self, config: DatabaseConfig = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
         # Support both new config-based initialization and legacy initialization
@@ -129,6 +133,16 @@ class DatabaseManager(DataSource):
             self.categories_file = CATEGORIES_FILE
             self.users_file = USERS_FILE
             self.email_content_dir = EMAIL_CONTENT_DIR
+=======
+    def __init__(self, config: DatabaseConfig):
+        """Initializes the DatabaseManager, setting up file paths and data caches."""
+        self.config = config
+        self.emails_file = config.emails_file
+        self.categories_file = config.categories_file
+        self.users_file = config.users_file
+        self.email_content_dir = config.email_content_dir
+        self.data_dir = config.data_dir
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -377,6 +391,7 @@ class DatabaseManager(DataSource):
                 email[FIELD_CATEGORY_COLOR] = category.get(FIELD_COLOR)
         return self._parse_json_fields(email, [FIELD_ANALYSIS_METADATA])
 
+<<<<<<< HEAD
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
@@ -384,8 +399,13 @@ class DatabaseManager(DataSource):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
             return await self.update_email_by_message_id(message_id, email_data)
 
+=======
+    async def _prepare_new_email_record(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Prepares a new email record with a generated ID and timestamps."""
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
         new_id = self._generate_id(self.emails_data)
         now = datetime.now(timezone.utc).isoformat()
+        message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
 
         analysis_metadata = email_data.get(
             FIELD_ANALYSIS_METADATA, email_data.get("analysisMetadata", {})
@@ -406,33 +426,46 @@ class DatabaseManager(DataSource):
                 FIELD_ANALYSIS_METADATA: analysis_metadata,
             }
         )
+        return full_email_record
+
+    async def _add_email_to_indexes(self, email: Dict[str, Any]) -> None:
+        """Adds a new email to in-memory data stores and indexes."""
+        email_id = email[FIELD_ID]
+        message_id = email.get(FIELD_MESSAGE_ID)
+        self.emails_data.append(email)
+        self.emails_by_id[email_id] = email
+        if message_id:
+            self.emails_by_message_id[message_id] = email
+
+    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new email record, separating heavy and light content."""
+        message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
+        if await self.get_email_by_message_id(message_id, include_content=False):
+            logger.warning(f"Email with messageId {message_id} already exists. Updating.")
+            return await self.update_email_by_message_id(message_id, email_data)
+
+        full_email_record = await self._prepare_new_email_record(email_data)
+        new_id = full_email_record[FIELD_ID]
 
         heavy_data = {
-            field: full_email_record.pop(field)
+            field: full_email_record.get(field)
             for field in HEAVY_EMAIL_FIELDS
             if field in full_email_record
         }
+        await self._save_heavy_content(new_id, full_email_record)
+
         light_email_record = full_email_record
-
-        self.emails_data.append(light_email_record)
-        self.emails_by_id[new_id] = light_email_record
-        if message_id:
-            self.emails_by_message_id[message_id] = light_email_record
+        await self._add_email_to_indexes(light_email_record)
         await self._save_data(DATA_TYPE_EMAILS)
-
-        content_path = self._get_email_content_path(new_id)
-        try:
-            with gzip.open(content_path, "wt", encoding="utf-8") as f:
-                dump_func = partial(json.dump, heavy_data, f, indent=4)
-                await asyncio.to_thread(dump_func)
-        except IOError as e:
-            logger.error(f"Error saving heavy content for email {new_id}: {e}")
 
         category_id = light_email_record.get(FIELD_CATEGORY_ID)
         if category_id is not None:
             await self._update_category_count(category_id, increment=True)
 
+<<<<<<< HEAD
         # Cache the new email
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
         self.caching_manager.put_email_record(new_id, light_email_record)
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
@@ -519,6 +552,30 @@ class DatabaseManager(DataSource):
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
+    async def _sort_and_paginate_emails(
+        self,
+        emails: List[Dict[str, Any]],
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """Sorts and paginates a list of emails."""
+        try:
+            sorted_emails = sorted(
+                emails,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            logger.warning(
+                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+            )
+            sorted_emails = sorted(
+                emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+        paginated_emails = sorted_emails[offset : offset + limit]
+        result_emails = [self._add_category_details(email) for email in paginated_emails]
+        return result_emails
+
     async def get_emails(
         self,
         limit: int = 50,
@@ -534,22 +591,9 @@ class DatabaseManager(DataSource):
             ]
         if is_unread is not None:
             filtered_emails = [e for e in filtered_emails if e.get(FIELD_IS_UNREAD) == is_unread]
-        try:
-            filtered_emails = sorted(
-                filtered_emails,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            logger.warning(
-                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
-            )
-            filtered_emails = sorted(
-                filtered_emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
-        paginated_emails = filtered_emails[offset : offset + limit]
-        result_emails = [self._add_category_details(email) for email in paginated_emails]
-        return result_emails
+        return await self._sort_and_paginate_emails(
+            filtered_emails, limit=limit, offset=offset
+        )
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
@@ -630,6 +674,7 @@ class DatabaseManager(DataSource):
         
         # Use the enhanced caching with email_id
         return await self.get_email_by_id(email_id, include_content)
+<<<<<<< HEAD
 
 # Factory functions and configuration management
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
@@ -647,6 +692,8 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
 # or dependency injection. The global singleton pattern has been eliminated
 # to prevent hidden side effects and improve testability.
 
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """
@@ -663,7 +710,11 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     async def search_emails(self, query: str) -> List[Dict[str, Any]]:
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
@@ -693,26 +744,57 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
                             filtered_emails.append(email_light)
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
-        try:
-            sorted_emails = sorted(
-                filtered_emails,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            logger.warning(
-                f"Sorting search results by {FIELD_TIME} failed. Using '{FIELD_CREATED_AT}'."
-            )
-            sorted_emails = sorted(
-                filtered_emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
-        paginated_emails = sorted_emails[:limit]
-        result_emails = [self._add_category_details(email) for email in paginated_emails]
-        return result_emails
+        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
     # TODO(P3, 3h): Add support for search result caching
+<<<<<<< HEAD
+=======
+
+    async def _update_email_fields(
+        self, email: Dict[str, Any], update_data: Dict[str, Any]
+    ) -> bool:
+        """Updates email fields and returns True if changed."""
+        changed = False
+        for key, value in update_data.items():
+            if key == FIELD_ID:
+                continue
+            if key not in email or email[key] != value:
+                email[key] = value
+                changed = True
+        if changed:
+            email[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
+        return changed
+
+    async def _save_heavy_content(self, email_id: int, email_data: Dict[str, Any]) -> None:
+        """Saves heavy content to a separate file."""
+        heavy_data = {
+            field: email_data.pop(field)
+            for field in HEAVY_EMAIL_FIELDS
+            if field in email_data
+        }
+        content_path = self._get_email_content_path(email_id)
+        try:
+            with gzip.open(content_path, "wt", encoding="utf-8") as f:
+                dump_func = partial(json.dump, heavy_data, f, indent=4)
+                await asyncio.to_thread(dump_func)
+        except IOError as e:
+            logger.error(f"Error saving heavy content for email {email_id}: {e}")
+
+    async def _update_email_indexes(self, email: Dict[str, Any]) -> None:
+        """Updates in-memory indexes for an email."""
+        email_id = email[FIELD_ID]
+        self.emails_by_id[email_id] = email
+        if email.get(FIELD_MESSAGE_ID):
+            self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
+        idx = next(
+            (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
+            -1,
+        )
+        if idx != -1:
+            self.emails_data[idx] = email
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
@@ -724,42 +806,21 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
             return {}
 
         original_category_id = email_to_update.get(FIELD_CATEGORY_ID)
-        changed_fields = False
-        for key, value in update_data.items():
-            if key == FIELD_ID:
-                continue
-            if key in email_to_update and email_to_update[key] != value:
-                email_to_update[key] = value
-                changed_fields = True
-            elif key not in email_to_update:
-                email_to_update[key] = value
-                changed_fields = True
+        if not await self._update_email_fields(email_to_update, update_data):
+            return self._add_category_details(email_to_update)
 
-        if changed_fields:
-            email_to_update[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-            heavy_data = {
-                field: email_to_update.pop(field)
-                for field in HEAVY_EMAIL_FIELDS
-                if field in email_to_update
-            }
-            content_path = self._get_email_content_path(email_id)
-            try:
-                with gzip.open(content_path, "wt", encoding="utf-8") as f:
-                    dump_func = partial(json.dump, heavy_data, f, indent=4)
-                    await asyncio.to_thread(dump_func)
-            except IOError as e:
-                logger.error(f"Error updating heavy content for email {email_id}: {e}")
+        await self._save_heavy_content(email_id, email_to_update)
+        await self._update_email_indexes(email_to_update)
+        await self._save_data(DATA_TYPE_EMAILS)
 
-            self.emails_by_id[email_id] = email_to_update
-            if email_to_update.get(FIELD_MESSAGE_ID):
-                self.emails_by_message_id[email_to_update[FIELD_MESSAGE_ID]] = email_to_update
-            idx = next(
-                (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
-            )
-            if idx != -1:
-                self.emails_data[idx] = email_to_update
-            await self._save_data(DATA_TYPE_EMAILS)
+        new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
+        if original_category_id != new_category_id:
+            if original_category_id is not None:
+                await self._update_category_count(original_category_id, decrement=True)
+            if new_category_id is not None:
+                await self._update_category_count(new_category_id, increment=True)
 
+<<<<<<< HEAD
             new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
             if original_category_id != new_category_id:
                 if original_category_id is not None:
@@ -770,6 +831,9 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
             
+=======
+        self.caching_manager.invalidate_email_record(email_id)
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
         return self._add_category_details(email_to_update)
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
@@ -809,3 +873,16 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
 
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return bool(updated_email)  # Return True if update was successful (not empty dict)
+<<<<<<< HEAD
+=======
+
+# Factory functions and configuration management
+async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
+    """
+    Factory function to create and initialize a DatabaseManager instance.
+    This implements the dependency injection approach for proper instance management.
+    """
+    manager = DatabaseManager(config=config)
+    await manager._ensure_initialized()
+    return manager
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

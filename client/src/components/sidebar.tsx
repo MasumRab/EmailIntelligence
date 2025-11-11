@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * @file This file contains the Sidebar component, which serves as the main
  *       navigation panel for the application.
@@ -155,3 +156,5 @@ export function Sidebar({ categories }: SidebarProps) {
     </div>
   );
 }
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

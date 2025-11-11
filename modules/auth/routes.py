@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Authentication routes for the Email Intelligence Platform.
 
@@ -281,3 +282,5 @@ async def get_current_user_info(current_user: TokenData = Depends(get_current_ac
 async def admin_only_endpoint(current_user: TokenData = Depends(require_role(UserRole.ADMIN))):
     """Protected endpoint that only admins can access"""
     return {"message": "Hello admin!", "user": current_user.username}
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

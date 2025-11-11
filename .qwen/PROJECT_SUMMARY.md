@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Project Summary
 
 ## Overall Goal
@@ -42,3 +43,5 @@ To develop an intelligent email management platform that uses AI and NLP for aut
 
 ## Summary Metadata
 **Update time**: 2025-10-28T15:20:38.265Z 
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

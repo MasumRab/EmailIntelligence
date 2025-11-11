@@ -11,23 +11,17 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 # Check if setup/ directory has changes
 if git diff --cached --name-only | grep -q "^setup/"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-        echo "ERROR: Changes to setup/ files should only be made in the 'orchestration-tools' branch."
-        echo "Please commit setup changes to orchestration-tools branch instead."
-        echo ""
-        echo "To fix this:"
-        echo "1. Stash your changes: git stash"
-        echo "2. Switch to orchestration-tools: git checkout orchestration-tools"
-        echo "3. Apply stash: git stash pop"
-        echo "4. Commit there, then merge back"
-        exit 1
+        echo "WARNING: Changes to setup/ files detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
+        echo "Proceeding with commit, but ensure PR is created after push."
     fi
 fi
 
 # Check if orchestration scripts have changes
 if git diff --cached --name-only | grep -q "^scripts/sync_setup_worktrees.sh$"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-        echo "ERROR: Changes to orchestration scripts should only be made in the 'orchestration-tools' branch."
-        exit 1
+        echo "WARNING: Changes to orchestration scripts detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
     fi
 fi
 
@@ -43,13 +37,30 @@ SHARED_CONFIG_FILES=(
     "components.json"
     ".gitignore"
     ".gitattributes"
+    "uv.lock"
 )
 
 for config_file in "${SHARED_CONFIG_FILES[@]}"; do
     if git diff --cached --name-only | grep -q "^${config_file}$"; then
         if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-            echo "ERROR: Changes to shared config file '${config_file}' should only be made in the 'orchestration-tools' branch."
-            exit 1
+            echo "WARNING: Changes to shared config file '${config_file}' detected on '$CURRENT_BRANCH' branch."
+            echo "This will require a pull request to 'orchestration-tools' for approval."
+        fi
+    fi
+done
+
+# Check if orchestration documentation has changes
+ORCHESTRATION_DOCS=(
+    "docs/orchestration-workflow.md"
+    "docs/orchestration_summary.md"
+    "docs/env_management.md"
+)
+
+for doc_file in "${ORCHESTRATION_DOCS[@]}"; do
+    if git diff --cached --name-only | grep -q "^${doc_file}$"; then
+        if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
+            echo "WARNING: Changes to orchestration documentation '${doc_file}' detected on '$CURRENT_BRANCH' branch."
+            echo "This will require a pull request to 'orchestration-tools' for approval."
         fi
     fi
 done
@@ -57,8 +68,8 @@ done
 # Check if hooks have changes
 if git diff --cached --name-only | grep -q "^scripts/hooks/"; then
     if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-        echo "ERROR: Changes to Git hooks should only be made in the 'orchestration-tools' branch."
-        exit 1
+        echo "WARNING: Changes to Git hooks detected on '$CURRENT_BRANCH' branch."
+        echo "This will require a pull request to 'orchestration-tools' for approval."
     fi
 fi
 

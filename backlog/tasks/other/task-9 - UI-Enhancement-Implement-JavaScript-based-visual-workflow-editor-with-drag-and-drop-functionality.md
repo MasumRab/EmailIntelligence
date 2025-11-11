@@ -1,3 +1,4 @@
+<<<<<<< HEAD:backlog/tasks/other/task-9 - UI-Enhancement-Implement-JavaScript-based-visual-workflow-editor-with-drag-and-drop-functionality.md
 ---
 id: task-9
 title: >-
@@ -30,3 +31,5 @@ Create modern, interactive workflow editing interface inspired by ComfyUI and si
 - [ ] #5 Add zoom and pan functionality to the canvas
 - [ ] #6 Create node templates and presets for common workflows
 <!-- AC:END -->
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d:backlog/tasks/task-9 - UI-Enhancement-Implement-JavaScript-based-visual-workflow-editor-with-drag-and-drop-functionality.md

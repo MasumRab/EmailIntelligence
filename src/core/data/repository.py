@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from src.core.data_source import DataSource
@@ -314,3 +315,9 @@ class CachingEmailRepository(EmailRepository):
 
 # Additional repository implementations could be added here
 # For example, a logging repository that adds logging to another repository
+=======
+
+class EmailRepository:
+    def __init__(self, db_data_source):
+        self.db_data_source = db_data_source
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

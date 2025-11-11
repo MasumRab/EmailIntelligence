@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Enhanced Caching for Database Manager
 
@@ -228,3 +229,8 @@ class EnhancedCachingManager:
             "email_content_cache": self.email_content_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
+=======
+
+class EnhancedCachingManager:
+    pass
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

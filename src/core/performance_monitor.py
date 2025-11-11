@@ -1,6 +1,5 @@
-"""
-Performance Monitoring for Email Intelligence Platform
 
+<<<<<<< HEAD
 Implements performance monitoring with logging for processing times,
 model usage, memory consumption, and error rates.
 
@@ -465,3 +464,11 @@ def record_metric(*args, **kwargs):
 def time_function(*args, **kwargs):
     """Convenience function to time functions."""
     return performance_monitor.time_function(*args, **kwargs)
+=======
+def log_performance(operation=None):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

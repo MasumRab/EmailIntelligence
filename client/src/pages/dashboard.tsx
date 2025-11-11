@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * @file This file contains the main Dashboard component, which serves as the
  *       primary user interface for the email client application.
@@ -232,3 +233,5 @@ export default function Dashboard() {
     </div>
   );
 }
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

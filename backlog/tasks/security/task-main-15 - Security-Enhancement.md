@@ -1,3 +1,4 @@
+<<<<<<< HEAD:backlog/tasks/security/task-main-15 - Security-Enhancement.md
 ---
 id: task-main-15
 title: Security Enhancement
@@ -54,3 +55,5 @@ Strengthen the security posture of the Email Intelligence Platform with enhanced
 - Consider implementing zero-trust architecture principles
 - Document security procedures and best practices
 <!-- SECTION:NOTES:END -->
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d:backlog/tasks/task-main-15 - Security-Enhancement.md

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
@@ -461,3 +462,5 @@ class ModernAIEngine(BaseAIEngine):
         # Implementation for model training
         logger.info("Model training requested but not yet implemented")
         pass
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

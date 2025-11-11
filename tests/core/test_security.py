@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Tests for security utilities.
 """
@@ -198,3 +199,5 @@ class TestDataMigrationSecurity:
         # Should exit with error due to unsafe path
         assert result.returncode == 1
         assert "Unsafe data directory path" in result.stderr
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d

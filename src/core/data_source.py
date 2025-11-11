@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
@@ -111,3 +112,5 @@ class DataSource(ABC):
     async def shutdown(self) -> None:
         """Performs any necessary cleanup."""
         pass
+=======
+>>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
