@@ -1,14 +1,3 @@
-import argparse
-import subprocess
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-# Add the project root to the Python path to allow importing 'launch'
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-import pytest
-
 from launch import (
     PYTHON_MAX_VERSION,
     PYTHON_MIN_VERSION,

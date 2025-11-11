@@ -86,9 +86,24 @@ class DatabaseManager(DataSource):
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
+        # Create backup directory if using legacy approach
+        if hasattr(self, "backup_dir"):
+            os.makedirs(self.backup_dir, exist_ok=True)
 
+    # Notes on refactor progress:
     # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
-    # TODO(P2, 6h): Implement proper dependency injection for database manager instance
+    # Pseudo code for eliminating global state:
+    # - Remove singleton pattern entirely
+    # - Make DatabaseManager a regular class that can be instantiated multiple times if needed
+    # - Use FastAPI's dependency injection system to provide instances
+    # - Store instance in request state or application state instead of global
+    # - Add proper lifecycle management (startup/shutdown events)
+    #
+    # COMPLETED: Dependency injection approach implemented
+    # - DatabaseManager now supports both approaches (config-based and legacy)
+    # - create_database_manager factory function handles initialization
+    # - Backward compatible get_db() provided for existing code
+    # - Global singleton approach preserved for compatibility but can be phased out
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
@@ -114,12 +129,32 @@ class DatabaseManager(DataSource):
     async def _ensure_initialized(self) -> None:
         """Ensure data is loaded and indexes are built."""
         if not self._initialized:
+            # Perform schema migration if needed (as part of initialization)
+            # await self.migrate_schema()  # Commented out for now, can be called explicitly if needed
             await self._load_data()
             self._build_indexes()
             self._initialized = True
 
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
+    # Pseudo code for removing hidden side effects:
+    # - Make _ensure_initialized() a public async initialize() method
+    # - Require explicit initialization before use
+    # - Add _is_initialized property to check state
+    # - Remove automatic initialization from methods - raise error if not initialized
+    # - Make initialization idempotent but explicit
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
+    # Pseudo code for lazy loading:
+    # - Add LazyLoader class to handle on-demand data loading
+    # - Implement load_emails_lazy(), load_categories_lazy() methods
+    # - Use asyncio.Lock to prevent concurrent loading
+    # - Add _loaded_data: set[str] to track what data types are loaded
+    # - Make _load_data() private and called only by lazy loaders
+    # - Add tests to verify loading behavior
+    #
+    # PARTIALLY COMPLETED: Initialization is now explicit via factory function
+    # - create_database_manager ensures initialization
+    # - Backward compatible get_db maintains implicit initialization for existing code
+    # - TODO: Consider making initialization more explicit in future refactoring
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
@@ -202,6 +237,22 @@ class DatabaseManager(DataSource):
     async def _save_data(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Marks data as dirty for write-behind saving."""
         self._dirty_data.add(data_type)
+
+    async def delete_email(self, email_id: int) -> bool:
+        """Delete an email by its internal ID."""
+        for i, email in enumerate(self.emails_data):
+            if email.get(FIELD_ID) == email_id:
+                deleted_email = self.emails_data.pop(i)
+                self._dirty_data.add(DATA_TYPE_EMAILS)
+                # Update category count if email had a category
+                if FIELD_CATEGORY_ID in deleted_email:
+                    await self._update_category_count(
+                        deleted_email[FIELD_CATEGORY_ID], decrement=True
+                    )
+                logger.info(f"Deleted email with ID {email_id}")
+                return True
+        logger.warning(f"Email with ID {email_id} not found for deletion")
+        return False
 
     async def shutdown(self) -> None:
         """Saves all dirty data to files before shutting down."""
@@ -331,6 +382,11 @@ class DatabaseManager(DataSource):
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
+        # Validation functionality is enabled to maintain data integrity
+        if not self._validate_category_data(category_data):
+            logger.warning(f"Category data validation failed: {category_data}")
+            return None
+
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
             logger.warning(

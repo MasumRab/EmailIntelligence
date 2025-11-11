@@ -29,12 +29,13 @@ logger = logging.getLogger(__name__)
 
 # Import security features if available
 try:
-    from .security import DataSanitizer, Permission, SecurityContext, SecurityLevel, SecurityManager
+    from .security import DataSanitizer, Permission, SecurityContext, SecurityLevel, SecurityManager, security_manager
 
     security_available = True
 except ImportError:
     SecurityContext = None
     security_available = False
+    security_manager = None
     print("Security module not available, proceeding without advanced security features")
 
 
@@ -111,10 +112,17 @@ class BaseNode(ABC):
 
         # If security is available, validate and sanitize inputs
         if security_available and self._security_context:
-            from .security import security_manager
-
             # Validate access and sanitize inputs
             sanitized_inputs = DataSanitizer.sanitize_input(inputs)
+
+            # Log execution for audit purposes
+            if security_manager:
+                security_manager.audit_logger.log_execution(
+                    context=self._security_context,
+                    node_type=self.__class__.__name__,
+                    inputs=inputs,
+                    outputs={}
+                )
         else:
             sanitized_inputs = inputs
 
@@ -127,6 +135,15 @@ class BaseNode(ABC):
             # If security is available, sanitize outputs
             if security_available and self._security_context:
                 final_output = DataSanitizer.sanitize_output(output)
+
+                # Log successful execution
+                if security_manager:
+                    security_manager.audit_logger.log_execution(
+                        context=self._security_context,
+                        node_type=self.__class__.__name__,
+                        inputs=inputs,
+                        outputs=final_output
+                    )
             else:
                 final_output = output
 
@@ -140,6 +157,15 @@ class BaseNode(ABC):
             execution_time = time.time() - start_time
             self._status = NodeExecutionStatus.FAILED
             logger.error(f"Node {self.name} failed: {str(e)}", exc_info=True)
+
+            # Log security violation if security is available
+            if security_available and self._security_context and security_manager:
+                security_manager.audit_logger.log_security_violation(
+                    context=self._security_context,
+                    violation_type="EXECUTION_ERROR",
+                    details=f"Node {self.name} failed with error: {str(e)}"
+                )
+
             raise
 
     def get_status(self) -> NodeExecutionStatus:
@@ -470,8 +496,18 @@ class WorkflowRunner:
             node.set_security_context(self.security_context)
 
         # Execute the node
-        result = await node.execute(inputs)
-        return result
+        try:
+            result = await node.execute(inputs)
+            return result
+        except Exception as e:
+            # Log the error with security context if available
+            if security_available and self.security_context and security_manager:
+                security_manager.audit_logger.log_security_violation(
+                    context=self.security_context,
+                    violation_type="NODE_EXECUTION_ERROR",
+                    details=f"Node {node_type} ({node_data['id']}) failed: {str(e)}"
+                )
+            raise
 
     def _build_node_inputs(
         self, workflow: Workflow, node_id: str, context: Dict[str, Any]
@@ -753,6 +789,13 @@ def initialize_workflow_system() -> WorkflowManager:
     workflow_manager.register_node_type("email_input", EmailInputNode)
     workflow_manager.register_node_type("nlp_processor", NLPProcessorNode)
     workflow_manager.register_node_type("email_output", EmailOutputNode)
+
+    # Register smart filter node types
+    try:
+        from .smart_filter_nodes import register_smart_filter_nodes
+        register_smart_filter_nodes(workflow_manager)
+    except ImportError as e:
+        logger.warning(f"Could not import smart filter nodes: {e}")
 
     return workflow_manager
 
