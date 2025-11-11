@@ -85,6 +85,12 @@ MANAGED_FILES=(
     "components.json"
     ".gitignore"
     ".gitattributes"
+    "tests/conftest.py"
+    "tests/test_hooks.py"
+    "tests/test_launch.py"
+    "tests/test_sync.py"
+    "tests/test_basic_validation.py"
+    "pytest.ini"
 )
 
 # Check if commit contains managed files
