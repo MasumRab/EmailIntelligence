@@ -59,7 +59,6 @@ sudo apt install -y \
     python3-scipy \
     python3-matplotlib \
     python3-pandas \
-=======
     python3-sklearn \
     python3-joblib \
     python3-psutil \
@@ -361,8 +360,6 @@ except ImportError:
     print('❌ Email Validator import: FAILED')
     success = False
 
-=======
->>>>>>> origin/main
 if not success:
     print('⚠️  Some packages failed to import, check installation logs.')
     sys.exit(1)

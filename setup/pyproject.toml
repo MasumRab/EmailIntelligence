@@ -1,77 +1,85 @@
+# EmailIntelligence - Scientific Environment with Modular AI Platform
+# Single pyproject.toml with comprehensive dependencies for both scientific and modular features
+
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 
 [project]
-name = "repl-nix-workspace"
-version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.12"
+name = "emailintelligence"
+version = "0.2.0"
+description = "A streamlined version of the EmailIntelligence application for local scientific and development use, featuring a simplified environment setup and local file-based data storage."
+requires-python = ">=3.11"
+
 dependencies = [
+    # Core FastAPI backend
+    "fastapi>=0.115.12",
+    "uvicorn[standard]>=0.34.3",
+    "pydantic>=2.11.5",
+    "python-dotenv>=1.1.0",
+    "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
     "httpx>=0.28.1",
-    "pydantic>=2.11.5",
-    "python-multipart>=0.0.20",
+
+    # Gradio UI
     "gradio>=4.0.0",
-    "RestrictedPython>=8.0",
     "pyngrok>=0.7.0",
+
+    # NLP and Machine Learning
     "nltk>=3.9.1",
     "textblob>=0.19.0",
-    "transformers>=4.40.0",
-    "torch>=2.4.0",
-    "accelerate>=0.30.0",
+    "transformers>=4.52.4",
+    "torch>=2.7.1",
+    "accelerate>=1.7.0",
     "sentencepiece>=0.2.0",
-    "scikit-learn>=1.5.0",
+    "scikit-learn>=1.7.0",
     "joblib>=1.5.1",
+
+    # Data Handling and Plotting
+    "pandas>=2.0.0",
+    "numpy>=1.26.0",
+    "matplotlib>=3.8.0",
     "seaborn>=0.13.0",
+    "scipy>=1.11.0",
+    "plotly>=5.18.0",
+
+    # Google API
     "google-api-python-client>=2.172.0",
     "google-auth>=2.40.3",
     "google-auth-oauthlib>=1.2.2",
+
+    # Database
+    "psycopg2-binary>=2.9.10",
+    "aiosqlite>=0.20.0",
+    "RestrictedPython>=8.0",
     "redis>=5.0.0",
-    "rq>=1.15.0",
     "notmuch>=0.29",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
+    # Testing
+    "pytest>=8.4.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=1.2.0",
+
+    # Linting and Formatting
     "black>=25.1.0",
     "flake8>=7.2.0",
-    "google-api-python-client>=2.172.0",
-    "google-auth>=2.40.3",
-    "google-auth-oauthlib>=1.2.2",
-    "gradio>=5.34.0",
     "isort>=6.0.1",
-    "mypy>=1.16.0",
     "pylint>=3.3.7",
-    "pytest>=8.4.0",
-    "pytest-asyncio>=0.23.0"
+    "mypy>=1.16.0",
+    "unimport>=1.3.0",
+
+    # Notebooks
+    "jupyter>=1.0.0",
+    "ipykernel>=6.29.0",
+    "ipywidgets>=8.1.0",
+
+    # Other dev tools
+    "pip-autoremove>=0.10.0",
 ]
 
-[tool.black]
-line-length = 100
-target-version = ['py311']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
-line_length = 100
-
-[tool.pytest.ini_options]
-addopts = "--asyncio-mode=auto"
-markers = [
-    "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
-]
-norecursedirs = ["backend"]
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

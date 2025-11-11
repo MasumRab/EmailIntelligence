@@ -1,13 +1,12 @@
 import argparse
-import os
 import subprocess
+import os
 import sys
 
 # Define paths to docker-compose files
 BASE_COMPOSE_FILE = "deployment/docker-compose.yml"
 DEV_COMPOSE_FILE = "deployment/docker-compose.dev.yml"
 PROD_COMPOSE_FILE = "deployment/docker-compose.prod.yml"
-
 
 def run_compose_command(environment, command, service=None):
     compose_files = [BASE_COMPOSE_FILE]
@@ -26,13 +25,10 @@ def run_compose_command(environment, command, service=None):
     print(f"Running: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
-
 def main():
     parser = argparse.ArgumentParser(description="Manage EmailIntelligence Docker deployments.")
     parser.add_argument("environment", choices=["dev", "prod"], help="Deployment environment.")
-    parser.add_argument(
-        "command", choices=["up", "down", "build", "logs"], help="Docker Compose command."
-    )
+    parser.add_argument("command", choices=["up", "down", "build", "logs"], help="Docker Compose command.")
     parser.add_argument("service", nargs="?", help="Optional service name to apply command to.")
 
     args = parser.parse_args()
@@ -42,7 +38,6 @@ def main():
     except subprocess.CalledProcessError as e:
         print(f"Error executing Docker Compose command: {e}", file=sys.stderr)
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()

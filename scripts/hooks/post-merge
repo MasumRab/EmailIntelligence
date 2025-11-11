@@ -1,15 +1,127 @@
-#!/bin/sh
-command -v git-lfs >/dev/null 2>&1 || { echo >&2 "
-This repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'post-merge' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks').
-"; exit 2; }
-git lfs post-merge "$@"
+#!/bin/bash
 
-# Regenerate branch-specific documentation after merge
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
-    echo "Regenerating documentation for $BRANCH branch after merge..."
-    if command -v python3 &> /dev/null;
-    then
-        python3 scripts/docs_branch_versioning.py --branch "$BRANCH"
+# Post-merge hook for worktree setup synchronization
+# This hook updates shared setup files and orchestration scripts from the orchestration-tools branch
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    echo "Orchestration sync already active, skipping to prevent recursion"
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration checks disabled, skipping sync"
+    exit 0
+fi
+
+# Set sync active flag to prevent recursion
+export ORCHESTRATION_SYNC_ACTIVE=1
+
+set -e
+
+# Get the current worktree path
+WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
+WORKTREE_NAME="$(basename "$WORKTREE_ROOT")"
+
+# Check if this is a documentation-only worktree (exclude from setup file sync)
+if [[ "$WORKTREE_NAME" == "docs-main" || "$WORKTREE_NAME" == "docs-scientific" ]]; then
+    echo "Documentation-only worktree detected ($WORKTREE_NAME). Skipping setup file synchronization."
+    exit 0
+fi
+
+# Function to safely checkout files from orchestration-tools branch
+checkout_from_orchestration() {
+    local file_path="$1"
+    if git ls-tree -r orchestration-tools --name-only | grep -q "^$file_path$"; then
+        # Check if file differs before checkout
+        if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
+            echo "Updating $file_path from orchestration-tools"
+            git checkout orchestration-tools -- "$file_path"
+        fi
+    else
+        echo "Warning: $file_path not found in orchestration-tools branch"
+    fi
+}
+
+# Update setup directory - includes setup_env* files
+if [ -d "setup" ]; then
+    echo "Synchronizing setup directory from orchestration-tools (including setup_env* files)"
+    # Checkout entire setup directory
+    git checkout orchestration-tools -- setup/
+fi
+
+# For worktrees that need orchestration setup, temporarily checkout from orchestration-tools
+WORKTREE_NAME="$(basename "$WORKTREE_ROOT")"
+
+# Only apply orchestration to main/scientific branches
+if [[ "$WORKTREE_NAME" == "main" ]] || [[ "$WORKTREE_NAME" == "scientific" ]]; then
+    echo "Detected $WORKTREE_NAME worktree - applying orchestration setup..."
+
+    # Create temporary orchestration worktree to get setup files
+    TEMP_ORCH="/tmp/orch-setup-$$"
+    mkdir -p "$TEMP_ORCH"
+
+    # Checkout orchestration-tools branch temporarily
+    if git worktree add "$TEMP_ORCH" origin/orchestration-tools 2>/dev/null; then
+        # Copy setup files
+        cp -r "$TEMP_ORCH/setup/"* . 2>/dev/null || true
+
+        # Copy shared configs
+        for config in .flake8 .pylintrc tsconfig.json package.json tailwind.config.ts vite.config.ts drizzle.config.ts components.json .gitignore .gitattributes; do
+            cp "$TEMP_ORCH/$config" . 2>/dev/null || true
+        done
+
+        # Apply branch-specific configuration
+        if [[ -d "$TEMP_ORCH/configs/$WORKTREE_NAME" ]]; then
+            cp -r "$TEMP_ORCH/configs/$WORKTREE_NAME/"* . 2>/dev/null || true
+        fi
+
+        # Cleanup temp worktree
+        git worktree remove --force "$TEMP_ORCH" 2>/dev/null || true
+        rm -rf "$TEMP_ORCH" 2>/dev/null || true
+
+        echo "✓ Orchestration setup applied to $WORKTREE_NAME worktree"
+    else
+        echo "⚠️  Could not access orchestration-tools branch for setup"
     fi
 fi
+
+# Update orchestration scripts
+checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
+checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
+
+# Update orchestration documentation
+checkout_from_orchestration "docs/orchestration-workflow.md"
+
+# Update shared configuration files (excluding environment-specific ones)
+checkout_from_orchestration ".flake8"
+checkout_from_orchestration ".pylintrc"
+checkout_from_orchestration "tsconfig.json"
+checkout_from_orchestration "package.json"
+checkout_from_orchestration "tailwind.config.ts"
+checkout_from_orchestration "vite.config.ts"
+checkout_from_orchestration "drizzle.config.ts"
+checkout_from_orchestration "components.json"
+checkout_from_orchestration ".gitignore"
+checkout_from_orchestration ".gitattributes"
+
+# Note: package-lock.json is excluded as it's environment-specific
+
+# Update Git hooks
+checkout_from_orchestration "scripts/hooks/post-merge"
+checkout_from_orchestration "scripts/hooks/pre-commit"
+checkout_from_orchestration "scripts/hooks/post-commit"
+checkout_from_orchestration "scripts/hooks/post-push"
+
+# Install hooks to .git/hooks/
+cp scripts/hooks/post-merge .git/hooks/ 2>/dev/null || true
+cp scripts/hooks/pre-commit .git/hooks/ 2>/dev/null || true
+cp scripts/hooks/post-commit .git/hooks/ 2>/dev/null || true
+cp scripts/hooks/post-push .git/hooks/ 2>/dev/null || true
+chmod +x .git/hooks/post-merge .git/hooks/pre-commit .git/hooks/post-commit .git/hooks/post-push 2>/dev/null || true
+
+echo "Setup synchronization complete"
+
+# Unset the recursion prevention flag
+unset ORCHESTRATION_SYNC_ACTIVE
