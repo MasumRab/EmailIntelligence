@@ -84,9 +84,8 @@ As a developer, I want to easily access and run the rebase analysis and intent v
 - **FR-005**: The system MUST highlight discrepancies between merged changes and original intentions.
 - **FR-006**: The system MUST identify branches that have undergone rebase operations.
 - **FR-007**: The system MUST provide a report summarizing the analysis and verification results.
-- **FR-008**: The system MUST provide a mechanism for easy installation and setup of the tools on any development branch.
-- **FR-009**: The system MUST ensure that the tools are executable from any development branch without requiring manual path adjustments or environment variable configurations.
-- **FR-010**: The system SHOULD support integration with CI/CD pipelines to automate rebase analysis on relevant branches.
+- **FR-008**: The system MUST provide a single installation mechanism that makes the tools executable from any development branch without requiring branch-specific setup, manual path adjustments, or environment variable configurations.
+- **FR-009**: The system SHOULD support integration with CI/CD pipelines to automate rebase analysis on relevant branches.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -121,13 +120,10 @@ As a developer, I want to easily access and run the rebase analysis and intent v
 - Q: Does the system integrate with any external services beyond Git (e.g., issue trackers, code review platforms)? If so, what are their expected failure modes? → A: Only Git, no other external services.
 - Q: What are the authentication and authorization mechanisms for accessing Git repositories and running the tool? → A: SSH keys for Git access, local file permissions for tool execution.
 - Q: How should the UI/CLI behave when an analysis is in progress, encounters an error, or returns no results? → A: Show progress bar, display detailed error message, "No rebased branches found" message.
+- Q: How are "Original intentions" defined and inferred? → A: Currently, this is based on commit message content. For more reliable analysis, the system should be enhanced to support a structured commit message format (e.g., Conventional Commits) and/or require linking to issue IDs. This is noted as a future improvement.
 
 ### Non-Functional Requirements
 - **NFR-001**: The analysis tool MUST process 100 commits in less than 5 seconds.
 - **NFR-002**: The system MUST NOT integrate with any external services beyond Git.
 - **NFR-003**: The system MUST use SSH keys for Git repository access and local file permissions for tool execution.
 - **NFR-004**: The UI/CLI MUST show a progress bar during analysis, display detailed error messages on failure, and a "No rebased branches found" message when no results are returned.
-
-### Key Entities *(include if feature involves data)*
-
-- **Commit**: Represents a change in the repository history, including message, author, changes, timestamp, parent_shas, and a summary of file changes.
