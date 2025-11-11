@@ -648,7 +648,7 @@ class SmartFilterManager:
             json.dumps(filter_obj.performance_metrics),
             filter_obj.is_active,
         )
-        self._db_execute(query, params)
+        await self._db_execute_async(query, params)
 
         # Update cache
         cache_key = f"filter_{filter_obj.filter_id}"

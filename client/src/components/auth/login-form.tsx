@@ -14,9 +14,9 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const result = await login(username, password, showMfaInput ? mfaToken : undefined);
-    
+
     if (result.success) {
       if (result.mfaRequired) {
         setShowMfaInput(true);
@@ -31,9 +31,9 @@ export function LoginForm() {
 
   const handleMfaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const result = await login(username, password, mfaToken);
-    
+
     if (result.success) {
       window.location.href = '/dashboard'; // Redirect to dashboard after successful MFA verification
     } else {
@@ -63,7 +63,7 @@ export function LoginForm() {
                 placeholder="Enter your username"
               />
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -77,7 +77,7 @@ export function LoginForm() {
                 placeholder="Enter your password"
               />
             </div>
-            
+
             <Button type="submit" className="w-full">
               Login
             </Button>
@@ -97,14 +97,14 @@ export function LoginForm() {
                 placeholder="Enter your authenticator code"
               />
             </div>
-            
+
             <Button type="submit" className="w-full">
               Verify MFA
             </Button>
-            
-            <Button 
-              type="button" 
-              variant="outline" 
+
+            <Button
+              type="button"
+              variant="outline"
               className="w-full"
               onClick={() => setShowMfaInput(false)}
             >

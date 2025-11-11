@@ -509,3 +509,16 @@ class SecurityError(Exception):
     """Exception raised for plugin security violations."""
 
     pass
+
+
+# Global plugin manager instance
+_plugin_manager_instance: Optional['PluginManager'] = None
+
+
+async def get_plugin_manager() -> PluginManager:
+    """Get the global plugin manager instance."""
+    global _plugin_manager_instance
+    if _plugin_manager_instance is None:
+        _plugin_manager_instance = PluginManager()
+        await _plugin_manager_instance._ensure_initialized()
+    return _plugin_manager_instance

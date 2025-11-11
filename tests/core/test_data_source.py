@@ -51,16 +51,9 @@ class TestNotmuchDataSource:
     """Test the NotmuchDataSource implementation."""
 
     @pytest.fixture
-    def mock_db_manager(self):
-        """Create a mocked DatabaseManager instance for NotmuchDataSource."""
-        db_manager = AsyncMock(spec=DatabaseManager)
-        db_manager._ensure_initialized = AsyncMock()
-        return db_manager
-
-    @pytest.fixture
-    def notmuch_ds(self, mock_db_manager):
-        """Create a NotmuchDataSource instance with a mock DatabaseManager."""
-        return NotmuchDataSource(db_manager=mock_db_manager)
+    def notmuch_ds(self):
+        """Create a NotmuchDataSource instance."""
+        return NotmuchDataSource()
 
     @pytest.mark.asyncio
     async def test_create_email(self, notmuch_ds):
@@ -139,7 +132,7 @@ class TestNotmuchDataSource:
     async def test_delete_email(self, notmuch_ds):
         """Test delete_email method."""
         result = await notmuch_ds.delete_email(1)
-        assert result is False
+        assert result is None
 
     @pytest.mark.asyncio
     async def test_interface_compliance(self, notmuch_ds):
@@ -223,22 +216,12 @@ class TestDatabaseManagerDataSource:
     @pytest.fixture
     def mock_db_manager(self):
         """Create a mocked DatabaseManager instance."""
-        db_manager = AsyncMock(spec=DatabaseManager)
+        db_manager = DatabaseManager()
+
+        # Mock the database connection and operations
+        db_manager._db = AsyncMock()
         db_manager._ensure_initialized = AsyncMock()
-        db_manager.create_email = AsyncMock()
-        db_manager.get_email_by_id = AsyncMock()
-        db_manager.get_all_categories = AsyncMock()
-        db_manager.create_category = AsyncMock()
-        db_manager.get_emails = AsyncMock()
-        db_manager.update_email_by_message_id = AsyncMock()
-        db_manager.get_email_by_message_id = AsyncMock()
-        db_manager.get_all_emails = AsyncMock()
-        db_manager.search_emails = AsyncMock()
-        db_manager.get_emails_by_category = AsyncMock()
-        db_manager.update_email = AsyncMock()
-        db_manager.delete_email = AsyncMock()
-        db_manager.get_dashboard_aggregates = AsyncMock()
-        db_manager.get_category_breakdown = AsyncMock()
+
         return db_manager
 
     @pytest.mark.asyncio
@@ -413,7 +396,7 @@ class TestDataSourceIntegration:
     @pytest.mark.asyncio
     async def test_notmuch_datasource_method_signatures(self):
         """Test that NotmuchDataSource methods have correct signatures."""
-        ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        ds = NotmuchDataSource()
 
         # Test method signatures match the abstract base class
         import inspect
@@ -445,7 +428,7 @@ class TestDataSourceIntegration:
     @pytest.mark.asyncio
     async def test_error_handling_in_mocked_datasource(self):
         """Test error handling in data source operations."""
-        ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        ds = NotmuchDataSource()
 
         # All operations should complete without throwing exceptions
         # (even if they return None/empty results)

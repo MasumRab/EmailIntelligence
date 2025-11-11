@@ -6,16 +6,16 @@ from src.core.auth import hash_password, verify_password
 
 
 def test_hash_password():
-    """Test that password hashing works correctly"""
-    password = "test_password"
+    """Test that password hashing works correctly."""
+    password = "testpassword"
     hashed = hash_password(password)
-    assert hashed is not None
-    assert ":" in hashed  # Should contain salt
+    assert isinstance(hashed, str)
+    assert len(hashed) > 32  # Should be salt + hash
 
 
 def test_verify_password():
-    """Test that password verification works correctly"""
-    password = "test_password"
+    """Test that password verification works correctly."""
+    password = "testpassword"
     hashed = hash_password(password)
 
     # Should verify correctly

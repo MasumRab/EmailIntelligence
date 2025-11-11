@@ -47,6 +47,12 @@ def create_notmuch_ui():
 
         email_viewer = gr.Textbox(label="Email Content", lines=20, interactive=False)
 
+        with gr.Row():
+            tag_input = gr.Textbox(label="Tags", placeholder="Enter comma-separated tags...")
+            update_button = gr.Button("Update Tags")
+
+        selected_message_id = gr.Textbox(visible=False)
+
         def display_search_results(df):
             if not df.empty:
                 display_df = df[["subject", "sender", "date", "tags"]]

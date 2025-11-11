@@ -30,7 +30,7 @@ set "ENV_ACTIVATED="
 :: Try Conda first if available
 where conda >nul 2>&1 && (
     echo Conda is available.
-    
+
     :: Check if already in a Conda environment
     if defined CONDA_DEFAULT_ENV (
         echo Using active Conda environment: %CONDA_DEFAULT_ENV%
@@ -52,7 +52,7 @@ where conda >nul 2>&1 && (
 :: Try venv if no Conda environment is active
 if not defined ENV_ACTIVATED (
     echo Checking for virtual environment...
-    
+
     :: Check if venv exists and activate it
     if exist "%VENV_DIR%\Scripts\activate.bat" (
         echo Activating virtual environment...
@@ -69,7 +69,7 @@ if not defined ENV_ACTIVATED (
                 call "%VENV_DIR%\Scripts\activate.bat"
                 set "PYTHON_EXE=%CD%\%VENV_DIR%\Scripts\python.exe"
                 set "ENV_ACTIVATED=1"
-                
+
                 :: Install dependencies
                 if exist "requirements.txt" (
                     echo Installing dependencies...

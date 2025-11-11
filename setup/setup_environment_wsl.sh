@@ -100,6 +100,9 @@ sudo apt install -y \
     python3-sklearn \
     python3-joblib \
     python3-sentencepiece
+=======
+    python3-sentencepiece
+>>>>>>> origin/main
 
 # Graphics and imaging libraries
 sudo apt install -y \
@@ -485,6 +488,8 @@ except ImportError:
     print('❌ Email Validator import: FAILED')
     success = False
 
+=======
+>>>>>>> origin/main
 if not success:
     print('⚠️  Some packages failed to import, check installation logs.')
     sys.exit(1)

@@ -160,6 +160,18 @@ class NotmuchDataSource(DataSource):
         await self._ensure_initialized()
 
         if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="search_emails",
+                additional_context={"search_term": search_term, "limit": limit}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available. Error ID: {error_id}")
             return []
 
         try:
@@ -180,7 +192,18 @@ class NotmuchDataSource(DataSource):
                 )
             return results
         except Exception as e:
-            logger.error(f"Error searching emails in notmuch: {e}")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="search_emails",
+                additional_context={"search_term": search_term, "limit": limit, "error": str(e)}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Error searching emails in notmuch: {e}. Error ID: {error_id}")
             return []
 
     @log_performance(operation="get_email_by_message_id")
@@ -191,13 +214,38 @@ class NotmuchDataSource(DataSource):
         await self._ensure_initialized()
 
         if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_email_by_message_id",
+                additional_context={"message_id": message_id, "include_content": include_content}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for message ID {message_id}. Error ID: {error_id}")
             return None
+
+        query = self.notmuch_db.create_query(f"id:{message_id}")
+        messages = list(query.search_messages())
+
+        if not messages:
+            logger.info(f"No email found with message ID {message_id}")
+            return None
+
+        message = messages[0]
+
+        # Load the full message from the file to extract content parts
+        filename = message.get_filename()
 
         try:
             query = self.notmuch_db.create_query(f"id:{message_id}")
-            messages = query.search_messages()
+            messages = list(query.search_messages())
 
             if not messages:
+                logger.info(f"No email found with message ID {message_id}")
                 return None
 
             message = messages[0]
@@ -284,6 +332,18 @@ class NotmuchDataSource(DataSource):
         search_term = " ".join(query_parts) if query_parts else "*"
 
         if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_emails",
+                additional_context={"limit": limit, "offset": offset, "category_id": category_id, "is_unread": is_unread}
+            )
+            error_id = log_error(
+                "Notmuch database not available.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for get_emails. Error ID: {error_id}")
             return []
 
         try:
@@ -341,10 +401,9 @@ class NotmuchDataSource(DataSource):
 
         # For now, return a mock implementation
         # In a full implementation, this would actually store the email
-        email_hash = str(hash(str(email_data)))[:8]
         result = {
-            "id": f"mock_id_{email_hash}",
-            "message_id": f"mock_message_id_{email_hash}",
+            "id": "mock_id_" + str(hash(str(email_data)))[:8],
+            "message_id": "mock_message_id_" + str(hash(str(email_data)))[:8],
             "subject": email_data.get("subject", ""),
             "sender": email_data.get("sender", ""),
             "date": datetime.now().isoformat(),
@@ -500,6 +559,18 @@ class NotmuchDataSource(DataSource):
         await self._ensure_initialized()
 
         if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_dashboard_aggregates",
+                additional_context={"reason": "Notmuch database not available"}
+            )
+            error_id = log_error(
+                "Notmuch database not available for dashboard aggregates.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for dashboard aggregates. Error ID: {error_id}")
             return {
                 "total_emails": 0,
                 "auto_labeled": 0,
@@ -573,6 +644,18 @@ class NotmuchDataSource(DataSource):
         await self._ensure_initialized()
 
         if not self.notmuch_db:
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_category_breakdown",
+                additional_context={"limit": limit, "reason": "Notmuch database not available"}
+            )
+            error_id = log_error(
+                "Notmuch database not available for category breakdown.",
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Notmuch database not available for category breakdown. Error ID: {error_id}")
             return {}
 
         try:
@@ -607,7 +690,18 @@ class NotmuchDataSource(DataSource):
             sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
             return dict(sorted_tags[:limit])
         except Exception as e:
-            logger.error(f"Error getting category breakdown from notmuch: {e}")
+            error_context = create_error_context(
+                component="NotmuchDataSource",
+                operation="get_category_breakdown",
+                additional_context={"limit": limit, "error": str(e)}
+            )
+            error_id = log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            logger.error(f"Error getting category breakdown from notmuch: {e}. Error ID: {error_id}")
             # Return empty dict on error
             return {}
 

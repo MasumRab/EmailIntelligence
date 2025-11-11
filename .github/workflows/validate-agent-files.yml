@@ -1,0 +1,120 @@
+name: Validate Agent Files
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Check Agent File Consistency
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check required agent files exist
+        run: |
+          echo "🔍 Checking for required agent instruction files..."
+          
+          REQUIRED_FILES=(
+            "AGENTS.md"
+            "AGENT.md"
+            "CLAUDE.md"
+            "GEMINI.md"
+            "QWEN.md"
+            "LLXPRT.md"
+            "CONTRIBUTING.md"
+          )
+          
+          MISSING=()
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              MISSING+=("$file")
+              echo "❌ Missing: $file"
+            else
+              echo "✅ Found: $file"
+            fi
+          done
+          
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo ""
+            echo "❌ VALIDATION FAILED: Missing required agent instruction files"
+            echo ""
+            echo "Missing files:"
+            printf '  - %s\n' "${MISSING[@]}"
+            echo ""
+            echo "These files must be present in all branches. They define development"
+            echo "standards, code style, and agent-specific guidance."
+            echo ""
+            echo "To fix:"
+            echo "1. Merge from orchestration-tools branch, or"
+            echo "2. Copy missing files from orchestration-tools, or"
+            echo "3. Create branch-specific variants if this is intentional"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All required agent files present"
+      
+      - name: Validate AGENTS.md structure
+        run: |
+          echo "🔍 Validating AGENTS.md structure..."
+          
+          REQUIRED_SECTIONS=(
+            "General Guidelines"
+            "Code Style"
+            "Architecture Principles"
+          )
+          
+          MISSING_SECTIONS=()
+          for section in "${REQUIRED_SECTIONS[@]}"; do
+            if ! grep -q "$section" AGENTS.md; then
+              MISSING_SECTIONS+=("$section")
+              echo "❌ Missing section: $section"
+            else
+              echo "✅ Found section: $section"
+            fi
+          done
+          
+          if [ ${#MISSING_SECTIONS[@]} -gt 0 ]; then
+            echo ""
+            echo "❌ VALIDATION FAILED: Missing required AGENTS.md sections"
+            echo ""
+            echo "The AGENTS.md file is incomplete. It must include:"
+            printf '  - %s\n' "${REQUIRED_SECTIONS[@]}"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ AGENTS.md structure is valid"
+      
+      - name: Check file line counts (sanity check)
+        run: |
+          echo "🔍 Checking file sizes (sanity check)..."
+          
+          for file in AGENTS.md AGENT.md CONTRIBUTING.md; do
+            if [ -f "$file" ]; then
+              lines=$(wc -l < "$file")
+              if [ "$lines" -lt 10 ]; then
+                echo "⚠️  Warning: $file is very small ($lines lines)"
+                echo "   This may indicate a corrupted or incomplete file"
+              else
+                echo "✅ $file: $lines lines"
+              fi
+            fi
+          done
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "✅ All agent file validations passed!"
+          echo ""
+          echo "Summary:"
+          echo "  - All required files present"
+          echo "  - AGENTS.md has required sections"
+          echo "  - File sizes are reasonable"
+          echo ""
+          echo "This branch is ready for use with proper agent guidance."

@@ -430,3 +430,15 @@ class DynamicModelManager:
             if health in summary:
                 summary[health] += 1
         return summary
+
+
+# Global model manager instance
+_model_manager_instance: Optional['DynamicModelManager'] = None
+
+
+def get_model_manager() -> DynamicModelManager:
+    """Get the global model manager instance."""
+    global _model_manager_instance
+    if _model_manager_instance is None:
+        _model_manager_instance = DynamicModelManager()
+    return _model_manager_instance

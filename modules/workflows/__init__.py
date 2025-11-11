@@ -4,6 +4,7 @@ import gradio as gr
 from fastapi import FastAPI
 
 from .ui import create_workflow_ui
+from .routes import router as workflow_router
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,9 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
     This function adds the workflow UI as a new tab in the Gradio interface.
     """
     logger.info("Registering workflows module.")
+
+    # Add the API routes to the main FastAPI app
+    app.include_router(workflow_router, prefix="/api/workflows", tags=["Workflows"])
 
     # The workflow UI is defined in a separate function for clarity.
     workflow_ui_tab = create_workflow_ui()

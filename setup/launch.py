@@ -224,9 +224,7 @@ def check_required_components() -> bool:
     # Check Python version
     current_version = sys.version_info[:2]
     if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        issues.append(
-            f"Python version {current_version} is not compatible. Required: {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]}-{PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}"
-        )
+        issues.append(f"Python version {current_version} is not compatible. Required: {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]}-{PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}")
 
     # Check key directories
     required_dirs = ["backend", "client", "shared", "tests"]
@@ -418,7 +416,6 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
             logger.error(f"Stderr: {e.stderr}")
         return False
 
-
 # --- Setup Functions ---
 def create_venv(venv_path: Path, recreate: bool = False):
     if venv_path.exists() and recreate:
@@ -566,11 +563,7 @@ except Exception as e:
 
     logger.info("Downloading TextBlob corpora...")
     result = subprocess.run(
-        [python_exe, "-c", textblob_download_script],
-        cwd=ROOT_DIR,
-        capture_output=True,
-        text=True,
-        timeout=120,
+        [python_exe, "-c", textblob_download_script], cwd=ROOT_DIR, capture_output=True, text=True, timeout=120
     )
     if result.returncode != 0:
         logger.warning(f"TextBlob corpora download failed: {result.stderr}")
@@ -756,7 +749,6 @@ def prepare_environment(args):
     if not args.no_download_nltk:
         download_nltk_data()
 
-
 def start_services(args):
     """Starts the required services based on arguments."""
     api_url = args.api_url or f"http://{args.host}:{args.port}"
@@ -814,7 +806,6 @@ def handle_test_stage(args):
         logger.error("Some tests failed.")
         sys.exit(1)
 
-
 def print_system_info():
     """Print detailed system, Python, and project configuration information."""
     import platform
@@ -826,11 +817,11 @@ def print_system_info():
     print(f"Python Version: {sys.version}")
     print(f"Python Executable: {sys.executable}")
 
-    print("\n=== Project Information ===")
+    print("\\n=== Project Information ===")
     print(f"Project Root: {ROOT_DIR}")
     print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
 
-    print("\n=== Environment Status ===")
+    print("\\n=== Environment Status ===")
     venv_path = ROOT_DIR / VENV_DIR
     if venv_path.exists():
         print(f"Virtual Environment: {venv_path} (exists)")

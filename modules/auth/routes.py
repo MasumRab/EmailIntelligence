@@ -26,8 +26,22 @@ from src.core.data_source import DataSource
 from src.core.mfa import get_mfa_service
 from src.core.settings import settings
 
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# MFA Models
+class MFASetupResponse(BaseModel):
+    """Response model for MFA setup endpoint"""
+    secret: str
+    qr_code: str
+    backup_codes: List[str]
+
+
+class EnableMFARequest(BaseModel):
+    """Request model for enabling MFA"""
+    token: str
 
 
 class UserLogin(BaseModel):
@@ -38,18 +52,8 @@ class UserLogin(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
-    role: Optional[str] = "user"
+    role: Optional[UserRole] = UserRole.USER
     permissions: Optional[List[str]] = []
-
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-    mfa_token: Optional[str] = None
-
-
-class EnableMFARequest(BaseModel):
-    token: str
 
 
 class Token(BaseModel):

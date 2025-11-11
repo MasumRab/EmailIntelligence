@@ -1,0 +1,31 @@
+{
+  "name": "qwen",
+  "description": "Qwen Code AI Assistant",
+  "category": "ai-assistant",
+  "platforms": ["linux", "macos", "windows"],
+  "dependencies": ["python", "pip"],
+  "install_commands": {
+    "linux": [
+      "pip install qwen-code",
+      "qwen --setup"
+    ],
+    "macos": [
+      "pip install qwen-code",
+      "qwen --setup"
+    ],
+    "windows": [
+      "pip install qwen-code",
+      "qwen --setup"
+    ]
+  },
+  "verify_commands": [
+    "qwen --version"
+  ],
+  "environment_variables": {
+    "QWEN_API_KEY": "your_qwen_api_key_here"
+  },
+  "version": "1.0.0",
+  "last_updated": "2024-12-01",
+  "documentation": "https://github.com/QwenLM/Qwen",
+  "tags": ["ai", "coding", "assistant"]
+}

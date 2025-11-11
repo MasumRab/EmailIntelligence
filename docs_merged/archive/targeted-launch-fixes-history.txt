@@ -1,0 +1,20 @@
+14c16c9 Fix application startup issues and resolve dependencies
+614bf43 fix: Targeted launch and security fixes
+0e85e39 Update rebase task status to in progress
+6899b67 Merge branch 'minimal-work-reordered'
+f92b72e feat: Enhance core system with security, database backups, and performance improvements
+bef1234 Fix venv creation: update setup scripts to use 'venv' instead of 'emailintelligence_env'
+07fbf05 Remove remaining duplicate sentencepiece verifications
+0a47d75 Remove duplicate verification blocks from installation flow
+8aa052f Centralize all package verification to the end of installation
+bf73ab9 Fix all remaining __version__ attribute access issues
+ff98ab5 Add --quiet flag to pip installations for cleaner output
+da70a10 Fix version attribute access for packages without __version__
+42fe2c3 Add timeouts and progress indicators for large package installations
+08a1a15 Add optimized setup scripts from scientific branch
+ffde63d .
+47ac4a2 .
+fa51d9c .
+22b92d1 Merge branch 'main' of https://github.com/MasumRab/EmailIntelligence
+fcc2d16 Fix security vulnerability: Load secret keys from environment variables
+d8fc1f1 Merge branch 'main' of github.com:MasumRab/EmailIntelligence

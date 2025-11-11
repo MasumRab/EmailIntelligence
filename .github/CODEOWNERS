@@ -1,0 +1,25 @@
+# Agent Instruction Files - Code Owners
+# These files define development standards and agent guidance
+# Any modifications require review from orchestration maintainers
+
+# Agent instruction files (managed by orchestration)
+AGENTS.md                       @MasumRab
+AGENT.md                        @MasumRab
+AGENT_GUIDANCE_PLAN.md          @MasumRab
+CONTRIBUTING.md                 @MasumRab
+CLAUDE.md                       @MasumRab
+GEMINI.md                       @MasumRab
+QWEN.md                         @MasumRab
+LLXPRT.md                       @MasumRab
+
+# Orchestration configuration
+.github/CODEOWNERS              @MasumRab
+.flake8                         @MasumRab
+.pylintrc                       @MasumRab
+.gitattributes                  @MasumRab
+
+# Setup and synchronization scripts
+setup/                          @MasumRab
+scripts/sync_setup_worktrees.sh @MasumRab
+scripts/reverse_sync_orchestration.sh @MasumRab
+scripts/hooks/                  @MasumRab

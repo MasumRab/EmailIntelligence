@@ -181,10 +181,11 @@ class TestLauncherIntegration:
     def test_version_compatibility_matrix(self):
         """Test version compatibility for different Python versions."""
         test_cases = [
-            ((3, 9, 0), False),  # Too old
-            (PYTHON_MIN_VERSION, True),  # Compatible
-            ((3, 12, 5), True),  # Compatible
-            (PYTHON_MAX_VERSION, True),  # Compatible
+            ((3, 10, 0), False),
+            ((3, 11, 0), True),
+            ((3, 12, 0), True),
+            ((3, 13, 0), True),
+            ((3, 14, 0), False),
         ]
 
         for version_tuple, should_pass in test_cases:

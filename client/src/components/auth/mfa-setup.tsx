@@ -46,22 +46,22 @@ export function MFASetup() {
               <p className="mb-4">Scan the QR code below with your authenticator app:</p>
               {mfaSetup.qr_code && (
                 <div className="flex justify-center">
-                  <img 
-                    src={`data:image/png;base64,${mfaSetup.qr_code}`} 
-                    alt="MFA QR Code" 
+                  <img
+                    src={`data:image/png;base64,${mfaSetup.qr_code}`}
+                    alt="MFA QR Code"
                     className="max-w-xs border rounded p-2 bg-white"
                   />
                 </div>
               )}
             </div>
-            
+
             <div>
               <p className="mb-2">Or enter this secret key manually:</p>
               <div className="bg-gray-100 p-3 rounded text-center font-mono break-all">
                 {mfaSetup.secret}
               </div>
             </div>
-            
+
             <div>
               <label htmlFor="mfa-token" className="block text-sm font-medium text-gray-700 mb-1">
                 Enter Code from Authenticator App
@@ -75,7 +75,7 @@ export function MFASetup() {
                 placeholder="Enter 6-digit code"
               />
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-600 mb-2">Your backup codes (save these in a secure place):</p>
               <div className="bg-gray-100 p-3 rounded grid grid-cols-2 gap-2">
@@ -86,7 +86,7 @@ export function MFASetup() {
                 ))}
               </div>
             </div>
-            
+
             <Button onClick={handleEnable} className="w-full">
               Enable MFA
             </Button>

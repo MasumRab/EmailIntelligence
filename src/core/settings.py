@@ -20,4 +20,28 @@ class Settings:
             raise ValueError("SECRET_KEY environment variable must be set")
 
 
+class SettingsManager:
+    """
+    Settings manager for the Email Intelligence Platform.
+
+    This class handles application settings and configuration.
+    """
+
+    def __init__(self):
+        self.settings = Settings()
+
+    def get_setting(self, key: str):
+        """Get a setting value by key."""
+        return getattr(self.settings, key, None)
+
+    def set_setting(self, key: str, value):
+        """Set a setting value."""
+        setattr(self.settings, key, value)
+
+    def get_all_settings(self):
+        """Get all settings as a dictionary."""
+        return self.settings.__dict__
+
+
 settings = Settings()
+settings_manager = SettingsManager()

@@ -16,6 +16,8 @@ from src.core.workflow_engine import Node, Workflow, WorkflowRunner
 def test_topological_sort():
     """Test the topological sorting of nodes"""
 
+=======
+>>>>>>> origin/main
     def dummy_operation(x):
         return x
 
@@ -50,6 +52,8 @@ def test_topological_sort():
 def test_workflow_validation():
     """Test workflow validation functionality"""
 
+=======
+>>>>>>> origin/main
     def dummy_operation(x):
         return x
 
@@ -90,6 +94,8 @@ def test_workflow_validation():
 def test_conditional_execution():
     """Test conditional execution of nodes"""
 
+=======
+>>>>>>> origin/main
     def dummy_operation(x):
         return x + 1
 
@@ -128,6 +134,8 @@ def test_conditional_execution():
 def test_error_handling_and_recovery():
     """Test error handling and recovery mechanisms"""
 
+=======
+>>>>>>> origin/main
     def good_operation(x):
         return x + 1
 
@@ -160,6 +168,9 @@ def test_error_handling_and_recovery():
     workflow = Workflow(
         "error_handling_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections
     )
+=======
+    workflow = Workflow("error_handling_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections)
+>>>>>>> origin/main
     runner = WorkflowRunner(workflow, max_retries=2)
 
     # Run the workflow - node B will fail, but should continue
@@ -172,6 +183,8 @@ def test_error_handling_and_recovery():
 def test_memory_optimization():
     """Test memory optimization feature"""
 
+=======
+>>>>>>> origin/main
     def dummy_operation(x):
         return x + 1
 
@@ -212,6 +225,8 @@ def test_memory_optimization():
 def test_parallel_execution():
     """Test parallel execution of independent nodes"""
 
+=======
+>>>>>>> origin/main
     def dummy_operation(x):
         return x + 1
 
@@ -258,6 +273,8 @@ def test_parallel_execution():
 def test_metrics_collection():
     """Test metrics collection functionality"""
 
+=======
+>>>>>>> origin/main
     def dummy_operation(x):
         return x + 1
 
@@ -293,6 +310,8 @@ if __name__ == "__main__":
     # Run all tests
     test_topological_sort()
     print("✓ Topological sort test passed")
+    print("\nAll tests passed! 🎉")
+=======
 
     test_workflow_validation()
     print("✓ Workflow validation test passed")
@@ -313,3 +332,4 @@ if __name__ == "__main__":
     print("✓ Metrics collection test passed")
 
     print("\nAll tests passed! 🎉")
+>>>>>>> origin/main

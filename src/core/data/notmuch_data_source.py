@@ -68,8 +68,4 @@ class NotmuchDataSource(DataSource):
         """
         Creates a new category in notmuch.
         """
-        return {
-            "id": 2,
-            "name": category_data.get("name", "New Category"),
-            "color": category_data.get("color", "#000000"),
-        }
+        return {"id": 2, "name": category_data.get("name", "New Category"), "color": category_data.get("color", "#000000")}
