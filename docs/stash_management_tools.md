@@ -9,32 +9,38 @@ The stash management system provides both automated and interactive tools to hel
 ## Available Scripts
 
 ### Core Stash Management
-- `stash_manager.sh` - Main interface for all stash operations with interactive resolution capabilities
-- `handle_stashes.sh` - Automated script to systematically process all stashes and apply them to correct branches
-- `interactive_stash_resolver.sh` - Interactive conflict resolution when applying stashes with conflicts
+- `stash_manager.sh` - Main interface for all stash operations with interactive resolution capabilities (deprecated, use optimized version)
+- `stash_manager_optimized.sh` - Optimized main interface with improved performance and shared libraries
+- `handle_stashes.sh` - Automated script to systematically process all stashes and apply them to correct branches (deprecated, use optimized version)
+- `handle_stashes_optimized.sh` - Optimized automated script with improved performance and shared libraries
+- `interactive_stash_resolver.sh` - Interactive conflict resolution when applying stashes with conflicts (deprecated, use optimized version)
+- `interactive_stash_resolver_optimized.sh` - Optimized interactive resolver with improved performance and shared libraries
 
 ### Analysis and Information
 - `stash_analysis.sh` - Analyze stashes and provide recommendations on processing order
 - `stash_details.sh` - Show detailed information about each stash before applying
+
+### Shared Library
+- `lib/stash_common.sh` - Common library with shared functions to avoid code duplication
 
 ## Usage
 
 ### Quick Start
 ```bash
 # Get help with available commands
-./scripts/stash_manager.sh help
+./scripts/stash_manager_optimized.sh help
 
 # List all stashes
-./scripts/stash_manager.sh list
+./scripts/stash_manager_optimized.sh list
 
 # Show details of a specific stash
-./scripts/stash_manager.sh show stash@{0}
+./scripts/stash_manager_optimized.sh show stash@{0}
 
 # Apply a stash with interactive conflict resolution
-./scripts/stash_manager.sh apply-interactive stash@{0}
+./scripts/stash_manager_optimized.sh apply-interactive stash@{0}
 
 # Process all stashes with interactive resolution
-./scripts/stash_manager.sh process-all
+./scripts/stash_manager_optimized.sh process-all
 ```
 
 ### Systematic Stash Resolution
