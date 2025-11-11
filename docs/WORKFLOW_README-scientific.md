@@ -4,15 +4,6 @@
 
 The Documentation Branch Workflow System automatically manages documentation across `main` and `scientific` branches, intelligently determining when content should be shared versus kept branch-specific.
 
-### Agent Context Control Integration
-
-This workflow integrates with the Agent Context Control system to ensure documentation changes respect branch-specific access boundaries. The context control system automatically detects the current branch and applies appropriate access controls, preventing AI agents from working outside their designated scope.
-
-**Context Profiles:**
-- **main**: Focus on production-ready documentation, user guides, and deployment procedures
-- **scientific**: Emphasis on research methodologies, experimental features, and technical analysis
-- **orchestration-tools**: Full access to infrastructure and tooling documentation
-
 ## 🏗️ System Architecture
 
 ### Core Components

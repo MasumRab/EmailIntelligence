@@ -104,3 +104,5 @@ async def update_email(
             f"Database error while updating email {email_id}: {e}", exc_info=True
         )
         raise HTTPException(status_code=500, detail="Database error occurred.")
+=======
+>>>>>>> origin/main

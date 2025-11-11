@@ -20,13 +20,26 @@ class ModuleManager:
             logger.warning(f"Modules directory not found: {self.modules_dir}")
             return
 
+        loaded_modules = []
+        failed_modules = []
+
         for module_path in self.modules_dir.iterdir():
             if module_path.is_dir():
-                self._load_module(module_path)
+                module_name = module_path.name
+                try:
+                    self._load_module(module_path)
+                    loaded_modules.append(module_name)
+                except Exception as e:
+                    logger.error(f"Failed to load module '{module_name}': {e}", exc_info=True)
+                    failed_modules.append(module_name)
+
+        logger.info(f"Module loading complete. Loaded: {len(loaded_modules)}, Failed: {len(failed_modules)}")
+        if failed_modules:
+            logger.warning(f"Failed modules: {', '.join(failed_modules)}")
 
     def _load_module(self, module_path: Path):
         """
-        Loads a single module, expecting an 'init.py' file to register components.
+        Loads a single module, expecting an '__init__.py' file to register components.
         """
         module_name = module_path.name
         init_file = module_path / "__init__.py"
@@ -56,6 +69,8 @@ class ModuleManager:
                     )
             else:
                 logger.error(f"Could not create module spec for {module_name}")
+                raise ImportError(f"Could not create module spec for {module_name}")
 
         except Exception as e:
             logger.error(f"Failed to load module '{module_name}': {e}", exc_info=True)
+            raise

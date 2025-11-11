@@ -42,15 +42,3 @@
 2025-11-02 02:49:40,350 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-scientific/docs/common/docs/BRANCH_DELETION_RECOMMENDATIONS.md.backup_20251102_024539: Unexpected timestamp format: 024539
 2025-11-02 02:49:40,350 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-scientific/docs/common/docs/worktree-documentation-system.md.backup_20251102_023340: Unexpected timestamp format: 023340
 2025-11-02 02:49:40,352 - INFO - Scheduled sync completed successfully
-2025-11-02 03:02:21,475 - INFO - Starting scheduled documentation sync
-2025-11-02 03:02:21,576 - INFO - Successfully synced from inheritance base
-2025-11-02 03:02:21,607 - INFO - Successfully synced between worktrees
-2025-11-02 03:02:21,608 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-main/docs/common/docs/BRANCH_CLEANUP_SUMMARY.md.backup_20251102_024539: Unexpected timestamp format: 024539
-2025-11-02 03:02:21,608 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-main/docs/common/docs/actionable_insights.md.backup_20251102_021922: Unexpected timestamp format: 021922
-2025-11-02 03:02:21,609 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-main/docs/common/docs/BRANCH_DELETION_RECOMMENDATIONS.md.backup_20251102_024539: Unexpected timestamp format: 024539
-2025-11-02 03:02:21,609 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-main/docs/common/docs/worktree-documentation-system.md.backup_20251102_023340: Unexpected timestamp format: 023340
-2025-11-02 03:02:21,610 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-scientific/docs/common/docs/BRANCH_CLEANUP_SUMMARY.md.backup_20251102_024539: Unexpected timestamp format: 024539
-2025-11-02 03:02:21,610 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-scientific/docs/common/docs/actionable_insights.md.backup_20251102_021922: Unexpected timestamp format: 021922
-2025-11-02 03:02:21,611 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-scientific/docs/common/docs/BRANCH_DELETION_RECOMMENDATIONS.md.backup_20251102_024539: Unexpected timestamp format: 024539
-2025-11-02 03:02:21,611 - WARNING - Error processing backup file /home/masum/github/EmailIntelligenceAuto/worktrees/docs-scientific/docs/common/docs/worktree-documentation-system.md.backup_20251102_023340: Unexpected timestamp format: 023340
-2025-11-02 03:02:21,620 - INFO - Scheduled sync completed successfully
