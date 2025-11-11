@@ -1,0 +1,42 @@
+# Authentication configuration for the verification system
+
+# API key for authentication (encrypted)
+# This is just an example - in production, this should be properly encrypted
+api_key: "encrypted-api-key-placeholder"
+role: "RUN"  # Default role for users
+
+# Role definitions
+roles:
+  READ:
+    permissions:
+      - "read_verification_results"
+      - "read_branch_status"
+    description: "Can view verification results and branch status"
+  
+  RUN:
+    permissions:
+      - "read_verification_results"
+      - "read_branch_status"
+      - "run_verification"
+    description: "Can run verifications in addition to READ permissions"
+  
+  REVIEW:
+    permissions:
+      - "read_verification_results"
+      - "read_branch_status"
+      - "run_verification"
+      - "approve_verification"
+      - "reject_verification"
+    description: "Can approve/reject verifications in addition to RUN permissions"
+  
+  ADMIN:
+    permissions:
+      - "read_verification_results"
+      - "read_branch_status"
+      - "run_verification"
+      - "approve_verification"
+      - "reject_verification"
+      - "manage_users"
+      - "manage_profiles"
+      - "system_administration"
+    description: "Full system access"

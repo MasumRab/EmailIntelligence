@@ -28,34 +28,9 @@ from typing import List
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Import project configuration
-from setup.project_config import get_project_config
+# Command pattern not available in this branch
 
-# Import launch system modules
-from setup.validation import (
-    check_python_version, check_for_merge_conflicts, check_required_components,
-    validate_environment, validate_port, validate_host
-)
-from setup.services import (
-    start_services, start_backend, start_node_service, start_gradio_ui, validate_services
-)
-from setup.environment import (
-    handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
-)
-from setup.utils import print_system_info, process_manager
-
-# Import test stages
-from setup.test_stages import test_stages
-
-# Import command pattern components (with error handling for refactors)
-try:
-    from src.core.commands.command_factory import get_command_factory
-    from src.core.container import get_container, initialize_all_services
-except ImportError as e:
-    logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
-    get_command_factory = None
-    get_container = None
-    initialize_all_services = None
+from deployment.test_stages import test_stages
 
 try:
     from dotenv import load_dotenv
@@ -73,10 +48,56 @@ logger = logging.getLogger("launcher")
 
 
 # --- Global state ---
-ROOT_DIR = get_project_config().root_dir
+def find_project_root() -> Path:
+    """Find the project root directory by looking for key files."""
+    current = Path(__file__).resolve().parent
+    if (current / "pyproject.toml").exists() and current.name != "setup":
+        return current
+    for parent in current.parents:
+        if (parent / "pyproject.toml").exists():
+            return parent
+    return current
 
-# Import process manager from utils
-from setup.utils import process_manager
+
+ROOT_DIR = find_project_root()
+
+
+class ProcessManager:
+    """Manages child processes for the application."""
+
+    def __init__(self):
+        self.processes = []
+        self.lock = threading.Lock()  # Add lock for thread safety
+
+    def add_process(self, process):
+        with self.lock:
+            self.processes.append(process)
+
+    def cleanup(self):
+        logger.info("Performing explicit resource cleanup...")
+        # Create a copy of the list to avoid modifying while iterating
+        with self.lock:
+            processes_copy = self.processes[:]
+
+        for p in processes_copy:
+            if p.poll() is None:
+                logger.info(f"Terminating process {p.pid}...")
+                p.terminate()
+                try:
+                    p.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
+                    p.kill()
+        logger.info("Resource cleanup completed.")
+
+    def shutdown(self):
+        logger.info("Received shutdown signal, cleaning up processes...")
+        self.cleanup()
+        sys.exit(0)
+
+
+process_manager = ProcessManager()
+atexit.register(process_manager.cleanup)
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
@@ -85,6 +106,15 @@ VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 
+# --- WSL Support ---
+def is_wsl():
+    """Check if running in WSL environment"""
+    try:
+        with open("/proc/version", "r") as f:
+            content = f.read().lower()
+            return "microsoft" in content or "wsl" in content
+    except Exception:
+        return False
 
 
 def setup_wsl_environment():
@@ -129,11 +159,7 @@ def check_python_version():
     """Check if the current Python version is compatible."""
     current_version = sys.version_info[:2]
     if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        logger.error(
-            f"Python version {platform.python_version()} is not compatible. "
-            f"Please use Python version {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]} "
-            f"to {PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}."
-        )
+        logger.error(f"Python version {platform.python_version()} is not compatible.")
         sys.exit(1)
     logger.info(f"Python version {platform.python_version()} is compatible.")
 
@@ -246,170 +272,113 @@ def validate_environment() -> bool:
     return True
 
 
-def check_critical_files() -> bool:
-    """Check for critical files that must exist in the orchestration-tools branch."""
-    # Critical files that are essential for orchestration
-    critical_files = [
-        # Core orchestration scripts
-        "scripts/install-hooks.sh",
-        "scripts/cleanup_orchestration.sh",
-        "scripts/sync_setup_worktrees.sh",
-        "scripts/reverse_sync_orchestration.sh",
-        
-        # Git hooks
-        "scripts/hooks/pre-commit",
-        "scripts/hooks/post-commit",
-        "scripts/hooks/post-commit-setup-sync",
-        "scripts/hooks/post-merge",
-        "scripts/hooks/post-checkout",
-        "scripts/hooks/post-push",
-        
-        # Shared libraries
-        "scripts/lib/common.sh",
-        "scripts/lib/error_handling.sh",
-        "scripts/lib/git_utils.sh",
-        "scripts/lib/logging.sh",
-        "scripts/lib/validation.sh",
-        
-        # Setup files
-        "setup/launch.py",
-        "setup/pyproject.toml",
-        "setup/requirements.txt",
-        "setup/requirements-dev.txt",
-        "setup/setup_environment_system.sh",
-        "setup/setup_environment_wsl.sh",
-        "setup/setup_python.sh",
-        
-        # Configuration files
-        ".flake8",
-        ".pylintrc",
-        ".gitignore",
-        ".gitattributes",
-        
-        # Root wrapper
-        "launch.py",
-        
-        # Deployment files
-        "deployment/deploy.py",
-        "deployment/test_stages.py",
-        "deployment/docker-compose.yml",
-    ]
-    
-    # Critical directories that must exist
-    critical_directories = [
-        "scripts/",
-        "scripts/hooks/",
-        "scripts/lib/",
-        "setup/",
-        "deployment/",
-        "docs/",
-    ]
-    
-    # Orchestration documentation files
-    orchestration_docs = [
-        "docs/orchestration_summary.md",
-        "docs/orchestration_validation_tests.md",
-        "docs/orchestration_hook_management.md",
-        "docs/orchestration_branch_scope.md",
-        "docs/env_management.md",
-        "docs/git_workflow_plan.md",
-        "docs/current_orchestration_docs/",
-        "docs/guides/",
-    ]
-    
-    missing_files = []
-    missing_dirs = []
-    
-    # Check for missing critical files
-    for file_path in critical_files:
-        full_path = ROOT_DIR / file_path
-        if not full_path.exists():
-            missing_files.append(file_path)
-    
-    # Check for missing critical directories
-    for dir_path in critical_directories:
-        full_path = ROOT_DIR / dir_path
-        if not full_path.exists():
-            missing_dirs.append(dir_path)
-    
-    # Check for missing orchestration documentation
-    for doc_path in orchestration_docs:
-        full_path = ROOT_DIR / doc_path
-        if not full_path.exists():
-            missing_files.append(doc_path)
-    
-    if missing_files or missing_dirs:
-        if missing_files:
-            logger.error("Missing critical files:")
-            for file_path in missing_files:
-                logger.error(f"  - {file_path}")
-        if missing_dirs:
-            logger.error("Missing critical directories:")
-            for dir_path in missing_dirs:
-                logger.error(f"  - {dir_path}")
-        logger.error("Please restore these critical files for proper orchestration functionality.")
-        return False
-    
-    logger.info("All critical files are present.")
-    return True
-
-
-def validate_orchestration_environment() -> bool:
-    """Run comprehensive validation for the orchestration-tools branch."""
-    logger.info("Running orchestration environment validation...")
-    
-    # Check for merge conflicts first
-    if not check_for_merge_conflicts():
-        return False
-    
-    # Check critical files
-    if not check_critical_files():
-        return False
-    
-    logger.info("Orchestration environment validation passed.")
-    return True
-
-
 # --- Input Validation ---
+def validate_port(port: int) -> int:
+    """Validate port number is within valid range."""
+    if not 1 <= port <= 65535:
+        raise ValueError(f"Invalid port: {port}. Port must be between 1 and 65535.")
+    return port
 
 
+def validate_host(host: str) -> str:
+    """Validate host name/address format."""
+    import re
+
+    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
+        raise ValueError(f"Invalid host: {host}")
+    return host
 
 
+# --- Conda Environment Support ---
+def is_conda_available() -> bool:
+    """Check if conda is available on the system."""
+    try:
+        subprocess.run(["conda", "--version"], capture_output=True, text=True, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
 
 
+def get_conda_env_info():
+    """Get information about the current conda environment."""
+    env_vars = os.environ
+    conda_default_env = env_vars.get("CONDA_DEFAULT_ENV")
+    conda_prefix = env_vars.get("CONDA_PREFIX")
+
+    return {
+        "is_active": conda_default_env is not None,
+        "env_name": conda_default_env,
+        "prefix": conda_prefix,
+        "python_exe": env_vars.get("CONDA_PREFIX", "") + "/python" if conda_prefix else None,
+    }
 
 
+def activate_conda_env(env_name: str = None) -> bool:
+    """Activate a conda environment."""
+    env_name = env_name or CONDA_ENV_NAME
 
+    # Validate environment name to prevent command injection
+    import re
 
-
-
+    if not re.match(r"^[a-zA-Z0-9_-]+$", env_name):
+        logger.error(
+            f"Invalid conda environment name: {env_name}. Only alphanumeric characters, hyphens, and underscores are allowed."
+        )
+        return False
 
     if not is_conda_available():
-        if env_name:
-            logger.warning(f"Conda not available, cannot activate environment '{env_name}'. Please install Conda.")
-        else:
-            logger.debug("Conda not available, skipping environment activation.")
+        logger.debug("Conda not available, skipping environment activation.")
         return False
 
     conda_info = get_conda_env_info()
     if conda_info["is_active"]:
-        if conda_info["env_name"] == env_name:
-            logger.info(f"Already in specified conda environment: {conda_info['env_name']}")
-            return True
-        else:
-            logger.warning(
-                f"Currently in conda environment '{conda_info['env_name']}', "
-                f"but '{env_name}' was requested. "
-                f"Please activate '{env_name}' manually before running the script."
-            )
+        logger.info(f"Already in conda environment: {conda_info['env_name']}")
+        return True
+
+    # Check if the requested environment exists
+    try:
+        result = subprocess.run(
+            ["conda", "info", "--envs"], capture_output=True, text=True, check=True
+        )
+        envs = result.stdout.strip().split("\n")
+        env_names = [line.split()[0] for line in envs if line.strip() and not line.startswith("#")]
+        if env_name not in env_names:
+            logger.warning(f"Conda environment '{env_name}' not found.")
             return False
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"Failed to list conda environments: {e}")
+        return False
+
+    logger.info(f"Will use conda environment: {env_name}")
+    # We don't actually activate the environment here since subprocess.run
+    # cannot persist environment changes. Instead, we rely on get_python_executable()
+    # to find the correct Python executable for the environment.
+    return True
 
 
+def get_python_executable() -> str:
+    """Get the appropriate Python executable (conda > venv > system)."""
+    # Check if we're in a conda environment
+    conda_info = get_conda_env_info()
+    if conda_info["is_active"] and conda_info["python_exe"]:
+        python_exe = conda_info["python_exe"]
+        if platform.system() == "Windows":
+            python_exe += ".exe"
+        if os.path.exists(python_exe):
+            logger.info(f"Using conda Python: {python_exe}")
+            return python_exe
 
+    # Check for venv
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
+        python_exe = get_venv_executable(venv_path, "python")
+        if python_exe.exists():
+            logger.info(f"Using venv Python: {python_exe}")
+            return str(python_exe)
 
-
-
-
+    # Fall back to system Python
+    logger.info("Using system Python")
+    return sys.executable
 
 
 # --- Helper Functions ---
@@ -459,8 +428,6 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     python_exe = get_python_executable()
 
     if use_poetry:
-        # Ensure pip is up-to-date before installing other packages
-        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
             subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
@@ -473,18 +440,24 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
             cwd=ROOT_DIR,
         )
     else:
-        # Ensure pip is up-to-date before installing other packages
-        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
             subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
+        # Install CPU-only PyTorch first to prevent CUDA package installation
+        logger.info("Installing CPU-only PyTorch packages...")
         run_command(
-            [python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]", "--exclude", "notmuch"],
-            "Installing dependencies with uv (excluding notmuch)",
+            [python_exe, "-m", "pip", "install", "torch", "torchvision", "torchaudio", "--index-url", "https://download.pytorch.org/whl/cpu"],
+            "Installing CPU-only PyTorch packages",
             cwd=ROOT_DIR,
+        )
+
+        run_command(
+        [python_exe, "-m", "uv", "pip", "install", "-e", "."],
+        "Installing remaining dependencies with uv",
+        cwd=ROOT_DIR,
         )
 
         # Install notmuch with version matching system
@@ -501,10 +474,16 @@ def install_notmuch_matching_system():
         version = version_line.split()[1]
         major_minor = ".".join(version.split(".")[:2])  # e.g., 0.38
         python_exe = get_python_executable()
-        run_command(
-            [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
+        # Try to install matching version, fallback to latest if not available
+        if not run_command(
+        [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
             f"Installing notmuch {major_minor} to match system",
-        )
+        ):
+            logger.warning(f"Could not install notmuch {major_minor}, trying latest version")
+        run_command(
+            [python_exe, "-m", "pip", "install", "notmuch"],
+            "Installing latest notmuch version",
+            )
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.warning("notmuch not found on system, skipping version-specific install")
 
@@ -838,45 +817,10 @@ def print_system_info():
 
 
 def main():
-    # Initialize services if command pattern is available
-    if COMMAND_PATTERN_AVAILABLE and initialize_all_services and get_container:
-        initialize_all_services(get_container())
+    # Services initialization not available in this branch
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
-
-    # Add subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Setup command
-    setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
-    _add_common_args(setup_parser)
-
-    # Run command
-    run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
-    _add_common_args(run_parser)
-    run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
-
-    # Test command
-    test_parser = subparsers.add_parser("test", help="Run tests")
-    _add_common_args(test_parser)
-    test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
-    test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
-    test_parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    test_parser.add_argument("--performance", action="store_true", help="Run performance tests")
-    test_parser.add_argument("--security", action="store_true", help="Run security tests")
-    test_parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
-    test_parser.add_argument(
-        "--continue-on-error", action="store_true", help="Continue running tests even if some fail"
-    )
-
-    # Check command for orchestration-tools branch
-    check_parser = subparsers.add_parser("check", help="Run checks for orchestration environment")
-    _add_common_args(check_parser)
-    check_parser.add_argument("--critical-files", action="store_true", help="Check for critical orchestration files")
-    check_parser.add_argument("--env", action="store_true", help="Check orchestration environment")
-
-    # Legacy argument parsing for backward compatibility
     parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
     parser.add_argument(
         "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
@@ -941,15 +885,35 @@ def main():
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
 
+    # Testing Options
+    parser.add_argument(
+        "--coverage", action="store_true", help="Generate coverage report when running tests."
+    )
+    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
+    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
+    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    parser.add_argument("--security", action="store_true", help="Run security tests.")
+
+    # Extensions and Models
+    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
+    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
+
+    # Advanced Options
+    parser.add_argument(
+        "--system-info", action="store_true", help="Print system information then exit."
+    )
+    parser.add_argument("--share", action="store_true", help="Create a public URL.")
+    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
+    parser.add_argument(
+    "--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region."
+    )
+    parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
+
     args = parser.parse_args()
 
-    # Handle command pattern vs legacy arguments
-    if args.command:
-        # Use command pattern
-        return _execute_command(args.command, args)
-    else:
-        # Handle legacy arguments
-        return _handle_legacy_args(args)
+    # Handle legacy arguments
+    return _handle_legacy_args(args)
 
 
 def _add_common_args(parser):
@@ -966,6 +930,7 @@ def _add_common_args(parser):
 def _add_legacy_args(parser):
     """Add legacy arguments for backward compatibility."""
     # Environment Setup
+    parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument(
         "--force-recreate-venv", action="store_true", help="Force recreation of the venv."
     )
@@ -1032,7 +997,6 @@ def _add_legacy_args(parser):
     parser.add_argument(
         "--system-info", action="store_true", help="Print system information then exit."
     )
-    parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
     parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
     parser.add_argument(
@@ -1040,126 +1004,31 @@ def _add_legacy_args(parser):
     )
 
 
-def main():
-    # Check for common setup issues before proceeding
-    _check_setup_warnings()
-
-    # Initialize services (only if core modules are available)
-    if initialize_all_services and get_container:
-        initialize_all_services(get_container())
-
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
-
-    # Add subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Setup command
-    setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
-    _add_common_args(setup_parser)
-
-    # Run command
-    run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
-    _add_common_args(run_parser)
-    run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
-
-    # Test command
-    test_parser = subparsers.add_parser("test", help="Run tests")
-    _add_common_args(test_parser)
-    test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
-    test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
-    test_parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    test_parser.add_argument("--performance", action="store_true", help="Run performance tests")
-    test_parser.add_argument("--security", action="store_true", help="Run security tests")
-    test_parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
-    test_parser.add_argument(
-        "--continue-on-error", action="store_true", help="Continue running tests even if some fail"
-    )
-
-    # Legacy argument parsing for backward compatibility
-    parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
-    parser.add_argument(
-        "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
-    )
-
-    # Add all legacy arguments for backward compatibility
-    _add_legacy_args(parser)
-
-    args = parser.parse_args()
-
-    # Handle command pattern vs legacy arguments
-    if args.command:
-        # Use command pattern
-        return _execute_command(args.command, args)
-    else:
-        # Handle legacy arguments
-        return _handle_legacy_args(args)
-
-
 def _execute_command(command_name: str, args) -> int:
     """Execute a command using the command pattern."""
-    # Handle check command directly in orchestration-tools branch
-    if command_name == "check":
-        return _execute_check_command(args)
-    
-    # For other commands, use command pattern if available
-    if COMMAND_PATTERN_AVAILABLE:
-        factory = get_command_factory()
-        command = factory.create_command(command_name, args)
+    factory = get_command_factory()
+    command = factory.create_command(command_name, args)
 
-        if command is None:
-            logger.error(f"Unknown command: {command_name}")
-            return 1
-
-        try:
-            return command.execute()
-        finally:
-            command.cleanup()
-    else:
-        logger.error(f"Command pattern not available and '{command_name}' is not a built-in command")
+    if command is None:
+        logger.error(f"Unknown command: {command_name}")
         return 1
 
-
-def _execute_check_command(args) -> int:
-    """Execute the check command for orchestration validation."""
-    logger.info("Running orchestration checks...")
-    
-    success = True
-    
-    # Run critical files check if requested
-    if args.critical_files or (not args.env):
-        if not check_critical_files():
-            success = False
-    
-    # Run environment validation if requested
-    if args.env:
-        if not validate_orchestration_environment():
-            success = False
-    
-    # If no specific check was requested, run all checks
-    if not args.critical_files and not args.env:
-        if not validate_orchestration_environment():
-            success = False
-    
-    if success:
-        logger.info("All orchestration checks passed!")
-        return 0
-    else:
-        logger.error("Orchestration checks failed!")
-        return 1
+    try:
+        return command.execute()
+    finally:
+        command.cleanup()
 
 
 def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
     # Setup WSL environment if applicable (early setup)
-    from setup.environment import setup_wsl_environment, check_wsl_requirements
     setup_wsl_environment()
     check_wsl_requirements()
 
     if not args.skip_python_version_check:
         check_python_version()
 
-    logging.getLogger().setLevel(getattr(args, 'loglevel', 'INFO'))
+    logging.getLogger().setLevel(args.loglevel)
 
     if DOTENV_AVAILABLE:
         # Load user customizations from launch-user.env if it exists
@@ -1183,11 +1052,6 @@ def _handle_legacy_args(args) -> int:
         args.use_conda = True  # Set flag when conda env is specified
         # args.use_conda remains as set by command line argument
 
-    # Check for system info first (doesn't need validation)
-    if args.system_info:
-        print_system_info()
-        return 0
-
     # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
         return 1
@@ -1208,7 +1072,6 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Handle Conda environment if requested
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
     if args.use_conda:
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
@@ -1223,13 +1086,11 @@ def _handle_legacy_args(args) -> int:
         prepare_environment(args)
 
     if args.system_info:
-        print("DEBUG: system_info flag detected")
         print_system_info()
         return 0
 
     # Handle test stage
     if hasattr(args, "stage") and args.stage == "test":
-        from setup.test_stages import handle_test_stage
         handle_test_stage(args)
         return 0
 
@@ -1239,7 +1100,6 @@ def _handle_legacy_args(args) -> int:
         or getattr(args, "integration", False)
         or getattr(args, "coverage", False)
     ):
-        from setup.test_stages import handle_test_stage
         handle_test_stage(args)
         return 0
 
@@ -1256,31 +1116,6 @@ def _handle_legacy_args(args) -> int:
         process_manager.cleanup()
 
     return 0
-
-
-def _check_setup_warnings():
-    """Check for common setup issues and warn users."""
-    import sys
-    from pathlib import Path
-
-    # Check if using system Python
-    python_path = Path(sys.executable)
-    system_indicators = [
-        python_path == Path("/usr/bin/python"),
-        python_path == Path("/usr/bin/python3"),
-        str(python_path).startswith("/usr/"),
-        str(python_path).startswith("/usr/local/"),
-    ]
-
-    if any(system_indicators):
-        logger.warning("⚠️  You're using system Python. This may cause permission errors with pip.")
-        logger.info("💡  Run 'python launch.py setup' to create a virtual environment")
-        logger.info("   Then use: source venv/bin/activate")
-
-    # Check if venv exists but not activated
-    venv_path = ROOT_DIR / "venv" / "bin" / "python"
-    if venv_path.exists() and python_path != venv_path:
-        logger.info("💡  Virtual environment exists. Activate it with: source venv/bin/activate")
 
 
 if __name__ == "__main__":

@@ -189,4 +189,3 @@ main() {
 }
 
 main "$@"
-EOF && chmod +x scripts/orchestration_status.sh && git add scripts/orchestration_status.sh && git commit -m "Add orchestration status monitoring dashboard to orchestration-tools" && git push origin orchestration-tools

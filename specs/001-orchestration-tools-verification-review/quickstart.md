@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.11+
+- Python 3.12+
 - Git 2.0+
 - Access to Git repository with orchestration tools
 - API key for the verification system (obtained from system administrator)
@@ -97,7 +97,7 @@ python -m orchestration-tools.src.cli.orchestration_cli status --verification-id
 python -m orchestration-tools.src.cli.orchestration_cli approve --verification-id <verification-id> --comment "Approved after review"
 
 # Reject a verification result
-python -m orchestration-tools.src.orchestration_cli reject --verification-id <verification-id> --comment "Changes need modification"
+python -m orchestration-tools.src.cli.orchestration_cli reject --verification-id <verification-id> --comment "Changes need modification"
 ```
 
 ## API Usage

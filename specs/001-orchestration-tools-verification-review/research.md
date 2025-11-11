@@ -21,7 +21,7 @@
 ## Technology Stack
 
 ### Backend
-- Python 3.11 for main orchestration tools
+- Python 3.12 for main orchestration tools
 - GitPython for Git operations
 - PyYAML for configuration management
 - requests for API calls to external services

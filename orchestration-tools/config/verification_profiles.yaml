@@ -1,0 +1,45 @@
+# Verification profiles for different branch types
+
+main-branch:
+  name: "Main Branch Profile"
+  description: "Verification profile for main branch merges"
+  required_checks:
+    - "context-check"
+    - "dependency-validation"
+    - "compatibility-check"
+  optional_checks:
+    - "performance-check"
+  context_requirements:
+    - "environment-variables"
+    - "configuration-files"
+  notification_config:
+    on_failure: "immediate"
+    on_success: "summary"
+    recipients: ["team-lead", "dev-ops"]
+
+scientific-branch:
+  name: "Scientific Branch Profile"
+  description: "Verification profile for scientific branch merges"
+  required_checks:
+    - "context-check"
+    - "dependency-validation"
+  context_requirements:
+    - "environment-variables"
+  branch_specific_rules:
+    - "double_review_required"
+  notification_config:
+    on_failure: "immediate"
+    on_success: "summary"
+    recipients: ["research-team", "dev-ops"]
+
+feature-branch:
+  name: "Feature Branch Profile"
+  description: "Verification profile for feature branch development"
+  required_checks:
+    - "context-check"
+  context_requirements:
+    - "environment-variables"
+  notification_config:
+    on_failure: "delayed"
+    on_success: "none"
+    recipients: ["feature-developer"]
