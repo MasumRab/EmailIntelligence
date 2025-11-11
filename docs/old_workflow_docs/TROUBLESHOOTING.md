@@ -183,7 +183,7 @@ docker-compose logs -f
    docker stats
 
    # Application metrics
-   curl http://localhost:9090/metrics
+   curl http://localhost:9090 (when running)/metrics
    ```
 
 2. **Profile Performance:**
@@ -405,8 +405,8 @@ env | grep -E "(DATA_DIR|DATABASE_URL|LOG_LEVEL)"
    - Performance: `./logs/performance_metrics.jsonl`
 
 3. **Monitoring:**
-   - Grafana: http://localhost:3000
-   - Prometheus: http://localhost:9090
+   - Grafana: http://localhost:3000 (when running)
+   - Prometheus: http://localhost:9090 (when running)
 
 ### Escalation
 
