@@ -1,0 +1,20 @@
+# Requirements for Orchestration Tools Verification System
+
+# Core dependencies
+GitPython>=3.1.0
+PyYAML>=6.0
+requests>=2.31.0
+cryptography>=42.0.0
+PyGithub>=1.59.0
+fastapi>=0.100.0
+pydantic>=2.11.5
+uvicorn>=0.30.0
+
+# Development dependencies
+pytest>=8.4.0
+pytest-asyncio>=0.23.0
+black>=25.1.0
+flake8>=7.2.0
+isort>=6.0.1
+mypy>=1.16.0
+pylint>=3.3.7
