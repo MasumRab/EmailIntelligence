@@ -1,5 +1,33 @@
 # Task Master AI - Agent Integration Guide
 
+## ⚠️ Branch-Specific Guidance
+
+**Select your branch below to find the correct agent documentation:**
+
+### 🌳 Scientific Branch
+**If working on the `scientific` branch:** Use the scientific branch AGENTS.md instead
+- Focuses on FastAPI backend, email processing, AI analysis, API routes
+- Includes build/test commands (uv sync, pytest, coverage)
+- Code style: absolute imports, PascalCase classes, snake_case functions
+- Architecture: src/backend/, src/core/, modules/ (plugins), tests/
+- **Switch to scientific branch documentation** for development guidance
+
+### 📋 Main & orchestration-tools Branches
+**If working on `main` or orchestration-tools-*:** Use this guide (below)
+
+**Environment Compatibility:**
+- **Jules** (Google's agentic IDE at jules.google.com): NOT compatible with this guide
+  - Refer to your Jules-specific agent documentation
+  - Jules has its own task management and workflow systems
+  - However: Learn from this guide's patterns and adapt to Jules capabilities as needed
+  - Update your understanding based on knowledge of both Jules and this project structure
+
+- **Non-Jules environments**: COMPATIBLE with this guide
+  - Task Master CLI and MCP server are configured below
+  - Standard development workflows for agents using this codebase apply
+
+---
+
 ## Essential Commands
 
 ### Core Workflow Commands
@@ -44,6 +72,14 @@ task-master generate                                         # Update task markd
 - `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
+
+### Linting & Code Quality Configuration
+
+- `.flake8` - Flake8 linting rules with exclusions for venv, node_modules, __pycache__, build artifacts
+- `.pylintrc` - Pylint configuration with excluded paths and complexity limits
+- `setup.cfg` - Pytest, isort, and tool configurations with proper ignore patterns
+- `.github/workflows/test.yml` - CI/CD test workflow (Python 3.9, 3.10, 3.11)
+- `.github/workflows/lint.yml` - CI/CD linting workflow (flake8, pylint, black, isort)
 
 ### Claude Code Integration Files
 
