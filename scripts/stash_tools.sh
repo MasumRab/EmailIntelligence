@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Stash management tools for orchestration workflow
+# Simple stash management tools for orchestration workflow
 # Provides utilities for managing git stashes during branch switching
 
 set -e
@@ -12,17 +12,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Load common libraries
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# Source common utilities
-source "$SCRIPT_DIR/lib/common.sh" 2>/dev/null || {
-    # If common.sh doesn't exist yet, define basic functions
-    log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-    log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-    log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-}
+# Simple logging functions
+log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Configuration
 STASH_MESSAGE="auto-stash-$(date +%Y%m%d-%H%M%S)"
@@ -245,6 +238,7 @@ clean_untracked() {
 
 # Main execution
 main() {
+    # Don't source any common libraries to avoid conflicts
     local command="${1:-help}"
     
     case "$command" in
