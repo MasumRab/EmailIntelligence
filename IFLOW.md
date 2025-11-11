@@ -1,331 +1,104 @@
-# EmailIntelligence - Unified Development Environment (iFlow Context)
+# Iflow Cursor Integration Guide
 
-## Project Overview
+> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains Iflow cursor-specific features and integrations.
 
-EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+## About Iflow Cursor
 
-The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
+Iflow is a cursor-extension-based development environment providing inline AI suggestions and code completion while maintaining full control over the codebase.
 
-## iFlow CLI Overview
+## MCP Configuration for Iflow
 
-iFlow CLI is an interactive command-line interface agent designed to assist with software engineering tasks in the EmailIntelligence project. It specializes in helping developers with code understanding, refactoring, testing, and implementation while strictly following project conventions.
+Configure Task Master MCP server in your Iflow/Cursor configuration:
 
-## Key Technologies
-
-- **Backend**: Python 3.12+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
-- **Frontend**: React (Vite), TypeScript
-- **NLP/AI**: Custom NLP engine with sentiment, topic, intent, and urgency analysis models using Hugging Face transformers
-- **Database**: SQLite (default)
-- **Deployment**: Docker support, unified launcher script
-- **Workflow Engine**: Node-based workflow system for email processing
-- **Extension System**: Plugin architecture for extending functionality
-
-## Project Structure
-
-```
-EmailIntelligence/
-├── backend/
-│   ├── python_backend/     # Legacy FastAPI application
-│   │   ├── main.py         # Legacy FastAPI app entry point
-│   │   ├── ai_engine.py    # Legacy AI analysis engine
-│   │   ├── database.py     # Legacy database management
-│   │   └── ...             # Other legacy backend modules
-│   ├── python_nlp/         # Core NLP models and analysis components
-│   │   ├── nlp_engine.py   # Main NLP engine
-│   │   └── ...             # Analysis components (sentiment, topic, etc.)
-│   └── node_engine/        # Node-based workflow engine
-├── client/                 # React frontend application
-├── src/                    # Main application entry point with Gradio UI
-│   ├── main.py             # Main application with FastAPI and Gradio integration
-│   └── core/               # Core modules and managers
-├── modules/                # Modular functionality extensions
-├── models/                 # AI model files organized by type
-├── launch.py               # Unified launcher script
-├── pyproject.toml          # Python project configuration
-├── package.json            # Node.js project configuration
-├── README.md               # Project documentation
-└── ...                     # Other configuration and documentation files
+```json
+{
+  "mcpServers": {
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"]
+    }
+  }
+}
 ```
 
-## Building and Running
+**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
 
-### Prerequisites
+## Iflow-Specific Features
 
-- Python 3.12 or later
-- Node.js 18 or later
-- Git
+### Inline AI Assistance
 
-### Quick Start
+- Real-time code completion suggestions
+- Inline refactoring recommendations
+- Quick explanations via hover
+- Context-aware code generation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository_url>
-   cd EmailIntelligence
-   ```
+Both `AGENTS.md` and `IFLOW.md` are auto-loaded in Iflow Cursor context.
 
-2. Install Node.js dependencies:
-   ```bash
-   npm install
-   ```
+### Cursor-Based Workflows
 
-3. Run the application using the launcher:
-   ```bash
-   # Windows
-   launch.bat --stage dev
+```bash
+# Leverage Iflow's inline suggestions
+# Select code → Right-click → "Ask Iflow" for explanations
+# Type comment → Iflow auto-completes implementation
 
-   # Linux/macOS
-   ./launch.sh --stage dev
-   ```
-
-This will:
-- Set up the Python virtual environment or conda environment
-- Install Python dependencies using uv
-- Download necessary NLTK data
-- Create placeholder AI model files
-- Start the Python FastAPI server (default: port 8000)
-- Start the React frontend development server (default: port 5173)
-
-### Launcher Usage
-
-The `launch.py` script is the central tool for managing the development environment:
-
-- Setup: `python launch.py --setup`
-- Run all services: `python launch.py`
-- Run specific services:
-  - Backend only: `python launch.py --no-client --no-ui`
-  - Frontend only: `python launch.py --no-backend --no-ui`
-  - Gradio UI only: `python launch.py --no-backend --no-client`
-- Run with conda environment: `python launch.py --conda-env myenv`
-
-## AI Models Setup
-
-**Note:** This documentation describes an aspirational architecture. The current repository contains only documentation and does not include training scripts or AI model implementation.
-
-For a full EmailIntelligence deployment with AI capabilities:
-
-1. Prepare labeled datasets for training (sentiment, topic, intent, urgency classification)
-2. Implement training scripts (e.g., `scripts/train_sentiment_model.py`) to load your data
-3. Train models and save them in the expected directory structure:
-   - `models/sentiment/` - Sentiment analysis models (model.pkl, config.json)
-   - `models/topic/` - Topic classification models
-   - `models/intent/` - Intent recognition models
-   - `models/urgency/` - Urgency detection models
-
-Models should be organized in the `models/` directory with subdirectories for each model type, including both model weights and configuration files.
-
-## Environment Configuration
-
-Key environment variables for a full EmailIntelligence deployment:
-- `DATABASE_URL`: Database connection string (e.g., `sqlite:///emailintelligence.db`)
-- `GMAIL_CREDENTIALS_JSON`: Gmail API credentials JSON content
-- `NLP_MODEL_DIR`: Directory for trained NLP models (default: `models/`)
-- `PORT`: Port for the Python FastAPI server (default: `8000`)
-
-To set these variables, create a `.env` file in the project root:
-```
-DATABASE_URL=sqlite:///emailintelligence.db
-GMAIL_CREDENTIALS_JSON={"installed":{"client_id":"..."}}
-NLP_MODEL_DIR=models/
-PORT=8000
+# Terminal integration
+task-master next    # Get next task from inline terminal
 ```
 
-## Development Conventions
+### Smart Context
 
-### Code Organization
+- Iflow tracks open files automatically
+- Maintains context across edits
+- Understands your coding patterns
+- Provides continuity between sessions
 
-- Backend code is organized in `backend/python_backend/` (legacy) and `backend/python_nlp/` (NLP components)
-- Core application logic is in `src/` with Gradio UI integration
-- Node-based workflow engine in `backend/node_engine/`
-- Modular functionality in `modules/`
-- Frontend code follows standard React patterns in `client/`
-- Tests are located in `tests/`
-- AI models are organized in `models/` directory by type
+## Important Differences from Other Agents
 
-**Feature Placement Guidance:**
-- New API endpoints and backend services → `backend/python_backend/`
-- NLP analysis components and AI models → `backend/python_nlp/`
-- Core application logic and UI integration → `src/`
-- Workflow nodes and orchestration → `backend/node_engine/`
-- Reusable components and extensions → `modules/`
-- React UI components and pages → `client/`
-- Test files → `tests/` (matching source structure)
+### Non-Intrusive Assistance
+Iflow provides suggestions without forcing actions - you maintain full control.
 
-### Python Development
+### Keyboard-Centric
+Optimized for keyboard shortcuts and efficient typing workflows.
 
-- Uses `uv` for Python dependency management based on `pyproject.toml`
-- Code formatting with `black` and `isort`
-- Type checking with `mypy`
-- Testing with `pytest`
+### File-Aware Context
+Automatically loads context from open files without explicit commands.
 
-### Frontend Development
+### Seamless Integration
+Works naturally within Cursor environment - no context switching needed.
 
-- Uses Vite for building and development
-- TypeScript for type safety
-- React for UI components
+## Recommended Model Configuration
 
-### Testing
+For Iflow Cursor users:
 
-- Backend tests use `pytest`
-- Frontend tests use Vitest
-
-### Security Considerations
-
-- Securely manage API keys and credentials
-- Validate and sanitize user inputs
-- Restrict CORS policy in production
-- Ensure sensitive information is not excessively logged
-
-## Gradio UI Structure
-
-The Gradio interface provides an interactive web UI with the following tabs:
-- Simple UI (A): User-friendly interface for running pre-built workflows
-- Visual Editor (B): Node-based workflow editor
-- Admin Dashboard (C): Power-user dashboard for managing models, users, and system performance
-- Workflows: Node engine workflow system
-
-## iFlow CLI Core Mandates
-
-### Conventions
-- Rigorously adhere to existing project conventions when reading or modifying code
-- Analyze surrounding code, tests, and configuration first before making changes
-- Mimic code style, framework choices, naming conventions, typing, and architectural patterns
-
-### Libraries/Frameworks
-- NEVER assume a library/framework is available without verifying its established usage
-- Check imports, configuration files, or neighboring files to confirm usage before employing any library
-
-### Style & Structure
-- Follow existing code style and structure strictly
-- Use existing libraries and utilities already established in the project
-- Follow existing architectural patterns
-
-### Idiomatic Changes
-- Understand local context (imports, functions/classes) to ensure changes integrate naturally
-- Make changes that are idiomatic to the existing codebase
-
-## iFlow CLI Task Management
-
-iFlow CLI uses a todo system to manage and plan tasks:
-
-```python
-# Example of using todo system
-todo_write([{
-    "id": "1",
-    "task": "Implement new feature X",
-    "status": "pending"
-}])
+```bash
+# Set Iflow/Cursor-compatible model as primary
+task-master models --set-main <cursor-compatible-model>
+task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
+task-master models --set-fallback <backup-model>
 ```
 
-## Documented Development Sessions
+## Your Role with Iflow Cursor
 
-iFlow CLI supports documented development sessions to track progress and maintain context:
+As an Iflow Cursor assistant with Task Master:
 
-- **Session Tracking Directory**: `/backlog/sessions/`
-- **Session File Naming**: `IFLOW-YYYYMMDD-XXX.md` (e.g., `IFLOW-20251028-001.md`)
-- **Session Structure**:
-  - Session Information (date, ID, context)
-  - Session Goals
-  - Initial Context
-  - Activities and Progress
-  - Next Steps
-  - Notes
+1. **Provide inline suggestions** - Use Iflow's inline context for recommendations
+2. **Respect user control** - Suggest without forcing changes
+3. **Keyboard efficiency** - Optimize for keyboard-centric workflows
+4. **File context awareness** - Leverage automatically loaded file context
+5. **Quick explanations** - Provide concise, on-demand explanations
 
-All development activities should be properly recorded in session tracking files to maintain project history and context.
+**Key Principle:** Iflow Cursor is about intelligent, non-intrusive assistance. Task Master integrates for structured task management within this flow-based workflow.
 
-## iFlow CLI Software Engineering Workflow
+---
 
-When performing software engineering tasks, iFlow CLI follows this sequence:
+## Iflow Best Practices
 
-1. **Understand**: Analyze the user's request and relevant codebase context
-2. **Plan**: Build a coherent plan based on understanding
-3. **Implement**: Use available tools to act on the plan
-4. **Verify (Tests)**: Run project's testing procedures
-5. **Verify (Standards)**: Execute project-specific build, linting and type-checking commands
+- Keep files open for context continuity
+- Use quick-fix suggestions for refactoring
+- Maintain cursor position for task continuity
+- Leverage auto-completion for implementation speed
+- Reference loaded files implicitly (Iflow tracks them)
 
-## iFlow CLI Tools Available
+---
 
-iFlow CLI has access to various tools for software engineering tasks:
-
-- `read_file`: Read file contents
-- `write_file`: Write content to a file
-- `replace`: Replace text within a file
-- `search_file_content`: Search for patterns in files
-- `glob`: Find files matching patterns
-- `run_shell_command`: Execute shell commands
-- `todo_write`/`todo_read`: Task management
-
-## Advanced Features
-
-### Node-Based Workflow Engine
-
-The application includes a sophisticated node-based workflow system for creating complex email processing pipelines with:
-- Visual workflow creation
-- Security framework
-- Extensibility through plugins
-- Performance monitoring
-
-### Extension System
-
-EmailIntelligence supports an extension system for adding custom functionality:
-- Extensions can be managed using `launch.py`
-- Detailed documentation in `docs/extensions_guide.md`
-
-### Enhanced Filtering System
-
-The application features an advanced email filtering system with:
-- Multi-criteria filtering (keyword, sender, recipient, category, date/time, size)
-- Complex Boolean logic (AND, OR, NOT operations)
-- UI component for creating and managing filters
-- Integration with the workflow system
-
-### Module System
-
-The platform uses a modular architecture:
-- Core functionality in `src/core/`
-- Features added via modules in `modules/`
-- Easy extension and maintenance
-- Modules can register API routes and UI components
-
-### Migration to Modern Architecture
-
-The project is currently undergoing a migration from a monolithic structure to a modular architecture:
-- Legacy components are in `backend/python_backend/`
-- New modular components are in `src/` and `modules/`
-- Node engine for workflow processing in `backend/node_engine/`
-
-## Development Commands
-
-### Python Backend
-- **Test all**: `pytest`
-- **Format**: `black .`
-- **Lint**: `flake8 . && pylint python_backend`
-- **Type check**: `mypy .`
-
-### TypeScript/React Frontend
-- **Build**: `cd client && npm run build`
-- **Lint**: `cd client && npm run lint`
-- **Dev server**: `cd client && npm run dev`
-
-## Code Style Guidelines
-
-### Python
-- **Line length**: 100 chars max
-- **Formatting**: Black
-- **Imports**: isort (black profile)
-- **Naming**: snake_case functions/vars, CapWords classes
-- **Types**: Type hints required for all parameters/returns
-- **Docstrings**: Google-style for public functions/classes
-
-### TypeScript/React
-- **Strict mode**: Enabled
-- **JSX**: react-jsx transform
-- **Components**: Default export functions, PascalCase naming
-- **Styling**: Tailwind CSS utilities
-
-## Critical Rules
-
-- Avoid circular dependencies
-- Never hard-code paths or expose secrets
-- Use dependency injection over global state
-- Check existing dependencies before adding new libraries
-- Follow security best practices
+*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
