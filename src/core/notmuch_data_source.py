@@ -106,7 +106,7 @@ class NotmuchDataSource(DataSource):
                 from .database import DatabaseManager
                 # Use DatabaseManager as concrete implementation
                 self.db = DatabaseManager()
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
                 await self.db._ensure_initialized()
             except Exception as e:
                 logger.warning(f"Could not initialize DatabaseManager, proceeding without: {e}")

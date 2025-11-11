@@ -83,4 +83,4 @@ async def create_category(
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Failed to create category.") from db_err
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

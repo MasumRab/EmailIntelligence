@@ -94,4 +94,4 @@ async def prune_filters(request: Request, current_user: str = Depends(get_curren
         logger.error(f"Error pruning filters: {e}")
         raise HTTPException(status_code=500, detail="Failed to prune filters")
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

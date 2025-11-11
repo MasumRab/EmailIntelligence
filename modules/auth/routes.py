@@ -283,4 +283,4 @@ async def admin_only_endpoint(current_user: TokenData = Depends(require_role(Use
     """Protected endpoint that only admins can access"""
     return {"message": "Hello admin!", "user": current_user.username}
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

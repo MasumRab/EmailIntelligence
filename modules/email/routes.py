@@ -92,4 +92,4 @@ email_id: int, email_update: EmailUpdate, current_user: str = Depends(get_curren
         logger.error(f"Database error while updating email {email_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Database error occurred.")
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

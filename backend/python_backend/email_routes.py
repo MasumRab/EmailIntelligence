@@ -175,4 +175,4 @@ async def update_email(
         logger.error(json.dumps(log_data))
         raise DatabaseError(detail="Failed to update email due to an unexpected error.")
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

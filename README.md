@@ -372,7 +372,7 @@ The primary method for setting up EmailIntelligence for development is using the
     - For other environments, install Node.js dependencies (`npm install`).
 =======
 2.  Install Node.js dependencies (`npm install`).
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
 3.  Set up the PostgreSQL database (e.g., using `npm run db:setup` with Docker or configuring an existing instance).
 4.  Run the unified launcher script (`launch.py` via `launch.bat` or `launch.sh`) with the `--stage dev` flag.
 
@@ -381,7 +381,7 @@ The launcher script (`launch.py`) handles:
 - Python virtual environment activation (if created with setup_environment_wsl.sh).
 =======
 - Python virtual environment creation.
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
 - Python dependency installation from `requirements.txt`.
 - NLTK data download.
 - Creation of placeholder AI model files if they don't exist (this requires follow-up, see below).

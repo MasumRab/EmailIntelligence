@@ -226,4 +226,4 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
 if __name__ == "__main__":
     iface.launch()
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

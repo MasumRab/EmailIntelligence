@@ -32,4 +32,4 @@ Create modern, interactive workflow editing interface inspired by ComfyUI and si
 - [ ] #6 Create node templates and presets for common workflows
 <!-- AC:END -->
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d:backlog/tasks/task-9 - UI-Enhancement-Implement-JavaScript-based-visual-workflow-editor-with-drag-and-drop-functionality.md
+>>>>>>> main:backlog/tasks/task-9 - UI-Enhancement-Implement-JavaScript-based-visual-workflow-editor-with-drag-and-drop-functionality.md

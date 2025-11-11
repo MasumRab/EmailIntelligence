@@ -27,7 +27,6 @@ from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
 # Globalized data directory at the project root
 DATA_DIR = "data"
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
@@ -38,8 +37,6 @@ USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
 # TODO(P1, 6h): Refactor global state management to use dependency injection
 # TODO(P2, 4h): Make data directory configurable via environment variables or settings
 
-=======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 # Data types
 DATA_TYPE_EMAILS = "emails"
 DATA_TYPE_CATEGORIES = "categories"
@@ -109,7 +106,6 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
-<<<<<<< HEAD
     def __init__(self, config: DatabaseConfig = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
         # Support both new config-based initialization and legacy initialization
@@ -133,16 +129,6 @@ class DatabaseManager(DataSource):
             self.categories_file = CATEGORIES_FILE
             self.users_file = USERS_FILE
             self.email_content_dir = EMAIL_CONTENT_DIR
-=======
-    def __init__(self, config: DatabaseConfig):
-        """Initializes the DatabaseManager, setting up file paths and data caches."""
-        self.config = config
-        self.emails_file = config.emails_file
-        self.categories_file = config.categories_file
-        self.users_file = config.users_file
-        self.email_content_dir = config.email_content_dir
-        self.data_dir = config.data_dir
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
         # In-memory data stores
         self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
@@ -402,7 +388,7 @@ class DatabaseManager(DataSource):
 =======
     async def _prepare_new_email_record(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """Prepares a new email record with a generated ID and timestamps."""
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
         new_id = self._generate_id(self.emails_data)
         now = datetime.now(timezone.utc).isoformat()
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
@@ -465,7 +451,7 @@ class DatabaseManager(DataSource):
 <<<<<<< HEAD
         # Cache the new email
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
         self.caching_manager.put_email_record(new_id, light_email_record)
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
@@ -693,7 +679,7 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
 # to prevent hidden side effects and improve testability.
 
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
 
     async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """
@@ -714,7 +700,7 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     
 =======
 
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
@@ -794,7 +780,7 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
         )
         if idx != -1:
             self.emails_data[idx] = email
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
@@ -833,7 +819,7 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
             
 =======
         self.caching_manager.invalidate_email_record(email_id)
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
         return self._add_category_details(email_to_update)
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
@@ -885,4 +871,30 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     manager = DatabaseManager(config=config)
     await manager._ensure_initialized()
     return manager
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+
+
+# DEPRECATED: Legacy singleton pattern - kept for backward compatibility
+# TODO: Remove this once all code has been migrated to dependency injection
+_db_manager_instance = None
+
+async def get_db() -> DatabaseManager:
+    """
+    DEPRECATED: Provides backward compatibility for existing code.
+    Use create_database_manager() with explicit configuration instead.
+
+    This function maintains the old singleton pattern for code that hasn't
+    been migrated to proper dependency injection yet.
+    """
+    import warnings
+    warnings.warn(
+        "get_db() is deprecated. Use create_database_manager() with DatabaseConfig instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+
+    global _db_manager_instance
+    if _db_manager_instance is None:
+        _db_manager_instance = DatabaseManager()
+        await _db_manager_instance._ensure_initialized()
+    return _db_manager_instance
+>>>>>>> main

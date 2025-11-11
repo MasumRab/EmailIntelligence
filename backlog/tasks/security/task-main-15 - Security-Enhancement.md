@@ -56,4 +56,4 @@ Strengthen the security posture of the Email Intelligence Platform with enhanced
 - Document security procedures and best practices
 <!-- SECTION:NOTES:END -->
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d:backlog/tasks/task-main-15 - Security-Enhancement.md
+>>>>>>> main:backlog/tasks/task-main-15 - Security-Enhancement.md

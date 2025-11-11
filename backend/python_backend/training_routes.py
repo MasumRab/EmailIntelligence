@@ -170,4 +170,4 @@ async def run_training(job_id: str, model_config: ModelConfig):
         training_jobs[job_id]["message"] = f"Training failed: {str(e)}"
         logger.error(f"Training job {job_id} failed: {e}")
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

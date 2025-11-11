@@ -159,4 +159,4 @@ async def validate_analysis(
     # In a real application, this feedback would be stored and used for model retraining
     return AIValidateResponse(success=True, message="Feedback recorded successfully")
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

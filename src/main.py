@@ -3,19 +3,8 @@ import configparser
 configparser.SafeConfigParser = configparser.ConfigParser
 
 import argparse
-=======
-"""
-Main application factory for the Email Intelligence Platform's FastAPI backend.
-This file brings together all the components of the application, including
-database setup, middleware, and API routers.
-"""
-
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 import logging
-import os
-from contextlib import asynccontextmanager
 
-<<<<<<< HEAD
 import gradio as gr
 import uvicorn
 import psutil
@@ -30,32 +19,15 @@ from .core.module_manager import ModuleManager
 from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
-=======
-from fastapi import FastAPI
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
-from .core.database import DatabaseManager, DatabaseConfig
-from .core.settings import AppSettings
-from .api import (
-    emails, categories, dashboard, search,
-    gmail_service, action_service, filter_service,
-    workflow_service, performance_service
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-from .core.exceptions import (
-    DatabaseErrorHandler,
-    GmailServiceErrorHandler,
-    GeneralErrorHandler
-)
-from .middleware import PerformanceMonitoringMiddleware, RequestLoggingMiddleware
-from . import module_loader
-
 logger = logging.getLogger(__name__)
 
-# --- Dependency Injection Setup ---
-# This section defines how dependencies like the database manager are created
-# and managed throughout the application's lifecycle.
 
-<<<<<<< HEAD
 def create_system_status_tab():
     """Create the System Status tab with monitoring and diagnostics."""
 
@@ -580,74 +552,16 @@ def create_gmail_integration_tab():
 
 
 def create_app():
-=======
-db_manager: DatabaseManager = None
-
-async def get_db() -> DatabaseManager:
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
     """
-    Dependency injection function to get the database manager instance.
-    This ensures that the same instance is used across the application for a
-    given request, without relying on a global singleton.
+    Creates and configures the main FastAPI application and Gradio UI.
     """
-    global db_manager
-    if db_manager is None:
-        # This is a fallback, but in a well-managed app, db_manager should
-        # be initialized at startup.
-        logger.warning("DatabaseManager was not initialized at startup. Initializing now.")
-        settings = AppSettings()
-        db_config = DatabaseConfig(data_dir=settings.data_dir)
-        # The 'global' keyword is used to modify the db_manager in the global scope of this module
-        db_manager = await DatabaseManager(config=db_config)._ensure_initialized()
-    return db_manager
-
-# --- Application Lifecycle (Lifespan) ---
-# The lifespan context manager handles startup and shutdown events.
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Handles application startup and shutdown events.
-    - On startup: Initializes the settings and the database manager.
-    - On shutdown: Gracefully closes the database manager.
-    """
-    global db_manager
-    logger.info("Application startup...")
-
-    # Load application settings from environment variables and .env files
-    settings = AppSettings()
-
-    # Initialize the database using the settings
-    db_config = DatabaseConfig(data_dir=settings.data_dir)
-    db_manager = DatabaseManager(config=db_config)
-    await db_manager._ensure_initialized()
-
-    # Make the database manager and settings available to the rest of the app
-    app.state.db = db_manager
-    app.state.settings = settings
-
-    yield  # The application is now running
-
-    logger.info("Application shutdown...")
-    if db_manager:
-        await db_manager.shutdown()
-
-# --- Application Factory ---
-
-def create_app() -> FastAPI:
-    """
-    Creates and configures the main FastAPI application instance.
-    This function acts as the central factory for the application.
-    """
-    # Initialize the FastAPI app with the lifespan manager
+    # Create the main FastAPI app
     app = FastAPI(
-        title="Email Intelligence Platform API",
-        description="API for managing and analyzing email data with AI-powered insights.",
-        version="1.0.0",
-        lifespan=lifespan
+        title="Email Intelligence Platform",
+        description="A modular and extensible platform for email processing and analysis.",
+        version="3.0.0",
     )
 
-<<<<<<< HEAD
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -699,36 +613,19 @@ def create_app() -> FastAPI:
     async def root():
         """Redirect root to Gradio UI."""
         return RedirectResponse(url="/ui")
-=======
-    # --- Middleware ---
-    # Middleware functions are processed for every request.
-    app.add_middleware(PerformanceMonitoringMiddleware)
-    app.add_middleware(RequestLoggingMiddleware)
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
 
-    # --- Exception Handlers ---
-    # Custom handlers for specific exception types to ensure consistent error responses.
-    app.add_exception_handler(Exception, GeneralErrorHandler.handle)
-    app.add_exception_handler(IOError, DatabaseErrorHandler.handle)
-    app.add_exception_handler(ConnectionError, GmailServiceErrorHandler.handle)
+    # Create the main Gradio UI as a placeholder
+    # Modules will add their own tabs and components to this.
+    with gr.Blocks(theme=gr.themes.Soft(), title="Email Intelligence Platform") as gradio_app:
+        gr.Markdown("# Email Intelligence Platform")
 
-    # --- API Routers ---
-    # Include all the API endpoints from the 'api' module.
-    app.include_router(emails.router, prefix="/api/v1", tags=["Emails"])
-    app.include_router(categories.router, prefix="/api/v1", tags=["Categories"])
-    app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard"])
-    app.include_router(search.router, prefix="/api/v1", tags=["Search"])
-    app.include_router(gmail_service.router, prefix="/api/v1", tags=["Gmail Service"])
-    app.include_router(action_service.router, prefix="/api/v1", tags=["Action Service"])
-    app.include_router(filter_service.router, prefix="/api/v1", tags=["Filter Service"])
-    app.include_router(workflow_service.router, prefix="/api/v1", tags=["Workflow Service"])
-    app.include_router(performance_service.router, prefix="/api/v1", tags=["Performance"])
+        with gr.Tabs():
+            with gr.TabItem("Simple UI (A)"):
+                gr.Markdown("## Simple & Streamlined UI\nThis is the placeholder for the simple, user-friendly interface where users can run pre-built workflows.")
 
-    # --- Modular Component Loading ---
-    # Dynamically load and register modules from the 'modules' directory.
-    module_loader.load_and_register_modules(app)
+            with gr.TabItem("Visual Editor (B)"):
+                gr.Markdown("## Visual & Node-Based UI\nThis is the placeholder for the powerful, node-based workflow editor.")
 
-<<<<<<< HEAD
             with gr.TabItem("System Status"):
                 create_system_status_tab()
 
@@ -789,15 +686,32 @@ def create_app() -> FastAPI:
     gr.mount_gradio_app(app, gradio_app, path="/ui")
 
     logger.info("Application creation complete. FastAPI and Gradio are integrated.")
-=======
-    # --- Root Endpoint ---
-    @app.get("/", tags=["Root"])
-    async def read_root():
-        """
-        A simple root endpoint to confirm the API is running.
-        """
-        return {"message": "Welcome to the Email Intelligence Platform API!"}
-
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
     return app
+
+
+def main():
+    """
+    Main entry point to run the server.
+    """
+    parser = argparse.ArgumentParser(description="Run the Email Intelligence Platform.")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to run the server on.")
+    parser.add_argument("--port", type=int, default=7860, help="Port to run the server on.")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
+    args = parser.parse_args()
+
+    app = create_app()
+
+    uvicorn.run(
+        "src.main:create_app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        factory=True,
+    )
+
+
+if __name__ == "__main__":
+    main()
+=======
 # Test change for orchestration sync
+>>>>>>> main

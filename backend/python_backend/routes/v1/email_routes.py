@@ -165,4 +165,4 @@ async def update_email_v1(
         # Raise appropriate exception if not found
         raise EmailNotFoundException(email_id=email_id)
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

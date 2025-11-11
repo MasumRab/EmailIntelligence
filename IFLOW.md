@@ -331,4 +331,4 @@ The project is currently undergoing a migration from a monolithic structure to a
 - Check existing dependencies before adding new libraries
 - Follow security best practices
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

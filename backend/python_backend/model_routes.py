@@ -64,4 +64,4 @@ async def unload_model(
         logger.error(f"Error unloading model {model_name}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to unload model '{model_name}'")
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

@@ -187,4 +187,4 @@ class EmailService(BaseService):
             # Return default values in case of error
             return {"emails": 0, "percentage": 0.0}
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

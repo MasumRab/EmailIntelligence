@@ -86,4 +86,4 @@ async def create_category_v1(
 
         raise HTTPException(status_code=500, detail=result.error)
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main

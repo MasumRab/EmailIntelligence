@@ -53,4 +53,4 @@
 - Security: Never expose or log sensitive data
 - Global State: Use dependency injection over global state
 =======
->>>>>>> 837f0b4c3be0be620537c058dd8dba25d8ac010d
+>>>>>>> main
