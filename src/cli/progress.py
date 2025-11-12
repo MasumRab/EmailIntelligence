@@ -1,3 +1,13 @@
+"""
+TODO: Deprecate and remove this module.
+
+This module provides a basic, blocking progress bar implementation.
+It has been superseded by the use of `tqdm` for progress indicators
+in the new unified CLI (`src/cli/main.py`).
+
+This module (along with other modules in `src/cli/` like `analyze.py`, `ci.py`,
+`identify.py`, `install.py`, `verify.py`) should be deprecated and removed.
+"""
 import time
 import sys
 
