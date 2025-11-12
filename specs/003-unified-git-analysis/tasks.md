@@ -8,7 +8,7 @@ The implementation will follow a logical progression, starting with foundational
 
 ## Phase 1: Setup (Consolidated)
 
-- [ ] T001 Create project structure in `src/` with `models/`, `services/`, `cli/`, `lib/` directories, and `tests/` with `unit/`, `integration/`, `contract/` subdirectories.
+- [x] T001 Create project structure in `src/` with `models/`, `services/`, `cli/`, `lib/` directories, and `tests/` with `unit/`, `integration/`, `contract/` subdirectories.
 - [ ] T002 Create a `requirements.txt` file and add `GitPython` and `pytest`.
 - [ ] T003 Create a virtual environment and install dependencies from `requirements.txt`.
 
