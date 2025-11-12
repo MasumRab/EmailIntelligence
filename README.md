@@ -42,6 +42,15 @@ The primary goal is to keep the core email intelligence codebase clean by separa
 - `.gitignore`, `.gitattributes` - Git configuration
 - `launch.py` (root wrapper) - Forwards to setup/launch.py (backward compatibility)
 
+### Agent Context & Development Environment Files
+- `AGENTS.md` - Task Master and agent integration guide
+- `CLAUDE.md` - Claude Code auto-loaded context and MCP configuration
+- `.claude/` - Claude Code integration directory (settings, custom commands)
+- `.mcp.json` - MCP server configuration for agent tools integration
+- `.context-control/profiles/` - Context profiles for branch-specific agent access control
+- `.specify/` - Agent specification and rule files
+- `.taskmaster/` - Task Master configuration and task management
+
 ### Orchestration Documentation
 - `docs/orchestration_summary.md` - Summary of orchestration workflow
 - `docs/orchestration_validation_tests.md` - Validation tests for orchestration
@@ -60,22 +69,25 @@ The primary goal is to keep the core email intelligence codebase clean by separa
 The following files are NOT needed in this orchestration-focused branch and can be safely removed:
 
 ### Application Source Code
-- `src/` - Application source code
+- `src/` - Application source code (except `src/core/` if shared with core utilities)
 - `modules/` - Application modules
 - `backend/` - Backend implementation
 - `client/` - Frontend implementation
 - `tests/` - Application tests
+- `plugins/` - Plugin implementations
 
 ### Application Data & Dependencies
 - `data/` - Application data
 - `node_modules/` - Node.js dependencies
 - `performance_metrics_log.jsonl` - Runtime logs
+- `.venv/` - Virtual environment (will be recreated)
+- `venv/` - Alternative virtual environment directory
 
-### Application-Specific Configurations
-- `.env.example` - Application environment example
-- `.mcp.json` - MCP-specific configuration (if application-specific)
-- `.rules` - Application-specific rules
-- Any documentation files in `docs/` that are not orchestration-related
+### Deprecated or Redundant Files
+- `.rules` - Application-specific rules (keep integration settings, remove app-specific rules)
+- `.env.example` - Application environment example (keep shared environment config templates only)
+- Old deployment configs or scripts unrelated to orchestration setup
+- Any documentation files in `docs/` that are application-specific (not orchestration-related)
 
 ## Git Hook Behavior
 
@@ -122,27 +134,71 @@ When making changes to orchestration files, follow these important steps:
 
 ## Cleanup Strategy
 
-To clean this branch for orchestration-only purposes:
+To clean this branch for orchestration-only purposes, follow this comprehensive cleanup guide:
 
+### Phase 1: Remove Application Code
 ```bash
-# Remove application-specific directories
-rm -rf src/
+# Remove application source directories
+rm -rf src/backend/ src/core/ src/frontend/  # Keep only src/context_control if shared
 rm -rf modules/
 rm -rf tests/
-rm -rf data/
-rm -rf backend/
-rm -rf client/
-rm -rf node_modules/
-
-# Remove application-specific files
-rm -f .env.example
-rm -f .mcp.json
-rm -f .rules
-rm -f performance_metrics_log.jsonl
-
-# Review docs/ and remove non-orchestration documentation
-# (Keep orchestration_summary.md, orchestration_validation_tests.md, env_management.md, git_workflow_plan.md, and directories)
+rm -rf plugins/
 ```
+
+### Phase 2: Remove Application Data & Runtime Files
+```bash
+# Remove runtime artifacts
+rm -rf data/
+rm -rf node_modules/
+rm -rf __pycache__/
+rm -rf .pytest_cache/
+rm -rf .venv/ venv/
+rm -f performance_metrics_log.jsonl
+rm -f *.db *.sqlite*
+```
+
+### Phase 3: Clean Documentation
+```bash
+# Keep orchestration docs, remove application-specific documentation
+# Keep: docs/orchestration_*.md, docs/env_management.md, docs/git_workflow_plan.md, 
+#       docs/stash_*.md, docs/guides/, docs/current_orchestration_docs/
+# Remove application-specific docs and READMEs from feature/module directories
+```
+
+### Phase 4: Clean Configuration Files
+```bash
+# Keep MCP, Claude, and context control configs (for agent integration)
+# Keep: .mcp.json, .claude/, AGENTS.md, CLAUDE.md, .context-control/profiles/, .specify/, .taskmaster/
+
+# Remove application-specific configs
+rm -f .env.example  # (or keep only shared templates)
+rm -f deployment/docker-compose*.yml  # Unless essential for orchestration
+rm -f nginx/  # Remove unless used for setup
+```
+
+### Phase 5: Documentation Review
+After cleanup, run:
+```bash
+git status --short
+# Review remaining files to ensure all are orchestration-related
+# Run: git rm --cached <file> to untrack files, then commit
+```
+
+### Important: Preserve Agent Integration Context
+When cleaning, **DO NOT REMOVE** these files as they are essential for:
+- Automated task management with Task Master
+- Claude Code context and MCP tool integration
+- Branch-specific agent access control
+- Development environment consistency
+
+Keep:
+- `AGENTS.md` - Essential for agent workflow documentation
+- `CLAUDE.md` - Auto-loaded context for AI development tools
+- `.claude/` - Custom slash commands and tool configurations
+- `.mcp.json` - MCP server configuration for orchestration tools
+- `.context-control/` - Context profiles ensuring agents have appropriate access per branch
+- `.specify/` - Agent specifications and behavioral rules
+- `.taskmaster/` - Task tracking and orchestration task management
 
 ## Important Notes
 
@@ -151,3 +207,7 @@ rm -f performance_metrics_log.jsonl
 - All Git hooks in `scripts/hooks/` are essential for the orchestration workflow
 - This branch serves as the single source of truth for all environment and tooling configurations
 - Changes to orchestration-managed files require PRs through the automated system
+- Agent context files (AGENTS.md, CLAUDE.md, .claude/, .mcp.json, .context-control/, .specify/, .taskmaster/) are CRITICAL for maintaining agent integration and should always be preserved
+- These agent integration files are synchronized across all branches via the post-checkout hook to ensure consistent agent access control and task management
+- Context control profiles ensure agents have appropriate access per branch (e.g., scientific branch agents don't see orchestration scripts)
+- Task Master configurations are used for centralized task tracking and workflow automation across branches
