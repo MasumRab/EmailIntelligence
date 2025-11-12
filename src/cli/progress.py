@@ -1,22 +1,23 @@
 """
-TODO: Refactor or remove this module.
+Module for a basic, blocking progress bar implementation.
 
-This module provides a basic, blocking progress bar implementation.
-It has been superseded by the use of `tqdm` for progress indicators
-in the new unified CLI (`src/cli/main.py`).
+TODO: Assess the necessity of this module and either remove it or refactor it
+for specific, limited use cases.
+
+This module's `progress_bar` function has largely been superseded by the use
+of `tqdm` for progress indicators in the new unified CLI (`src/cli/main.py`).
 
 To adhere to SOLID principles, specifically the Single Responsibility Principle (SRP)
 and the Open/Closed Principle (OCP), consider the following:
 
 1.  **Remove if Obsolete:** If this `progress_bar` function is no longer used
-    anywhere in the project, it should be removed to reduce codebase clutter
-    and improve maintainability.
-2.  **Refactor for Reusability (if needed):** If there's a specific use case
-    where a simple, blocking progress bar is still desired (e.g., for very
-    short, non-async operations where `tqdm` might be overkill), refactor
-    this function to be a standalone, reusable utility that adheres to SRP.
-    Ensure it doesn't block the main thread unnecessarily if used in a larger
-    application.
+    anywhere in the project (e.g., after migrating all calls to `tqdm`), it
+    should be removed to reduce codebase clutter and improve maintainability.
+2.  **Refactor for Reusability (if needed):** If a specific, simple, blocking
+    progress bar is still genuinely required (e.g., for very short, non-async
+    operations where `tqdm` might be overkill), refactor this function to be
+    a standalone, reusable utility that adheres to SRP. Ensure it doesn't block
+    the main thread unnecessarily if used in a larger application.
 3.  **Consistency:** For consistency across the CLI, `tqdm` is the preferred
     progress indicator. Any new progress indication should leverage `tqdm`.
 """

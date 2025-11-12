@@ -16,69 +16,47 @@ class LLMClient:
 class DiffParser:
     def prioritize_code_changes(self, diff_content: str) -> str:
         """
-        TODO: Implement a full-featured diff prioritization logic.
+        TODO: Develop and implement a robust, full-featured diff prioritization logic.
 
-        This method should analyze the raw Git diff content and identify the most
-        semantically significant changes, filtering out noise and less impactful
-        modifications.
-
-        Key considerations for a full implementation:
-        1.  **Language-Specific Parsing:** Utilize AST (Abstract Syntax Tree) parsing
-            for different programming languages (e.g., Python's `ast` module, Tree-sitter)
-            to understand the code structure.
-        2.  **Filtering Noise:**
-            *   **Whitespace/Formatting:** Ignore changes that are purely whitespace,
-                indentation, or minor formatting (e.g., from linters).
-            *   **Comment-Only Changes:** Prioritize changes to executable code over
-                changes to comments, unless comments are critical documentation.
-        3.  **Focus on Semantic Changes:** Identify changes that alter the meaning or
-            behavior of the code, such as:
-            *   Modifications to function/method signatures (parameters, return types).
-            *   Changes in class or interface definitions (adding/removing members, inheritance).
-            *   Alterations to control flow statements (if/else conditions, loop bounds).
-            *   Changes in variable declarations or assignments that impact logic.
-            *   Modifications to API endpoints or data models.
-            *   Changes in configuration files that alter system behavior.
-        4.  **Heuristics:** Develop heuristics to weigh the importance of different
-            types of changes. For example, a change in a core algorithm might be
-            more significant than a change in a UI string.
-        5.  **Contextual Analysis:** Consider the context of the change (e.g., changes
-            in a test file vs. a production file).
-
-        The output should be a concise, structured representation of the most important
-        code changes, suitable for input to an LLM for narrative generation.
+        This method currently provides a mock implementation. A complete solution
+        requires significant development to analyze raw Git diff content, identify
+        semantically significant changes, and filter out noise. This task should
+        be broken down into sub-tasks covering:
+        1.  **Research & Tooling:** Investigate existing language-specific AST parsers
+            (e.g., Tree-sitter, Python's `ast` module) and diff parsing libraries.
+        2.  **Noise Reduction:** Implement logic to ignore whitespace, formatting,
+            and non-critical comment changes.
+        3.  **Semantic Change Detection:** Develop rules or heuristics to identify
+            changes that alter code behavior (e.g., function signatures, control flow,
+            data models).
+        4.  **Contextual Weighting:** Incorporate contextual analysis (e.g., test vs.
+            production code) to weigh change importance.
+        5.  **Structured Output:** Define and implement a structured output format
+            suitable for downstream LLM processing.
         """
         # Mock diff prioritization for now
         return f"Prioritized diff: {diff_content[:100]}..."
 
     def parse_diff_for_changes(self, diff_content: str) -> List[Dict[str, Any]]:
         """
-        TODO: Implement robust diff parsing and intent inference.
+        TODO: Develop and implement robust diff parsing and intent inference.
 
-        This method should parse a diff content to extract detailed changes
-        (additions, deletions, modifications) and infer the high-level intent
-        behind these changes.
-
-        Key considerations for a full implementation:
-        1.  **Granular Change Detection:** Instead of just 'modify', identify
-            'add', 'delete', 'rename', 'move' for files, and more granular
-            changes within files (e.g., 'function_added', 'variable_changed').
-        2.  **Intent Inference:** Based on patterns of changes, infer the intent:
-            *   **New Feature:** Adding new files, classes, functions, or significant
-                blocks of code.
-            *   **Bug Fix:** Changes concentrated in a specific area, especially
-                within conditional logic or error handling.
-            *   **Refactoring:** Restructuring code without changing external behavior.
-            *   **Performance Optimization:** Changes related to algorithms, data structures.
-            *   **Documentation/Tests:** Changes primarily in documentation or test files.
-        3.  **Structured Output:** Each change should be a dict with:
-            *   `file_path`: Path to the affected file.
-            *   `change_type`: Granular type of change (e.g., 'add', 'delete', 'modify', 'rename', 'refactor').
-            *   `inferred_intent`: High-level intent (e.g., 'new_feature', 'bug_fix').
-            *   `line_numbers`: Specific line ranges affected.
-            *   `code_snippet`: Relevant code snippets for context.
-        4.  **Diff Parsing Libraries:** Consider using existing libraries that
-            can parse Git diffs more effectively than simple string splitting.
+        This method currently provides a basic, naive implementation. A comprehensive
+        solution requires advanced parsing of diff content to extract granular changes
+        and infer high-level development intent. This task should be broken down
+        into sub-tasks covering:
+        1.  **Granular Change Detection:** Implement detailed detection for file
+            operations (add, delete, rename, move) and in-file changes (e.g.,
+            function/class additions/deletions, variable modifications).
+        2.  **Intent Inference Engine:** Develop an inference engine to categorize
+            changes into high-level intents (e.g., new feature, bug fix, refactoring,
+            performance optimization, documentation). This may involve rule-based
+            systems or machine learning.
+        3.  **Structured Output Definition:** Define a comprehensive structured
+            output for each change, including file path, granular change type,
+            inferred intent, affected line numbers, and relevant code snippets.
+        4.  **Library Integration:** Integrate with specialized diff parsing libraries
+            to handle complex diff formats and provide richer information.
         """
         changes = []
         current_file = None

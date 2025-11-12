@@ -1,20 +1,22 @@
 """
-TODO: Refactor and integrate this module's functionality into `src/cli/main.py`.
+Module for the `ci-check` CLI command.
 
-This module provides a `ci-check` command. To adhere to SOLID principles,
-specifically the Single Responsibility Principle (SRP) and Open/Closed Principle (OCP),
-consider the following:
+TODO: Refactor this module to integrate its functionality into `src/cli/main.py`
+and extract core CI check orchestration logic into a dedicated service.
 
-1.  **Extract Core Logic:** The core CI check orchestration logic should be
-    refactored into a dedicated service (e.g., `CIService` in `src/services/`)
-    that can be reused independently of the CLI. This service would compose
-    various check components (linters, testers, static analyzers).
-2.  **CLI Command Integration:** The `ci_check_command` and `add_ci_check_parser`
-    functions should be refactored to become part of the `src/cli/main.py`'s
-    sub-command structure. This centralizes CLI entry points and argument parsing.
-3.  **Dependency Inversion:** Ensure that the `ci_check_command` depends on
-    abstractions (e.g., a `CIService` interface) rather than concrete
-    implementations, allowing for easier testing and swapping of check components.
+To adhere to SOLID principles, specifically the Single Responsibility Principle (SRP)
+and Open/Closed Principle (OCP), the following steps are required:
+
+1.  **Extract Core Logic:** Move the core CI check orchestration logic into a
+    dedicated `CIService` (e.g., in `src/services/`) to allow independent reuse
+    and testing. This service would compose various check components (linters,
+    testers, static analyzers).
+2.  **CLI Command Integration:** Refactor `ci_check_command` and `add_ci_check_parser`
+    to become part of `src/cli/main.py`'s sub-command structure, centralizing
+    CLI entry points and argument parsing.
+3.  **Dependency Inversion:** Ensure `ci_check_command` depends on abstractions
+    (e.g., a `CIService` interface) rather than concrete implementations, allowing
+    for easier testing and swapping of check components.
 4.  **Modularity:** Each type of CI check (linting, testing, static analysis)
     should ideally be a separate, pluggable component that the `CIService` can
     orchestrate.
@@ -23,9 +25,10 @@ def ci_check_command(args):
     """
     Handles the ci-check command.
 
-    TODO: Implement comprehensive CI checks.
-    In a real implementation, this function would orchestrate a series of checks,
-    including but not limited to:
+    TODO: Implement comprehensive CI checks within the `CIService`.
+
+    The `CIService` should orchestrate a series of checks, including but not
+    limited to:
     1.  **Linting:** Run code linters (e.g., Flake8, Pylint, Black, Ruff) to ensure
         code style and quality.
     2.  **Unit Tests:** Execute unit test suites (e.g., pytest) to verify individual

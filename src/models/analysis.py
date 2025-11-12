@@ -1,21 +1,29 @@
 """
-TODO: Refactor or deprecate this module.
+Module for legacy analysis data models.
 
-This module defines `Commit` and `Intention` dataclasses. It appears to be an older
-or alternative set of data models for analysis.
-
+This module defines `Commit` and `Intention` dataclasses, which represent
+an older or alternative set of data models for analysis within the system.
 The new unified data models for the `git-verifier` feature are defined in
 `src/models/unified_analysis.py` (`ActionNarrative`, `IntentReport`, `VerificationResult`).
 
-Consider the following:
-1.  **Consolidation:** If the concepts of `Commit` and `Intention` are still relevant,
-    their definitions and usage should be consolidated with the models in
-    `src/models/unified_analysis.py` to maintain a single source of truth for data structures.
-2.  **Deprecation:** If these models are no longer used by any active part of the system,
-    this module should be deprecated and eventually removed to reduce codebase clutter.
-3.  **Refinement:** If `file_changes_summary` in `Commit` or `status` in `Intention`
-    are to be used, they should be refined (e.g., `file_changes_summary` could be a
-    list of structured change objects, `status` could be an Enum).
+TODO: Plan for migration and eventual removal of this module.
+1.  **Assess Usage:** Identify all remaining dependencies on `src/models/analysis.py`,
+    including `tests/unit/test_rebase_analyzer.py` and any other potential internal
+    or external consumers.
+2.  **Migration Strategy:** Develop a clear strategy to migrate existing code
+    (especially tests) to use the unified models in `src/models/unified_analysis.py`.
+    This might involve:
+    *   Creating adapter functions or classes.
+    *   Directly refactoring dependent code to use the new models.
+3.  **Consolidation/Refinement:** If the concepts of `Commit` and `Intention` are
+    still fundamentally relevant, ensure their essential attributes are represented
+    or integrated into the unified models. Refine any necessary fields (e.g.,
+    `file_changes_summary` could be a list of structured change objects, `status`
+    could be an Enum).
+4.  **Deprecation Path:** Once all dependencies are migrated, formally deprecate
+    this module (e.g., by adding a `warnings.warn` in its usage points) and
+    schedule its removal to reduce codebase clutter and maintain a single source
+    of truth for data structures.
 """
 from dataclasses import dataclass
 from datetime import datetime

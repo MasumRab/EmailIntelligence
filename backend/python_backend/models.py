@@ -1,9 +1,19 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Pydantic Models for Email Intelligence System.
 
-Pydantic Models for Gmail AI Email Management
-Data validation and serialization models
+TODO: This module is slated for refactoring and migration.
+Its models should be reviewed and integrated into the `src/models/` directory
+as part of a broader architectural cleanup and consolidation of data models.
+Once all models are migrated and no longer referenced here, this file should be removed.
+
+This module defines the core data structures and validation schemas using Pydantic
+for various components of the AI-powered email management system. It encompasses
+models for email representation, categorization, AI analysis, Gmail synchronization,
+smart retrieval strategies, email filtering, performance metrics, dashboard statistics,
+AI model training, system health checks, search operations, and batch processing.
+
+These models ensure data consistency, enable robust API interactions, and facilitate
+clear communication between different services within the Email Intelligence Gem.
 """
 
 from datetime import datetime

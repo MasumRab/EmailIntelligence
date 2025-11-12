@@ -1,22 +1,25 @@
 """
-TODO: Refactor and integrate this module's functionality into `src/cli/main.py`.
+Module for the `verify` CLI command.
 
-This module provides a `verify` command that uses `MergeVerifier`.
+TODO: Refactor this module to integrate its functionality into `src/cli/main.py`
+and consolidate its core verification logic.
+
 To adhere to SOLID principles, specifically the Single Responsibility Principle (SRP)
-and Open/Closed Principle (OCP), consider the following:
+and Open/Closed Principle (OCP), the following steps are required:
 
-1.  **Extract Core Logic:** The core verification logic within `MergeVerifier` should be
-    reused or integrated into the `AnalysisService` in `src/services/analysis_service.py`.
-    This ensures that verification logic resides in a single, well-defined service.
-2.  **CLI Command Integration:** The `verify_command` and `add_verify_parser` functions
-    should be refactored to become part of the `src/cli/main.py`'s sub-command structure.
-    This centralizes CLI entry points and argument parsing.
-3.  **Dependency Inversion:** Ensure that the `verify_command` depends on abstractions
+1.  **Consolidate Core Logic:** The core verification logic, currently within
+    `MergeVerifier`, should be integrated into or reused by the `AnalysisService`
+    in `src/services/analysis_service.py`. This ensures a single, well-defined
+    service for analysis and verification.
+2.  **CLI Command Integration:** Refactor `verify_command` and `add_verify_parser`
+    to become part of `src/cli/main.py`'s sub-command structure, centralizing
+    CLI entry points and argument parsing.
+3.  **Dependency Inversion:** Ensure `verify_command` depends on abstractions
     (e.g., an `AnalysisService` interface) rather than concrete implementations,
     allowing for easier testing and swapping of verification backends.
-4.  **Modularity:** If `MergeVerifier` offers distinct functionality not covered by
-    `AnalysisService`, refactor it as a separate, reusable component that `AnalysisService`
-    or `src/cli/main.py` can compose.
+4.  **Modularity:** If `MergeVerifier` provides distinct functionality not fully
+    covered by `AnalysisService`, refactor it as a separate, reusable component
+    that `AnalysisService` or `src/cli/main.py` can compose.
 """
 from ..services.merge_verifier import MergeVerifier
 from ..lib.git_wrapper import GitWrapper

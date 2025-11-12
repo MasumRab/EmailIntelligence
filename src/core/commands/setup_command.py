@@ -82,7 +82,7 @@ class SetupCommand(Command):
         """
         TODO: Implement comprehensive environment validation.
 
-        This method should perform checks to ensure the system meets the
+        This method should perform robust checks to ensure the system meets the
         minimum requirements for the project. This includes:
         1.  **Python Version Check:** Verify that the installed Python version
             is compatible (e.g., Python 3.12+).
@@ -92,6 +92,8 @@ class SetupCommand(Command):
         4.  **OS Compatibility:** Verify compatibility with the operating system
             (e.g., Linux, macOS, WSL).
         5.  **Resource Availability:** Optionally check for sufficient RAM, disk space.
+        Consider extracting specific validation checks into smaller, testable functions
+        to adhere to the Single Responsibility Principle.
         """
         logger.info("Validating environment...")
 
@@ -122,9 +124,10 @@ class SetupCommand(Command):
         """
         TODO: Enhance dependency installation logic.
 
-        This method should install project dependencies. Future enhancements:
-        1.  **Dynamic Project Root:** The hardcoded path `/home/masum/github/EmailIntelligenceGem/`
-            should be replaced with a dynamic path derived from `ROOT_DIR`.
+        This method should install project dependencies with greater robustness and flexibility.
+        Future enhancements should include:
+        1.  **Dynamic Project Root:** Replace the hardcoded installation path with a
+            dynamic path derived from `ROOT_DIR`.
         2.  **Dependency File Flexibility:** Support for different dependency files
             (e.g., `requirements.txt`, `pyproject.toml` with `poetry` or `pdm`).
         3.  **CPU/GPU Specifics:** Better handling of CPU-only vs. GPU-enabled
@@ -132,6 +135,8 @@ class SetupCommand(Command):
         4.  **Error Handling:** More robust error handling and user guidance for
             failed installations.
         5.  **Progress Indicators:** Integrate progress indicators for long installations.
+        Consider encapsulating complex installation steps into dedicated helper functions
+        or a `DependencyInstaller` service for better modularity and testability.
         """
         logger.info("Installing dependencies...")
         try:
@@ -140,7 +145,7 @@ class SetupCommand(Command):
                 self._run_command(["sudo", "apt-get", "install", "-y", "notmuch", "python3-notmuch"], "Installing notmuch and python3-notmuch")
             python_exe = self._get_venv_executable("python")
             self._run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
-            # TODO: Make the installation path dynamic.
+            # TODO: Replace hardcoded installation path with `str(ROOT_DIR)` for dynamic path resolution.
             # Replace "/home/masum/github/EmailIntelligenceGem/" with `str(ROOT_DIR)`
             self._run_command([str(python_exe), "-m", "uv", "pip", "install", "-e", "/home/masum/github/EmailIntelligenceGem/"], "Installing dependencies with uv", cwd=ROOT_DIR)
             logger.info("Dependencies installed successfully")
@@ -197,6 +202,8 @@ class SetupCommand(Command):
             core components of the application can start or execute.
         4.  **Configuration Files:** Check for the presence and validity of
             essential configuration files.
+        Consider extracting individual validation checks into separate functions
+        to improve readability and maintainability.
         """
         logger.info("Validating setup...")
 

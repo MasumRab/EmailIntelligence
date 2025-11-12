@@ -1,22 +1,25 @@
 """
-TODO: Refactor and integrate this module's functionality into `src/cli/main.py`.
+Module for the `analyze` CLI command.
 
-This module provides an `analyze` command that uses `RebaseAnalyzer`.
+TODO: Refactor this module to integrate its functionality into `src/cli/main.py`
+and consolidate its core analysis logic.
+
 To adhere to SOLID principles, specifically the Single Responsibility Principle (SRP)
-and Open/Closed Principle (OCP), consider the following:
+and Open/Closed Principle (OCP), the following steps are required:
 
-1.  **Extract Core Logic:** The core analysis logic within `RebaseAnalyzer` should be
-    reused or integrated into the `AnalysisService` in `src/services/analysis_service.py`.
-    This ensures that analysis logic resides in a single, well-defined service.
-2.  **CLI Command Integration:** The `analyze_command` and `add_analyze_parser` functions
-    should be refactored to become part of the `src/cli/main.py`'s sub-command structure.
-    This centralizes CLI entry points and argument parsing.
-3.  **Dependency Inversion:** Ensure that the `analyze_command` depends on abstractions
+1.  **Consolidate Core Logic:** The core analysis logic, currently within
+    `RebaseAnalyzer`, should be integrated into or reused by the `AnalysisService`
+    in `src/services/analysis_service.py`. This ensures a single, well-defined
+    service for analysis.
+2.  **CLI Command Integration:** Refactor `analyze_command` and `add_analyze_parser`
+    to become part of `src/cli/main.py`'s sub-command structure, centralizing
+    CLI entry points and argument parsing.
+3.  **Dependency Inversion:** Ensure `analyze_command` depends on abstractions
     (e.g., an `AnalysisService` interface) rather than concrete implementations,
     allowing for easier testing and swapping of analysis backends.
-4.  **Modularity:** If `RebaseAnalyzer` offers distinct functionality not covered by
-    `AnalysisService`, refactor it as a separate, reusable component that `AnalysisService`
-    or `src/cli/main.py` can compose.
+4.  **Modularity:** If `RebaseAnalyzer` provides distinct functionality not fully
+    covered by `AnalysisService`, refactor it as a separate, reusable component
+    that `AnalysisService` or `src/cli/main.py` can compose.
 """
 from ..services.rebase_analyzer import RebaseAnalyzer
 from ..lib.git_wrapper import GitWrapper

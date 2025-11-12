@@ -1,32 +1,33 @@
 """
-TODO: Refactor and integrate this module's functionality into `src/cli/main.py`.
+Module for the `install` CLI command.
 
-This module provides an `install` command. To adhere to SOLID principles,
-specifically the Single Responsibility Principle (SRP) and Open/Closed Principle (OCP),
-consider the following:
+TODO: Refactor this module to integrate its functionality into `src/cli/main.py`
+and extract core installation logic into a dedicated service.
 
-1.  **Extract Core Logic:** The core installation logic should be refactored into
-    a dedicated service (e.g., `InstallationService` in `src/services/`) that
-    can be reused independently of the CLI. This service would handle tasks like
-    symlink creation, environment variable setup, etc.
-2.  **CLI Command Integration:** The `install_command` and `add_install_parser`
-    functions should be refactored to become part of the `src/cli/main.py`'s
-    sub-command structure. This centralizes CLI entry points and argument parsing.
-3.  **Dependency Inversion:** Ensure that the `install_command` depends on
-    abstractions (e.g., an `InstallationService` interface) rather than concrete
-    implementations, allowing for easier testing and platform-specific adaptations.
+To adhere to SOLID principles, specifically the Single Responsibility Principle (SRP)
+and Open/Closed Principle (OCP), the following steps are required:
+
+1.  **Extract Core Logic:** Move the core installation logic into a dedicated
+    `InstallationService` (e.g., in `src/services/`) to allow independent reuse
+    and testing. This service should handle tasks like symlink creation,
+    environment variable setup, etc.
+2.  **CLI Command Integration:** Refactor `install_command` and `add_install_parser`
+    to become part of `src/cli/main.py`'s sub-command structure, centralizing
+    CLI entry points and argument parsing.
+3.  **Dependency Inversion:** Ensure `install_command` depends on abstractions
+    (e.g., an `InstallationService` interface) rather than concrete implementations.
 4.  **Modularity:** Break down the installation process into smaller, independent
-    steps (e.g., `create_symlink`, `configure_shell_alias`) that can be composed
-    and extended.
+    steps (e.g., `create_symlink`, `configure_shell_alias`) for better composition
+    and extensibility.
 """
 def install_command(args):
     """
     Handles the install command.
 
-    TODO: Implement robust installation logic.
-    In a real implementation, this function would handle setting up the tool
-    for easy access from the command line. This could involve:
-    1.  **Creating a Symlink:** Create a symbolic link to `src/cli/main.py`
+    TODO: Implement robust installation logic within the `InstallationService`.
+
+    The `InstallationService` should encapsulate the following functionalities:
+    1.  **Symlink Creation:** Create a symbolic link to `src/cli/main.py`
         in a directory that is part of the user's PATH (e.g., `/usr/local/bin`
         or `~/.local/bin`).
     2.  **Shell Aliases:** Provide instructions or automatically configure
