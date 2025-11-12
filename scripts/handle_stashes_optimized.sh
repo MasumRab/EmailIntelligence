@@ -221,14 +221,14 @@ process_stash() {
             # Use the interactive resolver
             local interactive_script="$SCRIPT_DIR/interactive_stash_resolver_optimized.sh"
             if [[ -f "$interactive_script" ]]; then
-                "$interactive_script" --preview "stash@{$stash_index}"
-                if confirm_action "Apply stash with interactive resolution?"; then
-                    "$interactive_script" "stash@{$stash_index}"
+                if "$interactive_script" "stash@{$stash_index}"; then
+                    print_color "GREEN" "Stash applied successfully with interactive resolution"
                 else
-                    print_color "YELLOW" "Skipping interactive resolution"
+                    print_color "YELLOW" "Interactive resolution cancelled or failed"
                     # Return to previous state
                     git checkout . > /dev/null 2>&1
                     git clean -fd > /dev/null 2>&1
+                    return 1
                 fi
             else
                 print_color "RED" "Interactive resolver not found, skipping stash@$stash_index"
