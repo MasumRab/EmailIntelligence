@@ -225,10 +225,9 @@ resolve_todo_item() {
             local resolver_script="$SCRIPT_DIR/interactive_stash_resolver_optimized.sh"
             if [[ -f "$resolver_script" ]]; then
                 if "$resolver_script" "$stash_ref"; then
-                    # Mark as resolved - escape special characters in message
-                    local escaped_message="${message//\//\\/}"
-                    sed -i "s|^${id}|${id}|${stash_ref}|${branch}|${escaped_message}|resolved|" "$TODO_FILE"
-                    print_color "GREEN" "Stash resolved successfully"
+                # Mark as resolved - use proper field matching
+                sed -i "/^${id}\|/s/|pending$|/|resolved|/" "$TODO_FILE"
+                print_color "GREEN" "Stash resolved successfully"
                     
                     # Ask if user wants to drop the stash
                     if confirm_action "Drop the stash now?"; then
@@ -247,10 +246,9 @@ resolve_todo_item() {
             # Apply without conflicts
             print_color "BLUE" "Applying stash..."
             if git stash apply "$stash_ref"; then
-                # Mark as resolved - escape special characters in message
-                local escaped_message="${message//\//\\/}"
-                sed -i "s|^${id}|${id}|${stash_ref}|${branch}|${escaped_message}|resolved|" "$TODO_FILE"
-                print_color "GREEN" "Stash applied successfully"
+            # Mark as resolved - use proper field matching
+            sed -i "/^${id}\|/s/|pending$|/|resolved|/" "$TODO_FILE"
+            print_color "GREEN" "Stash applied successfully"
                 
                 # Add all changes
                 git add -A
@@ -266,13 +264,12 @@ resolve_todo_item() {
             fi
             ;;
         3)
-            # Drop the stash
-            if confirm_action "Are you sure you want to drop $stash_ref?"; then
-                git stash drop "$stash_ref"
-                # Mark as resolved - escape special characters in message
-                local escaped_message="${message//\//\\/}"
-                sed -i "s|^${id}|${id}|${stash_ref}|${branch}|${escaped_message}|resolved|" "$TODO_FILE"
-                print_color "GREEN" "Stash dropped"
+        # Drop the stash
+        if confirm_action "Are you sure you want to drop $stash_ref?"; then
+        git stash drop "$stash_ref"
+        # Mark as resolved - use proper field matching
+        sed -i "/^${id}\|/s/|pending$|/|resolved|/" "$TODO_FILE"
+        print_color "GREEN" "Stash dropped"
             else
                 print_color "BLUE" "Operation cancelled"
             fi
@@ -284,14 +281,13 @@ resolve_todo_item() {
             git checkout -b "$new_branch"
             
             if git stash apply "$stash_ref"; then
-                git add -A
-                git commit -m "Apply stash: $message"
-                print_color "GREEN" "Changes committed to branch $new_branch"
-                print_color "YELLOW" "Remember to push and merge when ready"
-                
-                # Mark as resolved - escape special characters in message
-                local escaped_message="${message//\//\\/}"
-                sed -i "s|^${id}|${id}|${stash_ref}|${branch}|${escaped_message}|resolved|" "$TODO_FILE"
+            git add -A
+            git commit -m "Apply stash: $message"
+            print_color "GREEN" "Changes committed to branch $new_branch"
+            print_color "YELLOW" "Remember to push and merge when ready"
+            
+            # Mark as resolved - use proper field matching
+            sed -i "/^${id}\|/s/|pending$|/|resolved|/" "$TODO_FILE"
             else
                 print_color "RED" "Failed to apply stash"
                 git checkout -
@@ -338,9 +334,8 @@ skip_todo_item() {
         return 0
     fi
     
-    # Mark as skipped - escape special characters in message
-    local escaped_message="${message//\//\\/}"
-    sed -i "s|^${id}|${id}|${stash_ref}|${branch}|${escaped_message}|skipped|" "$TODO_FILE"
+    # Mark as skipped - use proper field matching
+    sed -i "/^${id}\|/s/|pending$|/|skipped|/" "$TODO_FILE"
     print_color "GREEN" "Item $item_id marked as skipped"
 }
 
