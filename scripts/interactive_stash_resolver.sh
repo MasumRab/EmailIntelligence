@@ -20,16 +20,24 @@ resolve_conflict() {
     echo ""
     
     # Show the conflict with line numbers
-    local line_num=1
     while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ "$line" =~ ^<<<<<<< ]]; then
-            echo -e "${RED}<<<<<<< ${line#<<<<<<< }${NC}"
-        elif [[ "$line" =~ ^======= ]]; then
-            echo -e "${YELLOW}=======${NC}"
-        elif [[ "$line" =~ ^>>>>>>> ]]; then
-            echo -e "${RED}>>>>>>> ${line#>>>>>>> }${NC}"
+        # FIXED: Use substring matching instead of regex to avoid bash syntax errors with conflict markers
+        if [[ "${line:0:7}" == "<<<<<<<" ]]; then
+            print_color "RED" "<<<<<<< ${line#<<<<<<< } (THEIRS - from stash)"
+            in_theirs_block=true
+        elif [[ "${line:0:7}" == "=======" ]]; then
+            print_color "YELLOW" "======= (SEPARATOR)"
+            in_theirs_block=false
+            in_ours_block=true
+        elif [[ "${line:0:7}" == ">>>>>>> " ]]; then
+            print_color "RED" ">>>>>>> ${line#>>>>>>> } (OURS - from working directory)"
+            in_ours_block=false
+        elif [[ "$in_theirs_block" == true ]]; then
+            print_color "RED" "  $line_num: $line"
+        elif [[ "$in_ours_block" == true ]]; then
+            print_color "GREEN" "  $line_num: $line"
         else
-            echo "$line_num: $line"
+            echo "  $line_num: $line"
         fi
         ((line_num++))
     done < "$file"

@@ -28,14 +28,15 @@ resolve_conflict() {
     local in_theirs_block=false
     
     while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ "$line" =~ ^<<<<<<< ]]; then
+        # FIXED: Use substring matching instead of regex to avoid bash syntax errors with conflict markers
+        if [[ "${line:0:7}" == "<<<<<<<" ]]; then
             print_color "RED" "<<<<<<< ${line#<<<<<<< } (THEIRS - from stash)"
             in_theirs_block=true
-        elif [[ "$line" =~ ^======= ]]; then
+        elif [[ "${line:0:7}" == "=======" ]]; then
             print_color "YELLOW" "======= (SEPARATOR)"
             in_theirs_block=false
             in_ours_block=true
-        elif [[ "$line" =~ ^>>>>>>> ]]; then
+        elif [[ "${line:0:7}" == ">>>>>>> " ]]; then
             print_color "RED" ">>>>>>> ${line#>>>>>>> } (OURS - from working directory)"
             in_ours_block=false
         elif [[ "$in_theirs_block" == true ]]; then
@@ -127,7 +128,8 @@ resolve_conflict_by_lines() {
     # Show the file with conflict markers
     local line_num=1
     while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ "$line" =~ ^<<<<<<< ]] || [[ "$line" =~ ^======= ]] || [[ "$line" =~ ^>>>>>>> ]]; then
+        # FIXED: Use substring matching instead of regex to avoid bash syntax errors with conflict markers
+        if [[ "${line:0:7}" == "<<<<<<<" ]] || [[ "${line:0:7}" == "=======" ]] || [[ "${line:0:7}" == ">>>>>>> " ]]; then
             echo "  $line_num: $line"
         else
             echo "$line_num: $line"
