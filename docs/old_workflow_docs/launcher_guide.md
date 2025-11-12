@@ -1,3 +1,4 @@
+<<<<<<< HEAD:docs/old_workflow_docs/launcher_guide.md
 # EmailIntelligence Launcher
 
 The EmailIntelligence Launcher is a unified way to run the EmailIntelligence application with automatic environment setup, dependency management, and configuration.
@@ -227,3 +228,5 @@ Or check the system information:
 ```
 python launch.py --system-info
 ```
+=======
+>>>>>>> scientific:docs/launcher_guide.md

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Development and testing dependencies
 # These are installed in addition to base requirements
 
@@ -18,3 +19,16 @@ uvicorn[standard]>=0.30.0
 
 # Additional development dependencies
 # Add any development-specific packages here
+=======
+# This is a dummy requirements-dev.txt for testing launch.py
+# It can be empty or list development-specific packages.
+# Example:
+# pytest
+# flake8
+nltk==3.8.1
+uvicorn[standard]>=0.15.0
+fastapi>=0.70.0
+pytest>=7.0.0
+gradio
+pytest-asyncio
+>>>>>>> scientific

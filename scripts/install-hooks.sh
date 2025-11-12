@@ -19,7 +19,11 @@
 #
 # AUTHOR: Orchestration Team
 # VERSION: 2.1.0
+<<<<<<< HEAD
 #
+=======
+# 
+>>>>>>> scientific
 # NOTE: When orchestration files are updated, run this script to ensure
 # all hooks are properly installed. See docs/orchestration_hook_management.md
 # for complete update procedures.
@@ -41,6 +45,11 @@ REQUIRED_HOOKS=(
 
 # Parse command line arguments
 parse_install_args() {
+<<<<<<< HEAD
+=======
+    FORCE=false
+    VERBOSE=false
+>>>>>>> scientific
     HELP_REQUESTED=false
 
     while [[ $# -gt 0 ]]; do
@@ -68,6 +77,36 @@ parse_install_args() {
     done
 }
 
+<<<<<<< HEAD
+=======
+# Validate a hook for errors before installation
+validate_hook() {
+    local hook_name=$1
+    local hook_path="$HOOKS_DIR/$hook_name"
+    local temp_file=$(mktemp)
+
+    log_debug "Validating hook: $hook_name"
+
+    # Get the remote content
+    if ! git show "origin/$ORCHESTRATION_BRANCH:$hook_path" > "$temp_file" 2>/dev/null; then
+        log_error "Cannot retrieve hook $hook_name for validation"
+        rm -f "$temp_file"
+        return 1
+    fi
+
+    # Check for merge conflicts
+    if grep -q "^<<<<<<< " "$temp_file" || grep -q "^=======$" "$temp_file" || grep -q "^>>>>>>>" "$temp_file"; then
+        log_warn "Hook $hook_name contains merge conflict markers - skipping installation"
+        rm -f "$temp_file"
+        return 1
+    fi
+
+    rm -f "$temp_file"
+    log_debug "Hook $hook_name validation passed"
+    return 0
+}
+
+>>>>>>> scientific
 # Install a single hook from orchestration-tools branch
 install_hook_from_remote() {
     local hook_name=$1
@@ -93,6 +132,15 @@ install_hook_from_remote() {
         return 1
     fi
 
+<<<<<<< HEAD
+=======
+    # Validate the hook before installation
+    if ! validate_hook "$hook_name"; then
+        log_warn "Hook $hook_name failed validation - installation skipped"
+        return 1
+    fi
+
+>>>>>>> scientific
     # Check if update is needed
     local needs_update=true
     if [[ -f "$git_hook_path" ]] && ! $FORCE; then
@@ -141,6 +189,18 @@ main() {
         exit 1
     fi
 
+<<<<<<< HEAD
+=======
+    # Remove existing local hooks to ensure clean installation
+    log_info "Removing existing local hooks for clean installation"
+    for hook_name in "${REQUIRED_HOOKS[@]}"; do
+        if [[ -f ".git/hooks/$hook_name" ]]; then
+            rm -f ".git/hooks/$hook_name"
+            log_debug "Removed existing hook: $hook_name"
+        fi
+    done
+
+>>>>>>> scientific
     local installed=0
     local failed=0
 

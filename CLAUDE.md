@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Claude AI Assistant - Context & Guidelines
 
 > **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Claude-specific features and integrations.
@@ -110,3 +111,36 @@ As a Claude assistant with Task Master:
 ---
 
 *See AGENTS.md for complete Task Master commands, workflows, and best practices.*
+=======
+Please also reference the following documents as needed:
+
+@.claude/memories/CLAUDE.md description: "Claude-specific rules" globs: "**/*"
+# Project Overview
+
+## General Guidelines
+
+- Use TypeScript for all new code
+- Follow consistent naming conventions
+- Write self-documenting code with clear variable and function names
+- Prefer composition over inheritance
+- Use meaningful comments for complex business logic
+
+## Code Style
+
+- Use 2 spaces for indentation
+- Use semicolons
+- Use double quotes for strings
+- Use trailing commas in multi-line objects and arrays
+
+## Architecture Principles
+
+- Organize code by feature, not by file type
+- Keep related files close together
+- Use dependency injection for better testability
+- Implement proper error handling
+- Follow single responsibility principle
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md
+>>>>>>> scientific
