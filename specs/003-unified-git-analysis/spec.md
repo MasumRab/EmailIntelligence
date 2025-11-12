@@ -76,7 +76,7 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST synthesize a narrative description by prioritizing code changes, inferring intent from them, cross-referencing with the commit message, and using an LLM to generate a human-like summary of both.
+- **FR-001**: The system MUST synthesize a narrative description by prioritizing code changes, inferring intent from them, and cross-referencing with the commit message, AND using an LLM to generate a human-like summary of both.
 - **FR-002**: The system MUST provide a mechanism to detect rebased branches by looking for "rebase (finish)" messages in the reflog.
 - **FR-003**: The system MUST generate a consolidated "Intent Report" for a given branch.
 - **FR-004**: The system MUST compare a merged branch's state against an Intent Report and identify discrepancies, defined as any difference in file content between the Intent Report's expected state and the merged branch's actual state.
@@ -108,7 +108,7 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 ## Clarifications
 
 ### Session 2025-11-11
-- Q: How should the "synthesized narrative" be generated? → A: Prioritize code changes, inferring intent from them, and cross-referencing with the commit message, and use an LLM to generate a human-like summary of both.
+- Q: How should the "synthesized narrative" be generated? → A: Prioritize code changes, inferring intent from them, and cross-referencing with the commit message, AND use an LLM to generate a human-like summary of both.
 - Q: What specific reflog patterns or heuristics define a "rebased branch" for detection? → A: Look for "rebase (finish)" messages in the reflog.
 - Q: What defines a "discrepancy" during verification? → A: Any difference in file content between the Intent Report's expected state and the merged branch's actual state.
 - Q: What information should be included in the `missing_changes` and `unexpected_changes` objects within `VerificationResult`? → A: Commit SHA, file path, and type of change (add/delete/modify).
