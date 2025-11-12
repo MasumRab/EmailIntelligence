@@ -14,7 +14,7 @@ The implementation will follow a logical progression, starting with foundational
 
 ## Phase 2: Foundational (Consolidated)
 
-- [ ] T004 Implement a robust Git repository wrapper in `src/lib/git_wrapper.py` to handle repository initialization, commit iteration, and reflog access.
+- [x] T004 Implement a robust Git repository wrapper in `src/lib/git_wrapper.py` to handle repository initialization, commit iteration, and reflog access.
 
 ## Phase 3: Testing (TDD)
 
