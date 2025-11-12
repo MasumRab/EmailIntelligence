@@ -1,4 +1,5 @@
 import git
+import re
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -65,12 +66,14 @@ class AnalysisService:
         reflog_entries = self.git_wrapper.get_reflog()
         rebased_branches = []
         for entry in reflog_entries:
+            # As per spec, detect rebased branches by looking for "rebase (finish)" messages
             if "rebase (finish)" in entry.message:
                 # Extract branch name from reflog message
+                # Example: "rebase (finish): refs/heads/feature_branch"
                 match = re.search(r"refs/heads/(\S+)", entry.message)
                 if match:
                     branch_name = match.group(1)
-                    if branch_name not in rebased_branches:
+                    if branch_name not in rebased_branches: # Avoid duplicates
                         rebased_branches.append(branch_name)
         return rebased_branches
 
