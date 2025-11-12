@@ -15,14 +15,70 @@ class LLMClient:
 
 class DiffParser:
     def prioritize_code_changes(self, diff_content: str) -> str:
+        """
+        TODO: Implement a full-featured diff prioritization logic.
+
+        This method should analyze the raw Git diff content and identify the most
+        semantically significant changes, filtering out noise and less impactful
+        modifications.
+
+        Key considerations for a full implementation:
+        1.  **Language-Specific Parsing:** Utilize AST (Abstract Syntax Tree) parsing
+            for different programming languages (e.g., Python's `ast` module, Tree-sitter)
+            to understand the code structure.
+        2.  **Filtering Noise:**
+            *   **Whitespace/Formatting:** Ignore changes that are purely whitespace,
+                indentation, or minor formatting (e.g., from linters).
+            *   **Comment-Only Changes:** Prioritize changes to executable code over
+                changes to comments, unless comments are critical documentation.
+        3.  **Focus on Semantic Changes:** Identify changes that alter the meaning or
+            behavior of the code, such as:
+            *   Modifications to function/method signatures (parameters, return types).
+            *   Changes in class or interface definitions (adding/removing members, inheritance).
+            *   Alterations to control flow statements (if/else conditions, loop bounds).
+            *   Changes in variable declarations or assignments that impact logic.
+            *   Modifications to API endpoints or data models.
+            *   Changes in configuration files that alter system behavior.
+        4.  **Heuristics:** Develop heuristics to weigh the importance of different
+            types of changes. For example, a change in a core algorithm might be
+            more significant than a change in a UI string.
+        5.  **Contextual Analysis:** Consider the context of the change (e.g., changes
+            in a test file vs. a production file).
+
+        The output should be a concise, structured representation of the most important
+        code changes, suitable for input to an LLM for narrative generation.
+        """
         # Mock diff prioritization for now
         return f"Prioritized diff: {diff_content[:100]}..."
 
     def parse_diff_for_changes(self, diff_content: str) -> List[Dict[str, Any]]:
         """
-        Parses a diff content and extracts a list of changes.
-        Each change is a dict with 'file_path' and 'change_type'.
-        (Simplified for now, actual implementation would be more robust)
+        TODO: Implement robust diff parsing and intent inference.
+
+        This method should parse a diff content to extract detailed changes
+        (additions, deletions, modifications) and infer the high-level intent
+        behind these changes.
+
+        Key considerations for a full implementation:
+        1.  **Granular Change Detection:** Instead of just 'modify', identify
+            'add', 'delete', 'rename', 'move' for files, and more granular
+            changes within files (e.g., 'function_added', 'variable_changed').
+        2.  **Intent Inference:** Based on patterns of changes, infer the intent:
+            *   **New Feature:** Adding new files, classes, functions, or significant
+                blocks of code.
+            *   **Bug Fix:** Changes concentrated in a specific area, especially
+                within conditional logic or error handling.
+            *   **Refactoring:** Restructuring code without changing external behavior.
+            *   **Performance Optimization:** Changes related to algorithms, data structures.
+            *   **Documentation/Tests:** Changes primarily in documentation or test files.
+        3.  **Structured Output:** Each change should be a dict with:
+            *   `file_path`: Path to the affected file.
+            *   `change_type`: Granular type of change (e.g., 'add', 'delete', 'modify', 'rename', 'refactor').
+            *   `inferred_intent`: High-level intent (e.g., 'new_feature', 'bug_fix').
+            *   `line_numbers`: Specific line ranges affected.
+            *   `code_snippet`: Relevant code snippets for context.
+        4.  **Diff Parsing Libraries:** Consider using existing libraries that
+            can parse Git diffs more effectively than simple string splitting.
         """
         changes = []
         current_file = None
