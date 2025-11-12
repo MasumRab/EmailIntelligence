@@ -32,7 +32,7 @@ The implementation will follow a logical progression, starting with foundational
 **Independent Test Criteria**: The `git-verifier analyze` command should generate a synthesized narrative for a given commit range.
 
 - [x] T009 [US1] Implement the data models (`ActionNarrative`, `IntentReport`, `VerificationResult`) in `src/models/unified_analysis.py`.
-- [ ] T010 [US1] Implement the core narrative synthesis logic within a new `src/services/analysis_service.py`.
+- [x] T010 [US1] Implement the core narrative synthesis logic within a new `src/services/analysis_service.py`.
 - [ ] T011 [US4] Implement the main CLI entry point for `git-verifier` and the `analyze` sub-command in `src/cli/main.py`.
 
 ## Phase 5: Rebase Detection (US2)
