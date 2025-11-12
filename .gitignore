@@ -22,6 +22,7 @@ jsons/*
 
 # Build / packaging artifacts
 build/
+dist/
 *.egg-info/
 pip-wheel-metadata/
 *.egg
@@ -49,6 +50,7 @@ coverage/
 .history
 
 # Misc
+diagnosis_message.txt
 logs/
 
 # Ignore configuration and local environment files
@@ -56,14 +58,26 @@ logs/
 *.local.json
 *.local.yaml
 *.local.yml
+jsons/client_id.json
+credentials.json
+jsons/apikey.json
 config.local.*
 config/llm_guidelines.local.json
+
+# Ignore hidden files and directories, with exceptions
+.*
+!docs/.gitkeep
+!.semgrep/
+!.gitignore
+!.git/hooks/
 
 # Python cache
 __pycache__/
 
 # Miscellaneous
+diagnosis_message.txt
 performance_metrics_log.jsonl
+config/llm_guidelines.local.json
 models/*.pkl
 worktrees/
 
@@ -73,15 +87,3 @@ worktrees/
 *.backup
 backlog/config.yml.bak
 original_readme.md
-
-# Hidden files/directories (exceptions below)
-.aider.tags.cache.v4/
-.aider.chat.history.md
-.aider.conf.yml
-.aider.input.history
-.curl/
-.npm/
-.npm-*
-.python-version
-.ruby-version
-.tool-versions
