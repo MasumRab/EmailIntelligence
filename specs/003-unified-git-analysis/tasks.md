@@ -48,7 +48,7 @@ The implementation will follow a logical progression, starting with foundational
 **Goal**: Implement the post-merge verification functionality.
 **Independent Test Criteria**: The `git-verifier verify` command should correctly compare a merged branch against a pre-generated Intent Report.
 
-- [ ] T014 [US3] Implement the verification logic in `src/services/analysis_service.py` to compare an `IntentReport` with the state of a merged branch.
+- [x] T014 [US3] Implement the verification logic in `src/services/analysis_service.py` to compare an `IntentReport` with the state of a merged branch.
 - [ ] T015 [US3] Implement the `verify` sub-command in `src/cli/main.py`.
 
 ## Final Phase: Polish & Cross-Cutting Concerns (Consolidated)
