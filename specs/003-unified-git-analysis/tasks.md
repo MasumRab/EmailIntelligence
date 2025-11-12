@@ -41,7 +41,7 @@ The implementation will follow a logical progression, starting with foundational
 **Independent Test Criteria**: The `git-verifier detect-rebased` command should correctly identify branches that have been rebased.
 
 - [x] T012 [US2] Implement the rebase detection logic in `src/services/analysis_service.py`, using the reflog access provided by the `git_wrapper`.
-- [ ] T013 [US2] Implement the `detect-rebased` sub-command in `src/cli/main.py`.
+- [x] T013 [US2] Implement the `detect-rebased` sub-command in `src/cli/main.py`.
 
 ## Phase 6: Verification (US3)
 

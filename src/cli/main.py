@@ -7,6 +7,7 @@ import sys
 from src.lib.git_wrapper import GitWrapper
 from src.services.analysis_service import AnalysisService
 from src.models.unified_analysis import ActionNarrative, IntentReport, VerificationResult
+from datetime import datetime # Import datetime for IntentReport reconstruction
 
 def main():
     parser = argparse.ArgumentParser(prog="git-verifier", description="A unified tool to analyze Git history, generate a synthesized description of intent, and verify the integrity of the code after merges or rebases.")
@@ -78,15 +79,23 @@ async def handle_analyze_command(args, analysis_service: AnalysisService):
 
 async def handle_detect_rebased_command(args, analysis_service: AnalysisService):
     rebased_branches = await analysis_service.detect_rebased_branches()
+    
+    # Filter by --since if provided (placeholder for actual date filtering logic)
+    if args.since:
+        # For now, just a placeholder. Actual filtering would involve parsing args.since
+        # and comparing with reflog entry dates.
+        print(f"Filtering rebased branches since {args.since} (not yet implemented)", file=sys.stderr)
+
     if args.json:
         output_data = rebased_branches
-    else:
-        output_data = "\n".join(rebased_branches)
-
-    if args.json: # Only dump JSON if --json is specified
         print(json.dumps(output_data, indent=4))
     else:
-        print(output_data)
+        if rebased_branches:
+            print("Detected rebased branches:")
+            for branch in rebased_branches:
+                print(f"- {branch}")
+        else:
+            print("No rebased branches detected.")
 
 async def handle_verify_command(args, analysis_service: AnalysisService):
     try:
