@@ -2,7 +2,8 @@
 # Interactive stash resolution with line-by-line conflict resolution
 # This script provides an interactive way to resolve stash conflicts with granular control
 
-set -e
+# Note: NOT using set -e to allow proper error handling and user choices
+set +e  # Explicitly disable exit-on-error for this script
 
 # Colors for output
 RED='\033[0;31m'
@@ -52,19 +53,24 @@ resolve_conflict() {
             git add "$file"
             ;;
         2)
-            echo "Accepting all 'ours' changes..."
+            echo "Accepting all 'ours' changes (current working tree)..."
             git checkout --ours "$file"
             git add "$file"
             ;;
         3)
             echo "Keeping both versions..."
             # Remove conflict markers while keeping both versions
-            sed -i '/^<<<<<<< /d; /^=======/d; /^>>>>>>> /d' "$file"
+            # This keeps all content, just removes the markers
+            sed -i '/^<<<<<<< /,/^>>>>>>> /{ /^<<<<<<< /d; /^=======/d; /^>>>>>>> /d; }' "$file"
             git add "$file"
             ;;
         4)
             echo "Opening file in editor for manual resolution..."
             ${EDITOR:-vi} "$file"
+            if [[ $? -ne 0 ]]; then
+                echo -e "${RED}Editor exited with error${NC}"
+                return 1
+            fi
             echo "Please resolve the conflicts and press Enter when done..."
             read -r _
             git add "$file"
@@ -122,7 +128,7 @@ apply_stash_interactive() {
         # Add any remaining modified files
         modified_files=$(git diff --name-only --diff-filter=AM)
         if [[ -n "$modified_files" ]]; then
-            git add $modified_files
+            echo "$modified_files" | xargs -I {} git add "{}"
         fi
         
         return 0
@@ -153,6 +159,14 @@ if [[ $# -eq 0 ]]; then
 fi
 
 STASH_REF="$1"
+
+# Validate stash exists
+if ! git rev-parse "$STASH_REF" > /dev/null 2>&1; then
+    echo -e "${RED}Error: Stash '$STASH_REF' not found${NC}"
+    echo "Available stashes:"
+    git stash list
+    exit 1
+fi
 
 # Show stash info
 show_stash_info "$STASH_REF"
