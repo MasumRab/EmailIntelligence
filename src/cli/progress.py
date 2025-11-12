@@ -1,12 +1,24 @@
 """
-TODO: Deprecate and remove this module.
+TODO: Refactor or remove this module.
 
 This module provides a basic, blocking progress bar implementation.
 It has been superseded by the use of `tqdm` for progress indicators
 in the new unified CLI (`src/cli/main.py`).
 
-This module (along with other modules in `src/cli/` like `analyze.py`, `ci.py`,
-`identify.py`, `install.py`, `verify.py`) should be deprecated and removed.
+To adhere to SOLID principles, specifically the Single Responsibility Principle (SRP)
+and the Open/Closed Principle (OCP), consider the following:
+
+1.  **Remove if Obsolete:** If this `progress_bar` function is no longer used
+    anywhere in the project, it should be removed to reduce codebase clutter
+    and improve maintainability.
+2.  **Refactor for Reusability (if needed):** If there's a specific use case
+    where a simple, blocking progress bar is still desired (e.g., for very
+    short, non-async operations where `tqdm` might be overkill), refactor
+    this function to be a standalone, reusable utility that adheres to SRP.
+    Ensure it doesn't block the main thread unnecessarily if used in a larger
+    application.
+3.  **Consistency:** For consistency across the CLI, `tqdm` is the preferred
+    progress indicator. Any new progress indication should leverage `tqdm`.
 """
 import time
 import sys
