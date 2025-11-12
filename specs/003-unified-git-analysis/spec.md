@@ -68,7 +68,7 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 
 ### Edge Cases
 
-- How does verification handle intentional changes made during a rebase (e.g., fixing a typo in a previous commit)?
+- How does verification handle intentional changes made during a rebase (e.g., fixing a typo in a previous commit)? The tool will treat these as discrepancies unless explicitly marked/ignored by the user.
 - What is the performance on very large repositories with tens of thousands of commits?
 - How are merge commits handled during narrative generation and verification?
 
@@ -76,10 +76,10 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST synthesize a narrative description from both commit messages and code diffs.
-- **FR-002**: The system MUST provide a mechanism to detect rebased branches.
+- **FR-001**: The system MUST synthesize a narrative description by prioritizing code changes, inferring intent from them, and cross-referencing with the commit message.
+- **FR-002**: The system MUST provide a mechanism to detect rebased branches by looking for "rebase (finish)" messages in the reflog.
 - **FR-003**: The system MUST generate a consolidated "Intent Report" for a given branch.
-- **FR-004**: The system MUST compare a merged branch's state against an Intent Report and identify discrepancies.
+- **FR-004**: The system MUST compare a merged branch's state against an Intent Report and identify discrepancies, defined as any difference in file content between the Intent Report's expected state and the merged branch's actual state.
 - **FR-005**: The system MUST be accessible as a single CLI tool (`git-verifier`).
 - **FR-006**: The system MUST allow analysis of any arbitrary commit range, not just rebased branches.
 
@@ -87,7 +87,9 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 
 - **ActionNarrative**: A synthesized description of a single commit's intent and actions.
 - **IntentReport**: A collection of `ActionNarrative`s for all commits in a branch, representing the total intended change.
-- **VerificationResult**: The output of the verification process, indicating consistency or listing discrepancies.
+- **VerificationResult**: The output of the verification process, indicating consistency or listing discrepancies between an `IntentReport` and the final merged state.
+  - `missing_changes`: `list[object]` where each object contains `commit_hexsha` (string), `file_path` (string), `change_type` (string: add/delete/modify).
+  - `unexpected_changes`: `list[object]` where each object contains `commit_hexsha` (string), `file_path` (string), `change_type` (string: add/delete/modify).
 
 ## Success Criteria *(mandatory)*
 
@@ -102,3 +104,12 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 
 - The system has access to the Git repository's reflog to help identify rebased branches.
 - The primary value is in verifying that the *content* of the final merge is consistent with the intent of the individual commits, not that the commit hashes themselves are identical.
+
+## Clarifications
+
+### Session 2025-11-11
+- Q: How should the "synthesized narrative" be generated? → A: Prioritize code changes, inferring intent from them, and cross-referencing with the commit message.
+- Q: What specific reflog patterns or heuristics define a "rebased branch" for detection? → A: Look for "rebase (finish)" messages in the reflog.
+- Q: What defines a "discrepancy" during verification? → A: Any difference in file content between the Intent Report's expected state and the merged branch's actual state.
+- Q: What information should be included in the `missing_changes` and `unexpected_changes` objects within `VerificationResult`? → A: Commit SHA, file path, and type of change (add/delete/modify).
+- Q: How should the tool handle "intentional changes" made during a rebase (e.g., fixing a typo in a previous commit) during verification? → A: Treat them as discrepancies unless explicitly marked/ignored by the user.
