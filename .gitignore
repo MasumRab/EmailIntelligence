@@ -69,6 +69,7 @@ config/llm_guidelines.local.json
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
+!.gitattributes
 !.git/hooks/
 !.flake8
 !.pylintrc
