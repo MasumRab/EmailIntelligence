@@ -51,11 +51,13 @@ from setup.project_config import get_project_config
 try:
     from setup.commands.command_factory import get_command_factory
     from setup.container import get_container, initialize_all_services
+    COMMAND_PATTERN_AVAILABLE = True
 except ImportError as e:
     # Command pattern not available, will use legacy mode
     get_command_factory = None
     get_container = None
     initialize_all_services = None
+    COMMAND_PATTERN_AVAILABLE = False
 
 try:
     from dotenv import load_dotenv
@@ -111,8 +113,7 @@ def is_conda_available():
     return _is_conda_available()
 
 
-# Command pattern availability (will be set later)
-COMMAND_PATTERN_AVAILABLE = False
+# Command pattern availability (set in try/except block above)
 
 
 def setup_wsl_environment():
@@ -319,7 +320,7 @@ def check_critical_files() -> bool:
         
         # Deployment files
         "deployment/deploy.py",
-        "deployment/test_stages.py",
+        "setup/test_stages.py",
         "deployment/docker-compose.yml",
     ]
     

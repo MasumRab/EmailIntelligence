@@ -176,7 +176,7 @@ This will create a new extension template in the `backend/extensions/my_extensio
 You can customize the launcher by modifying the following files:
 
 - `launch.py`: The main launcher script, which now integrates environment management.
-- `deployment/test_stages.py`: Manages testing for different stages.
+- `setup/test_stages.py`: Manages testing for different stages.
 
 ## Troubleshooting
 

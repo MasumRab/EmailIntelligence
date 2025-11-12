@@ -140,6 +140,7 @@ A comprehensive suite of tests is available to ensure the quality and stability 
 ## Directory Structure
 
 - `deployment/`: Contains deployment-related scripts and utilities.
+- `setup/`: Contains setup and configuration utilities.
   - `test_stages.py`: Script for testing deployment stages.
 - `launch.py`: Unified launcher script for development and deployment.
 - `backend/python_backend/metrics.py`: Provides Prometheus metrics for application monitoring.

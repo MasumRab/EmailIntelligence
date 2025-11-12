@@ -91,6 +91,7 @@ class ContextController:
             accessible_files=self._resolve_accessible_files(profile),
             restricted_files=self._resolve_restricted_files(profile),
             agent_settings=profile.agent_settings,  # Inherit agent settings from profile
+            profile_config=project_config,
         )
 
         # Attach project config to context for agent adaptation

@@ -68,7 +68,7 @@ The following files are considered critical for orchestration and are validated:
 
 7. **Deployment Files**
    - `deployment/deploy.py` - Deployment management script
-   - `deployment/test_stages.py` - Test execution stages
+   - `setup/test_stages.py` - Test execution stages
    - `deployment/docker-compose.yml` - Docker Compose configuration
 
 ### Critical Directories
