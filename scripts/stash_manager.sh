@@ -4,12 +4,21 @@
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Source common library to avoid code duplication
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMMON_LIB="$SCRIPT_DIR/lib/stash_common.sh"
+
+# Check if running the optimized version with common library
+if [[ -f "$COMMON_LIB" ]]; then
+    source "$COMMON_LIB"
+else
+    # Fallback: Define colors inline if library not found
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    NC='\033[0m' # No Color
+fi
 
 # Function to display help
 show_help() {
@@ -83,12 +92,13 @@ apply_stash_interactive() {
     
     echo -e "${BLUE}Applying stash $stash_ref with interactive conflict resolution...${NC}"
     
-    # Check if interactive resolver exists
-    if [[ -f "/home/masum/github/EmailIntelligence/scripts/interactive_stash_resolver.sh" ]]; then
-        /home/masum/github/EmailIntelligence/scripts/interactive_stash_resolver.sh "$stash_ref"
+    # Check if interactive resolver exists (use relative path)
+    local interactive_resolver="$SCRIPT_DIR/interactive_stash_resolver.sh"
+    if [[ -f "$interactive_resolver" ]]; then
+        "$interactive_resolver" "$stash_ref"
         return $?
     else
-        echo -e "${YELLOW}Interactive resolver not found, falling back to standard apply...${NC}"
+        echo -e "${YELLOW}Interactive resolver not found at $interactive_resolver, falling back to standard apply...${NC}"
         apply_stash "$stash_ref"
         return $?
     fi

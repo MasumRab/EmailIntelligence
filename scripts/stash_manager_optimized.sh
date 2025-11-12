@@ -68,26 +68,28 @@ list_stashes() {
     done
 }
 
-# Function to show stash details using common library function
-show_stash() {
+# Function to show stash details (wrapper around common library)
+show_stash_wrapper() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
         print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    show_stash "$stash_ref"  # Using function from common library
+    # Call the common library function directly
+    show_stash "$stash_ref"
 }
 
-# Function to apply stash non-interactively using common library function
-apply_stash() {
+# Function to apply stash non-interactively (wrapper around common library)
+apply_stash_wrapper() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
         print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    apply_stash "$stash_ref" "false"  # Using function from common library
+    # Call the common library function directly
+    apply_stash "$stash_ref" "false"
 }
 
 # Function to apply stash with interactive conflict resolution
@@ -397,10 +399,10 @@ main() {
             list_stashes
             ;;
         show)
-            show_stash "$2"
+            show_stash_wrapper "$2"
             ;;
         apply)
-            apply_stash "$2"
+            apply_stash_wrapper "$2"
             ;;
         apply-interactive)
             apply_stash_interactive "$2"
