@@ -10,7 +10,7 @@ The implementation will follow a logical progression, starting with foundational
 
 - [x] T001 Create project structure in `src/` with `models/`, `services/`, `cli/`, `lib/` directories, and `tests/` with `unit/`, `integration/`, `contract/` subdirectories.
 - [x] T002 Create a `requirements.txt` file and add `GitPython` and `pytest`.
-- [ ] T003 Create a virtual environment and install dependencies from `requirements.txt`.
+- [x] T003 Create a virtual environment and install dependencies from `requirements.txt`.
 
 ## Phase 2: Foundational (Consolidated)
 
