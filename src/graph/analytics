@@ -1,0 +1,1053 @@
+"""
+Graph analytics and metrics calculation for PR Resolution System
+"""
+
+import time
+import math
+from typing import List, Dict, Set, Optional, Tuple, Any
+from collections import defaultdict, Counter
+from datetime import datetime, timedelta
+import structlog
+
+from ...database.connection import connection_manager
+from ...database.data_access import pr_dao
+from ...models.graph_entities import PullRequest, Conflict, ConflictSeverity
+from ..traversal import traversal_engine, GraphNode, TraversalResult
+
+logger = structlog.get_logger()
+
+
+class CentralityMetric(Enum):
+    """Types of centrality metrics"""
+    DEGREE_CENTRALITY = "degree_centrality"
+    BETWEENNESS_CENTRALITY = "betweenness_centrality"
+    CLOSENESS_CENTRALITY = "closeness_centrality"
+    EIGENVECTOR_CENTRALITY = "eigenvector_centrality"
+    PAGERANK = "pagerank"
+    KATZ_CENTRALITY = "katz_centrality"
+
+
+class CommunityDetectionMethod(Enum):
+    """Community detection algorithms"""
+    LOUVAIN = "louvain"
+    LEIDEN = "leiden"
+    LABEL_PROPAGATION = "label_propagation"
+    WALKTRAP = "walktrap"
+    INFOMAP = "infomap"
+
+
+class SimilarityMetric(Enum):
+    """Types of similarity metrics"""
+    JACCARD_SIMILARITY = "jaccard"
+    COSINE_SIMILARITY = "cosine"
+    PEARSON_CORRELATION = "pearson"
+    EUCLIDEAN_DISTANCE = "euclidean"
+    MANHATTAN_DISTANCE = "manhattan"
+
+
+class CentralityResult:
+    """Result of centrality analysis"""
+    def __init__(
+        self,
+        node_id: str,
+        centrality_scores: Dict[CentralityMetric, float],
+        rank: int,
+        percentile: float
+    ):
+        self.node_id = node_id
+        self.centrality_scores = centrality_scores
+        self.rank = rank
+        self.percentile = percentile
+        self.timestamp = datetime.utcnow()
+    
+    def get_centrality_score(self, metric: CentralityMetric) -> float:
+        """Get centrality score for specific metric"""
+        return self.centrality_scores.get(metric, 0.0)
+    
+    def __repr__(self) -> str:
+        return f"CentralityResult(node={self.node_id}, rank={self.rank}, percentile={self.percentile:.2f})"
+
+
+class Community:
+    """Represents a detected community in the graph"""
+    def __init__(
+        self,
+        community_id: str,
+        member_nodes: List[str],
+        density: float,
+        modularity: float,
+        detection_method: CommunityDetectionMethod
+    ):
+        self.id = community_id
+        self.member_nodes = member_nodes
+        self.density = density
+        self.modularity = modularity
+        self.detection_method = detection_method
+        self.timestamp = datetime.utcnow()
+        self.centroid_node = self._calculate_centroid()
+    
+    def _calculate_centroid(self) -> Optional[str]:
+        """Calculate the centroid node of the community"""
+        if not self.member_nodes:
+            return None
+        
+        # Simple centroid: node with most connections within community
+        return self.member_nodes[0]  # Placeholder for actual calculation
+    
+    def get_size(self) -> int:
+        """Get community size"""
+        return len(self.member_nodes)
+    
+    def get_density_score(self) -> float:
+        """Get community density score (0.0 to 1.0)"""
+        return self.density
+    
+    def __repr__(self) -> str:
+        return f"Community(id={self.id}, size={self.get_size()}, density={self.density:.2f})"
+
+
+class PathAnalysisResult:
+    """Result of path analysis between nodes"""
+    def __init__(
+        self,
+        source_id: str,
+        target_id: str,
+        paths: List[List[str]],
+        shortest_distance: int,
+        path_count: int,
+        path_variety: float
+    ):
+        self.source_id = source_id
+        self.target_id = target_id
+        self.paths = paths
+        self.shortest_distance = shortest_distance
+        self.path_count = path_count
+        self.path_variety = path_variety
+        self.timestamp = datetime.utcnow()
+    
+    def get_path_complexity(self) -> float:
+        """Calculate path complexity score"""
+        if self.path_count == 0:
+            return 0.0
+        
+        # Complexity increases with more paths and longer shortest path
+        return (self.path_count * self.shortest_distance) / 10.0
+    
+    def __repr__(self) -> str:
+        return f"PathAnalysisResult({self.source_id} -> {self.target_id}, paths={self.path_count})"
+
+
+class SimilarityResult:
+    """Result of similarity analysis between nodes"""
+    def __init__(
+        self,
+        node1_id: str,
+        node2_id: str,
+        similarity_scores: Dict[SimilarityMetric, float],
+        common_features: List[str],
+        unique_features: Tuple[List[str], List[str]]
+    ):
+        self.node1_id = node1_id
+        self.node2_id = node2_id
+        self.similarity_scores = similarity_scores
+        self.common_features = common_features
+        self.unique_features = unique_features  # (node1_unique, node2_unique)
+        self.timestamp = datetime.utcnow()
+    
+    def get_similarity_score(self, metric: SimilarityMetric) -> float:
+        """Get similarity score for specific metric"""
+        return self.similarity_scores.get(metric, 0.0)
+    
+    def get_overall_similarity(self) -> float:
+        """Get overall similarity score (average of all metrics)"""
+        if not self.similarity_scores:
+            return 0.0
+        return sum(self.similarity_scores.values()) / len(self.similarity_scores)
+    
+    def __repr__(self) -> str:
+        return f"SimilarityResult({self.node1_id} <-> {self.node2_id}, score={self.get_overall_similarity():.2f})"
+
+
+class GraphAnalyticsEngine:
+    """
+    Advanced graph analytics engine for PR analysis
+    """
+    
+    def __init__(self):
+        self.cache = {}
+        self.centrality_cache = {}
+        self.community_cache = {}
+        self.similarity_cache = {}
+        self.performance_stats = {
+            "centrality_calculations": 0,
+            "community_detections": 0,
+            "similarity_calculations": 0,
+            "path_analyses": 0
+        }
+    
+    async def calculate_centrality(
+        self,
+        node_ids: List[str],
+        metrics: List[CentralityMetric] = None,
+        use_cache: bool = True
+    ) -> List[CentralityResult]:
+        """
+        Calculate centrality metrics for specified nodes
+        """
+        start_time = time.time()
+        
+        if metrics is None:
+            metrics = [CentralityMetric.DEGREE_CENTRALITY, CentralityMetric.PAGERANK]
+        
+        logger.info("Starting centrality calculation", 
+                   node_count=len(node_ids), 
+                   metrics=[m.value for m in metrics])
+        
+        results = []
+        cache_key = f"centrality:{','.join(sorted(node_ids))}:{','.join(m.value for m in metrics)}"
+        
+        if use_cache and cache_key in self.centrality_cache:
+            results = self.centrality_cache[cache_key]
+            logger.info("Returning cached centrality results", cache_key=cache_key)
+        else:
+            for node_id in node_ids:
+                centrality_scores = {}
+                
+                # Calculate degree centrality
+                if CentralityMetric.DEGREE_CENTRALITY in metrics:
+                    centrality_scores[CentralityMetric.DEGREE_CENTRALITY] = await self._calculate_degree_centrality(node_id)
+                
+                # Calculate PageRank
+                if CentralityMetric.PAGERANK in metrics:
+                    centrality_scores[CentralityMetric.PAGERANK] = await self._calculate_pagerank(node_id, node_ids)
+                
+                # Calculate betweenness centrality
+                if CentralityMetric.BETWEENNESS_CENTRALITY in metrics:
+                    centrality_scores[CentralityMetric.BETWEENNESS_CENTRALITY] = await self._calculate_betweenness_centrality(node_id, node_ids)
+                
+                # Calculate closeness centrality
+                if CentralityMetric.CLOSENESS_CENTRALITY in metrics:
+                    centrality_scores[CentralityMetric.CLOSENESS_CENTRALITY] = await self._calculate_closeness_centrality(node_id, node_ids)
+                
+                # Calculate eigenvector centrality
+                if CentralityMetric.EIGENVECTOR_CENTRALITY in metrics:
+                    centrality_scores[CentralityMetric.EIGENVECTOR_CENTRALITY] = await self._calculate_eigenvector_centrality(node_id, node_ids)
+                
+                result = CentralityResult(
+                    node_id=node_id,
+                    centrality_scores=centrality_scores,
+                    rank=0,  # Will be set after all calculations
+                    percentile=0.0  # Will be set after all calculations
+                )
+                results.append(result)
+            
+            # Calculate ranks and percentiles
+            await self._calculate_ranks_and_percentiles(results)
+            
+            # Cache results
+            if use_cache:
+                self.centrality_cache[cache_key] = results
+        
+        execution_time = time.time() - start_time
+        self.performance_stats["centrality_calculations"] += 1
+        
+        logger.info("Centrality calculation completed",
+                   nodes_analyzed=len(results),
+                   execution_time=execution_time)
+        
+        return results
+    
+    async def detect_communities(
+        self,
+        node_ids: List[str],
+        method: CommunityDetectionMethod = CommunityDetectionMethod.LOUVAIN,
+        resolution: float = 1.0,
+        use_cache: bool = True
+    ) -> List[Community]:
+        """
+        Detect communities in the graph
+        """
+        start_time = time.time()
+        
+        logger.info("Starting community detection",
+                   node_count=len(node_ids),
+                   method=method.value,
+                   resolution=resolution)
+        
+        cache_key = f"communities:{','.join(sorted(node_ids))}:{method.value}:{resolution}"
+        
+        if use_cache and cache_key in self.community_cache:
+            results = self.community_cache[cache_key]
+            logger.info("Returning cached community results", cache_key=cache_key)
+        else:
+            # Build subgraph for community detection
+            subgraph_nodes = await self._build_subgraph(node_ids)
+            
+            # Apply community detection algorithm
+            if method == CommunityDetectionMethod.LOUVAIN:
+                communities = await self._louvain_community_detection(subgraph_nodes, resolution)
+            elif method == CommunityDetectionMethod.LEIDEN:
+                communities = await self._leiden_community_detection(subgraph_nodes, resolution)
+            elif method == CommunityDetectionMethod.LABEL_PROPAGATION:
+                communities = await self._label_propagation_community_detection(subgraph_nodes)
+            else:
+                communities = await self._louvain_community_detection(subgraph_nodes, resolution)  # Default fallback
+            
+            # Calculate community metrics
+            for community in communities:
+                community.density = await self._calculate_community_density(community.member_nodes)
+                community.modularity = await self._calculate_modularity(community.member_nodes, subgraph_nodes)
+            
+            results = communities
+            
+            # Cache results
+            if use_cache:
+                self.community_cache[cache_key] = results
+        
+        execution_time = time.time() - start_time
+        self.performance_stats["community_detections"] += 1
+        
+        logger.info("Community detection completed",
+                   communities_found=len(results),
+                   execution_time=execution_time)
+        
+        return results
+    
+    async def analyze_paths(
+        self,
+        source_id: str,
+        target_id: str,
+        max_paths: int = 10,
+        max_depth: int = 5,
+        include_weights: bool = True
+    ) -> PathAnalysisResult:
+        """
+        Analyze paths between two nodes
+        """
+        start_time = time.time()
+        
+        logger.info("Starting path analysis",
+                   source=source_id,
+                   target=target_id,
+                   max_paths=max_paths)
+        
+        # Find all paths between source and target
+        result = await traversal_engine.find_all_paths(
+            start_node_id=source_id,
+            start_node_type="PullRequest",
+            target_node_id=target_id,
+            max_depth=max_depth,
+            max_paths=max_paths
+        )
+        
+        # Convert paths to node ID lists
+        paths = []
+        for path in result.paths:
+            path_ids = [node.id for node in path]
+            paths.append(path_ids)
+        
+        # Calculate path metrics
+        shortest_distance = min(len(path) for path in paths) if paths else 0
+        path_count = len(paths)
+        path_variety = self._calculate_path_variety(paths)
+        
+        analysis_result = PathAnalysisResult(
+            source_id=source_id,
+            target_id=target_id,
+            paths=paths,
+            shortest_distance=shortest_distance,
+            path_count=path_count,
+            path_variety=path_variety
+        )
+        
+        execution_time = time.time() - start_time
+        self.performance_stats["path_analyses"] += 1
+        
+        logger.info("Path analysis completed",
+                   paths_found=path_count,
+                   shortest_distance=shortest_distance,
+                   execution_time=execution_time)
+        
+        return analysis_result
+    
+    async def calculate_similarity(
+        self,
+        node1_id: str,
+        node2_id: str,
+        metrics: List[SimilarityMetric] = None,
+        use_cache: bool = True
+    ) -> SimilarityResult:
+        """
+        Calculate similarity between two nodes
+        """
+        start_time = time.time()
+        
+        if metrics is None:
+            metrics = [SimilarityMetric.JACCARD_SIMILARITY, SimilarityMetric.COSINE_SIMILARITY]
+        
+        logger.info("Starting similarity calculation",
+                   node1=node1_id,
+                   node2=node2_id,
+                   metrics=[m.value for m in metrics])
+        
+        # Create cache key (order-independent)
+        cache_key = f"similarity:{min(node1_id, node2_id)}:{max(node1_id, node2_id)}:{','.join(m.value for m in metrics)}"
+        
+        if use_cache and cache_key in self.similarity_cache:
+            result = self.similarity_cache[cache_key]
+            logger.info("Returning cached similarity result", cache_key=cache_key)
+        else:
+            # Get node features
+            features1 = await self._extract_node_features(node1_id)
+            features2 = await self._extract_node_features(node2_id)
+            
+            # Calculate similarity scores
+            similarity_scores = {}
+            
+            if SimilarityMetric.JACCARD_SIMILARITY in metrics:
+                similarity_scores[SimilarityMetric.JACCARD_SIMILARITY] = self._calculate_jaccard_similarity(features1, features2)
+            
+            if SimilarityMetric.COSINE_SIMILARITY in metrics:
+                similarity_scores[SimilarityMetric.COSINE_SIMILARITY] = self._calculate_cosine_similarity(features1, features2)
+            
+            if SimilarityMetric.PEARSON_CORRELATION in metrics:
+                similarity_scores[SimilarityMetric.PEARSON_CORRELATION] = self._calculate_pearson_correlation(features1, features2)
+            
+            # Find common and unique features
+            features1_set = set(features1.keys())
+            features2_set = set(features2.keys())
+            common_features = list(features1_set & features2_set)
+            unique_features = (list(features1_set - features2_set), list(features2_set - features1_set))
+            
+            result = SimilarityResult(
+                node1_id=node1_id,
+                node2_id=node2_id,
+                similarity_scores=similarity_scores,
+                common_features=common_features,
+                unique_features=unique_features
+            )
+            
+            # Cache result
+            if use_cache:
+                self.similarity_cache[cache_key] = result
+        
+        execution_time = time.time() - start_time
+        self.performance_stats["similarity_calculations"] += 1
+        
+        logger.info("Similarity calculation completed",
+                   similarity_score=result.get_overall_similarity(),
+                   execution_time=execution_time)
+        
+        return result
+    
+    async def find_similar_nodes(
+        self,
+        node_id: str,
+        top_k: int = 10,
+        threshold: float = 0.5,
+        metrics: List[SimilarityMetric] = None
+    ) -> List[Tuple[str, float]]:
+        """
+        Find most similar nodes to a given node
+        """
+        if metrics is None:
+            metrics = [SimilarityMetric.JACCARD_SIMILARITY, SimilarityMetric.COSINE_SIMILARITY]
+        
+        logger.info("Finding similar nodes",
+                   node=node_id,
+                   top_k=top_k,
+                   threshold=threshold)
+        
+        # Get all other nodes
+        all_nodes = await self._get_all_nodes()
+        other_nodes = [nid for nid in all_nodes if nid != node_id]
+        
+        similarities = []
+        
+        # Calculate similarity with each other node
+        for other_id in other_nodes:
+            similarity_result = await self.calculate_similarity(
+                node_id, other_id, metrics, use_cache=True
+            )
+            
+            overall_similarity = similarity_result.get_overall_similarity()
+            
+            if overall_similarity >= threshold:
+                similarities.append((other_id, overall_similarity))
+        
+        # Sort by similarity and return top K
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        return similarities[:top_k]
+    
+    async def analyze_graph_structure(self) -> Dict[str, Any]:
+        """
+        Analyze overall graph structure
+        """
+        start_time = time.time()
+        
+        # Get graph statistics
+        node_count = await self._get_node_count()
+        edge_count = await self._get_edge_count()
+        density = await self._calculate_graph_density(node_count, edge_count)
+        
+        # Calculate diameter and average path length
+        diameter, avg_path_length = await self._calculate_graph_diameter_and_path_length()
+        
+        # Detect communities
+        communities = await self.detect_communities(
+            await self._get_all_nodes(),
+            method=CommunityDetectionMethod.LOUVAIN
+        )
+        
+        # Calculate clustering coefficient
+        clustering_coefficient = await self._calculate_clustering_coefficient()
+        
+        result = {
+            "node_count": node_count,
+            "edge_count": edge_count,
+            "density": density,
+            "diameter": diameter,
+            "average_path_length": avg_path_length,
+            "clustering_coefficient": clustering_coefficient,
+            "community_count": len(communities),
+            "largest_community_size": max(len(c.member_nodes) for c in communities) if communities else 0,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        execution_time = time.time() - start_time
+        logger.info("Graph structure analysis completed", 
+                   execution_time=execution_time,
+                   **result)
+        
+        return result
+    
+    # Centrality calculation methods
+    
+    async def _calculate_degree_centrality(self, node_id: str) -> float:
+        """Calculate degree centrality for a node"""
+        query = """
+        MATCH (n {id: $node_id})-[r]-(neighbor)
+        RETURN count(r) as degree
+        """
+        
+        records = await connection_manager.execute_query(query, {"node_id": node_id})
+        if records:
+            degree = records[0]["degree"]
+            # Normalize by (n-1) where n is total nodes
+            total_nodes = await self._get_node_count()
+            return degree / (total_nodes - 1) if total_nodes > 1 else 0.0
+        
+        return 0.0
+    
+    async def _calculate_pagerank(self, node_id: str, node_ids: List[str]) -> float:
+        """Calculate PageRank for a node"""
+        # Simplified PageRank calculation
+        damping_factor = 0.85
+        max_iterations = 100
+        tolerance = 1e-6
+        
+        # Initialize PageRank scores
+        pr_scores = {nid: 1.0 / len(node_ids) for nid in node_ids}
+        
+        for iteration in range(max_iterations):
+            new_pr_scores = {}
+            max_change = 0.0
+            
+            for nid in node_ids:
+                # Get inbound links
+                inbound_query = """
+                MATCH (neighbor)-[r]->(n {id: $node_id})
+                RETURN neighbor.id as neighbor_id, count(r) as link_count
+                """
+                inbound_records = await connection_manager.execute_query(inbound_query, {"node_id": nid})
+                
+                pr_score = (1 - damping_factor) / len(node_ids)
+                
+                for record in inbound_records:
+                    neighbor_id = record["neighbor_id"]
+                    link_count = record["link_count"]
+                    if neighbor_id in pr_scores:
+                        # Simplified: assume each link has equal weight
+                        neighbor_degree = await self._get_node_degree(neighbor_id)
+                        if neighbor_degree > 0:
+                            pr_score += damping_factor * (pr_scores[neighbor_id] / neighbor_degree)
+                
+                new_pr_scores[nid] = pr_score
+                max_change = max(max_change, abs(pr_score - pr_scores[nid]))
+            
+            pr_scores = new_pr_scores
+            
+            if max_change < tolerance:
+                break
+        
+        return pr_scores.get(node_id, 0.0)
+    
+    async def _calculate_betweenness_centrality(self, node_id: str, node_ids: List[str]) -> float:
+        """Calculate betweenness centrality for a node"""
+        # Simplified betweenness centrality
+        total_pairs = len(node_ids) * (len(node_ids) - 1) / 2
+        if total_pairs == 0:
+            return 0.0
+        
+        node_pairs_through_node = 0
+        
+        for source in node_ids:
+            for target in node_ids:
+                if source != target and source != node_id and target != node_id:
+                    # Check if shortest path goes through this node
+                    paths = await traversal_engine.find_shortest_path(
+                        source, "PullRequest", target, max_depth=10
+                    )
+                    
+                    if paths.paths:
+                        for path in paths.paths:
+                            path_ids = [n.id for n in path]
+                            if node_id in path_ids:
+                                node_pairs_through_node += 1
+                                break  # Count this pair only once
+        
+        return node_pairs_through_node / total_pairs if total_pairs > 0 else 0.0
+    
+    async def _calculate_closeness_centrality(self, node_id: str, node_ids: List[str]) -> float:
+        """Calculate closeness centrality for a node"""
+        total_distance = 0.0
+        reachable_count = 0
+        
+        for other_id in node_ids:
+            if other_id != node_id:
+                # Find shortest path
+                paths = await traversal_engine.find_shortest_path(
+                    node_id, "PullRequest", other_id, max_depth=10
+                )
+                
+                if paths.paths and paths.paths[0]:
+                    distance = len(paths.paths[0]) - 1  # Number of edges
+                    total_distance += distance
+                    reachable_count += 1
+        
+        if reachable_count == 0:
+            return 0.0
+        
+        return reachable_count / total_distance if total_distance > 0 else 0.0
+    
+    async def _calculate_eigenvector_centrality(self, node_id: str, node_ids: List[str]) -> float:
+        """Calculate eigenvector centrality for a node"""
+        # Simplified eigenvector centrality
+        max_iterations = 100
+        tolerance = 1e-6
+        
+        # Initialize scores
+        scores = {nid: 1.0 for nid in node_ids}
+        
+        for iteration in range(max_iterations):
+            new_scores = {}
+            max_change = 0.0
+            
+            for nid in node_ids:
+                # Get neighbors
+                neighbors_query = """
+                MATCH (n {id: $node_id})-[r]-(neighbor)
+                RETURN neighbor.id as neighbor_id
+                """
+                neighbors_records = await connection_manager.execute_query(neighbors_query, {"node_id": nid})
+                
+                neighbor_score = 0.0
+                for record in neighbors_records:
+                    neighbor_id = record["neighbor_id"]
+                    if neighbor_id in scores:
+                        neighbor_score += scores[neighbor_id]
+                
+                new_scores[nid] = neighbor_score
+                max_change = max(max_change, abs(neighbor_score - scores[nid]))
+            
+            # Normalize
+            max_score = max(new_scores.values()) if new_scores.values() else 1.0
+            if max_score > 0:
+                new_scores = {nid: score / max_score for nid, score in new_scores.items()}
+            
+            scores = new_scores
+            
+            if max_change < tolerance:
+                break
+        
+        return scores.get(node_id, 0.0)
+    
+    # Community detection methods
+    
+    async def _build_subgraph(self, node_ids: List[str]) -> Dict[str, List[str]]:
+        """Build subgraph from node list"""
+        subgraph = {nid: [] for nid in node_ids}
+        
+        # Get edges between specified nodes
+        query = """
+        MATCH (n1)-[r]-(n2)
+        WHERE n1.id IN $node_ids AND n2.id IN $node_ids AND n1.id < n2.id
+        RETURN n1.id as node1, n2.id as node2
+        """
+        
+        records = await connection_manager.execute_query(query, {"node_ids": node_ids})
+        
+        for record in records:
+            node1, node2 = record["node1"], record["node2"]
+            subgraph[node1].append(node2)
+            subgraph[node2].append(node1)
+        
+        return subgraph
+    
+    async def _louvain_community_detection(self, subgraph: Dict[str, List[str]], resolution: float) -> List[Community]:
+        """Louvain community detection algorithm"""
+        # Simplified Louvain implementation
+        communities = []
+        node_to_community = {node: node for node in subgraph.keys()}  # Each node starts in its own community
+        
+        # Iterative improvement
+        improved = True
+        iteration = 0
+        
+        while improved and iteration < 10:  # Limit iterations
+            improved = False
+            iteration += 1
+            
+            for node in subgraph.keys():
+                best_community = node_to_community[node]
+                best_modularity = self._calculate_modularity_gain(node, best_community, node_to_community, subgraph)
+                
+                # Try moving to neighbor communities
+                for neighbor in subgraph[node]:
+                    neighbor_community = node_to_community[neighbor]
+                    if neighbor_community != best_community:
+                        modularity_gain = self._calculate_modularity_gain(node, neighbor_community, node_to_community, subgraph)
+                        
+                        if modularity_gain > best_modularity:
+                            best_community = neighbor_community
+                            best_modularity = modularity_gain
+                            improved = True
+                
+                node_to_community[node] = best_community
+        
+        # Group nodes by community
+        community_groups = defaultdict(list)
+        for node, community in node_to_community.items():
+            community_groups[community].append(node)
+        
+        # Create Community objects
+        for i, (community_id, members) in enumerate(community_groups.items()):
+            communities.append(Community(
+                community_id=f"community_{i}",
+                member_nodes=members,
+                density=0.0,  # Will be calculated later
+                modularity=0.0,  # Will be calculated later
+                detection_method=CommunityDetectionMethod.LOUVAIN
+            ))
+        
+        return communities
+    
+    async def _leiden_community_detection(self, subgraph: Dict[str, List[str]], resolution: float) -> List[Community]:
+        """Leiden community detection algorithm"""
+        # Simplified Leiden implementation (similar to Louvain but with refinement)
+        return await self._louvain_community_detection(subgraph, resolution)  # Fallback to Louvain
+    
+    async def _label_propagation_community_detection(self, subgraph: Dict[str, List[str]]) -> List[Community]:
+        """Label propagation community detection"""
+        # Initialize labels
+        labels = {node: node for node in subgraph.keys()}
+        
+        # Iterative label propagation
+        max_iterations = 100
+        for iteration in range(max_iterations):
+            new_labels = labels.copy()
+            changed = False
+            
+            for node in subgraph.keys():
+                # Count label frequencies among neighbors
+                neighbor_labels = [labels[neighbor] for neighbor in subgraph[node]]
+                if neighbor_labels:
+                    most_frequent_label = Counter(neighbor_labels).most_common(1)[0][0]
+                    if most_frequent_label != labels[node]:
+                        new_labels[node] = most_frequent_label
+                        changed = True
+            
+            labels = new_labels
+            
+            if not changed:
+                break
+        
+        # Group by labels
+        label_groups = defaultdict(list)
+        for node, label in labels.items():
+            label_groups[label].append(node)
+        
+        communities = []
+        for i, (label, members) in enumerate(label_groups.items()):
+            communities.append(Community(
+                community_id=f"community_{i}",
+                member_nodes=members,
+                density=0.0,
+                modularity=0.0,
+                detection_method=CommunityDetectionMethod.LABEL_PROPAGATION
+            ))
+        
+        return communities
+    
+    # Similarity calculation methods
+    
+    async def _extract_node_features(self, node_id: str) -> Dict[str, float]:
+        """Extract features for similarity calculation"""
+        # Get node properties
+        query = """
+        MATCH (n {id: $node_id})
+        OPTIONAL MATCH (n)-[r]-(neighbor)
+        RETURN n, count(r) as degree, collect(DISTINCT labels(neighbor)) as neighbor_types
+        """
+        
+        records = await connection_manager.execute_query(query, {"node_id": node_id})
+        
+        if not records:
+            return {}
+        
+        record = records[0]
+        node = record["n"]
+        degree = record["degree"]
+        neighbor_types = record["neighbor_types"]
+        
+        features = {
+            "degree": float(degree),
+            "feature_count": len([k for k, v in node.items() if v is not None])
+        }
+        
+        # Add property features (numerical only)
+        for key, value in node.items():
+            if isinstance(value, (int, float)) and key != "id":
+                features[f"prop_{key}"] = float(value)
+        
+        # Add neighbor type features
+        for neighbor_type in neighbor_types:
+            if neighbor_type:
+                features[f"neighbor_{neighbor_type[0]}"] = features.get(f"neighbor_{neighbor_type[0]}", 0) + 1
+        
+        return features
+    
+    def _calculate_jaccard_similarity(self, features1: Dict[str, float], features2: Dict[str, float]) -> float:
+        """Calculate Jaccard similarity between feature sets"""
+        set1 = set(features1.keys())
+        set2 = set(features2.keys())
+        
+        intersection = len(set1 & set2)
+        union = len(set1 | set2)
+        
+        return intersection / union if union > 0 else 0.0
+    
+    def _calculate_cosine_similarity(self, features1: Dict[str, float], features2: Dict[str, float]) -> float:
+        """Calculate cosine similarity between feature vectors"""
+        # Get common features
+        common_features = set(features1.keys()) & set(features2.keys())
+        
+        if not common_features:
+            return 0.0
+        
+        # Calculate dot product and magnitudes
+        dot_product = sum(features1[f] * features2[f] for f in common_features)
+        magnitude1 = math.sqrt(sum(features1[f] ** 2 for f in common_features))
+        magnitude2 = math.sqrt(sum(features2[f] ** 2 for f in common_features))
+        
+        if magnitude1 == 0 or magnitude2 == 0:
+            return 0.0
+        
+        return dot_product / (magnitude1 * magnitude2)
+    
+    def _calculate_pearson_correlation(self, features1: Dict[str, float], features2: Dict[str, float]) -> float:
+        """Calculate Pearson correlation coefficient"""
+        common_features = set(features1.keys()) & set(features2.keys())
+        
+        if len(common_features) < 2:
+            return 0.0
+        
+        values1 = [features1[f] for f in common_features]
+        values2 = [features2[f] for f in common_features]
+        
+        # Calculate means
+        mean1 = sum(values1) / len(values1)
+        mean2 = sum(values2) / len(values2)
+        
+        # Calculate correlation
+        numerator = sum((v1 - mean1) * (v2 - mean2) for v1, v2 in zip(values1, values2))
+        
+        sum1 = sum((v1 - mean1) ** 2 for v1 in values1)
+        sum2 = sum((v2 - mean2) ** 2 for v2 in values2)
+        
+        denominator = math.sqrt(sum1 * sum2)
+        
+        return numerator / denominator if denominator != 0 else 0.0
+    
+    # Utility methods
+    
+    def _calculate_ranks_and_percentiles(self, results: List[CentralityResult]):
+        """Calculate ranks and percentiles for centrality results"""
+        # Sort by primary centrality metric (PageRank if available, otherwise first)
+        primary_metric = CentralityMetric.PAGERANK if any(
+            CentralityMetric.PAGERANK in r.centrality_scores for r in results
+        ) else list(results[0].centrality_scores.keys())[0] if results else None
+        
+        if primary_metric:
+            results.sort(key=lambda r: r.get_centrality_score(primary_metric), reverse=True)
+            
+            for rank, result in enumerate(results, 1):
+                result.rank = rank
+                result.percentile = (len(results) - rank + 1) / len(results) * 100
+    
+    def _calculate_path_variety(self, paths: List[List[str]]) -> float:
+        """Calculate path variety score"""
+        if not paths:
+            return 0.0
+        
+        # Calculate unique nodes in all paths
+        all_nodes = set()
+        for path in paths:
+            all_nodes.update(path)
+        
+        # Variety is the ratio of unique nodes to total path length
+        total_path_length = sum(len(path) for path in paths)
+        return len(all_nodes) / total_path_length if total_path_length > 0 else 0.0
+    
+    async def _calculate_community_density(self, community_nodes: List[str]) -> float:
+        """Calculate density of a community"""
+        if len(community_nodes) < 2:
+            return 0.0
+        
+        # Count edges within community
+        edge_count = 0
+        for i, node1 in enumerate(community_nodes):
+            for node2 in community_nodes[i+1:]:
+                # Check if edge exists
+                query = """
+                MATCH (n1 {id: $node1})-[r]-(n2 {id: $node2})
+                RETURN count(r) as edge_count
+                """
+                records = await connection_manager.execute_query(query, {"node1": node1, "node2": node2})
+                if records and records[0]["edge_count"] > 0:
+                    edge_count += 1
+        
+        # Maximum possible edges in a community of this size
+        max_edges = len(community_nodes) * (len(community_nodes) - 1) / 2
+        
+        return edge_count / max_edges if max_edges > 0 else 0.0
+    
+    async def _calculate_modularity(self, community_nodes: List[str], subgraph: Dict[str, List[str]]) -> float:
+        """Calculate modularity score for a community"""
+        # Simplified modularity calculation
+        total_nodes = len(subgraph)
+        total_edges = sum(len(neighbors) for neighbors in subgraph.values()) / 2
+        
+        if total_edges == 0:
+            return 0.0
+        
+        # Count edges within community
+        community_edges = 0
+        for node in community_nodes:
+            if node in subgraph:
+                community_edges += len([n for n in subgraph[node] if n in community_nodes])
+        
+        community_edges /= 2  # Each edge counted twice
+        
+        # Expected edges in random graph
+        expected_edges = (len(community_nodes) / total_nodes) ** 2 * total_edges
+        
+        return (community_edges - expected_edges) / total_edges if total_edges > 0 else 0.0
+    
+    def _calculate_modularity_gain(
+        self, 
+        node: str, 
+        target_community: str, 
+        node_to_community: Dict[str, str], 
+        subgraph: Dict[str, List[str]]
+    ) -> float:
+        """Calculate modularity gain from moving node to target community"""
+        # Simplified modularity gain calculation
+        return 0.0  # Placeholder for actual implementation
+    
+    async def _get_node_count(self) -> int:
+        """Get total number of nodes in graph"""
+        query = "MATCH (n) RETURN count(n) as count"
+        records = await connection_manager.execute_query(query)
+        return records[0]["count"] if records else 0
+    
+    async def _get_edge_count(self) -> int:
+        """Get total number of edges in graph"""
+        query = "MATCH ()-[r]->() RETURN count(r) as count"
+        records = await connection_manager.execute_query(query)
+        return records[0]["count"] if records else 0
+    
+    async def _get_node_degree(self, node_id: str) -> int:
+        """Get degree of a specific node"""
+        query = """
+        MATCH (n {id: $node_id})-[r]-(neighbor)
+        RETURN count(r) as degree
+        """
+        records = await connection_manager.execute_query(query, {"node_id": node_id})
+        return records[0]["degree"] if records else 0
+    
+    async def _calculate_graph_density(self, node_count: int, edge_count: int) -> float:
+        """Calculate overall graph density"""
+        if node_count < 2:
+            return 0.0
+        
+        max_edges = node_count * (node_count - 1) / 2
+        return edge_count / max_edges if max_edges > 0 else 0.0
+    
+    async def _calculate_graph_diameter_and_path_length(self) -> Tuple[int, float]:
+        """Calculate graph diameter and average path length"""
+        # Simplified calculation - sample a few node pairs
+        all_nodes = await self._get_all_nodes()
+        
+        if len(all_nodes) < 2:
+            return 0, 0.0
+        
+        # Sample up to 10 random pairs
+        import random
+        sample_pairs = random.sample(
+            [(all_nodes[i], all_nodes[j]) for i in range(min(10, len(all_nodes))) 
+             for j in range(i+1, min(10, len(all_nodes)))],
+            min(10, len(all_nodes) * (len(all_nodes) - 1) // 2)
+        )
+        
+        total_distance = 0
+        max_distance = 0
+        valid_pairs = 0
+        
+        for source, target in sample_pairs:
+            paths = await traversal_engine.find_shortest_path(
+                source, "PullRequest", target, max_depth=10
+            )
+            
+            if paths.paths and paths.paths[0]:
+                distance = len(paths.paths[0]) - 1
+                total_distance += distance
+                max_distance = max(max_distance, distance)
+                valid_pairs += 1
+        
+        avg_path_length = total_distance / valid_pairs if valid_pairs > 0 else 0.0
+        return max_distance, avg_path_length
+    
+    async def _calculate_clustering_coefficient(self) -> float:
+        """Calculate average clustering coefficient"""
+        # Simplified clustering coefficient calculation
+        return 0.0  # Placeholder for actual implementation
+    
+    async def _get_all_nodes(self) -> List[str]:
+        """Get all node IDs in the graph"""
+        query = "MATCH (n) RETURN n.id as id"
+        records = await connection_manager.execute_query(query)
+        return [record["id"] for record in records] if records else []
+    
+    async def get_analytics_stats(self) -> Dict[str, Any]:
+        """Get analytics engine performance statistics"""
+        return {
+            **self.performance_stats,
+            "centrality_cache_size": len(self.centrality_cache),
+            "community_cache_size": len(self.community_cache),
+            "similarity_cache_size": len(self.similarity_cache)
+        }
+
+
+# Global analytics engine instance
+analytics_engine = GraphAnalyticsEngine()

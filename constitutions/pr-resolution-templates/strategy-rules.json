@@ -1,0 +1,261 @@
+{
+  "name": "Resolution Strategy Rules",
+  "version": "1.0.0",
+  "description": "Constitutional rules for resolution strategies following Spec Kit methodology",
+  "rules": [
+    {
+      "id": "strategy_has_name",
+      "name": "Strategy Has Descriptive Name",
+      "description": "Resolution strategy must have a clear, descriptive name",
+      "category": "structure",
+      "violation_type": "critical",
+      "rule_pattern": "\"name\":\\s*\"[^\"]{5,100}\"",
+      "severity_score": 0.9,
+      "auto_fixable": false,
+      "remediation_guide": "Add a descriptive name to the strategy that clearly indicates the approach",
+      "examples": [
+        "\"name\": \"Conservative Merge with Feature Preservation\"",
+        "\"name\": \"Hybrid Resolution with Architectural Refactoring\""
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_description",
+      "name": "Strategy Has Detailed Description",
+      "description": "Resolution strategy must include a detailed description of the approach",
+      "category": "content",
+      "violation_type": "critical",
+      "rule_pattern": "\"description\":\\s*\"[^\"]{50,500}\"",
+      "severity_score": 0.9,
+      "auto_fixable": false,
+      "remediation_guide": "Add a comprehensive description explaining the resolution strategy approach",
+      "examples": [
+        "\"description\": \"This strategy focuses on minimal changes while preserving all intended features from both branches\"",
+        "\"description\": \"A comprehensive refactoring approach that addresses architectural improvements alongside conflict resolution\""
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_approach",
+      "name": "Strategy Has Clear Approach",
+      "description": "Resolution strategy must specify the technical approach",
+      "category": "methodology",
+      "violation_type": "major",
+      "rule_pattern": "\"approach\":\\s*\"[^\"]{30,300}\"",
+      "severity_score": 0.7,
+      "auto_fixable": false,
+      "remediation_guide": "Add a clear technical approach explaining how the strategy will be implemented",
+      "examples": [
+        "\"approach\": \"Worktree-based isolation with phased resolution and rollback mechanisms\"",
+        "\"approach\": \"Constitutional validation followed by selective integration with automated testing\""
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_steps",
+      "name": "Strategy Has Resolution Steps",
+      "description": "Resolution strategy must include detailed resolution steps",
+      "category": "execution",
+      "violation_type": "critical",
+      "rule_pattern": "\"steps\":\\s*\\[\\s*{\\s*\"id\":",
+      "severity_score": 0.9,
+      "auto_fixable": false,
+      "remediation_guide": "Add detailed resolution steps with IDs, descriptions, and validation criteria",
+      "examples": [
+        "\"steps\": [\n  {\n    \"id\": \"step_1\",\n    \"description\": \"Create isolated worktree for conflict analysis\",\n    \"validation_steps\": [\"Verify worktree creation\", \"Confirm isolation\"]\n  }"
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_pros_cons",
+      "name": "Strategy Has Pros and Cons Analysis",
+      "description": "Resolution strategy must include pros and cons evaluation",
+      "category": "analysis",
+      "violation_type": "major",
+      "rule_pattern": "\"pros\":\\s*\\[\\s*\".*?\"\\s*\\],\\s*\"cons\":\\s*\\[",
+      "severity_score": 0.7,
+      "auto_fixable": false,
+      "remediation_guide": "Add pros and cons sections with specific advantages and disadvantages",
+      "examples": [
+        "\"pros\": [\"Low risk\", \"Preserves existing functionality\", \"Quick implementation\"]",
+        "\"cons\": [\"May not address root causes\", \"Limited scalability\", \"Requires manual oversight\"]"
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_confidence",
+      "name": "Strategy Has Confidence Score",
+      "description": "Resolution strategy must include a confidence score",
+      "category": "validation",
+      "violation_type": "major",
+      "rule_pattern": "\"confidence\":\\s*0\\.[0-9]+",
+      "severity_score": 0.8,
+      "auto_fixable": false,
+      "remediation_guide": "Add a confidence score between 0.0 and 1.0 indicating strategy reliability",
+      "examples": [
+        "\"confidence\": 0.85",
+        "\"confidence\": 0.72"
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_risk_level",
+      "name": "Strategy Has Risk Level Assessment",
+      "description": "Resolution strategy must specify risk level",
+      "category": "risk",
+      "violation_type": "major",
+      "rule_pattern": "\"risk_level\":\\s*\"(VERY_LOW|LOW|MEDIUM|HIGH|VERY_HIGH|CRITICAL)\"",
+      "severity_score": 0.7,
+      "auto_fixable": false,
+      "remediation_guide": "Add a risk level assessment from VERY_LOW to CRITICAL",
+      "examples": [
+        "\"risk_level\": \"LOW\"",
+        "\"risk_level\": \"MEDIUM\""
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_rollback",
+      "name": "Strategy Has Rollback Strategy",
+      "description": "Resolution strategy must include rollback procedures",
+      "category": "safety",
+      "violation_type": "critical",
+      "rule_pattern": "\"rollback_strategy\":\\s*\"[^\"]+\"",
+      "severity_score": 0.9,
+      "auto_fixable": false,
+      "remediation_guide": "Add a comprehensive rollback strategy for safe recovery if resolution fails",
+      "examples": [
+        "\"rollback_strategy\": \"Git operations to restore original state, database rollback if needed\"",
+        "\"rollback_strategy\": \"Worktree deletion and branch reset to pre-resolution state\""
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_validation",
+      "name": "Strategy Has Validation Approach",
+      "description": "Resolution strategy must specify validation approach",
+      "category": "validation",
+      "violation_type": "major",
+      "rule_pattern": "\"validation_approach\":\\s*\"[^\"]+\"",
+      "severity_score": 0.7,
+      "auto_fixable": false,
+      "remediation_guide": "Add validation approach explaining how strategy effectiveness will be verified",
+      "examples": [
+        "\"validation_approach\": \"Constitutional compliance check, automated testing, manual review\"",
+        "\"validation_approach\": \"Unit tests, integration tests, performance benchmarks\""
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_success_criteria",
+      "name": "Strategy Has Success Criteria",
+      "description": "Resolution strategy must include success criteria",
+      "category": "validation",
+      "violation_type": "major",
+      "rule_pattern": "\"success_criteria\":\\s*\\[",
+      "severity_score": 0.7,
+      "auto_fixable": false,
+      "remediation_guide": "Add success criteria defining what constitutes successful resolution",
+      "examples": [
+        "\"success_criteria\": [\"Conflict resolved\", \"Tests pass\", \"Performance maintained\", \"No regressions\"]",
+        "\"success_criteria\": [\"All features preserved\", \"Constitutional compliance achieved\", \"Documentation updated\"]"
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_estimated_time",
+      "name": "Strategy Has Time Estimate",
+      "description": "Resolution strategy must include time estimate for implementation",
+      "category": "planning",
+      "violation_type": "minor",
+      "rule_pattern": "\"estimated_time\":\\s*\\d+",
+      "severity_score": 0.5,
+      "auto_fixable": false,
+      "remediation_guide": "Add estimated time in seconds for strategy implementation",
+      "examples": [
+        "\"estimated_time\": 1800",
+        "\"estimated_time\": 3600"
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_approval_requirement",
+      "name": "Strategy Has Approval Assessment",
+      "description": "Resolution strategy must specify if human approval is required",
+      "category": "governance",
+      "violation_type": "warning",
+      "rule_pattern": "\"requires_approval\":\\s*(true|false)",
+      "severity_score": 0.4,
+      "auto_fixable": true,
+      "remediation_guide": "Specify whether strategy requires human approval based on risk level",
+      "examples": [
+        "\"requires_approval\": true",
+        "\"requires_approval\": false"
+      ],
+      "dependencies": ["strategy_has_risk_level"],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_minimum_confidence",
+      "name": "Strategy Meets Minimum Confidence",
+      "description": "Resolution strategy must meet minimum confidence threshold of 0.6",
+      "category": "quality",
+      "violation_type": "major",
+      "rule_pattern": "\"confidence\":\\s*0\\.[6-9]\\d*",
+      "severity_score": 0.8,
+      "auto_fixable": false,
+      "remediation_guide": "Increase strategy confidence by adding more detailed analysis and validation steps",
+      "examples": [
+        "Increase confidence from 0.45 to 0.75 by adding comprehensive testing and validation",
+        "Improve confidence from 0.58 to 0.82 by including rollback procedures and risk mitigation"
+      ],
+      "dependencies": ["strategy_has_confidence"],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_low_risk_approval",
+      "name": "Low Risk Strategy Approval Assessment",
+      "description": "Low risk strategies should not require approval unless specifically complex",
+      "category": "efficiency",
+      "violation_type": "info",
+      "rule_pattern": "\"risk_level\":\\s*\"(VERY_LOW|LOW)\"\\s*,\\s*\"requires_approval\":\\s*true",
+      "severity_score": 0.2,
+      "auto_fixable": true,
+      "remediation_guide": "Consider setting requires_approval to false for low risk strategies unless complexity warrants approval",
+      "examples": [
+        "For LOW risk strategies with straightforward implementation, consider requires_approval: false",
+        "Only require approval for complex low-risk strategies affecting critical systems"
+      ],
+      "dependencies": ["strategy_has_risk_level", "strategy_has_approval_requirement"],
+      "phase_applications": ["resolution_strategy"]
+    },
+    {
+      "id": "strategy_has_ai_metadata",
+      "name": "Strategy Has AI Generation Metadata",
+      "description": "AI-generated strategies should include generation metadata",
+      "category": "metadata",
+      "violation_type": "warning",
+      "rule_pattern": "\"ai_generated\":\\s*(true|false)",
+      "severity_score": 0.3,
+      "auto_fixable": true,
+      "remediation_guide": "Add ai_generated flag and model_used metadata for AI-generated strategies",
+      "examples": [
+        "\"ai_generated\": true,\n  \"model_used\": \"gpt-4o\",\n  \"prompt_context\": {\"conflict_type\": \"MergeConflict\"}",
+        "\"ai_generated\": false\n  \"manual_strategy\": true"
+      ],
+      "dependencies": [],
+      "phase_applications": ["resolution_strategy"]
+    }
+  ]
+}
