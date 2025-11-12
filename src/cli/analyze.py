@@ -1,11 +1,22 @@
 """
-TODO: Deprecate or integrate this module into `src/cli/main.py`.
+TODO: Refactor and integrate this module's functionality into `src/cli/main.py`.
 
-This module appears to be an older or alternative implementation of an `analyze` command.
-The new unified CLI for `git-verifier` is located in `src/cli/main.py`.
-Its functionality should either be migrated to `src/cli/main.py` or this module
-(along with other modules in `src/cli/` like `ci.py`, `identify.py`, `install.py`,
-`progress.py`, `verify.py`) should be deprecated and removed.
+This module provides an `analyze` command that uses `RebaseAnalyzer`.
+To adhere to SOLID principles, specifically the Single Responsibility Principle (SRP)
+and Open/Closed Principle (OCP), consider the following:
+
+1.  **Extract Core Logic:** The core analysis logic within `RebaseAnalyzer` should be
+    reused or integrated into the `AnalysisService` in `src/services/analysis_service.py`.
+    This ensures that analysis logic resides in a single, well-defined service.
+2.  **CLI Command Integration:** The `analyze_command` and `add_analyze_parser` functions
+    should be refactored to become part of the `src/cli/main.py`'s sub-command structure.
+    This centralizes CLI entry points and argument parsing.
+3.  **Dependency Inversion:** Ensure that the `analyze_command` depends on abstractions
+    (e.g., an `AnalysisService` interface) rather than concrete implementations,
+    allowing for easier testing and swapping of analysis backends.
+4.  **Modularity:** If `RebaseAnalyzer` offers distinct functionality not covered by
+    `AnalysisService`, refactor it as a separate, reusable component that `AnalysisService`
+    or `src/cli/main.py` can compose.
 """
 from ..services.rebase_analyzer import RebaseAnalyzer
 from ..lib.git_wrapper import GitWrapper

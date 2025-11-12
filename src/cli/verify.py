@@ -1,3 +1,12 @@
+"""
+TODO: Deprecate or integrate this module into `src/cli/main.py`.
+
+This module appears to be an older or alternative implementation of a `verify` command.
+The new unified CLI for `git-verifier` is located in `src/cli/main.py`.
+Its functionality should either be migrated to `src/cli/main.py` or this module
+(along with other modules in `src/cli/` like `analyze.py`, `ci.py`, `identify.py`,
+`install.py`, `progress.py`) should be deprecated and removed.
+"""
 from ..services.merge_verifier import MergeVerifier
 from ..lib.git_wrapper import GitWrapper
 from .progress import progress_bar

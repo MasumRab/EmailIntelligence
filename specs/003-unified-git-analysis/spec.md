@@ -82,6 +82,16 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 - **FR-004**: The system MUST compare a merged branch's state against an Intent Report and identify discrepancies, defined as any difference in file content between the Intent Report's expected state and the merged branch's actual state.
 - **FR-005**: The system MUST be accessible as a single CLI tool (`git-verifier`).
 - **FR-006**: The system MUST allow analysis of any arbitrary commit range, not just rebased branches.
+- **FR-007**: The system MUST detect and anonymize common secret formats and personally identifiable information (PII) from code changes before sending any data to an external LLM for analysis.
+- **FR-008**: The `analyze` command MUST output the generated `IntentReport` to a specified file path, and the `verify` command MUST accept an `IntentReport` file path as an input argument.
+
+### Non-Functional Requirements
+
+#### Security & Privacy
+- **NFR-SEC-001**: All source code sent to external LLMs MUST be anonymized to remove secrets and PII.
+
+#### Error Handling
+- **NFR-ERR-001**: The system MUST attempt to recover from transient errors (e.g., network issues, temporary API unavailability) gracefully. If recovery is not possible, it MUST print a descriptive error message to stderr, suggest potential solutions, and exit with a non-zero status code.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -99,6 +109,11 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 - **SC-002**: The verification process MUST detect 99% of content-altering discrepancies introduced during a rebase.
 - **SC-003**: A developer using the tool MUST be able to review and verify a complex rebased branch 50% faster than with manual review.
 - **SC-004**: The tool MUST generate a complete Intent Report for a branch with 50 commits in under 20 seconds.
+- **SC-005**: The tool MUST generate a complete Intent Report for a branch with 1,000 commits in under 5 minutes, with performance degradation being acceptable beyond this point.
+
+## Out of Scope
+
+- **OOS-001**: Support for Source Code Management (SCM) systems other than Git (e.g., Mercurial, SVN) is explicitly out of scope for the initial version.
 
 ## Assumptions
 
@@ -113,3 +128,8 @@ As a developer, I want a single, unified tool that is easily accessible on any b
 - Q: What defines a "discrepancy" during verification? → A: Any difference in file content between the Intent Report's expected state and the merged branch's actual state.
 - Q: What information should be included in the `missing_changes` and `unexpected_changes` objects within `VerificationResult`? → A: Commit SHA, file path, and type of change (add/delete/modify).
 - Q: How should the tool handle "intentional changes" made during a rebase (e.g., fixing a typo in a previous commit) during verification? → A: Treat them as discrepancies unless explicitly marked/ignored by the user.
+- Q: How should the tool handle potentially sensitive information within the source code to ensure privacy and security? → A: Anonymize secrets/PII before sending to the LLM, but send the rest of the code.
+- Q: How should the Intent Report be stored and passed between the `analyze` and `verify` commands? → A: The `analyze` command saves the Intent Report to a file (e.g., `intent-report.json`). The `verify` command then requires the path to this file as an argument.
+- Q: How should errors be communicated to the user? → A: Attempt to recover gracefully where possible (e.g., retry a failed API call). If recovery fails, print a descriptive error to stderr and exit with a non-zero status code.
+- Q: What is the maximum number of commits the tool should be designed to handle in a single analysis run before performance degradation is acceptable? → A: 1,000 commits.
+- Q: Which functionalities should be explicitly considered out of scope for the initial version of this tool? → A: Support for other Source Code Management (SCM) systems (e.g., Mercurial, SVN).
