@@ -1,11 +1,23 @@
 """
-TODO: Deprecate or integrate this module into `src/cli/main.py`.
+TODO: Refactor and integrate this module's functionality into `src/cli/main.py`.
 
-This module appears to be an older or alternative implementation of a `ci-check` command.
-The new unified CLI for `git-verifier` is located in `src/cli/main.py`.
-Its functionality should either be migrated to `src/cli/main.py` or this module
-(along with other modules in `src/cli/` like `analyze.py`, `identify.py`, `install.py`,
-`progress.py`, `verify.py`) should be deprecated and removed.
+This module provides a `ci-check` command. To adhere to SOLID principles,
+specifically the Single Responsibility Principle (SRP) and Open/Closed Principle (OCP),
+consider the following:
+
+1.  **Extract Core Logic:** The core CI check orchestration logic should be
+    refactored into a dedicated service (e.g., `CIService` in `src/services/`)
+    that can be reused independently of the CLI. This service would compose
+    various check components (linters, testers, static analyzers).
+2.  **CLI Command Integration:** The `ci_check_command` and `add_ci_check_parser`
+    functions should be refactored to become part of the `src/cli/main.py`'s
+    sub-command structure. This centralizes CLI entry points and argument parsing.
+3.  **Dependency Inversion:** Ensure that the `ci_check_command` depends on
+    abstractions (e.g., a `CIService` interface) rather than concrete
+    implementations, allowing for easier testing and swapping of check components.
+4.  **Modularity:** Each type of CI check (linting, testing, static analysis)
+    should ideally be a separate, pluggable component that the `CIService` can
+    orchestrate.
 """
 def ci_check_command(args):
     """
