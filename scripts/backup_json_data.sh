@@ -10,12 +10,16 @@ set -euo pipefail
 SOURCE_FILE="data/processed/email_data.json"
 BACKUP_DIR="${HOME}/email_intelligence_backups"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILENAME="email_data_${TIMESTAMP}.json.gz"
+GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "nogit")
+BACKUP_FILENAME="email_data_${TIMESTAMP}_${GIT_COMMIT}.json.gz"
 
 # Retention policy (in days)
 DAILY_RETENTION=7
 WEEKLY_RETENTION=28  # 4 weeks
 MONTHLY_RETENTION=365  # 12 months
+
+# Enhanced retention for recent backups (hours)
+HOURLY_RETENTION_HOURS=48
 
 # Logging
 LOG_FILE="${HOME}/.email_intelligence_backup.log"
@@ -31,7 +35,7 @@ ensure_backup_dir() {
     fi
 }
 
-# Create backup
+# Create backup with enhanced integrity checks
 create_backup() {
     local source_path="$1"
     local backup_path="$2"
@@ -42,20 +46,27 @@ create_backup() {
     fi
 
     log "Creating backup: $backup_path"
+
+    # Calculate SHA256 checksum of original file
+    local checksum_file="${backup_path}.sha256"
+    sha256sum "$source_path" > "$checksum_file"
+
+    # Create compressed backup
     gzip -c "$source_path" > "$backup_path"
 
     # Verify backup integrity
     if gzip -t "$backup_path"; then
         log "Backup created successfully: $backup_path"
         log "Backup size: $(du -h "$backup_path" | cut -f1)"
+        log "SHA256 checksum saved: $checksum_file"
     else
         log "ERROR: Backup verification failed for: $backup_path"
-        rm -f "$backup_path"
+        rm -f "$backup_path" "$checksum_file"
         exit 1
     fi
 }
 
-# Clean up old backups based on retention policy
+# Clean up old backups based on enhanced retention policy
 cleanup_old_backups() {
     local backup_dir="$1"
     log "Cleaning up old backups in: $backup_dir"
@@ -67,6 +78,10 @@ cleanup_old_backups() {
         log "No backup files found for cleanup"
         return
     fi
+
+    # Keep all backups from the last HOURLY_RETENTION_HOURS hours
+    local hourly_cutoff=$(date -d "$HOURLY_RETENTION_HOURS hours ago" +%s)
+    local hourly_backups=()
 
     # Keep all backups from the last DAILY_RETENTION days
     local daily_cutoff=$(date -d "$DAILY_RETENTION days ago" +%s)
@@ -84,6 +99,12 @@ cleanup_old_backups() {
     for backup in "${all_backups[@]}"; do
         local mtime=$(stat -c %Y "$backup")
         local filename=$(basename "$backup")
+
+        # Always keep hourly backups within retention period
+        if [[ $mtime -gt $hourly_cutoff ]]; then
+            hourly_backups+=("$backup")
+            continue
+        fi
 
         # Always keep daily backups within retention period
         if [[ $mtime -gt $daily_cutoff ]]; then
@@ -124,15 +145,16 @@ cleanup_old_backups() {
         fi
 
         # Delete backups that don't fall into retention categories
-        log "Deleting old backup: $filename"
-        rm -f "$backup"
+        log "Deleting old backup: $filename and checksum file"
+        rm -f "$backup" "${backup}.sha256"
     done
 
     log "Retention summary:"
+    log "  Hourly backups kept: ${#hourly_backups[@]}"
     log "  Daily backups kept: ${#daily_backups[@]}"
     log "  Weekly backups kept: ${#weekly_backups[@]}"
     log "  Monthly backups kept: ${#monthly_backups[@]}"
-    log "  Total backups kept: $((${#daily_backups[@]} + ${#weekly_backups[@]} + ${#monthly_backups[@]}))"
+    log "  Total backups kept: $((${#hourly_backups[@]} + ${#daily_backups[@]} + ${#weekly_backups[@]} + ${#monthly_backups[@]}))"
 }
 
 # Main execution

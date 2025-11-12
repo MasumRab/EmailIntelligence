@@ -1,0 +1,59 @@
+[
+  {
+    "id": 3,
+    "message_id": "msg003",
+    "subject": "Friend Request",
+    "sender": "Social Network",
+    "sender_email": "social@network.com",
+    "content": "You have a new friend request...",
+    "content_html": "<p>You have a new friend request HTML...</p>",
+    "category_id": 3,
+    "categoryName": "Social",
+    "categoryColor": "#FFC107",
+    "is_unread": true,
+    "analysis_metadata": {
+      "sentiment": "positive",
+      "importance": "low"
+    },
+    "created_at": "2025-11-13 05:29:28.073194",
+    "updated_at": "2025-11-13 05:29:28.073195"
+  },
+  {
+    "id": 2,
+    "message_id": "msg002",
+    "subject": "Special Offer",
+    "sender": "Store Promotions",
+    "sender_email": "promotions@store.com",
+    "content": "Limited time offer...",
+    "content_html": "<p>Limited time offer HTML...</p>",
+    "category_id": 2,
+    "categoryName": "Promotions",
+    "categoryColor": "#2196F3",
+    "is_unread": true,
+    "analysis_metadata": {
+      "sentiment": "neutral",
+      "importance": "medium"
+    },
+    "created_at": "2025-11-13 05:29:28.073179",
+    "updated_at": "2025-11-13 05:29:28.073181"
+  },
+  {
+    "id": 1,
+    "message_id": "msg001",
+    "subject": "Welcome to EmailIntelligence",
+    "sender": "System Admin",
+    "sender_email": "system@example.com",
+    "content": "Welcome message content...",
+    "content_html": "<p>Welcome message HTML...</p>",
+    "category_id": 1,
+    "categoryName": "Primary",
+    "categoryColor": "#4CAF50",
+    "is_unread": false,
+    "analysis_metadata": {
+      "sentiment": "positive",
+      "importance": "high"
+    },
+    "created_at": "2025-11-13 05:29:28.073133",
+    "updated_at": "2025-11-13 05:29:28.073152"
+  }
+]

@@ -95,12 +95,22 @@ backup_current_file() {
     fi
 }
 
-# Restore from backup
+# Restore from backup with enhanced integrity verification
 restore_from_backup() {
     local backup_file="$1"
     local target_file="$2"
 
     log "Restoring from backup: $backup_file"
+
+    # Check for SHA256 checksum file
+    local checksum_file="${backup_file}.sha256"
+    local has_checksum=false
+    if [[ -f "$checksum_file" ]]; then
+        has_checksum=true
+        log "Found SHA256 checksum file: $checksum_file"
+    else
+        log "WARNING: No SHA256 checksum file found for: $backup_file"
+    fi
 
     # Verify backup integrity
     if ! gzip -t "$backup_file"; then
@@ -120,6 +130,17 @@ restore_from_backup() {
     if [[ ! -f "$target_file" ]]; then
         log "ERROR: Failed to create target file: $target_file"
         exit 1
+    fi
+
+    # Verify SHA256 checksum if available
+    if [[ "$has_checksum" == true ]]; then
+        log "Verifying SHA256 checksum..."
+        if sha256sum -c "$checksum_file" --quiet; then
+            log "SHA256 checksum verification passed"
+        else
+            log "ERROR: SHA256 checksum verification failed for restored file"
+            exit 1
+        fi
     fi
 
     # Basic JSON validation
