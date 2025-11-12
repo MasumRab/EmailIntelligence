@@ -2,6 +2,7 @@ import git
 import re
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+from tqdm.asyncio import tqdm # Import tqdm for async operations
 
 from src.lib.git_wrapper import GitWrapper
 from src.models.unified_analysis import ActionNarrative, IntentReport, VerificationResult
@@ -68,10 +69,10 @@ class AnalysisService:
         )
 
     async def generate_intent_report(self, branch_name: str, revision_range: Optional[str] = None) -> IntentReport:
-        commits = self.git_wrapper.get_commits(revision_range or branch_name)
+        commits = list(self.git_wrapper.get_commits(revision_range or branch_name)) # Convert to list to get length for tqdm
         
         commit_narratives: List[ActionNarrative] = []
-        for commit in commits:
+        for commit in tqdm(commits, desc=f"Generating narratives for {branch_name}"):
             narrative = await self.generate_action_narrative(commit)
             commit_narratives.append(narrative)
         
@@ -110,14 +111,14 @@ class AnalysisService:
         
         # Collect all changes from the intent report
         expected_changes_map: Dict[str, List[Dict[str, Any]]] = {} # {commit_hexsha: [changes]}
-        for narrative in intent_report.commit_narratives:
+        for narrative in tqdm(intent_report.commit_narratives, desc="Processing expected changes"):
             commit = self.git_wrapper.get_commit_by_hexsha(narrative.commit_hexsha)
             diff_content = str(self.git_wrapper.get_commit_diff(commit))
             expected_changes_map[narrative.commit_hexsha] = self.diff_parser.parse_diff_for_changes(diff_content)
 
         # Collect all changes from the merged branch
-        actual_changes_map: Dict[str, List[Dict[str, Any]]] = {} 
-        for commit in merged_branch_commits:
+        actual_changes_map: Dict[str, List[Dict[str, Any]]] = {}
+        for commit in tqdm(merged_branch_commits, desc="Processing actual changes"):
             diff_content = str(self.git_wrapper.get_commit_diff(commit))
             actual_changes_map[commit.hexsha] = self.diff_parser.parse_diff_for_changes(diff_content)
 

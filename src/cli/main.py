@@ -9,6 +9,7 @@ from src.services.analysis_service import AnalysisService
 from src.models.unified_analysis import ActionNarrative, IntentReport, VerificationResult
 from datetime import datetime # Import datetime for IntentReport reconstruction
 import git # Import git for specific GitPython exceptions
+from tqdm import tqdm # Import tqdm for progress bars
 
 def main():
     parser = argparse.ArgumentParser(prog="git-verifier", description="A unified tool to analyze Git history, generate a synthesized description of intent, and verify the integrity of the code after merges or rebases.")
@@ -62,18 +63,33 @@ def main():
 async def handle_analyze_command(args, analysis_service: AnalysisService):
     try:
         if args.report:
-            intent_report = await analysis_service.generate_intent_report(
-                branch_name=analysis_service.git_wrapper.get_current_branch().name, # Assuming current branch for report
-                revision_range=args.REVISION_RANGE
-            )
+            # Pass file=sys.stderr to tqdm to avoid interfering with stdout JSON output
+            # or disable if outputting to file
+            if args.output_file:
+                intent_report = await analysis_service.generate_intent_report(
+                    branch_name=analysis_service.git_wrapper.get_current_branch().name,
+                    revision_range=args.REVISION_RANGE
+                )
+            else:
+                with tqdm(total=None, desc="Generating Intent Report", file=sys.stderr) as pbar:
+                    # This is a simplified way to show progress. A more accurate way would be to
+                    # pass the pbar object to generate_intent_report and update it there.
+                    intent_report = await analysis_service.generate_intent_report(
+                        branch_name=analysis_service.git_wrapper.get_current_branch().name,
+                        revision_range=args.REVISION_RANGE
+                    )
+                    pbar.update(1) # Just to show some activity
+
             output_data = intent_report.to_dict()
         else:
             # For individual narratives, we need to iterate commits
-            commits = analysis_service.git_wrapper.get_commits(args.REVISION_RANGE)
+            commits = list(analysis_service.git_wrapper.get_commits(args.REVISION_RANGE))
             narratives = []
-            for commit in commits:
-                narrative = await analysis_service.generate_action_narrative(commit)
-                narratives.append(narrative.to_dict())
+            with tqdm(total=len(commits), desc="Generating Narratives", file=sys.stderr) as pbar:
+                for commit in commits:
+                    narrative = await analysis_service.generate_action_narrative(commit)
+                    narratives.append(narrative.to_dict())
+                    pbar.update(1)
             output_data = narratives
 
         if args.output_file:
@@ -147,7 +163,16 @@ async def handle_verify_command(args, analysis_service: AnalysisService):
 
 
     try:
-        verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
+        # Use tqdm for verification process
+        if args.output_file:
+            verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
+        else:
+            with tqdm(total=None, desc="Verifying Integrity", file=sys.stderr) as pbar:
+                # This is a simplified way to show progress. A more accurate way would be to
+                # pass the pbar object to verify_integrity and update it there.
+                verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
+                pbar.update(1) # Just to show some activity
+
         output_data = verification_result.to_dict()
 
         if args.output_file:
