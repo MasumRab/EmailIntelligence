@@ -53,7 +53,7 @@ The implementation will follow a logical progression, starting with foundational
 
 ## Final Phase: Polish & Cross-Cutting Concerns (Consolidated)
 
-- [ ] T016 [P] Implement robust error handling and user-friendly messages across all `git-verifier` sub-commands in `src/cli/main.py`.
+- [x] T016 [P] Implement robust error handling and user-friendly messages across all `git-verifier` sub-commands in `src/cli/main.py`.
 - [ ] T017 [P] Add user-friendly progress indicators for long-running operations like analysis and verification.
 - [ ] T018 [P] Refine all output formats (`text`, `json`, `md`) for clarity and correctness.
 

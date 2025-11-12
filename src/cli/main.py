@@ -8,6 +8,7 @@ from src.lib.git_wrapper import GitWrapper
 from src.services.analysis_service import AnalysisService
 from src.models.unified_analysis import ActionNarrative, IntentReport, VerificationResult
 from datetime import datetime # Import datetime for IntentReport reconstruction
+import git # Import git for specific GitPython exceptions
 
 def main():
     parser = argparse.ArgumentParser(prog="git-verifier", description="A unified tool to analyze Git history, generate a synthesized description of intent, and verify the integrity of the code after merges or rebases.")
@@ -39,8 +40,11 @@ def main():
     # Initialize AnalysisService
     try:
         analysis_service = AnalysisService(args.repo_path)
+    except git.InvalidGitRepositoryError:
+        print(f"Error: '{args.repo_path}' is not a valid Git repository.", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
-        print(f"Error initializing Git repository at {args.repo_path}: {e}", file=sys.stderr)
+        print(f"An unexpected error occurred during Git repository initialization: {e}", file=sys.stderr)
         sys.exit(1)
 
     if args.command == "analyze":
@@ -56,46 +60,60 @@ def main():
         parser.print_help()
 
 async def handle_analyze_command(args, analysis_service: AnalysisService):
-    if args.report:
-        intent_report = await analysis_service.generate_intent_report(
-            branch_name=analysis_service.git_wrapper.get_current_branch().name, # Assuming current branch for report
-            revision_range=args.REVISION_RANGE
-        )
-        output_data = intent_report.to_dict()
-    else:
-        # For individual narratives, we need to iterate commits
-        commits = analysis_service.git_wrapper.get_commits(args.REVISION_RANGE)
-        narratives = []
-        for commit in commits:
-            narrative = await analysis_service.generate_action_narrative(commit)
-            narratives.append(narrative.to_dict())
-        output_data = narratives
+    try:
+        if args.report:
+            intent_report = await analysis_service.generate_intent_report(
+                branch_name=analysis_service.git_wrapper.get_current_branch().name, # Assuming current branch for report
+                revision_range=args.REVISION_RANGE
+            )
+            output_data = intent_report.to_dict()
+        else:
+            # For individual narratives, we need to iterate commits
+            commits = analysis_service.git_wrapper.get_commits(args.REVISION_RANGE)
+            narratives = []
+            for commit in commits:
+                narrative = await analysis_service.generate_action_narrative(commit)
+                narratives.append(narrative.to_dict())
+            output_data = narratives
 
-    if args.output_file:
-        with open(args.output_file, 'w') as f:
-            json.dump(output_data, f, indent=4)
-    else:
-        print(json.dumps(output_data, indent=4))
+        if args.output_file:
+            with open(args.output_file, 'w') as f:
+                json.dump(output_data, f, indent=4)
+            print(f"Analysis report saved to {args.output_file}")
+        else:
+            print(json.dumps(output_data, indent=4))
+            print("\nAnalysis complete.")
+    except git.BadName as e:
+        print(f"Error: Invalid revision range or branch name '{args.REVISION_RANGE}': {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"An unexpected error occurred during analysis: {e}", file=sys.stderr)
+        sys.exit(1)
 
 async def handle_detect_rebased_command(args, analysis_service: AnalysisService):
-    rebased_branches = await analysis_service.detect_rebased_branches()
-    
-    # Filter by --since if provided (placeholder for actual date filtering logic)
-    if args.since:
-        # For now, just a placeholder. Actual filtering would involve parsing args.since
-        # and comparing with reflog entry dates.
-        print(f"Filtering rebased branches since {args.since} (not yet implemented)", file=sys.stderr)
+    try:
+        rebased_branches = await analysis_service.detect_rebased_branches()
+        
+        # Filter by --since if provided (placeholder for actual date filtering logic)
+        if args.since:
+            # For now, just a placeholder. Actual filtering would involve parsing args.since
+            # and comparing with reflog entry dates.
+            print(f"Filtering rebased branches since {args.since} (not yet implemented)", file=sys.stderr)
 
-    if args.json:
-        output_data = rebased_branches
-        print(json.dumps(output_data, indent=4))
-    else:
-        if rebased_branches:
-            print("Detected rebased branches:")
-            for branch in rebased_branches:
-                print(f"- {branch}")
+        if args.json:
+            output_data = rebased_branches
+            print(json.dumps(output_data, indent=4))
         else:
-            print("No rebased branches detected.")
+            if rebased_branches:
+                print("Detected rebased branches:")
+                for branch in rebased_branches:
+                    print(f"- {branch}")
+            else:
+                print("No rebased branches detected.")
+        print("\nRebase detection complete.")
+    except Exception as e:
+        print(f"An unexpected error occurred during rebase detection: {e}", file=sys.stderr)
+        sys.exit(1)
 
 async def handle_verify_command(args, analysis_service: AnalysisService):
     try:
@@ -103,7 +121,6 @@ async def handle_verify_command(args, analysis_service: AnalysisService):
             report_data = json.load(f)
         
         # Reconstruct IntentReport object
-        # The commit_narratives need to be reconstructed into ActionNarrative objects
         commit_narratives = []
         for cn_data in report_data['commit_narratives']:
             # Ensure authored_date is converted back to int if it was stored as such
@@ -116,40 +133,46 @@ async def handle_verify_command(args, analysis_service: AnalysisService):
             commit_narratives=commit_narratives
         )
     except FileNotFoundError:
-        print(f"Error: Intent Report file not found at {args.report}", file=sys.stderr)
+        print(f"Error: Intent Report file not found at '{args.report}'. Please ensure the path is correct.", file=sys.stderr)
         sys.exit(1)
     except json.JSONDecodeError:
-        print(f"Error: Invalid JSON in Intent Report file at {args.report}", file=sys.stderr)
+        print(f"Error: Invalid JSON format in Intent Report file at '{args.report}'. Please check the file content.", file=sys.stderr)
         sys.exit(1)
     except KeyError as e:
-        print(f"Error: Missing key in Intent Report data: {e}", file=sys.stderr)
+        print(f"Error: Missing expected data in Intent Report file: '{e}'. Please ensure the report is valid.", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(f"Error processing Intent Report: {e}", file=sys.stderr)
+        print(f"An unexpected error occurred while loading the Intent Report: {e}", file=sys.stderr)
         sys.exit(1)
 
 
-    verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
-    output_data = verification_result.to_dict()
+    try:
+        verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
+        output_data = verification_result.to_dict()
 
-    if args.output_file:
-        with open(args.output_file, 'w') as f:
-            json.dump(output_data, f, indent=4)
-    else:
-        # Human-readable output for verification result
-        print(f"Verification Result for branch '{verification_result.branch_name}' (verified at {verification_result.verified_at.isoformat()}):")
-        if verification_result.is_fully_consistent:
-            print("  Status: FULLY CONSISTENT - No discrepancies found.")
+        if args.output_file:
+            with open(args.output_file, 'w') as f:
+                json.dump(output_data, f, indent=4)
+            print(f"Verification result saved to {args.output_file}")
         else:
-            print("  Status: DISCREPANCIES DETECTED")
-            if verification_result.missing_changes:
-                print("  Missing Changes:")
-                for change in verification_result.missing_changes:
-                    print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
-            if verification_result.unexpected_changes:
-                print("  Unexpected Changes:")
-                for change in verification_result.unexpected_changes:
-                    print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
+            # Human-readable output for verification result
+            print(f"Verification Result for branch '{verification_result.branch_name}' (verified at {verification_result.verified_at.isoformat()}):")
+            if verification_result.is_fully_consistent:
+                print("  Status: FULLY CONSISTENT - No discrepancies found.")
+            else:
+                print("  Status: DISCREPANCIES DETECTED")
+                if verification_result.missing_changes:
+                    print("  Missing Changes:")
+                    for change in verification_result.missing_changes:
+                        print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
+                if verification_result.unexpected_changes:
+                    print("  Unexpected Changes:")
+                    for change in verification_result.unexpected_changes:
+                        print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
+            print("\nVerification complete.")
+    except Exception as e:
+        print(f"An unexpected error occurred during verification: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
