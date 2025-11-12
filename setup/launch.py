@@ -86,6 +86,33 @@ VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 
+# --- Missing utility functions ---
+def is_wsl():
+    """Check if running in Windows Subsystem for Linux."""
+    import platform
+    return "microsoft" in platform.uname().release.lower() or "wsl" in platform.uname().release.lower()
+
+
+def get_python_executable():
+    """Get the Python executable to use."""
+    from setup.utils import get_python_executable as _get_python_executable
+    return _get_python_executable()
+
+
+def activate_conda_env():
+    """Try to activate the conda environment."""
+    from setup.environment import activate_conda_env as _activate_conda_env
+    return _activate_conda_env()
+
+
+def is_conda_available():
+    """Check if conda is available."""
+    from setup.environment import is_conda_available as _is_conda_available
+    return _is_conda_available()
+
+
+# Command pattern availability (will be set later)
+COMMAND_PATTERN_AVAILABLE = False
 
 
 def setup_wsl_environment():

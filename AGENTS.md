@@ -1,33 +1,5 @@
 # Task Master AI - Agent Integration Guide
 
-## ⚠️ Branch-Specific Guidance
-
-**Select your branch below to find the correct agent documentation:**
-
-### 🌳 Scientific Branch
-**If working on the `scientific` branch:** Use the scientific branch AGENTS.md instead
-- Focuses on FastAPI backend, email processing, AI analysis, API routes
-- Includes build/test commands (uv sync, pytest, coverage)
-- Code style: absolute imports, PascalCase classes, snake_case functions
-- Architecture: src/backend/, src/core/, modules/ (plugins), tests/
-- **Switch to scientific branch documentation** for development guidance
-
-### 📋 Main & orchestration-tools Branches
-**If working on `main` or orchestration-tools-*:** Use this guide (below)
-
-**Environment Compatibility:**
-- **Jules** (Google's agentic IDE at jules.google.com): NOT compatible with this guide
-  - Refer to your Jules-specific agent documentation
-  - Jules has its own task management and workflow systems
-  - However: Learn from this guide's patterns and adapt to Jules capabilities as needed
-  - Update your understanding based on knowledge of both Jules and this project structure
-
-- **Non-Jules environments**: COMPATIBLE with this guide
-  - Task Master CLI and MCP server are configured below
-  - Standard development workflows for agents using this codebase apply
-
----
-
 ## Essential Commands
 
 ### Core Workflow Commands
@@ -63,26 +35,6 @@ task-master validate-dependencies                            # Check for depende
 task-master generate                                         # Update task markdown files (usually auto-called)
 ```
 
-### Orchestration Control Commands
-
-```bash
-# Disable All Orchestration (with branch profile sync & push)
-./scripts/disable-all-orchestration-with-branch-sync.sh      # Disable hooks, env vars, branch profiles, push to scientific/main
-./scripts/disable-all-orchestration-with-branch-sync.sh --skip-push  # Same but don't auto-push
-
-# Re-enable All Orchestration (with branch profile sync & push)
-./scripts/enable-all-orchestration-with-branch-sync.sh       # Enable hooks, env vars, branch profiles, push to scientific/main
-./scripts/enable-all-orchestration-with-branch-sync.sh --skip-push   # Same but don't auto-push
-
-# Original Disable/Enable (no branch sync)
-./scripts/disable-all-orchestration.sh                       # Disable hooks and env var only
-./scripts/enable-all-orchestration.sh                        # Enable hooks and clear env var only
-
-# Hook-only Control
-./scripts/disable-orchestration-hooks.sh                     # Disable git hooks only
-./scripts/restore-orchestration-hooks.sh                     # Restore git hooks only
-```
-
 ## Key Files & Project Structure
 
 ### Core Files
@@ -92,14 +44,6 @@ task-master generate                                         # Update task markd
 - `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
-
-### Linting & Code Quality Configuration
-
-- `.flake8` - Flake8 linting rules with exclusions for venv, node_modules, __pycache__, build artifacts
-- `.pylintrc` - Pylint configuration with excluded paths and complexity limits
-- `setup.cfg` - Pytest, isort, and tool configurations with proper ignore patterns
-- `.github/workflows/test.yml` - CI/CD test workflow (Python 3.9, 3.10, 3.11)
-- `.github/workflows/lint.yml` - CI/CD linting workflow (flake8, pylint, black, isort)
 
 ### Claude Code Integration Files
 
@@ -471,32 +415,3 @@ These commands make AI calls and may take up to a minute:
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
-
-<!-- BACKLOG.MD MCP GUIDELINES START -->
-
-<CRITICAL_INSTRUCTION>
-
-## BACKLOG WORKFLOW INSTRUCTIONS
-
-This project uses Backlog.md MCP for all task and project management activities.
-
-**CRITICAL GUIDANCE**
-
-- If your client supports MCP resources, read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
-- If your client only supports tools or the above request fails, call `backlog.get_workflow_overview()` tool to load the tool-oriented overview (it lists the matching guide tools).
-
-- **First time working here?** Read the overview resource IMMEDIATELY to learn the workflow
-- **Already familiar?** You should have the overview cached ("## Backlog.md Overview (MCP)")
-- **When to read it**: BEFORE creating tasks, or when you're unsure whether to track work
-
-These guides cover:
-- Decision framework for when to create tasks
-- Search-first workflow to avoid duplicates
-- Links to detailed guides for task creation, execution, and completion
-- MCP tools reference
-
-You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.
-
-</CRITICAL_INSTRUCTION>
-
-<!-- BACKLOG.MD MCP GUIDELINES END -->
