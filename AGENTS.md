@@ -63,6 +63,26 @@ task-master validate-dependencies                            # Check for depende
 task-master generate                                         # Update task markdown files (usually auto-called)
 ```
 
+### Orchestration Control Commands
+
+```bash
+# Disable All Orchestration (with branch profile sync & push)
+./scripts/disable-all-orchestration-with-branch-sync.sh      # Disable hooks, env vars, branch profiles, push to scientific/main
+./scripts/disable-all-orchestration-with-branch-sync.sh --skip-push  # Same but don't auto-push
+
+# Re-enable All Orchestration (with branch profile sync & push)
+./scripts/enable-all-orchestration-with-branch-sync.sh       # Enable hooks, env vars, branch profiles, push to scientific/main
+./scripts/enable-all-orchestration-with-branch-sync.sh --skip-push   # Same but don't auto-push
+
+# Original Disable/Enable (no branch sync)
+./scripts/disable-all-orchestration.sh                       # Disable hooks and env var only
+./scripts/enable-all-orchestration.sh                        # Enable hooks and clear env var only
+
+# Hook-only Control
+./scripts/disable-orchestration-hooks.sh                     # Disable git hooks only
+./scripts/restore-orchestration-hooks.sh                     # Restore git hooks only
+```
+
 ## Key Files & Project Structure
 
 ### Core Files
