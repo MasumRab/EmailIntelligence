@@ -71,34 +71,49 @@ async def handle_analyze_command(args, analysis_service: AnalysisService):
                     revision_range=args.REVISION_RANGE
                 )
             else:
-                with tqdm(total=None, desc="Generating Intent Report", file=sys.stderr) as pbar:
-                    # This is a simplified way to show progress. A more accurate way would be to
-                    # pass the pbar object to generate_intent_report and update it there.
-                    intent_report = await analysis_service.generate_intent_report(
-                        branch_name=analysis_service.git_wrapper.get_current_branch().name,
-                        revision_range=args.REVISION_RANGE
-                    )
-                    pbar.update(1) # Just to show some activity
+                # tqdm is handled internally by analysis_service.generate_intent_report
+                intent_report = await analysis_service.generate_intent_report(
+                    branch_name=analysis_service.git_wrapper.get_current_branch().name,
+                    revision_range=args.REVISION_RANGE
+                )
 
             output_data = intent_report.to_dict()
+            if args.output_file:
+                with open(args.output_file, 'w') as f:
+                    json.dump(output_data, f, indent=4)
+                print(f"Analysis report saved to {args.output_file}")
+            else:
+                # Human-readable output for IntentReport
+                print(f"Intent Report for branch '{intent_report.branch_name}' (Generated at {intent_report.generated_at.isoformat()}):")
+                for narrative in intent_report.commit_narratives:
+                    print(f"\n--- Commit: {narrative.commit_hexsha[:7]} ---")
+                    print(f"Author: {narrative.author_name}")
+                    print(f"Date: {datetime.fromtimestamp(narrative.authored_date).isoformat()}")
+                    print(f"Message: {narrative.commit_message.strip().splitlines()[0]}")
+                    print(f"Narrative: {narrative.synthesized_narrative}")
+                    if not narrative.is_consistent:
+                        print(f"Consistency: NOT CONSISTENT - {narrative.discrepancy_notes}")
+                print("\nAnalysis complete.")
         else:
             # For individual narratives, we need to iterate commits
             commits = list(analysis_service.git_wrapper.get_commits(args.REVISION_RANGE))
             narratives = []
-            with tqdm(total=len(commits), desc="Generating Narratives", file=sys.stderr) as pbar:
-                for commit in commits:
-                    narrative = await analysis_service.generate_action_narrative(commit)
-                    narratives.append(narrative.to_dict())
-                    pbar.update(1)
-            output_data = narratives
-
-        if args.output_file:
-            with open(args.output_file, 'w') as f:
-                json.dump(output_data, f, indent=4)
-            print(f"Analysis report saved to {args.output_file}")
-        else:
-            print(json.dumps(output_data, indent=4))
+            # tqdm is handled internally by analysis_service.generate_intent_report
+            # For individual narratives, we'll just print them as they are generated
+            print(f"Analyzing commits in range: {args.REVISION_RANGE or 'default range'}")
+            for commit in tqdm(commits, desc="Generating Narratives", file=sys.stderr):
+                narrative = await analysis_service.generate_action_narrative(commit)
+                narratives.append(narrative.to_dict())
+                
+                print(f"\n--- Commit: {narrative.commit_hexsha[:7]} ---")
+                print(f"Author: {narrative.author_name}")
+                print(f"Date: {datetime.fromtimestamp(narrative.authored_date).isoformat()}")
+                print(f"Message: {narrative.commit_message.strip().splitlines()[0]}")
+                print(f"Narrative: {narrative.synthesized_narrative}")
+                if not narrative.is_consistent:
+                    print(f"Consistency: NOT CONSISTENT - {narrative.discrepancy_notes}")
             print("\nAnalysis complete.")
+
     except git.BadName as e:
         print(f"Error: Invalid revision range or branch name '{args.REVISION_RANGE}': {e}", file=sys.stderr)
         sys.exit(1)
@@ -167,11 +182,8 @@ async def handle_verify_command(args, analysis_service: AnalysisService):
         if args.output_file:
             verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
         else:
-            with tqdm(total=None, desc="Verifying Integrity", file=sys.stderr) as pbar:
-                # This is a simplified way to show progress. A more accurate way would be to
-                # pass the pbar object to verify_integrity and update it there.
-                verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
-                pbar.update(1) # Just to show some activity
+            # tqdm is handled internally by analysis_service.verify_integrity
+            verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
 
         output_data = verification_result.to_dict()
 
