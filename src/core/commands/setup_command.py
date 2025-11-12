@@ -79,7 +79,20 @@ class SetupCommand(Command):
             return 1
 
     def _validate_environment(self) -> bool:
-        """Validate the environment before setup."""
+        """
+        TODO: Implement comprehensive environment validation.
+
+        This method should perform checks to ensure the system meets the
+        minimum requirements for the project. This includes:
+        1.  **Python Version Check:** Verify that the installed Python version
+            is compatible (e.g., Python 3.12+).
+        2.  **Git Installation Check:** Ensure Git is installed and accessible.
+        3.  **System Dependencies:** Check for any required system-level packages
+            (e.g., `notmuch` for email processing, specific compilers).
+        4.  **OS Compatibility:** Verify compatibility with the operating system
+            (e.g., Linux, macOS, WSL).
+        5.  **Resource Availability:** Optionally check for sufficient RAM, disk space.
+        """
         logger.info("Validating environment...")
 
         # Add environment validation logic here
@@ -106,7 +119,20 @@ class SetupCommand(Command):
             return False
 
     def _install_dependencies(self) -> bool:
-        """Install project dependencies."""
+        """
+        TODO: Enhance dependency installation logic.
+
+        This method should install project dependencies. Future enhancements:
+        1.  **Dynamic Project Root:** The hardcoded path `/home/masum/github/EmailIntelligenceGem/`
+            should be replaced with a dynamic path derived from `ROOT_DIR`.
+        2.  **Dependency File Flexibility:** Support for different dependency files
+            (e.g., `requirements.txt`, `pyproject.toml` with `poetry` or `pdm`).
+        3.  **CPU/GPU Specifics:** Better handling of CPU-only vs. GPU-enabled
+            installations, potentially reading from configuration or CLI arguments.
+        4.  **Error Handling:** More robust error handling and user guidance for
+            failed installations.
+        5.  **Progress Indicators:** Integrate progress indicators for long installations.
+        """
         logger.info("Installing dependencies...")
         try:
             if is_wsl():
@@ -114,6 +140,8 @@ class SetupCommand(Command):
                 self._run_command(["sudo", "apt-get", "install", "-y", "notmuch", "python3-notmuch"], "Installing notmuch and python3-notmuch")
             python_exe = self._get_venv_executable("python")
             self._run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
+            # TODO: Make the installation path dynamic.
+            # Replace "/home/masum/github/EmailIntelligenceGem/" with `str(ROOT_DIR)`
             self._run_command([str(python_exe), "-m", "uv", "pip", "install", "-e", "/home/masum/github/EmailIntelligenceGem/"], "Installing dependencies with uv", cwd=ROOT_DIR)
             logger.info("Dependencies installed successfully")
             return True
@@ -156,7 +184,20 @@ class SetupCommand(Command):
             return False
 
     def _validate_setup(self) -> bool:
-        """Validate that setup completed successfully."""
+        """
+        TODO: Implement comprehensive setup validation.
+
+        This method should verify that the environment setup was successful
+        and that the project is ready to run. This includes:
+        1.  **Virtual Environment Activation:** Check if the virtual environment
+            is correctly activated.
+        2.  **Dependency Availability:** Verify that all critical dependencies
+            are importable within the virtual environment.
+        3.  **Basic Functionality Test:** Run a very basic test to ensure the
+            core components of the application can start or execute.
+        4.  **Configuration Files:** Check for the presence and validity of
+            essential configuration files.
+        """
         logger.info("Validating setup...")
 
         # Add setup validation logic here
