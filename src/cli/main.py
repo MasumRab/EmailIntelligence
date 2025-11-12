@@ -101,12 +101,19 @@ async def handle_verify_command(args, analysis_service: AnalysisService):
     try:
         with open(args.report, 'r') as f:
             report_data = json.load(f)
-        # Reconstruct IntentReport object (simplified for now)
-        # In a real scenario, you'd parse commit_narratives back into ActionNarrative objects
+        
+        # Reconstruct IntentReport object
+        # The commit_narratives need to be reconstructed into ActionNarrative objects
+        commit_narratives = []
+        for cn_data in report_data['commit_narratives']:
+            # Ensure authored_date is converted back to int if it was stored as such
+            cn_data['authored_date'] = int(cn_data['authored_date']) # Assuming it was stored as int timestamp
+            commit_narratives.append(ActionNarrative(**cn_data))
+
         intent_report = IntentReport(
             branch_name=report_data['branch_name'],
             generated_at=datetime.fromisoformat(report_data['generated_at']),
-            commit_narratives=[ActionNarrative(**cn) for cn in report_data['commit_narratives']]
+            commit_narratives=commit_narratives
         )
     except FileNotFoundError:
         print(f"Error: Intent Report file not found at {args.report}", file=sys.stderr)
@@ -117,6 +124,10 @@ async def handle_verify_command(args, analysis_service: AnalysisService):
     except KeyError as e:
         print(f"Error: Missing key in Intent Report data: {e}", file=sys.stderr)
         sys.exit(1)
+    except Exception as e:
+        print(f"Error processing Intent Report: {e}", file=sys.stderr)
+        sys.exit(1)
+
 
     verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
     output_data = verification_result.to_dict()
@@ -125,7 +136,20 @@ async def handle_verify_command(args, analysis_service: AnalysisService):
         with open(args.output_file, 'w') as f:
             json.dump(output_data, f, indent=4)
     else:
-        print(json.dumps(output_data, indent=4))
+        # Human-readable output for verification result
+        print(f"Verification Result for branch '{verification_result.branch_name}' (verified at {verification_result.verified_at.isoformat()}):")
+        if verification_result.is_fully_consistent:
+            print("  Status: FULLY CONSISTENT - No discrepancies found.")
+        else:
+            print("  Status: DISCREPANCIES DETECTED")
+            if verification_result.missing_changes:
+                print("  Missing Changes:")
+                for change in verification_result.missing_changes:
+                    print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
+            if verification_result.unexpected_changes:
+                print("  Unexpected Changes:")
+                for change in verification_result.unexpected_changes:
+                    print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
 
 
 if __name__ == "__main__":
