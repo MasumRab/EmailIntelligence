@@ -6,6 +6,9 @@ server/public/
 vite.config.ts.*
 *.tar.gz
 
+# Task Master - local task management (not synced across branches)
+.taskmaster/
+
 # Python virtual environment
 venv/
 .env

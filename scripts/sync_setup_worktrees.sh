@@ -73,6 +73,7 @@ sync_setup_files() {
     echo -e "${BLUE}Synchronizing setup files...${NC}"
     
     # List of files to synchronize
+    # NOTE: .taskmaster is NEVER synchronized - it's managed separately and should never be deleted
     local setup_files=(
     ".env.example"
     "launch.bat"
