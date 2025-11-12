@@ -23,7 +23,7 @@ The implementation will follow a logical progression, starting with foundational
 
 - [x] T005 [P] Write unit tests for the `git_wrapper` in `tests/unit/test_git_wrapper.py`.
 - [x] T006 [P] Write unit tests for the unified `analysis_service` in `tests/unit/test_analysis_service.py`, covering narrative synthesis, rebase detection, and verification logic.
-- [ ] T007 [P] Write integration tests for the `git-verifier` CLI and its sub-commands (`analyze`, `detect-rebased`, `verify`) in `tests/integration/test_cli.py`.
+- [x] T007 [P] Write integration tests for the `git-verifier` CLI and its sub-commands (`analyze`, `detect-rebased`, `verify`) in `tests/integration/test_cli.py`.
 - [ ] T008 [P] Define contract tests in `tests/contract/test_cli_contracts.py` to validate the CLI's behavior against `contracts/cli-contracts.md`.
 
 ## Phase 4: Core Implementation (US1, US4)
