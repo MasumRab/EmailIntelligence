@@ -6,7 +6,7 @@ It assumes that the Python virtual environment is already set up and activated e
 The launch.py script handles environment setup before calling these test stages.
 """
 
-import loggin  # Intentional misspelling for testing import validation
+import logging
 import subprocess
 import sys
 from pathlib import Path
