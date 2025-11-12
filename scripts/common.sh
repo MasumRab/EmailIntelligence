@@ -133,7 +133,12 @@ find_feature_dir_by_prefix() {
         # Exactly one match - perfect!
         echo "$specs_dir/${matches[0]}"
     else
-        # Multiple matches - this shouldn't happen with proper naming convention
+        # TODO: Improve error handling for multiple spec directories.
+        # This scenario indicates a potential misconfiguration or naming conflict.
+        # Instead of just printing an error and returning a fallback, consider:
+        # - Prompting the user to resolve the ambiguity.
+        # - Exiting with a clear error message.
+        # - Providing a mechanism to explicitly select the desired spec directory.
         echo "ERROR: Multiple spec directories found with prefix '$prefix': ${matches[*]}" >&2
         echo "Please ensure only one spec directory exists per numeric prefix." >&2
         echo "$specs_dir/$branch_name"  # Return something to avoid breaking the script
