@@ -29,21 +29,27 @@ resolve_conflict() {
     
     while IFS= read -r line || [[ -n "$line" ]]; do
         # FIXED: Use substring matching instead of regex to avoid bash syntax errors with conflict markers
-        if [[ "${line:0:7}" == "<<<<<<<" ]]; then
-            print_color "RED" "<<<<<<< ${line#<<<<<<< } (THEIRS - from stash)"
-            in_theirs_block=true
-        elif [[ "${line:0:7}" == "=======" ]]; then
-            print_color "YELLOW" "======= (SEPARATOR)"
-            in_theirs_block=false
-            in_ours_block=true
-        elif [[ "${line:0:7}" == ">>>>>>> " ]]; then
-            print_color "RED" ">>>>>>> ${line#>>>>>>> } (OURS - from working directory)"
-            in_ours_block=false
-        elif [[ "$in_theirs_block" == true ]]; then
-            print_color "RED" "  $line_num: $line"
-        elif [[ "$in_ours_block" == true ]]; then
-            print_color "GREEN" "  $line_num: $line"
+        # ADDED: Length check to prevent errors when line is shorter than 7 characters
+        if [[ ${#line} -ge 7 ]]; then
+            if [[ "${line:0:7}" == "<<<<<<<" ]]; then
+                print_color "RED" "<<<<<<< ${line#<<<<<<< } (THEIRS - from stash)"
+                in_theirs_block=true
+            elif [[ "${line:0:7}" == "=======" ]]; then
+                print_color "YELLOW" "======= (SEPARATOR)"
+                in_theirs_block=false
+                in_ours_block=true
+            elif [[ "${line:0:7}" == ">>>>>>> " ]]; then
+                print_color "RED" ">>>>>>> ${line#>>>>>>> } (OURS - from working directory)"
+                in_ours_block=false
+            elif [[ "$in_theirs_block" == true ]]; then
+                print_color "RED" "  $line_num: $line"
+            elif [[ "$in_ours_block" == true ]]; then
+                print_color "GREEN" "  $line_num: $line"
+            else
+                echo "  $line_num: $line"
+            fi
         else
+            # Line is shorter than 7 characters, so it can't be a conflict marker
             echo "  $line_num: $line"
         fi
         ((line_num++))
@@ -129,8 +135,11 @@ resolve_conflict_by_lines() {
     local line_num=1
     while IFS= read -r line || [[ -n "$line" ]]; do
         # FIXED: Use substring matching instead of regex to avoid bash syntax errors with conflict markers
-        if [[ "${line:0:7}" == "<<<<<<<" ]] || [[ "${line:0:7}" == "=======" ]] || [[ "${line:0:7}" == ">>>>>>> " ]]; then
+        # ADDED: Length check to prevent errors when line is shorter than 7 characters
+        if [[ ${#line} -ge 7 ]] && ([[ "${line:0:7}" == "<<<<<<<" ]] || [[ "${line:0:7}" == "=======" ]] || [[ "${line:0:7}" == ">>>>>>> " ]]); then
             echo "  $line_num: $line"
+        elif [[ ${#line} -lt 7 ]]; then
+            echo "$line_num: $line"
         else
             echo "$line_num: $line"
         fi
