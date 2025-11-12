@@ -1,0 +1,44 @@
+# Dockerfile for PR Resolution Automation API
+FROM python:3.12-slim-bookworm
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install dependencies
+COPY setup/requirements.txt setup/pyproject.toml ./
+RUN pip install --no-cache-dir \
+    graphene \
+    graphene[sqlalchemy] \
+    neo4j \
+    redis \
+    psutil \
+    httpx
+
+# Copy the rest of the application code
+COPY . .
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PORT=8000
+
+# Create health check script
+RUN echo '#!/bin/bash\ncurl -f http://localhost:8000/health || exit 1' > /tmp/healthcheck.sh && \
+    chmod +x /tmp/healthcheck.sh
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /tmp/healthcheck.sh
+
+# Command to run the FastAPI application
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
