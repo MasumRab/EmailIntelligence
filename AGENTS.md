@@ -392,6 +392,39 @@ These commands make AI calls and may take up to a minute:
 - Task markdown files in `tasks/` are auto-generated
 - Run `task-master generate` after manual changes to tasks.json
 
+### Worktree Management
+
+The `.taskmaster/` directory is a Git worktree checked out from the `taskmaster` branch. All Task Master AI configuration and task data is managed through this worktree:
+
+#### Syncing Changes Between Worktrees
+
+To sync Task Master configuration changes between worktrees:
+
+```bash
+# From any worktree, cd into the taskmaster worktree
+cd .taskmaster
+
+# Pull latest changes
+git pull origin taskmaster
+
+# Make your changes to config files, tasks, etc.
+
+# Stage and commit changes
+git add .
+git commit -m "Update Task Master configuration"
+
+# Push changes
+git push origin taskmaster
+```
+
+#### Key Points About the Taskmaster Worktree
+
+- **Branch**: `taskmaster` (separate from `main`)
+- **Purpose**: Dedicated workspace for Task Master AI data and configuration
+- **Sync Method**: Git push/pull operations within the worktree
+- **Files Managed**: All `.taskmaster/` directory contents are version controlled in this worktree
+- **Integration**: Task Master commands work from any directory but reference the `.taskmaster/` worktree
+
 ### Claude Code Session Management
 
 - Use `/clear` frequently to maintain focused context
