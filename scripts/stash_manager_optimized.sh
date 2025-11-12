@@ -1,19 +1,24 @@
 #!/bin/bash
 # Enhanced Stash Management Tool with Interactive Conflict Resolution
 # This script provides comprehensive stash management capabilities
+# utilizing the common library for shared functions
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Source common library to avoid code duplication
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMMON_LIB="$SCRIPT_DIR/lib/stash_common.sh"
+
+if [[ -f "$COMMON_LIB" ]]; then
+    source "$COMMON_LIB"
+else
+    echo "Error: Common library not found at $COMMON_LIB"
+    exit 1
+fi
 
 # Function to display help
 show_help() {
-    echo "Enhanced Stash Management Tool"
+    print_color "BLUE" "Enhanced Stash Management Tool"
     echo "Usage: $0 [command] [options]"
     echo ""
     echo "Commands:"
@@ -28,6 +33,9 @@ show_help() {
     echo "  clear                   Clear all stashes"
     echo "  analyze                 Analyze stashes and suggest processing order"
     echo "  process-all             Process all stashes with interactive resolution"
+    echo "  branch-info             Show which branch each stash belongs to"
+    echo "  search <pattern>        Search stashes for a specific pattern"
+    echo "  save-with-branch <branch> [message] Save changes with branch info in message"
     echo "  help                    Show this help message"
     echo ""
     echo "Examples:"
@@ -35,72 +43,71 @@ show_help() {
     echo "  $0 show stash@{0}"
     echo "  $0 apply-interactive stash@{0}"
     echo "  $0 process-all"
+    echo "  $0 search 'fix'"
+    echo "  $0 branch-info"
+    echo "  $0 save-with-branch feature/new-feature 'WIP on feature/new-feature'"
 }
 
-# Function to get branch name from stash message
-get_branch_from_stash() {
-    local stash_message="$1"
-    if [[ $stash_message =~ "WIP on "([^[:space:]]+)":" ]] || [[ $stash_message =~ "On "([^[:space:]]+)":" ]]; then
-        echo "${BASH_REMATCH[1]}"
-    else
-        echo "unknown_branch"
-    fi
-}
-
-# Function to list all stashes
+# Function to list all stashes with branch information
 list_stashes() {
-    echo -e "${BLUE}Current stashes:${NC}"
-    git stash list
+    print_color "BLUE" "Current stashes:"
+    local stash_list
+    readarray -t stash_list < <(get_stash_list)
+    
+    if [[ ${#stash_list[@]} -eq 0 ]]; then
+        echo "No stashes found."
+        return 0
+    fi
+    
+    for stash_ref in "${stash_list[@]}"; do
+        if [[ -n "$stash_ref" ]]; then
+            local stash_message=$(git stash list | grep "$stash_ref" | cut -d: -f2-)
+            local branch_name=$(get_branch_from_stash "$stash_message")
+            printf "%-20s -> %s\n" "$stash_ref" "$branch_name"
+        fi
+    done
 }
 
-# Function to show stash details
+# Function to show stash details using common library function
 show_stash() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
-        echo -e "${RED}Error: Stash reference required${NC}"
+        print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    echo -e "${BLUE}Stash details for $stash_ref:${NC}"
-    git stash show -p "$stash_ref"
+    show_stash "$stash_ref"  # Using function from common library
 }
 
-# Function to apply stash non-interactively
+# Function to apply stash non-interactively using common library function
 apply_stash() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
-        echo -e "${RED}Error: Stash reference required${NC}"
+        print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    echo -e "${BLUE}Applying stash $stash_ref...${NC}"
-    if git stash apply "$stash_ref"; then
-        echo -e "${GREEN}Stash applied successfully${NC}"
-        return 0
-    else
-        echo -e "${RED}Failed to apply stash (conflicts detected)${NC}"
-        return 1
-    fi
+    apply_stash "$stash_ref" "false"  # Using function from common library
 }
 
 # Function to apply stash with interactive conflict resolution
 apply_stash_interactive() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
-        echo -e "${RED}Error: Stash reference required${NC}"
+        print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    echo -e "${BLUE}Applying stash $stash_ref with interactive conflict resolution...${NC}"
+    print_color "BLUE" "Applying stash $stash_ref with interactive conflict resolution..."
     
     # Check if interactive resolver exists
-    local script_path="$(dirname "$0")/interactive_stash_resolver.sh"
+    local script_path="$(dirname "$0")/interactive_stash_resolver_optimized.sh"
     if [[ -f "$script_path" ]]; then
         "$script_path" "$stash_ref"
         return $?
     else
-        echo -e "${YELLOW}Interactive resolver not found, falling back to standard apply...${NC}"
-        apply_stash "$stash_ref"
+        print_color "YELLOW" "Interactive resolver not found, falling back to standard apply..."
+        apply_stash "$stash_ref" "false"
         return $?
     fi
 }
@@ -109,16 +116,16 @@ apply_stash_interactive() {
 pop_stash() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
-        echo -e "${RED}Error: Stash reference required${NC}"
+        print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    echo -e "${BLUE}Popping stash $stash_ref...${NC}"
+    print_color "BLUE" "Popping stash $stash_ref..."
     if git stash pop "$stash_ref"; then
-        echo -e "${GREEN}Stash popped successfully${NC}"
+        print_color "GREEN" "Stash popped successfully"
         return 0
     else
-        echo -e "${RED}Failed to pop stash (conflicts detected)${NC}"
+        print_color "RED" "Failed to pop stash (conflicts detected)"
         return 1
     fi
 }
@@ -127,21 +134,21 @@ pop_stash() {
 pop_stash_interactive() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
-        echo -e "${RED}Error: Stash reference required${NC}"
+        print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    echo -e "${BLUE}Popping stash $stash_ref with interactive conflict resolution...${NC}"
+    print_color "BLUE" "Popping stash $stash_ref with interactive conflict resolution..."
     
     # Apply with interactive resolution
     if apply_stash_interactive "$stash_ref"; then
         # Drop the stash after successful application
-        echo -e "${BLUE}Dropping stash $stash_ref...${NC}"
+        print_color "BLUE" "Dropping stash $stash_ref..."
         git stash drop "$stash_ref"
-        echo -e "${GREEN}Stash popped successfully${NC}"
+        print_color "GREEN" "Stash popped successfully"
         return 0
     else
-        echo -e "${RED}Failed to apply stash, not dropping${NC}"
+        print_color "RED" "Failed to apply stash, not dropping"
         return 1
     fi
 }
@@ -150,159 +157,237 @@ pop_stash_interactive() {
 save_stash() {
     local message="$1"
     if [[ -z "$message" ]]; then
-        echo -e "${BLUE}Saving current changes to stash...${NC}"
-        git stash save
+        print_color "BLUE" "Saving current changes to stash..."
+        if git stash save; then
+            print_color "GREEN" "Changes saved to stash"
+        else
+            print_color "RED" "Failed to save changes to stash"
+            return 1
+        fi
     else
-        echo -e "${BLUE}Saving current changes to stash with message: $message${NC}"
-        git stash save "$message"
+        print_color "BLUE" "Saving current changes to stash with message: $message"
+        if git stash save "$message"; then
+            print_color "GREEN" "Changes saved to stash"
+        else
+            print_color "RED" "Failed to save changes to stash"
+            return 1
+        fi
+    fi
+}
+
+# Function to save current changes to stash with branch info
+save_with_branch() {
+    local branch_name="$1"
+    local message="$2"
+    
+    if [[ -z "$branch_name" ]]; then
+        branch_name=$(git branch --show-current)
+        if [[ -z "$branch_name" || "$branch_name" == "HEAD" ]]; then
+            print_color "RED" "Error: Could not determine current branch name"
+            return 1
+        fi
     fi
     
-    echo -e "${GREEN}Changes saved to stash${NC}"
+    local stash_message="WIP on $branch_name: $(git log -1 --format="%h %s")"
+    if [[ -n "$message" ]]; then
+        stash_message="$message"
+    fi
+    
+    print_color "BLUE" "Saving changes with branch info: $stash_message"
+    if git stash save "$stash_message"; then
+        print_color "GREEN" "Changes saved to stash with branch info"
+    else
+        print_color "RED" "Failed to save changes to stash"
+        return 1
+    fi
 }
 
 # Function to drop a stash
 drop_stash() {
     local stash_ref="$1"
     if [[ -z "$stash_ref" ]]; then
-        echo -e "${RED}Error: Stash reference required${NC}"
+        print_color "RED" "Error: Stash reference required"
         return 1
     fi
     
-    echo -e "${YELLOW}Are you sure you want to drop $stash_ref? (y/N)${NC}"
-    read -r confirm
-    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    if confirm_action "Are you sure you want to drop $stash_ref?"; then
         git stash drop "$stash_ref"
-        echo -e "${GREEN}Stash dropped${NC}"
+        print_color "GREEN" "Stash dropped"
     else
-        echo -e "${BLUE}Operation cancelled${NC}"
+        print_color "BLUE" "Operation cancelled"
     fi
 }
 
 # Function to clear all stashes
 clear_stashes() {
-    echo -e "${YELLOW}Are you sure you want to clear all stashes? (y/N)${NC}"
-    read -r confirm
-    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    if confirm_action "Are you sure you want to clear all stashes?"; then
         git stash clear
-        echo -e "${GREEN}All stashes cleared${NC}"
+        print_color "GREEN" "All stashes cleared"
     else
-        echo -e "${BLUE}Operation cancelled${NC}"
+        print_color "BLUE" "Operation cancelled"
     fi
 }
 
 # Function to analyze stashes and suggest processing order
 analyze_stashes() {
-    echo -e "${BLUE}Analyzing stashes...${NC}"
+    print_color "BLUE" "Analyzing stashes..."
     
     local stash_count
-    stash_count=$(git stash list | wc -l)
-    
-    if [[ $stash_count -eq 0 ]]; then
-        echo -e "${GREEN}No stashes found${NC}"
+    stash_count=$(get_stash_count)
+    if [[ "$stash_count" -eq 0 ]]; then
+        print_color "GREEN" "No stashes found"
         return 0
     fi
     
-    echo -e "${BLUE}Stash Analysis:${NC}"
-    git stash list | while read -r line; do
-        if [[ -n "$line" ]]; then
-            local stash_ref=$(echo "$line" | cut -d: -f1)
-            local branch_info=$(echo "$line" | cut -d: -f3-)
-            local branch_name
-            branch_name=$(get_branch_from_stash "$branch_info")
-            echo "  $stash_ref -> $branch_name: $branch_info"
+    print_color "BLUE" "Stash Analysis:"
+    local stash_list
+    readarray -t stash_list < <(get_stash_list)
+    
+    for stash_ref in "${stash_list[@]}"; do
+        if [[ -n "$stash_ref" ]]; then
+            local stash_message=$(git stash list | grep "$stash_ref" | cut -d: -f2-)
+            local branch_name=$(get_branch_from_stash "$stash_message")
+            printf "  %s -> %s\n" "$stash_ref" "$branch_name"
         fi
     done
     
     echo ""
-    echo -e "${YELLOW}Stashes by target branch:${NC}"
-    git stash list 2>/dev/null | while read -r line; do
-        if [[ -n "$line" ]]; then
-            local branch_info=$(echo "$line" | cut -d: -f3-)
-            local branch_name
-            branch_name=$(get_branch_from_stash "$branch_info")
-            echo "$branch_name"
-        fi
-    done | sort | uniq -c | sort -nr
-    
-    echo ""
-    echo -e "${YELLOW}Suggested processing order:${NC}"
+    print_color "YELLOW" "Suggested processing order:"
     echo "  1. Stashes on main development branches (orchestration-tools, main)"
     echo "  2. Stashes on feature branches"
     echo "  3. Stashes on experimental or temporary branches"
     echo ""
-    echo -e "${BLUE}Recommendation: Use 'apply-interactive' for each stash to handle conflicts properly${NC}"
+    print_color "BLUE" "Recommendation: Use 'apply-interactive' for each stash to handle conflicts properly"
+}
+
+# Function to show branch info for each stash
+show_branch_info() {
+    print_color "BLUE" "Stash Branch Information:"
+    
+    local stash_list
+    readarray -t stash_list < <(get_stash_list)
+    
+    if [[ ${#stash_list[@]} -eq 0 ]]; then
+        echo "No stashes found."
+        return 0
+    fi
+    
+    # Group stashes by branch
+    declare -A stashes_by_branch
+    
+    for stash_ref in "${stash_list[@]}"; do
+        if [[ -n "$stash_ref" ]]; then
+            local stash_message=$(git stash list | grep "$stash_ref" | cut -d: -f2-)
+            local branch_name=$(get_branch_from_stash "$stash_message")
+            stashes_by_branch["$branch_name"]+="$stash_ref "
+        fi
+    done
+    
+    # Print grouped stashes
+    for branch in "${!stashes_by_branch[@]}"; do
+        print_color "GREEN" "Branch: $branch"
+        for stash in ${stashes_by_branch["$branch"]}; do
+            echo "  - $stash"
+        done
+        echo ""
+    done
+}
+
+# Function to search stashes for a pattern
+search_stashes() {
+    local pattern="$1"
+    if [[ -z "$pattern" ]]; then
+        print_color "RED" "Error: Search pattern required"
+        return 1
+    fi
+    
+    print_color "BLUE" "Searching for pattern '$pattern' in stashes..."
+    
+    local found=0
+    local stash_list
+    readarray -t stash_list < <(get_stash_list)
+    
+    for stash_ref in "${stash_list[@]}"; do
+        if [[ -n "$stash_ref" ]]; then
+            local stash_diff=$(git stash show -p "$stash_ref" 2>/dev/null)
+            local stash_message=$(git stash list | grep "$stash_ref" | cut -d: -f2-)
+            
+            if [[ "$stash_diff" == *"$pattern"* ]] || [[ "$stash_message" == *"$pattern"* ]]; then
+                print_color "GREEN" "Found in $stash_ref:"
+                echo "$stash_message"
+                found=1
+            fi
+        fi
+    done
+    
+    if [[ $found -eq 0 ]]; then
+        print_color "YELLOW" "No stashes found containing pattern '$pattern'"
+    fi
 }
 
 # Function to process all stashes interactively
 process_all_stashes() {
-    echo -e "${BLUE}Processing all stashes with interactive conflict resolution...${NC}"
+    print_color "BLUE" "Processing all stashes with interactive conflict resolution..."
     
     local stash_count
-    stash_count=$(git stash list | wc -l)
-    
-    if [[ $stash_count -eq 0 ]]; then
-        echo -e "${GREEN}No stashes found${NC}"
+    stash_count=$(get_stash_count)
+    if [[ "$stash_count" -eq 0 ]]; then
+        print_color "GREEN" "No stashes found"
         return 0
     fi
     
-    # Get list of stashes
-    local stashes
-    readarray -t stashes < <(git stash list | cut -d: -f1)
+    print_color "BLUE" "Found $stash_count stashes to process"
     
-    echo -e "${BLUE}Found ${#stashes[@]} stashes to process${NC}"
+    local stash_list
+    readarray -t stash_list < <(get_stash_list)
     
-    for stash in "${stashes[@]}"; do
-        # Skip if stash list becomes empty during processing
-        if ! git stash list | grep -q "$stash"; then
-            continue
-        fi
-        
-        echo -e "${BLUE}Processing $stash...${NC}"
-        echo ""
-        
-        # Show stash details
-        show_stash "$stash"
-        echo ""
-        
-        # Ask user how to proceed
-        echo -e "${YELLOW}How would you like to process this stash?${NC}"
-        echo "1) Apply interactively (resolve conflicts)"
-        echo "2) Skip this stash"
-        echo "3) Stop processing"
-        echo -n "Enter your choice (1-3): "
-        
-        read -r choice
-        
-        case $choice in
-            1)
-                if apply_stash_interactive "$stash"; then
-                    echo -e "${GREEN}Stash applied successfully${NC}"
-                    echo -e "${YELLOW}Drop this stash? (y/N)${NC}"
-                    read -r drop_confirm
-                    if [[ "$drop_confirm" =~ ^[Yy]$ ]]; then
-                        git stash drop "$stash"
-                        echo -e "${GREEN}Stash dropped${NC}"
+    for stash in "${stash_list[@]}"; do
+        if [[ -n "$stash" ]]; then
+            print_color "BLUE" "Processing $stash..."
+            echo ""
+            
+            # Show stash details
+            show_stash "$stash"
+            echo ""
+            
+            # Ask user how to proceed
+            print_color "YELLOW" "How would you like to process this stash?"
+            echo "1) Apply interactively (resolve conflicts)"
+            echo "2) Skip this stash"
+            echo "3) Stop processing"
+            echo -n "Enter your choice (1-3): "
+            
+            read -r choice
+            
+            case $choice in
+                1)
+                    if apply_stash_interactive "$stash"; then
+                        print_color "GREEN" "Stash applied successfully"
+                        if confirm_action "Drop this stash?"; then
+                            git stash drop "$stash"
+                            print_color "GREEN" "Stash dropped"
+                        fi
+                    else
+                        print_color "RED" "Failed to apply stash"
                     fi
-                else
-                    echo -e "${RED}Failed to apply stash${NC}"
-                fi
-                ;;
-            2)
-                echo -e "${BLUE}Skipping $stash${NC}"
-                ;;
-            3)
-                echo -e "${BLUE}Stopping stash processing${NC}"
-                break
-                ;;
-            *)
-                echo -e "${RED}Invalid choice, skipping $stash${NC}"
-                ;;
-        esac
-        
-        echo ""
+                    ;;
+                2)
+                    print_color "BLUE" "Skipping $stash"
+                    ;;
+                3)
+                    print_color "BLUE" "Stopping stash processing"
+                    break
+                    ;;
+                *)
+                    print_color "RED" "Invalid choice, skipping $stash"
+                    ;;
+            esac
+            
+            echo ""
+        fi
     done
     
-    echo -e "${GREEN}Stash processing complete${NC}"
+    print_color "GREEN" "Stash processing complete"
 }
 
 # Main execution
@@ -329,6 +414,9 @@ main() {
         save)
             save_stash "$2"
             ;;
+        save-with-branch)
+            save_with_branch "$2" "$3"
+            ;;
         drop)
             drop_stash "$2"
             ;;
@@ -337,6 +425,12 @@ main() {
             ;;
         analyze)
             analyze_stashes
+            ;;
+        branch-info)
+            show_branch_info
+            ;;
+        search)
+            search_stashes "$2"
             ;;
         process-all)
             process_all_stashes
@@ -348,7 +442,7 @@ main() {
             show_help
             ;;
         *)
-            echo -e "${RED}Unknown command: $1${NC}"
+            print_color "RED" "Unknown command: $1"
             show_help
             exit 1
             ;;

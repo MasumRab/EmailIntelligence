@@ -1,4 +1,4 @@
-# Stash Management Tools
+# Stash Management Tools - Advanced Features
 
 This directory contains a comprehensive set of tools for managing Git stashes across multiple branches in the EmailIntelligence repository.
 
@@ -18,10 +18,47 @@ The stash management system provides both automated and interactive tools to hel
 
 ### Analysis and Information
 - `stash_analysis.sh` - Analyze stashes and provide recommendations on processing order
+- `stash_analysis_advanced.sh` - Advanced analysis with detailed statistics and recommendations
 - `stash_details.sh` - Show detailed information about each stash before applying
 
 ### Shared Library
 - `lib/stash_common.sh` - Common library with shared functions to avoid code duplication
+
+## Advanced Features
+
+### Enhanced Stash Manager Commands
+```bash
+# Advanced search for stashes containing specific patterns
+./scripts/stash_manager_optimized.sh search "bugfix"
+
+# Show which branch each stash belongs to
+./scripts/stash_manager_optimized.sh branch-info
+
+# Save current changes with branch information in the stash message
+./scripts/stash_manager_optimized.sh save-with-branch feature/new-feature "WIP on feature/new-feature"
+```
+
+### Advanced Conflict Resolution
+The optimized interactive resolver now includes:
+- Detailed conflict visualization with color-coded sections
+- Line-by-line conflict resolution options
+- Preview mode to see conflicts before applying
+- Advanced conflict resolution with specific line selection
+
+### Enhanced Stash Processing
+The optimized handle stashes script now includes:
+- Better branch matching and creation logic
+- Conflict detection with option for interactive resolution
+- Stash statistics and age analysis
+- Uncommitted changes handling on target branches
+
+### Advanced Analysis
+The new `stash_analysis_advanced.sh` provides:
+- Detailed statistics by branch, age, and file type
+- Processing recommendations based on priority
+- Identification of potentially problematic stashes
+- Content preview for each stash
+- Cleanup suggestions for stale stashes
 
 ## Usage
 
@@ -30,7 +67,7 @@ The stash management system provides both automated and interactive tools to hel
 # Get help with available commands
 ./scripts/stash_manager_optimized.sh help
 
-# List all stashes
+# List all stashes with branch information
 ./scripts/stash_manager_optimized.sh list
 
 # Show details of a specific stash
@@ -41,21 +78,24 @@ The stash management system provides both automated and interactive tools to hel
 
 # Process all stashes with interactive resolution
 ./scripts/stash_manager_optimized.sh process-all
+
+# Run advanced analysis
+./scripts/stash_analysis_advanced.sh
 ```
 
-### Systematic Stash Resolution
+### Advanced Stash Resolution Workflow
 ```bash
-# 1. Analyze stashes and see processing recommendations
-./scripts/stash_analysis.sh
+# 1. Run advanced analysis to understand your stashes
+./scripts/stash_analysis_advanced.sh
 
 # 2. Get detailed information about each stash
 ./scripts/stash_details.sh
 
-# 3. Process all stashes automatically (with user confirmation)
-./scripts/handle_stashes.sh
+# 3. Process all stashes with enhanced options
+./scripts/handle_stashes_optimized.sh
 
 # 4. Or use the interactive resolver for more control
-./scripts/interactive_stash_resolver.sh stash@{0}
+./scripts/interactive_stash_resolver_optimized.sh --preview stash@{0}
 ```
 
 ## Documentation
@@ -66,11 +106,12 @@ The stash management system provides both automated and interactive tools to hel
 
 ## Best Practices
 
-1. **Start with analysis**: Always run `stash_analysis.sh` and `stash_details.sh` first
+1. **Start with analysis**: Always run `stash_analysis_advanced.sh` first to understand your stash landscape
 2. **Use interactive mode**: For important stashes, use interactive resolution to control conflicts
 3. **Process systematically**: Follow the recommended order based on analysis
 4. **Review changes**: Always review changes after applying stashes before committing
 5. **Clean up**: Remove resolved stashes to keep the stash list clean
+6. **Use preview**: Use the preview option in interactive resolver to see conflicts before applying
 
 ## Priority Processing Order
 
@@ -83,7 +124,28 @@ Based on the analysis, stashes should typically be processed in this order:
 
 ## Troubleshooting
 
-- If you encounter merge conflicts, use the interactive resolver
+- If you encounter merge conflicts, use the interactive resolver with preview mode
 - If a target branch doesn't exist, the scripts will help you create it or find alternatives
 - Always backup important work before starting the resolution process
 - Check git status between operations to ensure clean state
+
+## New Features Added
+
+### Advanced Conflict Resolution
+- Line-by-line conflict resolution options
+- Preview mode to see conflicts before applying
+- Color-coded conflict visualization
+- Advanced conflict resolution with specific line selection
+
+### Enhanced Analysis
+- Detailed statistics by branch, age, and file type
+- Processing recommendations based on priority
+- Identification of potentially problematic stashes
+- Content preview for each stash
+- Cleanup suggestions for stale stashes
+
+### Improved Processing
+- Better branch matching and creation logic
+- Conflict detection with option for interactive resolution
+- Stash statistics and age analysis
+- Uncommitted changes handling on target branches
