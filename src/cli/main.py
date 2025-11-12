@@ -12,6 +12,24 @@ import git # Import git for specific GitPython exceptions
 from tqdm import tqdm # Import tqdm for progress bars
 
 def main():
+    """
+    TODO: Enhance CLI argument parsing and overall structure.
+
+    This `main` function currently sets up the basic command-line interface
+    for `git-verifier`. Future enhancements could include:
+
+    1.  **Global Configuration:** Implement a way to read global configurations
+        (e.g., from a config file like `.git-verifier.json`) for default
+        repository paths, LLM API keys, preferred output formats, etc.
+    2.  **More Sub-commands:** Add new sub-commands for other Git analysis
+        tasks (e.g., `blame-analysis`, `dependency-graph`, `code-churn`).
+    3.  **Plugin System:** Consider a plugin system to allow users to extend
+        `git-verifier` with custom analysis modules or output formats.
+    4.  **Interactive Mode:** An interactive mode that guides the user through
+        analysis steps.
+    5.  **Improved Error Reporting:** More detailed stack traces for developers
+        while maintaining user-friendly messages for end-users.
+    """
     parser = argparse.ArgumentParser(prog="git-verifier", description="A unified tool to analyze Git history, generate a synthesized description of intent, and verify the integrity of the code after merges or rebases.")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -61,6 +79,22 @@ def main():
         parser.print_help()
 
 async def handle_analyze_command(args, analysis_service: AnalysisService):
+    """
+    TODO: Enhance the `analyze` command's functionality and output.
+
+    This function handles the `analyze` sub-command. Future enhancements could include:
+
+    1.  **More Output Formats:** Beyond JSON and basic human-readable, add support for
+        Markdown, HTML, or interactive reports.
+    2.  **Filtering and Sorting:** Allow users to filter narratives by author, date,
+        commit message keywords, or sort them by various criteria.
+    3.  **LLM Integration Options:** Provide command-line options to specify which
+        LLM provider to use, API keys (if not from env), and model parameters.
+    4.  **Contextual Analysis:** Allow specifying additional context files or URLs
+        to feed into the LLM for richer narrative generation.
+    5.  **Progress Bar Refinement:** Pass the `tqdm` progress bar object directly
+        to `analysis_service` methods for more accurate and granular updates.
+    """
     try:
         if args.report:
             # Pass file=sys.stderr to tqdm to avoid interfering with stdout JSON output
@@ -111,7 +145,7 @@ async def handle_analyze_command(args, analysis_service: AnalysisService):
                 print(f"Message: {narrative.commit_message.strip().splitlines()[0]}")
                 print(f"Narrative: {narrative.synthesized_narrative}")
                 if not narrative.is_consistent:
-                    print(f"Consistency: NOT CONSISTENT - {narrative.discrepancy_notes}")
+                        print(f"Consistency: NOT CONSISTENT - {narrative.discrepancy_notes}")
             print("\nAnalysis complete.")
 
     except git.BadName as e:
@@ -122,13 +156,29 @@ async def handle_analyze_command(args, analysis_service: AnalysisService):
         sys.exit(1)
 
 async def handle_detect_rebased_command(args, analysis_service: AnalysisService):
+    """
+    TODO: Enhance the `detect-rebased` command's functionality.
+
+    This function handles the `detect-rebased` sub-command. Future enhancements could include:
+
+    1.  **Implement `--since` filter:** Parse the date string and filter reflog
+        entries to only show branches rebased after a specific date.
+    2.  **More Advanced Rebase Detection:** Beyond just "rebase (finish)", analyze
+        reflog patterns for other rebase indicators (e.g., "rebase (start)",
+        "rebase (abort)", or specific commit graph patterns).
+    3.  **Output Details:** Provide more details about the rebase event (e.g.,
+        original base, new base, timestamp of rebase).
+    4.  **Integration with `analyze`:** Allow piping the output of `detect-rebased`
+        into `analyze` to automatically generate narratives for rebased branches.
+    """
     try:
         rebased_branches = await analysis_service.detect_rebased_branches()
         
         # Filter by --since if provided (placeholder for actual date filtering logic)
         if args.since:
-            # For now, just a placeholder. Actual filtering would involve parsing args.since
-            # and comparing with reflog entry dates.
+            # TODO: Implement actual date filtering logic here.
+            # This would involve parsing args.since into a datetime object and
+            # comparing it with the timestamp of reflog entries.
             print(f"Filtering rebased branches since {args.since} (not yet implemented)", file=sys.stderr)
 
         if args.json:
@@ -147,6 +197,25 @@ async def handle_detect_rebased_command(args, analysis_service: AnalysisService)
         sys.exit(1)
 
 async def handle_verify_command(args, analysis_service: AnalysisService):
+    """
+    TODO: Enhance the `verify` command's functionality and reporting.
+
+    This function handles the `verify` sub-command. Future enhancements could include:
+
+    1.  **Detailed Discrepancy Reporting:** Provide more context for each discrepancy,
+        such as the exact lines of code that differ, or the specific semantic change
+        that was expected but not found (or vice-versa).
+    2.  **Handling Intentional Changes:** Implement a mechanism for users to mark
+        intentional changes (e.g., via a configuration file or CLI argument) so
+        they are not flagged as discrepancies.
+    3.  **Different Verification Strategies:** Allow different levels or types of
+        verification (e.g., strict file content comparison, semantic comparison, 
+        or only checking for presence of key features).
+    4.  **Integration with CI/CD:** Design the output and exit codes to be easily
+        integrable into CI/CD pipelines for automated integrity checks.
+    5.  **Interactive Resolution:** For discrepancies, offer an interactive mode
+        to help users understand and potentially resolve them.
+    """
     try:
         with open(args.report, 'r') as f:
             report_data = json.load(f)
