@@ -1,0 +1,157 @@
+=== PASS STATEMENTS ===
+src/backend/python_backend/workflow_engine.py:45:        pass
+src/backend/python_backend/workflow_engine.py:49:        pass
+src/backend/python_backend/advanced_workflow_routes.py:93:            pass
+src/backend/python_backend/advanced_workflow_routes.py:190:        pass
+src/backend/python_backend/tests/test_email_routes.py:162:        pass
+src/backend/python_backend/auth.py:90:    pass
+src/backend/python_backend/model_manager.py:13:        pass
+src/backend/python_backend/dependencies.py:56:        pass
+src/backend/python_backend/dependencies.py:66:        pass
+src/backend/python_backend/dependencies.py:76:        pass
+src/backend/python_backend/dependencies.py:86:        pass
+src/backend/python_backend/dependencies.py:96:        pass
+src/backend/python_backend/dependencies.py:106:        pass
+src/backend/python_backend/dependencies.py:116:        pass
+src/backend/python_backend/smart_filters.py:2:    pass
+src/backend/python_backend/models.py:127:    pass
+src/backend/python_backend/models.py:150:    pass
+src/backend/plugins/email_visualizer_plugin.py:75:        pass
+src/backend/plugins/base_plugin.py:26:        pass
+src/backend/plugins/base_plugin.py:32:        pass
+src/backend/plugins/base_plugin.py:40:        pass
+src/backend/plugins/base_plugin.py:47:        pass
+src/backend/plugins/base_plugin.py:73:        pass
+src/backend/plugins/base_plugin.py:80:        pass
+src/backend/plugins/base_plugin.py:87:        pass
+src/backend/plugins/base_plugin.py:94:        pass
+src/backend/plugins/base_plugin.py:107:        pass
+src/backend/plugins/base_plugin.py:113:        pass
+src/backend/plugins/base_plugin.py:121:        pass
+src/backend/extensions/example/example.py:74:        pass
+src/backend/python_nlp/protocols.py:9:    pass
+src/backend/python_nlp/protocols.py:17:        pass
+src/backend/python_nlp/protocols.py:27:        pass
+src/backend/python_nlp/gmail_service_clean.py:19:    pass
+src/backend/python_nlp/gmail_service.py:19:    pass
+src/backend/node_engine/workflow_engine.py:38:    pass
+src/backend/node_engine/security_manager.py:175:        pass
+src/backend/node_engine/email_nodes.py:82:    pass
+src/backend/node_engine/email_nodes.py:88:    pass
+src/backend/node_engine/email_nodes.py:94:    pass
+src/backend/node_engine/node_base.py:164:        pass
+src/backend/node_engine/migration_utils.py:33:    pass
+src/core/ai_engine.py:48:        pass
+src/core/ai_engine.py:68:        pass
+src/core/ai_engine.py:78:        pass
+src/core/ai_engine.py:86:        pass
+src/core/ai_engine.py:93:        pass
+src/core/ai_engine.py:500:            pass
+src/core/ai_engine.py:507:        pass
+src/core/model_registry.py:593:        pass
+src/core/middleware.py:176:                    pass
+src/core/data_source.py:13:        pass
+src/core/data_source.py:20:        pass
+src/core/data_source.py:25:        pass
+src/core/data_source.py:32:        pass
+src/core/data_source.py:43:        pass
+src/core/data_source.py:50:        pass
+src/core/data_source.py:57:        pass
+src/core/data_source.py:64:        pass
+src/core/data_source.py:71:        pass
+src/core/data_source.py:78:        pass
+src/core/data_source.py:85:        pass
+src/core/data_source.py:90:        pass
+src/core/data_source.py:104:        pass
+src/core/data_source.py:116:        pass
+src/core/data_source.py:121:        pass
+src/core/enhanced_error_reporting.py:82:                pass
+src/core/advanced_workflow_engine.py:89:        pass
+src/core/advanced_workflow_engine.py:94:        pass
+src/core/dynamic_model_manager.py:69:                pass
+src/core/dynamic_model_manager.py:76:                pass
+src/core/dynamic_model_manager.py:273:                pass
+src/core/audit_logger.py:297:            pass
+src/core/models.py:131:    pass
+src/core/models.py:154:    pass
+src/core/performance_monitor.py:66:                pass
+src/core/performance_monitor.py:316:                pass
+src/core/caching.py:78:        pass
+src/core/caching.py:83:        pass
+src/core/caching.py:88:        pass
+src/core/caching.py:93:        pass
+src/core/caching.py:98:        pass
+src/core/caching.py:103:        pass
+src/core/data/data_source.py:30:        pass
+src/core/data/data_source.py:43:        pass
+src/core/data/data_source.py:59:        pass
+src/core/data/data_source.py:72:        pass
+src/core/data/data_source.py:85:        pass
+src/core/data/data_source.py:99:        pass
+src/core/data/data_source.py:113:        pass
+src/core/data/data_source.py:120:        pass
+src/core/data/data_source.py:127:        pass
+src/core/data/repository.py:16:        pass
+src/core/data/repository.py:23:        pass
+src/core/data/repository.py:28:        pass
+src/core/data/repository.py:35:        pass
+src/core/data/repository.py:46:        pass
+src/core/data/repository.py:53:        pass
+src/core/data/repository.py:60:        pass
+src/core/data/repository.py:67:        pass
+src/core/data/repository.py:74:        pass
+src/core/data/repository.py:81:        pass
+src/core/data/repository.py:88:        pass
+src/core/data/repository.py:102:        pass
+src/core/data/repository.py:114:        pass
+src/core/plugin_manager.py:511:    pass
+src/core/plugin_base.py:84:        pass
+src/core/plugin_base.py:89:        pass
+src/core/plugin_base.py:94:        pass
+src/core/plugin_base.py:99:        pass
+src/core/plugin_base.py:104:        pass
+src/core/plugin_base.py:527:        pass
+src/core/plugin_base.py:532:        pass
+src/context_control/exceptions.py:17:    pass
+src/context_control/exceptions.py:23:    pass
+src/context_control/exceptions.py:29:    pass
+src/context_control/exceptions.py:35:    pass
+src/context_control/exceptions.py:41:    pass
+src/context_control/exceptions.py:47:    pass
+scripts/verify-dependencies.py:42:            pass
+scripts/verify-dependencies.py:49:            pass
+setup/container.py:50:    pass
+setup/commands/cleanup_command.py:62:        pass
+setup/commands/command_interface.py:36:        pass
+setup/commands/command_interface.py:46:        pass
+setup/commands/command_interface.py:56:        pass
+setup/commands/command_interface.py:62:        pass
+=== TODO/FIXME COMMENTS ===
+src/core/database.py:897:# TODO: Remove this once all code has been migrated to dependency injection
+=== MOCK DATA PATTERNS ===
+src/backend/python_backend/tests/conftest.py:2:from unittest.mock import AsyncMock, MagicMock, patch
+src/backend/python_backend/tests/conftest.py:15:    db_mock = MagicMock()
+src/backend/python_backend/tests/conftest.py:16:    db_mock.get_all_categories = AsyncMock()
+src/backend/python_backend/tests/conftest.py:17:    db_mock.create_category = AsyncMock()
+src/backend/python_backend/tests/conftest.py:18:    db_mock.search_emails = AsyncMock()
+src/backend/python_backend/tests/conftest.py:19:    db_mock.get_emails_by_category = AsyncMock()
+src/backend/python_backend/tests/conftest.py:20:    db_mock.get_all_emails = AsyncMock()
+src/backend/python_backend/tests/conftest.py:21:    db_mock.get_email_by_id = AsyncMock()
+src/backend/python_backend/tests/conftest.py:22:    db_mock.create_email = AsyncMock()
+src/backend/python_backend/tests/conftest.py:23:    db_mock.update_email = AsyncMock()
+src/backend/python_backend/tests/conftest.py:24:    db_mock.search_emails_by_category = AsyncMock()
+src/backend/python_backend/tests/conftest.py:25:    db_mock.get_recent_emails = AsyncMock()
+src/backend/python_backend/tests/conftest.py:32:    ai_mock = MagicMock()
+src/backend/python_backend/tests/conftest.py:33:    ai_mock.analyze_email = AsyncMock()
+src/backend/python_backend/tests/conftest.py:40:    filter_mock = MagicMock()
+src/backend/python_backend/tests/conftest.py:41:    filter_mock.apply_filters_to_email_data = AsyncMock()
+src/backend/python_backend/tests/conftest.py:48:    workflow_mock = MagicMock()
+src/backend/python_backend/tests/conftest.py:49:    workflow_mock.run_workflow = AsyncMock()
+src/backend/python_backend/tests/conftest.py:50:    workflow_mock.create_and_register_workflow_from_config = AsyncMock()
+src/backend/python_backend/tests/conftest.py:77:            if isinstance(attr, (MagicMock, AsyncMock)):
+src/backend/python_backend/tests/conftest.py:113:            if isinstance(attr, (MagicMock, AsyncMock)):
+src/backend/node_engine/workflow_engine.py:88:        class MockUser:
+src/backend/node_engine/workflow_engine.py:93:            MockUser(user_id) if user_id else MockUser("anonymous")
+src/core/advanced_workflow_engine.py:724:        # Mock NLP processing - in real implementation, this would call the AI engine
+src/core/advanced_workflow_engine.py:728:        # Mock analysis results
+=== EMPTY TEST CASES ===

@@ -1,0 +1,172 @@
+{
+  "timestamp": "2025-11-13T05:29:44.210334",
+  "sqlite_database": "data/emails.sqlite3",
+  "output_directory": "data/processed",
+  "original_stats": {
+    "emails": 3,
+    "categories": 5,
+    "users": 1
+  },
+  "migrated_stats": {
+    "emails": 3,
+    "categories": 5,
+    "users": 1
+  },
+  "validation": {
+    "success": true,
+    "issues": [],
+    "stats": {
+      "original": {
+        "emails": 3,
+        "categories": 5,
+        "users": 1
+      },
+      "migrated": {
+        "emails": 3,
+        "categories": 5,
+        "users": 1
+      }
+    }
+  },
+  "saved_files": {
+    "email_data.json": "data/processed/email_data.json",
+    "categories.json": "data/processed/categories.json",
+    "users.json": "data/processed/users.json"
+  },
+  "schema_mapping": {
+    "sqlite_to_json_mapping": {
+      "emails_table": {
+        "id": {
+          "type": "INTEGER PRIMARY KEY",
+          "maps_to": "id",
+          "json_type": "number"
+        },
+        "message_id": {
+          "type": "TEXT UNIQUE",
+          "maps_to": "message_id",
+          "json_type": "string"
+        },
+        "subject": {
+          "type": "TEXT",
+          "maps_to": "subject",
+          "json_type": "string"
+        },
+        "sender": {
+          "type": "TEXT",
+          "maps_to": "sender",
+          "json_type": "string"
+        },
+        "sender_email": {
+          "type": "TEXT",
+          "maps_to": "sender_email",
+          "json_type": "string"
+        },
+        "content": {
+          "type": "TEXT",
+          "maps_to": "content",
+          "json_type": "string"
+        },
+        "content_html": {
+          "type": "TEXT",
+          "maps_to": "content_html",
+          "json_type": "string"
+        },
+        "category_id": {
+          "type": "INTEGER FK",
+          "maps_to": "category_id",
+          "json_type": "number"
+        },
+        "is_unread": {
+          "type": "BOOLEAN",
+          "maps_to": "is_unread",
+          "json_type": "boolean"
+        },
+        "analysis_metadata": {
+          "type": "TEXT (JSON)",
+          "maps_to": "analysis_metadata",
+          "json_type": "object"
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "maps_to": "created_at",
+          "json_type": "string"
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "maps_to": "updated_at",
+          "json_type": "string"
+        },
+        "category_name": {
+          "source": "JOIN categories.name",
+          "maps_to": "categoryName",
+          "json_type": "string"
+        },
+        "category_color": {
+          "source": "JOIN categories.color",
+          "maps_to": "categoryColor",
+          "json_type": "string"
+        }
+      },
+      "categories_table": {
+        "id": {
+          "type": "INTEGER PRIMARY KEY",
+          "maps_to": "id",
+          "json_type": "number"
+        },
+        "name": {
+          "type": "TEXT",
+          "maps_to": "name",
+          "json_type": "string"
+        },
+        "description": {
+          "type": "TEXT",
+          "maps_to": "description",
+          "json_type": "string"
+        },
+        "color": {
+          "type": "TEXT",
+          "maps_to": "color",
+          "json_type": "string"
+        },
+        "count": {
+          "type": "INTEGER",
+          "maps_to": "count",
+          "json_type": "number"
+        }
+      },
+      "users_table": {
+        "id": {
+          "type": "INTEGER PRIMARY KEY",
+          "maps_to": "id",
+          "json_type": "number"
+        },
+        "username": {
+          "type": "TEXT UNIQUE",
+          "maps_to": "username",
+          "json_type": "string"
+        },
+        "email": {
+          "type": "TEXT UNIQUE",
+          "maps_to": "email",
+          "json_type": "string"
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "maps_to": "created_at",
+          "json_type": "string"
+        }
+      }
+    },
+    "data_transformations": [
+      "analysis_metadata TEXT field parsed as JSON object",
+      "is_unread INTEGER converted to boolean",
+      "Timestamps converted to ISO format strings",
+      "Category information joined and flattened into email records"
+    ],
+    "potential_issues": [
+      "Large content fields may impact JSON file size",
+      "analysis_metadata JSON parsing errors handled gracefully",
+      "Foreign key relationships preserved but denormalized in JSON"
+    ]
+  }
+}

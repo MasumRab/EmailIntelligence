@@ -1,0 +1,10 @@
+[Unit]
+Description=Email Intelligence Aider JSON Data Backup
+After=network.target
+
+[Service]
+Type=oneshot
+User=masum
+ExecStart=/home/masum/github/EmailIntelligenceAider/scripts/backup_json_data.sh
+StandardOutput=journal
+StandardError=journal

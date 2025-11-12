@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Email Intelligence Aider backup daily
+Requires=email_backup.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target

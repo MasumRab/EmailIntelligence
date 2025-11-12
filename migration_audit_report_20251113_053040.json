@@ -1,0 +1,125 @@
+{
+  "timestamp": "2025-11-13T05:30:40.596234",
+  "sqlite_database": "data/emails.sqlite3",
+  "json_directory": "data/processed",
+  "sample_size": 10,
+  "tables": {
+    "emails": {
+      "table": "emails",
+      "sqlite_count": 3,
+      "json_count": 3,
+      "count_match": true,
+      "sampled_records": [
+        {
+          "record_id": 1,
+          "table": "emails",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        },
+        {
+          "record_id": 2,
+          "table": "emails",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        },
+        {
+          "record_id": 3,
+          "table": "emails",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        }
+      ],
+      "total_sampled": 3,
+      "matches": 3,
+      "mismatches": 0,
+      "missing_records": [],
+      "issues": [],
+      "match_percentage": 100.0
+    },
+    "categories": {
+      "table": "categories",
+      "sqlite_count": 5,
+      "json_count": 5,
+      "count_match": true,
+      "sampled_records": [
+        {
+          "record_id": 1,
+          "table": "categories",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        },
+        {
+          "record_id": 2,
+          "table": "categories",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        },
+        {
+          "record_id": 3,
+          "table": "categories",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        },
+        {
+          "record_id": 4,
+          "table": "categories",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        },
+        {
+          "record_id": 5,
+          "table": "categories",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        }
+      ],
+      "total_sampled": 5,
+      "matches": 5,
+      "mismatches": 0,
+      "issues": [],
+      "match_percentage": 100.0
+    },
+    "users": {
+      "table": "users",
+      "sqlite_count": 1,
+      "json_count": 1,
+      "count_match": true,
+      "sampled_records": [
+        {
+          "record_id": 1,
+          "table": "users",
+          "match": true,
+          "field_differences": [],
+          "missing_fields": [],
+          "extra_fields": []
+        }
+      ],
+      "total_sampled": 1,
+      "matches": 1,
+      "mismatches": 0,
+      "issues": [],
+      "match_percentage": 100.0
+    }
+  },
+  "summary": {
+    "overall_success": true,
+    "total_issues": 0,
+    "critical_issues": []
+  }
+}
