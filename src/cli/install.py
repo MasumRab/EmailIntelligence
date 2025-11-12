@@ -1,11 +1,23 @@
 """
-TODO: Deprecate or integrate this module into `src/cli/main.py`.
+TODO: Refactor and integrate this module's functionality into `src/cli/main.py`.
 
-This module appears to be an older or alternative implementation of an `install` command.
-The new unified CLI for `git-verifier` is located in `src/cli/main.py`.
-Its functionality should either be migrated to `src/cli/main.py` or this module
-(along with other modules in `src/cli/` like `analyze.py`, `ci.py`, `identify.py`,
-`progress.py`, `verify.py`) should be deprecated and removed.
+This module provides an `install` command. To adhere to SOLID principles,
+specifically the Single Responsibility Principle (SRP) and Open/Closed Principle (OCP),
+consider the following:
+
+1.  **Extract Core Logic:** The core installation logic should be refactored into
+    a dedicated service (e.g., `InstallationService` in `src/services/`) that
+    can be reused independently of the CLI. This service would handle tasks like
+    symlink creation, environment variable setup, etc.
+2.  **CLI Command Integration:** The `install_command` and `add_install_parser`
+    functions should be refactored to become part of the `src/cli/main.py`'s
+    sub-command structure. This centralizes CLI entry points and argument parsing.
+3.  **Dependency Inversion:** Ensure that the `install_command` depends on
+    abstractions (e.g., an `InstallationService` interface) rather than concrete
+    implementations, allowing for easier testing and platform-specific adaptations.
+4.  **Modularity:** Break down the installation process into smaller, independent
+    steps (e.g., `create_symlink`, `configure_shell_alias`) that can be composed
+    and extended.
 """
 def install_command(args):
     """
