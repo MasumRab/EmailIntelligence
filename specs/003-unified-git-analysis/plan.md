@@ -9,7 +9,7 @@ This feature combines the goals of `001-history-analysis` and `002-rebase-analys
 
 ## Technical Context
 
-**Language/Version**: Python 3.11+
+**Language/Version**: Python 3.12+
 **Primary Dependencies**: GitPython, (potentially a diffing library for detailed content comparison), LLM integration (e.g., via API for narrative synthesis).
 **Storage**: N/A (in-memory processing for reports)
 **Testing**: pytest
