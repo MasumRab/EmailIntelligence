@@ -15,6 +15,16 @@ The primary goal is to keep the core email intelligence codebase clean by separa
   - `sync_setup_worktrees.sh` - Synchronizes worktrees for different branches
   - `reverse_sync_orchestration.sh` - Reverse synchronization for orchestration updates
   - `cleanup.sh` - Cleanup utilities
+  - `handle_stashes.sh` - Automated stash resolution for multiple branches
+  - `stash_analysis.sh` - Analyze stashes and provide processing recommendations
+  - `stash_details.sh` - Show detailed information about each stash
+  - `interactive_stash_resolver.sh` - Interactive conflict resolution for stashes
+  - `stash_manager.sh` - Main interface for all stash operations (deprecated, use optimized version)
+  - `stash_manager_optimized.sh` - Optimized main interface with improved performance
+  - `handle_stashes_optimized.sh` - Optimized automated stash resolution for multiple branches
+  - `stash_analysis.sh` - Analyze stashes and provide processing recommendations
+  - `stash_details.sh` - Show detailed information about each stash
+  - `interactive_stash_resolver_optimized.sh` - Optimized interactive conflict resolution for stashes
   - `lib/` - Shared utility libraries (common.sh, error_handling.sh, git_utils.sh, logging.sh, validation.sh)
   - `hooks/` - Git hook source files (pre-commit, post-checkout, post-commit, post-merge, post-push)
 
@@ -37,6 +47,11 @@ The primary goal is to keep the core email intelligence codebase clean by separa
 - `docs/orchestration_validation_tests.md` - Validation tests for orchestration
 - `docs/env_management.md` - Environment management documentation
 - `docs/git_workflow_plan.md` - Git workflow planning
+- `docs/stash_resolution_procedure.md` - Basic procedure for resolving stashes
+- `docs/complete_stash_resolution_procedure.md` - Complete procedure with all details
+- `docs/interactive_stash_resolution.md` - Guide to using interactive conflict resolution
+- `docs/stash_management_tools.md` - Comprehensive guide to stash management tools
+- `docs/stash_scripts_improvements.md` - Summary of improvements made to stash scripts
 - `docs/current_orchestration_docs/` - All orchestration-specific documentation
 - `docs/guides/` - Orchestration guides
 
