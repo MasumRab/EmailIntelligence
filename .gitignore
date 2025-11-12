@@ -86,4 +86,4 @@ worktrees/
 *~
 *.backup
 backlog/config.yml.bak
-original_readme.md
+original_readme.mdscripts/hooks/
