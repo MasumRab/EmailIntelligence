@@ -24,10 +24,10 @@ Its primary goal is to keep the core email intelligence codebase clean by separa
 These files are considered "essentials" and are synchronized from `orchestration-tools` to other branches (e.g., `main`, `scientific`, feature branches).
 *   `setup/` (launch scripts and environment setup)
 *   `docs/orchestration-workflow.md` (this documentation)
-*   `.env.example` (environment template)
 *   `.flake8`, `.pylintrc` (Python linting configuration)
 *   `.gitignore`, `.gitattributes` (Git configuration)
 *   `launch.py` (and its associated configuration files like `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`)
+*   `.env.example` (environment template)
 *   `scripts/install-hooks.sh`, `scripts/manage_orchestration_changes.sh`, `scripts/reverse_sync_orchestration.sh`, `scripts/cleanup_orchestration.sh` (key orchestration scripts)
 
 ### Files that remain BRANCH-SPECIFIC (not orchestration-managed):

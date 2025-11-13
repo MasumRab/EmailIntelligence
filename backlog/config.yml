@@ -1,4 +1,4 @@
-project_name: "EmailIntelligenceAuto"
+project_name: "EmailIntelligence"
 default_status: "To Do"
 statuses: ["To Do", "In Progress", "Done"]
 labels: []
