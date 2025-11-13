@@ -5,16 +5,14 @@ provides appropriate context isolation to prevent contamination between
 different development contexts (scientific, main, orchestration-tools).
 """
 
+from .config import get_current_config, init_config
 from .core import ContextController
 from .environment import detect_branch, get_current_branch, is_git_repository
+from .exceptions import (ContextNotFoundError, ContextValidationError,
+                         EnvironmentDetectionError)
+from .models import (AgentContext, ContextProfile, ContextValidationResult,
+                     ProjectConfig)
 from .validation import ContextValidator
-from .models import ContextProfile, AgentContext, ContextValidationResult, ProjectConfig
-from .config import get_current_config, init_config
-from .exceptions import (
-    ContextNotFoundError,
-    ContextValidationError,
-    EnvironmentDetectionError,
-)
 
 __version__ = "1.0.0"
 __all__ = [
