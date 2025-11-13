@@ -43,9 +43,6 @@ class ContextController:
     def get_context_for_branch(
         self, branch_name: Optional[str] = None, agent_id: str = "default"
     ) -> AgentContext:
-        # Ensure branch_name is a string
-        if branch_name is None:
-            branch_name = detect_branch()
         """Get the appropriate context for a given branch and agent.
 
         Args:
@@ -58,6 +55,7 @@ class ContextController:
         Raises:
             ContextNotFoundError: If no suitable context profile is found
         """
+        # Ensure branch_name is a string
         if branch_name is None:
             branch_name = detect_branch()
 
