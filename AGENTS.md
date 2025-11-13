@@ -73,6 +73,8 @@ task-master generate                                         # Update task markd
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
 
+**Note:** The `.taskmaster/` directory should remain untracked by git to avoid committing local task management data. It is intentionally excluded from version control.
+
 ### Linting & Code Quality Configuration
 
 - `.flake8` - Flake8 linting rules with exclusions for venv, node_modules, __pycache__, build artifacts
