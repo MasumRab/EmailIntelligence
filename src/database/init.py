@@ -15,10 +15,10 @@ async def init_database() -> bool:
     try:
         # Connect to Neo4j
         await connection_manager.connect()
-        
+
         # Initialize database schema
         await initialize_database_schema()
-        
+
         logger.info("Database initialization completed successfully")
         return True
     except Exception as e:
@@ -37,42 +37,32 @@ async def close_database():
 
 async def database_health_check() -> dict:
     """Comprehensive database health check"""
-    health_status = {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "services": {}
-    }
-    
+    health_status = {"status": "healthy", "timestamp": time.time(), "services": {}}
+
     # Check Neo4j
     try:
         neo4j_healthy = await connection_manager.health_check()
         health_status["services"]["neo4j"] = {
             "status": "healthy" if neo4j_healthy else "unhealthy",
-            "connection": neo4j_healthy
+            "connection": neo4j_healthy,
         }
         if not neo4j_healthy:
             health_status["status"] = "unhealthy"
     except Exception as e:
-        health_status["services"]["neo4j"] = {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        health_status["services"]["neo4j"] = {"status": "unhealthy", "error": str(e)}
         health_status["status"] = "unhealthy"
-    
+
     # Check Redis
     try:
         redis_healthy = await cache_manager.health_check()
         health_status["services"]["redis"] = {
             "status": "healthy" if redis_healthy else "unhealthy",
-            "connection": redis_healthy
+            "connection": redis_healthy,
         }
         if not redis_healthy:
             health_status["status"] = "unhealthy"
     except Exception as e:
-        health_status["services"]["redis"] = {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        health_status["services"]["redis"] = {"status": "unhealthy", "error": str(e)}
         health_status["status"] = "unhealthy"
-    
+
     return health_status

@@ -76,6 +76,7 @@ class IssueStatus(str, Enum):
 
 class Node(BaseModel):
     """Base model for all graph nodes"""
+
     id: str = Field(..., description="Unique identifier for the node")
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
     updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update timestamp")
@@ -83,6 +84,7 @@ class Node(BaseModel):
 
 class PullRequest(Node):
     """Pull Request model"""
+
     title: str = Field(..., description="PR title")
     description: Optional[str] = Field(None, description="PR description")
     source_branch: str = Field(..., description="Source branch name")
@@ -99,6 +101,7 @@ class PullRequest(Node):
 
 class Commit(Node):
     """Commit model"""
+
     sha: str = Field(..., description="Git commit SHA")
     message: str = Field(..., description="Commit message")
     author_id: str = Field(..., description="Author node ID")
@@ -111,6 +114,7 @@ class Commit(Node):
 
 class File(Node):
     """File model"""
+
     path: str = Field(..., description="File path")
     content: Optional[str] = Field(None, description="File content")
     language: str = Field(..., description="Programming language")
@@ -122,6 +126,7 @@ class File(Node):
 
 class Developer(Node):
     """Developer model"""
+
     name: str = Field(..., description="Developer name")
     email: str = Field(..., description="Developer email")
     github_username: Optional[str] = Field(None, description="GitHub username")
@@ -133,6 +138,7 @@ class Developer(Node):
 
 class Issue(Node):
     """Issue model"""
+
     title: str = Field(..., description="Issue title")
     description: Optional[str] = Field(None, description="Issue description")
     severity: IssueSeverity = Field(..., description="Issue severity")
@@ -143,6 +149,7 @@ class Issue(Node):
 
 class Conflict(Node):
     """Conflict model"""
+
     type: ConflictType = Field(..., description="Type of conflict")
     severity: ConflictSeverity = Field(..., description="Conflict severity")
     description: str = Field(..., description="Conflict description")
@@ -155,6 +162,7 @@ class Conflict(Node):
 
 class FileChange(BaseModel):
     """File Change model (edge type)"""
+
     type: ChangeType = Field(..., description="Type of change")
     file_id: str = Field(..., description="File node ID")
     old_content: Optional[str] = Field(None, description="Old file content")
@@ -165,6 +173,7 @@ class FileChange(BaseModel):
 
 class PRResolution(BaseModel):
     """PR Resolution model"""
+
     id: str = Field(..., description="Resolution ID")
     strategy: ResolutionStrategy = Field(..., description="Resolution strategy")
     description: str = Field(..., description="Resolution description")
@@ -176,6 +185,7 @@ class PRResolution(BaseModel):
 
 class ConflictResolution(BaseModel):
     """Conflict Resolution model"""
+
     id: str = Field(..., description="Resolution ID")
     method: ResolutionMethod = Field(..., description="Resolution method")
     description: str = Field(..., description="Resolution description")
@@ -186,6 +196,7 @@ class ConflictResolution(BaseModel):
 
 class AIAnalysis(BaseModel):
     """AI Analysis model"""
+
     id: str = Field(..., description="Analysis ID")
     conflict_type: str = Field(..., description="Analyzed conflict type")
     complexity: float = Field(..., description="Complexity score (0.0-1.0)")
@@ -199,6 +210,7 @@ class AIAnalysis(BaseModel):
 # Input models for mutations
 class CreatePRInput(BaseModel):
     """Input for creating a PR"""
+
     title: str = Field(..., description="PR title")
     description: Optional[str] = Field(None, description="PR description")
     source_branch: str = Field(..., description="Source branch")
@@ -208,12 +220,14 @@ class CreatePRInput(BaseModel):
 
 class UpdatePRStatusInput(BaseModel):
     """Input for updating PR status"""
+
     pr_id: str = Field(..., description="PR node ID")
     status: PRStatus = Field(..., description="New status")
 
 
 class ResolveConflictInput(BaseModel):
     """Input for resolving conflicts"""
+
     conflict_id: str = Field(..., description="Conflict node ID")
     method: ResolutionMethod = Field(..., description="Resolution method")
     description: str = Field(..., description="Resolution description")
@@ -222,6 +236,7 @@ class ResolveConflictInput(BaseModel):
 # Response models
 class ProcessResult(BaseModel):
     """Process result for PR processing"""
+
     success: bool = Field(..., description="Process success status")
     message: str = Field(..., description="Result message")
     processing_time: float = Field(..., description="Processing time in seconds")
@@ -230,6 +245,7 @@ class ProcessResult(BaseModel):
 
 class EscalationResult(BaseModel):
     """Escalation result"""
+
     success: bool = Field(..., description="Escalation success status")
     escalated_to: str = Field(..., description="Escalation target")
     reason: str = Field(..., description="Escalation reason")
@@ -237,6 +253,7 @@ class EscalationResult(BaseModel):
 
 class TrendPoint(BaseModel):
     """Trend data point"""
+
     timestamp: datetime = Field(..., description="Data point timestamp")
     value: float = Field(..., description="Trend value")
     label: str = Field(..., description="Data point label")
@@ -244,6 +261,7 @@ class TrendPoint(BaseModel):
 
 class WorkloadAnalysis(BaseModel):
     """Developer workload analysis"""
+
     current_prs: int = Field(..., description="Current assigned PRs")
     average_resolution_time: float = Field(..., description="Average resolution time in hours")
     expertise_score: float = Field(..., description="Expertise score (0.0-1.0)")
@@ -252,6 +270,7 @@ class WorkloadAnalysis(BaseModel):
 
 class Pattern(BaseModel):
     """Pattern analysis"""
+
     pattern_type: str = Field(..., description="Pattern type")
     frequency: int = Field(..., description="Pattern frequency")
     description: str = Field(..., description="Pattern description")
@@ -260,6 +279,7 @@ class Pattern(BaseModel):
 
 class SystemHealth(BaseModel):
     """System health status"""
+
     status: str = Field(..., description="Overall system status")
     services: dict = Field(..., description="Service status")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Health check timestamp")

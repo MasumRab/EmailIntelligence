@@ -7,10 +7,15 @@ from datetime import datetime
 import structlog
 
 from .schema import (
-    Query, Mutation, ConflictType, ProcessResultType,
-    EscalationResultType, TrendPointType, WorkloadAnalysisType, PatternType,
-    SystemHealthType, ConflictResolutionType, PRResolutionType,
-    CreatePRInputType, UpdatePRStatusInputType, ResolveConflictInputType
+    Query,
+    Mutation,
+    ProcessResultType,
+    EscalationResultType,
+    WorkloadAnalysisType,
+    PatternType,
+    SystemHealthType,
+    ConflictResolutionType,
+    PRResolutionType,
 )
 from ..database.data_access import pr_dao, conflict_dao
 from ..database.init import database_health_check
@@ -25,14 +30,13 @@ from ..database.init import database_health_check
 TaskPriority = None  # Placeholder for archived TaskPriority
 
 # Import AI resolvers
-from .ai_resolvers import AIResolvers
 
 logger = structlog.get_logger()
 
 
 class Resolvers:
     """GraphQL resolvers implementation"""
-    
+
     # Query Resolvers
     @staticmethod
     async def resolve_pull_request(root, info, id):
@@ -45,101 +49,84 @@ class Resolvers:
         except Exception as e:
             logger.error("Failed to resolve PR", pr_id=id, error=str(e))
             return None
-    
+
     @staticmethod
     async def resolve_pull_requests(root, info, status=None, author=None, assigned=None, limit=50, offset=0):
         """Resolver for getting all PRs with optional filtering"""
         start_time = time.time()
         try:
-            prs = await pr_dao.get_all_prs(
-                status=status, 
-                author_id=author, 
-                limit=limit, 
-                offset=offset
-            )
-            logger.info("PRs resolved", 
-                       count=len(prs),
-                       duration=time.time() - start_time)
+            prs = await pr_dao.get_all_prs(status=status, author_id=author, limit=limit, offset=offset)
+            logger.info("PRs resolved", count=len(prs), duration=time.time() - start_time)
             return prs
         except Exception as e:
             logger.error("Failed to resolve PRs", error=str(e))
             return []
-    
+
     @staticmethod
     async def resolve_pr_conflicts(root, info, pr_id):
         """Resolver for getting conflicts for a PR"""
         start_time = time.time()
         try:
             conflicts = await pr_dao.get_pr_conflicts(pr_id)
-            logger.info("PR conflicts resolved", 
-                       pr_id=pr_id,
-                       count=len(conflicts),
-                       duration=time.time() - start_time)
+            logger.info("PR conflicts resolved", pr_id=pr_id, count=len(conflicts), duration=time.time() - start_time)
             return conflicts
         except Exception as e:
             logger.error("Failed to resolve PR conflicts", pr_id=pr_id, error=str(e))
             return []
-    
+
     @staticmethod
     async def resolve_pr_dependencies(root, info, pr_id):
         """Resolver for getting PR dependencies"""
         start_time = time.time()
         try:
             dependencies = await pr_dao.get_pr_dependencies(pr_id)
-            logger.info("PR dependencies resolved", 
-                       pr_id=pr_id,
-                       count=len(dependencies),
-                       duration=time.time() - start_time)
+            logger.info(
+                "PR dependencies resolved", pr_id=pr_id, count=len(dependencies), duration=time.time() - start_time
+            )
             return dependencies
         except Exception as e:
             logger.error("Failed to resolve PR dependencies", pr_id=pr_id, error=str(e))
             return []
-    
+
     @staticmethod
     async def resolve_similar_prs(root, info, pr_id, limit=10):
         """Resolver for finding similar PRs"""
         # TODO: Implement similarity algorithm
         # For now, return empty list as placeholder
         return []
-    
+
     @staticmethod
     async def resolve_pr_complexity(root, info, pr_id):
         """Resolver for calculating PR complexity"""
         start_time = time.time()
         try:
             complexity = await pr_dao.calculate_pr_complexity(pr_id)
-            logger.info("PR complexity calculated", 
-                       pr_id=pr_id,
-                       complexity=complexity,
-                       duration=time.time() - start_time)
+            logger.info(
+                "PR complexity calculated", pr_id=pr_id, complexity=complexity, duration=time.time() - start_time
+            )
             return complexity
         except Exception as e:
             logger.error("Failed to calculate PR complexity", pr_id=pr_id, error=str(e))
             return 0.0
-    
+
     @staticmethod
     async def resolve_resolution_time(root, info, pr_id):
         """Resolver for getting PR resolution time"""
         # TODO: Implement resolution time calculation
         return 120  # Default 2 hours
-    
+
     @staticmethod
     async def resolve_conflict_trends(root, info, period):
         """Resolver for conflict trends"""
         # TODO: Implement trend analysis
         return []
-    
+
     @staticmethod
     async def resolve_developer_workload(root, info, developer_id):
         """Resolver for developer workload analysis"""
         # TODO: Implement workload analysis
-        return WorkloadAnalysisType(
-            current_prs=3,
-            average_resolution_time=1.5,
-            expertise_score=0.8,
-            conflict_rate=0.2
-        )
-    
+        return WorkloadAnalysisType(current_prs=3, average_resolution_time=1.5, expertise_score=0.8, conflict_rate=0.2)
+
     @staticmethod
     async def resolve_conflict_patterns(root, info, developer_id):
         """Resolver for conflict patterns"""
@@ -149,10 +136,10 @@ class Resolvers:
                 pattern_type="merge_conflict",
                 frequency=5,
                 description="Frequent merge conflicts in configuration files",
-                confidence=0.75
+                confidence=0.75,
             )
         ]
-    
+
     @staticmethod
     async def resolve_system_health(root, info):
         """Resolver for system health check"""
@@ -163,37 +150,28 @@ class Resolvers:
                 status=db_health.get("status", "unhealthy"),
                 services=db_health,
                 timestamp=datetime.utcnow(),
-                uptime=3600.0  # Placeholder uptime
+                uptime=3600.0,  # Placeholder uptime
             )
             logger.info("System health resolved", duration=time.time() - start_time)
             return health
         except Exception as e:
             logger.error("Failed to resolve system health", error=str(e))
             return SystemHealthType(
-                status="unhealthy",
-                services={"error": str(e)},
-                timestamp=datetime.utcnow(),
-                uptime=0.0
+                status="unhealthy", services={"error": str(e)}, timestamp=datetime.utcnow(), uptime=0.0
             )
-    
+
     @staticmethod
     async def resolve_conflicts(root, info, severity=None, conflict_type=None, limit=50):
         """Resolver for getting conflicts with filtering"""
         start_time = time.time()
         try:
-            conflicts = await conflict_dao.get_conflicts(
-                severity=severity,
-                conflict_type=conflict_type,
-                limit=limit
-            )
-            logger.info("Conflicts resolved", 
-                       count=len(conflicts),
-                       duration=time.time() - start_time)
+            conflicts = await conflict_dao.get_conflicts(severity=severity, conflict_type=conflict_type, limit=limit)
+            logger.info("Conflicts resolved", count=len(conflicts), duration=time.time() - start_time)
             return conflicts
         except Exception as e:
             logger.error("Failed to resolve conflicts", error=str(e))
             return []
-    
+
     # Mutation Resolvers
     @staticmethod
     async def resolve_create_pr(root, info, input):
@@ -206,34 +184,30 @@ class Resolvers:
                 "description": input.description,
                 "source_branch": input.source_branch,
                 "target_branch": input.target_branch,
-                "author_id": input.author_id
+                "author_id": input.author_id,
             }
-            
+
             pr = await pr_dao.create_pr(pr_data)
-            logger.info("PR created", 
-                       pr_id=pr.id,
-                       title=pr.title,
-                       duration=time.time() - start_time)
+            logger.info("PR created", pr_id=pr.id, title=pr.title, duration=time.time() - start_time)
             return pr
         except Exception as e:
             logger.error("Failed to create PR", error=str(e))
             raise
-    
+
     @staticmethod
     async def resolve_update_pr_status(root, info, input):
         """Resolver for updating PR status"""
         start_time = time.time()
         try:
             pr = await pr_dao.update_pr_status(input.pr_id, input.status)
-            logger.info("PR status updated", 
-                       pr_id=input.pr_id,
-                       new_status=input.status,
-                       duration=time.time() - start_time)
+            logger.info(
+                "PR status updated", pr_id=input.pr_id, new_status=input.status, duration=time.time() - start_time
+            )
             return pr
         except Exception as e:
             logger.error("Failed to update PR status", pr_id=input.pr_id, error=str(e))
             raise
-    
+
     @staticmethod
     async def resolve_resolve_conflict(root, info, input):
         """Resolver for resolving conflicts"""
@@ -247,19 +221,20 @@ class Resolvers:
                 description=input.description,
                 applied_at=datetime.utcnow(),
                 confidence=0.85,
-                ai_generated=True
+                ai_generated=True,
             )
-            
-            logger.info("Conflict resolved", 
-                       conflict_id=input.conflict_id,
-                       method=input.method,
-                       duration=time.time() - start_time)
+
+            logger.info(
+                "Conflict resolved",
+                conflict_id=input.conflict_id,
+                method=input.method,
+                duration=time.time() - start_time,
+            )
             return resolution
         except Exception as e:
-            logger.error("Failed to resolve conflict", 
-                        conflict_id=input.conflict_id, error=str(e))
+            logger.error("Failed to resolve conflict", conflict_id=input.conflict_id, error=str(e))
             raise
-    
+
     @staticmethod
     async def resolve_batch_process_prs(root, info, pr_ids):
         """Resolver for batch processing PRs"""
@@ -272,39 +247,30 @@ class Resolvers:
                     success=True,
                     message=f"PR {pr_id} processed successfully",
                     processing_time=0.5,
-                    conflicts_detected=0
+                    conflicts_detected=0,
                 )
                 results.append(result)
-            
-            logger.info("Batch PRs processed", 
-                       count=len(pr_ids),
-                       duration=time.time() - start_time)
+
+            logger.info("Batch PRs processed", count=len(pr_ids), duration=time.time() - start_time)
             return results
         except Exception as e:
             logger.error("Failed to batch process PRs", error=str(e))
             raise
-    
+
     @staticmethod
     async def resolve_escalate_pr(root, info, pr_id, reason):
         """Resolver for escalating PRs"""
         start_time = time.time()
         try:
             # TODO: Implement actual escalation logic
-            result = EscalationResultType(
-                success=True,
-                escalated_to="senior_developer",
-                reason=reason
-            )
-            
-            logger.info("PR escalated", 
-                       pr_id=pr_id,
-                       reason=reason,
-                       duration=time.time() - start_time)
+            result = EscalationResultType(success=True, escalated_to="senior_developer", reason=reason)
+
+            logger.info("PR escalated", pr_id=pr_id, reason=reason, duration=time.time() - start_time)
             return result
         except Exception as e:
             logger.error("Failed to escalate PR", pr_id=pr_id, error=str(e))
             raise
-    
+
     @staticmethod
     async def resolve_add_manual_resolution(root, info, pr_id, resolution):
         """Resolver for adding manual resolutions"""
@@ -316,13 +282,12 @@ class Resolvers:
                 description=resolution,
                 applied_at=datetime.utcnow(),
                 success=True,
-                feedback=None
+                feedback=None,
             )
-            
-            logger.info("Manual resolution added", 
-                       pr_id=pr_id,
-                       resolution=resolution,
-                       duration=time.time() - start_time)
+
+            logger.info(
+                "Manual resolution added", pr_id=pr_id, resolution=resolution, duration=time.time() - start_time
+            )
             return pr_resolution
         except Exception as e:
             logger.error("Failed to add manual resolution", pr_id=pr_id, error=str(e))
@@ -330,7 +295,6 @@ class Resolvers:
 
 
 # Import AI resolvers
-from .ai_resolvers import AIResolvers
 
 # Apply resolvers to Query and Mutation classes
 # Apply resolvers to Query and Mutation classes
