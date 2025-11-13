@@ -382,3 +382,17 @@ class ContextValidator:
                 return True
 
         return False
+
+
+# For backward compatibility with direct imports
+def validate_agent_context(context) -> ContextValidationResult:
+    """Legacy function to validate agent context.
+    
+    Args:
+        context: AgentContext to validate
+        
+    Returns:
+        Validation result
+    """
+    validator = ContextValidator()
+    return validator.validate_context(context)

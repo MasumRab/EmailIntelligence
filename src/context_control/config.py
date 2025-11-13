@@ -185,6 +185,28 @@ class ConfigurationLoader:
         self._config_cache.clear()
 
 
+# Global configuration instance for legacy support
+_global_config: Optional[ContextControlConfig] = None
+
+
+def get_current_config() -> ContextControlConfig:
+    """Get the current global configuration (legacy function).
+    
+    Returns:
+        Current configuration instance
+    """
+    global _global_config
+    if _global_config is None:
+        _global_config = get_config()
+    return _global_config
+
+
+def reset_global_config():
+    """Reset the global configuration (for testing/legacy support)."""
+    global _global_config
+    _global_config = None
+
+
 # Global configuration loader instance for backward compatibility
 _default_loader = ConfigurationLoader()
 
@@ -240,3 +262,4 @@ def load_config_with_cache(
 def clear_config_cache():
     """Clear all cached configurations."""
     _default_loader.clear_cache()
+    reset_global_config()

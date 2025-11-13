@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .config import get_current_config
+from .config import get_current_config, _global_config
 from .environment import detect_branch, get_current_branch
 from .exceptions import ContextNotFoundError
 from .logging import get_context_logger
@@ -250,7 +250,17 @@ class ContextController:
         Args:
             config: Optional configuration override
         """
-        self.config = config or get_current_config()
+        # Handle legacy case where no config is provided
+        if config is None:
+            from .config import get_current_config
+            self.config = get_current_config()
+        else:
+            self.config = config
+            # Update global config for backward compatibility
+            from .config import _global_config
+            if _global_config is None:
+                _global_config = self.config
+        
         # Ensure global config is set for components that need it
         if (
             config
