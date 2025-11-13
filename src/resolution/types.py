@@ -11,6 +11,7 @@ from ...models.graph_entities import ConflictSeverity
 
 class ConflictTypeExtended(str, Enum):
     """Extended conflict types for resolution engine"""
+
     MERGE_CONFLICT = "MERGE_CONFLICT"
     DEPENDENCY_CONFLICT = "DEPENDENCY_CONFLICT"
     ARCHITECTURE_VIOLATION = "ARCHITECTURE_VIOLATION"
@@ -27,6 +28,7 @@ class ConflictTypeExtended(str, Enum):
 
 class RiskLevel(str, Enum):
     """Risk levels for resolution strategies"""
+
     VERY_LOW = "VERY_LOW"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -37,6 +39,7 @@ class RiskLevel(str, Enum):
 
 class ExecutionStatus(str, Enum):
     """Resolution execution status"""
+
     PENDING = "PENDING"
     IN_PROGRESS = "IN_PROGRESS"
     VALIDATING = "VALIDATING"
@@ -50,6 +53,7 @@ class ExecutionStatus(str, Enum):
 
 class ValidationStatus(str, Enum):
     """Validation result status"""
+
     PASSED = "PASSED"
     FAILED = "FAILED"
     WARNING = "WARNING"
@@ -59,6 +63,7 @@ class ValidationStatus(str, Enum):
 
 class CodeChange(BaseModel):
     """Represents a code change for resolution"""
+
     file_path: str = Field(..., description="Path to the file to modify")
     operation: str = Field(..., description="Type of operation: add, modify, delete, replace")
     start_line: Optional[int] = Field(None, description="Starting line number")
@@ -69,7 +74,7 @@ class CodeChange(BaseModel):
     confidence: float = Field(..., description="AI confidence in this change (0.0-1.0)")
     validation_required: bool = Field(True, description="Whether this change requires validation")
     rollback_data: Optional[str] = Field(None, description="Data needed for rollback")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -81,13 +86,14 @@ class CodeChange(BaseModel):
                 "new_content": "def new_function():\n    return new_result",
                 "description": "Update function implementation to resolve conflict",
                 "confidence": 0.95,
-                "validation_required": True
+                "validation_required": True,
             }
         }
 
 
 class ResolutionStep(BaseModel):
     """Individual step in a resolution plan"""
+
     id: str = Field(..., description="Unique step identifier")
     description: str = Field(..., description="Human-readable description")
     code_changes: List[CodeChange] = Field(default_factory=list, description="Code changes for this step")
@@ -96,7 +102,7 @@ class ResolutionStep(BaseModel):
     risk_level: RiskLevel = Field(..., description="Risk level of this step")
     can_rollback: bool = Field(True, description="Whether this step can be rolled back")
     dependencies: List[str] = Field(default_factory=list, description="IDs of steps this depends on")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -107,13 +113,14 @@ class ResolutionStep(BaseModel):
                 "estimated_time": 30,
                 "risk_level": "LOW",
                 "can_rollback": True,
-                "dependencies": []
+                "dependencies": [],
             }
         }
 
 
 class ResolutionStrategy(BaseModel):
     """AI-generated resolution strategy"""
+
     id: str = Field(..., description="Unique strategy identifier")
     name: str = Field(..., description="Strategy name")
     description: str = Field(..., description="Strategy description")
@@ -131,7 +138,7 @@ class ResolutionStrategy(BaseModel):
     ai_generated: bool = Field(True, description="Whether this was AI-generated")
     model_used: str = Field(..., description="AI model used for generation")
     prompt_context: Dict[str, Any] = Field(default_factory=dict, description="Context used in AI prompt")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -150,13 +157,14 @@ class ResolutionStrategy(BaseModel):
                 "rollback_strategy": "Git revert operations",
                 "validation_approach": "Automated testing + manual review",
                 "ai_generated": True,
-                "model_used": "gpt-4o"
+                "model_used": "gpt-4o",
             }
         }
 
 
 class ValidationResult(BaseModel):
     """Result of validation checks"""
+
     status: ValidationStatus = Field(..., description="Validation result status")
     message: str = Field(..., description="Validation result message")
     details: Dict[str, Any] = Field(default_factory=dict, description="Detailed validation results")
@@ -167,6 +175,7 @@ class ValidationResult(BaseModel):
 
 class QualityMetrics(BaseModel):
     """Quality metrics for resolution strategy"""
+
     correctness: float = Field(..., description="Correctness score (0.0-1.0)")
     maintainability: float = Field(..., description="Maintainability score (0.0-1.0)")
     readability: float = Field(..., description="Readability score (0.0-1.0)")
@@ -180,6 +189,7 @@ class QualityMetrics(BaseModel):
 
 class ResolutionPlan(BaseModel):
     """Complete resolution plan for a conflict"""
+
     id: str = Field(..., description="Unique plan identifier")
     conflict_id: str = Field(..., description="ID of the conflict being resolved")
     conflict_type: ConflictTypeExtended = Field(..., description="Type of conflict")
@@ -194,7 +204,7 @@ class ResolutionPlan(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Plan creation time")
     updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update time")
     timeout_seconds: int = Field(300, description="Timeout for resolution execution")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -208,7 +218,7 @@ class ResolutionPlan(BaseModel):
                 "validation_results": [],
                 "quality_metrics": None,
                 "execution_log": [],
-                "timeout_seconds": 300
+                "timeout_seconds": 300,
             }
         }
 
@@ -216,6 +226,7 @@ class ResolutionPlan(BaseModel):
 # Conflict type definitions
 class MergeConflict(BaseModel):
     """Merge conflict representation"""
+
     pr1_id: str = Field(..., description="First PR ID")
     pr2_id: str = Field(..., description="Second PR ID")
     file_path: str = Field(..., description="Conflicting file path")
@@ -226,12 +237,12 @@ class MergeConflict(BaseModel):
     similarity_score: float = Field(..., description="Similarity between changes (0.0-1.0)")
     conflict_type: str = Field(..., description="Type of merge conflict")
     line_numbers: Dict[str, List[int]] = Field(..., description="Line numbers for each version")
-    
+
     class Config:
         schema_extra = {
             "example": {
                 "pr1_id": "pr_1",
-                "pr2_id": "pr_2", 
+                "pr2_id": "pr_2",
                 "file_path": "src/main.py",
                 "conflict_region": (
                     "<<<<<<< HEAD\\n"
@@ -247,20 +258,21 @@ class MergeConflict(BaseModel):
                 "content2": "def new_function():\n    return 'version2'",
                 "similarity_score": 0.8,
                 "conflict_type": "content_modification",
-                "line_numbers": {"pr1": [10, 15], "pr2": [10, 15], "base": [10, 15]}
+                "line_numbers": {"pr1": [10, 15], "pr2": [10, 15], "base": [10, 15]},
             }
         }
 
 
 class DependencyConflict(BaseModel):
     """Dependency conflict representation"""
+
     conflict_type: str = Field(..., description="Type of dependency conflict")
     affected_nodes: List[str] = Field(..., description="Affected dependency nodes")
     cycle_path: List[str] = Field(default_factory=list, description="Path in dependency cycle")
     version_conflicts: Dict[str, Any] = Field(default_factory=dict, description="Version conflict details")
     severity: ConflictSeverity = Field(..., description="Conflict severity")
     resolution_suggestions: List[str] = Field(default_factory=list, description="Suggested resolutions")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -269,13 +281,14 @@ class DependencyConflict(BaseModel):
                 "cycle_path": ["module_a", "module_b", "module_c", "module_a"],
                 "version_conflicts": {"package_x": {"pr1": "1.0.0", "pr2": "2.0.0"}},
                 "severity": "HIGH",
-                "resolution_suggestions": ["Refactor to break cycle", "Use dependency injection"]
+                "resolution_suggestions": ["Refactor to break cycle", "Use dependency injection"],
             }
         }
 
 
 class ArchitectureViolation(BaseModel):
     """Architecture violation representation"""
+
     violation_type: str = Field(..., description="Type of architecture violation")
     pattern_name: str = Field(..., description="Name of violated pattern")
     violating_prs: List[str] = Field(..., description="PRs that violate the pattern")
@@ -284,7 +297,7 @@ class ArchitectureViolation(BaseModel):
     suggested_fix: Optional[str] = Field(None, description="Suggested architectural fix")
     severity: ConflictSeverity = Field(..., description="Violation severity")
     layer_violations: List[Dict[str, str]] = Field(default_factory=list, description="Specific layer violations")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -295,13 +308,14 @@ class ArchitectureViolation(BaseModel):
                 "affected_components": ["UserInterface", "DatabaseAccess"],
                 "suggested_fix": "Use service layer pattern",
                 "severity": "CRITICAL",
-                "layer_violations": [{"from": "UI", "to": "Database", "description": "Direct access"}]
+                "layer_violations": [{"from": "UI", "to": "Database", "description": "Direct access"}],
             }
         }
 
 
 class SemanticConflict(BaseModel):
     """Semantic conflict representation"""
+
     pr1_id: str = Field(..., description="First PR ID")
     pr2_id: str = Field(..., description="Second PR ID")
     conflict_area: str = Field(..., description="Area of semantic conflict")
@@ -309,7 +323,7 @@ class SemanticConflict(BaseModel):
     confidence: float = Field(..., description="AI confidence in conflict detection")
     evidence: List[str] = Field(default_factory=list, description="Evidence for the conflict")
     resolution_suggestions: List[str] = Field(default_factory=list, description="Suggested resolutions")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -319,20 +333,21 @@ class SemanticConflict(BaseModel):
                 "description": "Functions implement opposite business logic",
                 "confidence": 0.9,
                 "evidence": ["pr1 returns success for condition A", "pr2 returns failure for condition A"],
-                "resolution_suggestions": ["Refactor to use strategy pattern", "Combine logic with conditional"]
+                "resolution_suggestions": ["Refactor to use strategy pattern", "Combine logic with conditional"],
             }
         }
 
 
 class ResourceConflict(BaseModel):
     """Resource conflict representation"""
+
     resource_type: str = Field(..., description="Type of resource")
     resource_id: str = Field(..., description="Resource identifier")
     conflicting_prs: List[str] = Field(..., description="PRs competing for resource")
     access_pattern: str = Field(..., description="How resources are being accessed")
     contention_level: str = Field(..., description="Level of resource contention")
     resolution_suggestions: List[str] = Field(default_factory=list, description="Suggested resolutions")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -341,6 +356,6 @@ class ResourceConflict(BaseModel):
                 "conflicting_prs": ["pr_1", "pr_2", "pr_3"],
                 "access_pattern": "concurrent_write",
                 "contention_level": "HIGH",
-                "resolution_suggestions": ["Use database transactions", "Implement queue-based access"]
+                "resolution_suggestions": ["Use database transactions", "Implement queue-based access"],
             }
         }

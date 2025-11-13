@@ -6,17 +6,14 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 import structlog
 from ..database.connection import connection_manager
-from ..models.graph_entities import (
-    PullRequest, Conflict,
-    PRStatus, ConflictType, ConflictSeverity
-)
+from ..models.graph_entities import PullRequest, Conflict, PRStatus, ConflictType, ConflictSeverity
 
 logger = structlog.get_logger()
 
 
 class PRDataAccess:
     """Data access for Pull Request operations"""
-    
+
     async def get_pr(self, pr_id: str) -> Optional[PullRequest]:
         """Get pull request by ID"""
         query = """
@@ -27,11 +24,11 @@ class PRDataAccess:
         records = await connection_manager.execute_query(query, {"pr_id": pr_id})
         if not records:
             return None
-        
+
         record = records[0]
         pr_data = record["pr"]
         conflict_data = record["conflicts"]
-        
+
         return PullRequest(
             id=pr_data["id"],
             title=pr_data["title"],
@@ -47,28 +44,24 @@ class PRDataAccess:
             commit_ids=pr_data.get("commit_ids", []),
             conflict_ids=[c["id"] for c in conflict_data if c],
             created_at=pr_data["created_at"],
-            updated_at=pr_data["updated_at"]
+            updated_at=pr_data["updated_at"],
         )
-    
+
     async def get_all_prs(
-        self, 
-        status: Optional[PRStatus] = None,
-        author_id: Optional[str] = None,
-        limit: int = 50,
-        offset: int = 0
+        self, status: Optional[PRStatus] = None, author_id: Optional[str] = None, limit: int = 50, offset: int = 0
     ) -> List[PullRequest]:
         """Get all pull requests with optional filtering"""
         conditions = []
         params = {"limit": limit, "offset": offset}
-        
+
         if status:
             conditions.append("pr.status = $status")
             params["status"] = status
-        
+
         if author_id:
             conditions.append("pr.author_id = $author_id")
             params["author_id"] = author_id
-        
+
         where_clause = " AND ".join(conditions) if conditions else ""
         query = f"""
         MATCH (pr:PullRequest)
@@ -78,7 +71,7 @@ class PRDataAccess:
         SKIP $offset
         LIMIT $limit
         """
-        
+
         records = await connection_manager.execute_query(query, params)
         return [
             PullRequest(
@@ -96,11 +89,11 @@ class PRDataAccess:
                 commit_ids=record["pr"].get("commit_ids", []),
                 conflict_ids=record["pr"].get("conflict_ids", []),
                 created_at=record["pr"]["created_at"],
-                updated_at=record["pr"]["updated_at"]
+                updated_at=record["pr"]["updated_at"],
             )
             for record in records
         ]
-    
+
     async def create_pr(self, pr_data: Dict[str, Any]) -> PullRequest:
         """Create a new pull request"""
         query = """
@@ -123,7 +116,7 @@ class PRDataAccess:
         })
         RETURN pr
         """
-        
+
         pr_data["status"] = pr_data.get("status", PRStatus.OPEN)
         pr_data["complexity"] = pr_data.get("complexity", 0.0)
         pr_data["estimated_resolution_time"] = pr_data.get("estimated_resolution_time", 0)
@@ -133,10 +126,10 @@ class PRDataAccess:
         pr_data["conflict_ids"] = pr_data.get("conflict_ids", [])
         pr_data["created_at"] = datetime.utcnow()
         pr_data["updated_at"] = datetime.utcnow()
-        
+
         records = await connection_manager.execute_query(query, pr_data)
         record = records[0]
-        
+
         return PullRequest(
             id=record["pr"]["id"],
             title=record["pr"]["title"],
@@ -152,9 +145,9 @@ class PRDataAccess:
             commit_ids=record["pr"]["commit_ids"],
             conflict_ids=record["pr"]["conflict_ids"],
             created_at=record["pr"]["created_at"],
-            updated_at=record["pr"]["updated_at"]
+            updated_at=record["pr"]["updated_at"],
         )
-    
+
     async def update_pr_status(self, pr_id: str, status: PRStatus) -> PullRequest:
         """Update pull request status"""
         query = """
@@ -162,19 +155,15 @@ class PRDataAccess:
         SET pr.status = $status, pr.updated_at = $updated_at
         RETURN pr
         """
-        
-        params = {
-            "pr_id": pr_id,
-            "status": status,
-            "updated_at": datetime.utcnow()
-        }
-        
+
+        params = {"pr_id": pr_id, "status": status, "updated_at": datetime.utcnow()}
+
         records = await connection_manager.execute_query(query, params)
         if not records:
             raise ValueError(f"Pull request {pr_id} not found")
-        
+
         return self.get_pr(pr_id)
-    
+
     async def get_pr_conflicts(self, pr_id: str) -> List[Conflict]:
         """Get conflicts for a pull request"""
         query = """
@@ -182,7 +171,7 @@ class PRDataAccess:
         RETURN conflict
         ORDER BY conflict.detected_at DESC
         """
-        
+
         records = await connection_manager.execute_query(query, {"pr_id": pr_id})
         return [
             Conflict(
@@ -196,11 +185,11 @@ class PRDataAccess:
                 resolution_id=record["conflict"].get("resolution_id"),
                 ai_analysis_id=record["conflict"].get("ai_analysis_id"),
                 created_at=record["conflict"]["created_at"],
-                updated_at=record["conflict"]["updated_at"]
+                updated_at=record["conflict"]["updated_at"],
             )
             for record in records
         ]
-    
+
     async def get_pr_dependencies(self, pr_id: str) -> List[PullRequest]:
         """Get dependencies for a pull request (PRs that must be merged first)"""
         query = """
@@ -208,7 +197,7 @@ class PRDataAccess:
         RETURN dependency
         ORDER BY dependency.created_at DESC
         """
-        
+
         records = await connection_manager.execute_query(query, {"pr_id": pr_id})
         dependencies = []
         for record in records:
@@ -216,7 +205,7 @@ class PRDataAccess:
             if dep_pr:
                 dependencies.append(dep_pr)
         return dependencies
-    
+
     async def calculate_pr_complexity(self, pr_id: str) -> float:
         """Calculate PR complexity based on graph analysis"""
         query = """
@@ -249,35 +238,32 @@ class PRDataAccess:
                 ELSE 0.0
             END as complexity
         """
-        
+
         records = await connection_manager.execute_query(query, {"pr_id": pr_id})
         if not records:
             return 0.0
-        
+
         return min(1.0, max(0.0, records[0]["complexity"]))
 
 
 class ConflictDataAccess:
     """Data access for Conflict operations"""
-    
+
     async def get_conflicts(
-        self,
-        severity: Optional[ConflictSeverity] = None,
-        conflict_type: Optional[ConflictType] = None,
-        limit: int = 50
+        self, severity: Optional[ConflictSeverity] = None, conflict_type: Optional[ConflictType] = None, limit: int = 50
     ) -> List[Conflict]:
         """Get conflicts with optional filtering"""
         conditions = []
         params = {"limit": limit}
-        
+
         if severity:
             conditions.append("c.severity = $severity")
             params["severity"] = severity
-        
+
         if conflict_type:
             conditions.append("c.type = $type")
             params["type"] = conflict_type
-        
+
         where_clause = " AND ".join(conditions) if conditions else ""
         query = f"""
         MATCH (c:Conflict)
@@ -286,7 +272,7 @@ class ConflictDataAccess:
         ORDER BY c.detected_at DESC
         LIMIT $limit
         """
-        
+
         records = await connection_manager.execute_query(query, params)
         return [
             Conflict(
@@ -300,7 +286,7 @@ class ConflictDataAccess:
                 resolution_id=record["c"].get("resolution_id"),
                 ai_analysis_id=record["c"].get("ai_analysis_id"),
                 created_at=record["c"]["created_at"],
-                updated_at=record["c"]["updated_at"]
+                updated_at=record["c"]["updated_at"],
             )
             for record in records
         ]

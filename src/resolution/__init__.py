@@ -20,26 +20,30 @@ from .prompts import PromptEngine
 from .metrics import QualityMetrics
 from .constitutional_engine import ConstitutionalEngine
 from .types import (
-    MergeConflict, DependencyConflict, ArchitectureViolation,
-    SemanticConflict, ResourceConflict, ResolutionPlan
+    MergeConflict,
+    DependencyConflict,
+    ArchitectureViolation,
+    SemanticConflict,
+    ResourceConflict,
+    ResolutionPlan,
 )
 from .queue import ResolutionQueue
 
 __all__ = [
-    'ResolutionEngine',
-    'StrategyGenerator',
-    'CodeChangeGenerator',
-    'ValidationFramework',
-    'ExecutionEngine',
-    'WorkflowOrchestrator',
-    'PromptEngine',
-    'QualityMetrics',
-    'ConstitutionalEngine',
-    'MergeConflict',
-    'DependencyConflict',
-    'ArchitectureViolation',
-    'SemanticConflict',
-    'ResourceConflict',
-    'ResolutionPlan',
-    'ResolutionQueue'
+    "ResolutionEngine",
+    "StrategyGenerator",
+    "CodeChangeGenerator",
+    "ValidationFramework",
+    "ExecutionEngine",
+    "WorkflowOrchestrator",
+    "PromptEngine",
+    "QualityMetrics",
+    "ConstitutionalEngine",
+    "MergeConflict",
+    "DependencyConflict",
+    "ArchitectureViolation",
+    "SemanticConflict",
+    "ResourceConflict",
+    "ResolutionPlan",
+    "ResolutionQueue",
 ]
