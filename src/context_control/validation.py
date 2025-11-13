@@ -1,6 +1,7 @@
-"""Comprehensive validation for context control components."""
+"""Comprehensive validation for context control components following SOLID principles."""
 
 import re
+from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
 from .config import get_current_config
@@ -11,11 +12,49 @@ from .models import (AgentContext, ContextProfile, ContextValidationResult,
 logger = get_context_logger()
 
 
-class ContextValidator:
-    """Comprehensive validator for context control components."""
+class IProfileValidator(ABC):
+    """Interface for profile validation."""
+    
+    @abstractmethod
+    def validate_profile(self, profile: ContextProfile) -> ContextValidationResult:
+        """Validate a context profile."""
+        pass
 
+
+class IProjectConfigValidator(ABC):
+    """Interface for project configuration validation."""
+    
+    @abstractmethod
+    def validate_project_config(self, config: ProjectConfig) -> ContextValidationResult:
+        """Validate a project configuration."""
+        pass
+
+
+class IContextValidator(ABC):
+    """Interface for context validation."""
+    
+    @abstractmethod
+    def validate_context(self, context: AgentContext) -> ContextValidationResult:
+        """Validate an agent context."""
+        pass
+
+
+class ICompatibilityValidator(ABC):
+    """Interface for compatibility validation."""
+    
+    @abstractmethod
+    def validate_profile_context_compatibility(
+        self, profile: ContextProfile, context: AgentContext
+    ) -> ContextValidationResult:
+        """Validate compatibility between profile and context."""
+        pass
+
+
+class ProfileValidator(IProfileValidator):
+    """Validates context profiles following Single Responsibility Principle."""
+    
     def __init__(self, config=None):
-        """Initialize the context validator.
+        """Initialize the profile validator.
 
         Args:
             config: Optional configuration override
@@ -60,12 +99,66 @@ class ContextValidator:
             setting_errors = self._validate_agent_settings(profile.agent_settings)
             errors.extend(setting_errors)
 
+        # Validate project configuration if present
+        if profile.project_config:
+            from .validation import ProjectConfigValidator
+            project_validator = ProjectConfigValidator(self.config)
+            project_result = project_validator.validate_project_config(profile.project_config)
+            errors.extend(project_result.errors)
+
         return ContextValidationResult(
             is_valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
             context_id=profile.id,
         )
+
+    def _is_valid_id(self, id_str: str) -> bool:
+        """Check if an ID string is valid."""
+        if not id_str or len(id_str) > 100:
+            return False
+        pattern = r"^[a-zA-Z0-9._-]+$"
+        return bool(re.match(pattern, id_str))
+
+    def _is_valid_branch_pattern(self, pattern: str) -> bool:
+        """Check if a branch pattern is valid."""
+        if not pattern or len(pattern) > 200:
+            return False
+        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?")
+        return all(c in allowed_chars for c in pattern)
+
+    def _is_valid_file_pattern(self, pattern: str) -> bool:
+        """Check if a file pattern is valid."""
+        if len(pattern) > 500:
+            return False
+        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?[]{}")
+        return all(c in allowed_chars for c in pattern)
+
+    def _find_conflicting_patterns(self, allowed: List[str], blocked: List[str]) -> List[str]:
+        """Find patterns that appear in both allowed and blocked lists."""
+        allowed_set = set(allowed)
+        blocked_set = set(blocked)
+        return list(allowed_set & blocked_set)
+
+    def _validate_agent_settings(self, settings: Dict[str, Any]) -> List[str]:
+        """Validate agent settings."""
+        errors = []
+        for key, value in settings.items():
+            if not isinstance(key, str) or not key.strip():
+                errors.append(f"Invalid setting key: '{key}'")
+        return errors
+
+
+class ProjectConfigValidator(IProjectConfigValidator):
+    """Validates project configurations following Single Responsibility Principle."""
+    
+    def __init__(self, config=None):
+        """Initialize the project config validator.
+
+        Args:
+            config: Optional configuration override
+        """
+        self.config = config or get_current_config()
 
     def validate_project_config(self, config: ProjectConfig) -> ContextValidationResult:
         """Validate a project configuration.
@@ -86,15 +179,7 @@ class ContextValidator:
             errors.append(f"Invalid project name: '{config.project_name}'")
 
         # Validate project type
-        valid_types = [
-            "python",
-            "javascript",
-            "web",
-            "api",
-            "library",
-            "data",
-            "generic",
-        ]
+        valid_types = ["python", "javascript", "web", "api", "library", "data", "generic"]
         if config.project_type not in valid_types:
             errors.append(
                 f"Invalid project type: '{config.project_type}'. Must be one of {valid_types}"
@@ -136,40 +221,30 @@ class ContextValidator:
         )
 
     def _is_valid_project_name(self, name: str) -> bool:
-        """Check if a project name is valid.
-
-        Args:
-            name: Project name to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
+        """Check if a project name is valid."""
         if not name or len(name) > 100:
             return False
-
-        # Allow alphanumeric, hyphens, underscores, dots, spaces
-        import re
-
         pattern = r"^[a-zA-Z0-9._\-\s]+$"
         return bool(re.match(pattern, name))
 
     def _is_valid_model_name(self, name: str) -> bool:
-        """Check if a model name is valid.
-
-        Args:
-            name: Model name to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
+        """Check if a model name is valid."""
         if not name or len(name) > 50:
             return False
-
-        # Allow common model name patterns
-        import re
-
         pattern = r"^[a-zA-Z0-9._\-/]+$"
         return bool(re.match(pattern, name))
+
+
+class ContextValidator(IContextValidator):
+    """Validates agent contexts following Single Responsibility Principle."""
+    
+    def __init__(self, config=None):
+        """Initialize the context validator.
+
+        Args:
+            config: Optional configuration override
+        """
+        self.config = config or get_current_config()
 
     def validate_context(self, context: AgentContext) -> ContextValidationResult:
         """Validate an agent context.
@@ -219,6 +294,31 @@ class ContextValidator:
             warnings=warnings,
             context_id=context.profile_id,
         )
+
+    def _is_valid_id(self, id_str: str) -> bool:
+        """Check if an ID string is valid."""
+        if not id_str or len(id_str) > 100:
+            return False
+        pattern = r"^[a-zA-Z0-9._-]+$"
+        return bool(re.match(pattern, id_str))
+
+    def _find_conflicting_patterns(self, allowed: List[str], blocked: List[str]) -> List[str]:
+        """Find patterns that appear in both allowed and blocked lists."""
+        allowed_set = set(allowed)
+        blocked_set = set(blocked)
+        return list(allowed_set & blocked_set)
+
+
+class CompatibilityValidator(ICompatibilityValidator):
+    """Validates compatibility between profiles and contexts."""
+    
+    def __init__(self, config=None):
+        """Initialize the compatibility validator.
+
+        Args:
+            config: Optional configuration override
+        """
+        self.config = config or get_current_config()
 
     def validate_profile_context_compatibility(
         self, profile: ContextProfile, context: AgentContext
@@ -275,113 +375,85 @@ class ContextValidator:
             context_id=context.profile_id,
         )
 
-    def _is_valid_id(self, id_str: str) -> bool:
-        """Check if an ID string is valid.
-
-        Args:
-            id_str: ID to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if not id_str or len(id_str) > 100:
-            return False
-
-        # Allow alphanumeric, hyphens, underscores, dots
-        pattern = r"^[a-zA-Z0-9._-]+$"
-        return bool(re.match(pattern, id_str))
-
-    def _is_valid_branch_pattern(self, pattern: str) -> bool:
-        """Check if a branch pattern is valid.
-
-        Args:
-            pattern: Pattern to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if not pattern or len(pattern) > 200:
-            return False
-
-        # Allow glob patterns with common branch naming
-        allowed_chars = set(
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?"
-        )
-        return all(c in allowed_chars for c in pattern)
-
-    def _is_valid_file_pattern(self, pattern: str) -> bool:
-        """Check if a file pattern is valid.
-
-        Args:
-            pattern: Pattern to validate
-
-        Returns:
-            True if valid, False otherwise
-        """
-        if len(pattern) > 500:
-            return False
-
-        # Allow common glob patterns
-        allowed_chars = set(
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?[]{}"
-        )
-        return all(c in allowed_chars for c in pattern)
-
-    def _find_conflicting_patterns(
-        self, allowed: List[str], blocked: List[str]
-    ) -> List[str]:
-        """Find patterns that appear in both allowed and blocked lists.
-
-        Args:
-            allowed: List of allowed patterns
-            blocked: List of blocked patterns
-
-        Returns:
-            List of conflicting patterns
-        """
-        allowed_set = set(allowed)
-        blocked_set = set(blocked)
-        return list(allowed_set & blocked_set)
-
-    def _validate_agent_settings(self, settings: Dict[str, Any]) -> List[str]:
-        """Validate agent settings.
-
-        Args:
-            settings: Settings dictionary to validate
-
-        Returns:
-            List of validation errors
-        """
-        errors = []
-
-        # Add specific validation rules as needed
-        # For now, just check for obviously invalid values
-
-        for key, value in settings.items():
-            if not isinstance(key, str) or not key.strip():
-                errors.append(f"Invalid setting key: '{key}'")
-
-        return errors
-
-    def _branch_matches_profile(
-        self, branch_name: str, profile: ContextProfile
-    ) -> bool:
-        """Check if a branch matches a profile's patterns.
-
-        Args:
-            branch_name: Branch name to check
-            profile: Profile to check against
-
-        Returns:
-            True if matches, False otherwise
-        """
+    def _branch_matches_profile(self, branch_name: str, profile: ContextProfile) -> bool:
+        """Check if a branch matches a profile's patterns."""
         import fnmatch
-
         for pattern in profile.branch_patterns:
             if fnmatch.fnmatch(branch_name, pattern):
                 return True
-
         return False
+
+
+class CompositeValidator:
+    """Composite validator that combines multiple validation strategies."""
+    
+    def __init__(
+        self,
+        profile_validator: Optional[ProfileValidator] = None,
+        project_validator: Optional[ProjectConfigValidator] = None,
+        context_validator: Optional[ContextValidator] = None,
+        compatibility_validator: Optional[CompatibilityValidator] = None,
+        config=None
+    ):
+        """Initialize the composite validator.
+
+        Args:
+            profile_validator: Optional profile validator
+            project_validator: Optional project config validator
+            context_validator: Optional context validator
+            compatibility_validator: Optional compatibility validator
+            config: Configuration instance
+        """
+        self.profile_validator = profile_validator or ProfileValidator(config)
+        self.project_validator = project_validator or ProjectConfigValidator(config)
+        self.context_validator = context_validator or ContextValidator(config)
+        self.compatibility_validator = compatibility_validator or CompatibilityValidator(config)
+        self.config = config or get_current_config()
+
+    def validate_profile(self, profile: ContextProfile) -> ContextValidationResult:
+        """Validate a context profile using the profile validator."""
+        return self.profile_validator.validate_profile(profile)
+
+    def validate_project_config(self, config: ProjectConfig) -> ContextValidationResult:
+        """Validate a project configuration using the project validator."""
+        return self.project_validator.validate_project_config(config)
+
+    def validate_context(self, context: AgentContext) -> ContextValidationResult:
+        """Validate an agent context using the context validator."""
+        return self.context_validator.validate_context(context)
+
+    def validate_profile_context_compatibility(
+        self, profile: ContextProfile, context: AgentContext
+    ) -> ContextValidationResult:
+        """Validate compatibility using the compatibility validator."""
+        return self.compatibility_validator.validate_profile_context_compatibility(profile, context)
+
+
+# Legacy class that maintains backward compatibility
+class ContextValidatorLegacy:
+    """Legacy context validator for backward compatibility."""
+    
+    def __init__(self, config=None):
+        """Initialize the legacy validator."""
+        self.composite_validator = CompositeValidator(config=config)
+
+    def validate_profile(self, profile: ContextProfile) -> ContextValidationResult:
+        """Validate a context profile."""
+        return self.composite_validator.validate_profile(profile)
+
+    def validate_project_config(self, config: ProjectConfig) -> ContextValidationResult:
+        """Validate a project configuration."""
+        return self.composite_validator.validate_project_config(config)
+
+    def validate_context(self, context: AgentContext) -> ContextValidationResult:
+        """Validate an agent context."""
+        return self.composite_validator.validate_context(context)
+
+    def validate_profile_context_compatibility(
+        self, profile: ContextProfile, context: AgentContext
+    ) -> ContextValidationResult:
+        """Validate compatibility between profile and context."""
+        return self.composite_validator.validate_profile_context_compatibility(profile, context)
 
 
 # For backward compatibility with direct imports
@@ -394,5 +466,5 @@ def validate_agent_context(context) -> ContextValidationResult:
     Returns:
         Validation result
     """
-    validator = ContextValidator()
+    validator = ContextValidatorLegacy()
     return validator.validate_context(context)
