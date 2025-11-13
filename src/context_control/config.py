@@ -66,72 +66,127 @@ class ContextControlConfig(BaseModel):
         arbitrary_types_allowed = True
 
 
-def load_config_from_env() -> Dict[str, Any]:
-    """Load configuration from environment variables.
+class ConfigurationLoader:
+    """Handles loading configuration from various sources with dependency injection support."""
+    
+    def __init__(self):
+        """Initialize the configuration loader."""
+        self._config_cache: Dict[str, ContextControlConfig] = {}
+    
+    def load_from_env(self) -> Dict[str, Any]:
+        """Load configuration from environment variables.
 
-    Returns:
-        Dictionary of configuration values from environment
-    """
-    config = {}
+        Returns:
+            Dictionary of configuration values from environment
+        """
+        config = {}
 
-    # Path configurations
-    if config_dir := os.getenv("CONTEXT_CONTROL_CONFIG_DIR"):
-        config["config_dir"] = Path(config_dir)
-    if profiles_dir := os.getenv("CONTEXT_CONTROL_PROFILES_DIR"):
-        config["profiles_dir"] = Path(profiles_dir)
-    if git_repo_path := os.getenv("CONTEXT_CONTROL_GIT_REPO_PATH"):
-        config["git_repo_path"] = Path(git_repo_path)
-    if log_file := os.getenv("CONTEXT_CONTROL_LOG_FILE"):
-        config["log_file"] = Path(log_file)
+        # Path configurations
+        if config_dir := os.getenv("CONTEXT_CONTROL_CONFIG_DIR"):
+            config["config_dir"] = Path(config_dir)
+        if profiles_dir := os.getenv("CONTEXT_CONTROL_PROFILES_DIR"):
+            config["profiles_dir"] = Path(profiles_dir)
+        if git_repo_path := os.getenv("CONTEXT_CONTROL_GIT_REPO_PATH"):
+            config["git_repo_path"] = Path(git_repo_path)
+        if log_file := os.getenv("CONTEXT_CONTROL_LOG_FILE"):
+            config["log_file"] = Path(log_file)
 
-    # String configurations
-    if log_level := os.getenv("CONTEXT_CONTROL_LOG_LEVEL"):
-        config["log_level"] = log_level
+        # String configurations
+        if log_level := os.getenv("CONTEXT_CONTROL_LOG_LEVEL"):
+            config["log_level"] = log_level
 
-    # Boolean configurations
-    if enable_isolation := os.getenv("CONTEXT_CONTROL_ENABLE_ISOLATION"):
-        config["enable_isolation"] = enable_isolation.lower() in ("true", "1", "yes")
-    if strict_validation := os.getenv("CONTEXT_CONTROL_STRICT_VALIDATION"):
-        config["strict_validation"] = strict_validation.lower() in ("true", "1", "yes")
-    if cache_enabled := os.getenv("CONTEXT_CONTROL_CACHE_ENABLED"):
-        config["cache_enabled"] = cache_enabled.lower() in ("true", "1", "yes")
+        # Boolean configurations
+        if enable_isolation := os.getenv("CONTEXT_CONTROL_ENABLE_ISOLATION"):
+            config["enable_isolation"] = enable_isolation.lower() in ("true", "1", "yes")
+        if strict_validation := os.getenv("CONTEXT_CONTROL_STRICT_VALIDATION"):
+            config["strict_validation"] = strict_validation.lower() in ("true", "1", "yes")
+        if cache_enabled := os.getenv("CONTEXT_CONTROL_CACHE_ENABLED"):
+            config["cache_enabled"] = cache_enabled.lower() in ("true", "1", "yes")
 
-    # Integer configurations
-    if cache_ttl := os.getenv("CONTEXT_CONTROL_CACHE_TTL_SECONDS"):
+        # Integer configurations
+        if cache_ttl := os.getenv("CONTEXT_CONTROL_CACHE_TTL_SECONDS"):
+            try:
+                config["cache_ttl_seconds"] = int(cache_ttl)
+            except ValueError:
+                pass  # Use default if invalid
+
+        return config
+
+    def load_from_file(self, config_file: Path) -> Dict[str, Any]:
+        """Load configuration from a JSON file.
+
+        Args:
+            config_file: Path to the configuration file
+
+        Returns:
+            Dictionary of configuration values from file
+        """
+        import json
+
+        if not config_file.exists():
+            return {}
+
         try:
-            config["cache_ttl_seconds"] = int(cache_ttl)
-        except ValueError:
-            pass  # Use default if invalid
+            with open(config_file, "r") as f:
+                data = json.load(f)
 
-    return config
+            # Convert string paths to Path objects
+            for key in ["config_dir", "profiles_dir", "git_repo_path", "log_file"]:
+                if key in data and isinstance(data[key], str):
+                    data[key] = Path(data[key])
+
+            return data
+        except (json.JSONDecodeError, IOError):
+            return {}
+    
+    def load_config(
+        self, 
+        config_file: Optional[Path] = None, 
+        override_config: Optional[Dict[str, Any]] = None,
+        cache_key: Optional[str] = None
+    ) -> ContextControlConfig:
+        """Load the complete configuration, merging defaults, file, env, and overrides.
+
+        Args:
+            config_file: Optional path to configuration file
+            override_config: Optional configuration overrides
+            cache_key: Optional cache key for caching (if None, caching is disabled)
+
+        Returns:
+            Complete ContextControlConfig instance
+        """
+        # Check cache first if cache key provided
+        if cache_key and cache_key in self._config_cache:
+            return self._config_cache[cache_key]
+        
+        config = {}
+
+        # Load from file if specified
+        if config_file:
+            config.update(self.load_from_file(config_file))
+
+        # Load from environment (overrides file)
+        config.update(self.load_from_env())
+
+        # Apply overrides (highest priority)
+        if override_config:
+            config.update(override_config)
+
+        # Create and optionally cache the configuration
+        final_config = ContextControlConfig(**config)
+        
+        if cache_key:
+            self._config_cache[cache_key] = final_config
+            
+        return final_config
+    
+    def clear_cache(self):
+        """Clear all cached configurations."""
+        self._config_cache.clear()
 
 
-def load_config_from_file(config_file: Path) -> Dict[str, Any]:
-    """Load configuration from a JSON file.
-
-    Args:
-        config_file: Path to the configuration file
-
-    Returns:
-        Dictionary of configuration values from file
-    """
-    import json
-
-    if not config_file.exists():
-        return {}
-
-    try:
-        with open(config_file, "r") as f:
-            data = json.load(f)
-
-        # Convert string paths to Path objects
-        for key in ["config_dir", "profiles_dir", "git_repo_path", "log_file"]:
-            if key in data and isinstance(data[key], str):
-                data[key] = Path(data[key])
-
-        return data
-    except (json.JSONDecodeError, IOError):
-        return {}
+# Global configuration loader instance for backward compatibility
+_default_loader = ConfigurationLoader()
 
 
 def get_config(
@@ -146,30 +201,13 @@ def get_config(
     Returns:
         Complete ContextControlConfig instance
     """
-    config = {}
-
-    # Load from file if specified
-    if config_file:
-        config.update(load_config_from_file(config_file))
-
-    # Load from environment (overrides file)
-    config.update(load_config_from_env())
-
-    # Apply overrides (highest priority)
-    if override_config:
-        config.update(override_config)
-
-    return ContextControlConfig(**config)
-
-
-# Global configuration instance
-_config: Optional[ContextControlConfig] = None
+    return _default_loader.load_config(config_file, override_config)
 
 
 def init_config(
     config_file: Optional[Path] = None, override_config: Optional[Dict[str, Any]] = None
 ) -> ContextControlConfig:
-    """Initialize the global configuration.
+    """Initialize configuration (deprecated - kept for backward compatibility).
 
     Args:
         config_file: Optional path to configuration file
@@ -178,20 +216,27 @@ def init_config(
     Returns:
         The initialized configuration
     """
-    global _config
-    _config = get_config(config_file, override_config)
-    return _config
+    return get_config(config_file, override_config)
 
 
-def get_current_config() -> ContextControlConfig:
-    """Get the current global configuration.
+def load_config_with_cache(
+    config_file: Optional[Path] = None, 
+    override_config: Optional[Dict[str, Any]] = None,
+    cache_key: str = "default"
+) -> ContextControlConfig:
+    """Load configuration with caching support.
+
+    Args:
+        config_file: Optional path to configuration file
+        override_config: Optional configuration overrides
+        cache_key: Cache key for the configuration
 
     Returns:
-        Current configuration instance
-
-    Raises:
-        RuntimeError: If configuration has not been initialized
+        Complete ContextControlConfig instance
     """
-    if _config is None:
-        raise RuntimeError("Configuration not initialized. Call init_config() first.")
-    return _config
+    return _default_loader.load_config(config_file, override_config, cache_key)
+
+
+def clear_config_cache():
+    """Clear all cached configurations."""
+    _default_loader.clear_cache()
