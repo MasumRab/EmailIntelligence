@@ -25,6 +25,20 @@
 - **Non-Jules environments**: COMPATIBLE with this guide
   - Task Master CLI and MCP server are configured below
   - Standard development workflows for agents using this codebase apply
+### 🚀 PR Resolution Enhancement Project (speckit-001)
+**If working on Enhanced PR Resolution with Spec Kit Methodology:**
+- **Specification**: `specs/001-pr-resolution-improvements/spec.md`
+- **Agent-Friendly Tasks**: `specs/001-pr-resolution-improvements/tasks-reordered.md`
+- **Implementation Plan**: `specs/001-pr-resolution-improvements/plan.md`
+- **CLI Improvements**: `specs/001-pr-resolution-improvements/cli-improvements.md`
+- **Quickstart Guide**: `specs/001-pr-resolution-improvements/quickstart.md`
+
+**Expected Outputs**: Working CLI commands with real Git operations, actual specification files, functional validation workflows
+
+**Testing Approach**: Each phase produces immediately verifiable results - run test commands after each implementation
+
+**Agent-Friendly Workflow**: Start with `tasks-reordered.md` for testable, incremental development across 9 phases.
+
 
 ---
 
