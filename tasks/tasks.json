@@ -1,1 +1,148 @@
-{"tasks": []}
+{
+  "tasks": [],
+  "comprehensive-branching-strategy": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Prepare and Push 'feat-emailintelligence-cli-v2.0' Branch",
+        "description": "Create the primary feature branch from 'orchestration-tools', stage and commit the core CLI tool implementation, new `src/` directory architecture, `tests/` infrastructure, and core automation scripts. Then, push this new branch to the remote repository.",
+        "details": "Checkout the `orchestration-tools` branch. Stage and add `emailintelligence_cli.py`, the entire `src/` directory, the `tests/` directory, and core scripts from `scripts/`. Commit these changes with the message: 'feat: implement EmailIntelligence CLI v2.0 - Add complete 1400+ line CLI tool with constitutional analysis - Implement git worktree-based conflict resolution - Add multi-level validation framework - Include spec-kit strategy development - Add comprehensive test suite'. Then, create and push the `feat-emailintelligence-cli-v2.0` branch to origin: `git checkout -b feat-emailintelligence-cli-v2.0` followed by `git push origin feat-emailintelligence-cli-v2.0`.",
+        "testStrategy": "Execute `python emailintelligence_cli.py --help` and `python emailintelligence_cli.py version` locally to ensure basic CLI functionality. Verify that the `feat-emailintelligence-cli-v2.0` branch exists on the remote and contains all the new files and directories as committed.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Prepare and Push 'docs-comprehensive-user-guides' Branch",
+        "description": "Create a dedicated branch for comprehensive user-facing documentation, stage and commit the new user workflow guide, implementation guide, industry best practices, demonstrations, and constitutional templates. Then, push this new branch to the remote repository.",
+        "details": "Branch from `feat-emailintelligence-cli-v2.0`. Stage and add `USER_WORKFLOW_GUIDE.md`, `emailintelligence-implementation-guide.md`, `research-industry-best-practices.md`, the `demonstrations/` directory, and the `constitutions/` directory. Commit these changes with the message: 'docs: add comprehensive user guides and workflows - Add step-by-step USER_WORKFLOW_GUIDE.md with 10-stage process - Add complete implementation guide for testing framework - Include industry best practices research - Add demonstration examples and constitutional templates'. Then, create and push the `docs-comprehensive-user-guides` branch to origin: `git checkout -b docs-comprehensive-user-guides` followed by `git push origin docs-comprehensive-user-guides`.",
+        "testStrategy": "Manually inspect all new markdown files within the `docs-comprehensive-user-guides` branch for correct formatting, content accuracy, and accessibility. Verify that all embedded examples are present and cross-references (if any) are valid.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Prepare and Push 'docs-testing-framework-implementation' Branch",
+        "description": "Create a dedicated branch for documentation related to the testing framework, including the PR resolution testing guide, analysis documents, and baseline test lists. Then, push this new branch to the remote repository.",
+        "details": "Branch from `docs-comprehensive-user-guides` (or `feat-emailintelligence-cli-v2.0` if preferred for documentation isolation). Stage and add `pr-resolution-testing-framework.md`, any `testing-framework-*.md` files, and `pr-baseline-test-list.txt`. Commit these changes with the message: 'docs: add complete testing framework documentation - Add PR resolution testing framework guide - Include testing analysis and clarification documents - Add baseline test lists and procedures'. Then, create and push the `docs-testing-framework-implementation` branch to origin: `git checkout -b docs-testing-framework-implementation` followed by `git push origin docs-testing-framework-implementation`.",
+        "testStrategy": "Verify that all testing-related documentation files are present, readable, and accurately describe the testing framework and its procedures within the `docs-testing-framework-implementation` branch.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Prepare and Push 'refactor-orchestration-cleanup' Branch",
+        "description": "Create a dedicated branch for cleaning up the repository by removing all legacy orchestration documentation files and organizing the repository structure. Then, push this new branch to the remote repository.",
+        "details": "Branch from `main`. Use `git rm` to delete the following files: `BRANCH_PROPAGATION_IMPLEMENTATION_SUMMARY.md`, `BRANCH_UPDATE_PROCEDURE.md`, `BRANCH_UPDATE_QUICK_START.md`, `CRUSH.md`, `IFLOW.md`, `MODEL_CONTEXT_STRATEGY.md`, `ORCHESTRATION_DOCS_SCRIPTS_REVIEW.md`, `ORCHESTRATION_PROCESS_GUIDE.md`, `ORCHESTRATION_TEST_PROMPTS.txt`, `ORCHESTRATION_TEST_SUITE.md`, `OUTSTANDING_TODOS.md`, `PHASE3_ROLLBACK_OPTIONS.md`, `SAFE_ACTION_PLAN.md`. Commit these changes with the message: 'refactor: remove legacy orchestration documentation - Remove outdated orchestration process guides - Clean up redundant documentation files - Organize repository structure for EmailIntelligence CLI focus - Maintain archive organization for historical reference'. Then, create and push the `refactor-orchestration-cleanup` branch to origin: `git checkout -b refactor-orchestration-cleanup` followed by `git push origin refactor-orchestration-cleanup`.",
+        "testStrategy": "Confirm that all specified legacy orchestration files are successfully removed from the `refactor-orchestration-cleanup` branch and are not present in its commit history. Verify no active or critical files were accidentally removed.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Perform Comprehensive Pre-Push Validation",
+        "description": "Conduct a thorough validation of the core CLI functionality, documentation content, and overall code quality across all feature and documentation branches (feat-emailintelligence-cli-v2.0, docs-comprehensive-user-guides, docs-testing-framework-implementation) before proceeding with Pull Request creation.",
+        "details": "Switch to `feat-emailintelligence-cli-v2.0` and execute `python emailintelligence_cli.py --help` and `python emailintelligence_cli.py version` to test basic CLI functionalities. Review the updated `README.md` for CLI documentation. Switch to `docs-comprehensive-user-guides` and `docs-testing-framework-implementation` branches (or local merged state) to manually inspect all new `.md` files for readability, content accuracy, and valid internal links. Ensure Python syntax compliance in `emailintelligence_cli.py` and `src/` modules, checking for missing imports or obvious errors.",
+        "testStrategy": "Successful local execution of CLI commands. All documentation markdown files display correctly with no broken links. Code passes basic linting checks (if available) and runs without immediate syntax errors.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Create Pull Request for 'feat-emailintelligence-cli-v2.0' to 'main'",
+        "description": "Open a Pull Request on GitHub from the `feat-emailintelligence-cli-v2.0` branch targeting the `main` branch, initiating the review and merge process for the core EmailIntelligence CLI functionality.",
+        "details": "Navigate to the GitHub repository. Create a new Pull Request. Set the source branch as `feat-emailintelligence-cli-v2.0` and the target branch as `main`. Provide a clear and detailed description summarizing the CLI tool's features, architectural changes, and comprehensive testing aspects. Ensure all CI/CD checks configured for the repository pass, and request reviews from relevant team members.",
+        "testStrategy": "Verify that the Pull Request is correctly configured on GitHub, pointing from `feat-emailintelligence-cli-v2.0` to `main`. Monitor the CI/CD pipeline status to ensure all automated checks pass without failures. Confirm that at least one reviewer has been assigned and the PR is ready for review.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Create Pull Request for 'docs-comprehensive-user-guides' to 'main'",
+        "description": "Open a Pull Request on GitHub from the `docs-comprehensive-user-guides` branch targeting the `main` branch, enabling review and integration of the comprehensive user-facing documentation.",
+        "details": "Navigate to the GitHub repository. Create a new Pull Request. Set the source branch as `docs-comprehensive-user-guides` and the target branch as `main`. Highlight the new user workflow guides, implementation details, best practices, demonstrations, and constitutional templates in the PR description. Ensure the documentation aligns accurately with the features introduced in `feat-emailintelligence-cli-v2.0`.",
+        "testStrategy": "Verify that the Pull Request is correctly configured and points to the `main` branch. Review the documentation within the PR for clarity, accuracy, completeness, and adherence to documentation standards. Ensure the documentation is easily navigable and provides value to users.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Create Pull Request for 'docs-testing-framework-implementation' to 'main'",
+        "description": "Open a Pull Request on GitHub from the `docs-testing-framework-implementation` branch targeting the `main` branch, for the integration of testing framework documentation.",
+        "details": "Navigate to the GitHub repository. Create a new Pull Request. Set the source branch as `docs-testing-framework-implementation` and the target branch as `main`. The PR description should detail the testing framework's documentation, including guides for PR resolution testing, testing analysis, and baseline test lists, as well as their importance for QA processes.",
+        "testStrategy": "Verify the Pull Request accurately represents the testing documentation. Confirm that the test strategy and procedures outlined are clear, actionable, and comprehensive for the QA team. Ensure no critical testing information is missing.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Create Pull Request for 'refactor-orchestration-cleanup' to 'main'",
+        "description": "Open a Pull Request on GitHub from the `refactor-orchestration-cleanup` branch targeting the `main` branch, to finalize the removal of legacy orchestration documentation and repository organization.",
+        "details": "Navigate to the GitHub repository. Create a new Pull Request. Set the source branch as `refactor-orchestration-cleanup` and the target branch as `main`. The PR description should explicitly list all files that were deleted and provide a clear rationale for the cleanup and how it improves repository organization and focus on the EmailIntelligence CLI.",
+        "testStrategy": "Review the Pull Request carefully to confirm that only the intended legacy files are being removed and that no currently active or critical project files are erroneously targeted for deletion. Verify that the repository structure appears cleaner and more focused as a result.",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Integrate All Branches into 'main' and Push to Remote",
+        "description": "Perform the final merge operations for all approved Pull Requests (feat-emailintelligence-cli-v2.0, docs-comprehensive-user-guides, docs-testing-framework-implementation, refactor-orchestration-cleanup) into the `main` branch locally, then push the consolidated `main` branch to the remote repository.",
+        "details": "Ensure all Pull Requests (for CLI, user docs, testing docs, and cleanup) have been approved and are ready to merge. Checkout the `main` branch locally and pull the latest changes: `git checkout main && git pull origin main`. Then, perform merges in a logical sequence, e.g., `git merge feat-emailintelligence-cli-v2.0`, `git merge docs-comprehensive-user-guides`, `git merge docs-testing-framework-implementation`, `git merge refactor-orchestration-cleanup`. Resolve any merge conflicts. Finally, push the updated `main` branch to the remote: `git push origin main`.",
+        "testStrategy": "After each local merge operation, conduct thorough local testing to check for any regressions or unexpected behaviors. Verify that the CLI tool remains fully functional and all documentation is correctly rendered. After the final `git push`, verify on GitHub that the `main` branch reflects all changes, remains stable, and that all previously merged branches are correctly integrated. Monitor the repository for any post-merge issues.",
+        "priority": "high",
+        "dependencies": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-11-12T06:03:38.589Z",
+      "updated": "2025-11-12T06:03:38.589Z",
+      "description": "Tasks for comprehensive-branching-strategy context"
+    }
+  }
+}
