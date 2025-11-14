@@ -6,8 +6,6 @@ dependency installation, and system configuration.
 """
 
 import logging
-from argparse import Namespace
-from pathlib import Path
 
 from .command_interface import Command
 
@@ -146,20 +144,20 @@ class SetupCommand(Command):
         )
 
     def _get_venv_path(self) -> str:
-    """Get the current virtual environment path."""
-    import os
+        """Get the current virtual environment path."""
+        import os
 
-    # Check various indicators
-    if venv_path := os.environ.get('VIRTUAL_ENV'):
-        return venv_path
+        # Check various indicators
+        if venv_path := os.environ.get('VIRTUAL_ENV'):
+            return venv_path
 
         if conda_env := os.environ.get('CONDA_DEFAULT_ENV'):
             return f"conda:{conda_env}"
 
-    # Try to infer from sys.prefix
-    import sys
+        # Try to infer from sys.prefix
+        import sys
         if hasattr(sys, 'real_prefix'):
-        return sys.real_prefix
+            return sys.real_prefix
         elif hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix:
             return sys.prefix
 

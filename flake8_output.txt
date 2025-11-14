@@ -1,0 +1,134 @@
+setup/launch.py:5:89: E501 line too long (104 > 88 characters)
+setup/launch.py:6:89: E501 line too long (96 > 88 characters)
+setup/launch.py:22:1: F401 'setup.services.validate_services' imported but unused
+setup/launch.py:23:89: E501 line too long (89 > 88 characters)
+setup/launch.py:35:1: F401 'atexit' imported but unused
+setup/launch.py:41:1: F401 'threading' imported but unused
+setup/launch.py:54:1: F811 redefinition of unused 'test_stages' from line 31
+setup/launch.py:107:89: E501 line too long (91 > 88 characters)
+setup/launch.py:113:89: E501 line too long (99 > 88 characters)
+setup/launch.py:122:89: E501 line too long (102 > 88 characters)
+setup/launch.py:156:1: F811 redefinition of unused 'process_manager' from line 28
+setup/launch.py:156:1: E402 module level import not at top of file
+setup/launch.py:167:1: F811 redefinition of unused 'setup_wsl_environment' from line 25
+setup/launch.py:167:1: E303 too many blank lines (4)
+setup/launch.py:189:1: F811 redefinition of unused 'check_wsl_requirements' from line 25
+setup/launch.py:205:1: F811 redefinition of unused 'check_python_version' from line 18
+setup/launch.py:211:89: E501 line too long (89 > 88 characters)
+setup/launch.py:219:1: F811 redefinition of unused 'check_for_merge_conflicts' from line 18
+setup/launch.py:255:89: E501 line too long (114 > 88 characters)
+setup/launch.py:269:1: F811 redefinition of unused 'check_required_components' from line 18
+setup/launch.py:277:89: E501 line too long (172 > 88 characters)
+setup/launch.py:312:1: F811 redefinition of unused 'validate_environment' from line 18
+setup/launch.py:329:1: E303 too many blank lines (5)
+setup/launch.py:338:1: W293 blank line contains whitespace
+setup/launch.py:346:1: W293 blank line contains whitespace
+setup/launch.py:353:1: W293 blank line contains whitespace
+setup/launch.py:362:1: W293 blank line contains whitespace
+setup/launch.py:368:1: W293 blank line contains whitespace
+setup/launch.py:371:1: W293 blank line contains whitespace
+setup/launch.py:377:1: W293 blank line contains whitespace
+setup/launch.py:387:1: W293 blank line contains whitespace
+setup/launch.py:399:1: W293 blank line contains whitespace
+setup/launch.py:402:1: W293 blank line contains whitespace
+setup/launch.py:408:1: W293 blank line contains whitespace
+setup/launch.py:414:1: W293 blank line contains whitespace
+setup/launch.py:420:1: W293 blank line contains whitespace
+setup/launch.py:430:89: E501 line too long (99 > 88 characters)
+setup/launch.py:432:1: W293 blank line contains whitespace
+setup/launch.py:440:1: W293 blank line contains whitespace
+setup/launch.py:444:1: W293 blank line contains whitespace
+setup/launch.py:448:1: W293 blank line contains whitespace
+setup/launch.py:467:5: E303 too many blank lines (13)
+setup/launch.py:468:12: F821 undefined name 'env_name'
+setup/launch.py:469:81: F821 undefined name 'env_name'
+setup/launch.py:469:89: E501 line too long (115 > 88 characters)
+setup/launch.py:485:89: E501 line too long (99 > 88 characters)
+setup/launch.py:486:12: F821 undefined name 'env_name'
+setup/launch.py:487:50: F821 undefined name 'env_name'
+setup/launch.py:501:1: E303 too many blank lines (9)
+setup/launch.py:502:1: E302 expected 2 blank lines, found 9
+setup/launch.py:549:89: E501 line too long (94 > 88 characters)
+setup/launch.py:552:89: E501 line too long (96 > 88 characters)
+setup/launch.py:554:89: E501 line too long (92 > 88 characters)
+setup/launch.py:563:89: E501 line too long (94 > 88 characters)
+setup/launch.py:566:89: E501 line too long (92 > 88 characters)
+setup/launch.py:571:9: E122 continuation line missing indentation or outdented
+setup/launch.py:572:9: E122 continuation line missing indentation or outdented
+setup/launch.py:573:9: E122 continuation line missing indentation or outdented
+setup/launch.py:592:9: E122 continuation line missing indentation or outdented
+setup/launch.py:595:89: E501 line too long (93 > 88 characters)
+setup/launch.py:612:89: E501 line too long (119 > 88 characters)
+setup/launch.py:628:89: E501 line too long (94 > 88 characters)
+setup/launch.py:704:89: E501 line too long (94 > 88 characters)
+setup/launch.py:732:89: E501 line too long (98 > 88 characters)
+setup/launch.py:743:1: F811 redefinition of unused 'start_backend' from line 22
+setup/launch.py:763:1: F811 redefinition of unused 'start_node_service' from line 22
+setup/launch.py:780:89: E501 line too long (91 > 88 characters)
+setup/launch.py:784:89: E501 line too long (96 > 88 characters)
+setup/launch.py:787:1: F811 redefinition of unused 'start_gradio_ui' from line 22
+setup/launch.py:801:1: F811 redefinition of unused 'handle_setup' from line 25
+setup/launch.py:808:89: E501 line too long (92 > 88 characters)
+setup/launch.py:819:89: E501 line too long (89 > 88 characters)
+setup/launch.py:823:1: F811 redefinition of unused 'prepare_environment' from line 25
+setup/launch.py:836:1: F811 redefinition of unused 'start_services' from line 22
+setup/launch.py:842:89: E501 line too long (99 > 88 characters)
+setup/launch.py:846:89: E501 line too long (95 > 88 characters)
+setup/launch.py:858:89: E501 line too long (92 > 88 characters)
+setup/launch.py:860:89: E501 line too long (99 > 88 characters)
+setup/launch.py:868:89: E501 line too long (90 > 88 characters)
+setup/launch.py:869:89: E501 line too long (89 > 88 characters)
+setup/launch.py:870:89: E501 line too long (90 > 88 characters)
+setup/launch.py:882:1: F811 redefinition of unused 'print_system_info' from line 28
+setup/launch.py:944:89: E501 line too long (92 > 88 characters)
+setup/launch.py:948:89: E501 line too long (91 > 88 characters)
+setup/launch.py:950:89: E501 line too long (89 > 88 characters)
+setup/launch.py:956:89: E501 line too long (96 > 88 characters)
+setup/launch.py:958:89: E501 line too long (96 > 88 characters)
+setup/launch.py:959:89: E501 line too long (90 > 88 characters)
+setup/launch.py:960:89: E501 line too long (96 > 88 characters)
+setup/launch.py:962:89: E501 line too long (99 > 88 characters)
+setup/launch.py:966:89: E501 line too long (95 > 88 characters)
+setup/launch.py:968:89: E501 line too long (91 > 88 characters)
+setup/launch.py:973:89: E501 line too long (90 > 88 characters)
+setup/launch.py:977:89: E501 line too long (89 > 88 characters)
+setup/launch.py:986:89: E501 line too long (91 > 88 characters)
+setup/launch.py:989:89: E501 line too long (90 > 88 characters)
+setup/launch.py:996:89: E501 line too long (92 > 88 characters)
+setup/launch.py:998:89: E501 line too long (93 > 88 characters)
+setup/launch.py:1004:89: E501 line too long (93 > 88 characters)
+setup/launch.py:1016:89: E501 line too long (93 > 88 characters)
+setup/launch.py:1017:89: E501 line too long (100 > 88 characters)
+setup/launch.py:1019:89: E501 line too long (94 > 88 characters)
+setup/launch.py:1021:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1023:89: E501 line too long (95 > 88 characters)
+setup/launch.py:1026:89: E501 line too long (100 > 88 characters)
+setup/launch.py:1050:89: E501 line too long (97 > 88 characters)
+setup/launch.py:1057:89: E501 line too long (90 > 88 characters)
+setup/launch.py:1060:89: E501 line too long (89 > 88 characters)
+setup/launch.py:1069:89: E501 line too long (91 > 88 characters)
+setup/launch.py:1072:89: E501 line too long (90 > 88 characters)
+setup/launch.py:1079:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1081:89: E501 line too long (93 > 88 characters)
+setup/launch.py:1087:89: E501 line too long (93 > 88 characters)
+setup/launch.py:1091:89: E501 line too long (93 > 88 characters)
+setup/launch.py:1092:89: E501 line too long (100 > 88 characters)
+setup/launch.py:1094:89: E501 line too long (94 > 88 characters)
+setup/launch.py:1096:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1098:89: E501 line too long (95 > 88 characters)
+setup/launch.py:1101:89: E501 line too long (100 > 88 characters)
+setup/launch.py:1106:89: E501 line too long (94 > 88 characters)
+setup/launch.py:1109:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1111:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1115:89: E501 line too long (98 > 88 characters)
+setup/launch.py:1116:89: E501 line too long (94 > 88 characters)
+setup/launch.py:1122:89: E501 line too long (89 > 88 characters)
+setup/launch.py:1124:89: E501 line too long (99 > 88 characters)
+setup/launch.py:1133:1: E303 too many blank lines (5)
+setup/launch.py:1138:1: W293 blank line contains whitespace
+setup/launch.py:1183:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1213:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1218:89: E501 line too long (92 > 88 characters)
+setup/launch.py:1222:89: E501 line too long (99 > 88 characters)
+setup/launch.py:1280:89: E501 line too long (100 > 88 characters)
+setup/launch.py:1287:89: E501 line too long (96 > 88 characters)

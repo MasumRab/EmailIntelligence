@@ -36,6 +36,8 @@ check_orchestration_changes() {
         "setup/launch.bat"
         "setup/launch.sh"
         "scripts/sync_setup_worktrees.sh"
+        "scripts/reverse_sync_orchestration.sh"
+        "scripts/cleanup_orchestration.sh"
         ".flake8"
         ".pylintrc"
         "tsconfig.json"

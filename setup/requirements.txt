@@ -1,15 +1,12 @@
-# EmailIntelligence Python Requirements
-# Install in virtual environment only
+# EmailIntelligence Base Requirements
+# Core dependencies that work across all environments
+# Environment-specific overrides are applied via requirements-*.txt files
 
-# Core web framework
-fastapi>=0.115.12
-uvicorn[standard]>=0.34.3
-pydantic>=2.11.5
-python-multipart>=0.0.20
-
-# AI/ML packages (CPU versions - CUDA-free)
-# Note: PyTorch CPU-only versions are installed via setup scripts
-transformers>=4.40.0  # CPU-only, no CUDA dependencies
+# Core AI/ML (CPU-only versions)
+torch>=2.4.0+cpu
+torchvision>=0.19.0+cpu
+torchaudio>=2.4.0+cpu
+transformers>=4.40.0
 accelerate>=0.30.0
 sentencepiece>=0.2.0
 scikit-learn>=1.5.0
