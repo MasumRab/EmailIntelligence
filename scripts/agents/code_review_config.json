@@ -1,0 +1,68 @@
+{
+  "enabled_checkers": [
+    "security",
+    "performance",
+    "code_quality",
+    "imports",
+    "documentation",
+    "testing"
+  ],
+  "severity_thresholds": {
+    "error": 0,
+    "warning": 5,
+    "info": 10
+  },
+  "file_extensions": [
+    ".py",
+    ".js",
+    ".ts",
+    ".java",
+    ".cpp",
+    ".c",
+    ".go",
+    ".rs"
+  ],
+  "exclude_patterns": [
+    "test_*.py",
+    "*_test.py",
+    "__pycache__",
+    "node_modules",
+    ".git",
+    "build",
+    "dist",
+    "*.min.js",
+    "*.min.css"
+  ],
+  "max_file_size": 1000000,
+  "ai_model": "claude-3-5-sonnet-20241022",
+  "output_format": "markdown",
+  "custom_rules": {
+    "python": {
+      "max_line_length": 88,
+      "max_function_length": 50,
+      "require_docstrings": true
+    },
+    "javascript": {
+      "max_line_length": 100,
+      "require_semicolons": true
+    }
+  },
+  "integrations": {
+    "github": {
+      "enabled": false,
+      "token": "",
+      "auto_comment": false
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_url": "",
+      "notify_on_errors": true
+    }
+  },
+  "reporting": {
+    "include_code_snippets": true,
+    "group_by_category": true,
+    "include_suggestions": true,
+    "generate_summary": true
+  }
+}

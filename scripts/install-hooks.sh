@@ -19,6 +19,10 @@
 #
 # AUTHOR: Orchestration Team
 # VERSION: 2.1.0
+#
+# NOTE: When orchestration files are updated, run this script to ensure
+# all hooks are properly installed. See docs/orchestration_hook_management.md
+# for complete update procedures.
 
 # Source common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -37,8 +41,7 @@ REQUIRED_HOOKS=(
 
 # Parse command line arguments
 parse_install_args() {
-    FORCE=false
-    VERBOSE=false
+    HELP_REQUESTED=false
 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -54,7 +57,8 @@ parse_install_args() {
             --help|-h)
                 echo "Usage: $0 [--force] [--verbose]"
                 echo "Install Git hooks from orchestration-tools branch"
-                exit 0
+                HELP_REQUESTED=true
+                return 0 # Return from parse_install_args
                 ;;
             *)
                 log_error "Unknown option: $1"
@@ -124,6 +128,10 @@ main() {
     CURRENT_LOG_LEVEL=${LOG_LEVEL}
 
     parse_install_args "$@"
+
+    if $HELP_REQUESTED; then
+        return 0
+    fi
 
     log_info "Installing Git hooks from remote $ORCHESTRATION_BRANCH branch..."
 
