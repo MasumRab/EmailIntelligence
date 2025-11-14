@@ -442,6 +442,18 @@ _This guide ensures Claude Code has immediate access to Task Master's essential 
 - **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
 - **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
 
+### Developer Workflow Guides
+To prevent common errors and ensure adherence to repository workflows, use the built-in guides.
+
+- **General Development Guide**: Helps you decide where and how to make changes.
+  ```bash
+  python launch.py guide-dev
+  ```
+- **PR Resolution Guide**: Guides you through the correct process for merging a branch.
+  ```bash
+  python launch.py guide-pr
+  ```
+
 ### TypeScript/React Frontend
 - **Build**: `npm run build` (from client/)
 - **Lint**: `npm run lint` (from client/)
@@ -493,6 +505,11 @@ _This guide ensures Claude Code has immediate access to Task Master's essential 
 - **Backend**: Python with FastAPI for API endpoints and Gradio for UI
 - **AI Engine**: Python-based NLP models for sentiment and topic analysis
 - **Database**: SQLite for local storage and caching, JSON files for main application data
+
+### Code Rot and Import Errors
+If you are experiencing a cascade of `ImportError` or `AttributeError` issues, particularly in the `setup/` directory, please consult the technical debt tracker for a detailed resolution guide.
+
+- **[Technical Debt & Anomaly Tracker](docs/technical_debt_tracker.md)**
 
 ### Port Binding Errors (e.g., [Errno 10048])
 If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.

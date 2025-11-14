@@ -151,3 +151,4 @@ git add setup/ && git commit -m "test: experimental setup"
 - **Independent Work**: See [non-orchestration-workflow.md](./non-orchestration-workflow.md)
 - **System Architecture**: See [orchestration-workflow.md](./orchestration-workflow.md)
 - **Quick Reference**: See [orchestration-quick-reference.md](./orchestration-quick-reference.md)
+- **Dependency Management & Troubleshooting**: See [dependency_management_guide.md](./troubleshooting/dependency_management_guide.md)

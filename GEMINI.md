@@ -325,6 +325,10 @@ You MUST read the overview resource to understand the complete workflow. The inf
 - Python 3.11+ + GitPython, (potentially a diffing library) (001-rebase-analysis)
 - Git repository (001-rebase-analysis)
 - Git repository (history) (001-rebase-analysis)
+- Python 3.12+ + GitPython, (potentially a diffing library for detailed content comparison), LLM integration (e.g., via API for narrative synthesis). (003-unified-git-analysis)
+- N/A (in-memory processing for reports) (003-unified-git-analysis)
+- Python 3.12+ (Assumed based on project context) + GitPython (for Git repository interaction), potentially a static analysis library (e.g., `ast` module, `pyright`, `shellcheck`) for parsing Python and shell scripts, and a dependency parsing library (e.g., `pip-tools`, `poetry`) for dependency manifest files. (001-toolset-additive-analysis)
+- N/A (in-memory processing for analysis and report generation, with file output for reports). (001-toolset-additive-analysis)
 
 ## Recent Changes
 - 001-rebase-analysis: Added Python 3.11+ + GitPython, (potentially a diffing library)

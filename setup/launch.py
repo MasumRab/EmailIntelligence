@@ -7,9 +7,8 @@ from setup.project_config import get_project_config
 
 # Import from setup modules
 from setup.environment import (
-    check_python_version,
-    print_system_info,
     prepare_environment,
+    handle_setup,
 )
 from setup.validation import (
     validate_environment,
@@ -17,13 +16,14 @@ from setup.validation import (
     validate_host,
     check_critical_files,
     validate_orchestration_environment,
+    check_python_version,
 )
-from setup.container import get_container
-from setup.services import initialize_all_services, start_services, process_manager
+from setup.utils import print_system_info
+from setup.container import get_container, initialize_all_services
+from setup.utils import process_manager
+# TODO: The function 'start_services' appears to be missing from the codebase.
+# from setup.services import start_services
 from setup.commands import COMMAND_PATTERN_AVAILABLE, get_command_factory
-from setup.setup_environment_system import (
-    handle_setup,
-)  # Assuming this is the source for handle_setup
 
 # Try to import dotenv related variables and functions
 try:
@@ -161,9 +161,6 @@ def _add_legacy_args(parser):
     parser.add_argument(
         "--system-info", action="store_true", help="Print system information then exit."
     )
-    parser.add_argument(
-        "--env-file", type=str, help="Specify environment file to load."
-    )
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
     parser.add_argument(
         "--listen", action="store_true", help="Make the server listen on network."
@@ -205,6 +202,19 @@ def main():
     # Test command
     test_parser = subparsers.add_parser("test", help="Run tests")
     _add_common_args(test_parser)
+
+    # Guide-dev command
+    guide_dev_parser = subparsers.add_parser(
+        "guide-dev", help="Interactive guide for daily development tasks (e.g., choosing a branch)."
+    )
+    _add_common_args(guide_dev_parser)
+
+    # Guide-pr command
+    guide_pr_parser = subparsers.add_parser(
+        "guide-pr", help="Interactive guide for merging branches (e.g., choosing a merge strategy)."
+    )
+    _add_common_args(guide_pr_parser)
+
     test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
     test_parser.add_argument(
         "--integration", action="store_true", help="Run integration tests"
@@ -348,6 +358,8 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Validate environment if not skipping preparation
+    # This includes checks for Python version, merge conflicts, required components,
+    # and NLTK compatibility.
     if not args.skip_prepare and not validate_environment():
         return 1
 
@@ -413,7 +425,8 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Service startup logic
-    start_services(args)
+    # TODO: Restore this call once the 'start_services' function is found/restored.
+    # start_services(args)
 
     logger.info("All services started. Press Ctrl+C to shut down.")
     try:

@@ -8,61 +8,77 @@ The implementation will follow a logical progression, starting with foundational
 
 ## Phase 1: Setup (Consolidated)
 
-- [x] T001 Create project structure in `src/` with `models/`, `services/`, `cli/`, `lib/` directories, and `tests/` with `unit/`, `integration/`, `contract/` subdirectories.
-- [x] T002 Create a `requirements.txt` file and add `GitPython` and `pytest`.
-- [x] T003 Create a virtual environment and install dependencies from `requirements.txt`.
+- [ ] T001 Create project structure in `src/` with `models/`, `services/`, `cli/`, `lib/` directories, and `tests/` with `unit/`, `integration/`, `contract/` subdirectories.
+- [ ] T002 Create a `requirements.txt` file and add `GitPython` and `pytest`.
+- [ ] T003 Create a virtual environment and install dependencies from `requirements.txt`.
 
 ## Phase 2: Foundational (Consolidated)
 
-- [x] T004 Implement a robust Git repository wrapper in `src/lib/git_wrapper.py` to handle repository initialization, commit iteration, and reflog access.
+- [ ] T004 Implement a robust Git repository wrapper in `src/lib/git_wrapper.py` to handle repository initialization, commit iteration, and reflog access.
+- [ ] T005 [P] Write unit tests for the `git_wrapper` in `tests/unit/test_git_wrapper.py`.
 
-## Phase 3: Testing (TDD)
+## Phase 3: User Story 4 - Unified Tool Access (Priority: P1)
 
-**Goal**: Write a comprehensive test suite before implementation.
-**Independent Test Criteria**: All tests should fail initially and pass only after their corresponding features are implemented.
+**Goal**: Ensure the tool is easy to adopt and integrate into any developer's workflow.
+**Independent Test Criteria**: The tool is installed and the `git-verifier` command is available and executes successfully from any branch.
 
-- [x] T005 [P] Write unit tests for the `git_wrapper` in `tests/unit/test_git_wrapper.py`.
-- [x] T006 [P] Write unit tests for the unified `analysis_service` in `tests/unit/test_analysis_service.py`, covering narrative synthesis, rebase detection, and verification logic.
-- [x] T007 [P] Write integration tests for the `git-verifier` CLI and its sub-commands (`analyze`, `detect-rebased`, `verify`) in `tests/integration/test_cli.py`.
-- [x] T008 [P] Define contract tests in `tests/contract/test_cli_contracts.py` to validate the CLI's behavior against `contracts/cli-contracts.md`.
+- [ ] T006 [US4] Implement the main CLI entry point for `git-verifier` in `src/cli/main.py`.
+- [ ] T007 [P] [US4] Define contract tests in `tests/contract/test_cli_contracts.py` to validate the CLI's behavior against `contracts/cli-contracts.md`.
+- [ ] T008 [P] [US4] Write integration tests for the `git-verifier` CLI and its sub-commands in `tests/integration/test_cli.py`.
 
-## Phase 4: Core Implementation (US1, US4)
+## Phase 4: User Story 1 - Generate Action Narrative (Priority: P1)
 
-**Goal**: Implement the core analysis engine and the unified CLI tool.
-**Independent Test Criteria**: The `git-verifier analyze` command should generate a synthesized narrative for a given commit range.
+**Goal**: Analyze any branch or commit range to generate a clear, synthesized narrative of the actions taken.
+**Independent Test Criteria**: The `git-verifier analyze` command generates an accurate and descriptive synthesized narrative for a given commit range.
 
-- [x] T009 [US1] Implement the data models (`ActionNarrative`, `IntentReport`, `VerificationResult`) in `src/models/unified_analysis.py`.
-- [x] T010 [US1] Implement the core narrative synthesis logic within a new `src/services/analysis_service.py`.
-- [x] T011 [US4] Implement the main CLI entry point for `git-verifier` and the `analyze` sub-command in `src/cli/main.py`.
+- [ ] T009 [US1] Implement the data models (`ActionNarrative`, `IntentReport`, `VerificationResult`) in `src/models/unified_analysis.py`.
+- [ ] T010 [US1] Implement the core narrative synthesis logic within `src/services/analysis_service.py`.
+- [ ] T011 [US1] Implement the `analyze` sub-command in `src/cli/main.py`.
+- [ ] T012 [P] [US1] Write unit tests for the unified `analysis_service` covering narrative synthesis logic in `tests/unit/test_analysis_service.py`.
 
-## Phase 5: Rebase Detection (US2)
+## Phase 5: User Story 2 - Identify Rebased Branches & Generate Intent Report (Priority: P2)
 
-**Goal**: Add the capability to detect rebased branches.
-**Independent Test Criteria**: The `git-verifier detect-rebased` command should correctly identify branches that have been rebased.
+**Goal**: Automatically identify rebased branches and generate a pre-merge "Intent Report" for them.
+**Independent Test Criteria**: The `git-verifier detect-rebased` command correctly identifies rebased branches and the `analyze --report` command generates a comprehensive Intent Report.
 
-- [x] T012 [US2] Implement the rebase detection logic in `src/services/analysis_service.py`, using the reflog access provided by the `git_wrapper`.
-- [x] T013 [US2] Implement the `detect-rebased` sub-command in `src/cli/main.py`.
+- [ ] T013 [US2] Implement the rebase detection logic in `src/services/analysis_service.py`, using the reflog access provided by the `git_wrapper`.
+- [ ] T014 [US2] Implement the `detect-rebased` sub-command in `src/cli/main.py`.
+- [ ] T015 [P] [US2] Write unit tests for the unified `analysis_service` covering rebase detection logic in `tests/unit/test_analysis_service.py`.
 
-## Phase 6: Verification (US3)
+## Phase 6: User Story 3 - Verify Post-Merge Integrity (Priority: P2)
 
-**Goal**: Implement the post-merge verification functionality.
-**Independent Test Criteria**: The `git-verifier verify` command should correctly compare a merged branch against a pre-generated Intent Report.
+**Goal**: Compare the final merged state against the pre-merge "Intent Report" to ensure no changes were lost or altered.
+**Independent Test Criteria**: The `git-verifier verify` command correctly compares a merged branch against a pre-generated Intent Report and highlights discrepancies.
 
-- [x] T014 [US3] Implement the verification logic in `src/services/analysis_service.py` to compare an `IntentReport` with the state of a merged branch.
-- [x] T015 [US3] Implement the `verify` sub-command in `src/cli/main.py`.
+- [ ] T016 [US3] Implement the verification logic in `src/services/analysis_service.py` to compare an `IntentReport` with the state of a merged branch.
+- [ ] T017 [US3] Implement the `verify` sub-command in `src/cli/main.py`.
+- [ ] T018 [P] [US3] Write unit tests for the unified `analysis_service` covering verification logic in `tests/unit/test_analysis_service.py`.
 
-## Final Phase: Polish & Cross-Cutting Concerns (Consolidated)
+## Final Phase: Polish & Cross-Cutting Concerns
 
-- [x] T016 [P] Implement robust error handling and user-friendly messages across all `git-verifier` sub-commands in `src/cli/main.py`.
-- [x] T017 [P] Add user-friendly progress indicators for long-running operations like analysis and verification.
-- [x] T018 [P] Refine all output formats (`text`, `json`, `md`) for clarity and correctness.
+- [ ] T019 [P] Implement robust error handling and user-friendly messages across all `git-verifier` sub-commands in `src/cli/main.py`.
+- [ ] T020 [P] Add user-friendly progress indicators for long-running operations like analysis and verification.
+- [ ] T021 [P] Refine all output formats (`text`, `json`, `md`) for clarity and correctness.
+- [ ] T022 [P] Implement and configure code coverage reporting to ensure minimum 90% overall coverage and 100% for critical paths.
+- [ ] T023 [P] Implement and verify secure coding practices, including input validation, secure data handling, and vulnerability prevention.
+- [ ] T024 [P] Integrate automated security scanning into the CI/CD pipeline for this feature.
+- [ ] T025 [P] Integrate automated performance validation into the CI/CD pipeline for this feature.
+- [ ] T026 [P] Implement anonymization logic for secrets and PII before sending data to external LLMs.
+- [ ] T027 [P] Implement file input/output for IntentReport in `analyze` and `verify` commands.
 
 ## Dependencies
 
-- All implementation phases (**4, 5, 6**) depend on **Phase 2 (Foundational)** and **Phase 3 (Testing)**.
-- **Phase 6 (Verification)** depends on the `IntentReport` generated in **Phase 4 (Core Implementation)**.
+*   Phase 2 (Foundational) must be completed before any User Story Phase.
+*   Phase 3 (US4) is foundational for all other CLI commands.
+*   Phase 4 (US1) is foundational for IntentReport generation, which is used by US2 and US3.
+*   Phase 5 (US2) depends on Phase 4.
+*   Phase 6 (US3) depends on Phase 4.
 
 ## Parallel Execution Examples
 
-- Within **Phase 3**, all testing tasks (T005-T008) can be performed in parallel.
-- In the **Final Phase**, all polishing tasks (T016-T018) can be done in parallel.
+*   Within Phase 2, T004 and T005 can be done in parallel.
+*   Within Phase 3, T007 and T008 can be done in parallel.
+*   Within Phase 4, T010 and T012 can be done in parallel.
+*   Within Phase 5, T013 and T015 can be done in parallel.
+*   Within Phase 6, T016 and T018 can be done in parallel.
+*   Within the Final Phase, T019-T027 can be done in parallel.

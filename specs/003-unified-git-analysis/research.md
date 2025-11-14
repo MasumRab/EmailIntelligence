@@ -1,51 +1,20 @@
-# Research: Unified Git Analysis and Verification
+# Research for Unified Git Analysis and Verification
 
-**Feature**: `003-unified-git-analysis`
-**Date**: 2025-11-11
+## Diffing Library Selection
 
-## Decision: Use GitPython for Git Repository Interaction
+### Decision: GitPython's built-in diffing capabilities with potential for external library integration.
 
-**Rationale**: This decision is carried over from the previous features. GitPython remains the best choice for its robust, object-oriented API and reliance on the core Git engine.
+### Rationale:
+The `plan.md` mentions "potentially a diffing library for detailed content comparison" and "A diff parsing library will extract significant code changes." While GitPython provides basic diffing, a more robust solution for semantic code change prioritization and intent inference might require a specialized library.
 
-**Alternatives considered**: See `specs/001-history-analysis/research.md`.
+For initial implementation, we will leverage GitPython's existing diffing capabilities (e.g., `git.Commit.diff()`) to extract raw diff content. This minimizes initial external dependencies.
 
-## Research Area: Detecting Rebased Branches
+However, for advanced "Code Change Prioritization" (as described in FR-001 and detailed in the `analysis_service.py` TODO), a more sophisticated diff parsing library will be necessary. This will be a subject of further research during implementation of T010 (core narrative synthesis logic) and the `DiffParser` methods.
 
-**Requirement**: The tool must be able to identify branches that have been rebased (FR-002). The specification assumes this can be done by accessing the repository's reflog.
+### Alternatives considered:
+*   **Tree-sitter**: A parser generator tool and an incremental parsing library. Offers language-agnostic AST parsing, which would be ideal for semantic diffing. Requires integration and potentially language-specific grammars.
+*   **Pydiff**: A Python library for diffing. Might offer more granular control than GitPython's raw diff output.
+*   **Custom parsing**: Implementing a custom diff parser from scratch. This is high effort and prone to errors.
 
-**Investigation**:
-The `git reflog` command tracks the history of where heads of branches and other references have been. When a rebase occurs, the reflog will show the old and new HEADs of the branch. A typical rebase entry looks like `HEAD@{1}: rebase (finish): returning to refs/heads/my-feature-branch`.
-
-**Method using GitPython**:
-GitPython does not have a high-level API for directly parsing complex reflog semantics like "rebase finished". However, it provides access to the raw reflog entries for any given reference.
-
-1.  **Accessing the Reflog**: The reflog for a specific head (like a branch) can be accessed via `repo.head.ref.log()`. Each entry in the log is a `RefLogEntry` object.
-
-    ```python
-    from git import Repo
-    repo = Repo('.')
-    reflog = repo.head.ref.log()
-    for entry in reflog:
-        print(entry.oldhexsha, entry.newhexsha, entry.message)
-    ```
-
-2.  **Identifying Rebase Operations**: The most reliable way to detect a rebase is to look for the characteristic `rebase:` prefix in the reflog entry message. We can iterate through the reflogs of all local branches and check their messages.
-
-    ```python
-    rebased_branches = set()
-    for branch in repo.branches:
-        try:
-            for entry in branch.log():
-                if 'rebase:' in entry.message:
-                    rebased_branches.add(branch.name)
-                    break # Move to the next branch
-        except Exception:
-            # Some refs may not have a log
-            continue
-    ```
-
-**Decision**: The rebase detection mechanism will be implemented by iterating through the reflogs of all local branches and searching for entries containing the string `"rebase:"`. This is a reliable heuristic for identifying branches that have undergone a rebase operation. This approach avoids parsing complex `git` command output and contains the logic within the Python application.
-
-**Risks**:
-- This method relies on the reflog being available and not having been pruned. By default, reflog entries expire after 90 days. This is an acceptable constraint for the intended use case.
-- It will only detect rebases on local branches that have a reflog. It cannot detect if a branch was rebased on a different machine and then force-pushed.
+### Next Steps:
+During the implementation of the `DiffParser` in `src/lib/`, a dedicated research spike will be conducted to evaluate and select the most suitable diffing library for semantic code change analysis, considering performance, language support, and ease of integration.

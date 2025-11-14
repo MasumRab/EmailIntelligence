@@ -21,6 +21,8 @@ from typing import Dict, List, Any
 import re
 
 
+from scripts.file_finder import find_files_with_wildcard
+
 class ArchitecturalRuleEngine:
     """
     Dynamic rule engine for enforcing architectural constraints.
@@ -54,8 +56,8 @@ class ArchitecturalRuleEngine:
             print(f"Error: Path {path} does not exist.")
             return False
 
-        # Find all Python files
-        python_files = list(path_obj.rglob("*.py"))
+        # Find all Python files using the new utility
+        python_files = find_files_with_wildcard("**/*.py", root_dir=path_obj)
 
         print(f"Analyzing {len(python_files)} Python files...")
 
