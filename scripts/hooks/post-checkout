@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Post-checkout hook to automatically set up environment and sync orchestration files
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ "$BRANCH" != "orchestration-tools" ]]; then
+# Function to safely checkout files from orchestration-tools branch
+checkout_from_orchestration() {
+local file_path="$1"
+if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
+        # Check if file differs before checkout
+    if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
+            echo "Updating $file_path from orchestration-tools"
+                git checkout --quiet orchestration-tools -- "$file_path"
+            fi
+        else
+            echo "Info: $file_path not available in orchestration-tools branch (expected for cleaned branch)"
+        fi
+    }
+
+    # Update setup directory
+    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
+        echo "Synchronizing setup directory from orchestration-tools"
+        git checkout orchestration-tools -- setup/ --quiet
+    fi
+
+    # Update deployment directory
+    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
+        echo "Synchronizing deployment directory from orchestration-tools"
+        git checkout orchestration-tools -- deployment/ --quiet
+    fi
+
+    # Update orchestration scripts
+    checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
+    checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
+    checkout_from_orchestration "scripts/cleanup_orchestration.sh"
+
+    # Update orchestration documentation
+    checkout_from_orchestration "docs/orchestration-workflow.md"
+
+    # Update shared configuration files
+    checkout_from_orchestration ".flake8"
+    checkout_from_orchestration ".pylintrc"
+    checkout_from_orchestration ".gitignore"
+    checkout_from_orchestration ".gitattributes"
+    checkout_from_orchestration "launch.py"
+    checkout_from_orchestration "pyproject.toml"
+    checkout_from_orchestration "requirements.txt"
+    checkout_from_orchestration "requirements-dev.txt"
+
+    # Install/update Git hooks using the standardized install-hooks.sh script
+    # This ensures all branches use consistent hook versions from orchestration-tools
+    echo "Installing/updating Git hooks from orchestration-tools..."
+    if [[ -f "scripts/install-hooks.sh" ]]; then
+        bash scripts/install-hooks.sh
+        if [[ $? -eq 0 ]]; then
+            echo "Git hooks installed successfully."
+        else
+            echo "Warning: Git hook installation failed."
+        fi
+    else
+        echo "Warning: scripts/install-hooks.sh not found. Cannot install hooks."
+    fi
+
+    echo "Orchestration synchronization complete"
+fi
+
+# Branch-specific setup for main/scientific
+if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
+    echo "Checking out $BRANCH branch. Running environment setup..."
+    if command -v python &> /dev/null; then
+        python launch.py --setup --skip-prepare > /dev/null 2>&1 &
+        echo "Setup started in background. Check logs for status."
+    else
+        echo "Python not found, skipping setup."
+    fi
+
+    # Documentation sync for branch-specific content
+    echo "Syncing documentation for $BRANCH branch..."
+    if command -v python3 &> /dev/null; then
+        python3 scripts/docs_branch_versioning.py --cleanup --branch "$BRANCH"
+    fi
+fi
