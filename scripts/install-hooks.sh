@@ -41,7 +41,9 @@ REQUIRED_HOOKS=(
 
 # Parse command line arguments
 parse_install_args() {
-    HELP_REQUESTED=false
+    FORCE=false
+    VERBOSE=false
+    HELP_REQUESTED=true
 
     while [[ $# -gt 0 ]]; do
         case $1 in

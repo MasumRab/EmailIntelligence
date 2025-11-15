@@ -1,5 +1,4 @@
 ---
-
 description: "Task list template for feature implementation"
 ---
 
@@ -8,9 +7,19 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Constitution Compliance**: All tasks must adhere to Orchestration Tools Verification and Review Constitution principles including verification-first development, goal-task consistency, role-based access control with multiple permission levels (appropriate authentication for deployment context), observability requirements, multi-branch validation strategy, context contamination prevention, and performance efficiency measures.
+**Tests**: Test-Driven Development (TDD) is MANDATORY for all new feature development and bug fixes. Comprehensive testing standards, including unit, integration, and end-to-end tests (using pytest), MUST be applied. Tests MUST be written and approved before implementation, following the Red-Green-Refactor cycle, and are critical for validating smart agent outputs. All tests must pass in CI/CD pipeline before code can be merged. Test naming must be descriptive and clearly indicate what behavior is being tested and expected outcomes.
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Orchestration-Specific Constitution Compliance Tasks**: Each feature implementation related to orchestration tools must include tasks to satisfy the following constitution principles:
+- **Verification-First Development**: Include comprehensive verification tasks that must pass before merge to any target branch
+- **Goal-Task Consistency**: Implement mechanisms to verify alignment between project goals and implementation tasks
+- **Role-Based Access Control**: Implement multiple permission levels (Read, Run, Review, Admin) with appropriate authentication for the deployment context
+- **Context-Aware Verification**: Include verification of environment variables, dependency versions, configuration files, infrastructure state, cross-branch compatibility, and context contamination prevention
+- **Token Optimization**: Implement monitoring and optimization of token usage to minimize computational overhead
+- **Security Requirements**: Implement appropriate authentication method for deployment context with secure handling of sensitive data
+- **Observability**: Log all verification results with structured logging, correlation IDs, and real-time monitoring
+- **Performance & Efficiency**: Optimize with parallel processing and caching of expensive operations
+- **Reliability**: Maintain 99.9% uptime with automatic retry mechanisms and graceful failure handling
+- **Extensibility**: Implement plugin architecture for new test scenarios through configuration
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -27,39 +36,35 @@ description: "Task list template for feature implementation"
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
 - Paths shown below assume single project - adjust based on plan.md structure
 
-## Constitution Compliance Tasks
-
-Each feature implementation must include tasks to satisfy the following constitution principles:
-- **Verification-First Development**: Include comprehensive verification tasks that must pass before merge to any target branch
-- **Goal-Task Consistency**: Implement mechanisms to verify alignment between project goals and implementation tasks
-- **Role-Based Access Control**: Implement multiple permission levels (Read, Run, Review, Admin) with appropriate authentication for the deployment context
-- **Context-Aware Verification**: Include verification of environment variables, dependency versions, configuration files, infrastructure state, cross-branch compatibility, and context contamination prevention
-- **Token Optimization**: Implement monitoring and optimization of token usage to minimize computational overhead
-- **Security Requirements**: Implement appropriate authentication method for deployment context with secure handling of sensitive data
-- **Observability**: Log all verification results with structured logging, correlation IDs, and real-time monitoring
-- **Performance & Efficiency**: Optimize with parallel processing and caching of expensive operations
-- **Reliability**: Maintain 99.9% uptime with automatic retry mechanisms and graceful failure handling
-- **Extensibility**: Implement plugin architecture for new test scenarios through configuration
-
-<!-- 
+<!--
   ============================================================================
   IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
-  
+
   The /speckit.tasks command MUST replace these with actual tasks based on:
-  - User stories from spec.md (with their priorities P1, P2, P3...)
+  - User stories from spec.md (with their priorities P1, P2,
+ P3...)
   - Feature requirements from plan.md
   - Entities from data-model.md
   - Endpoints from contracts/
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> 001-rebase-analysis-specs
   Tasks MUST be organized by user story so each story can be:
   - Implemented independently
   - Tested independently
   - Delivered as an MVP increment
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> 001-rebase-analysis-specs
   DO NOT keep these sample tasks in the generated tasks.md file.
   ============================================================================
 -->
 
+<<<<<<< HEAD
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Project initialization and basic structure
@@ -90,11 +95,49 @@ Examples of foundational tasks (adjust based on your project):
 ---
 
 ## Phase 3: User Story 1 - [Title] (Priority: P1) 🎯 MVP
+=======
+## Phase 0: Orchestration & Setup (Critical Infrastructure)
+
+**Purpose**: Establish the foundational environment, branching adherence, and agent integration points, strictly following Principle IX (Branching and Orchestration Strategy).
+
+- [ ] T001 Verify adherence to Branching Strategy (Principle IX) for feature branch, including File Ownership Matrix.
+- [ ] T002 Configure Git hooks for automated synchronization per File Ownership Matrix (Principle IX).
+- [ ] T003 Setup Python development environment and dependencies (Principle I, VII).
+- [ ] T004 Configure static analysis tools (Flake8, Pylint) and code formatting (PEP 8) (Principle I).
+- [ ] T005 Initialize pytest for TDD and testing standards (Principle II).
+- [ ] T006 Establish basic CI/CD pipeline integration for automated checks (Principle VIII).
+- [ ] T007 Define initial smart agent configuration/context for experimentation (Extension A).
+
+---
+
+## Phase 1: Foundational (Blocking Prerequisites)
+
+**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented, adhering to Principle V (Critical Thinking and Simplicity).
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+Examples of foundational tasks (adjust based on your project):
+
+- [ ] T008 Setup database schema and migrations framework (if applicable).
+- [ ] T009 Implement authentication/authorization framework (Principle VI).
+- [ ] T010 Setup API routing and middleware structure (Principle VII).
+- [ ] T011 Create base models/entities that all stories depend on (Principle VII).
+- [ ] T012 Configure consistent error handling and logging infrastructure (Principle I).
+- [ ] T013 Setup environment configuration management.
+- [ ] T014 Implement performance monitoring hooks (Principle IV).
+
+**Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
+
+---
+
+## Phase 2: User Story 1 - [Title] (Priority: P1) 🎯 MVP
+>>>>>>> 001-rebase-analysis-specs
 
 **Goal**: [Brief description of what this story delivers]
 
 **Independent Test**: [How to verify this story works on its own]
 
+<<<<<<< HEAD
 ### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
@@ -116,11 +159,38 @@ Examples of foundational tasks (adjust based on your project):
 ---
 
 ## Phase 4: User Story 2 - [Title] (Priority: P2)
+=======
+### Tests for User Story 1 ⚠️
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T015 [P] [US1] Write unit tests for [module/function] in `tests/unit/test_[name].py` (Principle II).
+- [ ] T016 [P] [US1] Write integration tests for [component interaction] in `tests/integration/test_[name].py` (Principle II).
+- [ ] T017 [P] [US1] Write contract tests for [API endpoint] in `tests/contract/test_[name].py` (Principle II, VII).
+- [ ] T018 [P] [US1] Develop smart agent test cases for [agent functionality] (Extension A).
+
+### Implementation for User Story 1
+
+- [ ] T019 [P] [US1] Design and implement [Entity1] model in `src/models/[entity1].py` (Principle VII).
+- [ ] T020 [P] [US1] Design and implement [Service] in `src/services/[service].py` (Principle VII).
+- [ ] T021 [US1] Implement [API endpoint/feature] in `src/[location]/[file].py` (Principle VII).
+- [ ] T022 [US1] Add validation, error handling, and logging for user story operations (Principle I, II).
+- [ ] T023 [US1] Conduct security review for new components (Principle VI).
+- [ ] T024 [US1] Implement smart agent functionality for [specific task] (Extension A).
+- [ ] T025 [US1] Verify performance against benchmarks for [critical path] (Principle IV).
+
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently.
+
+---
+
+## Phase 3: User Story 2 - [Title] (Priority: P2)
+>>>>>>> 001-rebase-analysis-specs
 
 **Goal**: [Brief description of what this story delivers]
 
 **Independent Test**: [How to verify this story works on its own]
 
+<<<<<<< HEAD
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
 - [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
@@ -265,3 +335,38 @@ With multiple developers:
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+=======
+### Tests for User Story 2 ⚠️
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T026 [P] [US2] Write unit tests for [module/function] in `tests/unit/test_[name].py` (Principle II).
+- [ ] T027 [P] [US2] Write integration tests for [component interaction] in `tests/integration/test_[name].py` (Principle II).
+- [ ] T028 [P] [US2] Write contract tests for [API endpoint] in `tests/contract/test_[name].py` (Principle II, VII).
+- [ ] T029 [P] [US2] Develop smart agent test cases for [agent functionality] (Extension A).
+
+### Implementation for User Story 2
+
+- [ ] T030 [P] [US2] Design and implement [Entity] model in `src/models/[entity].py` (Principle VII).
+- [ ] T031 [P] [US2] Design and implement [Service] in `src/services/[service].py` (Principle VII).
+- [ ] T032 [US2] Implement [API endpoint/feature] in `src/[location]/[file].py` (Principle VII).
+- [ ] T033 [US2] Add validation, error handling, and logging for user story operations (Principle I, II).
+- [ ] T034 [US2] Conduct security review for new components (Principle VI).
+- [ ] T035 [US2] Implement smart agent functionality for [specific task] (Extension A).
+- [ ] T036 [US2] Verify performance against benchmarks for [critical path] (Principle IV).
+
+**Checkpoint**: At this point, User Story 2 should be fully functional and testable independently.
+
+---
+
+## Phase X: General Tasks (Non-Story Specific)
+
+**Purpose**: Tasks that are not directly tied to a specific user story but are necessary for the overall project.
+
+- [ ] TXXX Update project documentation (README, quickstart, etc.) (Principle I).
+- [ ] TXXX Refine CI/CD pipeline for new features (Principle VIII).
+- [ ] TXXX Conduct overall security audit (Principle VI).
+- [ ] TXXX Optimize overall performance (Principle IV).
+- [ ] TXXX Review and update branching strategy documentation (Principle IX).
+- [ ] TXXX Conduct final review of smart agent integration and compliance (Extension A).
+>>>>>>> 001-rebase-analysis-specs

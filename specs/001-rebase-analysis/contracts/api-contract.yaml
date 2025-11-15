@@ -1,0 +1,197 @@
+# API Contract: Verification Service                                   
+                                                                       
+## Base URL                                                            
+`https://verification-api.example.com/api/v1`                          
+                                                                       
+## Authentication                                                      
+All endpoints require API key authentication in the Authorization heade
+r:                                                                     
+`Authorization: Bearer YOUR_API_KEY`                                   
+                                                                       
+## Endpoints                                                           
+                                                                       
+### POST /verify                                                       
+Initiate a verification process for a branch against a target branch.  
+                                                                       
+**Request Body:**                                                      
+```json                                                                
+{                                                                      
+  "source_branch": "string, required - Name of the branch with changes"
+,                                                                      
+  "target_branch": "string, required - Name of the target branch for me
+rge validation",                                                       
+  "profile": "string, optional - Name of the verification profile to us
+e (defaults to target branch type)",                                   
+  "context": {                                                         
+    "environment": "object, optional - Environment variables and settin
+gs",                                                                   
+    "config_files": "array, optional - List of configuration files to v
+alidate"                                                               
+  }                                                                    
+}                                                                      
+```                                                                    
+                                                                       
+**Response (201 Created):**                                            
+```json                                                                
+{                                                                      
+  "verification_id": "string - Unique identifier for the verification p
+rocess",                                                               
+  "status": "string - Current status (PENDING, RUNNING, COMPLETED)",   
+  "created_at": "string - ISO 8601 timestamp",                         
+  "estimated_completion": "string - ISO 8601 timestamp estimate",      
+  "source_branch": "string - Source branch name",                      
+  "target_branch": "string - Target branch name",                      
+  "profile": "string - Verification profile used"                      
+}                                                                      
+```                                                                    
+                                                                       
+**Response (400 Bad Request):**                                        
+```json                                                                
+{                                                                      
+  "error": "string - Error message",                                   
+  "details": "object - Error details"                                  
+}                                                                      
+```                                                                    
+                                                                       
+### GET /verify/{verification_id}                                      
+Get the status and results of a specific verification.                 
+                                                                       
+**Path Parameters:**                                                   
+- `verification_id`: The unique identifier of the verification         
+                                                                       
+**Response (200 OK):**                                                 
+```json                                                                
+{                                                                      
+  "verification_id": "string",                                         
+  "status": "string (PENDING, RUNNING, PASS, FAIL, BYPASS, APPROVED)", 
+  "source_branch": "string",                                           
+  "target_branch": "string",                                           
+  "profile": "string",                                                 
+  "initiated_by": "string - User who initiated verification",          
+  "approved_by": "string - User who approved (if applicable)",         
+  "created_at": "string - ISO 8601 timestamp",                         
+  "completed_at": "string - ISO 8601 timestamp (if completed)",        
+  "results": {                                                         
+    "overall_status": "string",                                        
+    "checks": [                                                        
+      {                                                                
+        "name": "string - Name of the check",                          
+        "status": "string (PASS, FAIL, SKIPPED)",                      
+        "details": "string - Additional details about the check result"
+,                                                                      
+        "executed_at": "string - ISO 8601 timestamp"                   
+      }                                                                
+    ],                                                                 
+    "summary": "string - Overall summary of verification results",     
+    "report_url": "string - URL to detailed report"                    
+  },                                                                   
+  "review_status": "string (PENDING, APPROVED, REJECTED)",             
+  "review_comments": "string - Comments from reviewer"                 
+}                                                                      
+```                                                                    
+                                                                       
+### POST /verify/{verification_id}/approve                             
+Approve a verification result (requires REVIEW or ADMIN role).         
+                                                                       
+**Request Body:**                                                      
+```json                                                                
+{                                                                      
+  "comment": "string, optional - Reviewer's comment"                   
+}                                                                      
+```                                                                    
+                                                                       
+**Response (200 OK):**                                                 
+```json                                                                
+{                                                                      
+  "verification_id": "string",                                         
+  "status": "string",                                                  
+  "approved_by": "string - User who approved",                         
+  "approved_at": "string - ISO 8601 timestamp",                        
+  "comment": "string - Approval comment"                               
+}                                                                      
+```                                                                    
+                                                                       
+### POST /verify/{verification_id}/reject                              
+Reject a verification result (requires REVIEW or ADMIN role).          
+                                                                       
+**Request Body:**                                                      
+```json                                                                
+{                                                                      
+  "comment": "string, required - Reason for rejection"                 
+}                                                                      
+```                                                                    
+                                                                       
+**Response (200 OK):**                                                 
+```json                                                                
+{                                                                      
+  "verification_id": "string",                                         
+  "status": "string (REJECTED)",                                       
+  "rejected_by": "string - User who rejected",                         
+  "rejected_at": "string - ISO 8601 timestamp",                        
+  "comment": "string - Rejection comment"                              
+}                                                                      
+```                                                                    
+                                                                       
+### GET /user/profile                                                  
+Get current user profile and permissions.                              
+                                                                       
+**Response (200 OK):**                                                 
+```json                                                                
+{                                                                      
+  "user_id": "string",                                                 
+  "username": "string",                                                
+  "role": "string (READ, RUN, REVIEW, ADMIN)",                         
+  "permissions": [                                                     
+    "string - List of specific permissions"                            
+  ],                                                                   
+  "api_key_last_four": "string - Last four characters of API key for id
+entification"                                                          
+}                                                                      
+```                                                                    
+                                                                       
+### GET /branches                                                      
+Get list of branches with verification status.                         
+                                                                       
+**Response (200 OK):**                                                 
+```json                                                                
+{                                                                      
+  "branches": [                                                        
+    {                                                                  
+      "name": "string",                                                
+      "type": "string (feature, scientific, main, release)",           
+      "default_target": "string - Default merge target",               
+      "last_verification": {                                           
+        "verification_id": "string",                                   
+        "status": "string",                                            
+        "completed_at": "string - ISO 8601 timestamp"                  
+      }                                                                
+    }                                                                  
+  ]                                                                    
+}                                                                      
+```                                                                    
+                                                                       
+## Error Responses                                                     
+All error responses follow the same structure:                         
+                                                                       
+**400, 401, 403, 404, 500:**                                           
+```json                                                                
+{                                                                      
+  "error": "string - Human-readable error message",                    
+  "error_code": "string - Machine-readable error code",                
+  "timestamp": "string - ISO 8601 timestamp",                          
+  "request_id": "string - Unique identifier for the request"           
+}                                                                      
+```                                                                    
+                                                                       
+## Rate Limits                                                         
+- Authenticated requests: 100 requests per minute per API key          
+- Unauthenticated requests: 10 requests per minute per IP              
+                                                                       
+## Common Error Codes                                                  
+- `INVALID_REQUEST`: Request data doesn't match the expected schema    
+- `AUTHENTICATION_FAILED`: Invalid or expired API key                  
+- `INSUFFICIENT_PERMISSIONS`: User doesn't have required role          
+- `VERIFICATION_NOT_FOUND`: Specified verification ID doesn't exist    
+- `VERIFICATION_LOCKED`: Verification already approved/rejected        
+- `BRANCH_NOT_FOUND`: Specified branch doesn't exist in the repository 
+- `INTERNAL_ERROR`: An unexpected error occurred on the server
