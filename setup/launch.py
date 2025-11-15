@@ -31,8 +31,6 @@ from setup.validation import (
 from setup.utils import print_system_info
 from setup.container import get_container, initialize_all_services
 from setup.utils import process_manager
-# TODO: The function 'start_services' appears to be missing from the codebase.
-# from setup.services import start_services
 from setup.commands import COMMAND_PATTERN_AVAILABLE, get_command_factory
 
 # Try to import dotenv related variables and functions
