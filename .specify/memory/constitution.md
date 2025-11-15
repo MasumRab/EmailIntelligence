@@ -110,8 +110,8 @@ The orchestration system consists of several key components that must be maintai
 
 ### File Ownership Matrix
 Key design decision: Files are strictly categorized into three types:
-- **Orchestration-only**: `scripts/`, `scripts/lib/`, `scripts/hooks/`, `scripts/install-hooks.sh`, `scripts/cleanup*.sh`, `scripts/sync_setup_worktrees.sh`, `scripts/reverse_sync_orchestration.sh`, `scripts/architectural_rule_engine.py`
-- **Orchestration-managed**: `setup/`, `deployment/`, `docs/orchestration*.md`, `docs/env_management.md`, `docs/git_workflow_plan.md`, `docs/guides/`, `docs/critical_files_check.md`, `pyproject.toml`, `requirements*.txt`, `uv.lock`, `.gitignore`, `.gitattributes`, `launch.py`
+- **Orchestration-only**: `scripts/`, `scripts/lib/`, `scripts/hooks/`
+- **Orchestration-managed**: `setup/`, `docs/orchestration-workflow.md`, `.env.example`, `.flake8`, `.pylintrc`, `.gitignore`, `.gitattributes`, `launch.py`, `pyproject.toml`, `requirements*.txt`, `scripts/install-hooks.sh`, `scripts/manage_orchestration_changes.sh`, `scripts/reverse_sync_orchestration.sh`, `scripts/cleanup_orchestration.sh`
 - **Branch-specific**: `tsconfig.json`, `package.json`, `tailwind.config.ts`, `vite.config.ts`, `drizzle.config.ts`, `components.json`, all application source code
 
 ## Architectural Guidelines (from HEAD)
