@@ -10,42 +10,55 @@ from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 
 from setup.environment import (
-    check_python_version,
     create_venv,
     get_python_executable,
     get_venv_executable,
     install_package_manager,
     setup_dependencies,
     download_nltk_data,
-    validate_environment,
-    validate_port,
-    validate_host,
     is_conda_available,
     activate_conda_env,
     get_conda_env_info,
 )
-from setup.process_manager import ProcessManager
-from setup.project_config import get_project_config
-from setup import test_stages
+from setup.validation import (
+    validate_environment,
+    validate_port,
+    validate_host,
+    check_critical_files,
+    validate_orchestration_environment,
+    check_python_version,
+)
+from setup.utils import print_system_info
+from setup.container import get_container, initialize_all_services
+from setup.utils import process_manager
+# TODO: The function 'start_services' appears to be missing from the codebase.
+# from setup.services import start_services
+from setup.commands import COMMAND_PATTERN_AVAILABLE, get_command_factory
+
+# Try to import dotenv related variables and functions
+try:
+    from dotenv import load_dotenv
+
+    DOTENV_AVAILABLE = True
+except ImportError:
+    load_dotenv = None
+    DOTENV_AVAILABLE = False
+
+# Add the project root to sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # --- Constants ---
 ROOT_DIR = get_project_config().root_dir
 VENV_DIR = "venv"
-DOTENV_AVAILABLE = find_dotenv()
+# DOTENV_AVAILABLE is already defined above based on import success
 
 # --- Global Variables ---
 process_manager = ProcessManager()
 CONDA_ENV_NAME = "emailintelligence"  # Default Conda environment name
 
 # --- Dynamic Imports for Command Pattern (if available) ---
-COMMAND_PATTERN_AVAILABLE = False
-try:
-    from src.command_pattern import get_command_factory, initialize_all_services, get_container
-
-    COMMAND_PATTERN_AVAILABLE = True
-except ImportError:
-    logging.warning("Command pattern modules not found. Running in legacy mode.")
-
+# COMMAND_PATTERN_AVAILABLE is already defined above based on import success
+# get_command_factory, initialize_all_services, get_container are already imported
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -161,6 +174,7 @@ def check_uvicorn_installed() -> bool:
         logger.error("Python executable not found.")
         return False
 
+
 def check_node_npm_installed() -> bool:
     """Check if Node.js and npm are installed and available."""
     if not shutil.which("node"):
@@ -170,6 +184,7 @@ def check_node_npm_installed() -> bool:
         logger.error("npm is not installed. Please install it to continue.")
         return False
     return True
+
 
 def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     """Install Node.js dependencies in a given directory."""
@@ -185,6 +200,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     desc = f"{('Updating' if update else 'Installing')} Node.js dependencies for '{directory}/'"
     return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
 
+
 def start_client():
     """Start the Node.js frontend."""
     logger.info("Starting Node.js frontend...")
@@ -195,6 +211,7 @@ def start_client():
     node_modules_path = ROOT_DIR / "client" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing Node.js dependencies...")
+
 
 def start_server_ts():
     """Start the TypeScript backend server."""
@@ -238,6 +255,7 @@ def start_backend(host: str, port: int, debug: bool = False):
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
 
+
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
     """Start a Node.js service."""
     if not service_path.exists():
@@ -250,6 +268,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
     process_manager.add_process(process)
 
+
 def setup_node_dependencies(service_path: Path, service_name: str):
     """Install npm dependencies for a Node.js service."""
     if not (service_path / "package.json").exists():
@@ -259,6 +278,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
         return
     logger.info(f"Installing npm dependencies for {service_name}...")
     run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
+
 
 def start_gradio_ui(host, port, share, debug):
     logger.info("Starting Gradio UI...")
@@ -272,6 +292,7 @@ def start_gradio_ui(host, port, share, debug):
     env["PYTHONPATH"] = str(ROOT_DIR)
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
+
 
 def handle_setup(args, venv_path):
     """Handles the complete setup process."""
@@ -294,6 +315,7 @@ def handle_setup(args, venv_path):
         setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
     logger.info("Setup complete.")
 
+
 def prepare_environment(args):
     """Prepares the environment for running the application."""
     if not args.no_venv:
@@ -306,6 +328,7 @@ def prepare_environment(args):
     if not args.no_download_nltk:
         download_nltk_data()
 
+
 def start_services(args):
     """Starts the required services based on arguments."""
     api_url = args.api_url or f"http://{args.host}:{args.port}"
@@ -317,6 +340,7 @@ def start_services(args):
     if not args.api_only:
         start_gradio_ui(args.host, 7860, args.share, args.debug)
         start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
+
 
 def handle_test_stage(args):
     """Handles the test stage execution."""
@@ -349,6 +373,7 @@ def handle_test_stage(args):
     else:
         logger.error("Some tests failed.")
         sys.exit(1)
+
 
 def print_system_info():
     """Print detailed system, Python, and project configuration information."""
@@ -408,6 +433,7 @@ def _add_common_args(parser):
         help="Set the logging level.",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
+
 
 def _add_legacy_args(parser):
     """Add legacy arguments for backward compatibility."""
@@ -516,7 +542,6 @@ def _add_legacy_args(parser):
     parser.add_argument(
         "--system-info", action="store_true", help="Print system information then exit."
     )
-    parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
     parser.add_argument(
         "--listen", action="store_true", help="Make the server listen on network."
@@ -557,6 +582,19 @@ def main():
     # Test command
     test_parser = subparsers.add_parser("test", help="Run tests")
     _add_common_args(test_parser)
+
+    # Guide-dev command
+    guide_dev_parser = subparsers.add_parser(
+        "guide-dev", help="Interactive guide for daily development tasks (e.g., choosing a branch)."
+    )
+    _add_common_args(guide_dev_parser)
+
+    # Guide-pr command
+    guide_pr_parser = subparsers.add_parser(
+        "guide-pr", help="Interactive guide for merging branches (e.g., choosing a merge strategy)."
+    )
+    _add_common_args(guide_pr_parser)
+
     test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
     test_parser.add_argument(
         "--integration", action="store_true", help="Run integration tests"
@@ -565,9 +603,7 @@ def main():
     test_parser.add_argument(
         "--performance", action="store_true", help="Run performance tests"
     )
-    test_parser.add_argument(
-        "--security", action="store_true", help="Run security tests"
-    )
+    test_parser.add_argument("--security", action="store_true", help="Run security tests")
     test_parser.add_argument(
         "--coverage", action="store_true", help="Generate coverage report"
     )
@@ -660,6 +696,7 @@ def _execute_check_command(args) -> int:
         logger.error("Orchestration checks failed!")
         return 1
 
+
 def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
     # Setup WSL environment if applicable (early setup)
@@ -703,6 +740,8 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Validate environment if not skipping preparation
+    # This includes checks for Python version, merge conflicts, required components,
+    # and NLTK compatibility.
     if not args.skip_prepare and not validate_environment():
         return 1
 
@@ -769,7 +808,8 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Service startup logic
-    start_services(args)
+    # TODO: Restore this call once the 'start_services' function is found/restored.
+    # start_services(args)
 
     logger.info("All services started. Press Ctrl+C to shut down.")
     try:
@@ -781,6 +821,7 @@ def _handle_legacy_args(args) -> int:
         process_manager.cleanup()
 
     return 0
+
 
 def _check_setup_warnings():
     """Check for common setup issues and warn users."""

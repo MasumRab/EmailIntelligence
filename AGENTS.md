@@ -1,141 +1,3 @@
-# EmailIntelligence Agent Guidelines
-
-## Build/Lint/Test Commands
-### Python Backend
-- **Test all**: `pytest`
-- **Test single file**: `pytest tests/test_file.py`
-- **Test single function**: `pytest tests/test_file.py::TestClass::test_function`
-- **Format**: `black .`
-- **Lint**: `flake8 .`
-- **Type check**: `mypy .`
-- **Code quality**: `pylint src modules`
-
-### Dependency Management
-- **uv**: `python launch.py --setup` - Uses uv for fast, reliable Python package installs
-- **Update deps**: `python launch.py --update-deps` - Updates all dependencies
-- **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
-- **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
-
-### TypeScript/React Frontend
-- **Build**: `npm run build` (from client/)
-- **Lint**: `npm run lint` (from client/)
-- **Dev server**: `npm run dev` (from client/)
-
-## Architecture & Codebase Structure
-
-### Services
-- **Python Backend (FastAPI)**: Core API at `backend/python_backend/` with AI engine, database, workflows
-- **React Frontend (Vite)**: User interface at `client/` with TypeScript, Tailwind CSS, Radix UI
-- **Node.js TypeScript Backend**: Secondary API routes at `server/` with Express, Drizzle ORM
-- **Gradio UI**: Interactive interface integrated with Python backend for scientific development
-
-### Key Modules
-- **Core Components**: `src/core/` - AI engine, database manager, workflow engines, security
-- **Modules**: `modules/` - Pluggable features (categories, AI engine, workflows)
-- **Backend Extensions**: `backend/` - Additional Python services, plugins, NLP components
-- **Shared Code**: `shared/` - Cross-service utilities and types
-
-### Databases & Storage
-- **SQLite**: Primary database (`.db` files in project root and `data/`)
-- **JSON Files**: Configuration and cached data in `data/` directory
-- **Configurable Data Directory**: Via `DATA_DIR` environment variable
-
-### APIs
-- **FastAPI**: Main REST API on port 8000 (`/api/*`)
-- **Express**: Secondary Node.js API routes
-- **Internal APIs**: Workflow execution, AI model management, performance monitoring
-
-## Code Style Guidelines
-### Python
-- **Line length**: 100 chars max, Black formatting, isort imports (stdlib → third-party → local)
-- **Naming**: snake_case functions/vars, CapWords classes, UPPER_CASE constants
-- **Types**: Type hints required for all parameters/returns
-- **Docstrings**: Google-style for public functions/classes
-- **Error handling**: Specific exceptions, meaningful messages, appropriate logging
-
-### TypeScript/React
-- **Strict mode**: Enabled (noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch)
-- **JSX**: react-jsx transform, **Imports**: @/ for client src, @shared/ for shared types
-- **Components**: Default export functions, PascalCase naming
-- **Styling**: Tailwind CSS utilities, component-specific styles as needed
-- **API**: Use api client from lib/api.ts for backend communication
-
-## Troubleshooting
-
-### Architecture Overview
-- **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, Vite build system
-- **Backend**: Python with FastAPI for API endpoints and Gradio for UI
-- **AI Engine**: Python-based NLP models for sentiment and topic analysis
-- **Database**: SQLite for local storage and caching, JSON files for main application data
-
-### Port Binding Errors (e.g., [Errno 10048])
-If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
-
-**Procedure to identify and fix:**
-
-1. **Identify the process using the port:**
-   ```bash
-   netstat -ano | findstr :PORT_NUMBER
-   ```
-   Replace `PORT_NUMBER` with the conflicting port (e.g., 8000 for backend, 7860 for Gradio).
-
-2. **Note the PID (Process ID) from the output.**
-
-3. **Kill the process:**
-   ```bash
-   taskkill /f /pid PID_NUMBER
-   ```
-   Replace `PID_NUMBER` with the PID from step 1.
-
-4. **Verify the port is free:**
-   ```bash
-   netstat -ano | findstr :PORT_NUMBER
-   ```
-   Should show no results.
-
-5. **Retry the launch:**
-   ```bash
-   python launch.py
-   ```
-
-**Alternative:** Use different ports by modifying the launch script or passing port arguments.
-
-**Prevention:** Always shut down services properly with Ctrl+C before restarting.
-
-
-## ⚠️ Critical Rules & Code Smells to Avoid
-- **Circular Dependencies**: Avoid circular imports (especially AIEngine ↔ DatabaseManager)
-- **Hard-coded Paths**: Never hard-code file paths or URLs
-- **Missing Type Hints**: Add type hints to all function parameters and return values
-- **Inconsistent Naming**: Follow established naming conventions strictly
-- **Security**: Never expose secrets/keys, never log sensitive data
-- **Global State**: Use dependency injection over global state
-- **Dependencies**: Check existing dependencies before adding new libraries
-
---- 
-
-## Claude Code Best Practices with Task Master
-
-### Context Management
-
-- Use `/clear` between different tasks to maintain focus
-- This CLAUDE.md file is automatically loaded for context
-- Use `task-master show <id>` to pull specific task context when needed
-
-### Iterative Implementation
-
-1. `task-master show <subtask-id>` - Understand requirements
-2. Explore codebase and plan implementation
-3. `task-master update-subtask --id=<id> --prompt="detailed plan"` - Log plan
-4. `task-master set-status --id=<id> --status=in-progress` - Start work
-5. Implement code following logged plan
-6. `task-master update-subtask --id=<id> --prompt="what worked/didn't work"` - Log progress
-7. `task-master set-status --id=<id> --status=done` - Complete task
-
-### Complex Workflows with Checklists
-
-For large migrations or multi-step processes:
-
 1. Create a markdown PRD file describing the new changes: `touch task-migration-checklist.md` (prds can be .txt or .md)
 2. Use Taskmaster to parse the new prd with `task-master parse-prd --append` (also available in MCP)
 3. Use Taskmaster to expand the newly generated tasks into subtasks. Consdier using `analyze-complexity` with the correct --to and --from IDs (new ids) to identify the ideal subtask amounts for each task. Then expand them.
@@ -248,6 +110,136 @@ _This guide ensures Claude Code has immediate access to Task Master's essential 
 
 ---
 
+## Build/Lint/Test Commands
+### Python Backend
+- **Test all**: `pytest`
+- **Test single file**: `pytest tests/test_file.py`
+- **Test single function**: `pytest tests/test_file.py::TestClass::test_function`
+- **Format**: `black .`
+- **Lint**: `flake8 .`
+- **Type check**: `mypy .`
+- **Code quality**: `pylint src modules`
+
+### Dependency Management
+- **uv**: `python launch.py --setup` - Uses uv for fast, reliable Python package installs
+- **Update deps**: `python launch.py --update-deps` - Updates all dependencies
+- **CPU PyTorch**: Automatically installs CPU-only PyTorch for lightweight deployment
+- **Conda Support**: `python launch.py --conda-env <name>` - Use specific conda environment
+
+### Developer Workflow Guides
+To prevent common errors and ensure adherence to repository workflows, use the built-in guides.
+
+- **General Development Guide**: Helps you decide where and how to make changes.
+  ```bash
+  python launch.py guide-dev
+  ```
+- **PR Resolution Guide**: Guides you through the correct process for merging a branch.
+  ```bash
+  python launch.py guide-pr
+  ```
+
+### TypeScript/React Frontend
+- **Build**: `npm run build` (from client/)
+- **Lint**: `npm run lint` (from client/)
+- **Dev server**: `npm run dev` (from client/)
+
+## Architecture & Codebase Structure
+
+### Services
+- **Python Backend (FastAPI)**: Core API at `backend/python_backend/` with AI engine, database, workflows
+- **React Frontend (Vite)**: User interface at `client/` with TypeScript, Tailwind CSS, Radix UI
+- **Node.js TypeScript Backend**: Secondary API routes at `server/` with Express, Drizzle ORM
+- **Gradio UI**: Interactive interface integrated with Python backend for scientific development
+
+### Key Modules
+- **Core Components**: `src/core/` - AI engine, database manager, workflow engines, security
+- **Modules**: `modules/` - Pluggable features (categories, AI engine, workflows)
+- **Backend Extensions**: `backend/` - Additional Python services, plugins, NLP components
+- **Shared Code**: `shared/` - Cross-service utilities and types
+
+### Databases & Storage
+- **SQLite**: Primary database (`.db` files in project root and `data/`)
+- **JSON Files**: Configuration and cached data in `data/` directory
+- **Configurable Data Directory**: Via `DATA_DIR` environment variable
+
+### APIs
+- **FastAPI**: Main REST API on port 8000 (`/api/*`)
+- **Express**: Secondary Node.js API routes
+- **Internal APIs**: Workflow execution, AI model management, performance monitoring
+
+## Code Style Guidelines
+### Python
+- **Line length**: 100 chars max, Black formatting, isort imports (stdlib → third-party → local)
+- **Naming**: snake_case functions/vars, CapWords classes, UPPER_CASE constants
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+- **Error handling**: Specific exceptions, meaningful messages, appropriate logging
+
+### TypeScript/React
+- **Strict mode**: Enabled (noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch)
+- **JSX**: react-jsx transform, **Imports**: @/ for client src, @shared/ for shared types
+- **Components**: Default export functions, PascalCase naming
+- **Styling**: Tailwind CSS utilities, component-specific styles as needed
+- **API**: Use api client from lib/api.ts for backend communication
+
+## Troubleshooting
+
+### Architecture Overview
+- **Frontend**: React (client/) with TypeScript, TailwindCSS, Radix UI components, Vite build system
+- **Backend**: Python with FastAPI for API endpoints and Gradio for UI
+- **AI Engine**: Python-based NLP models for sentiment and topic analysis
+- **Database**: SQLite for local storage and caching, JSON files for main application data
+
+### Code Rot and Import Errors
+If you are experiencing a cascade of `ImportError` or `AttributeError` issues, particularly in the `setup/` directory, please consult the technical debt tracker for a detailed resolution guide.
+
+- **[Technical Debt & Anomaly Tracker](docs/technical_debt_tracker.md)**
+
+### Port Binding Errors (e.g., [Errno 10048])
+If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
+
+**Procedure to identify and fix:**
+
+1. **Identify the process using the port:**
+   ```bash
+   netstat -ano | findstr :PORT_NUMBER
+   ```
+   Replace `PORT_NUMBER` with the conflicting port (e.g., 8000 for backend, 7860 for Gradio).
+
+2. **Note the PID (Process ID) from the output.**
+
+3. **Kill the process:**
+   ```bash
+   taskkill /f /pid PID_NUMBER
+   ```
+   Replace `PID_NUMBER` with the PID from step 1.
+
+4. **Verify the port is free:**
+   ```bash
+   netstat -ano | findstr :PORT_NUMBER
+   ```
+   Should show no results.
+
+5. **Retry the launch:**
+   ```bash
+   python launch.py
+   ```
+
+**Alternative:** Use different ports by modifying the launch script or passing port arguments.
+
+**Prevention:** Always shut down services properly with Ctrl+C before restarting.
+
+
+## ⚠️ Critical Rules & Code Smells to Avoid
+- **Circular Dependencies**: Avoid circular imports (especially AIEngine ↔ DatabaseManager)
+- **Hard-coded Paths**: Never hard-code file paths or URLs
+- **Missing Type Hints**: Add type hints to all function parameters and return values
+- **Inconsistent Naming**: Follow established naming conventions strictly
+- **Security**: Never expose secrets/keys, never log sensitive data
+- **Global State**: Use dependency injection over global state
+- **Dependencies**: Check existing dependencies before adding new libraries
+
+<!-- BACKLOG.MD GUIDELINES START -->
 # Instructions for the usage of Backlog.md CLI Tool
 
 ## Backlog.md: Comprehensive Project Management Tool via CLI
@@ -515,7 +507,7 @@ backlog task edit 42 -s "In Progress" -a @{myself}
 Previously created tasks contain the why and the what. Once you are familiar with that part you should think about a
 plan on **HOW** to tackle the task and all its acceptance criteria. This is your **Implementation Plan**.
 First do a quick check to see if all the tools that you are planning to use are available in the environment you are
-working in.   
+working in.
 When you are ready, write it down in the task so that you can refer to it later.
 
 ```bash
@@ -588,7 +580,7 @@ backlog task edit 42 --plan "1. Analyze\n2. Refactor\n3. Test"
 
 # 7. Mark acceptance criteria as complete (supports multiple in one command)
 backlog task edit 42 --check-ac 1 --check-ac 2 --check-ac 3  # Check all at once
-# Or check them individually if preferred:
+# Or check them individually if you prefer:
 # backlog task edit 42 --check-ac 1
 # backlog task edit 42 --check-ac 2
 # backlog task edit 42 --check-ac 3
@@ -673,14 +665,14 @@ backlog search "bug" --priority high --plain
 
 ### Task Creation
 
-| Action           | Command                                                        |
-|------------------|----------------------------------------------------------------|
-| Create task      | `backlog task create "Title"`                                  |
-| With description | `backlog task create "Title" -d "Description"`                 |
+| Action           | Command                                                    |
+|------------------|------------------------------------------------------------|
+| Create task      | `backlog task create "Title"`                              |
+| With description | `backlog task create "Title" -d "Description"`             |
 | With AC          | `backlog task create "Title" --ac "Criterion 1" --ac "Criterion 2"` |
 | With all options | `backlog task create "Title" -d "Desc" -a @sara -s "To Do" -l auth --priority high` |
-| Create draft     | `backlog task create "Title" --draft`                          |
-| Create subtask   | `backlog task create "Title" -p 42`                            |
+| Create draft     | `backlog task create "Title" --draft`                      |
+| Create subtask   | `backlog task create "Title" -p 42`                        |
 
 ### Task Modification
 
@@ -766,8 +758,8 @@ Descriptions support literal newlines; shell examples may show escaped `\\n`, bu
 | Problem              | Solution                                               |
 |----------------------|--------------------------------------------------------|
 | Task not found       | Check task ID with `backlog task list --plain`         |
-| AC won\'t check       | Use correct index: `backlog task 42 --plain` to see AC numbers     |
-| Changes not saving   | Ensure you\'re using CLI, not editing files            |
+| AC won't check       | Use correct index: `backlog task 42 --plain` to see AC numbers     |
+| Changes not saving   | Ensure you're using CLI, not editing files            |
 | Metadata out of sync | Re-edit via CLI to fix: `backlog task edit 42 -s <current-status>` |
 
 ---
@@ -833,8 +825,6 @@ backlog/tasks/*.md merge=backlog-merge
 **📖 Use CLI to read tasks, exceptionally READ task files directly, never WRITE to them.**
 
 Full help available: `backlog --help`
-
-<!-- BACKLOG.MD GUIDELINES END -->
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 
