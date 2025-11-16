@@ -1,105 +1,48 @@
-# Node.js
-node_modules/
-dist/
-.DS_Store
-server/public/
-vite.config.ts.*
-*.tar.gz
-
-# Python virtual environment
-venv/
-.env
-.env.*
-*.env
-!.env.example
-
-# Credentials and sensitive data
-token.json
-credentials.json
-apikey.json
-jsons/
-jsons/*
-
-# Build / packaging artifacts
-build/
-dist/
-*.egg-info/
-pip-wheel-metadata/
-*.egg
-*.whl
-
-# Databases
-*.sqlite3
-*.db
-*.db-journal
-
-# Test and coverage reports
-.coverage
-.coverage.*
-coverage.xml
-coverage/
-*.cover
-.pytest_cache/
-
-# IDEs / editor-specific
-.vscode/
-.idea/
-*.iml
-*.sublime-project
-*.sublime-workspace
-.history
-
-# Misc
-diagnosis_message.txt
-logs/
-
-# Ignore configuration and local environment files
-*.local.config
-*.local.json
-*.local.yaml
-*.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
-config.local.*
-config/llm_guidelines.local.json
-
-# Ignore hidden files and directories, with exceptions
-.*
-!docs/.gitkeep
-!.semgrep/
-!.gitignore
-!.git/hooks/
+# Task Master - Git Ignore
 
 # Python cache
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 
-# Miscellaneous
-diagnosis_message.txt
-performance_metrics_log.jsonl
-config/llm_guidelines.local.json
-models/*.pkl
-worktrees/
+# Virtual environments
+venv/
+env/
+ENV/
 
-# Logs
-logs
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Local configuration files
+config.local.json
+*.local.json
+*.local.*
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dev-debug.log
-# Dependency directories
-# Environment variables
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-# OS specific
 
-# Task files
-# tasks.json
-# tasks/ 
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Task Master specific
+# Note: tasks/*.json and tasks/*.txt are tracked (auto-generated but important)
+# reports/*.json are tracked (analysis reports)
