@@ -1,0 +1,36 @@
+[flake8]
+# Task Master Python Scripts Linting Configuration
+# For scripts in .taskmaster/scripts/
+
+max-line-length = 120
+extend-ignore = E203, W503, E501
+
+# Exclude directories
+exclude =
+    .git,
+    __pycache__,
+    venv,
+    .venv,
+    env,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache,
+    .coverage,
+    htmlcov,
+    .tox,
+    .env,
+    .env.*,
+    *.egg-info,
+    tasks/*.txt,
+    reports/*.json
+
+# Per-file ignores
+per-file-ignores =
+    __init__.py: F401
+    scripts/*.py: E501  # Allow long lines in scripts for readability
+
+# Task Master specific: scripts are standalone utilities
+# Allow slightly more lenient rules for utility scripts
