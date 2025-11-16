@@ -20,9 +20,10 @@ export ORCHESTRATION_SYNC_ACTIVE=1
 
 set -e
 
-# Get the current worktree path
+# Get the current worktree path and branch
 WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
 WORKTREE_NAME="$(basename "$WORKTREE_ROOT")"
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
 # Check if this is a documentation-only worktree (exclude from setup file sync)
 if [[ "$WORKTREE_NAME" == "docs-main" || "$WORKTREE_NAME" == "docs-scientific" ]]; then
@@ -31,8 +32,15 @@ if [[ "$WORKTREE_NAME" == "docs-main" || "$WORKTREE_NAME" == "docs-scientific" ]
 fi
 
 # Function to safely checkout files from orchestration-tools branch
+# IMPORTANT: Excludes .taskmaster to prevent deletion of TaskMaster task data
 checkout_from_orchestration() {
     local file_path="$1"
+    
+    # Never sync .taskmaster - it's managed separately
+    if [[ "$file_path" == .taskmaster* ]]; then
+        return 0
+    fi
+    
     if git ls-tree -r orchestration-tools --name-only | grep -q "^$file_path$"; then
         # Check if file differs before checkout
         if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
@@ -45,6 +53,7 @@ checkout_from_orchestration() {
 }
 
 # Update setup directory - includes setup_env* files
+# NOTE: .taskmaster is explicitly excluded to prevent deletion of TaskMaster task data
 if [ -d "setup" ]; then
     echo "Synchronizing setup directory from orchestration-tools (including setup_env* files)"
     # Checkout entire setup directory
@@ -68,7 +77,12 @@ if [[ "$WORKTREE_NAME" == "main" ]] || [[ "$WORKTREE_NAME" == "scientific" ]]; t
         cp -r "$TEMP_ORCH/setup/"* . 2>/dev/null || true
 
         # Copy shared configs
+        # Note: .flake8 is excluded for taskmaster branch to allow unique configuration
         for config in .flake8 .pylintrc tsconfig.json package.json tailwind.config.ts vite.config.ts drizzle.config.ts components.json .gitignore .gitattributes; do
+            # Skip .flake8 for taskmaster branch
+            if [[ "$WORKTREE_NAME" == "taskmaster" ]] && [[ "$config" == ".flake8" ]]; then
+                continue
+            fi
             cp "$TEMP_ORCH/$config" . 2>/dev/null || true
         done
 
@@ -95,7 +109,10 @@ checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
 checkout_from_orchestration "docs/orchestration-workflow.md"
 
 # Update shared configuration files (excluding environment-specific ones)
-checkout_from_orchestration ".flake8"
+# Note: .flake8 is excluded for taskmaster branch to allow unique configuration
+if [[ "$CURRENT_BRANCH" != "taskmaster" ]]; then
+    checkout_from_orchestration ".flake8"
+fi
 checkout_from_orchestration ".pylintrc"
 checkout_from_orchestration "tsconfig.json"
 checkout_from_orchestration "package.json"

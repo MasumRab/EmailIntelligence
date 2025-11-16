@@ -33,10 +33,42 @@ SCRIPTS_TO_PROPAGATE=(
     "validate-branch-propagation.sh"
     "extract-orchestration-changes.sh"
     "sync_setup_worktrees.sh"
+    "reverse_sync_orchestration.sh"
+    "cleanup_orchestration.sh"
+    "context-control"
 )
 
 # Lib directory to propagate
 LIB_DIR="lib"
+
+# Directories to propagate to all branches
+DIRS_TO_PROPAGATE=(
+    "setup"
+    "deployment"
+    ".specify"
+)
+
+# Documentation files to propagate
+DOCS_TO_PROPAGATE=(
+    "docs/orchestration-workflow.md"
+    "docs/orchestration_summary.md"
+    "docs/env_management.md"
+    "docs/git_workflow_plan.md"
+    "docs/critical_files_check.md"
+    "docs/guides/branch_switching_guide.md"
+    "docs/guides/workflow_and_review_process.md"
+)
+
+# Config files to propagate
+CONFIG_FILES_TO_PROPAGATE=(
+    "pyproject.toml"
+    "requirements.txt"
+    "requirements-dev.txt"
+    "uv.lock"
+    ".gitignore"
+    ".gitattributes"
+    "launch.py"
+)
 
 # Branches to skip (these manage their own versions)
 DEFAULT_SKIP_BRANCHES=(
@@ -96,14 +128,24 @@ Options:
   --help                 Show this help message
 
 Scripts propagated:
-  - install-hooks.sh
-  - enable-hooks.sh
-  - disable-hooks.sh
-  - validate-orchestration-context.sh
-  - validate-branch-propagation.sh
-  - extract-orchestration-changes.sh
-  - sync_setup_worktrees.sh
-  - scripts/lib/ (all helper libraries)
+   - install-hooks.sh
+   - enable-hooks.sh
+   - disable-hooks.sh
+   - validate-orchestration-context.sh
+   - validate-branch-propagation.sh
+   - extract-orchestration-changes.sh
+   - sync_setup_worktrees.sh
+   - reverse_sync_orchestration.sh
+   - cleanup_orchestration.sh
+   - context-control
+   - scripts/lib/ (all helper libraries)
+   - setup/ (launch scripts and environment setup)
+   - deployment/ (Docker and deployment configurations)
+   - .specify/ (constitution and templates)
+   - docs/orchestration*.md (orchestration documentation)
+   - pyproject.toml, requirements*.txt, uv.lock (Python configuration)
+   - .gitignore, .gitattributes (Git configuration)
+   - launch.py (main application launcher)
 
 Branch integrity maintained:
   - No application code changes committed
@@ -171,8 +213,29 @@ verify_source_branch() {
     if ! git show "orchestration-tools:scripts/$LIB_DIR/" > /dev/null 2>&1; then
         echo -e "${YELLOW}⚠ Warning: lib/ directory not found in orchestration-tools${NC}"
     fi
-    
-    echo -e "${GREEN}✓ All source scripts verified${NC}"
+
+    # Verify directories
+    for dir in "${DIRS_TO_PROPAGATE[@]}"; do
+        if ! git show "orchestration-tools:$dir/" > /dev/null 2>&1; then
+            echo -e "${YELLOW}⚠ Warning: $dir/ directory not found in orchestration-tools${NC}"
+        fi
+    done
+
+    # Verify documentation files
+    for doc in "${DOCS_TO_PROPAGATE[@]}"; do
+        if ! git show "orchestration-tools:$doc" > /dev/null 2>&1; then
+            echo -e "${YELLOW}⚠ Warning: $doc not found in orchestration-tools${NC}"
+        fi
+    done
+
+    # Verify config files
+    for config in "${CONFIG_FILES_TO_PROPAGATE[@]}"; do
+        if ! git show "orchestration-tools:$config" > /dev/null 2>&1; then
+            echo -e "${YELLOW}⚠ Warning: $config not found in orchestration-tools${NC}"
+        fi
+    done
+
+    echo -e "${GREEN}✓ All source files verified${NC}"
     return 0
 }
 
@@ -241,11 +304,11 @@ update_branch() {
         if [[ "$VERBOSE" == true ]]; then
             echo "  Syncing lib/ directory"
         fi
-        
+
         if [[ "$DRY_RUN" == false ]]; then
             # Get list of files in lib from orchestration-tools
             local lib_files=$(git ls-tree -r --name-only "orchestration-tools:scripts/$LIB_DIR" 2>/dev/null || echo "")
-            
+
             for lib_file in $lib_files; do
                 local relative_file="${lib_file#scripts/}"
                 git show "orchestration-tools:$lib_file" > "$relative_file"
@@ -255,6 +318,70 @@ update_branch() {
             done
         fi
     fi
+
+    # Copy directories
+    for dir in "${DIRS_TO_PROPAGATE[@]}"; do
+        if git show "orchestration-tools:$dir/" > /dev/null 2>&1; then
+            if [[ "$VERBOSE" == true ]]; then
+                echo "  Syncing $dir/ directory"
+            fi
+
+            if [[ "$DRY_RUN" == false ]]; then
+                # Get list of files in directory from orchestration-tools
+                local dir_files=$(git ls-tree -r --name-only "orchestration-tools:$dir" 2>/dev/null || echo "")
+
+                for dir_file in $dir_files; do
+                    git show "orchestration-tools:$dir_file" > "$dir_file"
+                    # Make scripts executable if they are in scripts/
+                    if [[ "$dir_file" == scripts/* ]]; then
+                        chmod +x "$dir_file"
+                    fi
+                    git add "$dir_file"
+                    scripts_updated=$((scripts_updated + 1))
+                done
+            else
+                echo "    [DRY-RUN] Would sync: $dir/"
+            fi
+        fi
+    done
+
+    # Copy documentation files
+    for doc in "${DOCS_TO_PROPAGATE[@]}"; do
+        if git show "orchestration-tools:$doc" > /dev/null 2>&1; then
+            if [[ "$VERBOSE" == true ]]; then
+                echo "  Syncing doc: $doc"
+            fi
+
+            if [[ "$DRY_RUN" == false ]]; then
+                git show "orchestration-tools:$doc" > "$doc"
+                git add "$doc"
+                scripts_updated=$((scripts_updated + 1))
+            else
+                echo "    [DRY-RUN] Would update: $doc"
+            fi
+        fi
+    done
+
+    # Copy config files
+    for config in "${CONFIG_FILES_TO_PROPAGATE[@]}"; do
+        if git show "orchestration-tools:$config" > /dev/null 2>&1; then
+            if [[ "$VERBOSE" == true ]]; then
+                echo "  Syncing config: $config"
+            fi
+
+            if [[ "$DRY_RUN" == false ]]; then
+                git show "orchestration-tools:$config" > "$config"
+                # Make executable if it's a script
+                if [[ "$config" == *.py ]] || [[ "$config" == *.sh ]]; then
+                    chmod +x "$config"
+                fi
+                git add "$config"
+                scripts_updated=$((scripts_updated + 1))
+            else
+                echo "    [DRY-RUN] Would update: $config"
+            fi
+        fi
+    done
     
     # Check if anything was updated
     if [[ $scripts_updated -eq 0 ]]; then

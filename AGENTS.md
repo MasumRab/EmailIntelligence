@@ -63,6 +63,26 @@ task-master validate-dependencies                            # Check for depende
 task-master generate                                         # Update task markdown files (usually auto-called)
 ```
 
+### Orchestration Control Commands
+
+```bash
+# Disable All Orchestration (with branch profile sync & push)
+./scripts/disable-all-orchestration-with-branch-sync.sh      # Disable hooks, env vars, branch profiles, push to scientific/main
+./scripts/disable-all-orchestration-with-branch-sync.sh --skip-push  # Same but don't auto-push
+
+# Re-enable All Orchestration (with branch profile sync & push)
+./scripts/enable-all-orchestration-with-branch-sync.sh       # Enable hooks, env vars, branch profiles, push to scientific/main
+./scripts/enable-all-orchestration-with-branch-sync.sh --skip-push   # Same but don't auto-push
+
+# Original Disable/Enable (no branch sync)
+./scripts/disable-all-orchestration.sh                       # Disable hooks and env var only
+./scripts/enable-all-orchestration.sh                        # Enable hooks and clear env var only
+
+# Hook-only Control
+./scripts/disable-orchestration-hooks.sh                     # Disable git hooks only
+./scripts/restore-orchestration-hooks.sh                     # Restore git hooks only
+```
+
 ## Key Files & Project Structure
 
 ### Core Files
@@ -451,3 +471,32 @@ These commands make AI calls and may take up to a minute:
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
+
+<!-- BACKLOG.MD MCP GUIDELINES START -->
+
+<CRITICAL_INSTRUCTION>
+
+## BACKLOG WORKFLOW INSTRUCTIONS
+
+This project uses Backlog.md MCP for all task and project management activities.
+
+**CRITICAL GUIDANCE**
+
+- If your client supports MCP resources, read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
+- If your client only supports tools or the above request fails, call `backlog.get_workflow_overview()` tool to load the tool-oriented overview (it lists the matching guide tools).
+
+- **First time working here?** Read the overview resource IMMEDIATELY to learn the workflow
+- **Already familiar?** You should have the overview cached ("## Backlog.md Overview (MCP)")
+- **When to read it**: BEFORE creating tasks, or when you're unsure whether to track work
+
+These guides cover:
+- Decision framework for when to create tasks
+- Search-first workflow to avoid duplicates
+- Links to detailed guides for task creation, execution, and completion
+- MCP tools reference
+
+You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.
+
+</CRITICAL_INSTRUCTION>
+
+<!-- BACKLOG.MD MCP GUIDELINES END -->
