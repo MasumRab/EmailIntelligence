@@ -1,0 +1,48 @@
+# Task Master - Git Ignore
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Local configuration files
+config.local.json
+*.local.json
+*.local.*
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Task Master specific
+# Note: tasks/*.json and tasks/*.txt are tracked (auto-generated but important)
+# reports/*.json are tracked (analysis reports)
