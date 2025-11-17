@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# Pre-commit hook for orchestration checks
+# Ensures code quality and consistency across branches
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration checks disabled, skipping pre-commit checks"
+    exit 0
+fi
+
+set -e
+
+# Get current branch
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Branch-specific checks
+case "$CURRENT_BRANCH" in
+    "main"|"scientific")
+        echo "Running orchestration checks for $CURRENT_BRANCH branch..."
+
+        # Check for required files
+        if [[ ! -f "setup/setup_environment_system.sh" ]]; then
+            echo "ERROR: setup/setup_environment_system.sh not found"
+            echo "This file is required for orchestration. Please ensure setup directory is synchronized."
+            exit 1
+        fi
+
+        # Check for Task Master compatibility
+        if [[ -d ".taskmaster" ]]; then
+            echo "✓ Task Master directory detected - ensuring compatibility"
+
+            # Validate Task Master configuration
+            if [[ ! -f ".taskmaster/config.json" ]]; then
+                echo "WARNING: .taskmaster/config.json not found"
+                echo "Task Master may not be properly initialized"
+            fi
+        fi
+
+        # Check for orchestration environment variables
+        if [[ -z "$PYTHONPATH" ]]; then
+            echo "WARNING: PYTHONPATH not set - may affect module imports"
+        fi
+
+        echo "✓ Orchestration pre-commit checks passed"
+        ;;
+
+    "orchestration-tools")
+        echo "Running orchestration-tools specific checks..."
+
+        # Ensure orchestration scripts are executable
+        for script in scripts/bash/*.sh; do
+            if [[ -f "$script" && ! -x "$script" ]]; then
+                echo "Making $script executable"
+                chmod +x "$script"
+            fi
+        done
+
+        # Validate orchestration configuration
+        if [[ ! -f "emailintelligence_cli.py" ]]; then
+            echo "ERROR: emailintelligence_cli.py not found in orchestration-tools"
+            exit 1
+        fi
+
+        echo "✓ Orchestration-tools pre-commit checks passed"
+        ;;
+
+    "taskmaster")
+        echo "Running Task Master branch checks..."
+
+        # Ensure Task Master CLI compatibility
+        if [[ ! -f "AGENT.md" ]]; then
+            echo "ERROR: AGENT.md not found - required for Task Master branch"
+            exit 1
+        fi
+
+        # Check for required taskmaster scripts
+        if [[ ! -f "scripts/next_task.py" ]]; then
+            echo "ERROR: scripts/next_task.py not found - required for Task Master"
+            exit 1
+        fi
+
+        echo "✓ Task Master pre-commit checks passed"
+        ;;
+
+    *)
+        echo "Running generic pre-commit checks for branch: $CURRENT_BRANCH"
+        ;;
+esac
+
+# Common checks for all branches
+echo "Running common pre-commit checks..."
+
+# Check for large files
+LARGE_FILES=$(git diff --cached --name-only | xargs ls -l 2>/dev/null | awk '$5 > 50000000 {print $9}')
+if [[ -n "$LARGE_FILES" ]]; then
+    echo "ERROR: Large files detected (>50MB):"
+    echo "$LARGE_FILES"
+    echo "Please remove or use Git LFS for large files"
+    exit 1
+fi
+
+# Check for sensitive data
+if git diff --cached --name-only | xargs grep -l "password\|secret\|key\|token" >/dev/null 2>&1; then
+    echo "WARNING: Potential sensitive data detected in staged files"
+    echo "Please review and ensure no secrets are being committed"
+fi
+
+echo "✓ All pre-commit checks passed"
