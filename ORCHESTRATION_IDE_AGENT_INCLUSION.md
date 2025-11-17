@@ -31,11 +31,14 @@ These files provide agent-specific guidance that extends `AGENTS.md`:
 
 | Path | IDE/Tool | Purpose | Status |
 |------|----------|---------|--------|
-| `.claude/settings.json` | Claude Code | Claude Code tool allowlist and preferences | ✅ Tracked |
-| `.cursor/**` | Cursor IDE | Cursor IDE configuration files | ✅ Tracked |
-| `.windsurf/**` | Windsurf IDE | Windsurf IDE configuration files | ✅ Tracked |
-| `.roo/**` | Roo IDE | Roo IDE configuration files | ✅ Tracked |
-| `.kilo/` | Kilo Code | Kilo Code configuration files | ✅ Tracked |
+| `.claude/**` | Claude Code | Claude Code settings, commands, agents | ✅ Tracked |
+| `.cursor/**` | Cursor IDE | Cursor IDE rules and commands | ✅ Tracked |
+| `.windsurf/**` | Windsurf IDE | Windsurf IDE rules and configuration | ✅ Tracked |
+| `.roo/**` | Roo IDE | Roo IDE rules and configuration | ✅ Tracked |
+| `.kilo/**` | Kilo Code | Kilo Code rules and configuration | ✅ Tracked |
+| `.clinerules/**` | Cline IDE | Cline IDE rules and workflows | ✅ Tracked |
+| `.opencode/**` | OpenCode | SpecKit commands and integration | ✅ Tracked |
+| `.specify/**` | Specify | Planning templates and scripts | ✅ Tracked |
 | `.github/instructions/**` | All IDEs | Shared instruction files | ✅ Tracked |
 
 ### Supporting Documentation
@@ -64,20 +67,23 @@ $LLXPRT_FILE        = Join-Path $REPO_ROOT 'LLXPRT.md'
 $IFLOW_FILE         = Join-Path $REPO_ROOT 'IFLOW.md'
 $QWEN_FILE          = Join-Path $REPO_ROOT 'QWEN.md'
 $CLAUDE_FILE        = Join-Path $REPO_ROOT 'CLAUDE.md'
-$TERMINAL_JARVIS_FILE = Join-Path $REPO_ROOT 'terminal-jarvis_AGENTS.md'
-$COGNEE_FILE        = Join-Path $REPO_ROOT 'cognee-AGENTS.md'
 
-# IDE Configuration Directories
+# IDE Configuration Directories - Core
 $COPILOT_FILE       = Join-Path $REPO_ROOT '.github/**'
+$CLAUDE_DIR         = Join-Path $REPO_ROOT '.claude/**'
 $CURSOR_FILE        = Join-Path $REPO_ROOT '.cursor/**'
 $WINDSURF_FILE      = Join-Path $REPO_ROOT '.windsurf/**'
 $ROO_FILE           = Join-Path $REPO_ROOT '.roo/**'
 $KILOCODE_FILE      = Join-Path $REPO_ROOT '.kilo/**'
 
+# IDE Configuration Directories - Additional
+$CLINEFILES         = Join-Path $REPO_ROOT '.clinerules/**'
+$OPENCODE_FILE      = Join-Path $REPO_ROOT '.opencode/**'
+$SPECIFY_FILE       = Join-Path $REPO_ROOT '.specify/**'
+
 # MCP and Environment Configuration
 $MCP_CONFIG         = Join-Path $REPO_ROOT '.mcp.json'
 $ENV_EXAMPLE        = Join-Path $REPO_ROOT '.env.example'
-$CLAUDE_CONFIG      = Join-Path $REPO_ROOT '.claude/settings.json'
 
 # Task Master Integration
 $TASKMASTER_README  = Join-Path $REPO_ROOT 'TASKMASTER_INTEGRATION_README.md'
@@ -160,7 +166,7 @@ When adding new IDE agent files:
 
 ```bash
 # Verify all IDE agent files are present and tracked
-for file in AGENTS.md CRUSH.md LLXPRT.md IFLOW.md QWEN.md CLAUDE.md terminal-jarvis_AGENTS.md cognee-AGENTS.md; do
+for file in AGENTS.md CRUSH.md LLXPRT.md IFLOW.md QWEN.md CLAUDE.md; do
   if git ls-files | grep -q "^$file$"; then
     echo "✅ $file - tracked"
   else
@@ -168,8 +174,17 @@ for file in AGENTS.md CRUSH.md LLXPRT.md IFLOW.md QWEN.md CLAUDE.md terminal-jar
   fi
 done
 
-# Verify IDE config directories are tracked
+# Verify IDE config directories are tracked (core)
 for dir in .claude .cursor .windsurf .roo .kilo; do
+  if git ls-files | grep -q "^$dir/"; then
+    echo "✅ $dir/ - tracked"
+  else
+    echo "⚠️ $dir/ - check if intentional"
+  fi
+done
+
+# Verify additional IDE directories are tracked
+for dir in .clinerules .opencode .specify; do
   if git ls-files | grep -q "^$dir/"; then
     echo "✅ $dir/ - tracked"
   else
