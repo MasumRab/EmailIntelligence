@@ -111,11 +111,15 @@ checkout_from_orchestration() {
         git checkout orchestration-tools -- scripts/lib/
     fi
     
-    # CRITICAL: Sync Copilot and agent instructions
+    # CRITICAL: Sync Copilot and agent instructions (but NOT .taskmaster/)
     if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^\.github/instructions$"; then
         echo "  Synchronizing .github/instructions (agent instructions)"
         git checkout orchestration-tools -- .github/instructions/
     fi
+    
+    # IMPORTANT: Do NOT sync .taskmaster/ directory
+    # It's a separate worktree with its own branch tracking
+    # Keep it isolated from branch switching
 
     # Update orchestration scripts
     checkout_from_orchestration "scripts/install-hooks.sh"

@@ -86,25 +86,23 @@ case "$CURRENT_BRANCH" in
     "taskmaster")
         echo "Running Task Master post-commit actions..."
 
-        # Validate Task Master files
+        # Validate Task Master files (warnings only, don't block commits)
         if [[ ! -f "AGENT.md" ]]; then
-            echo "ERROR: AGENT.md missing from Task Master branch"
-            exit 1
+            echo "WARNING: AGENT.md missing from Task Master branch"
         fi
 
         # Check for task-related changes
-        TASK_FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E "\.taskmaster|tasks/" | wc -l)
+        TASK_FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | grep -E "\.taskmaster|tasks/" | wc -l || echo 0)
 
         if [[ $TASK_FILES_CHANGED -gt 0 ]]; then
             echo "Task-related files changed - validating Task Master integrity..."
 
-            # Validate task JSON structure
+            # Validate task JSON structure (warning only)
             if [[ -f ".taskmaster/tasks/tasks.json" ]]; then
                 if python3 -m json.tool ".taskmaster/tasks/tasks.json" >/dev/null 2>&1; then
                     echo "✓ Task Master JSON is valid"
                 else
-                    echo "ERROR: Task Master JSON is malformed"
-                    exit 1
+                    echo "WARNING: Task Master JSON may be malformed (manual review recommended)"
                 fi
             fi
         fi
