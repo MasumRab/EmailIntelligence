@@ -1,190 +1,73 @@
 #!/bin/bash
 
-# Post-merge hook for worktree setup synchronization
-# This hook updates shared setup files and orchestration scripts from the orchestration-tools branch
+# Post-merge hook - minimal operations only
+# Does NOT force synchronization of orchestration files
+# Prevents blocking on merge operations
 
-# Recursion prevention: Exit if sync is already active
+# Recursion prevention
 if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
-    echo "Orchestration sync already active, skipping to prevent recursion"
     exit 0
 fi
 
 # Check for disable flag
 if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
-    echo "Orchestration checks disabled, skipping sync"
     exit 0
 fi
 
-# Set sync active flag to prevent recursion
 export ORCHESTRATION_SYNC_ACTIVE=1
 
-# Load approval handler
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-if [[ -f "$SCRIPT_DIR/lib/orchestration-approval.sh" ]]; then
-    source "$SCRIPT_DIR/lib/orchestration-approval.sh"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+echo "Post-merge on branch: $CURRENT_BRANCH"
+
+# IMPORTANT: Do NOT force sync of orchestration files
+# Developers should control synchronization explicitly
+# Automatic sync on merge can cause unexpected file changes
+
+# Only safe, non-blocking operations:
+
+# 1. Basic merge validation (info only)
+if [[ -z "$CURRENT_BRANCH" ]]; then
+    echo "WARNING: Could not determine current branch"
 fi
 
-# Get the current worktree path and branch
-WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
-WORKTREE_NAME="$(basename "$WORKTREE_ROOT")"
-CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-
-# Check if this is a documentation-only worktree (exclude from setup file sync)
-if [[ "$WORKTREE_NAME" == "docs-main" || "$WORKTREE_NAME" == "docs-scientific" ]]; then
-    echo "Documentation-only worktree detected ($WORKTREE_NAME). Skipping setup file synchronization."
-    exit 0
-fi
-
-# Function to safely checkout files from orchestration-tools branch
-# IMPORTANT: Excludes .taskmaster to prevent deletion of TaskMaster task data
-checkout_from_orchestration() {
-    local file_path="$1"
-    
-    # Never sync .taskmaster - it's managed separately
-    if [[ "$file_path" == .taskmaster* ]]; then
-        return 0
-    fi
-    
-    if git ls-tree -r orchestration-tools --name-only | grep -q "^$file_path$"; then
-        # Check if file differs before checkout
-        if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
-            echo "  Updating $file_path"
-            git checkout orchestration-tools -- "$file_path"
+# 2. Verify critical files exist (info only, non-blocking)
+case "$CURRENT_BRANCH" in
+    "orchestration-tools")
+        if [[ -f "emailintelligence_cli.py" ]]; then
+            echo "✓ EmailIntelligence CLI present"
+        else
+            echo "INFO: emailintelligence_cli.py not found"
         fi
-    else
-        echo "  Info: $file_path not found in orchestration-tools branch"
-    fi
-}
+        ;;
+    "main"|"scientific")
+        if [[ -f "README.md" ]]; then
+            echo "✓ README present"
+        fi
+        ;;
+esac
 
-# Collect what would be changed
-declare -a changed_files
-declare -a changed_dirs
-collect_changed_files "orchestration-tools" "changed_files"
-collect_changed_directories "orchestration-tools" "true" "changed_dirs"
-
-# If there are changes, get approval
-orchestration_approved=false
-if [[ ${#changed_files[@]} -gt 0 ]] || [[ ${#changed_dirs[@]} -gt 0 ]]; then
-    display_changes "${changed_files[@]}"
-    display_directory_changes "${changed_dirs[@]}"
-    
-    if prompt_for_approval "Synchronize orchestration files from orchestration-tools branch"; then
-        show_approval_result "true" "post-merge orchestration sync"
-        orchestration_approved=true
-    else
-        show_approval_result "false" "post-merge orchestration sync"
-        unset ORCHESTRATION_SYNC_ACTIVE
-        exit 0
-    fi
+# 3. Ensure .taskmaster/ is not affected (just info)
+if [[ -d ".taskmaster" && "$CURRENT_BRANCH" != "taskmaster" ]]; then
+    echo "ℹ Task Master worktree isolated (separate from merge)"
 fi
 
-# Update setup directory - includes setup_env* files
-# NOTE: .taskmaster is explicitly excluded to prevent deletion of TaskMaster task data
-if [[ "$orchestration_approved" == true ]] && [ -d "setup" ]; then
-    echo "  Synchronizing setup directory"
-    # Checkout entire setup directory
-    git checkout orchestration-tools -- setup/
-fi
-
-# CRITICAL: Sync .github/instructions (Copilot and agent instructions)
-if [[ "$orchestration_approved" == true ]]; then
-    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^\.github/instructions$"; then
-        echo "  Synchronizing .github/instructions (agent instructions)"
-        git checkout orchestration-tools -- .github/instructions/
-    fi
-fi
-
-# Sync .github documentation, workflows, and PR templates
-if [[ "$orchestration_approved" == true ]]; then
-    echo "  Synchronizing .github configuration"
-    checkout_from_orchestration ".github/BRANCH_PROPAGATION_POLICY.md"
-    checkout_from_orchestration ".github/DOCUMENTATION_DISTRIBUTION_REPORT.md"
-    checkout_from_orchestration ".github/PROPAGATION_SETUP_CHECKLIST.md"
-    checkout_from_orchestration ".github/pull_request_templates/orchestration-pr.md"
-    checkout_from_orchestration ".github/workflows/extract-orchestration-changes.yml"
-    checkout_from_orchestration ".github/workflows/lint.yml"
-    checkout_from_orchestration ".github/workflows/test.yml"
-fi
-
-# For worktrees that need orchestration setup, temporarily checkout from orchestration-tools
-WORKTREE_NAME="$(basename "$WORKTREE_ROOT")"
-
-# Only apply orchestration to main/scientific branches
-if [[ "$WORKTREE_NAME" == "main" ]] || [[ "$WORKTREE_NAME" == "scientific" ]]; then
-    echo "Detected $WORKTREE_NAME worktree - applying orchestration setup..."
-
-    # Create temporary orchestration worktree to get setup files
-    TEMP_ORCH="/tmp/orch-setup-$$"
-    mkdir -p "$TEMP_ORCH"
-
-    # Checkout orchestration-tools branch temporarily
-    if git worktree add "$TEMP_ORCH" origin/orchestration-tools 2>/dev/null; then
-        # Copy setup files
-        cp -r "$TEMP_ORCH/setup/"* . 2>/dev/null || true
-
-        # Copy shared configs
-        # Note: .flake8 is excluded for taskmaster branch to allow unique configuration
-        for config in .flake8 .pylintrc tsconfig.json package.json tailwind.config.ts vite.config.ts drizzle.config.ts components.json .gitignore .gitattributes; do
-            # Skip .flake8 for taskmaster branch
-            if [[ "$WORKTREE_NAME" == "taskmaster" ]] && [[ "$config" == ".flake8" ]]; then
-                continue
+# 4. Update git hooks if changed (optional, safe)
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
+    if [[ -f "scripts/install-hooks.sh" ]]; then
+        CURRENT_ORCH_COMMIT=$(git rev-parse orchestration-tools 2>/dev/null)
+        LAST_INSTALLED=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
+        
+        if [[ -z "$LAST_INSTALLED" ]] || [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED" ]]; then
+            echo "Updating hooks from orchestration-tools..."
+            if bash scripts/install-hooks.sh --quiet 2>/dev/null; then
+                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
+                echo "✓ Hooks updated"
             fi
-            cp "$TEMP_ORCH/$config" . 2>/dev/null || true
-        done
-
-        # Apply branch-specific configuration
-        if [[ -d "$TEMP_ORCH/configs/$WORKTREE_NAME" ]]; then
-            cp -r "$TEMP_ORCH/configs/$WORKTREE_NAME/"* . 2>/dev/null || true
         fi
-
-        # Cleanup temp worktree
-        git worktree remove --force "$TEMP_ORCH" 2>/dev/null || true
-        rm -rf "$TEMP_ORCH" 2>/dev/null || true
-
-        echo "✓ Orchestration setup applied to $WORKTREE_NAME worktree"
-    else
-        echo "⚠️  Could not access orchestration-tools branch for setup"
     fi
 fi
 
-# Update orchestration scripts
-checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
-checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
-
-# Update orchestration documentation
-checkout_from_orchestration "docs/orchestration-workflow.md"
-
-# Update shared configuration files (excluding environment-specific ones)
-# Note: .flake8 is excluded for taskmaster branch to allow unique configuration
-if [[ "$CURRENT_BRANCH" != "taskmaster" ]]; then
-    checkout_from_orchestration ".flake8"
-fi
-checkout_from_orchestration ".pylintrc"
-checkout_from_orchestration "tsconfig.json"
-checkout_from_orchestration "package.json"
-checkout_from_orchestration "tailwind.config.ts"
-checkout_from_orchestration "vite.config.ts"
-checkout_from_orchestration "drizzle.config.ts"
-checkout_from_orchestration "components.json"
-checkout_from_orchestration ".gitignore"
-checkout_from_orchestration ".gitattributes"
-
-# Note: package-lock.json is excluded as it's environment-specific
-
-# Update Git hooks
-checkout_from_orchestration "scripts/hooks/post-merge"
-checkout_from_orchestration "scripts/hooks/pre-commit"
-checkout_from_orchestration "scripts/hooks/post-commit"
-checkout_from_orchestration "scripts/hooks/post-push"
-
-# Install hooks to .git/hooks/
-cp scripts/hooks/post-merge .git/hooks/ 2>/dev/null || true
-cp scripts/hooks/pre-commit .git/hooks/ 2>/dev/null || true
-cp scripts/hooks/post-commit .git/hooks/ 2>/dev/null || true
-cp scripts/hooks/post-push .git/hooks/ 2>/dev/null || true
-chmod +x .git/hooks/post-merge .git/hooks/pre-commit .git/hooks/post-commit .git/hooks/post-push 2>/dev/null || true
-
-echo "Setup synchronization complete"
-
-# Unset the recursion prevention flag
 unset ORCHESTRATION_SYNC_ACTIVE
+
+echo "✓ Post-merge complete"

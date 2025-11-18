@@ -1,198 +1,70 @@
 #!/bin/bash
 
-# Post-checkout hook to automatically set up environment and sync orchestration files
+# Post-checkout hook - minimal operations only
+# Does NOT force synchronization or require approval
+# Allows free branch switching without blocking
 
-# Recursion prevention: Exit if sync is already active
+# Recursion prevention
 if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
-    echo "Orchestration sync already active, skipping to prevent recursion"
     exit 0
 fi
 
 # Check for disable flag
 if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
-    echo "Orchestration checks disabled, skipping sync"
     exit 0
 fi
 
-# Detect worktree vs subtree setup
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    IS_WORKTREE=true
-    IS_SUBTREE=false
-else
-    IS_WORKTREE=false
-    IS_SUBTREE=true
-fi
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
-# Set sync active flag to prevent recursion
-export ORCHESTRATION_SYNC_ACTIVE=1
+echo "Switched to branch: $CURRENT_BRANCH"
 
-# Load approval handler
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-if [[ -f "$SCRIPT_DIR/lib/orchestration-approval.sh" ]]; then
-    source "$SCRIPT_DIR/lib/orchestration-approval.sh"
-fi
+# IMPORTANT: Do NOT force sync or require approval on branch switch
+# Branch switching must be fast and unblocked for normal workflows
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+# Only safe, non-blocking operations:
 
-if [[ "$BRANCH" != "orchestration-tools" ]]; then
-    # Determine sync strategy based on setup type
-    if [[ "$IS_WORKTREE" == true ]]; then
-        echo "Detected WORKTREE setup. Safe checkout from orchestration-tools."
-        perform_full_sync=1
-    else
-        echo "Detected SUBTREE setup. Conservative synchronization from orchestration-tools. Consider using worktrees for better isolation."
-        perform_full_sync=0
-    fi
-
-    echo "Checking out $BRANCH branch. Checking for orchestration synchronization..."
+# 1. Update git hooks if on orchestration-tools branch
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
+    echo "On orchestration-tools branch"
     
-    # Collect what would be changed
-    declare -a changed_files
-    declare -a changed_dirs
-    collect_changed_files "orchestration-tools" "changed_files"
-    collect_changed_directories "orchestration-tools" "$IS_WORKTREE" "changed_dirs"
-    
-    # If there are changes, get approval
-    if [[ ${#changed_files[@]} -gt 0 ]] || [[ ${#changed_dirs[@]} -gt 0 ]]; then
-        display_changes "${changed_files[@]}"
-        display_directory_changes "${changed_dirs[@]}"
+    # Check if hook installation script exists
+    if [[ -f "scripts/install-hooks.sh" ]]; then
+        # Only update hooks if they've changed in orchestration-tools
+        CURRENT_ORCH_COMMIT=$(git rev-parse "orchestration-tools" 2>/dev/null)
+        LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
         
-        if prompt_for_approval "Synchronize orchestration files from orchestration-tools branch"; then
-            show_approval_result "true" "orchestration sync"
-            # Proceed with sync (code below)
-            orchestration_approved=true
-        else
-            show_approval_result "false" "orchestration sync"
-            unset ORCHESTRATION_SYNC_ACTIVE
-            exit 0  # Skip sync
-        fi
-    else
-        echo "Orchestration files are up-to-date with orchestration-tools branch"
-        unset ORCHESTRATION_SYNC_ACTIVE
-        exit 0
-    fi
-
-# Function to safely checkout files from orchestration-tools branch
-checkout_from_orchestration() {
-    local file_path="$1"
-    if git ls-tree -r orchestration-tools --name-only 2>/dev/null | grep -q "^$file_path$"; then
-        # Check if file differs before checkout
-        if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
-            # For subtrees, check for conflicts first
-            if [[ "$IS_WORKTREE" != true ]]; then
-                if git status --porcelain | grep -q "^.M"; then
-                    echo "Warning: $file_path has local changes in subtree. Skipping checkout to avoid conflicts."
-                    return
-                fi
-            fi
-            echo "  Updating $file_path"
-            git checkout orchestration-tools -- "$file_path"
-        fi
-    else
-        echo "  Info: $file_path not available in orchestration-tools branch"
-    fi
-}
-
-    # Update setup directory (full sync only)
-    if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^setup$"; then
-        echo "  Synchronizing setup directory"
-        git checkout orchestration-tools -- setup/
-    fi
-
-    # Update deployment directory (full sync only)
-    if [[ "$perform_full_sync" == "1" ]] && git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^deployment$"; then
-        echo "  Synchronizing deployment directory"
-        git checkout orchestration-tools -- deployment/
-    fi
-
-    # Update orchestration lib first
-    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^scripts/lib$"; then
-        echo "  Synchronizing scripts/lib directory"
-        git checkout orchestration-tools -- scripts/lib/
-    fi
-    
-    # CRITICAL: Sync Copilot and agent instructions (but NOT .taskmaster/)
-    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^\.github/instructions$"; then
-        echo "  Synchronizing .github/instructions (agent instructions)"
-        git checkout orchestration-tools -- .github/instructions/
-    fi
-    
-    # IMPORTANT: Do NOT sync .taskmaster/ directory
-    # It's a separate worktree with its own branch tracking
-    # Keep it isolated from branch switching
-
-    # Update orchestration scripts
-    checkout_from_orchestration "scripts/install-hooks.sh"
-    checkout_from_orchestration "scripts/sync_setup_worktrees.sh"
-    checkout_from_orchestration "scripts/reverse_sync_orchestration.sh"
-    checkout_from_orchestration "scripts/cleanup_orchestration.sh"
-
-    # Update orchestration documentation
-    checkout_from_orchestration "docs/orchestration-workflow.md"
-    checkout_from_orchestration "docs/orchestration_summary.md"
-    checkout_from_orchestration "docs/env_management.md"
-
-    # Update shared configuration files
-    checkout_from_orchestration ".flake8"
-    checkout_from_orchestration ".pylintrc"
-    checkout_from_orchestration ".gitignore"
-    checkout_from_orchestration ".gitattributes"
-    checkout_from_orchestration "launch.py"
-    checkout_from_orchestration "pyproject.toml"
-    checkout_from_orchestration "requirements.txt"
-    checkout_from_orchestration "requirements-dev.txt"
-    checkout_from_orchestration "uv.lock"
-
-    # Update Git hooks
-    checkout_from_orchestration "scripts/hooks/pre-commit"
-    checkout_from_orchestration "scripts/hooks/post-commit"
-    checkout_from_orchestration "scripts/hooks/post-merge"
-    checkout_from_orchestration "scripts/hooks/post-push"
-    
-    # Update .github configuration and workflows
-    checkout_from_orchestration ".github/BRANCH_PROPAGATION_POLICY.md"
-    checkout_from_orchestration ".github/DOCUMENTATION_DISTRIBUTION_REPORT.md"
-    checkout_from_orchestration ".github/PROPAGATION_SETUP_CHECKLIST.md"
-    checkout_from_orchestration ".github/pull_request_templates/orchestration-pr.md"
-    checkout_from_orchestration ".github/workflows/extract-orchestration-changes.yml"
-    checkout_from_orchestration ".github/workflows/lint.yml"
-    checkout_from_orchestration ".github/workflows/test.yml"
-
-    # Conditional Git hook installation/update
-    ORCHESTRATION_BRANCH="${ORCHESTRATION_BRANCH:-orchestration-tools}"
-    CURRENT_ORCH_COMMIT=$(git rev-parse "origin/$ORCHESTRATION_BRANCH" 2>/dev/null)
-    LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
-
-    if [[ -z "$CURRENT_ORCH_COMMIT" ]]; then
-        echo "Warning: Could not determine current commit for $ORCHESTRATION_BRANCH. Skipping conditional hook update."
-    elif [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
-        echo "Orchestration tools branch has new changes. Installing/updating Git hooks..."
-        if [[ -f "scripts/install-hooks.sh" ]]; then
-            bash scripts/install-hooks.sh --quiet
-            if [[ $? -eq 0 ]]; then
+        if [[ -z "$LAST_INSTALLED_ORCH_COMMIT" ]] || [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
+            echo "Updating git hooks from orchestration-tools branch..."
+            if bash scripts/install-hooks.sh --quiet 2>/dev/null; then
                 echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
-                echo "Hooks updated and commit ID stored."
-            else
-                echo "Warning: Hook installation failed. Commit ID not updated."
+                echo "✓ Hooks updated"
             fi
-        else
-            echo "Warning: scripts/install-hooks.sh not found. Cannot update hooks."
         fi
-    else
-        echo "Git hooks are already up-to-date with $ORCHESTRATION_BRANCH."
     fi
-
-    echo "Orchestration synchronization complete"
-
-    # Check for committed hooks on non-orchestration branches
-    if git ls-files | grep -q "^scripts/hooks/"; then
-        echo "WARNING: Orchestration hooks found committed on non-orchestration branch '$BRANCH'"
-        echo "Removing hooks from index to prevent accidental commits"
-        git rm --cached scripts/hooks/* 2>/dev/null || true
-        echo "If you wish to preserve these hook changes, switch to orchestration-tools branch and commit them there"
-        echo "Then create a PR if needed"
-    fi
-
-    # Unset the recursion prevention flag
-    unset ORCHESTRATION_SYNC_ACTIVE
 fi
+
+# 2. Ensure important files are present (info only)
+case "$CURRENT_BRANCH" in
+    "orchestration-tools")
+        if [[ ! -f "emailintelligence_cli.py" ]]; then
+            echo "INFO: emailintelligence_cli.py not found on orchestration-tools"
+        fi
+        ;;
+    "taskmaster")
+        if [[ ! -f "AGENT.md" ]]; then
+            echo "INFO: AGENT.md not found on taskmaster branch"
+        fi
+        ;;
+esac
+
+# 3. Verify .taskmaster/ is isolated (reminder, non-blocking)
+if [[ -d ".taskmaster" && "$CURRENT_BRANCH" != "taskmaster" ]]; then
+    # Taskmaster worktree exists on non-taskmaster branch
+    # This is OK - it's a separate worktree - just note it
+    TASKMASTER_BRANCH=$(.taskmaster/.git/rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    if [[ -n "$TASKMASTER_BRANCH" ]]; then
+        echo "ℹ Task Master worktree is on branch: $TASKMASTER_BRANCH (separate)"
+    fi
+fi
+
+echo "✓ Post-checkout complete"
