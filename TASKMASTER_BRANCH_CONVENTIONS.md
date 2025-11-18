@@ -26,17 +26,25 @@ The taskmaster branch must **never include** orchestration infrastructure:
 
 The `.taskmaster/` directory is a **git worktree**, not a regular directory:
 
-✅ **Must be in .git/info/exclude (not tracked, but accessible to agents):**
-```
-# .git/info/exclude
-.taskmaster/
+✅ **Prevent commits via pre-commit hook (not .gitignore):**
+```bash
+# scripts/hooks/pre-commit
+TASKMASTER_FILES=$(git diff --cached --name-only | grep "^\.taskmaster/" || true)
+if [[ -n "$TASKMASTER_FILES" ]]; then
+    echo "ERROR: Task Master worktree files cannot be committed"
+    exit 1
+fi
 ```
 
-✅ **Must NOT be in .gitignore (breaks agent access):**
-```gitignore
-# WRONG - prevents agents from accessing the worktree
-.taskmaster/
-```
+✅ **Must NOT be in .gitignore (allows agent access):**
+- Keep `.taskmaster/` visible to agents/tools
+- Not in `.gitignore`, not whitelisted with `!.taskmaster/**`
+- Just left untracked naturally
+
+✅ **Pre-commit hook propagates across clones:**
+- Hook installed by `install-hooks.sh` on setup
+- Consistent behavior across all clones
+- Can't be bypassed accidentally
 
 ❌ **Must NOT whitelist files from it:**
 ```gitignore
@@ -46,11 +54,11 @@ The `.taskmaster/` directory is a **git worktree**, not a regular directory:
 
 ❌ **Must NOT create .taskmaster/.gitignore:**
 - Worktree directories are working copies, not tracked
-- Creating .gitignore inside worktree violates isolation principle
+- Creating .gitignore inside violates isolation principle
 
-**Key distinction:**
-- `.gitignore`: Tracked in git, filters content for agents, prevents git operations
-- `.git/info/exclude`: Repo-specific (not committed), allows agent access, prevents commits via hooks
+**Key approach:**
+- **Not in .gitignore**: Files visible to agents
+- **Pre-commit hook checks**: Prevents commits, propagates via hook installation
 
 ### 3. .gitignore Rules - Clean Whitelisting
 
@@ -91,30 +99,33 @@ The commit to taskmaster branch violated several requirements:
 2. **Worktree isolation violation**: Created `.taskmaster/.gitignore` file
 3. **Merge conflict**: Unresolved `<<<<<<< HEAD` in .taskmaster/.gitignore
 4. **Configuration mixing**: Orchestration files included in taskmaster branch state
-5. **Agent access blocking**: Initially tried to block `.taskmaster/` via .gitignore (wrong mechanism)
 
-### Impact
+### Impact & Resolution
 
-- TaskMaster worktree files would be tracked on orchestration-tools branch
-- Branch isolation compromised  
-- Potential contamination of branch-specific configurations
-- Agents unable to access taskmaster worktree (if using .gitignore only)
+- ❌ TaskMaster worktree files would have been tracked on orchestration-tools branch
+- ❌ Branch isolation compromised  
+- ❌ Potential contamination of branch-specific configurations
+
+**Fixed with pre-commit hook approach:**
+- ✅ `.taskmaster/` remains visible to agents (not in .gitignore)
+- ✅ Pre-commit hook rejects commits of `.taskmaster/` files
+- ✅ Hook propagates via `install-hooks.sh` (consistent across clones)
+- ✅ Branch isolation enforced without blocking agent access
 
 ## Prevention Checklist
 
 Before committing to taskmaster or orchestration-tools branches:
 
 - [ ] No `.taskmaster/` files added to git index
-- [ ] `.taskmaster/` is in `.git/info/exclude` (not .gitignore)
 - [ ] `.taskmaster/` is NOT in `.gitignore` (preserves agent access)
 - [ ] No `!.taskmaster/**` whitelist in .gitignore
 - [ ] No `.taskmaster/.gitignore` file exists
+- [ ] Pre-commit hook installed (via `scripts/install-hooks.sh`)
+- [ ] Pre-commit hook checks for `.taskmaster/` files
 - [ ] Branch-specific configuration files present:
   - [ ] taskmaster: `.taskmaster/AGENTS.md`, `.taskmaster/config.json`
   - [ ] orchestration-tools: `AGENTS_orchestration-tools.md`, proper context profiles
 - [ ] No orchestration files in taskmaster branch
-- [ ] No .taskmaster references in orchestration-tools .gitignore
-- [ ] `.git/info/exclude` whitelisted in .gitignore for documentation
 - [ ] All merge conflicts resolved (no `<<<<<<<`)
 
 ## Command Reference
@@ -137,11 +148,17 @@ cd ..
 # Check what would be tracked on current branch
 git status
 
-# Verify .taskmaster is ignored
-git check-ignore -v .taskmaster/.gitignore
+# Verify .taskmaster is NOT in gitignore
+git check-ignore -v .taskmaster/ || echo "✓ .taskmaster not in gitignore"
+
+# Verify pre-commit hook is installed
+ls -la .git/hooks/pre-commit
 
 # Verify no taskmaster files in git index
 git ls-files | grep -i taskmaster  # Should return nothing on orchestration-tools
+
+# Test the hook by trying to stage and commit a taskmaster file
+git add .taskmaster/config.json 2>/dev/null && git commit -m "test" 2>&1 | grep "ERROR"  # Should show error
 ```
 
 ### Fix Violations
