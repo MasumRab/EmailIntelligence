@@ -18,7 +18,11 @@ fi
 # Set sync active flag to prevent recursion
 export ORCHESTRATION_SYNC_ACTIVE=1
 
-set -e
+# Load approval handler
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -f "$SCRIPT_DIR/lib/orchestration-approval.sh" ]]; then
+    source "$SCRIPT_DIR/lib/orchestration-approval.sh"
+fi
 
 # Get the current worktree path and branch
 WORKTREE_ROOT="$(git rev-parse --show-toplevel)"
@@ -44,20 +48,62 @@ checkout_from_orchestration() {
     if git ls-tree -r orchestration-tools --name-only | grep -q "^$file_path$"; then
         # Check if file differs before checkout
         if ! git diff --quiet orchestration-tools:"$file_path" "$file_path" 2>/dev/null; then
-            echo "Updating $file_path from orchestration-tools"
+            echo "  Updating $file_path"
             git checkout orchestration-tools -- "$file_path"
         fi
     else
-        echo "Warning: $file_path not found in orchestration-tools branch"
+        echo "  Info: $file_path not found in orchestration-tools branch"
     fi
 }
 
+# Collect what would be changed
+declare -a changed_files
+declare -a changed_dirs
+collect_changed_files "orchestration-tools" "changed_files"
+collect_changed_directories "orchestration-tools" "true" "changed_dirs"
+
+# If there are changes, get approval
+orchestration_approved=false
+if [[ ${#changed_files[@]} -gt 0 ]] || [[ ${#changed_dirs[@]} -gt 0 ]]; then
+    display_changes "${changed_files[@]}"
+    display_directory_changes "${changed_dirs[@]}"
+    
+    if prompt_for_approval "Synchronize orchestration files from orchestration-tools branch"; then
+        show_approval_result "true" "post-merge orchestration sync"
+        orchestration_approved=true
+    else
+        show_approval_result "false" "post-merge orchestration sync"
+        unset ORCHESTRATION_SYNC_ACTIVE
+        exit 0
+    fi
+fi
+
 # Update setup directory - includes setup_env* files
 # NOTE: .taskmaster is explicitly excluded to prevent deletion of TaskMaster task data
-if [ -d "setup" ]; then
-    echo "Synchronizing setup directory from orchestration-tools (including setup_env* files)"
+if [[ "$orchestration_approved" == true ]] && [ -d "setup" ]; then
+    echo "  Synchronizing setup directory"
     # Checkout entire setup directory
     git checkout orchestration-tools -- setup/
+fi
+
+# CRITICAL: Sync .github/instructions (Copilot and agent instructions)
+if [[ "$orchestration_approved" == true ]]; then
+    if git ls-tree -d orchestration-tools --name-only 2>/dev/null | grep -q "^\.github/instructions$"; then
+        echo "  Synchronizing .github/instructions (agent instructions)"
+        git checkout orchestration-tools -- .github/instructions/
+    fi
+fi
+
+# Sync .github documentation, workflows, and PR templates
+if [[ "$orchestration_approved" == true ]]; then
+    echo "  Synchronizing .github configuration"
+    checkout_from_orchestration ".github/BRANCH_PROPAGATION_POLICY.md"
+    checkout_from_orchestration ".github/DOCUMENTATION_DISTRIBUTION_REPORT.md"
+    checkout_from_orchestration ".github/PROPAGATION_SETUP_CHECKLIST.md"
+    checkout_from_orchestration ".github/pull_request_templates/orchestration-pr.md"
+    checkout_from_orchestration ".github/workflows/extract-orchestration-changes.yml"
+    checkout_from_orchestration ".github/workflows/lint.yml"
+    checkout_from_orchestration ".github/workflows/test.yml"
 fi
 
 # For worktrees that need orchestration setup, temporarily checkout from orchestration-tools

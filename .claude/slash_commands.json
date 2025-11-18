@@ -1,0 +1,100 @@
+{
+  "commands": [
+    {
+      "name": "task-next",
+      "description": "Get the next available task from Task Master",
+      "command": "python scripts/taskmaster_workflow_integration.py next",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "task-start",
+      "description": "Start working on a specific task with validation",
+      "command": "python scripts/taskmaster_workflow_integration.py start --task-id=${input:Task ID}",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "task-complete",
+      "description": "Complete a task with automated validation",
+      "command": "python scripts/taskmaster_workflow_integration.py complete --task-id=${input:Task ID}",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "task-cycle",
+      "description": "Run complete task workflow cycle (next → work → complete)",
+      "command": "python scripts/taskmaster_workflow_integration.py cycle",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "task-validate",
+      "description": "Run incremental validation on current changes",
+      "command": "python scripts/taskmaster_workflow_integration.py validate",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "task-report",
+      "description": "Generate comprehensive workflow performance report",
+      "command": "python scripts/taskmaster_workflow_integration.py report",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "stash-safe",
+      "description": "Execute git command with automatic stash management",
+      "command": "./scripts/stash_manager.sh safe-operation \"${input:Operation name}\" \"${input:Git command}\" --auto-stash",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "stash-status",
+      "description": "Check current git stash status and working directory",
+      "command": "./scripts/stash_manager.sh status",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "branch-safe",
+      "description": "Switch to branch with automatic stash management",
+      "command": "./scripts/stash_manager.sh safe-branch-switch ${input:Branch name}",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "validate-full",
+      "description": "Run comprehensive validation suite on project",
+      "command": "python scripts/parallel_validator.py --validate-all --output-format=detailed",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "deps-check",
+      "description": "Check task dependencies and readiness",
+      "command": "python scripts/task_dependency_resolver.py --check-ready",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "performance-report",
+      "description": "Generate task completion performance report",
+      "command": "python scripts/task_completion_tracker.py --generate-report --format=markdown",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "workflow-monitor",
+      "description": "Monitor workflow performance and generate reports",
+      "command": "python scripts/workflow_performance_monitor.py report",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "run-tests",
+      "description": "Run automated workflow cycle tests",
+      "command": "python scripts/workflow_cycle_tester.py --verbose",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "optimize-cache",
+      "description": "Analyze and optimize validation cache performance",
+      "command": "python scripts/validation_cache_optimizer.py analyze",
+      "working_directory": "${workspaceFolder}"
+    },
+    {
+      "name": "cache-strategy",
+      "description": "Get recommended cache optimization strategy",
+      "command": "python scripts/validation_cache_optimizer.py strategy",
+      "working_directory": "${workspaceFolder}"
+    }
+  ]
+}

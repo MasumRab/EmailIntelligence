@@ -6,6 +6,18 @@
 
 ---
 
+## Branch-Specific Extensions
+
+For branch-specific agent guidance, check for `AGENTS_{branch-name}.md` files:
+
+- `AGENTS_scientific.md` - Scientific branch extensions
+- `AGENTS_orchestration-tools.md` - Orchestration tools branch extensions  
+- `AGENTS_[branch-name].md` - Other branch-specific guides (as they exist)
+
+These files extend the core guidance in AGENTS.md with branch-specific commands, workflows, and considerations. If a file exists for your current branch, it supplements the main guide.
+
+---
+
 ## Executive Summary
 
 This document consolidates branch-specific agent guidelines across the EmailIntelligence project and identifies inconsistencies that need resolution. The project uses three primary branches with distinct purposes and agent access controls.
