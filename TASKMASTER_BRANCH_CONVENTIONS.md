@@ -26,22 +26,31 @@ The taskmaster branch must **never include** orchestration infrastructure:
 
 The `.taskmaster/` directory is a **git worktree**, not a regular directory:
 
-✅ **Must be in .gitignore:**
+✅ **Must be in .git/info/exclude (not tracked, but accessible to agents):**
+```
+# .git/info/exclude
+.taskmaster/
+```
+
+✅ **Must NOT be in .gitignore (breaks agent access):**
 ```gitignore
-# Task Master worktree - should never be committed on orchestration-tools
+# WRONG - prevents agents from accessing the worktree
 .taskmaster/
 ```
 
 ❌ **Must NOT whitelist files from it:**
 ```gitignore
-# WRONG - violates branch isolation
+# WRONG - would track taskmaster files in orchestration-tools
 !.taskmaster/**
 ```
 
 ❌ **Must NOT create .taskmaster/.gitignore:**
 - Worktree directories are working copies, not tracked
 - Creating .gitignore inside worktree violates isolation principle
-- Use root .gitignore to control what's tracked
+
+**Key distinction:**
+- `.gitignore`: Tracked in git, filters content for agents, prevents git operations
+- `.git/info/exclude`: Repo-specific (not committed), allows agent access, prevents commits via hooks
 
 ### 3. .gitignore Rules - Clean Whitelisting
 
@@ -82,26 +91,30 @@ The commit to taskmaster branch violated several requirements:
 2. **Worktree isolation violation**: Created `.taskmaster/.gitignore` file
 3. **Merge conflict**: Unresolved `<<<<<<< HEAD` in .taskmaster/.gitignore
 4. **Configuration mixing**: Orchestration files included in taskmaster branch state
+5. **Agent access blocking**: Initially tried to block `.taskmaster/` via .gitignore (wrong mechanism)
 
 ### Impact
 
 - TaskMaster worktree files would be tracked on orchestration-tools branch
-- Branch isolation compromised
+- Branch isolation compromised  
 - Potential contamination of branch-specific configurations
+- Agents unable to access taskmaster worktree (if using .gitignore only)
 
 ## Prevention Checklist
 
 Before committing to taskmaster or orchestration-tools branches:
 
 - [ ] No `.taskmaster/` files added to git index
-- [ ] `.gitignore` explicitly ignores `.taskmaster/` directory
-- [ ] No `!.taskmaster/**` whitelist present
+- [ ] `.taskmaster/` is in `.git/info/exclude` (not .gitignore)
+- [ ] `.taskmaster/` is NOT in `.gitignore` (preserves agent access)
+- [ ] No `!.taskmaster/**` whitelist in .gitignore
 - [ ] No `.taskmaster/.gitignore` file exists
 - [ ] Branch-specific configuration files present:
   - [ ] taskmaster: `.taskmaster/AGENTS.md`, `.taskmaster/config.json`
   - [ ] orchestration-tools: `AGENTS_orchestration-tools.md`, proper context profiles
 - [ ] No orchestration files in taskmaster branch
-- [ ] No .taskmaster references in orchestration-tools except in .gitignore
+- [ ] No .taskmaster references in orchestration-tools .gitignore
+- [ ] `.git/info/exclude` whitelisted in .gitignore for documentation
 - [ ] All merge conflicts resolved (no `<<<<<<<`)
 
 ## Command Reference
