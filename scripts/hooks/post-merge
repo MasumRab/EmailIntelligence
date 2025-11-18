@@ -53,9 +53,11 @@ if [[ -d ".taskmaster" && "$CURRENT_BRANCH" != "taskmaster" ]]; then
 fi
 
 # 4. Update git hooks if changed (optional, safe)
-if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" || "$CURRENT_BRANCH" == orchestration-tools-* ]]; then
     if [[ -f "scripts/install-hooks.sh" ]]; then
-        CURRENT_ORCH_COMMIT=$(git rev-parse orchestration-tools 2>/dev/null)
+        # For variants, use the main orchestration-tools branch for hook reference
+        HOOK_REF_BRANCH="orchestration-tools"
+        CURRENT_ORCH_COMMIT=$(git rev-parse $HOOK_REF_BRANCH 2>/dev/null)
         LAST_INSTALLED=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
         
         if [[ -z "$LAST_INSTALLED" ]] || [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED" ]]; then

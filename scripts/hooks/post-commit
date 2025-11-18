@@ -26,32 +26,32 @@ echo "Commit: $COMMIT_HASH"
 
 # Branch-specific post-commit actions
 case "$CURRENT_BRANCH" in
-    "orchestration-tools")
-        echo "Running orchestration-tools post-commit actions..."
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools post-commit actions for: $CURRENT_BRANCH"
 
         # Validate orchestration scripts are still functional
         if [[ -f "emailintelligence_cli.py" ]]; then
             echo "✓ EmailIntelligence CLI present"
         else
-            echo "WARNING: emailintelligence_cli.py missing after commit"
+            echo "INFO: emailintelligence_cli.py not found"
         fi
 
-        # Check if orchestration scripts are executable
-        for script in scripts/bash/*.sh; do
-            if [[ -f "$script" && ! -x "$script" ]]; then
-                echo "Fixing permissions for $script"
-                chmod +x "$script"
-            fi
-        done
+        # Check if orchestration scripts are executable (non-blocking)
+        if [[ -d "scripts/bash" ]]; then
+            for script in scripts/bash/*.sh; do
+                if [[ -f "$script" && ! -x "$script" ]]; then
+                    echo "Fixing permissions for $script"
+                    chmod +x "$script"
+                fi
+            done
+        fi
 
-        # Validate hook consistency
+        # Validate hook consistency (info only)
         if [[ -f ".git/hooks/post-merge" ]]; then
             echo "✓ Post-merge hook present"
-        else
-            echo "WARNING: Post-merge hook missing"
         fi
 
-        echo "✓ Orchestration-tools post-commit validation complete"
+        echo "✓ Orchestration-tools post-commit validation complete for: $CURRENT_BRANCH"
         ;;
 
     "main"|"scientific")

@@ -23,8 +23,8 @@ echo "Switched to branch: $CURRENT_BRANCH"
 
 # Only safe, non-blocking operations:
 
-# 1. Update git hooks if on orchestration-tools branch
-if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
+# 1. Update git hooks if on orchestration-tools or orchestration-tools-* branch
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" || "$CURRENT_BRANCH" == orchestration-tools-* ]]; then
     echo "On orchestration-tools branch"
     
     # Check if hook installation script exists

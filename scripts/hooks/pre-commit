@@ -19,6 +19,12 @@ set -e
 # Get current branch
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
+# Determine if this is an orchestration-tools variant branch
+IS_ORCHESTRATION_VARIANT=false
+if [[ "$CURRENT_BRANCH" == orchestration-tools* ]]; then
+    IS_ORCHESTRATION_VARIANT=true
+fi
+
 # Branch-specific checks
 case "$CURRENT_BRANCH" in
     "main"|"scientific")
@@ -42,22 +48,23 @@ case "$CURRENT_BRANCH" in
         echo "✓ Pre-commit checks passed for $CURRENT_BRANCH"
         ;;
 
-    "orchestration-tools")
-        echo "Running orchestration-tools pre-commit checks..."
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools pre-commit checks for: $CURRENT_BRANCH"
 
-        # CRITICAL: Prevent .taskmaster/ files from being committed
-        # .taskmaster/ is a separate git worktree with its own branch
-        # But allow .taskmaster/ to be visible in working directory (just not committed)
-        TASKMASTER_FILES=$(git diff --cached --name-only 2>/dev/null | grep "^\.taskmaster/" || true)
-        if [[ -n "$TASKMASTER_FILES" ]]; then
-            echo "ERROR: Task Master worktree files cannot be committed to orchestration-tools"
-            echo "The .taskmaster/ directory is a separate git worktree tracked independently."
-            echo "Files detected:"
-            echo "$TASKMASTER_FILES"
-            echo ""
-            echo "If you accidentally staged these files:"
-            echo "  git restore --staged .taskmaster/"
-            exit 1
+        # CRITICAL: Prevent .taskmaster/ files from being committed on main orchestration-tools
+        # Only enforce this on the main "orchestration-tools" branch, not variants
+        if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
+            TASKMASTER_FILES=$(git diff --cached --name-only 2>/dev/null | grep "^\.taskmaster/" || true)
+            if [[ -n "$TASKMASTER_FILES" ]]; then
+                echo "ERROR: Task Master worktree files cannot be committed to orchestration-tools"
+                echo "The .taskmaster/ directory is a separate git worktree tracked independently."
+                echo "Files detected:"
+                echo "$TASKMASTER_FILES"
+                echo ""
+                echo "If you accidentally staged these files:"
+                echo "  git restore --staged .taskmaster/"
+                exit 1
+            fi
         fi
 
         # Ensure orchestration scripts are executable (non-blocking)
@@ -77,7 +84,7 @@ case "$CURRENT_BRANCH" in
             echo "✓ EmailIntelligence CLI present"
         fi
 
-        echo "✓ Orchestration-tools pre-commit checks passed"
+        echo "✓ Orchestration-tools pre-commit checks passed for: $CURRENT_BRANCH"
         ;;
 
     "taskmaster")
