@@ -70,6 +70,7 @@ config/llm_guidelines.local.json
 !.semgrep/
 !.gitignore
 !.git/hooks/
+!.git/info/exclude
 !.flake8
 !.pylintrc
 !.github/
@@ -77,9 +78,6 @@ config/llm_guidelines.local.json
 !.gemini/**
 !.qwen/**
 !.claude/
-
-# Task Master worktree - should never be committed on orchestration-tools
-.taskmaster/
 
 # Python cache
 **/__pycache__/
