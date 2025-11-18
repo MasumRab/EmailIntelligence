@@ -76,7 +76,11 @@ config/llm_guidelines.local.json
 !.specify/**
 !.gemini/**
 !.qwen/**
-!.taskmaster/**
+!.claude/
+
+# Task Master worktree - should never be committed on orchestration-tools
+.taskmaster/
+
 # Python cache
 **/__pycache__/
 
