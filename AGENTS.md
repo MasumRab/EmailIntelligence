@@ -15,6 +15,16 @@
 ### 📋 Main & orchestration-tools Branches
 **If working on `main` or orchestration-tools-*:** Use this guide (below)
 
+### Branch-Specific Extensions
+
+For branch-specific agent guidance, check for `AGENTS_{branch-name}.md` files:
+
+- `AGENTS_scientific.md` - Scientific branch extensions
+- `AGENTS_orchestration-tools.md` - Orchestration tools branch extensions  
+- `AGENTS_[branch-name].md` - Other branch-specific guides (as they exist)
+
+These files extend the core guidance in this file with branch-specific commands, workflows, and considerations. If a file exists for your current branch, it supplements this guide.
+
 **Environment Compatibility:**
 - **Jules** (Google's agentic IDE at jules.google.com): NOT compatible with this guide
   - Refer to your Jules-specific agent documentation
@@ -467,6 +477,33 @@ These commands make AI calls and may take up to a minute:
 - Requires a research model API key like Perplexity (`PERPLEXITY_API_KEY`) in environment
 - Provides more informed task creation and updates
 - Recommended for complex technical tasks
+
+## Task Creation with Duplicate Prevention
+
+Before creating a new task, use the automated validator to check all existing task documentation:
+
+```bash
+# Systematically check all task files before creating new task
+./scripts/bash/task-creation-validator.sh "Your Task Title" keyword1 keyword2
+
+# If no duplicates found, create:
+task-master add-task --prompt="Your task description"
+task-master expand --id=<new-id> --research
+```
+
+**Reference Documentation:**
+- `TASK_CREATION_QUICK_REF.md` - Quick lookup (1-2 min read)
+- `TASK_CREATION_GUIDE.md` - Detailed manual with search strategies
+- `TASK_CREATION_WORKFLOW.md` - Complete workflow with examples
+
+The validator automatically checks:
+- .taskmaster/tasks/tasks.json
+- .taskmaster/tasks/*.md files
+- backlog/ directory
+- specs/ directory
+- Root-level .md files
+- Task dependencies
+- Next available task ID
 
 ---
 
