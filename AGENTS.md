@@ -15,6 +15,13 @@
 ### 📋 Main & orchestration-tools Branches
 **If working on `main` or orchestration-tools-*:** Use this guide (below)
 
+### 🛠️ Task Master Branch
+**If working on the `taskmaster` branch:**
+- Dedicated Task Master development worktree with isolated git history
+- Must maintain strict branch isolation from orchestration-tools
+- See `TASKMASTER_BRANCH_CONVENTIONS.md` for critical requirements
+- **CRITICAL**: Taskmaster worktree files must never be committed on other branches
+
 ### Branch-Specific Extensions
 
 For branch-specific agent guidance, check for `AGENTS_{branch-name}.md` files:
@@ -24,6 +31,11 @@ For branch-specific agent guidance, check for `AGENTS_{branch-name}.md` files:
 - `AGENTS_[branch-name].md` - Other branch-specific guides (as they exist)
 
 These files extend the core guidance in this file with branch-specific commands, workflows, and considerations. If a file exists for your current branch, it supplements this guide.
+
+**IMPORTANT: Branch Isolation**
+- See `TASKMASTER_BRANCH_CONVENTIONS.md` before working with taskmaster branch
+- Prevents contamination between development environments
+- Protects branch-specific configurations and worktree integrity
 
 **Environment Compatibility:**
 - **Jules** (Google's agentic IDE at jules.google.com): NOT compatible with this guide
