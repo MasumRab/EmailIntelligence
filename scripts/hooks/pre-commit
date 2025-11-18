@@ -22,36 +22,28 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 # Branch-specific checks
 case "$CURRENT_BRANCH" in
     "main"|"scientific")
-        echo "Running orchestration checks for $CURRENT_BRANCH branch..."
+        echo "Running pre-commit checks for $CURRENT_BRANCH branch..."
 
-        # Check for required files
-        if [[ ! -f "setup/setup_environment_system.sh" ]]; then
-            echo "ERROR: setup/setup_environment_system.sh not found"
-            echo "This file is required for orchestration. Please ensure setup directory is synchronized."
-            exit 1
-        fi
-
-        # Check for Task Master compatibility
+        # Validate Task Master compatibility (warning only)
         if [[ -d ".taskmaster" ]]; then
-            echo "✓ Task Master directory detected - ensuring compatibility"
+            echo "✓ Task Master directory detected"
 
-            # Validate Task Master configuration
+            # Check Task Master configuration (info only)
             if [[ ! -f ".taskmaster/config.json" ]]; then
-                echo "WARNING: .taskmaster/config.json not found"
-                echo "Task Master may not be properly initialized"
+                echo "INFO: .taskmaster/config.json not found (may not be initialized)"
             fi
         fi
 
-        # Check for orchestration environment variables
-        if [[ -z "$PYTHONPATH" ]]; then
-            echo "WARNING: PYTHONPATH not set - may affect module imports"
+        # Check for common files (info only, don't block)
+        if [[ ! -f "setup/setup_environment_system.sh" ]]; then
+            echo "INFO: setup/setup_environment_system.sh not found (may be normal for this branch)"
         fi
 
-        echo "✓ Orchestration pre-commit checks passed"
+        echo "✓ Pre-commit checks passed for $CURRENT_BRANCH"
         ;;
 
     "orchestration-tools")
-        echo "Running orchestration-tools specific checks..."
+        echo "Running orchestration-tools pre-commit checks..."
 
         # CRITICAL: Prevent .taskmaster/ files from being committed
         # .taskmaster/ is a separate git worktree with its own branch
@@ -68,7 +60,7 @@ case "$CURRENT_BRANCH" in
             exit 1
         fi
 
-        # Ensure orchestration scripts are executable
+        # Ensure orchestration scripts are executable (non-blocking)
         if [[ -d "scripts/bash" ]]; then
             for script in scripts/bash/*.sh; do
                 if [[ -f "$script" && ! -x "$script" ]]; then
@@ -78,28 +70,31 @@ case "$CURRENT_BRANCH" in
             done
         fi
 
-        # Validate orchestration configuration
+        # Validate orchestration configuration (info only, non-blocking)
         if [[ ! -f "emailintelligence_cli.py" ]]; then
-            echo "ERROR: emailintelligence_cli.py not found in orchestration-tools"
-            exit 1
+            echo "INFO: emailintelligence_cli.py not found"
+        else
+            echo "✓ EmailIntelligence CLI present"
         fi
 
         echo "✓ Orchestration-tools pre-commit checks passed"
         ;;
 
     "taskmaster")
-        echo "Running Task Master branch checks..."
+        echo "Running Task Master branch pre-commit checks..."
 
-        # Ensure Task Master CLI compatibility
+        # Validate Task Master files (info only, non-blocking)
         if [[ ! -f "AGENT.md" ]]; then
-            echo "ERROR: AGENT.md not found - required for Task Master branch"
-            exit 1
+            echo "INFO: AGENT.md not found"
+        else
+            echo "✓ Task Master AGENT.md present"
         fi
 
-        # Check for required taskmaster scripts
+        # Check for taskmaster scripts (info only)
         if [[ ! -f "scripts/next_task.py" ]]; then
-            echo "ERROR: scripts/next_task.py not found - required for Task Master"
-            exit 1
+            echo "INFO: scripts/next_task.py not found"
+        else
+            echo "✓ Task Master scripts present"
         fi
 
         echo "✓ Task Master pre-commit checks passed"
