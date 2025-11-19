@@ -42,7 +42,7 @@ coverage/
 .pytest_cache/
 
 # IDEs / editor-specific
-.vscode/
+#.vscode/
 .idea/
 *.iml
 *.sublime-project
@@ -61,7 +61,7 @@ config.local.*
 config/llm_guidelines.local.json
 
 # Ignore hidden files and directories, with exceptions
-.*
+#.*
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
