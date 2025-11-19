@@ -68,22 +68,22 @@ As a developer, I want to easily access and run the rebase analysis and intent v
 
 ### Edge Cases
 
-- What happens when a branch has been rebased multiple times?
-- How does the system handle merge conflicts that were resolved during rebase?
-- What if the original commit messages are unclear or misleading?
-- How does the system differentiate between intentional changes during rebase (e.g., squashing commits) and unintended alterations?
+- **Multiple Rebases**: The system will analyze the most recent rebase sequence by default. It MUST provide an option for the user to select and analyze older rebase sequences.
+- **Resolved Merge Conflicts**: The analysis report MUST highlight any commit that resolved a merge conflict and explicitly state that a conflict occurred and was resolved at that point.
+- **Unclear Commit Messages**: If the system cannot infer the intent from an ambiguous commit message, it MUST mark the "inferred intent" as "Ambiguous" and flag the commit in the final report for manual review.
+- **Intentional vs. Unintentional Changes**: How does the system differentiate between intentional changes during rebase (e.g., squashing commits) and unintended alterations? [NEEDS CLARIFICATION]
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: The system MUST analyze the commit history of a specified branch.
-- **FR-002**: The system MUST reconstruct a chronological story of changes in a rebased branch.
+- **FR-002**: The system MUST reconstruct a chronological story of changes in a rebased branch. This story MUST be presented as a structured list containing the commit hash, author, date, full message, and the inferred intent for each commit.
 - **FR-003**: The system MUST identify the original intentions behind changes in rebased commits.
 - **FR-004**: The system MUST verify that merged changes reflect original intentions.
 - **FR-005**: The system MUST highlight discrepancies between merged changes and original intentions.
-- **FR-006**: The system MUST identify branches that have undergone rebase operations.
-- **FR-007**: The system MUST provide a report summarizing the analysis and verification results.
+- **FR-006**: The system MUST identify branches that have undergone rebase operations. It will do this by comparing the commit hashes between a local branch and its remote tracking branch to detect divergence.
+- **FR-007**: The system MUST provide a Markdown report summarizing the analysis. The report must include a summary with high-level statistics, the detailed chronological story of commits, and an "Action Items" section listing any commits flagged for manual review.
 - **FR-008**: The system MUST provide a mechanism for easy installation and setup of the tools on any development branch.
 - **FR-009**: The system MUST ensure that the tools are executable from any development branch without requiring manual path adjustments or environment variable configurations.
 - **FR-010**: The system SHOULD support integration with CI/CD pipelines to automate rebase analysis on relevant branches.
@@ -102,17 +102,26 @@ As a developer, I want to easily access and run the rebase analysis and intent v
 - **SC-001**: The analysis tool MUST accurately reconstruct the commit history for 95% of rebased branches.
 - **SC-002**: The verification tool MUST identify 90% of discrepancies between merged changes and original intentions.
 - **SC-003**: The system MUST reduce the time spent manually reviewing rebased branches by 50%.
-- **SC-004**: Developers MUST report a 80% increase in confidence regarding the integrity of merged rebased branches.
+- **SC-004**: Developers MUST report an 80% increase in confidence regarding the integrity of merged rebased branches. This will be measured by: 1) A mandatory survey after using the tool (rating confidence 1-5), and 2) Tracking post-merge bugs attributable to incorrect rebasing. The target is an 80% average confidence increase from baseline AND a decrease in post-merge bugs over a 3-month period.
 
 ## Assumptions
 
 - The system has access to the Git repository and its full history.
-- "Original intentions" can be inferred from commit messages, code changes, and potentially linked issue trackers.
+- "Original intentions" will be inferred by analyzing commit messages as the primary source. If messages are ambiguous, the system will fall back to analyzing semantic code changes. Analysis of linked issue trackers is out of scope.
 - The definition of "rebased branch" is clear (e.g., a branch whose history has been rewritten).
 - The project utilizes a consistent environment or containerization strategy across development branches to ensure tool compatibility.
 - Tool updates are propagated efficiently across all branches (e.g., via a shared script directory or package management).
 
 ## Clarifications
+
+### Session 2025-11-19
+- Q: How should the system infer "original intentions" from a rebased commit history? → A: Analyze the content of commit messages as the primary source. If messages are ambiguous, fall back to analyzing the semantic code changes.
+- Q: What format should the "chronological story" of changes be presented in? → A: Structured List: A detailed list including commit hash, author, date, full message, and the "inferred intent".
+- Q: How should the system handle a branch that has been rebased multiple times? → A: Analyze the most recent rebase sequence by default, with an option to analyze older sequences.
+- Q: How should the system represent a merge conflict that was resolved during a rebase? → A: Highlight the conflict-resolving commit and explicitly state that a merge conflict was resolved.
+- Q: What should the system do with an ambiguous commit message where intent cannot be inferred? → A: Mark the "inferred intent" as "Ambiguous" and flag it in the report for manual review.
+- Q: What is the required structure for the analysis report and the heuristic for identifying rebased branches? → A: The report will be Markdown with a Summary, Chronological Story, and Action Items sections. Rebased branches will be detected by comparing local and remote branch commit hashes for divergence.
+- Q: How will the 80% increase in developer "confidence" be measured? → A: Through a two-part process: 1) A mandatory survey for developers after using the tool, rating confidence on a 1-5 scale, and 2) Tracking the number of post-merge bugs attributable to incorrect rebasing. The target is an 80% average confidence increase from baseline AND a decrease in post-merge bugs over 3 months.
 
 ### Session 2025-11-10
 - Q: What are the reliability and availability expectations for the analysis tool? → A: High reliability, with error handling and retry mechanisms.
