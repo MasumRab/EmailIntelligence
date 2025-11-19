@@ -66,9 +66,9 @@ Comprehensive testing ensures that context control mechanisms work reliably acro
 
 ### Edge Cases
 
-- What happens when an agent operates in an undefined branch environment?
+- **Undefined Branch Environment**: If an agent operates in a branch with no defined context, the system MUST enforce a "fail-safe" behavior. The agent is to be denied all context and non-essential tools, and a critical error must be logged.
 - How does the system handle rapid branch switching by agents?
-- What occurs when project configurations conflict with branch-specific settings?
+- **Configuration Conflicts**: In case of conflict between project-level and branch-level settings, the branch-level configuration MUST take precedence.
 - How does the system behave when context files are corrupted or inaccessible?
 
 ### Testing Environments
@@ -105,7 +105,7 @@ Comprehensive testing ensures that context control mechanisms work reliably acro
 - **FR-003**: System MUST allow project-specific configuration of agent capabilities and behavior
 - **FR-004**: System MUST provide robust testing mechanisms to verify context control functionality
 - **FR-005**: System MUST log context access patterns for auditing and debugging purposes
-- **FR-006**: System MUST handle context switching gracefully when agents move between environments
+- **FR-006**: System MUST handle context switching gracefully. While waiting for a new context to load, the agent MUST pause new actions, display a "loading" state, and may only use its previous context for read-only operations.
 - **FR-007**: System MUST validate context integrity before providing it to agents
 - **FR-008**: System MUST support both automated and manual testing scenarios
 - **FR-009**: System MUST implement security measures including context validation and access logging
@@ -116,17 +116,26 @@ Comprehensive testing ensures that context control mechanisms work reliably acro
 - **FR-014**: System MUST implement prevention safeguards and recovery mechanisms for identified failure modes
 - **FR-015**: System MUST optimize context delivery to minimize token usage while maintaining functionality
 - **FR-016**: System MUST ensure orchestration branch operations receive appropriate verification context without contamination
+- **FR-017**: System MUST enforce a fail-safe behavior for undefined branch environments, denying all context and logging a critical error
+- **FR-018**: System MUST resolve configuration conflicts by ensuring branch-level settings override project-level settings
 
 ### Key Entities *(include if feature involves data)*
 
 - **Agent Context Profile**: Defines what information and capabilities an agent has access to, including environment-specific settings and project configurations
 - **Branch Environment**: Represents a git branch with associated context files, rules, and configurations
-- **Project Configuration**: Contains project-specific settings that customize agent behavior and available tools
+- **Project Configuration**: Contains project-specific settings that customize agent behavior and available tools. The system discovers this configuration by looking for a file named `.agent-config.yml` in the project's root directory.
 - **Context Test Suite**: Collection of automated tests that verify context control mechanisms work correctly
 - **Testing Environment**: Specific environment configuration (development, CI/CD, staging, production) with defined context requirements
 - **Failure Analysis Engine**: System component that detects, classifies, and analyzes context control failures with root cause identification
 
 ## Clarifications
+
+### Session 2025-11-19
+- Q: What is the default security posture when an agent operates in a branch environment that is not explicitly defined in the configuration? → A: Deny Access (Fail-Safe): The agent is denied all context and non-essential tools, logging a critical error.
+- Q: How should the system resolve conflicts when a project-level configuration and a branch-level configuration provide different values for the same setting? → A: Branch Overrides Project: Branch-level settings override project-level settings.
+- Q: When an agent is switching contexts (e.g., due to a branch change), what is its expected behavior while it waits for the new context to load? → A: Pause & Use Cache (Read-Only): The agent pauses new actions, displays a "loading" state, and uses the old (stale) context for read-only operations only.
+- Q: How does the system discover the `Project Configuration` file? → A: Look for `.agent-config.yml` in the root.
+- Q: What are the specific permissions for "designated reviewers" versus "regular users"? → A: Full vs. Filtered View: Reviewers see the complete, unfiltered context. Regular users see only a subset, excluding sensitive or advanced configurations.
 
 ### Session 2025-11-10
 
@@ -171,7 +180,7 @@ The Agent Context Control framework is organized with a hierarchical, layered ap
 This feature directly supports the Orchestration Tools Verification and Review System by:
 
 - **Verification-First Alignment**: Context control ensures agents have appropriate verification context for orchestration changes
-- **Role-Based Access**: Designated reviewers get enhanced context, regular users get basic verification access
+- **Role-Based Access**: Access to context is filtered based on user roles. "Designated reviewers" are granted access to the complete, unfiltered context. "Regular users" receive a filtered subset of the context that excludes sensitive or advanced configurations not relevant to their tasks.
 - **Multi-Branch Support**: Handles scientific, main, and orchestration-tools branches with appropriate context isolation
 - **CI/CD Integration**: Provides context for automated verification processes without human intervention
 
