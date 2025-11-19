@@ -71,7 +71,7 @@ As a developer, I want to easily access and run the rebase analysis and intent v
 - **Multiple Rebases**: The system will analyze the most recent rebase sequence by default. It MUST provide an option for the user to select and analyze older rebase sequences.
 - **Resolved Merge Conflicts**: The analysis report MUST highlight any commit that resolved a merge conflict and explicitly state that a conflict occurred and was resolved at that point.
 - **Unclear Commit Messages**: If the system cannot infer the intent from an ambiguous commit message, it MUST mark the "inferred intent" as "Ambiguous" and flag the commit in the final report for manual review.
-- **Intentional vs. Unintentional Changes**: How does the system differentiate between intentional changes during rebase (e.g., squashing commits) and unintended alterations? [NEEDS CLARIFICATION]
+- **Intentional vs. Unintentional Changes**: The system will differentiate intentional from unintentional changes by analyzing commit messages (primary source), semantic code changes, the impact on automated tests, and potentially leveraging developer-provided configurations (e.g., git notes).
 
 ## Requirements *(mandatory)*
 

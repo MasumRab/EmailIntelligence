@@ -1,33 +1,52 @@
-# Research for Orchestration Tools Analysis and File Restoration
+# Research Findings: Rebase Analysis and Intent Verification
 
-This document outlines the research required to understand the processes surrounding the `orchestration-tools` and to restore lost files.
+**Purpose**: Resolve remaining ambiguities and establish best practices for implementation.
+**Created**: 2025-11-19
+**Feature**: [spec.md](./spec.md)
+**Plan**: [plan.md](./plan.md)
 
-## Research Tasks
+## Research Task 1: Best Practices for GitPython in Git History Analysis and Rebase Detection
 
-1.  **Analyze Git History**:
-    - **Task**: Analyze the git history of the `orchestration-tools` and `orchestration-tools-changes` branches to understand their relationship and commit flow.
-    - **Method**: Use `git log --graph --oneline --all` and `git log orchestration-tools..orchestration-tools-changes` to visualize the history and differences.
+### Decision:
 
-2.  **Investigate Extraction Process**:
-    - **Task**: Investigate the process for extracting changes from `orchestration-tools` and pushing them to `orchestration-tools-changes`.
-    - **Method**: Search the codebase for scripts that mention these branches. Look for files in `scripts/` directory.
+Utilize `GitPython` for direct interaction with Git repositories, focusing on its capabilities for:
+1.  **Commit Graph Traversal**: Efficiently navigate commit history.
+2.  **Diff Analysis**: Compare trees and commits to identify changes.
+3.  **Reflog Inspection**: (For advanced rebase detection) Analyze local reflog for history rewrites.
 
-3.  **Analyze Push Necessity**:
-    - **Task**: Analyze the necessity of pushes from `orchestration-tools` to `orchestration-tools-changes`.
-    - **Method**: Review the commit messages and changes in `orchestration-tools-changes` to understand its purpose.
+### Rationale:
 
-4.  **Analyze Subset Pushes**:
-    - **Task**: Analyze pushes from subsets of `orchestration-tools` files to other branches.
-    - **Method**: Use `git log -- <file_path>` to trace the history of specific files and identify when they were moved to other branches.
+`GitPython` provides a high-level API for Git operations, simplifying complex interactions and maintaining a pure Python codebase as specified in the `Technical Context`. It allows for direct access to commit objects, trees, and blobs, which is crucial for detailed analysis.
 
-5.  **Develop Restoration Strategy**:
-    - **Task**: Develop a strategy to identify and restore lost files across multiple branches.
-    - **Method**: Use `git reflog` and `git fsck --lost-found` to find orphaned commits and blobs.
+### Alternatives Considered:
 
-6.  **Propose Integration Method**:
-    - **Task**: Propose a method to integrate the restored files into the "current latest state" of the repository.
-    - **Method**: Based on the findings, propose a strategy using `git cherry-pick`, `git merge`, or a manual merge process.
+-   **Subprocess calls to `git` CLI**: More brittle, platform-dependent, and requires parsing raw output. Rejected for maintainability and robustness.
+-   **PyGrit**: Older, less maintained than GitPython. Rejected for long-term support.
 
-## Research Findings
+---
 
-*This section will be filled in as research is completed.*
+## Research Task 2: Differentiating Intentional vs. Unintentional Changes During Git Rebase Operations
+
+### Decision:
+
+Implement a multi-faceted approach to differentiate intentional changes from unintentional alterations during rebase:
+
+1.  **Commit Message Analysis**: Prioritize commit messages for explicit intent (as previously clarified). Squashed commits are intentional by nature.
+2.  **Semantic Change Detection**: Analyze code changes for common refactoring patterns (e.g., function renames, variable renaming, code movement without functional change). Heuristics will be developed to classify these as intentional cleanup.
+3.  **Automated Test Impact**: For critical changes, assess if any automated tests were broken and subsequently fixed within the rebase sequence. Breaks followed by immediate fixes within the same rebase often indicate intentional adjustments.
+4.  **Configuration for Intent**: Provide a mechanism (e.g., `git notes` or a configuration file) for developers to explicitly mark commits or changes as intentional refactorings or squashes.
+
+### Rationale:
+
+Rebases often involve a mix of squashing, reordering, and minor corrections. Relying solely on commit messages is insufficient. Semantic analysis provides a more robust signal, while test impact and explicit developer marking enhance accuracy. This combines automated detection with developer-provided context.
+
+### Alternatives Considered:
+
+-   **Purely heuristic-based**: High false-positive rate for unintentional changes. Rejected for accuracy.
+-   **Manual review only**: Does not meet the automation goal of the feature. Rejected for efficiency.
+
+---
+
+## Conclusion
+
+The findings from these research tasks will inform the detailed design and implementation of the rebase analysis and intent verification tool, particularly in `src/services/rebase_analyzer.py` and `src/services/merge_verifier.py`.
