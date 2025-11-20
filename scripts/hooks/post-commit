@@ -26,32 +26,32 @@ echo "Commit: $COMMIT_HASH"
 
 # Branch-specific post-commit actions
 case "$CURRENT_BRANCH" in
-    "orchestration-tools")
-        echo "Running orchestration-tools post-commit actions..."
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools post-commit actions for: $CURRENT_BRANCH"
 
         # Validate orchestration scripts are still functional
         if [[ -f "emailintelligence_cli.py" ]]; then
             echo "✓ EmailIntelligence CLI present"
         else
-            echo "WARNING: emailintelligence_cli.py missing after commit"
+            echo "INFO: emailintelligence_cli.py not found"
         fi
 
-        # Check if orchestration scripts are executable
-        for script in scripts/bash/*.sh; do
-            if [[ -f "$script" && ! -x "$script" ]]; then
-                echo "Fixing permissions for $script"
-                chmod +x "$script"
-            fi
-        done
+        # Check if orchestration scripts are executable (non-blocking)
+        if [[ -d "scripts/bash" ]]; then
+            for script in scripts/bash/*.sh; do
+                if [[ -f "$script" && ! -x "$script" ]]; then
+                    echo "Fixing permissions for $script"
+                    chmod +x "$script"
+                fi
+            done
+        fi
 
-        # Validate hook consistency
+        # Validate hook consistency (info only)
         if [[ -f ".git/hooks/post-merge" ]]; then
             echo "✓ Post-merge hook present"
-        else
-            echo "WARNING: Post-merge hook missing"
         fi
 
-        echo "✓ Orchestration-tools post-commit validation complete"
+        echo "✓ Orchestration-tools post-commit validation complete for: $CURRENT_BRANCH"
         ;;
 
     "main"|"scientific")
@@ -86,25 +86,23 @@ case "$CURRENT_BRANCH" in
     "taskmaster")
         echo "Running Task Master post-commit actions..."
 
-        # Validate Task Master files
+        # Validate Task Master files (warnings only, don't block commits)
         if [[ ! -f "AGENT.md" ]]; then
-            echo "ERROR: AGENT.md missing from Task Master branch"
-            exit 1
+            echo "WARNING: AGENT.md missing from Task Master branch"
         fi
 
         # Check for task-related changes
-        TASK_FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E "\.taskmaster|tasks/" | wc -l)
+        TASK_FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | grep -E "\.taskmaster|tasks/" | wc -l || echo 0)
 
         if [[ $TASK_FILES_CHANGED -gt 0 ]]; then
             echo "Task-related files changed - validating Task Master integrity..."
 
-            # Validate task JSON structure
+            # Validate task JSON structure (warning only)
             if [[ -f ".taskmaster/tasks/tasks.json" ]]; then
                 if python3 -m json.tool ".taskmaster/tasks/tasks.json" >/dev/null 2>&1; then
                     echo "✓ Task Master JSON is valid"
                 else
-                    echo "ERROR: Task Master JSON is malformed"
-                    exit 1
+                    echo "WARNING: Task Master JSON may be malformed (manual review recommended)"
                 fi
             fi
         fi

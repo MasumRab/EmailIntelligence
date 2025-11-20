@@ -70,13 +70,15 @@ config/llm_guidelines.local.json
 !.semgrep/
 !.gitignore
 !.git/hooks/
+!.git/info/exclude
 !.flake8
 !.pylintrc
 !.github/
 !.specify/**
 !.gemini/**
 !.qwen/**
-!.taskmaster/**
+!.claude/
+
 # Python cache
 **/__pycache__/
 
