@@ -39,6 +39,12 @@ class TestSyncScripts:
         assert script_path.is_file()
         assert os.access(script_path, os.X_OK), "Script should be executable"
 
+    def test_manage_changes_script_exists(self):
+        """Test that manage orchestration changes script exists"""
+        script_path = Path("scripts/manage_orchestration_changes.sh")
+        assert script_path.exists()
+        assert os.access(script_path, os.X_OK)
+
 
 class TestSyncScriptExecution:
     """Test that sync scripts can execute without critical errors."""
@@ -76,7 +82,13 @@ class TestSyncConfiguration:
         # Check reverse_sync_orchestration.sh has MANAGED_FILES
         script_path = Path("scripts/reverse_sync_orchestration.sh")
         content = script_path.read_text()
-        assert "MANAGED_FILES=(" in content, "Should define MANAGED_FILES array"
+        assert "MANAGED_FILES=(" in content, "Should define MANAGED_FILES array in reverse_sync_orchestration.sh"
+
+        # Check manage_orchestration_changes.sh has MANAGED_FILES
+        script_path = Path("scripts/manage_orchestration_changes.sh")
+        content = script_path.read_text()
+        assert "MANAGED_FILES" in content, "Should define MANAGED_FILES in manage_orchestration_changes.sh"
+
 
     def test_managed_files_include_essentials(self):
         """Test that managed files include essential orchestration files."""

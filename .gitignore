@@ -89,13 +89,12 @@ config/llm_guidelines.local.json
 models/*.pkl
 worktrees/
 
-
 # Centralized Agent Markdown Files
 !docs/agents/
-#AGENTS.md
-#CLAUDE.md
-#GEMINI.md
-#QWEN.md
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+QWEN.md
 !docs/agents/OPENCODE.md
 !docs/agents/AIDER.md
 !docs/agents/CURSOR.md

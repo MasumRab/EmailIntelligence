@@ -1,0 +1,14 @@
+{
+  "constitutional_framework": {
+    "default_constitutions": [],
+    "compliance_threshold": 0.8
+  },
+  "worktree_settings": {
+    "cleanup_on_completion": true,
+    "max_worktrees": 10
+  },
+  "analysis_settings": {
+    "enable_ai_analysis": false,
+    "detailed_reporting": true
+  }
+}
