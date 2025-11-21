@@ -1,48 +1,96 @@
-# Task Master - Git Ignore
+# Node.js
+node_modules/
+dist/
+.DS_Store
+server/public/
+vite.config.ts.*
+*.tar.gz
+
+# Python virtual environment
+venv/
+.env
+.env.*
+*.env
+!.env.example
+
+# Credentials and sensitive data
+token.json
+credentials.json
+apikey.json
+jsons/
+jsons/*
+
+# Build / packaging artifacts
+build/
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+*.whl
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Test and coverage reports
+.coverage
+.coverage.*
+coverage.xml
+coverage/
+*.cover
+.pytest_cache/
+
+# IDEs / editor-specific
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+.history
+
+# Misc
+logs/
+
+# Ignore configuration and local environment files
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
+config/llm_guidelines.local.json
+
+<<<<<<< HEAD
+# Ignore hidden files and directories, with exceptions
+.*
+!docs/.gitkeep
+!.semgrep/
+!.gitignore
+!.git/hooks/
 
 # Python cache
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
 
-# Virtual environments
-venv/
-env/
-ENV/
+# Miscellaneous
+performance_metrics_log.jsonl
+models/*.pkl
+worktrees/
 
-# IDE / Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-
-# Local configuration files
-config.local.json
-*.local.json
-*.local.*
-.env
-.env.local
-
-# Temporary files
-*.tmp
+# Backup files
 *.bak
+*~
 *.backup
-*.log
+backlog/config.yml.bak
+original_readme.md
+scripts/hooks/
 
-# OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Desktop.ini
-
-# Task Master specific
-# Note: tasks/*.json and tasks/*.txt are tracked (auto-generated but important)
-# reports/*.json are tracked (analysis reports)
+# Hidden files/directories (exceptions below)
+.aider.tags.cache.v4/
+.aider.chat.history.md
+.aider.conf.yml
+.aider.input.history
+.curl/
+.npm/
+.npm-*
+.python-version
+.ruby-version
+.tool-versions
