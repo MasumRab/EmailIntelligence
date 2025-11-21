@@ -11,7 +11,8 @@ import {
   Trash2,
   Settings,
   Brain,
-  Mail
+  Mail,
+  Wrench
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Category } from "@shared/schema";
@@ -40,6 +41,7 @@ export function Sidebar({ categories }: SidebarProps) {
 
   const navigationItems = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard", active: true },
+    { href: "/tools", icon: Wrench, label: "Tools" },
     { href: "/inbox", icon: Inbox, label: "Inbox", count: 23 },
     { href: "/starred", icon: Star, label: "Starred" },
     { href: "/sent", icon: Send, label: "Sent" },

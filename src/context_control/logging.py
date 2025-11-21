@@ -2,8 +2,8 @@
 
 import logging
 import sys
-from typing import Optional, MutableMapping, Any
 from pathlib import Path
+from typing import Optional
 
 
 def setup_logging(

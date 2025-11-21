@@ -40,6 +40,7 @@ from . import (
     gmail_routes,
     model_routes,
     performance_routes,
+    tools_dashboard_routes,
     training_routes,
     workflow_routes,
 )
@@ -272,6 +273,7 @@ app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
 app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
+app.include_router(tools_dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers

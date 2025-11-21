@@ -1,12 +1,10 @@
 """Agent behavior adaptation based on project configuration."""
 
-from typing import Dict, Any, Optional, List
-import inspect
+from typing import Any, Dict, List, Optional
 
-from .models import AgentContext, ProjectConfig
 from .logging import get_context_logger
+from .models import AgentContext, ProjectConfig
 from .project import load_project_config
-
 
 logger = get_context_logger()
 
@@ -292,8 +290,6 @@ class AgentAdapter:
         Returns:
             Dictionary with behavior settings
         """
-        settings = self.get_agent_settings()
-
         return {
             "agent_id": self.context.agent_id,
             "can_execute_code": self.can_execute_code(),

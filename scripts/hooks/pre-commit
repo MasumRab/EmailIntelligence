@@ -1,0 +1,16 @@
+#!/bin/bash
+# pre-commit hook for orchestration branch
+# Ensures code quality and consistency
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/common.sh"
+
+echo "Running pre-commit checks..."
+
+# Run basic validation
+if command -v python &> /dev/null; then
+    echo "Running Python validation..."
+    python -c "from setup.validation import check_python_version; check_python_version()" 2>/dev/null || echo "Python validation failed"
+fi
+
+echo "Pre-commit checks completed."

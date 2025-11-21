@@ -1,0 +1,4 @@
+#!/bin/bash
+# post-merge hook for orchestration branch
+echo "Running post-merge hook..."
+

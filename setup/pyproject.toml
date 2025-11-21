@@ -9,7 +9,7 @@ url = "https://download.pytorch.org/whl/cpu"
 name = "emailintelligence"
 version = "0.2.0"
 description = "A streamlined version of the EmailIntelligence application for local scientific and development use, featuring a simplified environment setup and local file-based data storage."
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 dependencies = [
     # Core FastAPI backend

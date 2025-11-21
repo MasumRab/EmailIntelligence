@@ -1,0 +1,13 @@
+#!/bin/bash
+# post-commit hook for orchestration branch
+# Handles post-commit synchronization
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/common.sh"
+
+echo "Running post-commit synchronization..."
+
+# Sync orchestration files if needed
+# This would typically sync with other worktrees or branches
+
+echo "Post-commit synchronization completed."
