@@ -43,6 +43,8 @@ task-master generate                                         # Update task markd
 - `.taskmaster/config.json` - AI model configuration (use `task-master models` to modify)
 - `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
+- `.taskmaster/scripts/` - Backup task management scripts (see "Backup Scripts & Alternative Tools" section)
+- `.taskmaster/scripts/README_TASK_SCRIPTS.md` - Complete documentation for backup scripts
 - `.env` - API keys for CLI usage
 
 ### Claude Code Integration Files
@@ -61,6 +63,13 @@ project/
 │   │   ├── tasks.json      # Main task database
 │   │   ├── task-1.md      # Individual task files
 │   │   └── task-2.md
+│   ├── scripts/            # Backup task management scripts
+│   │   ├── list_tasks.py   # List tasks with filters
+│   │   ├── next_task.py    # Find next available task
+│   │   ├── show_task.py    # Show task details
+│   │   ├── task_summary.py # Generate task summary
+│   │   ├── search_tasks.py # Search tasks by keyword
+│   │   └── README_TASK_SCRIPTS.md  # Scripts documentation
 │   ├── docs/              # Documentation directory
 │   │   ├── prd.txt        # Product requirements
 │   ├── reports/           # Analysis reports directory
@@ -369,6 +378,90 @@ task-master fix-dependencies
 ```
 
 DO NOT RE-INITIALIZE. That will not do anything beyond re-adding the same Taskmaster core files.
+
+## Backup Scripts & Alternative Tools
+
+When the `task-master` CLI is not available or not working, standalone Python scripts are available in `.taskmaster/scripts/` that provide similar functionality without requiring the CLI tool.
+
+### Location
+
+All backup scripts are located in: **`.taskmaster/scripts/`**
+
+### Documentation
+
+Full documentation for all scripts is available at: **`.taskmaster/scripts/README_TASK_SCRIPTS.md`**
+
+### Available Scripts
+
+1. **`list_tasks.py`** - List tasks with filtering options (status, priority, subtasks)
+   ```bash
+   python .taskmaster/scripts/list_tasks.py
+   python .taskmaster/scripts/list_tasks.py --status pending --priority high
+   ```
+
+2. **`list_invalid_tasks.py`** - List completed/invalidated tasks from `tasks_invalid.json`
+   ```bash
+   python .taskmaster/scripts/list_invalid_tasks.py
+   ```
+
+3. **`show_task.py`** - Show detailed information about a specific task
+   ```bash
+   python .taskmaster/scripts/show_task.py 2
+   python .taskmaster/scripts/show_task.py 1 --invalid
+   ```
+
+4. **`task_summary.py`** - Generate comprehensive summary report of all tasks
+   ```bash
+   python .taskmaster/scripts/task_summary.py
+   ```
+
+5. **`compare_task_files.py`** - Compare tasks across different JSON files
+   ```bash
+   python .taskmaster/scripts/compare_task_files.py
+   ```
+
+6. **`next_task.py`** - Find the next available task to work on
+   ```bash
+   python .taskmaster/scripts/next_task.py
+   ```
+
+7. **`search_tasks.py`** - Search tasks by keyword in title, description, or details
+   ```bash
+   python .taskmaster/scripts/search_tasks.py "backend" --show-context
+   ```
+
+### When to Use Backup Scripts
+
+Use these scripts when:
+- The `task-master` CLI is not installed or not working
+- You need to quickly inspect tasks without CLI dependencies
+- You want to analyze tasks programmatically
+- The MCP server is unavailable
+- You're debugging task file issues
+
+### Quick Reference
+
+```bash
+# Get overview of all tasks
+python .taskmaster/scripts/task_summary.py
+
+# Find next task to work on
+python .taskmaster/scripts/next_task.py
+
+# List all pending high-priority tasks
+python .taskmaster/scripts/list_tasks.py --status pending --priority high
+
+# Search for tasks containing a keyword
+python .taskmaster/scripts/search_tasks.py "migration"
+
+# Show details of a specific task
+python .taskmaster/scripts/show_task.py 2
+
+# Compare task files to find differences
+python .taskmaster/scripts/compare_task_files.py
+```
+
+**Note:** All scripts are standalone Python 3 scripts with no external dependencies beyond the standard library. They handle malformed JSON gracefully and work independently of the `task-master` CLI.
 
 ## Important Notes
 
