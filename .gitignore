@@ -59,11 +59,7 @@ logs/
 *.local.json
 *.local.yaml
 *.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
 config.local.*
-config/llm_guidelines.local.json
 
 # Ignore hidden files and directories, with exceptions
 !docs/.gitkeep
