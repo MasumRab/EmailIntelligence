@@ -14,7 +14,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, NoReturn
 
 try:
     import yaml
@@ -67,6 +67,23 @@ class EmailIntelligenceCLI:
         except subprocess.CalledProcessError:
             self._error_exit("Not in a git repository. Please run from a git repository root.")
     
+    def _error_exit(self, message: str) -> NoReturn:
+        """Prints an error message and exits."""
+        print(f"ERROR: {message}", file=sys.stderr)
+        sys.exit(1)
+
+    def _info(self, message: str):
+        """Prints an informational message."""
+        print(f"INFO: {message}")
+
+    def _warn(self, message: str):
+        """Prints a warning message."""
+        print(f"WARNING: {message}", file=sys.stderr)
+
+    def _success(self, message: str):
+        """Prints a success message."""
+        print(f"SUCCESS: {message}")
+
     def _load_config(self) -> Dict[str, Any]:
         """Load EmailIntelligence configuration"""
         if not self.config_file.exists():
@@ -85,7 +102,7 @@ class EmailIntelligenceCLI:
                 }
             }
             
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, 'w', encoding='utf-8') as f:
                 if yaml:
                     yaml.dump(default_config, f, default_flow_style=False)
                 else:
@@ -94,7 +111,7 @@ class EmailIntelligenceCLI:
             self._info("Created default configuration at ~/.emailintelligence/config.yaml")
             return default_config
         
-        with open(self.config_file) as f:
+        with open(self.config_file, encoding='utf-8') as f:
             if yaml:
                 return yaml.safe_load(f)
             else:
@@ -102,7 +119,7 @@ class EmailIntelligenceCLI:
     
     def setup_resolution(
         self, pr_number: int, source_branch: str, target_branch: str,
-        constitution_files: List[str] = None, spec_files: List[str] = None,
+        constitution_files: Optional[List[str]] = None, spec_files: Optional[List[str]] = None,
         dry_run: bool = False
     ) -> Dict[str, Any]:
         """
@@ -187,7 +204,7 @@ class EmailIntelligenceCLI:
             }
             
             metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
-            with open(metadata_file, 'w') as f:
+            with open(metadata_file, 'w', encoding='utf-8') as f:
                 json.dump(resolution_metadata, f, indent=2)
             
             # Step 6: Generate setup summary
@@ -258,7 +275,7 @@ class EmailIntelligenceCLI:
             return []
     
     def analyze_constitutional(
-        self, pr_number: int, constitution_files: List[str] = None,
+        self, pr_number: int, constitution_files: Optional[List[str]] = None,
         interactive: bool = False
     ) -> Dict[str, Any]:
         """
@@ -278,7 +295,7 @@ class EmailIntelligenceCLI:
             )
         
         # Load resolution metadata
-        with open(metadata_file) as f:
+        with open(metadata_file, encoding='utf-8') as f:
             metadata = json.load(f)
         
         self._info(f"Analyzing conflicts against constitution for PR #{pr_number}...")
@@ -296,7 +313,7 @@ class EmailIntelligenceCLI:
         metadata['status'] = 'constitution_analyzed'
         metadata['analyzed_at'] = datetime.now().isoformat()
         
-        with open(metadata_file, 'w') as f:
+        with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
         
         # Generate and display report
@@ -329,7 +346,7 @@ class EmailIntelligenceCLI:
                 continue
             
             try:
-                with open(constitution_path) as f:
+                with open(constitution_path, encoding='utf-8') as f:
                     if yaml and constitution_path.suffix.lower() in ['.yaml', '.yml']:
                         constitution = yaml.safe_load(f)
                     else:
@@ -412,11 +429,11 @@ class EmailIntelligenceCLI:
         # Simplified compliance checking (in real implementation, this would be more sophisticated)
         conformant_count = 0
         
-        for req in requirements:
-            requirement_name = req.get('name', req.get('key', 'Unknown'))
-            requirement_type = req.get('type', 'MUST')
+        for requirement in requirements:
+            requirement_name = requirement.get('name', 'Unknown')
+            requirement_type = requirement.get('type', 'SHOULD')
             
-            # Mock compliance check (would be real analysis in production)
+            # WARNING: Mock compliance check using hash - replace with actual analysis
             hash_digit = hashlib.md5(requirement_name.encode()).hexdigest()[-1]
             
             if requirement_type in ['MUST', 'REQUIRED']:
@@ -557,7 +574,7 @@ class EmailIntelligenceCLI:
     
     def develop_spec_kit_strategy(
         self, pr_number: int, worktrees: bool = False,
-        alignment_rules: str = None, interactive: bool = False
+        alignment_rules: Optional[str] = None, interactive: bool = False
     ) -> Dict[str, Any]:
         """
         Develop spec-kit based resolution strategy
@@ -577,7 +594,7 @@ class EmailIntelligenceCLI:
             )
         
         # Load resolution metadata
-        with open(metadata_file) as f:
+        with open(metadata_file, encoding='utf-8') as f:
             metadata = json.load(f)
         
         if metadata.get('status') != 'constitution_analyzed':
@@ -589,7 +606,7 @@ class EmailIntelligenceCLI:
         # Load alignment rules if provided
         alignment_config = {}
         if alignment_rules and Path(alignment_rules).exists():
-            with open(alignment_rules) as f:
+            with open(alignment_rules, encoding='utf-8') as f:
                 if yaml:
                     alignment_config = yaml.safe_load(f)
                 else:
@@ -603,7 +620,7 @@ class EmailIntelligenceCLI:
         metadata['status'] = 'strategy_developed'
         metadata['strategy_developed_at'] = datetime.now().isoformat()
         
-        with open(metadata_file, 'w') as f:
+        with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
         
         # Display strategy
@@ -621,6 +638,31 @@ class EmailIntelligenceCLI:
             'estimated_resolution_time': strategy.get('estimated_time', 'Unknown'),
             'enhancement_preservation': strategy.get('enhancement_preservation_rate', 0.0)
         }
+
+    def _interactive_strategy_development(self, pr_number: int, strategy_report: str) -> Dict[str, Any]:
+        """Interactive mode for strategy development."""
+        self._display_strategy(strategy_report)
+        while True:
+            choice = input("\nSelect action: (a)ccept strategy, (m)odify strategy, (q)uit: ").lower().strip()
+            if choice == 'a':
+                self._success(f"Strategy for PR #{pr_number} accepted.")
+                return {'status': 'accepted', 'pr_number': pr_number}
+            elif choice == 'm':
+                self._info("Entering strategy modification mode (not yet implemented).")
+                # In a real scenario, this would launch an editor or a more complex interactive flow
+                return {'status': 'modification_requested', 'pr_number': pr_number}
+            elif choice == 'q':
+                self._info("Strategy development aborted.")
+                sys.exit(0)
+            else:
+                print("Invalid choice. Please enter 'a', 'm', or 'q'.")
+
+    def _display_strategy(self, strategy_report: str):
+        """Displays the strategy report."""
+        print("\n" + "="*60)
+        print("SPEC-KIT RESOLUTION STRATEGY")
+        print("="*60)
+        print(strategy_report)
     
     def _generate_spec_kit_strategy(
         self, metadata: Dict[str, Any], alignment_config: Dict[str, Any]
@@ -652,8 +694,6 @@ class EmailIntelligenceCLI:
         
         for i, conflict in enumerate(conflicts[:5]):  # Limit to first 5 conflicts for demo
             file_name = Path(conflict['file']).name
-            # Mock alignment score based on filename hash
-            alignment_score = int(hashlib.md5(file_name.encode()).hexdigest()[:2], 16) / 255
             
             strategy_options = ['Enhanced merge', 'Contextual merge', 'Test preservation', 'Refactoring merge']
             strategy_option = strategy_options[int(hashlib.md5(file_name.encode()).hexdigest()[-1], 16) % 4]
@@ -880,13 +920,14 @@ class EmailIntelligenceCLI:
                 self._info("Strategy rejected. You can modify the approach and regenerate.")
                 return {'approved': False, 'strategy_confirmed': False}
             elif choice in ['q', 'quit']:
-                sys.exit(0)
+                self._info("Quitting...")
+                return {'approved': False, 'strategy_confirmed': False, 'quit': True}
             else:
                 print("Please enter 'y' to approve, 'n' to reject, or 'q' to quit.")
     
     def align_content(
         self, pr_number: int, strategy_file: str = None, dry_run: bool = False,
-        preview_changes: bool = False, interactive: bool = False
+        interactive: bool = False, checkpoint_each_step: bool = False
     ) -> Dict[str, Any]:
         """
         Execute content alignment based on developed strategy
@@ -895,20 +936,20 @@ class EmailIntelligenceCLI:
             pr_number: Pull request number
             strategy_file: Path to strategy JSON file (optional)
             dry_run: Preview alignment without applying changes
-            preview_changes: Show preview of changes before applying
             interactive: Interactive alignment with step-by-step confirmation
+            checkpoint_each_step: Save metadata checkpoint after each step
         """
         metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
         
         if not metadata_file.exists():
             self._error_exit(f"No resolution workspace found for PR #{pr_number}")
         
-        with open(metadata_file) as f:
+        with open(metadata_file, encoding='utf-8') as f:
             metadata = json.load(f)
         
         # Get strategy
         if strategy_file and Path(strategy_file).exists():
-            with open(strategy_file) as f:
+            with open(strategy_file, encoding='utf-8') as f:
                 strategy = json.load(f)
         else:
             strategy = metadata.get('strategy')
@@ -948,17 +989,22 @@ class EmailIntelligenceCLI:
             alignment_results['phase_results'].append(phase_result)
             alignment_results['phases_completed'] += 1
         
-        # Calculate final alignment score
+        # Calculate final alignment score (with division by zero protection)
         if alignment_results['phase_results']:
             avg_scores = [r.get('alignment_score', 0.0) for r in alignment_results['phase_results']]
-            alignment_results['overall_alignment_score'] = sum(avg_scores) / len(avg_scores)
+            if avg_scores:  # Protect against division by zero
+                alignment_results['overall_alignment_score'] = sum(avg_scores) / len(avg_scores)
+            else:
+                alignment_results['overall_alignment_score'] = 0.0
+        else:
+            alignment_results['overall_alignment_score'] = 0.0
         
         # Update metadata
         metadata['alignment_results'] = alignment_results
         metadata['status'] = 'content_aligned'
         metadata['aligned_at'] = datetime.now().isoformat()
         
-        with open(metadata_file, 'w') as f:
+        with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
         
         # Display final results
@@ -981,6 +1027,7 @@ class EmailIntelligenceCLI:
         
         alignment_scores = []
         conflicts_resolved = 0
+        current_score = "0%"  # Initialize to prevent NameError
         
         for step in phase.get('steps', []):
             step_name = step.get('file', step.get('action', 'Unknown'))
@@ -1005,7 +1052,7 @@ class EmailIntelligenceCLI:
             if step.get('strategy'):
                 self._info(f"   🔍 Applying {step['strategy'].lower()} strategy...")
             
-            time.sleep(0.1)  # Simulate processing time
+            # Removed simulation delay - not needed in production
         
         if alignment_scores:
             phase_result['alignment_score'] = sum(alignment_scores) / len(alignment_scores)
@@ -1084,7 +1131,7 @@ class EmailIntelligenceCLI:
         if not metadata_file.exists():
             self._error_exit(f"No resolution workspace found for PR #{pr_number}")
         
-        with open(metadata_file) as f:
+        with open(metadata_file, encoding='utf-8') as f:
             metadata = json.load(f)
         
         if metadata.get('status') != 'content_aligned':
@@ -1109,7 +1156,7 @@ class EmailIntelligenceCLI:
         metadata['status'] = 'validated'
         metadata['validated_at'] = datetime.now().isoformat()
         
-        with open(metadata_file, 'w') as f:
+        with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
         
         # Display validation report
@@ -1159,7 +1206,7 @@ class EmailIntelligenceCLI:
             elif 'security' in check:
                 result = {'status': 'passed', 'score': 98, 'details': 'No security vulnerabilities detected'}
             else:
-                # Generic test result
+                # WARNING: Mock test result using hash - replace with actual test execution
                 passed = hashlib.md5(check.encode()).hexdigest()[-1] > '3'
                 result = {
                     'status': 'passed' if passed else 'failed',
@@ -1256,23 +1303,23 @@ class EmailIntelligenceCLI:
             self._error("❌ Resolution validation failed - manual intervention required")
     
     # Utility methods for output formatting
-    def _info(self, message: str):
+    def _info(self, message: str) -> None:
         """Display info message"""
         print(f"ℹ️  {message}")
     
-    def _success(self, message: str):
+    def _success(self, message: str) -> None:
         """Display success message"""
         print(f"✅ {message}")
     
-    def _warn(self, message: str):
+    def _warn(self, message: str) -> None:
         """Display warning message"""
         print(f"⚠️  {message}")
     
-    def _error(self, message: str):
+    def _error(self, message: str) -> None:
         """Display error message"""
         print(f"❌ {message}")
     
-    def _error_exit(self, message: str):
+    def _error_exit(self, message: str) -> NoReturn:
         """Display error message and exit"""
         self._error(message)
         sys.exit(1)
@@ -1325,14 +1372,13 @@ Examples:
     strategy_parser.add_argument('--worktrees', action='store_true', help='Use worktree-based analysis')
     strategy_parser.add_argument('--alignment-rules', help='Path to alignment rules file')
     strategy_parser.add_argument('--interactive', action='store_true', help='Enable interactive strategy development')
-    strategy_parser.add_argument('--review-required', action='store_true', help='Require team review')
+    # Removed --review-required argument (not implemented)
     
     # Align content command
     align_parser = subparsers.add_parser('align-content', help='Execute content alignment')
     align_parser.add_argument('--pr', type=int, required=True, help='Pull request number')
     align_parser.add_argument('--strategy', help='Path to strategy JSON file')
     align_parser.add_argument('--dry-run', action='store_true', help='Preview alignment without applying changes')
-    align_parser.add_argument('--preview-changes', action='store_true', help='Show preview of changes')
     align_parser.add_argument('--interactive', action='store_true', help='Interactive alignment with confirmation')
     align_parser.add_argument('--checkpoint-each-step', action='store_true', help='Checkpoint after each step')
     
@@ -1389,8 +1435,8 @@ Examples:
                 pr_number=args.pr,
                 strategy_file=args.strategy,
                 dry_run=args.dry_run,
-                preview_changes=args.preview_changes,
-                interactive=args.interactive
+                interactive=args.interactive,
+                checkpoint_each_step=args.checkpoint_each_step
             )
             print(json.dumps(result, indent=2))
             

@@ -1,49 +1,72 @@
 """
 Intelligent Conflict Resolution Engine for PR Resolution Automation System
 
-This module provides AI-powered conflict resolution capabilities including:
-- Resolution strategy generation with OpenAI
-- Code change generation and intelligent merging
-- Validation and testing framework
-- Human-in-the-loop validation
-- Resolution execution with rollback mechanisms
-- Workflow orchestration and queue management
+This module provides conflict resolution capabilities including:
+- Constitutional validation (ConstitutionalEngine)
+- AI-powered strategy generation with OpenAI (StrategyGenerator)
+- Prompt engineering for AI (PromptEngine)
+- Data models for conflicts and resolutions (types)
+
+Note: Some modules mentioned in original design are not yet implemented.
+      See PHASE_0_SETUP.md for details on missing modules.
 """
 
-from .engine import ResolutionEngine
+# ===== EXISTING MODULES =====
 from .strategies import StrategyGenerator
-from .generation import CodeChangeGenerator
-from .validation import ValidationFramework
-from .execution import ExecutionEngine
-from .workflows import WorkflowOrchestrator
 from .prompts import PromptEngine
-from .metrics import QualityMetrics
 from .constitutional_engine import ConstitutionalEngine
 from .types import (
+    # Enums
+    ConflictTypeExtended,
+    RiskLevel,
+    ExecutionStatus,
+    ValidationStatus,
+    # Models
+    CodeChange,
+    ResolutionStep,
+    ResolutionStrategy,
+    ValidationResult,
+    QualityMetrics,
+    ResolutionPlan,
+    # Conflict types (imported from models.graph_entities)
     MergeConflict,
     DependencyConflict,
     ArchitectureViolation,
     SemanticConflict,
     ResourceConflict,
-    ResolutionPlan,
 )
-from .queue import ResolutionQueue
+
+# ===== MISSING MODULES (not yet implemented) =====
+# TODO: Implement these modules or remove from API
+# from .engine import ResolutionEngine
+# from .generation import CodeChangeGenerator
+# from .validation import ValidationFramework  # Use src.validation instead
+# from .execution import ExecutionEngine
+# from .workflows import WorkflowOrchestrator
+# from .metrics import QualityMetrics  # Model exists in types.py, implementation missing
+# from .queue import ResolutionQueue
 
 __all__ = [
-    "ResolutionEngine",
+    # Available classes
     "StrategyGenerator",
-    "CodeChangeGenerator",
-    "ValidationFramework",
-    "ExecutionEngine",
-    "WorkflowOrchestrator",
     "PromptEngine",
-    "QualityMetrics",
     "ConstitutionalEngine",
+    # Enums
+    "ConflictTypeExtended",
+    "RiskLevel",
+    "ExecutionStatus",
+    "ValidationStatus",
+    # Models
+    "CodeChange",
+    "ResolutionStep",
+    "ResolutionStrategy",
+    "ValidationResult",
+    "QualityMetrics",
+    "ResolutionPlan",
+    # Conflict types
     "MergeConflict",
     "DependencyConflict",
     "ArchitectureViolation",
     "SemanticConflict",
     "ResourceConflict",
-    "ResolutionPlan",
-    "ResolutionQueue",
 ]
