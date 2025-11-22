@@ -135,7 +135,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 headers={"X-Request-ID": request_id},
             )
 
-
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,

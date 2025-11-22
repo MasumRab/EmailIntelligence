@@ -170,9 +170,8 @@ class NotmuchDataSource(DataSource):
         if not self.notmuch_db:
             return None
 
-        try:
-            query = self.notmuch_db.create_query(f"id:{message_id}")
-            messages = query.search_messages()
+        query = self.db.create_query(f"id:{message_id}")
+        messages = query.search_messages()
 
             if not messages:
                 return None

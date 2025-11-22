@@ -18,6 +18,8 @@ import sqlite3
 import time
 from collections import deque
 from dataclasses import dataclass
+
+from src.core.security import PathValidator
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional

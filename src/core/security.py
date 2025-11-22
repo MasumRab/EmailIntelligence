@@ -115,7 +115,14 @@ def validate_path_safety(
     import pathlib
 
     try:
-        path_obj = pathlib.Path(path).resolve()
+        path_obj = pathlib.Path(path)
+        original_path = str(path)
+
+        # If base_dir is provided and path is relative, resolve relative to base_dir
+        if base_dir and not path_obj.is_absolute():
+            path_obj = (pathlib.Path(base_dir) / path_obj).resolve()
+        else:
+            path_obj = path_obj.resolve()
 
         # Check for directory traversal patterns
         path_str = str(path_obj)
