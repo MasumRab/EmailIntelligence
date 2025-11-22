@@ -7,6 +7,7 @@ using constitutional/specification-driven analysis and spec-kit strategies.
 """
 
 import argparse
+import asyncio
 import hashlib
 import json
 import subprocess
@@ -15,6 +16,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, NoReturn
+
+# Constitutional Engine integration
+from src.resolution import ConstitutionalEngine
 
 try:
     import yaml
