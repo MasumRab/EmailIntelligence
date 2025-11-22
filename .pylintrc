@@ -1,47 +1,22 @@
 [MASTER]
-ignore-patterns=
-    ^\.#,
-    __pycache__,
-    venv,
-    .venv,
-    env,
-    node_modules,
-    .eggs,
-    *.egg,
-    build,
-    dist,
-    .pytest_cache,
-    .mypy_cache,
-    temp-backup,
-    worktrees
-ignore-paths=
-    ^venv/,
-    ^\.venv/,
-    ^node_modules/,
-    ^__pycache__/,
-    ^build/,
-    ^dist/,
-    ^\.eggs/,
-    ^temp-backup/,
-    ^worktrees/
-max-line-length=120
-jobs=4
-
-[MESSAGES CONTROL]
 disable=
-    C0111,
-    C0103,
-    R0913,
-    R0914,
-    W0212,
-    R0801,
-    C0302
-
-[DESIGN]
-max-attributes=7
-max-arguments=5
-max-statements=50
-max-locals=15
+    C0111, # missing-docstring
+    C0103, # invalid-name
+    C0301, # line-too-long
+    C0303, # trailing-whitespace
+    C0327, # mixed-line-endings
+    C1801, # len-as-condition
+    W0511, # fixme
+    W1203, # logging-fstring-interpolation
+    R0902, # too-many-instance-attributes
+    R0903, # too-few-public-methods
+    R0913, # too-many-arguments
 
 [FORMAT]
-indent-string='    '
+max-line-length=100
+
+[SIMILARITIES]
+min-similarity-lines=7
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes

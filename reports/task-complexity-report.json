@@ -1,172 +1,340 @@
 {
 	"meta": {
-		"generatedAt": "2025-11-21T14:20:17.423Z",
-		"tasksAnalyzed": 20,
-		"totalTasks": 28,
-		"analysisCount": 20,
+		"generatedAt": "2025-11-22T07:21:10.379Z",
+		"tasksAnalyzed": 41,
+		"totalTasks": 50,
+		"analysisCount": 41,
 		"thresholdScore": 5,
 		"projectName": "Taskmaster",
-		"usedResearch": true
+		"usedResearch": false
 	},
 	"complexityAnalysis": [
 		{
-			"taskId": 19,
-			"taskTitle": "Develop and Integrate Pre-merge Validation Scripts",
+			"taskId": 2,
+			"taskTitle": "Backend Migration from 'backend' to 'src/backend'",
+			"complexityScore": 6,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves a high-impact structural change across potentially many files and configuration types. While conceptually simple (move and rename), ensuring all references are correctly updated and validated across the entire project (Python imports, Dockerfiles, CI/CD, pyproject.toml) requires meticulous attention. Comprehensive regression testing is absolutely critical, making the potential for subtle bugs and the validation effort significant. The existing description is quite detailed, so further subtask expansion beyond what's specified isn't necessary for initial planning."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Implement Enhanced Security: RBAC, MFA, Session Management, and Auditing",
+			"complexityScore": 9,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Generate subtasks for implementing enhanced security features, including RBAC model extension and enforcement, MFA integration with user flows, secure session management using Redis and JWTs, and structured audit logging, ensuring each component is properly integrated and tested.",
+			"reasoning": "This task is a major feature development encompassing four distinct, complex security components (RBAC, MFA, Session Management, Audit Logging). Each component requires significant implementation effort, integration with external libraries (`pyotp`, `redis-py`), modifications to existing authentication flows, and careful consideration of security best practices. The interdependencies between these features (e.g., session management affecting JWT, RBAC relying on user roles) add to the complexity. Extensive unit and integration testing, including security-specific scenarios, will be critical."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Refactor High-Complexity Modules and Duplicated Code",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Generate subtasks for refactoring high-complexity modules and reducing code duplication, including splitting `smart_filters.py` and `smart_retrieval.py`, consolidating duplicated AI engine code, and simplifying specific high-complexity functions (`setup_dependencies`, `migrate_sqlite_to_json`, `run` method), ensuring test-driven incremental changes.",
+			"reasoning": "This is a major refactoring effort targeting critical, high-complexity components and significant code duplication. It involves deeply understanding existing logic to safely extract methods, classes, and modules while preserving external behavior. The sheer size of the files (`1598`, `1198` lines) and high cyclomatic complexity scores (`21`, `17`, `16`) indicate intertwined logic and potential for difficult, regression-prone changes. A robust test-driven approach with characterization tests is essential but also adds to the initial setup complexity."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Align Feature Branches with Scientific Branch",
 			"complexityScore": 7,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for developing and integrating pre-merge validation scripts, including defining critical files, developing the core validation script, creating unit and integration tests, integrating into the CI/CD pipeline, and documenting the process.",
-			"reasoning": "This task involves multiple technical areas: Git operations, scripting (Python/Bash), CI/CD pipeline configuration, and comprehensive testing. Defining 'critical files' requires domain knowledge and careful analysis. The integration into the CI/CD workflow, especially as a blocking check, can be complex to implement correctly and robustly, necessitating thorough testing for both success and failure scenarios."
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves complex Git operations across multiple feature branches that have diverged from a core 'scientific' branch. While the steps are outlined, the primary challenge lies in systematically resolving potentially numerous and intricate merge conflicts across many files, ensuring no code is lost or incorrectly integrated. Each merge requires thorough validation with the full test suite, making the process time-consuming and highly prone to human error. The existing subtasks cover the necessary steps comprehensively."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Deep Integration & Refactoring: Align feature-notmuch-tagging-1 with Scientific, Enhance Data Platform, and Introduce Scalable AI Capabilities",
+			"complexityScore": 10,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Generate subtasks for deep integration and refactoring, covering strategic branch alignment and conflict resolution, extending NotmuchDataSource and evolving the data model, implementing a scalable AI analysis pipeline with message queues, enhancing SmartFilterManager and the rule engine, building a hierarchical tagging system, integrating distributed observability, implementing end-to-end security hardening, adapting and optimizing the database layer, and exposing/documenting new API capabilities.",
+			"reasoning": "This task is exceptionally complex, encompassing a vast array of architectural changes, new feature developments, and critical integrations. It combines branch alignment of a significant feature branch (`feature-notmuch-tagging-1`) with substantial enhancements across the data platform, AI pipeline, security, and observability. Each of the detailed steps (e.g., scalable AI with message queues, hierarchical tagging, distributed tracing, security hardening, data model evolution) could be a major task on its own. The task requires deep expertise in multiple domains, meticulous planning, and an extremely rigorous, multi-layered testing strategy to ensure stability, performance, and correctness."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Create Comprehensive Merge Validation Framework",
+			"complexityScore": 8,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves developing a critical, multi-faceted CI/CD framework for merge validation, touching architectural enforcement, functional testing, performance benchmarking, and security scanning. Each component requires selecting and integrating specific tools (static analysis, `pytest`, `locust`, `bandit`, `safety`), configuring them within GitHub Actions, and ensuring they correctly block merges upon failure. Designing a temporary deployment for E2E tests and establishing performance baselines are technically challenging. The framework itself needs robust testing to ensure it correctly identifies both valid and invalid merge attempts, making its implementation complex and high-stakes. The existing subtasks are comprehensive."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Update Setup Subtree Integration in Scientific Branch",
+			"complexityScore": 7,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves the complex and often error-prone `git subtree` operations. Correctly analyzing the existing subtree setup in the `main` branch, carefully migrating `scientific` to this new methodology, and meticulously reconciling `scientific`-specific code changes without regressions requires deep Git expertise. Any misstep can lead to repository corruption or loss of work. Validating the launch functionality and CI/CD after such a fundamental change to the project's setup is critical and adds to the overall complexity. The existing subtasks are sufficiently detailed."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Align import-error-corrections Branch with Main Branch",
+			"complexityScore": 5,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves aligning a specific bugfix branch (`fix/import-error-corrections`) with the `main` branch. While Git rebasing and conflict resolution can be tricky, the scope appears to be contained to a set of common configuration and core files. The detailed subtasks, including baseline testing, rebase, conflict resolution, and post-rebase validation, provide a clear, manageable approach. The 'low' priority also suggests it's not a critically blocking or highly uncertain merge."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Improve Task Management with Advanced Testing Integration",
+			"complexityScore": 7,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves significant enhancements to the CI/CD pipeline and development workflow, building upon an existing merge validation framework (Task 7). It requires implementing conditional validation rules, integrating specialized testing frameworks, and enforcing test requirements at various stages. This is a complex engineering task that touches many aspects of the project's infrastructure, requiring deep knowledge of GitHub Actions, Python testing tools, and potentially custom scripting. The detailed subtasks already break down the work effectively."
+		},
+		{
+			"taskId": 17,
+			"taskTitle": "Develop and Integrate Pre-merge Validation Scripts",
+			"complexityScore": 6,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves developing and integrating a critical pre-merge safeguard into the CI/CD pipeline. While the script development itself is straightforward (checking file existence and integrity), the complexity lies in correctly identifying *all* critical files across various types (Python, Markdown, JSON), writing a robust script to validate them, and meticulously integrating it into GitHub Actions as a mandatory, build-blocking check. Thorough testing of both the script and its CI/CD integration is necessary to prevent regressions. The existing subtasks cover the requirements well."
+		},
+		{
+			"taskId": 19,
+			"taskTitle": "Create Merge Best Practices Documentation",
+			"complexityScore": 5,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves creating comprehensive, technical documentation for critical merge operations. While it doesn't involve coding, synthesizing complex Git concepts (rebase vs. merge, advanced conflict resolution), new prevention tools (from other tasks), and communication protocols into clear, actionable, and project-specific guidance for developers is challenging. It requires a deep understanding of the Git workflow, good writing skills, and iterative review to ensure accuracy and clarity. The provided subtasks are well-defined for a documentation effort."
+		},
+		{
+			"taskId": 20,
+			"taskTitle": "Develop Automated Recovery Procedures and Documentation",
+			"complexityScore": 7,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is critical for operational resilience, combining complex script development with high-stakes documentation. It requires identifying realistic failure scenarios (merge mistakes, data loss), developing robust automated recovery scripts that leverage existing backup mechanisms (Task 13), and performing rigorous testing in simulated disaster environments. The creation of clear, unambiguous documentation for use under pressure further adds to the complexity and importance of this task. The existing subtasks cover the necessary depth."
 		},
 		{
 			"taskId": 21,
-			"taskTitle": "Create Merge Best Practices Documentation",
-			"complexityScore": 6,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Generate subtasks for creating merge best practices documentation, including outlining key topics, drafting the content with practical examples, reviewing for accuracy and clarity, and conducting team training/feedback sessions.",
-			"reasoning": "While primarily a documentation task, it requires a deep technical understanding of Git merge strategies (rebase vs. merge), conflict resolution, and project-specific issues (e.g., data migration, critical file preservation). The effort includes gathering information, structuring it clearly, writing concise instructions, and conducting internal reviews and training sessions."
-		},
-		{
-			"taskId": 22,
-			"taskTitle": "Develop Automated Recovery Procedures and Documentation",
-			"complexityScore": 8,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for developing automated recovery procedures and documentation, including defining specific recovery scenarios, developing automated recovery scripts leveraging existing backups, thoroughly testing recovery processes, and creating clear, actionable documentation.",
-			"reasoning": "This is a critical task with high potential impact. Developing automated recovery scripts requires a deep understanding of the system's state and data structures, robust error handling, and careful implementation to ensure data integrity. Rigorous testing under simulated failure conditions is essential but complex to set up. Clear and comprehensive documentation is also vital for operational use."
+			"taskTitle": "Execute Scientific Branch Recovery and Feature Integration",
+			"complexityScore": 10,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This is an extremely complex and high-risk task. It involves performing a \"recovery\" of a major `scientific` branch that has likely diverged significantly from `main`. The process requires sophisticated Git expertise (strategic merging, cherry-picking, manual integration), meticulous conflict resolution, and extreme care to preserve `scientific`-specific code while integrating core `main` features. The extensive multi-layered testing strategy (unit, integration, import validation, manual functional, regression, data integrity, rollback plan validation) underscores the high potential for regressions and the criticality of the components involved. The provided subtasks are already very comprehensive."
 		},
 		{
 			"taskId": 23,
-			"taskTitle": "Execute Scientific Branch Recovery and Feature Integration",
+			"taskTitle": "Restore Core Backend Infrastructure and Functionality",
 			"complexityScore": 10,
-			"recommendedSubtasks": 7,
-			"expansionPrompt": "Generate subtasks for executing the scientific branch recovery and feature integration, including detailed branch comparison, strategic merge planning (e.g., phased integration, cherry-picking), meticulous conflict resolution, rigorous post-merge validation (automated and manual), and thorough documentation of the process.",
-			"reasoning": "This task is of extremely high complexity and risk. It involves intricate manual Git operations on highly divergent branches, requiring deep expertise in Git, conflict resolution, and code base understanding. The need to carefully preserve 'scientific'-specific code while integrating 'main' features, coupled with comprehensive multi-level testing to prevent regressions, makes this a major undertaking with high potential for errors and significant time investment."
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task, despite Subtask 1's conflicting status, is fundamentally a high-stakes, large-scale system restoration. The need to restore \"over 100 backend files\" spanning critical components like workflow engines, API routes, and database layers, coupled with the \"destructive revert\" context, makes it extremely complex. It involves intricate Git operations, dependency reconstruction across multiple ecosystems (Python, Node.js/TypeScript), re-integration of database layers including schema migrations, and reactivation of core application logic. The potential for subtle bugs, performance degradation, and security vulnerabilities is high, necessitating rigorous multi-level testing and extensive code review. The provided subtasks are comprehensive and reflect this complexity."
+		},
+		{
+			"taskId": 24,
+			"taskTitle": "Restore Critical AI Agent and Workflow Documentation",
+			"complexityScore": 6,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves recovering and updating critical documentation for complex AI agents and workflows. While using Git for recovery is straightforward, the \"Content Reconstruction and Enhancement\" step implies that recovered content might be outdated or incomplete, requiring collaboration with subject matter experts to update it. Ensuring technical accuracy, clarity, adherence to standards, and obtaining stakeholder validation adds significant overhead beyond simple file recovery. The existing subtasks are comprehensive for this process."
 		},
 		{
 			"taskId": 25,
-			"taskTitle": "Restore Core Backend Infrastructure and Functionality",
-			"complexityScore": 10,
-			"recommendedSubtasks": 8,
-			"expansionPrompt": "Generate subtasks for restoring core backend infrastructure and functionality, including identifying all lost files and relevant Git history, strategically recovering and integrating 100+ files, reconstructing and validating all dependencies, meticulously re-integrating database layers, reactivating workflow engines and API routes, and performing comprehensive multi-level testing (unit, integration, E2E).",
-			"reasoning": "This task involves recovering a substantial number of critical backend files (100+) encompassing diverse components like workflow engines, API routes, and database layers. It requires advanced Git skills for targeted recovery, extensive knowledge of both Python and TypeScript backends, careful dependency reconstruction, database migration expertise, and a rigorous multi-level testing strategy (unit, integration, E2E) to ensure functionality, stability, and data integrity. The sheer volume and criticality of affected components elevate this to maximum complexity."
+			"taskTitle": "Implement Comprehensive Merge Regression Prevention Safeguards",
+			"complexityScore": 9,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This is an extremely complex architectural task focused on fortifying the entire merge process against regressions. It involves implementing highly technical Git/CI/CD safeguards, including pre-merge deletion validations, a selective revert policy, branch-specific asset preservation (potentially using advanced Git features like `.gitattributes`), and robust automated post-merge validations. Each of these components requires significant design, implementation, and rigorous testing against failure scenarios. The task also demands comprehensive documentation and training, making it a critical, multi-faceted engineering effort with a wide impact. The provided subtasks are already comprehensive."
 		},
 		{
 			"taskId": 26,
-			"taskTitle": "Restore Critical AI Agent and Workflow Documentation",
-			"complexityScore": 6,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for restoring critical AI agent and workflow documentation, including identifying specific document versions from Git history, recovering file content, comprehensive review and update for each document's accuracy and completeness, adherence to documentation standards, and stakeholder validation.",
-			"reasoning": "While focused on documentation, this task involves critical Git history investigation to recover lost files. Content reconstruction or enhancement may require collaboration with subject matter experts, which adds coordination complexity. Ensuring adherence to documentation standards and obtaining stakeholder validation also contributes to the overall effort."
+			"taskTitle": "Comprehensive Codebase Audit for Incomplete Features and Placeholders",
+			"complexityScore": 7,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is a large-scale, systematic audit of the entire codebase for various forms of technical debt and incomplete work. It requires meticulous use of `grep` and static analysis tools, careful definition of search patterns, and significant effort in consolidating, deduplicating, categorizing, and prioritizing potentially thousands of findings. Ensuring the accuracy of the identified items and the actionability of the final report is crucial, making this a complex data collection and analysis effort. The existing subtasks are very detailed and cover the process comprehensively."
 		},
 		{
 			"taskId": 27,
-			"taskTitle": "Implement Comprehensive Merge Regression Prevention Safeguards",
-			"complexityScore": 9,
-			"recommendedSubtasks": 7,
-			"expansionPrompt": "Generate subtasks for implementing comprehensive merge regression prevention safeguards, including designing and implementing enhanced pre-merge deletion validations, defining and enforcing a selective revert policy, developing mechanisms for branch-specific asset preservation (e.g., using `.gitattributes`), creating robust automated post-merge validation, and documenting all new policies and procedures.",
-			"reasoning": "This is a highly strategic and multi-faceted task that requires expertise in Git, CI/CD pipeline configuration, and policy definition. Implementing advanced pre-merge validations, a selective revert policy, and mechanisms for branch-specific asset protection requires careful design and integration. The creation of robust automated post-merge validation and comprehensive documentation further adds to its complexity and criticality."
+			"taskTitle": "Investigate and Optimize Async Implementation and Testing in Python Backends",
+			"complexityScore": 8,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task involves a deep, expert-level investigation into asynchronous programming patterns and testing methodologies within the Python backends. It requires specialized knowledge of `asyncio`, FastAPI, and related libraries to identify subtle anti-patterns, performance bottlenecks, and gaps in testing. Formulating robust recommendations for both implementation and testing strategies, and potentially developing a Proof of Concept, is highly technical and critical for performance and reliability. The provided subtasks are well-structured for this kind of in-depth analysis."
 		},
 		{
 			"taskId": 28,
-			"taskTitle": "Comprehensive Codebase Audit for Incomplete Features and Placeholders",
-			"complexityScore": 7,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for conducting a comprehensive codebase audit for incomplete features and placeholders, including defining audit scope and initial search commands, executing scans for mock implementations, placeholder logic, comment markers, and test placeholders, consolidating and prioritizing findings, and generating a detailed audit report.",
-			"reasoning": "This investigative task involves systematically scanning a large codebase for specific patterns using various tools (grep, static analysis) and manual review. The challenge lies in ensuring thoroughness across different file types and directories, accurately categorizing and prioritizing findings, and compiling a clear, actionable report from potentially vast amounts of data. While not a coding task, its scope and required precision make it moderately complex."
+			"taskTitle": "Refactor Deprecation Warnings and Migrate Pydantic V1 to V2",
+			"complexityScore": 9,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This is a high-impact, complex refactoring task driven by a major library upgrade (Pydantic V1 to V2), which introduces numerous breaking changes and new patterns. It involves modifying a large number of Pydantic models and their usages across the codebase, necessitating deep understanding of the new Pydantic API. Beyond Pydantic, it requires addressing general deprecation warnings across other libraries. The task demands extensive automated testing, Pydantic-specific validation, and thorough impact assessment to prevent regressions in API behavior, data serialization, and core application logic. The provided subtasks are highly detailed and reflect this significant effort."
 		},
 		{
 			"taskId": 29,
-			"taskTitle": "Investigate and Optimize Async Implementation and Testing in Python Backends",
-			"complexityScore": 8,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for investigating and optimizing async implementation and testing in Python backends, including comprehensive codebase scanning for async patterns, detailed analysis of existing async code for correctness and consistency, identification of performance bottlenecks and optimization opportunities, evaluation of current async testing strategies, and development of specific recommendations and a Proof of Concept.",
-			"reasoning": "This task demands specialized expertise in Python asynchronous programming, performance analysis, and robust testing strategies for async code. Identifying anti-patterns, pinpointing performance bottlenecks, and designing effective testing methodologies for concurrent operations are inherently complex. The investigation phase and potential PoC development require deep technical insight and problem-solving skills."
+			"taskTitle": "Scan and Resolve Unresolved Merge Conflicts Across All Remote Branches",
+			"complexityScore": 7,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is a critical cleanup effort that addresses a fundamental issue in repository hygiene. While `git grep` can identify conflict markers, the resolution process is inherently manual, requiring meticulous human review and decision-making for each conflict. The complexity scales with the number of affected branches and the age/intricacy of the conflicts, posing a risk of introducing subtle bugs or data corruption. Robust verification steps, including post-resolution content review and functional tests, are essential. The existing subtasks provide a thorough plan for this delicate operation."
 		},
 		{
 			"taskId": 30,
-			"taskTitle": "Refactor Deprecation Warnings and Migrate Pydantic V1 to V2",
-			"complexityScore": 9,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for refactoring deprecation warnings and migrating Pydantic V1 to V2, including configuring the migration environment and tooling, systematically migrating all Pydantic V1 models to V2, addressing general codebase deprecation warnings, performing comprehensive testing and impact validation, and thoroughly documenting all changes.",
-			"reasoning": "Migrating from Pydantic V1 to V2 involves significant breaking changes that impact core data models, validation logic, serialization, and potentially API contracts. This requires extensive, meticulous refactoring across multiple files and layers of the codebase. Ensuring backward compatibility (if needed) and addressing general deprecation warnings adds further complexity. Rigorous multi-level testing is crucial to prevent regressions, making this a highly complex and high-impact refactoring task."
+			"taskTitle": "Create Comprehensive Test Suite for Context Control Module",
+			"complexityScore": 8,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is a major test development effort for a critical and likely complex `context_control` module. It requires deep understanding of the module's numerous sub-components, their interactions, dependency injection patterns, and legacy compatibility layers. Designing comprehensive unit and integration tests, including edge cases, error handling, and thread safety for stateful components, is inherently complex. The ambitious code coverage target (90%+) and the need to specifically test context isolation and deprecation warning emissions further increase the effort. The provided subtasks are already comprehensive for this detailed testing work."
 		},
 		{
 			"taskId": 31,
-			"taskTitle": "Scan and Resolve Unresolved Merge Conflicts Across All Remote Branches",
-			"complexityScore": 7,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for scanning and resolving unresolved merge conflicts across all remote branches, including initializing the repository state, developing and executing a conflict detection script, manually resolving all detected conflicts with careful contextual review, pushing resolved branches and creating pull requests, and documenting resolutions while verifying final codebase cleanliness.",
-			"reasoning": "This task involves a systematic audit of a large number of branches and requires careful, context-aware manual resolution of merge conflicts (`<<<<<<<`, `=======`, `>>>>>>>` markers). Each resolution can be unique and requires understanding the conflicting code's intent to avoid introducing new bugs. The process is repetitive but demands precision, and managing the workflow across multiple branches (checkout, resolve, commit, push, PR) adds organizational complexity."
+			"taskTitle": "Add Deprecation Shims for Context Control Static Methods",
+			"complexityScore": 6,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is a precise refactoring effort to implement backward compatibility shims. While the concept is straightforward, correctly implementing each wrapper to instantiate the new instance-based alternative, accurately map arguments, and crucially, emit a `DeprecationWarning` with the correct message and `stacklevel=2`, requires meticulous attention to Python's `warnings` module and object instantiation patterns. Robust unit testing with `pytest.warns()` is essential to ensure both functional correctness and proper warning behavior. The provided subtasks are well-defined for this focused task."
 		},
 		{
 			"taskId": 32,
-			"taskTitle": "Create Comprehensive Test Suite for Context Control Module",
-			"complexityScore": 9,
-			"recommendedSubtasks": 7,
-			"expansionPrompt": "Generate subtasks for creating a comprehensive test suite for the `context_control` module, including unit tests for each sub-component (BranchMatcher, EnvironmentTypeDetector, ContextFileResolver, ContextValidator, ContextCreator, ProfileStorage, ProfileManager), tests for dependency injection patterns, legacy compatibility, context isolation, thread safety, integration tests for ContextController, and achieving high code coverage.",
-			"reasoning": "Developing a *comprehensive* test suite for a critical module like `context_control` is inherently complex. It involves designing granular unit tests for multiple sub-components, handling dependency injection patterns, validating legacy compatibility, ensuring context isolation, testing thread safety, and implementing robust integration tests for the orchestrator. Achieving high code coverage and covering all edge cases, including error handling, requires significant effort and deep module understanding."
+			"taskTitle": "Create Integration Migration Guide for Context Control Module Refactoring",
+			"complexityScore": 6,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task, while documentation-focused, is critical due to the significant architectural shift it explains: the migration of the `context_control` module from static methods to dependency-injected instance methods. It requires synthesizing complex technical changes into clear, actionable guidance for developers, including side-by-side code examples, a detailed migration checklist, and a testing strategy. The necessity of covering common pitfalls and removing deprecation shims (Task 31) adds to its scope and complexity. The existing subtasks are comprehensive for this detailed guide."
 		},
 		{
 			"taskId": 33,
-			"taskTitle": "Add Deprecation Shims for Context Control Static Methods",
-			"complexityScore": 6,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Generate subtasks for adding deprecation shims for specific `context_control` static methods, including identifying target methods and their instance equivalents, implementing the deprecation wrappers with correct argument mapping and `DeprecationWarning` emission, writing unit tests for each shim to verify functionality and warning, and updating documentation.",
-			"reasoning": "This task requires meticulous attention to detail. Implementing shims involves correctly mapping arguments from old static methods to new instance methods and constructors. Critically, the `DeprecationWarning` must be emitted correctly with the right stack level to guide developers. While the number of methods is limited, the precision required for each shim and its dedicated testing makes it moderately complex."
+			"taskTitle": "Refactor ContextController Config Initialization for Thread Safety",
+			"complexityScore": 8,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This is a highly complex architectural refactoring that addresses a fundamental design flaw: global state mutation in a critical component (`ContextController`). Eliminating implicit global dependencies, designing and implementing a robust, thread-safe config factory pattern, and modifying `ContextController` for explicit dependency injection requires deep understanding of the codebase and careful execution. The need to ensure thread safety under concurrent access, rigorously test for race conditions, and update all call sites further elevates its complexity. The existing subtasks are well-defined for this significant refactoring."
 		},
 		{
 			"taskId": 34,
-			"taskTitle": "Create Integration Migration Guide for Context Control Module Refactoring",
+			"taskTitle": "Verify and Resolve Circular Imports in Context Control Module",
 			"complexityScore": 7,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for creating an integration migration guide for the `context_control` module refactoring, including outlining the guide's structure, detailing breaking changes from static to instance methods, providing side-by-side code examples, a step-by-step migration checklist, common pitfalls, and a testing strategy for the new DI architecture.",
-			"reasoning": "This documentation task requires a deep understanding of the `context_control` module's architectural refactoring (static to instance methods, dependency injection) to effectively guide developers through breaking changes. Crafting clear side-by-side code examples, a comprehensive migration checklist, common pitfalls, and a robust testing strategy for the new patterns demands significant technical insight and strong communication skills. The quality of this guide is paramount for developer adoption."
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task tackles a pervasive problem in Python codebases: circular imports. Identifying these issues, especially within a critical and already refactored module (`context_control`), requires specialized static analysis. Resolving them demands careful architectural decisions, potentially involving module restructuring, dependency inversion, or judicious use of lazy imports, all of which carry a risk of introducing new bugs. Implementing preventative safeguards (pre-commit hooks, CI/CD checks) is also complex, ensuring future code quality. The comprehensive verification steps are essential due to the subtle nature of import-related issues. The provided subtasks are well-structured for this effort."
 		},
 		{
 			"taskId": 35,
-			"taskTitle": "Refactor ContextController Config Initialization for Thread Safety",
-			"complexityScore": 9,
+			"taskTitle": "Refactor EmailProfileManager API to ID-based Interface with Backward Compatibility",
+			"complexityScore": 8,
 			"recommendedSubtasks": 6,
-			"expansionPrompt": "Generate subtasks for refactoring the `ContextController`'s configuration initialization, including analyzing global state mutations, designing and implementing a configuration factory pattern, explicitly passing configuration, ensuring thread-safe config access (if needed), updating all relevant call sites, and documenting the new initialization process.",
-			"reasoning": "This is a critical architectural refactoring aimed at eliminating global mutable state and ensuring thread safety, which is notoriously difficult to implement correctly. Designing and implementing a factory pattern for configuration, modifying the `ContextController` to accept explicit configuration, and verifying thread-safe behavior under concurrent access are complex engineering challenges. Updating all call sites and thoroughly documenting the new process adds significant effort."
+			"expansionPrompt": "Generate subtasks for refactoring the `EmailProfileManager` API to an ID-based interface with backward compatibility. This should include implementing new ID-based API methods (`get_profile`, `save_profile`, `delete_profile`, `list_available_profiles`), systematically deprecating existing path-based methods with warnings, developing robust export/import utilities for custom locations, documenting the new profile serialization format, and outlining a migration path for existing custom-path usages, ensuring comprehensive testing for each change.",
+			"reasoning": "This task is a major API refactoring that introduces a fundamental change in how email profiles are managed (ID-based vs. path-based). The complexity stems from: 1) Core API Redesign: Implementing new CRUD operations for an ID-based system. 2) Meticulous Backward Compatibility: Deprecating old methods while ensuring they still function and emit clear warnings, which requires careful delegation. 3) Robust Export/Import: Developing utilities for handling custom file paths outside the manager's default storage. 4) Documentation: Clearly articulating the new serialization format and a migration path. The task is highly intertwined with data persistence and relies on the Pydantic V2 upgrade (Task 28). Extensive unit and integration testing is crucial to prevent data corruption or regressions. The existing subtask is just a starting point for this substantial work."
 		},
 		{
 			"taskId": 36,
-			"taskTitle": "Verify and Resolve Circular Imports in Context Control Module",
-			"complexityScore": 8,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for verifying and resolving circular imports in the `context_control` module, including static analysis for discovery, implementing resolution strategies (e.g., refactoring module structure, dependency inversion, lazy imports), verifying the resolution through isolated imports and comprehensive tests, and implementing safeguards like pre-commit hooks and CI/CD checks to prevent future circular imports.",
-			"reasoning": "Identifying and resolving circular imports in a critical module, especially one undergoing other refactorings, requires a solid understanding of module dependencies and potential architectural changes. It involves using static analysis tools, strategically refactoring code (e.g., module splitting, dependency inversion, lazy imports), and rigorously verifying the fixes. Implementing proactive safeguards like pre-commit hooks and CI/CD checks to prevent recurrence adds to the overall complexity."
+			"taskTitle": "Comprehensive Analysis of launch.py",
+			"complexityScore": 7,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is a comprehensive and multi-faceted audit of a single, critical entry-point file (`src/launch.py`). It requires applying a wide range of analytical techniques and tools (static analysis, Git history investigation, security review, style checks) to identify subtle issues related to security, regressions, dependencies, and architectural consistency. The depth of investigation across five distinct categories means considerable effort in both automated analysis and meticulous manual review. The detailed subtasks cover the analytical scope well."
 		},
 		{
 			"taskId": 37,
-			"taskTitle": "Refactor EmailProfileManager API to ID-based Interface with Backward Compatibility",
-			"complexityScore": 9,
-			"recommendedSubtasks": 7,
-			"expansionPrompt": "Generate subtasks for refactoring the `EmailProfileManager` API to an ID-based interface with backward compatibility, including standardizing profile storage by ID, implementing new ID-based API methods (get, save, delete), deprecating existing path-based methods with warnings, implementing export/import utilities, documenting the new serialization format, and providing a migration path for existing usages.",
-			"reasoning": "This task is a significant API refactoring with a strong emphasis on maintaining backward compatibility while introducing a new ID-based interface. It involves changing core profile identification and storage mechanisms, creating new ID-based CRUD APIs, meticulously deprecating and implementing shims for old APIs, developing new import/export utilities, and comprehensively documenting the serialization format and migration path. The need for backward compatibility dramatically increases design, implementation, and testing complexity."
+			"taskTitle": "Update Minimum Python Requirement to 3.12",
+			"complexityScore": 6,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is a widespread environmental update requiring changes across various configuration files, CI/CD pipelines, and documentation. While largely mechanical (changing '3.11' to '3.12'), the sheer number of places it touches (`pyproject.toml`, `Dockerfile`, GitHub Actions workflows, `README.md`, `setup.py`, source code checks) means careful execution to avoid missing any references. The critical part is thorough validation, including local environment tests, full CI/CD runs, and Docker image verification, to ensure no regressions are introduced. The existing subtasks are comprehensive for this task."
 		},
 		{
 			"taskId": 38,
-			"taskTitle": "Comprehensive Analysis of launch.py",
+			"taskTitle": "Refine launch.py Dependencies and Orchestration for Merge Stability",
 			"complexityScore": 7,
-			"recommendedSubtasks": 8,
-			"expansionPrompt": "Generate subtasks for a comprehensive analysis of `src/launch.py`, including identifying direct security vulnerabilities, evaluating regression risks via Git history, assessing existing test coverage, performing import dependency analysis, analyzing for technical debt and commit pattern evolution, conducting a style and linting audit, identifying architectural pattern deviations, and detecting duplicated logic.",
-			"reasoning": "This is a broad investigative task covering multiple critical areas: security, regressions, import dependencies, Git history, and code quality/consistency. It requires systematic application of various tools (Git commands, static analyzers) and manual review. The comprehensiveness required, coupled with the critical nature of `launch.py` as a central entry point, makes this an important and moderately complex analytical effort. The output is crucial for subsequent refactoring."
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This task is a critical CI/CD and dependency management enhancement focused on a single, vital entry point (`src/launch.py`). It requires deep analysis to accurately identify and refine all dependencies, meticulous identification of critical files, and complex CI/CD scripting to implement new, build-failing checks (dependency drift, critical file presence). Integrating these checks effectively into GitHub Actions and potentially local Git hooks, followed by rigorous testing against various failure scenarios, makes this a challenging and high-impact task for merge stability. The existing subtasks are very detailed and cover the scope well."
 		},
 		{
 			"taskId": 39,
-			"taskTitle": "Update Minimum Python Requirement to 3.12",
-			"complexityScore": 6,
-			"recommendedSubtasks": 10,
-			"expansionPrompt": "Generate subtasks for updating the minimum Python requirement to 3.12, including updating `pyproject.toml`, `Dockerfile`, CI/CD workflows, all relevant documentation files, `setup.py` (if applicable), hardcoded Python version checks in source files, and performing comprehensive local environment and dependency validation.",
-			"reasoning": "While largely involving search-and-replace, this task requires updating numerous configuration files (Poetry, Docker, CI/CD), documentation, and potentially hardcoded version checks across the codebase. The complexity arises from the need for thoroughness to ensure all references are updated and, crucially, comprehensive local, CI/CD, and Docker testing to verify no regressions or compatibility issues are introduced by the upgrade. Overlooking a single reference could lead to build failures."
+			"taskTitle": "Production Deployment Infrastructure Setup",
+			"complexityScore": 9,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This is an extremely complex and comprehensive infrastructure task, building out the entire production deployment ecosystem. It involves: 1) Advanced Containerization: Multi-stage builds, image optimization, production-ready Uvicorn/Gunicorn configuration. 2) Robust CI/CD: Dedicated production jobs, vulnerability scanning, secure cloud-specific secrets management, cloud provider deployment logic (e.g., ECS/EKS), and automated rollback mechanisms. 3) End-to-End Monitoring: APM integration, centralized logging, and sophisticated alerting. Each of these sub-components is a significant undertaking requiring deep DevOps, cloud, and security expertise. The interdependencies and the high stakes of production stability elevate its complexity. The provided subtasks are very detailed."
 		},
 		{
 			"taskId": 40,
-			"taskTitle": "Refine launch.py Dependencies and Orchestration for Merge Stability",
+			"taskTitle": "Security Audit and Hardening for Production",
+			"complexityScore": 9,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This is an exceptionally complex and critical task, involving a comprehensive security audit and hardening of the entire production ecosystem. It covers a wide array of specialized security domains, including automated dependency vulnerability scanning, secure configuration and secrets management (with rotation strategies), rigorous API security review (authentication, authorization, input validation, CORS, error handling to prevent information leakage), rate limiting, and sophisticated security-focused monitoring and alerting. Each sub-component requires deep expertise in security best practices and robust implementation and testing to mitigate significant risks. The provided subtasks are very comprehensive."
+		},
+		{
+			"taskId": 41,
+			"taskTitle": "Database Refactoring for Dependency Injection & Global State Elimination",
 			"complexityScore": 8,
-			"recommendedSubtasks": 12,
-			"expansionPrompt": "Generate subtasks for refining `src/launch.py`'s dependencies and orchestration for merge stability, including a deep dependency analysis, identifying and documenting all critical files (modules, config, data) essential for `launch.py`, implementing new CI/CD checks for dependency drift and critical file integrity, and updating merge best practices documentation.",
-			"reasoning": "This task builds directly on a comprehensive analysis and moves into implementation to secure a critical codebase component (`launch.py`). It involves refining dependencies, identifying critical files, and significantly enhancing CI/CD orchestration with new, specialized checks for dependency drift and critical file integrity. This requires expertise in dependency management, CI/CD configuration, and process documentation, making it a complex and high-impact task for overall merge stability."
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Generate subtasks for refactoring the database implementation to eliminate global state and introduce dependency injection. This should include identifying and removing global state/singletons, implementing a database configuration factory, modifying `DatabaseManager` for explicit DI, updating all database interaction call sites, implementing thread-safe resource management (e.g., SQLAlchemy sessions/connection pools), integrating with FastAPI's DI system, and creating comprehensive tests for the refactored database layer.",
+			"reasoning": "This task is a critical architectural refactoring of the core database layer, tackling fundamental issues like global state and singletons. Eliminating these patterns and implementing proper dependency injection is complex, as it touches every part of the application that interacts with the database. It requires careful identification of existing problematic patterns, redesigning how database managers are instantiated and configured, and updating numerous call sites. Ensuring thread-safe resource management and validating against performance regressions further elevates its complexity and risk."
+		},
+		{
+			"taskId": 42,
+			"taskTitle": "Standardize Dependency Management System",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Generate subtasks for standardizing the dependency management system, including deciding on the primary tool (e.g., Poetry), migrating existing `requirements.txt` or `uv.lock` to `pyproject.toml`, updating all CI/CD pipelines to exclusively use the chosen tool, updating local development environment setup scripts, and documenting the new process.",
+			"reasoning": "This task involves standardizing a core aspect of developer workflow and project reliability: dependency management. Migrating from a mixed system (`uv`, `Poetry`, `requirements.txt`) to a unified `pyproject.toml`-based approach is a widespread refactoring. It requires careful migration of existing dependencies, updating all CI/CD pipelines, modifying local development scripts, and thorough documentation. While not inherently complex in terms of algorithms, the broad impact and the need to ensure consistent behavior across all environments make it moderately challenging."
+		},
+		{
+			"taskId": 43,
+			"taskTitle": "Implement Dashboard Caching & Background Processing",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Generate subtasks for implementing dashboard caching and background processing, including selecting and integrating a caching solution (e.g., Redis) around dashboard aggregation methods, designing cache invalidation strategies, choosing and integrating a background task queue (e.g., Celery), refactoring computationally expensive dashboard calculations into background jobs, implementing result storage and retrieval for background jobs, and comprehensive performance and functional testing.",
+			"reasoning": "This task is a significant performance optimization involving two distinct yet interconnected features: caching and background processing. Implementing a robust caching layer with effective invalidation strategies requires careful design. Integrating a background task queue and refactoring computationally expensive dashboard calculations to run asynchronously introduces complexity in terms of concurrency, state management, and result retrieval. The need to ensure data consistency, measure performance gains, and rigorously test both caching and background processing components makes this a complex and high-impact task."
+		},
+		{
+			"taskId": 44,
+			"taskTitle": "Implement WebSocket Support for Real-time Dashboard Updates",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Generate subtasks for implementing WebSocket support for real-time dashboard updates, including setting up a FastAPI WebSocket endpoint, establishing a backend mechanism to push updates (potentially via a message broker like Redis Pub/Sub), implementing frontend WebSocket client logic for dynamic UI updates, handling WebSocket connection stability and error recovery, and comprehensive testing for real-time functionality and scalability.",
+			"reasoning": "This task involves implementing real-time communication for dashboard updates, which introduces significant technical complexity. Setting up and integrating WebSocket endpoints in FastAPI, designing a robust backend push mechanism (potentially involving a message broker for scalability), and implementing dynamic UI updates in Gradio all require specialized knowledge. Ensuring connection stability, handling concurrent users, and validating message delivery under various network conditions are critical and complex aspects of this feature."
+		},
+		{
+			"taskId": 45,
+			"taskTitle": "Implement Dashboard Export Functionality (CSV, PDF, JSON)",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Generate subtasks for implementing dashboard export functionality (CSV, PDF, JSON), including creating backend API endpoints for each format, integrating appropriate libraries for data serialization and file generation, ensuring efficient handling of large datasets (potentially leveraging background processing), implementing frontend UI elements and client-side download logic, and comprehensively testing exported data accuracy and file integrity.",
+			"reasoning": "This task involves implementing dashboard export functionality for multiple formats, which is a moderately complex feature. It requires creating distinct API endpoints, integrating multiple external libraries (`pandas`, `reportlab`/`Fpdf`, `json`), and ensuring efficient handling of potentially large datasets, possibly by leveraging background processing (Task 43). Integrating the frontend UI and rigorously testing the accuracy and integrity of the exported data for each format adds to its complexity."
+		},
+		{
+			"taskId": 46,
+			"taskTitle": "Develop Comprehensive Dashboard API for Programmatic Access (Scientific Branch)",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Generate subtasks for developing a comprehensive Dashboard API for programmatic access, including designing new FastAPI endpoints for all dashboard statistics and aggregation methods with clear Pydantic models, implementing robust authentication and authorization, ensuring efficient data retrieval leveraging caching and background processing, generating and verifying API documentation, and conducting thorough API integration and performance testing.",
+			"reasoning": "This task involves developing a new, comprehensive REST API to expose all dashboard functionality. Designing clean, consistent API endpoints with appropriate Pydantic request/response models is crucial. Integrating robust authentication and authorization mechanisms (building upon Task 3) and ensuring efficient data retrieval (leveraging caching and background processing from Task 43) adds significant complexity. Thorough API integration testing and documenting the API for programmatic consumption are also substantial efforts."
+		},
+		{
+			"taskId": 47,
+			"taskTitle": "Implement Multi-Tenant Dashboard Support (Scientific Branch)",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Generate subtasks for implementing multi-tenant dashboard support, including adapting the database schema for tenant ID segregation, extending authentication for tenant identification, implementing storage and retrieval for tenant-specific configurations, modifying all existing dashboard endpoints and data retrieval logic for tenant context, designing new tenant provisioning/management mechanisms, and conducting comprehensive data isolation, access control, and performance testing for the multi-tenant architecture.",
+			"reasoning": "This task introduces a fundamental architectural shift to multi-tenancy, which is highly complex and has a pervasive impact across the entire application. It requires: 1) Database Schema Changes: Adding `tenant_id` and ensuring all queries are filtered. 2) Authentication Extension: Integrating tenant identification into the security context. 3) Tenant-Specific Configuration: Managing isolated configurations for each tenant. 4) Widespread Code Changes: Modifying all dashboard endpoints and data retrieval logic to be tenant-aware. The primary challenge is ensuring complete data isolation and correct access control between tenants, which demands meticulous implementation and rigorous testing to prevent severe security and data integrity issues."
+		},
+		{
+			"taskId": 48,
+			"taskTitle": "Integrate AI Insights Engine with Dashboard (Scientific Branch)",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Generate subtasks for integrating an AI insights engine with the dashboard, including enhancing the AI engine to generate actionable email management recommendations, exposing these AI-generated insights via new endpoints in the Dashboard API, designing and implementing new UI components in Gradio to display insights, leveraging existing AI model management for efficient resource use, and comprehensively testing the accuracy, relevance, and scalability of the AI insights.",
+			"reasoning": "This task involves integrating sophisticated AI capabilities directly into the dashboard, making it moderately to highly complex. The core challenge lies in enhancing the AI engine to generate *actionable* and *relevant* insights (e.g., email categorization, workflow suggestions), which is a non-trivial AI/ML engineering problem. Beyond the AI aspect, it requires designing new API endpoints to expose these insights (building on Task 46), and implementing new, potentially interactive, UI components in Gradio to effectively display them. Ensuring proper AI model management and validating the insights' quality and scalability are critical."
+		},
+		{
+			"taskId": 49,
+			"taskTitle": "Improve Testing Infrastructure & Code Quality",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Generate subtasks for improving testing infrastructure and code quality, including replacing bare `except` clauses and implementing proper error handling, adding comprehensive type hints across the codebase, establishing and enforcing code coverage targets with `pytest-cov`, developing security-focused negative test cases, refactoring large NLP modules into smaller units, and reducing code duplication and high-complexity functions using static analysis tools.",
+			"reasoning": "This task is a broad and impactful initiative combining significant testing infrastructure improvements with extensive code quality refactoring. It involves systematically addressing anti-patterns like bare `except` clauses, adding comprehensive type hints across a potentially large codebase, establishing and enforcing code coverage, and developing security-critical negative test cases. Simultaneously, it requires major code refactoring: breaking down large, complex NLP modules, reducing code duplication, and simplifying high-complexity functions. The sheer scope and the potential for regressions across both functional and non-functional aspects make this a highly complex task."
+		},
+		{
+			"taskId": 50,
+			"taskTitle": "Implement Centralized Error Handling with Consistent Error Codes",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Generate subtasks for implementing centralized error handling with consistent error codes, including defining a standardized JSON error response format and an enumeration of application-specific error codes, implementing a global FastAPI exception handler to catch and format errors, refactoring existing `try-except` blocks to leverage the centralized system, ensuring all API endpoints return consistent error responses, and integrating robust logging for all error types.",
+			"reasoning": "This task involves a fundamental architectural improvement that impacts error handling across the entire FastAPI application. Designing a consistent, structured error response format with application-specific error codes is crucial but requires careful definition. Implementing a global exception handler and systematically refactoring existing `try-except` blocks to leverage this centralized mechanism is complex due to its widespread impact. Ensuring no sensitive information is leaked in production and integrating robust error logging are critical security and operational considerations, making this a moderately complex and high-impact task."
 		}
 	]
