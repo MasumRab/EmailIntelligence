@@ -22,9 +22,8 @@ from .types import (
     ResolutionStrategy,
     ResolutionStep,
     RiskLevel,
-    PromptContext,
 )
-from .prompts import PromptEngine
+from .prompts import PromptEngine, PromptContext
 
 # ARCHIVED: PR Resolution System - AI client moved to archive
 # from ..ai.client import get_openai_client  # Original import commented out - moved to archive/pr-resolution-archive/src/ai/
