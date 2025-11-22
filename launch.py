@@ -18,6 +18,14 @@ setup_launch_path = os.path.join(script_dir, 'setup', 'launch.py')
 
 if __name__ == "__main__":
     # Forward all arguments to the actual launch.py in the setup directory
+    # Add the script directory to Python path so imports work
+    env = os.environ.copy()
+    python_path = env.get('PYTHONPATH', '')
+    if python_path:
+        env['PYTHONPATH'] = f"{script_dir}:{python_path}"
+    else:
+        env['PYTHONPATH'] = script_dir
+
     cmd = [sys.executable, setup_launch_path] + sys.argv[1:]
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd, env=env)
     sys.exit(result.returncode)
