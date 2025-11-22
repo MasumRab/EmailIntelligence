@@ -1,75 +1,77 @@
 #!/bin/bash
 
-# Post-merge hook - minimal operations only
-# Does NOT force synchronization of orchestration files
-# Prevents blocking on merge operations
+# Simplified Post-merge hook for orchestration validation
+# Detects merge conflicts and validates safety only - no file distribution
 
-# Recursion prevention
+# Recursion prevention: Exit if sync is already active
 if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
     exit 0
 fi
 
 # Check for disable flag
 if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration validation disabled, skipping post-merge validation"
     exit 0
 fi
 
-export ORCHESTRATION_SYNC_ACTIVE=1
+set -e
 
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+# Get current branch
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
-echo "Post-merge on branch: $CURRENT_BRANCH"
+echo "Post-merge validation triggered on branch: $CURRENT_BRANCH"
 
-# IMPORTANT: Do NOT force sync of orchestration files
-# Developers should control synchronization explicitly
-# Automatic sync on merge can cause unexpected file changes
-
-# Only safe, non-blocking operations:
-
-# 1. Basic merge validation (info only)
-if [[ -z "$CURRENT_BRANCH" ]]; then
-    echo "WARNING: Could not determine current branch"
-fi
-
-# 2. Verify critical files exist (info only, non-blocking)
+# Branch-specific validation
 case "$CURRENT_BRANCH" in
-    "orchestration-tools")
-        if [[ -f "emailintelligence_cli.py" ]]; then
-            echo "✓ EmailIntelligence CLI present"
-        else
-            echo "INFO: emailintelligence_cli.py not found"
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools post-merge validation..."
+
+        # Verify critical orchestration scripts are still executable
+        ORCHESTRATION_SCRIPTS=(
+            "scripts/install-hooks.sh"
+            "scripts/disable-hooks.sh"
+            "scripts/enable-hooks.sh"
+            "scripts/sync_orchestration_files.sh"
+        )
+
+        for script in "${ORCHESTRATION_SCRIPTS[@]}"; do
+            if [[ -f "$script" && ! -x "$script" ]]; then
+                echo "INFO: Making $script executable"
+                chmod +x "$script"
+            fi
+        done
+
+        # Ensure hooks are still properly installed
+        if [[ -f "scripts/install-hooks.sh" ]]; then
+            echo "INFO: Hooks should be verified after merge" 
+            echo "Run: scripts/install-hooks.sh --verify if needed"
         fi
+
+        echo "✓ Orchestration-tools post-merge validation complete"
         ;;
+
     "main"|"scientific")
-        if [[ -f "README.md" ]]; then
-            echo "✓ README present"
+        # Check for potential conflicts with orchestration files
+        if [[ -f "scripts/post-commit-setup-sync" && ! -f "scripts/install-hooks.sh" ]]; then
+            echo "INFO: Orchestration artifacts detected without full setup"
         fi
+
+        echo "✓ Post-merge validation complete"
+        ;;
+
+    *)
+        # Generic validation for other branches
+        echo "✓ Generic post-merge validation complete"
         ;;
 esac
 
-# 3. Ensure .taskmaster/ is not affected (just info)
-if [[ -d ".taskmaster" && "$CURRENT_BRANCH" != "taskmaster" ]]; then
-    echo "ℹ Task Master worktree isolated (separate from merge)"
+# Common post-merge validation for all branches
+echo "Running common post-merge validation..."
+
+# Check merge status for conflicts
+if git status --porcelain | grep -q "^UU\|^AA\|^DD"; then
+    echo "WARNING: Conflicts may still need resolution:"
+    git status --porcelain | grep "^UU\|^AA\|^DD"
 fi
 
-# 4. Update git hooks if changed (optional, safe)
-if [[ "$CURRENT_BRANCH" == "orchestration-tools" || "$CURRENT_BRANCH" == orchestration-tools-* ]]; then
-    if [[ -f "scripts/install-hooks.sh" ]]; then
-        # For variants, use the main orchestration-tools branch for hook reference
-        HOOK_REF_BRANCH="orchestration-tools"
-        CURRENT_ORCH_COMMIT=$(git rev-parse $HOOK_REF_BRANCH 2>/dev/null)
-        LAST_INSTALLED=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
-        
-        if [[ -z "$LAST_INSTALLED" ]] || [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED" ]]; then
-            echo "Updating hooks from orchestration-tools..."
-            if bash scripts/install-hooks.sh --quiet 2>/dev/null; then
-                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
-                echo "✓ Hooks updated"
-            fi
-        fi
-    fi
-fi
-
-unset ORCHESTRATION_SYNC_ACTIVE
-
-echo "✓ Post-merge complete"
+echo "✓ Post-merge validation completed successfully"
