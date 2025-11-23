@@ -1,14 +1,11 @@
 """
 Intelligent Conflict Resolution Engine for PR Resolution Automation System
 
-This module provides conflict resolution capabilities including:
-- Constitutional validation (ConstitutionalEngine)
-- AI-powered strategy generation with OpenAI (StrategyGenerator)
-- Prompt engineering for AI (PromptEngine)
-- Data models for conflicts and resolutions (types)
-
-Note: Some modules mentioned in original design are not yet implemented.
-      See PHASE_0_SETUP.md for details on missing modules.
+Available modules:
+- ConstitutionalEngine: Constitutional validation
+- StrategyGenerator: AI-powered strategy generation (requires OpenAI)
+- PromptEngine: Prompt engineering for AI
+- Data models: MergeConflict, ResolutionStrategy, etc.
 """
 
 # ===== EXISTING MODULES =====
@@ -36,14 +33,14 @@ from .types import (
     ResourceConflict,
 )
 
-# ===== MISSING MODULES (not yet implemented) =====
+# ===== MISSING MODULES (commented out) =====
 # TODO: Implement these modules or remove from API
 # from .engine import ResolutionEngine
 # from .generation import CodeChangeGenerator
-# from .validation import ValidationFramework  # Use src.validation instead
+# from .validation import ValidationFramework
 # from .execution import ExecutionEngine
 # from .workflows import WorkflowOrchestrator
-# from .metrics import QualityMetrics  # Model exists in types.py, implementation missing
+# from .metrics import QualityMetrics  # Note: Model exists in types.py
 # from .queue import ResolutionQueue
 
 __all__ = [

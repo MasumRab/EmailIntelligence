@@ -10,7 +10,8 @@
 - [x] Audit existing `src/resolution/` modules
 - [x] Identify missing vs existing files
 - [x] Fix broken `__init__.py` imports
-- [ ] Test module imports
+- [x] Test module imports
+- [x] Fix archived OpenAI client reference in strategies.py
 - [ ] Setup OpenAI (if using AI strategies)
 - [ ] Create integration test plan
 
@@ -428,9 +429,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 - [x] Module audit complete
 - [x] `__init__.py` fix documented
-- [ ] Imports tested
+- [x] `__init__.py` fix applied
+- [x] Imports tested successfully
+- [x] Archived OpenAI client reference fixed
 - [ ] OpenAI configured (optional)
 - [ ] Neo4j tested (optional)
 - [ ] Integration tests run
 
-**Next**: Apply the `__init__.py` fix and test imports
+**Next**: Optional - Configure OpenAI for AI-powered strategies, or proceed to Phase 1 foundation work

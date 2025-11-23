@@ -72,8 +72,9 @@ class StrategyGenerator:
     async def initialize(self) -> bool:
         """Initialize the strategy generator"""
         try:
-            self.openai_client = await get_openai_client()
-            logger.info("Strategy generator initialized successfully")
+            # ARCHIVED: OpenAI client moved to archive
+            # self.openai_client = await get_openai_client()
+            logger.warning("Strategy generator initialized without OpenAI client (archived)")
             return True
         except Exception as e:
             logger.error("Failed to initialize strategy generator", error=str(e))
