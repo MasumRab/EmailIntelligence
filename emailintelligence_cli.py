@@ -43,6 +43,13 @@ class EmailIntelligenceCLI:
         # Load configuration
         self.config = self._load_config()
         
+        # Initialize Constitutional Engine
+        self.constitutional_engine = ConstitutionalEngine(
+            constitutions_dir=str(self.constitutions_dir)
+        )
+        # Initialize async (run in constructor)
+        asyncio.run(self.constitutional_engine.initialize())
+        
         # Initialize git repository check
         self._check_git_repository()
     
@@ -283,214 +290,247 @@ class EmailIntelligenceCLI:
         interactive: bool = False
     ) -> Dict[str, Any]:
         """
-        Analyze conflicts against loaded constitution
+        Analyze conflicts against loaded constitution using real ConstitutionalEngine
         
         Args:
             pr_number: Pull request number
-            constitution_files: List of constitution files to analyze against
+            constitution_files: List of constitution files to analyze against (optional)
             interactive: Enable interactive analysis mode
         """
-        metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
+        # Wrap async call
+        return asyncio.run(self._analyze_constitutional_async(
+            pr_number, constitution_files, interactive
+        ))
+
+    async def _analyze_constitutional_async(
+        self, pr_number: int, constitution_files: Optional[List[str]] = None,
+        interactive: bool = False
+    ) -> Dict[str, Any]:
+        """Async implementation of constitutional analysis"""
         
+        metadata_file = self.resolution_branches_dir / f"pr-{pr_number}" / "metadata.json"
+        
+        # Fallback to old path if new one doesn't exist (backward compatibility)
         if not metadata_file.exists():
-            self._error_exit(
-                f"No resolution workspace found for PR #{pr_number}. "
-                "Run 'eai setup-resolution' first."
-            )
-        
-        # Load resolution metadata
-        with open(metadata_file, encoding='utf-8') as f:
+            old_metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
+            if old_metadata_file.exists():
+                metadata_file = old_metadata_file
+            else:
+                self._error_exit(f"No metadata found for PR #{pr_number}. Run 'setup-resolution' first.")
+
+        # Load metadata
+        with open(metadata_file, 'r', encoding='utf-8') as f:
             metadata = json.load(f)
         
-        self._info(f"Analyzing conflicts against constitution for PR #{pr_number}...")
+        conflicts_data = metadata.get('conflicts', [])
+        if not conflicts_data:
+            self._warn("No conflicts found in metadata")
+            return {}
         
-        # Load constitutions
-        constitutions = self._load_constitutions(
-            constitution_files or metadata.get('constitution_files', [])
-        )
+        print(f"\n{'='*80}")
+        print(f"CONSTITUTIONAL ANALYSIS - PR #{pr_number}")
+        print(f"{'='*80}\n")
         
-        # Analyze conflicts
-        analysis_results = self._perform_constitutional_analysis(metadata, constitutions)
+        print(f"Analyzing {len(conflicts_data)} conflicts against constitutional rules...")
         
-        # Update metadata
-        metadata['analysis_results'] = analysis_results
-        metadata['status'] = 'constitution_analyzed'
-        metadata['analyzed_at'] = datetime.now().isoformat()
+        # Analyze each conflict
+        all_results = []
+        for i, conflict in enumerate(conflicts_data, 1):
+            file_path = conflict.get('file', 'unknown')
+            print(f"\n[{i}/{len(conflicts_data)}] Analyzing {file_path}...")
+            
+            # Create specification template content from conflict
+            template_content = self._conflict_to_template(conflict, metadata)
+            
+            # REAL constitutional validation!
+            result = await self.constitutional_engine.validate_specification_template(
+                template_content=template_content,
+                template_type="conflict_analysis",
+                context={
+                    'pr_number': pr_number,
+                    'source_branch': metadata.get('source_branch'),
+                    'target_branch': metadata.get('target_branch'),
+                    'file_path': file_path
+                }
+            )
+            
+            all_results.append({
+                'file': file_path,
+                'result': result
+            })
+            
+            # Display result
+            self._display_compliance_result(result, file_path)
+        
+        # Overall summary
+        self._display_overall_summary(all_results)
+        
+        # Save results to metadata
+        self._save_constitutional_results(pr_number, all_results, metadata_file)
+        
+        print(f"\n{'='*80}\n")
+        
+        # Return summary structure for CLI compatibility
+        avg_score = sum(r['result'].overall_score for r in all_results) / len(all_results) if all_results else 0.0
+        
+        return {
+            'pr_number': pr_number,
+            'analysis_results': {
+                'overall_compliance': avg_score,
+                'files_analyzed': len(all_results),
+                'results': [
+                    {
+                        'file': r['file'],
+                        'score': r['result'].overall_score,
+                        'compliance': r['result'].compliance_level.value
+                    }
+                    for r in all_results
+                ]
+            },
+            'compliance_score': avg_score,
+            'critical_issues': [],  # Populated from results if needed
+            'recommendations': []
+        }
+
+    def _conflict_to_template(self, conflict: Dict[str, Any], metadata: Dict[str, Any]) -> str:
+        """Convert conflict data to specification template for validation"""
+        
+        template = f"""# Conflict Analysis Template
+
+## Overview
+### Primary Goal
+Resolve conflict in {conflict.get('file', 'unknown file')}
+
+### Current Problem
+Merge conflict detected between {metadata.get('source_branch')} and {metadata.get('target_branch')}
+
+## Conflict Details
+- **File**: {conflict.get('file')}
+- **Type**: {conflict.get('type', 'merge')}
+- **Lines**: {conflict.get('start_line', '?')} - {conflict.get('end_line', '?')}
+
+## Success Criteria
+- [ ] Conflict resolved without data loss
+- [ ] Both PR intentions preserved
+- [ ] Tests pass after resolution
+
+## Implementation Constraints
+### Technical Constraints
+- Must maintain git history
+- Must use worktree isolation
+- Constitution file compliance required
+
+## Change Log
+- **{datetime.now().strftime('%Y-%m-%d')}**: Initial conflict analysis created
+"""
+        return template
+
+    def _display_compliance_result(self, result, filename: str):
+        """Display compliance result for a single file"""
+        
+        compliance_icons = {
+            'full_compliance': '✅',
+            'minor_violations': '⚠️',
+            'major_violations': '❌',
+            'critical_violations': '🚫',
+            'non_compliant': '⛔'
+        }
+        
+        icon = compliance_icons.get(result.compliance_level.value, '❓')
+        
+        print(f"  {icon} Compliance: {result.compliance_level.value.replace('_', ' ').title()}")
+        print(f"  📊 Score: {result.overall_score * 100:.1f}%")
+        print(f"  ⚖️  Passed: {len(result.passed_rules)} | Failed: {len(result.failed_rules)}")
+        
+        if result.violations:
+            print(f"\n  Violations ({len(result.violations)}):")
+            # Show top 3 violations
+            for violation in result.violations[:3]:
+                severity_icon = {'critical': '🚫', 'major': '❌', 'minor': '⚠️', 'warning': '⚠️', 'info': 'ℹ️'}
+                icon = severity_icon.get(violation.violation_type.value, '•')
+                print(f"    {icon} [{violation.violation_type.value.upper()}] {violation.rule_name}")
+                print(f"       {violation.description}")
+                if violation.auto_fixable:
+                    print(f"       🔧 Auto-fixable")
+            
+            if len(result.violations) > 3:
+                print(f"    ... and {len(result.violations) - 3} more violations")
+        
+        if result.recommendations:
+            print(f"\n  Recommendations:")
+            for rec in result.recommendations[:2]:
+                print(f"    • {rec}")
+
+    def _display_overall_summary(self, all_results: List[Dict[str, Any]]):
+        """Display overall constitutional analysis summary"""
+        
+        print(f"\n{'='*80}")
+        print("OVERALL CONSTITUTIONAL SUMMARY")
+        print(f"{'='*80}\n")
+        
+        total_files = len(all_results)
+        if total_files == 0:
+            print("No files analyzed.")
+            return
+
+        avg_score = sum(r['result'].overall_score for r in all_results) / total_files
+        total_violations = sum(len(r['result'].violations) for r in all_results)
+        
+        print(f"📁 Files Analyzed: {total_files}")
+        print(f"📊 Average Score: {avg_score * 100:.1f}%")
+        print(f"⚖️  Total Violations: {total_violations}")
+        
+        # Breakdown by compliance level
+        compliance_counts = {}
+        for r in all_results:
+            level = r['result'].compliance_level.value
+            compliance_counts[level] = compliance_counts.get(level, 0) + 1
+        
+        print(f"\nCompliance Breakdown:")
+        for level, count in sorted(compliance_counts.items()):
+            print(f"  • {level.replace('_', ' ').title()}: {count}")
+
+    def _save_constitutional_results(self, pr_number: int, all_results: List[Dict[str, Any]], metadata_file: Path):
+        """Save constitutional analysis results to metadata"""
+        
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            metadata = json.load(f)
+        
+        # Convert results to JSON-serializable format
+        metadata['constitutional_analysis'] = {
+            'analyzed_at': datetime.now().isoformat(),
+            'total_files': len(all_results),
+            'average_score': sum(r['result'].overall_score for r in all_results) / len(all_results) if all_results else 0.0,
+            'results': [
+                {
+                    'file': r['file'],
+                    'overall_score': r['result'].overall_score,
+                    'compliance_level': r['result'].compliance_level.value,
+                    'violations': [
+                        {
+                            'rule_id': v.rule_id,
+                            'rule_name': v.rule_name,
+                            'type': v.violation_type.value,
+                            'severity': v.severity_score,
+                            'description': v.description,
+                            'location': v.location,
+                            'auto_fixable': v.auto_fixable,
+                            'remediation': v.remediation
+                        }
+                        for v in r['result'].violations
+                    ],
+                    'recommendations': r['result'].recommendations,
+                    'passed_rules': r['result'].passed_rules,
+                    'failed_rules': r['result'].failed_rules
+                }
+                for r in all_results
+            ]
+        }
         
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
         
-        # Generate and display report
-        report = self._generate_analysis_report(pr_number, metadata, analysis_results)
-        
-        if interactive:
-            self._display_interactive_analysis(report)
-        
-        return {
-            'pr_number': pr_number,
-            'analysis_results': analysis_results,
-            'compliance_score': analysis_results.get('overall_compliance', 0.0),
-            'critical_issues': analysis_results.get('critical_issues', []),
-            'recommendations': analysis_results.get('recommendations', [])
-        }
-    
-    def _load_constitutions(self, constitution_files: List[str]) -> List[Dict[str, Any]]:
-        """Load constitution files"""
-        constitutions = []
-        
-        for constitution_file in constitution_files:
-            constitution_path = Path(constitution_file)
-            
-            # Try relative path first, then constitutions directory
-            if not constitution_path.exists():
-                constitution_path = self.constitutions_dir / constitution_file
-            
-            if not constitution_path.exists():
-                self._warn(f"Constitution file not found: {constitution_file}")
-                continue
-            
-            try:
-                with open(constitution_path, encoding='utf-8') as f:
-                    if yaml and constitution_path.suffix.lower() in ['.yaml', '.yml']:
-                        constitution = yaml.safe_load(f)
-                    else:
-                        constitution = json.load(f)
-                    
-                    constitution['source_file'] = str(constitution_path)
-                    constitutions.append(constitution)
-                    self._info(f"✅ Loaded constitution: {constitution_path.name}")
-                    
-            except Exception as e:
-                self._warn(f"Failed to load constitution {constitution_file}: {e}")
-        
-        return constitutions
-    
-    def _perform_constitutional_analysis(
-        self, metadata: Dict[str, Any], constitutions: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
-        """Perform constitutional analysis on conflicts"""
-        conflicts = metadata.get('conflicts', [])
-        analysis_results = {
-            'constitutions_analyzed': len(constitutions),
-            'conflicts_analyzed': len(conflicts),
-            'overall_compliance': 0.0,
-            'constitutional_assessments': [],
-            'critical_issues': [],
-            'recommendations': []
-        }
-        
-        total_compliance = 0.0
-        constitution_count = len(constitutions)
-        
-        for constitution in constitutions:
-            assessment = self._assess_constitutional_compliance(conflicts, constitution)
-            analysis_results['constitutional_assessments'].append(assessment)
-            total_compliance += assessment.get('compliance_score', 0.0)
-            
-            # Collect critical issues
-            if assessment.get('critical_issues'):
-                analysis_results['critical_issues'].extend(assessment['critical_issues'])
-            
-            # Collect recommendations
-            if assessment.get('recommendations'):
-                analysis_results['recommendations'].extend(assessment['recommendations'])
-        
-        # Calculate overall compliance
-        if constitution_count > 0:
-            analysis_results['overall_compliance'] = total_compliance / constitution_count
-        
-        # Generate general recommendations if none specific
-        if not analysis_results['recommendations']:
-            analysis_results['recommendations'] = [
-                "Review all detected conflicts for constitutional compliance",
-                "Consider updating constitutions to reflect current organizational standards",
-                "Ensure proper error handling and input validation"
-            ]
-        
-        return analysis_results
-    
-    def _assess_constitutional_compliance(
-        self, conflicts: List[Dict[str, Any]], constitution: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Assess compliance against a single constitution"""
-        constitution_name = constitution.get('name', 'Unknown Constitution')
-        requirements = constitution.get('requirements', [])
-        
-        assessment = {
-            'constitution_name': constitution_name,
-            'requirements_count': len(requirements),
-            'compliance_score': 0.0,
-            'conformant_requirements': [],
-            'non_conformant_requirements': [],
-            'partially_conformant_requirements': [],
-            'critical_issues': [],
-            'recommendations': []
-        }
-        
-        if not requirements:
-            return assessment
-        
-        # Simplified compliance checking (in real implementation, this would be more sophisticated)
-        conformant_count = 0
-        
-        for requirement in requirements:
-            requirement_name = requirement.get('name', 'Unknown')
-            requirement_type = requirement.get('type', 'SHOULD')
-            
-            # WARNING: Mock compliance check using hash - replace with actual analysis
-            hash_digit = hashlib.md5(requirement_name.encode()).hexdigest()[-1]
-            
-            if requirement_type in ['MUST', 'REQUIRED']:
-                # For demo, assume 80% compliance for MUST requirements
-                if requirement_type == 'MUST':
-                    compliance_status = 'CONFORMANT' if hash_digit > '2' else 'NON_CONFORMANT'
-                else:
-                    compliance_status = 'CONFORMANT' if hash_digit > '5' else 'PARTIALLY_CONFORMANT'
-            else:
-                # SHOULD/SHOULD_NOT requirements have lower compliance impact
-                compliance_status = 'CONFORMANT' if hash_digit > '7' else 'PARTIALLY_CONFORMANT'
-            
-            requirement_assessment = {
-                'name': requirement_name,
-                'type': requirement_type,
-                'status': compliance_status
-            }
-            
-            if compliance_status == 'CONFORMANT':
-                assessment['conformant_requirements'].append(requirement_assessment)
-                conformant_count += 1
-            elif compliance_status == 'NON_CONFORMANT':
-                assessment['non_conformant_requirements'].append(requirement_assessment)
-                if requirement_type == 'MUST':
-                    assessment['critical_issues'].append({
-                        'type': 'critical',
-                        'requirement': requirement_name,
-                        'message': f"NON_CONFORMANT {requirement_type} requirement: {requirement_name}"
-                    })
-                    assessment['recommendations'].append(
-                        f"Critical: Address {requirement_type} requirement: {requirement_name}"
-                    )
-            else:  # PARTIALLY_CONFORMANT
-                assessment['partially_conformant_requirements'].append(requirement_assessment)
-                assessment['recommendations'].append(
-                    f"Improve implementation of: {requirement_name}"
-                )
-        
-        # Calculate compliance score
-        assessment['compliance_score'] = conformant_count / len(requirements) if requirements else 1.0
-        
-        # Add general recommendations
-        if assessment['critical_issues']:
-            assessment['recommendations'].append(
-                "Critical issues must be resolved before proceeding with resolution"
-            )
-        
-        if assessment['partially_conformant_requirements']:
-            assessment['recommendations'].append(
-                "Review partially conformant requirements for improvement opportunities"
-            )
-        
-        return assessment
+        self._success(f"Constitutional analysis saved to {metadata_file}")
     
     def _generate_analysis_report(
         self, pr_number: int, metadata: Dict[str, Any], analysis_results: Dict[str, Any]

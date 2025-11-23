@@ -4,9 +4,10 @@ Core graph traversal algorithms for PR conflict detection
 
 import time
 from collections import deque
-from typing import List, Dict, Set, Optional, Tuple, Any
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 import structlog
 
 from ...database.connection import connection_manager
@@ -571,9 +572,10 @@ Core graph traversal algorithms for PR conflict detection
 
 import time
 from collections import deque
-from typing import List, Dict, Set, Optional, Tuple, Any
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 import structlog
 
 from ...database.connection import connection_manager
