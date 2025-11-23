@@ -1,0 +1,118 @@
+# Documentation branch - comprehensive gitignore
+# Ignore temporary files, build artifacts, and generated data
+
+# Temporary files
+*.tmp
+*.temp
+*~
+*.bak
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.history
+
+# Python cache and virtual environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.coverage.*
+.pytest_cache/
+.coverage
+.pytest_cache
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+*.whl
+venv/
+.env
+.env.*
+*.env
+!.env.example
+
+# Node.js
+node_modules/
+dist/
+server/public/
+vite.config.ts.*
+
+# Build artifacts
+build/
+dist/
+*.tar.gz
+
+# Credentials and sensitive data
+token.json
+credentials.json
+apikey.json
+jsons/
+jsons/*
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Test and coverage reports
+.coverage
+.coverage.*
+coverage.xml
+coverage/
+
+# Ignore configuration and local environment files
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+jsons/client_id.json
+credentials.json
+jsons/apikey.json
+config.local.*
+config/llm_guidelines.local.json
+
+# Ignore hidden files and directories, with exceptions
+.*
+!docs/.gitkeep
+!docs/.branch-config.json
+!docs/.review-queue.json
+!docs/.merge-history.json
+!.semgrep/
+!.gitignore
+
+# Agent Workflow Template persistence files
+.concurrent_reviews.json
+.distributed_translation.json
+.doc_templates.json
+.maintenance_scheduler.json
+.agent_performance_metrics.json
+
+# Miscellaneous
+diagnosis_message.txt
+performance_metrics_log.jsonl
+config/llm_guidelines.local.json
+models/*.pkl
+task_history.json
+agent_health_metrics.json
+agent_registry.json
+
+# Generated documentation files
+docs/common/
+docs/main/
+docs/scientific/
+
+# Worktree directories (managed separately)
+worktrees/

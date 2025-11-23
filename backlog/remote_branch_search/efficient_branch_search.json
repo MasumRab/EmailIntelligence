@@ -1,0 +1,1144 @@
+{
+  "branch_summary": {
+    "feat-emailintelligence-cli-v2.0": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "feat-enhanced-filtering": {
+      "task_count": 31,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-121",
+          "title": "Implement Git Subtree Pull Process for Scientific Branch",
+          "branch": "feat-enhanced-filtering",
+          "file_path": "backlog/tasks/alignment/task-121 - Implement-Git-Subtree-Pull-Process-for-Scientific-Branch.md",
+          "content_preview": "---\nid: task-121\ntitle: Implement Git Subtree Pull Process for Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"..."
+        },
+        {
+          "task_id": "task-123",
+          "title": "Integrate Setup Subtree in Scientific Branch",
+          "branch": "feat-enhanced-filtering",
+          "file_path": "backlog/tasks/alignment/task-123 - Integrate-Setup-Subtree-in-Scientific-Branch.md",
+          "content_preview": "---\nid: task-123\ntitle: Integrate Setup Subtree in Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"integration\"..."
+        },
+        {
+          "task_id": "task-124",
+          "title": "Test and Validate Subtree Integration on Both Branches",
+          "branch": "feat-enhanced-filtering",
+          "file_path": "backlog/tasks/alignment/task-124 - Test-and-Validate-Subtree-Integration-on-Both-Branches.md",
+          "content_preview": "---\nid: task-124\ntitle: Test and Validate Subtree Integration on Both Branches\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"te..."
+        }
+      ]
+    },
+    "feature-architectural-and-security-enhancements": {
+      "task_count": 30,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-121",
+          "title": "Implement Git Subtree Pull Process for Scientific Branch",
+          "branch": "feature-architectural-and-security-enhancements",
+          "file_path": "backlog/tasks/alignment/task-121 - Implement-Git-Subtree-Pull-Process-for-Scientific-Branch.md",
+          "content_preview": "---\nid: task-121\ntitle: Implement Git Subtree Pull Process for Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"..."
+        },
+        {
+          "task_id": "task-123",
+          "title": "Integrate Setup Subtree in Scientific Branch",
+          "branch": "feature-architectural-and-security-enhancements",
+          "file_path": "backlog/tasks/alignment/task-123 - Integrate-Setup-Subtree-in-Scientific-Branch.md",
+          "content_preview": "---\nid: task-123\ntitle: Integrate Setup Subtree in Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"integration\"..."
+        },
+        {
+          "task_id": "task-124",
+          "title": "Test and Validate Subtree Integration on Both Branches",
+          "branch": "feature-architectural-and-security-enhancements",
+          "file_path": "backlog/tasks/alignment/task-124 - Test-and-Validate-Subtree-Integration-on-Both-Branches.md",
+          "content_preview": "---\nid: task-124\ntitle: Test and Validate Subtree Integration on Both Branches\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"te..."
+        }
+      ]
+    },
+    "feature-backlog-ac-updates": {
+      "task_count": 287,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "feature-backlog-ac-updates",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "feature-backlog-ac-updates",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "feature-backlog-ac-updates",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "feature-context-management-framework": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "feature-dashboard-improvements-part-2": {
+      "task_count": 104,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "feature-dashboard-improvements-part-2",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "feature-dashboard-improvements-part-2",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "feature-dashboard-improvements-part-2",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "feature-notmuch-tagging-1": {
+      "task_count": 566,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "feature-notmuch-tagging-1",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "feature-notmuch-tagging-1",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "feature-notmuch-tagging-1",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "feature-phase-1-testing": {
+      "task_count": 51,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "feature-phase-1-testing",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "feature-phase-1-testing",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "feature-phase-1-testing",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "main": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-changes": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-changes-2": {
+      "task_count": 23,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1001",
+          "title": "Refactor orchestration scripts and summarize changes",
+          "branch": "orchestration-tools-changes-2",
+          "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+          "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+        }
+      ]
+    },
+    "orchestration-tools-changes-4": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-changes-emailintelligence-cli-20251112": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-changes-recovery-framework": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-clean": {
+      "task_count": 4,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1",
+          "title": "tasks/task-1.md",
+          "branch": "orchestration-tools-clean",
+          "file_path": "tasks/task-1.md",
+          "content_preview": "# Security Enhancements - Authentication and Authorization\n\n## Priority\nHIGH\n\n## Description\nImplement enhanced security features for authentication and authorization based on the actionable insights ..."
+        },
+        {
+          "task_id": "task-2",
+          "title": "tasks/task-2.md",
+          "branch": "orchestration-tools-clean",
+          "file_path": "tasks/task-2.md",
+          "content_preview": "# Backend Migration to src/\n\n## Priority\nHIGH\n\n## Description\nOversee and track the complete migration of the deprecated 'backend' package to the new modular architecture under 'src/'. This includes m..."
+        },
+        {
+          "task_id": "task-3",
+          "title": "tasks/task-3.md",
+          "branch": "orchestration-tools-clean",
+          "file_path": "tasks/task-3.md",
+          "content_preview": "# Code Quality Refactoring\n\n## Priority\nMEDIUM\n\n## Description\nAddress identified code quality issues: large modules, duplication, and high complexity functions\n\n## Acceptance Criteria\n- [ ] Split sma..."
+        }
+      ]
+    },
+    "orchestration-tools-consolidated": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-consolidated-clean": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-consolidated-temp": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-integrated-recover-lost-commit-20251115164220": {
+      "task_count": 21,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1",
+          "title": "Resolve merge conflicts in PR #133",
+          "branch": "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+          "file_path": "backlog/tasks/task-1 - Resolve-merge-conflicts-in-PR-#133.md",
+          "content_preview": "---\nid: task-1\ntitle: 'Resolve merge conflicts in PR #133'\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:46'\nlabels: []\ndependencies: []\n---\n\n## Description\n\n<!-- SECTION:DESCRIPTION:BEGIN --..."
+        },
+        {
+          "task_id": "task-10",
+          "title": ">-",
+          "branch": "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+          "file_path": "backlog/tasks/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md",
+          "content_preview": "---\nid: task-10\ntitle: >-\n  Code Quality Refactoring - Split large NLP modules, reduce code duplication,\n  and break down high-complexity functions\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25..."
+        },
+        {
+          "task_id": "task-11",
+          "title": ">-",
+          "branch": "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+          "file_path": "backlog/tasks/task-11 - Testing-&-Documentation-Completion-Achieve-95%+-test-coverage-and-complete-comprehensive-documentation.md",
+          "content_preview": "---\nid: task-11\ntitle: >-\n  Testing & Documentation Completion - Achieve 95%+ test coverage and complete\n  comprehensive documentation\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25 04:51'\nlabel..."
+        }
+      ]
+    },
+    "orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "orchestration-tools-launch-refractor": {
+      "task_count": 30,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-121",
+          "title": "Implement Git Subtree Pull Process for Scientific Branch",
+          "branch": "orchestration-tools-launch-refractor",
+          "file_path": "backlog/tasks/alignment/task-121 - Implement-Git-Subtree-Pull-Process-for-Scientific-Branch.md",
+          "content_preview": "---\nid: task-121\ntitle: Implement Git Subtree Pull Process for Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"..."
+        },
+        {
+          "task_id": "task-123",
+          "title": "Integrate Setup Subtree in Scientific Branch",
+          "branch": "orchestration-tools-launch-refractor",
+          "file_path": "backlog/tasks/alignment/task-123 - Integrate-Setup-Subtree-in-Scientific-Branch.md",
+          "content_preview": "---\nid: task-123\ntitle: Integrate Setup Subtree in Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"integration\"..."
+        },
+        {
+          "task_id": "task-124",
+          "title": "Test and Validate Subtree Integration on Both Branches",
+          "branch": "orchestration-tools-launch-refractor",
+          "file_path": "backlog/tasks/alignment/task-124 - Test-and-Validate-Subtree-Integration-on-Both-Branches.md",
+          "content_preview": "---\nid: task-124\ntitle: Test and Validate Subtree Integration on Both Branches\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"te..."
+        }
+      ]
+    },
+    "orchestration-tools-stashed-changes": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "pr-179": {
+      "task_count": 402,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1",
+          "title": "Resolve merge conflicts in PR #133",
+          "branch": "pr-179",
+          "file_path": "backlog/archive/docs-backup/task-1 - Resolve-merge-conflicts-in-PR-#133.md",
+          "content_preview": "---\nid: task-1\ntitle: 'Resolve merge conflicts in PR #133'\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:46'\nlabels: []\ndependencies: []\n---\n\n## Description\n\n<!-- SECTION:DESCRIPTION:BEGIN --..."
+        },
+        {
+          "task_id": "task-10",
+          "title": ">-",
+          "branch": "pr-179",
+          "file_path": "backlog/archive/docs-backup/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md",
+          "content_preview": "---\nid: task-10\ntitle: >-\n  Code Quality Refactoring - Split large NLP modules, reduce code duplication,\n  and break down high-complexity functions\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25..."
+        },
+        {
+          "task_id": "task-11",
+          "title": ">-",
+          "branch": "pr-179",
+          "file_path": "backlog/archive/docs-backup/task-11 - Testing-&-Documentation-Completion-Achieve-95%+-test-coverage-and-complete-comprehensive-documentation.md",
+          "content_preview": "---\nid: task-11\ntitle: >-\n  Testing & Documentation Completion - Achieve 95%+ test coverage and complete\n  comprehensive documentation\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:51'\nlabels..."
+        }
+      ]
+    },
+    "pr-179-from-f11b20e": {
+      "task_count": 566,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "pr-179-from-f11b20e",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "pr-179-from-f11b20e",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "pr-179-from-f11b20e",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "pr-179-new": {
+      "task_count": 402,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1",
+          "title": "Resolve merge conflicts in PR #133",
+          "branch": "pr-179-new",
+          "file_path": "backlog/archive/docs-backup/task-1 - Resolve-merge-conflicts-in-PR-#133.md",
+          "content_preview": "---\nid: task-1\ntitle: 'Resolve merge conflicts in PR #133'\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:46'\nlabels: []\ndependencies: []\n---\n\n## Description\n\n<!-- SECTION:DESCRIPTION:BEGIN --..."
+        },
+        {
+          "task_id": "task-10",
+          "title": ">-",
+          "branch": "pr-179-new",
+          "file_path": "backlog/archive/docs-backup/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md",
+          "content_preview": "---\nid: task-10\ntitle: >-\n  Code Quality Refactoring - Split large NLP modules, reduce code duplication,\n  and break down high-complexity functions\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25..."
+        },
+        {
+          "task_id": "task-11",
+          "title": ">-",
+          "branch": "pr-179-new",
+          "file_path": "backlog/archive/docs-backup/task-11 - Testing-&-Documentation-Completion-Achieve-95%+-test-coverage-and-complete-comprehensive-documentation.md",
+          "content_preview": "---\nid: task-11\ntitle: >-\n  Testing & Documentation Completion - Achieve 95%+ test coverage and complete\n  comprehensive documentation\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:51'\nlabels..."
+        }
+      ]
+    },
+    "pr-179-patch-1762881287": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "pr-179-patch-clean-1762881335": {
+      "task_count": 566,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "pr-179-patch-clean-1762881335",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "pr-179-patch-clean-1762881335",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "pr-179-patch-clean-1762881335",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "scientific": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "scientific-backup": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "scientific-consolidated": {
+      "task_count": 140,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "scientific-consolidated",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "scientific-consolidated",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "scientific-consolidated",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "scientific-merge-pr": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "scientific-minimal-rebased": {
+      "task_count": 50,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "scientific-minimal-rebased",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "scientific-minimal-rebased",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "scientific-minimal-rebased",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "scientific-update": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "task-15-backup-recovery": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "taskmaster": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "000-integrated-specs": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-agent-context-control": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-command-registry-integration": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-implement-planning-workflow": {
+      "task_count": 23,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1001",
+          "title": "Refactor orchestration scripts and summarize changes",
+          "branch": "001-implement-planning-workflow",
+          "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+          "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+        }
+      ]
+    },
+    "001-orchestration-tools-consistency": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-orchestration-tools-verification-review": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-pr176-integration-fixes": {
+      "task_count": 23,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1001",
+          "title": "Refactor orchestration scripts and summarize changes",
+          "branch": "001-pr176-integration-fixes",
+          "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+          "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+        }
+      ]
+    },
+    "001-rebase-analysis": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-rebase-analysis-specs": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-task-execution-layer": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "001-toolset-additive-analysis": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "002-validate-orchestration-tools": {
+      "task_count": 23,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1001",
+          "title": "Refactor orchestration scripts and summarize changes",
+          "branch": "002-validate-orchestration-tools",
+          "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+          "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+        }
+      ]
+    },
+    "003-execution-layer-tasks-pr": {
+      "task_count": 23,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1001",
+          "title": "Refactor orchestration scripts and summarize changes",
+          "branch": "003-execution-layer-tasks-pr",
+          "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+          "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+        }
+      ]
+    },
+    "003-unified-git-analysis": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "HEAD -> main": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "add-comparison-files-to-main": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "add-comparison-files-to-orchestration-tools": {
+      "task_count": 23,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-1001",
+          "title": "Refactor orchestration scripts and summarize changes",
+          "branch": "add-comparison-files-to-orchestration-tools",
+          "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+          "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+        }
+      ]
+    },
+    "add-comparison-files-to-scientific": {
+      "task_count": 0,
+      "has_samples": false,
+      "samples": []
+    },
+    "align-feature-notmuch-tagging-1": {
+      "task_count": 405,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "align-feature-notmuch-tagging-1",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "align-feature-notmuch-tagging-1",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "align-feature-notmuch-tagging-1",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    },
+    "align-feature-notmuch-tagging-1-v2": {
+      "task_count": 405,
+      "has_samples": true,
+      "samples": [
+        {
+          "task_id": "task-18",
+          "title": "Backend Migration to src/",
+          "branch": "align-feature-notmuch-tagging-1-v2",
+          "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+          "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+        },
+        {
+          "task_id": "task-18.1",
+          "title": "Sub-task: Move Backend Files to src/",
+          "branch": "align-feature-notmuch-tagging-1-v2",
+          "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+          "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+        },
+        {
+          "task_id": "task-18.2",
+          "title": "Sub-task: Update Imports and References",
+          "branch": "align-feature-notmuch-tagging-1-v2",
+          "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+          "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+        }
+      ]
+    }
+  },
+  "task_samples": [
+    {
+      "task_id": "task-121",
+      "title": "Implement Git Subtree Pull Process for Scientific Branch",
+      "branch": "feat-enhanced-filtering",
+      "file_path": "backlog/tasks/alignment/task-121 - Implement-Git-Subtree-Pull-Process-for-Scientific-Branch.md",
+      "content_preview": "---\nid: task-121\ntitle: Implement Git Subtree Pull Process for Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"..."
+    },
+    {
+      "task_id": "task-123",
+      "title": "Integrate Setup Subtree in Scientific Branch",
+      "branch": "feat-enhanced-filtering",
+      "file_path": "backlog/tasks/alignment/task-123 - Integrate-Setup-Subtree-in-Scientific-Branch.md",
+      "content_preview": "---\nid: task-123\ntitle: Integrate Setup Subtree in Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"integration\"..."
+    },
+    {
+      "task_id": "task-124",
+      "title": "Test and Validate Subtree Integration on Both Branches",
+      "branch": "feat-enhanced-filtering",
+      "file_path": "backlog/tasks/alignment/task-124 - Test-and-Validate-Subtree-Integration-on-Both-Branches.md",
+      "content_preview": "---\nid: task-124\ntitle: Test and Validate Subtree Integration on Both Branches\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"te..."
+    },
+    {
+      "task_id": "task-121",
+      "title": "Implement Git Subtree Pull Process for Scientific Branch",
+      "branch": "feature-architectural-and-security-enhancements",
+      "file_path": "backlog/tasks/alignment/task-121 - Implement-Git-Subtree-Pull-Process-for-Scientific-Branch.md",
+      "content_preview": "---\nid: task-121\ntitle: Implement Git Subtree Pull Process for Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"..."
+    },
+    {
+      "task_id": "task-123",
+      "title": "Integrate Setup Subtree in Scientific Branch",
+      "branch": "feature-architectural-and-security-enhancements",
+      "file_path": "backlog/tasks/alignment/task-123 - Integrate-Setup-Subtree-in-Scientific-Branch.md",
+      "content_preview": "---\nid: task-123\ntitle: Integrate Setup Subtree in Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"integration\"..."
+    },
+    {
+      "task_id": "task-124",
+      "title": "Test and Validate Subtree Integration on Both Branches",
+      "branch": "feature-architectural-and-security-enhancements",
+      "file_path": "backlog/tasks/alignment/task-124 - Test-and-Validate-Subtree-Integration-on-Both-Branches.md",
+      "content_preview": "---\nid: task-124\ntitle: Test and Validate Subtree Integration on Both Branches\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"te..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "feature-backlog-ac-updates",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "feature-backlog-ac-updates",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "feature-backlog-ac-updates",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "feature-dashboard-improvements-part-2",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "feature-dashboard-improvements-part-2",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "feature-dashboard-improvements-part-2",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "feature-notmuch-tagging-1",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "feature-notmuch-tagging-1",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "feature-notmuch-tagging-1",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "feature-phase-1-testing",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "feature-phase-1-testing",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "feature-phase-1-testing",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-1001",
+      "title": "Refactor orchestration scripts and summarize changes",
+      "branch": "orchestration-tools-changes-2",
+      "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+      "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-1",
+      "title": "tasks/task-1.md",
+      "branch": "orchestration-tools-clean",
+      "file_path": "tasks/task-1.md",
+      "content_preview": "# Security Enhancements - Authentication and Authorization\n\n## Priority\nHIGH\n\n## Description\nImplement enhanced security features for authentication and authorization based on the actionable insights ..."
+    },
+    {
+      "task_id": "task-2",
+      "title": "tasks/task-2.md",
+      "branch": "orchestration-tools-clean",
+      "file_path": "tasks/task-2.md",
+      "content_preview": "# Backend Migration to src/\n\n## Priority\nHIGH\n\n## Description\nOversee and track the complete migration of the deprecated 'backend' package to the new modular architecture under 'src/'. This includes m..."
+    },
+    {
+      "task_id": "task-3",
+      "title": "tasks/task-3.md",
+      "branch": "orchestration-tools-clean",
+      "file_path": "tasks/task-3.md",
+      "content_preview": "# Code Quality Refactoring\n\n## Priority\nMEDIUM\n\n## Description\nAddress identified code quality issues: large modules, duplication, and high complexity functions\n\n## Acceptance Criteria\n- [ ] Split sma..."
+    },
+    {
+      "task_id": "task-1",
+      "title": "Resolve merge conflicts in PR #133",
+      "branch": "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+      "file_path": "backlog/tasks/task-1 - Resolve-merge-conflicts-in-PR-#133.md",
+      "content_preview": "---\nid: task-1\ntitle: 'Resolve merge conflicts in PR #133'\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:46'\nlabels: []\ndependencies: []\n---\n\n## Description\n\n<!-- SECTION:DESCRIPTION:BEGIN --..."
+    },
+    {
+      "task_id": "task-10",
+      "title": ">-",
+      "branch": "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+      "file_path": "backlog/tasks/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md",
+      "content_preview": "---\nid: task-10\ntitle: >-\n  Code Quality Refactoring - Split large NLP modules, reduce code duplication,\n  and break down high-complexity functions\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25..."
+    },
+    {
+      "task_id": "task-11",
+      "title": ">-",
+      "branch": "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+      "file_path": "backlog/tasks/task-11 - Testing-&-Documentation-Completion-Achieve-95%+-test-coverage-and-complete-comprehensive-documentation.md",
+      "content_preview": "---\nid: task-11\ntitle: >-\n  Testing & Documentation Completion - Achieve 95%+ test coverage and complete\n  comprehensive documentation\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25 04:51'\nlabel..."
+    },
+    {
+      "task_id": "task-121",
+      "title": "Implement Git Subtree Pull Process for Scientific Branch",
+      "branch": "orchestration-tools-launch-refractor",
+      "file_path": "backlog/tasks/alignment/task-121 - Implement-Git-Subtree-Pull-Process-for-Scientific-Branch.md",
+      "content_preview": "---\nid: task-121\ntitle: Implement Git Subtree Pull Process for Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"..."
+    },
+    {
+      "task_id": "task-123",
+      "title": "Integrate Setup Subtree in Scientific Branch",
+      "branch": "orchestration-tools-launch-refractor",
+      "file_path": "backlog/tasks/alignment/task-123 - Integrate-Setup-Subtree-in-Scientific-Branch.md",
+      "content_preview": "---\nid: task-123\ntitle: Integrate Setup Subtree in Scientific Branch\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"integration\"..."
+    },
+    {
+      "task_id": "task-124",
+      "title": "Test and Validate Subtree Integration on Both Branches",
+      "branch": "orchestration-tools-launch-refractor",
+      "file_path": "backlog/tasks/alignment/task-124 - Test-and-Validate-Subtree-Integration-on-Both-Branches.md",
+      "content_preview": "---\nid: task-124\ntitle: Test and Validate Subtree Integration on Both Branches\nstatus: Completed\nassignee: []\ncreated_date: '2025-10-27 15:22'\nupdated_date: '2025-11-03'\nlabels: [\"git\", \"subtree\", \"te..."
+    },
+    {
+      "task_id": "task-1",
+      "title": "Resolve merge conflicts in PR #133",
+      "branch": "pr-179",
+      "file_path": "backlog/archive/docs-backup/task-1 - Resolve-merge-conflicts-in-PR-#133.md",
+      "content_preview": "---\nid: task-1\ntitle: 'Resolve merge conflicts in PR #133'\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:46'\nlabels: []\ndependencies: []\n---\n\n## Description\n\n<!-- SECTION:DESCRIPTION:BEGIN --..."
+    },
+    {
+      "task_id": "task-10",
+      "title": ">-",
+      "branch": "pr-179",
+      "file_path": "backlog/archive/docs-backup/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md",
+      "content_preview": "---\nid: task-10\ntitle: >-\n  Code Quality Refactoring - Split large NLP modules, reduce code duplication,\n  and break down high-complexity functions\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25..."
+    },
+    {
+      "task_id": "task-11",
+      "title": ">-",
+      "branch": "pr-179",
+      "file_path": "backlog/archive/docs-backup/task-11 - Testing-&-Documentation-Completion-Achieve-95%+-test-coverage-and-complete-comprehensive-documentation.md",
+      "content_preview": "---\nid: task-11\ntitle: >-\n  Testing & Documentation Completion - Achieve 95%+ test coverage and complete\n  comprehensive documentation\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:51'\nlabels..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "pr-179-from-f11b20e",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "pr-179-from-f11b20e",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "pr-179-from-f11b20e",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-1",
+      "title": "Resolve merge conflicts in PR #133",
+      "branch": "pr-179-new",
+      "file_path": "backlog/archive/docs-backup/task-1 - Resolve-merge-conflicts-in-PR-#133.md",
+      "content_preview": "---\nid: task-1\ntitle: 'Resolve merge conflicts in PR #133'\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:46'\nlabels: []\ndependencies: []\n---\n\n## Description\n\n<!-- SECTION:DESCRIPTION:BEGIN --..."
+    },
+    {
+      "task_id": "task-10",
+      "title": ">-",
+      "branch": "pr-179-new",
+      "file_path": "backlog/archive/docs-backup/task-10 - Code-Quality-Refactoring-Split-large-NLP-modules,-reduce-code-duplication,-and-break-down-high-complexity-functions.md",
+      "content_preview": "---\nid: task-10\ntitle: >-\n  Code Quality Refactoring - Split large NLP modules, reduce code duplication,\n  and break down high-complexity functions\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-25..."
+    },
+    {
+      "task_id": "task-11",
+      "title": ">-",
+      "branch": "pr-179-new",
+      "file_path": "backlog/archive/docs-backup/task-11 - Testing-&-Documentation-Completion-Achieve-95%+-test-coverage-and-complete-comprehensive-documentation.md",
+      "content_preview": "---\nid: task-11\ntitle: >-\n  Testing & Documentation Completion - Achieve 95%+ test coverage and complete\n  comprehensive documentation\nstatus: Done\nassignee: []\ncreated_date: '2025-10-25 04:51'\nlabels..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "pr-179-patch-clean-1762881335",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "pr-179-patch-clean-1762881335",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "pr-179-patch-clean-1762881335",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "scientific-consolidated",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "scientific-consolidated",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "scientific-consolidated",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "scientific-minimal-rebased",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "scientific-minimal-rebased",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "scientific-minimal-rebased",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-1001",
+      "title": "Refactor orchestration scripts and summarize changes",
+      "branch": "001-implement-planning-workflow",
+      "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+      "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-1001",
+      "title": "Refactor orchestration scripts and summarize changes",
+      "branch": "001-pr176-integration-fixes",
+      "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+      "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-1001",
+      "title": "Refactor orchestration scripts and summarize changes",
+      "branch": "002-validate-orchestration-tools",
+      "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+      "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-1001",
+      "title": "Refactor orchestration scripts and summarize changes",
+      "branch": "003-execution-layer-tasks-pr",
+      "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+      "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-1001",
+      "title": "Refactor orchestration scripts and summarize changes",
+      "branch": "add-comparison-files-to-orchestration-tools",
+      "file_path": "temp-backup/tasks/task-1001 - Refactor-orchestration-scripts-and-summarize-changes.md",
+      "content_preview": "---\nid: task-1001\ntitle: Refactor orchestration scripts and summarize changes\nstatus: To Do\nassignee: []\ncreated_date: '2025-11-06 03:28'\nupdated_date: '2025-11-06 03:32'\nlabels: []\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "align-feature-notmuch-tagging-1",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "align-feature-notmuch-tagging-1",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "align-feature-notmuch-tagging-1",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    },
+    {
+      "task_id": "task-18",
+      "title": "Backend Migration to src/",
+      "branch": "align-feature-notmuch-tagging-1-v2",
+      "file_path": "backlog/deferred/task-18 - Backend-Migration-to-src.md",
+      "content_preview": "---\nid: task-18\ntitle: Backend Migration to src/\nstatus: Deferred\nassignee: []\ncreated_date: '2025-10-27 00:25'\nupdated_date: '2025-10-30 05:30'\nlabels:\n  - migration\n- architecture\ndependencies: []\n-..."
+    },
+    {
+      "task_id": "task-18.1",
+      "title": "Sub-task: Move Backend Files to src/",
+      "branch": "align-feature-notmuch-tagging-1-v2",
+      "file_path": "backlog/deferred/task-18.1 - Sub-task-Move-Backend-Files-to-src.md",
+      "content_preview": "---\nid: task-18.1\ntitle: 'Sub-task: Move Backend Files to src/'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:51'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_id:..."
+    },
+    {
+      "task_id": "task-18.2",
+      "title": "Sub-task: Update Imports and References",
+      "branch": "align-feature-notmuch-tagging-1-v2",
+      "file_path": "backlog/deferred/task-18.2 - Sub-task-Update-Imports-and-References.md",
+      "content_preview": "---\nid: task-18.2\ntitle: 'Sub-task: Update Imports and References'\nstatus: To Do\nassignee: []\ncreated_date: '2025-10-27 00:52'\nupdated_date: '2025-10-28 08:55'\nlabels: []\ndependencies: []\nparent_task_..."
+    }
+  ],
+  "total_tasks_estimated": 4198,
+  "branches_with_tasks": 23,
+  "high_priority_branches": [
+    "feat-enhanced-filtering",
+    "feature-architectural-and-security-enhancements",
+    "feature-backlog-ac-updates",
+    "feature-dashboard-improvements-part-2",
+    "feature-notmuch-tagging-1",
+    "feature-phase-1-testing",
+    "orchestration-tools-changes-2",
+    "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+    "orchestration-tools-launch-refractor",
+    "pr-179",
+    "pr-179-from-f11b20e",
+    "pr-179-new",
+    "pr-179-patch-clean-1762881335",
+    "scientific-consolidated",
+    "scientific-minimal-rebased",
+    "001-implement-planning-workflow",
+    "001-pr176-integration-fixes",
+    "002-validate-orchestration-tools",
+    "003-execution-layer-tasks-pr",
+    "add-comparison-files-to-orchestration-tools",
+    "align-feature-notmuch-tagging-1",
+    "align-feature-notmuch-tagging-1-v2"
+  ],
+  "search_stats": {
+    "branches_searched": 57,
+    "branches_with_tasks": 23,
+    "total_tasks_estimated": 4198,
+    "samples_collected": 57
+  }
+}

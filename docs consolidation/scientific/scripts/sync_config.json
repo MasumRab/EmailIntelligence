@@ -1,0 +1,31 @@
+{
+  "sync_rules": {
+    "inheritance_base": "docs/clean-inheritance-base",
+    "worktrees": ["docs-main", "docs-scientific"],
+    "common_docs_path": "docs/common/docs",
+    "branch_docs_paths": {
+      "docs-main": "docs/main",
+      "docs-scientific": "docs/scientific"
+    }
+  },
+  "conflict_resolution": {
+    "default_strategy": "backup",
+    "auto_backup": true,
+    "backup_retention_days": 30
+  },
+  "automation": {
+    "auto_sync_on_commit": false,
+    "sync_schedule": "daily",
+    "sync_time": "02:00",
+    "notify_on_conflicts": true
+  },
+  "monitoring": {
+    "log_file": "logs/docs_sync.log",
+    "enable_metrics": true,
+    "metrics_file": "logs/docs_sync_metrics.json"
+  },
+  "exclusions": {
+    "files": [".gitkeep", "*.tmp", "*.bak"],
+    "directories": [".git", "__pycache__", "node_modules"]
+  }
+}
