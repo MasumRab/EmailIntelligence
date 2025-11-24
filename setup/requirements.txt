@@ -2,32 +2,30 @@
 # Core dependencies that work across all environments
 # Environment-specific overrides are applied via requirements-*.txt files
 
-# Core AI/ML (CPU versions - installation scripts use CPU index, also defined in pyproject.toml)
-# Temporarily commented out for CPU-only environment for git-verifier feature
-# torch>=2.7.1
+# Core AI/ML (CPU-only versions - installed via setup scripts)
+# torch>=2.4.0
 # torchvision>=0.19.0
 # torchaudio>=2.4.0
-# transformers>=4.52.4
-# accelerate>=1.7.0
-# sentencepiece>=0.2.0
-# scikit-learn>=1.7.0
-# joblib>=1.5.1
+transformers>=4.40.0
+accelerate>=0.30.0
 
 # NLP and text processing
-# nltk>=3.9.1
-# textblob>=0.19.0
+nltk>=3.9.1
+textblob>=0.19.0
 
 # Web framework and API
-fastapi>=0.115.12 # Use the higher version from 4d5ca58
+fastapi>=0.100.0
 pydantic>=2.11.5
 pydantic-settings>=2.0.0
-uvicorn[standard]>=0.34.3 # Use the higher version from 4d5ca58
+uvicorn>=0.30.0
 python-multipart>=0.0.20
 httpx>=0.28.1
 gradio>=4.0.0
 pyngrok>=0.7.0
 
 # Data processing and utilities
+scikit-learn>=1.5.0
+joblib>=1.5.1
 RestrictedPython>=8.0
 aiosqlite>=0.20.0
 redis>=5.0.0
@@ -43,7 +41,6 @@ email-validator>=2.2.0
 # Development and testing tools
 pytest>=8.4.0
 pytest-asyncio>=0.23.0
-tqdm>=4.67.1 # Added for progress bars
 
 # Additional utilities (may be installed via system packages)
 bleach>=6.0.0
@@ -51,4 +48,3 @@ python-dotenv>=1.1.0
 psutil>=6.0.0
 pyotp>=2.9.0
 qrcode>=7.4.2
-GitPython
