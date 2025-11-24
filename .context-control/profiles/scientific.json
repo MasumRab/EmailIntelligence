@@ -2,7 +2,10 @@
   "id": "scientific",
   "name": "Scientific/AI Development Branch",
   "description": "Context profile for scientific branch with focus on AI analysis, email processing, and backend services",
-  "branch_patterns": ["scientific", "scientific-*"],
+  "branch_patterns": [
+    "scientific",
+    "scientific-*"
+  ],
   "allowed_files": [
     "src/**",
     "tests/**",
@@ -43,7 +46,8 @@
     "enable_code_execution": true,
     "enable_file_writing": true,
     "enable_shell_commands": true,
-    "max_context_length": 8192
+    "max_context_length": 8192,
+    "orchestration_aware": false
   },
   "project_config": {
     "project_name": "EmailIntelligenceAuto",
@@ -52,7 +56,15 @@
     "enable_code_execution": true,
     "enable_file_writing": true,
     "enable_shell_commands": true,
-    "preferred_models": ["claude-3-5-sonnet", "gpt-4o", "claude-3-haiku"]
+    "preferred_models": [
+      "claude-3-5-sonnet",
+      "gpt-4o",
+      "claude-3-haiku"
+    ]
   },
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "metadata": {
+    "orchestration_disabled": true,
+    "orchestration_disabled_timestamp": true
+  }
 }
