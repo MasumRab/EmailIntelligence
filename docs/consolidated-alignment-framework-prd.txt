@@ -1,11 +1,22 @@
-# Feature Branch Alignment with Primary Branches - Product Requirements Document
+# Feature Branch Alignment and Integration Framework - Product Requirements Document
 
 ## Overview
-Systematically align multiple feature branches with their primary integration targets (main, scientific, or orchestration-tools) based on project needs and user choices. This involves determining the optimal target based on common history and codebase similarity, with main, scientific, and orchestration-tools remaining as primary branches. This alignment process will ensure code consistency, reduce future merge conflicts, and propagate the latest changes while allowing for flexible development approaches and targeted changes when necessary. Includes documentation processes to summarize changes and features, systematic checking for merge artifacts, garbled text, missing imports, and accidentally deleted modules, and implementation of efficient merge validation frameworks. Designed for a single advanced developer with minimum resources.
+Systematically align multiple feature branches with their primary integration targets (main, scientific, or orchestration-tools) based on project needs and user choices. This combines a comprehensive framework for managing complex branch integrations with the core alignment process to ensure code consistency, reduce merge conflicts, and propagate changes while allowing for flexible development approaches. Includes documentation processes, systematic error checking, and validation frameworks. Designed for a single advanced developer with minimum resources.
 
 ## User Stories
 
-### User Story 1 - Identify Primary Branches for Alignment (Priority: P1) 🎯 Critical
+### User Story 1 - Framework Establishment (Priority: P1) 🎯 Critical
+Establish a robust framework for managing complex branch integrations, particularly focusing on branches with large shared histories. This framework addresses critical gaps in the current development workflow by implementing proper governance, documentation, and coordination mechanisms to ensure safe and efficient merging of complex feature branches into primary branches.
+
+**Acceptance Criteria:**
+- Branch protection rules configured for all critical branches including `scientific`
+- Merge guards enforce quality gates (code review, tests passing)
+- Required reviewers configured for critical branches
+- Merge best practices documentation created and published
+- Conflict resolution procedures clearly documented
+- Architectural alignment strategies outlined
+
+### User Story 2 - Identify Primary Branches for Alignment (Priority: P2)
 Enable the advanced developer to understand the fixed primary branches (main, scientific, orchestration-tools) for alignment, with flexibility for targeted changes when necessary.
 
 **Acceptance Criteria:**
@@ -14,7 +25,7 @@ Enable the advanced developer to understand the fixed primary branches (main, sc
 - Clear understanding established that alignment typically flows from primary branches into feature branches
 - Developer has access to current branching strategy documentation
 
-### User Story 2 - Align Feature Branches with Primary Branches (Priority: P2)
+### User Story 3 - Align Feature Branches with Primary Branches (Priority: P3)
 Flexibly align feature branches with their determined primary branch target, with the ability to adjust approaches based on evolving requirements and user choices.
 
 **Acceptance Criteria:**
@@ -23,7 +34,7 @@ Flexibly align feature branches with their determined primary branch target, wit
 - Feature branches are updated with changes from primary branches as appropriate
 - Process allows for targeted modifications to primary branches when required for development
 
-### User Story 3 - Maintain Branch Integrity (Priority: P3)
+### User Story 4 - Maintain Branch Integrity (Priority: P4)
 Maintain the integrity of primary branches throughout the alignment process, with flexibility for targeted changes when necessary.
 
 **Acceptance Criteria:**
@@ -32,7 +43,7 @@ Maintain the integrity of primary branches throughout the alignment process, wit
 - Backup procedures followed before any significant changes
 - Branch integrity maintained with allowance for necessary modifications
 
-### User Story 4 - Documentation Process for Changes Summary (Priority: P4)
+### User Story 5 - Documentation Process for Changes Summary (Priority: P5)
 Establish an efficient documentation process for a single developer that summarizes changes and features during alignment, adaptable to evolving requirements with minimal overhead.
 
 **Acceptance Criteria:**
@@ -42,7 +53,7 @@ Establish an efficient documentation process for a single developer that summari
 - Documentation is updated with each significant alignment activity
 - Process has minimal overhead for single developer
 
-### User Story 5 - Systematic Error Detection and Correction (Priority: P5)
+### User Story 6 - Systematic Error Detection and Correction (Priority: P6)
 Implement efficient procedures for a single developer to check for and address common errors including merge artifacts, garbled text, missing imports, and accidentally deleted modules.
 
 **Acceptance Criteria:**
@@ -52,7 +63,7 @@ Implement efficient procedures for a single developer to check for and address c
 - File integrity check identifies accidentally deleted modules
 - Each error type is addressed with minimal overhead for single developer
 
-### User Story 6 - Flexible Execution of Branch Alignment (Priority: P6)
+### User Story 7 - Flexible Execution of Branch Alignment (Priority: P7)
 Structure alignment tasks for execution by a single developer with options for sequential or focused approaches based on current project needs and resource constraints.
 
 **Acceptance Criteria:**
@@ -61,7 +72,7 @@ Structure alignment tasks for execution by a single developer with options for s
 - Clear boundaries established between different alignment tasks with flexibility to modify as needed
 - Task execution adapts to single developer's capacity and priorities
 
-### User Story 7 - Adaptive Validation Framework for Safe Merges (Priority: P7)
+### User Story 8 - Adaptive Validation Framework for Safe Merges (Priority: P8)
 Establish efficient validation framework for single developer that ensures architectural consistency while allowing for project evolution and changing requirements.
 
 **Acceptance Criteria:**
@@ -71,7 +82,7 @@ Establish efficient validation framework for single developer that ensures archi
 - Automated CI/CD validation framework can be modified as needed (as per Task 9)
 - Validation framework balances safety and flexibility with minimal overhead
 
-### User Story 8 - Efficient Handling of Complex Branches (Priority: P8)
+### User Story 9 - Efficient Handling of Complex Branches (Priority: P9)
 Apply focused handling for feature branches with complex requirements (e.g. feature-notmuch*) suitable for single developer with minimum resources.
 
 **Acceptance Criteria:**
@@ -80,15 +91,6 @@ Apply focused handling for feature branches with complex requirements (e.g. feat
 - Architectural review and alignment procedures are streamlined for efficiency
 - Targeted feature testing and validation performed during integration
 - Coordination with other tasks (like Task 43) is simplified for single developer
-
-### User Story 9 - Efficient Documentation Process (Priority: P9)
-Update all relevant documentation with minimal overhead to reflect evolving project structure and user choices for a single developer.
-
-**Acceptance Criteria:**
-- ALIGNMENT_CHECKLIST.md can be updated by single developer with current branch designations
-- Development workflow documentation can be updated to reflect current strategy
-- Branch management guidelines can be modified based on changing project needs
-- Documentation process has minimal overhead for single developer
 
 ## Technical Requirements
 
@@ -99,6 +101,7 @@ Update all relevant documentation with minimal overhead to reflect evolving proj
 - Error detection and validation tools
 - CI/CD system access (configured for single developer workflow)
 - Configuration management suitable for single developer with minimum resources
+- Python 3.12+ with appropriate virtual environment management
 
 ### Quality Standards
 - All feature branches aligned with determined primary branch target (main, scientific, or orchestration-tools)
@@ -136,17 +139,16 @@ Update all relevant documentation with minimal overhead to reflect evolving proj
 ### Coordination Dependencies:
 - **Task 8: Integrate `feature-notmuch-tagging-1`** - Coordination as needed
 - **Task 43: Database Refactoring for Dependency Injection** - Coordination as needed
-- **Task 49: Implement Dashboard Support** - Coordination as needed
 
 ## Implementation Phases
 
-### Phase 1: Infrastructure & Validation Setup (Single Developer)
-- Consider completeness of Task 1: Recover Lost Backend Modules and Features
+### Phase 1: Framework Establishment (Single Developer)
 - Configure branch protection rules (Task 20) appropriate for single developer workflow
 - Complete Task 21: Create Merge Best Practices Documentation for single developer reference
 - Implement Task 19: Pre-merge validation scripts suitable for single developer workflow
 - Set up Task 9: Comprehensive merge validation framework as appropriate
 - Establish error detection tools and scripts for single developer workflow
+- Create backup procedures for primary branches
 
 ### Phase 2: Feature Branch Assessment & Categorization (Single Developer)
 - Use `git branch --remote` and `git log` to identify all active feature branches
@@ -189,6 +191,7 @@ Update all relevant documentation with minimal overhead to reflect evolving proj
 - Finalize changes summary documentation for each branch
 
 ## Success Criteria
+- Framework established with proper safeguards and validation
 - Feature branches aligned with their determined target branch (main, scientific, or orchestration-tools)
 - Primary branch integrity maintained throughout process with allowance for targeted changes when necessary
 - Primary branches maintain necessary stability allowing for development needs
@@ -225,59 +228,65 @@ Update all relevant documentation with minimal overhead to reflect evolving proj
 - Risk: Coordination issues during database-related changes - Mitigation: Simplified coordination with clear priorities
 
 ## Timeline
-- Infrastructure Setup: Establish validation frameworks and branch protection suitable for single developer
+- Framework Establishment: Establish governance and validation frameworks
 - Feature Assessment: Identify and categorize feature branches by target branch (main, scientific, or orchestration-tools)
 - Sequential Alignment: Execute alignment within each category with focused handling for complex branches
 - Validation: Verify alignment success and branch integrity with allowance for targeted changes
 
 ## Scope Achievement Checks
 
-### Check 1: Primary Branch Identification Verification
+### Check 1: Framework Establishment Verification
+- [ ] Branch protection rules configured for all critical branches
+- [ ] Merge best practices documentation created and distributed
+- [ ] Pre-merge validation scripts implemented and tested
+- [ ] Error detection tools established and operational
+
+### Check 2: Primary Branch Identification Verification
 - [ ] Confirm that main, scientific, and orchestration-tools are identified as primary branches
 - [ ] Verify that documentation reflects primary branch approach with allowance for targeted changes
 - [ ] Ensure alignment process is understood for single developer workflow
 
-### Check 2: Task Dependency Validation for Single Developer
+### Check 3: Task Dependency Validation for Single Developer
 - [ ] Verify current status of Task 1 (Recover Lost Backend Modules) as relevant
 - [ ] Confirm Task 9 (Merge Validation Framework) is implemented appropriately for single developer
 - [ ] Confirm Task 19 (Pre-merge Validation Scripts) is integrated for single developer workflow
 - [ ] Confirm Task 20 (Branch Protection Rules) is configured appropriately
 - [ ] Confirm Task 21 (Merge Best Practices Documentation) is available for single developer
 
-### Check 3: Error Detection Implementation
+### Check 4: Error Detection Implementation
 - [ ] Automated script to detect merge artifacts (<<<<<<<, =======, >>>>>>>) is implemented and tested
 - [ ] Systematic check for garbled text and encoding issues is in place
 - [ ] Import validation script to detect missing imports is running
 - [ ] File integrity check to identify accidentally deleted modules is operational
 - [ ] Error detection mechanisms are suitable for single developer workflow
 
-### Check 4: Sequential Execution Approach
+### Check 5: Sequential Execution Approach
 - [ ] Feature branches are categorized by target primary branch (main, scientific, orchestration-tools)
 - [ ] Clear boundaries established between different alignment tasks
 - [ ] Execution approach is suitable for single developer capacity
 - [ ] Task prioritization is appropriate for single developer workflow
 
-### Check 5: Targeted Branch Handling
+### Check 6: Targeted Branch Handling
 - [ ] Handling procedures exist for branches with complex requirements
 - [ ] Integration strategies are focused for single developer capacity
 - [ ] Conflict resolution process is appropriate for single developer
 - [ ] Coordination procedures are simplified for single developer
 
-### Check 6: Validation Framework for Single Developer
+### Check 7: Validation Framework for Single Developer
 - [ ] Branch protection rules are configured appropriately
 - [ ] Pre-merge validation checks are implemented (Task 19)
 - [ ] Merge best practices documentation is available (Task 21)
 - [ ] Automated CI/CD validation framework is implemented (Task 9)
 - [ ] Validation framework is streamlined for single developer workflow
 
-### Check 7: Efficient Documentation Process
+### Check 8: Efficient Documentation Process
 - [ ] CHANGES_SUMMARY.md is created for each aligned feature branch
 - [ ] Documentation includes summary of changes, new features, and modifications
 - [ ] ALIGNMENT_CHECKLIST.md is updated with current branch designations
 - [ ] Development workflow documentation reflects current strategy
 - [ ] Documentation process is efficient for single developer
 
-### Check 8: Quality Assurance for Single Developer
+### Check 9: Quality Assurance for Single Developer
 - [ ] Appropriate test suite passes after each feature branch alignment
 - [ ] Primary branches maintain necessary stability with allowance for targeted changes
 - [ ] Minimal merge artifacts, garbled text, missing imports, or deleted modules in aligned branches
