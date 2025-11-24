@@ -2,7 +2,8 @@
 Configuration management for PR Resolution Automation System
 """
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 from typing import List, Optional
 
 

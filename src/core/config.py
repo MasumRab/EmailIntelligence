@@ -3,77 +3,20 @@ Centralized configuration management for EmailIntelligence CLI
 
 This module provides a unified configuration system using pydantic-settings
 for type-safe configuration with environment variable support.
+It extends the existing API settings to ensure consistency.
 """
 
-from pydantic_settings import BaseSettings
 from pydantic import Field
-from typing import Optional, List
+from typing import Optional
 from pathlib import Path
+from ..config.settings import Settings as BaseSettings
 
 
 class Settings(BaseSettings):
     """
     Central configuration for EmailIntelligence CLI.
-    
-    All settings can be overridden via environment variables.
-    For example, neo4j_uri can be set via NEO4J_URI environment variable.
+    Extends the base API settings with CLI-specific configuration.
     """
-    
-    # ===== Database Configuration =====
-    neo4j_uri: str = Field(
-        default="bolt://localhost:7687",
-        description="Neo4j connection URI"
-    )
-    neo4j_user: str = Field(
-        default="neo4j",
-        description="Neo4j username"
-    )
-    neo4j_password: str = Field(
-        default="",
-        description="Neo4j password"
-    )
-    neo4j_max_connection_pool_size: int = Field(
-        default=50,
-        description="Maximum Neo4j connection pool size"
-    )
-    neo4j_connection_timeout: int = Field(
-        default=60,
-        description="Neo4j connection timeout in seconds"
-    )
-    
-    # ===== AI Configuration (Optional) =====
-    use_ai_strategies: bool = Field(
-        default=False,
-        description="Enable AI-powered strategy generation"
-    )
-    openai_api_key: Optional[str] = Field(
-        default=None,
-        description="OpenAI API key for AI features"
-    )
-    openai_model: str = Field(
-        default="gpt-4o",
-        description="OpenAI model to use"
-    )
-    openai_max_tokens: int = Field(
-        default=1500,
-        description="Maximum tokens for OpenAI requests"
-    )
-    openai_temperature: float = Field(
-        default=0.7,
-        description="OpenAI temperature for responses"
-    )
-    openai_timeout: int = Field(
-        default=60,
-        description="OpenAI request timeout in seconds"
-    )
-    openai_max_retries: int = Field(
-        default=3,
-        description="Maximum retries for OpenAI requests"
-    )
-    fallback_to_non_ai: bool = Field(
-        default=True,
-        description="Fall back to non-AI strategies if AI fails"
-    )
     
     # ===== Git Configuration =====
     git_worktree_base: str = Field(
@@ -107,7 +50,7 @@ class Settings(BaseSettings):
         description="Run code quality checks during validation"
     )
     
-    # ===== Performance Configuration =====
+    # ===== Performance Configuration (CLI Extensions) =====
     max_concurrent_analyses: int = Field(
         default=5,
         description="Maximum concurrent conflict analyses"
@@ -187,14 +130,20 @@ class Settings(BaseSettings):
         description="Timeout for test execution in seconds"
     )
     
+    # ===== AI Configuration (CLI Extensions) =====
+    use_ai_strategies: bool = Field(
+        default=False,
+        description="Enable AI-powered strategy generation"
+    )
+    fallback_to_non_ai: bool = Field(
+        default=True,
+        description="Fall back to non-AI strategies if AI fails"
+    )
+    
     # ===== Environment =====
     environment: str = Field(
         default="development",
         description="Environment (development, staging, production)"
-    )
-    debug: bool = Field(
-        default=False,
-        description="Enable debug mode"
     )
     
     class Config:

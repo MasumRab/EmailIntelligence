@@ -76,7 +76,7 @@ class CodeChange(BaseModel):
     rollback_data: Optional[str] = Field(None, description="Data needed for rollback")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "file_path": "src/api/main.py",
                 "operation": "modify",
