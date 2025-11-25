@@ -66,8 +66,6 @@ logs/
 worktrees/
 .merge-notes/
 .context-control/
-.qwen/
-.zed/
 .rules
 .rulesync/
 .rulesyncignore

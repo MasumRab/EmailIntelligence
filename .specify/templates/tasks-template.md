@@ -8,13 +8,9 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-<<<<<<< HEAD
 **Constitution Compliance**: All tasks must adhere to Orchestration Tools Verification and Review Constitution principles including verification-first development, goal-task consistency, role-based access control with multiple permission levels (appropriate authentication for deployment context), observability requirements, multi-branch validation strategy, context contamination prevention, and performance efficiency measures.
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
-=======
 **Tests**: Test-Driven Development (TDD) is MANDATORY. All new feature development and bug fixes MUST include comprehensive tests as outlined in the Constitution.
->>>>>>> a7eb3e282186e72e9d5577d659dbdcdb96a6e3f8
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -31,7 +27,6 @@ description: "Task list template for feature implementation"
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
 - Paths shown below assume single project - adjust based on plan.md structure
 
-<<<<<<< HEAD
 ## Constitution Compliance Tasks
 
 Each feature implementation must include tasks to satisfy the following constitution principles:
@@ -46,8 +41,6 @@ Each feature implementation must include tasks to satisfy the following constitu
 - **Reliability**: Maintain 99.9% uptime with automatic retry mechanisms and graceful failure handling
 - **Extensibility**: Implement plugin architecture for new test scenarios through configuration
 
-=======
->>>>>>> a7eb3e282186e72e9d5577d659dbdcdb96a6e3f8
 <!-- 
   ============================================================================
   IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
