@@ -1,213 +1,101 @@
-# Orchestration Tools Branch
+# Task System Restructuring Documentation
 
-This branch (`orchestration-tools`) serves as the **central source of truth** for development environment tooling, configuration management, scripts, and Git hooks that ensure consistency across all project branches.
+## Overview
+The task system has been restructured to address critical issues with task conflation, scope creep, and safety concerns during branch alignment. This document explains the changes made and the new workflow structure.
 
-## Purpose
+## Critical Updates: Script Distribution Process
 
-The primary goal is to keep the core email intelligence codebase clean by separating orchestration concerns from application code. This branch will **NOT** be merged with other branches, but instead provides essential tools and configurations that are synchronized to other branches via Git hooks.
+A new critical process has been added to ensure consistent tooling across all branches: **each branch now receives essential alignment tools before alignment begins through targeted cherry-picking**.
 
-## Files to KEEP (Essential for Orchestration)
+### Script Distribution Process
+- **New Tool**: `scripts/distribute_alignment_scripts.sh` - Distributes alignment tools to target branch
+- **Purpose**: Ensures all branches have same monitoring and verification tools available during alignment
+- **Process**: Cherry-picks essential scripts (monitoring, analysis) to each branch before alignment begins
+- **Benefits**: Consistent safety tools across branches, reduced risk during alignment, standardized verification
 
-### Orchestration Scripts & Tools
-- `scripts/` - All orchestration scripts and utilities
-  - `install-hooks.sh` - Installs Git hooks for automated environment management
-  - `cleanup_orchestration.sh` - Removes orchestration-specific files when not on orchestration-tools
-  - `sync_setup_worktrees.sh` - Synchronizes worktrees for different branches
-  - `reverse_sync_orchestration.sh` - Reverse synchronization for orchestration updates
-  - `cleanup.sh` - Cleanup utilities
-  - `handle_stashes.sh` - Automated stash resolution for multiple branches
-  - `stash_analysis.sh` - Analyze stashes and provide processing recommendations
-  - `stash_details.sh` - Show detailed information about each stash
-  - `interactive_stash_resolver.sh` - Interactive conflict resolution for stashes
-  - `stash_manager.sh` - Main interface for all stash operations (deprecated, use optimized version)
-  - `stash_manager_optimized.sh` - Optimized main interface with improved performance
-  - `handle_stashes_optimized.sh` - Optimized automated stash resolution for multiple branches
-  - `stash_analysis.sh` - Analyze stashes and provide processing recommendations
-  - `stash_details.sh` - Show detailed information about each stash
-  - `interactive_stash_resolver_optimized.sh` - Optimized interactive conflict resolution for stashes
-  - `lib/` - Shared utility libraries (common.sh, error_handling.sh, git_utils.sh, logging.sh, validation.sh)
-  - `hooks/` - Git hook source files (pre-commit, post-checkout, post-commit, post-merge, post-push)
+## Changes Made
 
-### Setup & Environment Management
-- `setup/` - Launch scripts and environment setup
-  - `launch.py` - Main launcher with environment setup functionality
-  - `pyproject.toml` - Python project configuration
-  - `requirements.txt` - Runtime dependencies
-  - `requirements-dev.txt` - Development dependencies
-  - `setup_environment_*.sh` - Environment setup scripts
-  - `launch.*` - Cross-platform launch scripts
+### 1. Scope Creep Tasks
+- **Removed**: Tasks 8, 25, 43, 45-50 moved to `scope_creep_tasks_backup.json`
+- **Reason**: These were feature development tasks conflated with core alignment work
+- **Status**: Available for later development after alignment process
 
-### Configuration Files
-- `.flake8`, `.pylintrc` - Python linting configuration
-- `.gitignore`, `.gitattributes` - Git configuration
-- `launch.py` (root wrapper) - Forwards to setup/launch.py (backward compatibility)
+### 2. Risky Task Deferred
+- **Task 31**: Deferred due to high risk of wrong-branch pushes
+- **Reason**: Scanning all remote branches could cause destructive merge patterns
+- **Status**: Will be addressed post-alignment when system is more stable
 
-### Agent Context & Development Environment Files
-- `AGENTS.md` - Task Master and agent integration guide
-- `CLAUDE.md` - Claude Code auto-loaded context and MCP configuration
-- `.claude/` - Claude Code integration directory (settings, custom commands)
-- `.mcp.json` - MCP server configuration for agent tools integration
-- `.context-control/profiles/` - Context profiles for branch-specific agent access control
-- `.specify/` - Agent specification and rule files
-- `.taskmaster/` - Task Master configuration and task management
+### 3. New Safety Framework
+- **Pre-alignment checks**: Branch similarity analysis, directory cleanup, migration verification
+- **Script distribution**: Essential tools cherry-picked to each branch before alignment
+- **Orchestration monitoring**: Protection of critical launch and coordination functionality
+- **Verification processes**: Multiple checkpoints to ensure alignment safety
 
-### Orchestration Documentation
-- `docs/orchestration_summary.md` - Summary of orchestration workflow
-- `docs/orchestration_validation_tests.md` - Validation tests for orchestration
-- `docs/env_management.md` - Environment management documentation
-- `docs/git_workflow_plan.md` - Git workflow planning
-- `docs/stash_resolution_procedure.md` - Basic procedure for resolving stashes
-- `docs/complete_stash_resolution_procedure.md` - Complete procedure with all details
-- `docs/interactive_stash_resolution.md` - Guide to using interactive conflict resolution
-- `docs/stash_management_tools.md` - Comprehensive guide to stash management tools
-- `docs/stash_scripts_improvements.md` - Summary of improvements made to stash scripts
-- `docs/current_orchestration_docs/` - All orchestration-specific documentation
-- `docs/guides/` - Orchestration guides
+## New Workflow Structure
 
-## Files to REMOVE (Application-Specific)
+### Phase 1: Script Distribution & Branch Preparation
+- Run `scripts/distribute_alignment_scripts.sh` to distribute tools to target branch
+- Verify essential scripts (monitoring, analysis) are available on target branch
+- Test script functionality on target branch before proceeding
 
-The following files are NOT needed in this orchestration-focused branch and can be safely removed:
+### Phase 2: Pre-Alignment Safety Checks
+- Branch similarity analysis
+- Directory cleanup of outdated files
+- Migration status verification
+- Orchestration file integrity check
 
-### Application Source Code
-- `src/` - Application source code (except `src/core/` if shared with core utilities)
-- `modules/` - Application modules
-- `backend/` - Backend implementation
-- `client/` - Frontend implementation
-- `tests/` - Application tests
-- `plugins/` - Plugin implementations
+### Phase 3: Core Alignment Execution
+- Execute Tasks 74-83 (core alignment framework)
+- Verify each step before proceeding
+- Monitor orchestration integrity during alignment using local tools
 
-### Application Data & Dependencies
-- `data/` - Application data
-- `node_modules/` - Node.js dependencies
-- `performance_metrics_log.jsonl` - Runtime logs
-- `.venv/` - Virtual environment (will be recreated)
-- `venv/` - Alternative virtual environment directory
+### Phase 4: Post-Alignment Verification
+- Confirm alignment success
+- Verify orchestration functionality
+- Update documentation and checklists
 
-### Deprecated or Redundant Files
-- `.rules` - Application-specific rules (keep integration settings, remove app-specific rules)
-- `.env.example` - Application environment example (keep shared environment config templates only)
-- Old deployment configs or scripts unrelated to orchestration setup
-- Any documentation files in `docs/` that are application-specific (not orchestration-related)
+### Phase 5: Deferred Tasks
+- Task 31: Conflict scanning (post-alignment)
+- Scope creep tasks: Feature development work (later)
 
-## Git Hook Behavior
+## Critical Focus Areas
 
-### `pre-commit` Hook
-- **Purpose**: Prevent accidental changes to orchestration-managed files
-- **Behavior**: Allows all changes on orchestration-tools; warns on orchestration-managed file changes on other branches
+### Orchestration Protection
+- **Files to Monitor**: launch.py, agent modules, context control, database connections
+- **Protection**: Automated scripts verify integrity before and after changes
+- **Monitoring**: Changes to orchestration files are flagged for review
 
-### `post-checkout` Hook
-- **Purpose**: Sync essential files when switching branches
-- **Behavior**: Syncs setup/ directory, shared configs, and installs hooks when switching FROM orchestration-tools; skips sync when switching TO orchestration-tools
+### Migration Verification
+- **Import Statements**: Verify all imports updated after backend→src migration
+- **Configuration Files**: Check all configs reference new directory structure
+- **Functionality**: Confirm all features work after structural changes
 
-### `post-merge` Hook
-- **Purpose**: Ensure environment consistency after merges
-- **Behavior**: Syncs setup/ directory, installs/updates Git hooks, cleans up temporary worktrees
+### Branch Management
+- **Script Distribution**: Ensure each branch has necessary tools before alignment
+- **Similarity Analysis**: Check for branches with similar names but different content
+- **Target Verification**: Confirm each branch aligns with appropriate target
+- **Conflict Resolution**: Safeguard against destructive merge patterns
 
-### `post-push` Hook
-- **Purpose**: Detect orchestration changes and create PRs
-- **Behavior**: Creates automatic draft PRs when orchestration-managed files are changed on non-orchestration branches
+## Files Created/Updated
 
-## Development Workflow
+- `scope_creep_tasks_backup.json` - Backup of scope creep tasks
+- `scripts/monitor_orchestration_changes.sh` - Automated orchestration monitoring
+- `scripts/distribute_alignment_scripts.sh` - Script distribution tool for branch preparation
+- `scripts/branch_analysis_check.sh` - Branch analysis and verification tool
+- `BRANCH_ANALYSIS_FINDINGS.md` - Analysis of branch structure issues
+- `ORCHESTRATION_FILES_MONITORING_CHECKLIST.md` - Checklist for change monitoring
+- `TASK_SYSTEM_UPDATES_SUMMARY.md` - Comprehensive update documentation
+- `EXECUTIVE_SUMMARY_TASK_CHANGES.md` - Executive summary of changes
+- `SCRIPT_DISTRIBUTION_WORKFLOW.md` - Documentation of new script distribution process
 
-1. **For orchestration development**: Work directly in `orchestration-tools` branch
-2. **For environment setup**: The `setup/` directory contains all necessary tools
-3. **For configuration changes**: Make changes in orchestration-tools, they propagate automatically
-4. **For Git hook management**: Use `install-hooks.sh` to install consistent hook versions
+## Implementation Status
 
-## Branch Policy
+✅ **Scope creep tasks removed** from core workflow
+✅ **Task 31 properly deferred** due to risk  
+✅ **Script distribution process implemented** for consistent tooling
+✅ **Safety checks implemented** before alignment
+✅ **Monitoring systems created** for orchestration integrity
+✅ **Migration verification process** established
+✅ **Documentation updated** to reflect new structure
 
-- **This branch will NOT be merged with other branches**
-- **Focus only on orchestration tools, scripts, and configurations**
-- **Remove application-specific files to keep the branch clean**
-- **Maintain backward compatibility for the launch system**
-- **Ensure all hooks and automation scripts work correctly**
-
-## Hook Management and Updates
-
-When making changes to orchestration files, follow these important steps:
-
-1. **Always work in the orchestration-tools branch**
-2. **Test your changes thoroughly**
-3. **After pushing changes, other developers will receive updates automatically when switching branches**
-4. **For immediate updates, run**: `scripts/install-hooks.sh --force`
-5. **Refer to**: `docs/orchestration_hook_management.md` for detailed procedures
-
-## Cleanup Strategy
-
-To clean this branch for orchestration-only purposes, follow this comprehensive cleanup guide:
-
-### Phase 1: Remove Application Code
-```bash
-# Remove application source directories
-rm -rf src/backend/ src/core/ src/frontend/  # Keep only src/context_control if shared
-rm -rf modules/
-rm -rf tests/
-rm -rf plugins/
-```
-
-### Phase 2: Remove Application Data & Runtime Files
-```bash
-# Remove runtime artifacts
-rm -rf data/
-rm -rf node_modules/
-rm -rf __pycache__/
-rm -rf .pytest_cache/
-rm -rf .venv/ venv/
-rm -f performance_metrics_log.jsonl
-rm -f *.db *.sqlite*
-```
-
-### Phase 3: Clean Documentation
-```bash
-# Keep orchestration docs, remove application-specific documentation
-# Keep: docs/orchestration_*.md, docs/env_management.md, docs/git_workflow_plan.md, 
-#       docs/stash_*.md, docs/guides/, docs/current_orchestration_docs/
-# Remove application-specific docs and READMEs from feature/module directories
-```
-
-### Phase 4: Clean Configuration Files
-```bash
-# Keep MCP, Claude, and context control configs (for agent integration)
-# Keep: .mcp.json, .claude/, AGENTS.md, CLAUDE.md, .context-control/profiles/, .specify/, .taskmaster/
-
-# Remove application-specific configs
-rm -f .env.example  # (or keep only shared templates)
-rm -f deployment/docker-compose*.yml  # Unless essential for orchestration
-rm -f nginx/  # Remove unless used for setup
-```
-
-### Phase 5: Documentation Review
-After cleanup, run:
-```bash
-git status --short
-# Review remaining files to ensure all are orchestration-related
-# Run: git rm --cached <file> to untrack files, then commit
-```
-
-### Important: Preserve Agent Integration Context
-When cleaning, **DO NOT REMOVE** these files as they are essential for:
-- Automated task management with Task Master
-- Claude Code context and MCP tool integration
-- Branch-specific agent access control
-- Development environment consistency
-
-Keep:
-- `AGENTS.md` - Essential for agent workflow documentation
-- `CLAUDE.md` - Auto-loaded context for AI development tools
-- `.claude/` - Custom slash commands and tool configurations
-- `.mcp.json` - MCP server configuration for orchestration tools
-- `.context-control/` - Context profiles ensuring agents have appropriate access per branch
-- `.specify/` - Agent specifications and behavioral rules
-- `.taskmaster/` - Task tracking and orchestration task management
-
-## Important Notes
-
-- The root `launch.py` wrapper is essential and should be kept for backward compatibility
-- The `setup/` directory is critical for environment setup and should be maintained
-- All Git hooks in `scripts/hooks/` are essential for the orchestration workflow
-- This branch serves as the single source of truth for all environment and tooling configurations
-- Changes to orchestration-managed files require PRs through the automated system
-- Agent context files (AGENTS.md, CLAUDE.md, .claude/, .mcp.json, .context-control/, .specify/, .taskmaster/) are CRITICAL for maintaining agent integration and should always be preserved
-- These agent integration files are synchronized across all branches via the post-checkout hook to ensure consistent agent access control and task management
-- Context control profiles ensure agents have appropriate access per branch (e.g., scientific branch agents don't see orchestration scripts)
-- Task Master configurations are used for centralized task tracking and workflow automation across branches
+The alignment process can now proceed safely with proper safeguards while maintaining focus on the core objectives. Each branch will now have the necessary tools available locally during alignment via the new distribution process.

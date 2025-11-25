@@ -1,0 +1,261 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 8,
+        "title": "Integrate `feature-notmuch-tagging-1` into `scientific` with Architecture Alignment",
+        "description": "Execute a comprehensive integration of the `feature-notmuch-tagging-1` branch with the `scientific` branch. This process involves first aligning `feature-notmuch-tagging-1` with `scientific`'s architectural and common files, then deeply integrating its enhanced NotmuchDataSource, AI analysis, smart tagging, and full CRUD operations. Significant refactoring will ensure scalability, fault tolerance, and compatibility with existing data structures, while carefully preserving and optimizing the feature branch's distinct functionalities. Attention will be paid to data model evolution, performance, and security hardening, especially prioritizing `feature-notmuch-tagging-1`'s architectural solutions if they are more advanced.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          4
+        ],
+        "priority": "high",
+        "details": "The `scientific` branch is the designated target for the integration of `feature-notmuch-tagging-1`. The `feature-notmuch-tagging-1` branch is first prepared by integrating changes from `scientific`, and then its unique features are merged into `scientific`.\n\n1.  **Strategic Branch Alignment & Conflict Resolution:** Initiate by first rebasing `feature-notmuch-tagging-1` directly onto the latest `scientific` branch, applying changes and resolving conflicts *on* `feature-notmuch-tagging-1`. Then, integrate the refined functionalities *from* `feature-notmuch-tagging-1` *into* `scientific` via a merge, resolving any remaining conflicts directly on `scientific`. Document all non-trivial conflict resolutions. If `feature-notmuch-tagging-1` exhibits a more advanced architectural pattern for its specific functionalities, its design will be preferred, and `scientific`'s architecture will be partially updated to accommodate it, with these changes documented for the final PR.\n2.  **NotmuchDataSource Integration & Optimization:** Integrate and optimize the `NotmuchDataSource` from the `feature-notmuch-tagging-1` branch. Ensure its implementation adheres to the existing `DataSource` interface and that its `delete_email`, `get_dashboard_aggregates`, and `get_category_breakdown` methods are performant and compatible with existing data structures. Focus on optimizing the feature branch's data retrieval and processing logic within the current data platform capabilities.\n3.  **AI Analysis & Tagging Logic Integration:** Integrate the AI-powered sentiment analysis and categorization logic from `feature-notmuch-tagging-1` into the `scientific` branch's existing AI processing framework. Ensure the feature branch's AI logic is integrated as a background process and that its output (e.g., AI-derived tags) is correctly stored and linked within existing data models.\n4.  **SmartFilterManager Compatibility:** Ensure the smart tagging logic from `feature-notmuch-tagging-1` is fully compatible with and leverages the existing `SmartFilterManager`. Adapt the feature branch's rule application to use existing SmartFilterManager mechanisms.\n5.  **Tagging and Category Management Integration:** Integrate the feature branch's logic for tag-based category mapping, ensuring it aligns with existing category management systems and data models. Provide CRUD operations for tags and categories inherent to the `feature-notmuch-tagging-1`'s scope.\n6.  **Observability & Monitoring Integration:** Ensure that the integrated `feature-notmuch-tagging-1` components (DataSource, AI logic, tagging) correctly utilize the `scientific` branch's existing logging and monitoring infrastructure. Verify that relevant logs are generated and available in the centralized logging solution, and that basic performance metrics for its operations can be observed.\n7.  **Security Framework Alignment:** Ensure that all new data entry points or internal processing introduced by the `feature-notmuch-tagging-1` branch adhere to existing security standards, including input sanitization and API authentication/authorization for any newly exposed internal endpoints from the feature.\n8.  **Database Layer Compatibility:** Update `src/core/database.py` with any necessary adjustments for compatibility with the integrated `NotmuchDataSource`, focusing on using existing data types and query patterns. Ensure transactional integrity for all tagging and AI-related operations introduced by the feature branch.\n9.  **API Exposure & Documentation:** If `feature-notmuch-tagging-1` exposes new capabilities via API endpoints, ensure these are robust, versioned, and documented using OpenAPI/Swagger, adhering to existing security considerations and usage examples.\n10. **Comprehensive Documentation:** Update all relevant design documents, architectural diagrams, and user guides to reflect the integrated `NotmuchDataSource` capabilities, AI integration, and tagging system from the `feature-notmuch-tagging-1` branch.",
+        "testStrategy": "A rigorous and multi-layered testing strategy is required to ensure the stability, correctness, performance, and security of this complex integration:\n1.  **Expanded Regression Test Suite:** Execute a full regression test suite across the entire application to ensure no existing functionality is broken. This must include performance baselining before and after integration to identify any regressions in response times or resource consumption.\n2.  **Detailed Unit & Integration Tests for NotmuchDataSource:** Develop comprehensive unit tests covering all methods of the `NotmuchDataSource`, including edge cases for each (`delete_email` with non-existent IDs, `get_dashboard_aggregates` with various date ranges and filters, `get_category_breakdown` with empty data). Integration tests should thoroughly verify the `NotmuchDataSource`'s interaction with the actual database and `SmartFilterManager`.\n3.  **Advanced AI/Background Process Validation:** Create specific integration tests to verify the end-to-end flow of the background AI analysis and tagging processes. This includes testing message queue interactions, error handling for failed AI jobs (e.g., malformed input, AI model errors), retry mechanisms, and the persistence of AI-derived metadata. Validate AI model accuracy with a diverse test dataset, tracking false positives and negatives.\n4.  **Smart Filtering & Tagging System Validation:** Develop comprehensive tests for the `SmartFilterManager` and the new hierarchical tagging system. This includes validating dynamic rule creation, application, and persistence, as well as complex category mapping scenarios (e.g., overlapping tags, nested categories, tag deprecation...\n[truncated]",
+        "testStrategy": "A rigorous and multi-layered testing strategy is required to ensure the stability, correctness, performance, and security of this complex integration:\n1.  **Expanded Regression Test Suite:** Execute a full regression test suite across the entire application to ensure no existing functionality is broken. This must include performance baselining before and after integration to identify any regressions in response times or resource consumption.\n2.  **Detailed Unit & Integration Tests for NotmuchDataSource:** Develop comprehensive unit tests covering all methods of the `NotmuchDataSource`, including edge cases for each (`delete_email` with non-existent IDs, `get_dashboard_aggregates` with various date ranges and filters, `get_category_breakdown` with empty data). Integration tests should thoroughly verify the `NotmuchDataSource`'s interaction with the actual database and `SmartFilterManager`.\n3.  **Advanced AI/Background Process Validation:** Create specific integration tests to verify the end-to-end flow of the background AI analysis and tagging processes. This includes testing message queue interactions, error handling for failed AI jobs (e.g., malformed input, AI model errors), retry mechanisms, and the persistence of AI-derived metadata. Validate AI model accuracy with a diverse test dataset, tracking false positives and negatives.\n4.  **Smart Filtering & Tagging System Validation:** Develop comprehensive tests for the `SmartFilterManager` and the new hierarchical tagging system. This includes validating dynamic rule creation, application, and persistence, as well as complex category mapping scenarios (e.g., overlapping tags, nested categories, tag deprecation...\n[truncated]",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Perform Strategic Branch Alignment and Conflict Resolution",
+            "description": "Initiate by rebasing the `feature-notmuch-tagging-1` branch onto the latest `scientific` branch. Resolve all encountered conflicts directly on `feature-notmuch-tagging-1`. Once conflicts are resolved and the feature branch is aligned, merge the refined `feature-notmuch-tagging-1` into `scientific`, resolving any remaining conflicts. Prioritize `feature-notmuch-tagging-1`'s architectural patterns for its specific functionalities if they are more advanced, documenting these decisions for the final Pull Request.",
+            "dependencies": [],
+            "details": "Checkout `feature-notmuch-tagging-1`. Run `git rebase scientific`. Systematically resolve all conflicts, ensuring `feature-notmuch-tagging-1`'s architectural strengths are preserved where applicable. Once rebase is clean, switch to `scientific` and run `git merge feature-notmuch-tagging-1`. Resolve any final merge conflicts. Document all non-trivial conflict resolutions, especially those involving architectural choices, in a temporary text file or commit message.",
+            "status": "pending",
+            "testStrategy": "Verify successful rebase and merge operations. Conduct a sanity check build and run basic tests on the merged `scientific` branch to ensure no immediate regressions after conflict resolution. Review the codebase for any lingering merge markers or incorrect conflict resolutions."
+          },
+          {
+            "id": 2,
+            "title": "Integrate NotmuchDataSource and Ensure Database Compatibility",
+            "description": "Integrate the `NotmuchDataSource` from `feature-notmuch-tagging-1` into the `scientific` branch. Ensure it fully adheres to the existing `DataSource` interface. Simultaneously, update `src/core/database.py` to ensure compatibility and transactional integrity for all data access patterns introduced by the `NotmuchDataSource`.",
+            "dependencies": [
+              1
+            ],
+            "details": "Migrate the `NotmuchDataSource` class definition and its associated files from `feature-notmuch-tagging-1` to `scientific`. Implement or adapt necessary methods (`delete_email`, `get_dashboard_aggregates`, `get_category_breakdown`) to leverage existing data platform capabilities and ensure performance. Modify `src/core/database.py` to support the `NotmuchDataSource`'s data structures and query needs, ensuring existing data types and transactional integrity for its operations. This includes defining new schemas or extending existing ones if required for Notmuch data.",
+            "status": "pending",
+            "testStrategy": "Develop unit tests for the `NotmuchDataSource` methods (`delete_email`, `get_dashboard_aggregates`, `get_category_breakdown`) to verify correct functionality and data retrieval. Implement integration tests to confirm `NotmuchDataSource` interaction with the database layer via `src/core/database.py` is robust and maintains transactional integrity. Performance tests for data retrieval methods will be conducted using sample Notmuch data."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Core AI Analysis and Tagging Logic",
+            "description": "Integrate the fundamental AI-powered sentiment analysis and categorization logic from `feature-notmuch-tagging-1` into `scientific`'s existing AI processing framework. Ensure this logic operates as a background process and that its output, such as AI-derived tags, is correctly stored and linked within the updated data models.",
+            "dependencies": [],
+            "details": "Extract the core AI analysis and tagging algorithms and integrate them into `scientific`'s AI processing infrastructure (e.g., using existing NLP models or `PromptEngineer` concepts if applicable). Configure the AI logic to run as a background process, potentially leveraging existing task queues or asynchronous processing mechanisms. Define and implement the data structures to store AI-derived tags and ensure they are linked correctly to the `NotmuchDataSource` entities. Update relevant data models to accommodate new tag attributes.",
+            "status": "pending",
+            "testStrategy": "Create unit tests for the AI analysis components, focusing on the accuracy of sentiment analysis and categorization for sample inputs. Implement integration tests to verify the background processing of the AI logic and the correct storage and linking of generated tags to the Notmuch data entities in the database. Test the retrieval of AI-derived tags through the `NotmuchDataSource` to confirm data integrity."
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "title": "Restore Core Backend Infrastructure and Functionality",
+        "description": "Comprehensive restoration and re-verification of all core backend services, database connections, authentication systems, and API endpoints to ensure full operational capacity. Includes identifying and resolving any regressions from recent changes, implementing necessary upgrades, and establishing comprehensive monitoring for sustained stability.",
+        "status": "pending",
+        "dependencies": [
+          12,
+          13,
+          22
+        ],
+        "priority": "medium",
+        "details": "This task involves a thorough verification and restoration of all core backend components to ensure the system is fully functional and stable:\n\n1.  **Service Restoration & Verification:** Conduct an end-to-end verification of all core backend services, including API endpoints, data processing pipelines, and background workers. Identify and resolve any services that are not operating as expected due to recent changes or missing dependencies.\n2.  **Database Connection & Query Validation:** Verify all database connections are stable and optimized. Test complex queries and ensure no performance regressions have been introduced. Implement connection pooling optimizations if necessary.\n3.  **Authentication & Authorization Verification:** Validate that all authentication and authorization mechanisms are functioning correctly. Ensure role-based access controls are properly enforced and that session management is secure and reliable.\n4.  **API Endpoint Compliance & Stability:** Verify that all API endpoints conform to the expected contracts and return accurate data. Identify and fix any endpoints that may have been inadvertently altered or broken during recent changes.\n5.  **Monitoring & Alerting Setup:** Establish comprehensive monitoring for all core services, including application performance, resource utilization, and error rates. Implement appropriate alerting mechanisms to quickly detect and respond to any stability issues.\n6.  **Regression Testing:** Execute a comprehensive test suite to identify and address any regressions introduced by recent changes. Pay special attention to areas that experienced modifications.\n7.  **Documentation Update:** Update all relevant documentation to reflect the current state of the backend infrastructure, including configuration details, service dependencies, and operational procedures.",
+        "testStrategy": "Verification involves: \n1.  **Automated Service Health Checks:** Implement automated health checks for all core services to continuously verify their operational status.\n2.  **Database Query Profiling:** Profile complex database queries to ensure optimal performance and identify potential bottlenecks.\n3.  **Authentication Flow Testing:** Perform end-to-end testing of authentication and authorization flows to ensure they are secure and reliable.\n4.  **API Contract Validation:** Validate API endpoints against their defined contracts (e.g., OpenAPI/Swagger specifications) to ensure consistency.\n5.  **Load Testing:** Conduct load testing to verify the system's performance under expected and peak loads.\n6.  **Security Scanning:** Perform security scans to identify any vulnerabilities in the restored infrastructure.\n7.  **Comprehensive Integration Testing:** Execute comprehensive integration tests to ensure all components work together seamlessly.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Conduct End-to-End Service Verification",
+            "description": "Perform a comprehensive verification of all core backend services, including API endpoints, data processing pipelines, and background workers, to identify and resolve any operational issues.",
+            "dependencies": [],
+            "details": "Systematically verify the operational status of all core backend services. This includes checking API endpoints, data processing pipelines, and background workers to ensure they are functioning as expected. Document any services that are not operational and develop a remediation plan.",
+            "status": "pending",
+            "testStrategy": "Implement automated health checks for each service to continuously monitor their operational status. Perform manual verification of critical services to ensure they are responding correctly to requests."
+          },
+          {
+            "id": 2,
+            "title": "Validate Database Connections and Optimize Queries",
+            "description": "Verify all database connections are stable and optimize complex queries to prevent performance regressions.",
+            "dependencies": [],
+            "details": "Conduct a thorough review of all database connections to ensure stability and proper configuration. Optimize complex queries to prevent performance regressions and implement connection pooling optimizations where necessary.",
+            "status": "pending",
+            "testStrategy": "Profile complex database queries to identify performance bottlenecks. Conduct load testing to verify database performance under expected and peak loads. Monitor connection pool utilization to ensure optimal resource usage."
+          },
+          {
+            "id": 3,
+            "title": "Verify Authentication and Authorization Mechanisms",
+            "description": "Validate that all authentication and authorization mechanisms are functioning correctly and securely.",
+            "dependencies": [],
+            "details": "Perform end-to-end testing of authentication and authorization flows to ensure they are secure and reliable. Verify that role-based access controls are properly enforced and that session management is secure.",
+            "status": "pending",
+            "testStrategy": "Execute comprehensive authentication and authorization tests to verify security and reliability. Test various user roles and permissions to ensure proper access controls are in place."
+          },
+          {
+            "id": 4,
+            "title": "Ensure API Endpoint Compliance and Stability",
+            "description": "Verify that all API endpoints conform to the expected contracts and return accurate data.",
+            "dependencies": [],
+            "details": "Validate API endpoints against their defined contracts (e.g., OpenAPI/Swagger specifications) to ensure consistency. Verify that endpoints return accurate data and handle errors gracefully.",
+            "status": "pending",
+            "testStrategy": "Validate API endpoints against their defined contracts to ensure consistency. Perform automated API testing to verify data accuracy and error handling."
+          },
+          {
+            "id": 5,
+            "title": "Implement Comprehensive Monitoring and Alerting",
+            "description": "Establish comprehensive monitoring for all core services, including application performance, resource utilization, and error rates.",
+            "dependencies": [],
+            "details": "Set up monitoring for all core services to continuously track performance, resource utilization, and error rates. Implement appropriate alerting mechanisms to quickly detect and respond to any stability issues.",
+            "status": "pending",
+            "testStrategy": "Monitor application performance, resource utilization, and error rates. Verify that alerting mechanisms are functioning correctly and providing timely notifications of potential issues."
+          },
+          {
+            "id": 6,
+            "title": "Execute Regression Testing Suite",
+            "description": "Run a comprehensive test suite to identify and address any regressions introduced by recent changes.",
+            "dependencies": [],
+            "details": "Execute a comprehensive regression test suite to identify and address any regressions introduced by recent changes. Pay special attention to areas that experienced modifications.",
+            "status": "pending",
+            "testStrategy": "Run the full regression test suite to verify the system is functioning as expected. Address any failing tests to ensure all functionality is intact."
+          },
+          {
+            "id": 7,
+            "title": "Update Infrastructure Documentation",
+            "description": "Update all relevant documentation to reflect the current state of the backend infrastructure.",
+            "dependencies": [],
+            "details": "Update all relevant documentation to reflect the current state of the backend infrastructure, including configuration details, service dependencies, and operational procedures.",
+            "status": "pending",
+            "testStrategy": "Review all updated documentation to ensure it accurately reflects the current infrastructure and operational procedures."
+          },
+          {
+            "id": 8,
+            "title": "Implement Security Scanning Procedures",
+            "description": "Perform security scans to identify any vulnerabilities in the restored infrastructure.",
+            "dependencies": [],
+            "details": "Conduct security scans to identify and address any vulnerabilities in the restored infrastructure. Implement ongoing security scanning procedures as part of the operational process.",
+            "status": "pending",
+            "testStrategy": "Perform security scans to identify vulnerabilities. Address any identified issues promptly to ensure infrastructure security."
+          },
+          {
+            "id": 9,
+            "title": "Perform Load Testing and Performance Verification",
+            "description": "Conduct load testing to verify the system's performance under expected and peak loads.",
+            "dependencies": [],
+            "details": "Execute load testing to verify the system's performance under expected and peak loads. Identify and address any performance bottlenecks.",
+            "status": "pending",
+            "testStrategy": "Conduct load testing to verify system performance. Monitor resource utilization and response times to identify potential bottlenecks."
+          },
+          {
+            "id": 10,
+            "title": "Finalize Integration Testing and Validation",
+            "description": "Execute comprehensive integration tests to ensure all components work together seamlessly.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "details": "Perform comprehensive integration testing to ensure all components work together seamlessly. Address any issues identified during integration testing.",
+            "status": "pending",
+            "testStrategy": "Conduct comprehensive integration tests to verify seamless operation of all components. Address any issues identified during testing to ensure full system functionality."
+          }
+        ]
+      },
+      {
+        "id": 43,
+        "title": "Database Refactoring for Dependency Injection & Global State Elimination",
+        "description": "Eliminate global state and singleton patterns from the database management components, implementing proper dependency injection for the DatabaseManager and related components.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "details": "This task addresses critical architectural issues in the database management layer by eliminating global variables and singleton patterns that create tight coupling and hinder testability. The core goals include:\n\n1.  **Global State Elimination:** Remove all global variables (like DATA_DIR, EMAILS_FILE, etc.) from the DatabaseManager and related components. \n2.  **Singleton Pattern Removal:** Remove singleton implementations from DatabaseManager and other database-related classes.\n3.  **Constructor Injection Implementation:** Implement constructor injection for all database dependencies including EnhancedCachingManager and database connection managers.\n4.  **Factory Functions:** Create factory functions for proper object construction that respect dependency injection principles.\n5.  **Configuration Objects:** Pass DatabaseConfig objects via constructor to DatabaseManager to allow multiple instances with different configurations.\n6.  **Interface Definition:** Define clear interfaces for database dependencies to improve testability and replaceability.\n7.  **Backward Compatibility Shims:** Ensure graceful transition with deprecation shims for existing code using the old global state approach.\n\nThe refactoring should focus on the DatabaseManager in src/core/database.py and related dependencies.",
+        "testStrategy": "Testing will ensure the refactored DatabaseManager maintains all existing functionality while improving testability:\n1.  **Dependency Injection Tests:** Verify DatabaseManager properly receives and utilizes injected dependencies.\n2.  **Multiple Instance Tests:** Verify multiple DatabaseManager instances can operate with different configurations in isolation.\n3.  **Unit Tests:** DatabaseManager components should be testable with mocked dependencies.\n4.  **Integration Tests:** Full integration with database connections and other system components.\n5.  **Backward Compatibility Tests:** Verify deprecation shims work correctly during transition period.\n6.  **Performance Tests:** Ensure no significant performance degradation from dependency injection overhead.",
+        "subtasks": []
+      },
+      {
+        "id": 45,
+        "title": "Implement Dashboard Caching & Background Processing",
+        "description": "Implement comprehensive caching layer for dashboard data and background processing for long-running operations.",
+        "status": "pending",
+        "dependencies": [
+          41
+        ],
+        "priority": "high",
+        "details": "This task involves implementing a robust caching infrastructure for dashboard components and background processing capabilities for long-running operations:\n\n1.  **Caching Layer Implementation:** Implement a multi-tier caching strategy using both in-memory caching (e.g., Redis) and application-level caching to optimize dashboard data retrieval. \n2.  **Cache Strategy Definition:** Define appropriate cache strategies for different data types (e.g., time-based expiration for aggregations, event-based invalidation for user-specific data).\n3.  **Background Processing Framework:** Implement a background processing framework using task queues (e.g., Celery) to handle long-running operations like data aggregation, report generation, and API calls.\n4.  **Cache Integration:** Integrate caching layer into existing dashboard endpoints to reduce response times.\n5.  **Background Job Patterns:** Define patterns for running background jobs, including error handling, retries, and monitoring.\n6.  **Performance Monitoring:** Implement monitoring to track cache hit rates, background job performance, and overall system responsiveness improvements.\n\nThe implementation should focus on the dashboard module in src/dashboard/ and integrate with existing services.",
+        "testStrategy": "Testing will ensure caching and background processing work correctly and improve performance:\n1.  **Cache Correctness Tests:** Verify cached data is accurate and invalidated appropriately.\n2.  **Background Job Tests:** Test successful execution of background jobs with proper error handling.\n3.  **Performance Tests:** Measure response time improvements with caching enabled.\n4.  **Concurrency Tests:** Verify caching and background processing work correctly under load.\n5.  **Integration Tests:** Full integration with dashboard endpoints and data services.",
+        "subtasks": []
+      },
+      {
+        "id": 46,
+        "title": "Implement WebSocket Support for Real-time Dashboard Updates",
+        "description": "Implement WebSocket support for real-time dashboard updates and bidirectional communication.",
+        "status": "pending",
+        "dependencies": [
+          43
+        ],
+        "priority": "high",
+        "details": "This task involves implementing WebSocket support for real-time dashboard updates and bidirectional communication:\n\n1.  **WebSocket Server Implementation:** Implement a WebSocket server using appropriate Python libraries (e.g., websockets, FastAPI WebSockets) to handle real-time connections.\n2.  **Connection Management:** Implement connection management to handle multiple concurrent clients, including connection lifecycle (open, close, heartbeat).\n3.  **Message Protocol:** Define a message protocol for sending data updates, commands, and acknowledgements between server and clients.\n4.  **Real-time Data Broadcasting:** Implement mechanisms to broadcast real-time data updates to connected clients.\n5.  **Client Integration:** Integrate WebSocket client-side code with existing dashboard UI to establish connections and handle incoming updates.\n6.  **Security Implementation:** Implement authentication and authorization for WebSocket connections to prevent unauthorized access.\n7.  **Scalability Considerations:** Design the WebSocket implementation to be scalable, potentially using Redis for pub/sub messaging across multiple server instances.\n\nThe implementation should integrate with the dashboard module in src/dashboard/ and leverage the database abstraction implemented in Task 43.",
+        "testStrategy": "Testing will ensure WebSocket functionality works correctly and handles various scenarios:\n1.  **Connection Tests:** Verify WebSocket connections can be established and closed properly.\n2.  **Message Passing Tests:** Test bidirectional message passing between client and server.\n3.  **Real-time Update Tests:** Verify real-time data updates are broadcasted correctly to clients.\n4.  **Security Tests:** Verify authentication and authorization work correctly for WebSocket connections.\n5.  **Load Tests:** Test WebSocket server performance under high concurrent connection loads.\n6.  **Integration Tests:** Full integration with dashboard UI and backend services.",
+        "subtasks": []
+      },
+      {
+        "id": 47,
+        "title": "Implement Dashboard Export Functionality (CSV, PDF, JSON)",
+        "description": "Implement comprehensive export functionality to allow users to export dashboard data to various formats.",
+        "status": "pending",
+        "dependencies": [
+          43
+        ],
+        "priority": "medium",
+        "details": "This task involves implementing export functionality to allow users to export dashboard data in multiple formats:\n\n1.  **Export Format Implementation:** Implement export functionality for CSV, PDF, and JSON formats, ensuring proper data formatting and encoding.\n2.  **Export Endpoint Creation:** Create API endpoints to handle export requests, accepting appropriate parameters for data selection and formatting.\n3.  **File Generation:** Implement server-side file generation for exported data, considering memory usage for large exports.\n4.  **Async Processing:** For large exports, implement asynchronous processing to avoid blocking the main request thread.\n5.  **Download Handling:** Implement proper download handling including content-type headers and file naming conventions.\n6.  **Format-Specific Options:** Implement format-specific options (e.g., CSV delimiter selection, PDF layout options, JSON formatting).\n7.  **Security & Permissions:** Ensure export functionality respects user permissions and data access controls.\n\nThe implementation should integrate with the dashboard module in src/dashboard/ and leverage the database abstraction implemented in Task 43.",
+        "testStrategy": "Testing will ensure export functionality works correctly and handles various scenarios:\n1.  **Format Accuracy Tests:** Verify exported files are in correct format with proper data.\n2.  **Parameter Handling Tests:** Test various export options and parameters work correctly.\n3.  **Large Dataset Tests:** Test export functionality with large datasets to ensure performance and memory usage are acceptable.\n4.  **Security Tests:** Verify export functions respect user permissions and data access controls.\n5.  **Integration Tests:** Full integration with dashboard UI and backend services.",
+        "subtasks": []
+      },
+      {
+        "id": 48,
+        "title": "Develop Comprehensive Dashboard API for Programmatic Access (Scientific Branch)",
+        "description": "Develop a comprehensive API for programmatic access to dashboard functionality, enabling automated reporting and integration.",
+        "status": "pending",
+        "dependencies": [
+          43
+        ],
+        "priority": "high",
+        "details": "This task involves developing a comprehensive API for programmatic access to dashboard functionality:\n\n1.  **API Endpoint Design:** Design comprehensive API endpoints for all dashboard functionality including data access, aggregations, filters, and settings.\n2.  **RESTful Design:** Follow RESTful design principles for API endpoints with appropriate HTTP verbs and status codes.\n3.  **Query Parameters:** Implement comprehensive query parameters for filtering, pagination, sorting, and aggregation.\n4.  **Authentication & Authorization:** Implement robust authentication and authorization for API endpoints.\n5.  **Rate Limiting:** Implement rate limiting to prevent abuse of the API.\n6.  **Versioning:** Implement API versioning to allow for future enhancements while maintaining backward compatibility.\n7.  **Documentation:** Provide comprehensive API documentation using OpenAPI/Swagger.\n8.  **Error Handling:** Implement consistent error handling with appropriate error codes and messages.\n\nThe API should allow for automated reporting, integration with external systems, and programmatic dashboard manipulation.",
+        "testStrategy": "Testing will ensure API functionality works correctly and handles various scenarios:\n1.  **Endpoint Coverage Tests:** Verify all API endpoints work correctly with various parameters.\n2.  **Authentication Tests:** Test API authentication and authorization.\n3.  **Rate Limiting Tests:** Verify rate limiting works correctly.\n4.  **Error Handling Tests:** Test API error responses are consistent and informative.\n5.  **Integration Tests:** Full integration with existing dashboard services and data access layers.\n6.  **Performance Tests:** Ensure API performs well under load.",
+        "subtasks": []
+      },
+      {
+        "id": 49,
+        "title": "Implement Multi-Tenant Dashboard Support (Scientific Branch)",
+        "description": "Implement multi-tenant architecture for dashboard deployment, allowing isolation of data, configurations, and user experiences across different tenants.",
+        "status": "pending",
+        "dependencies": [
+          46
+        ],
+        "priority": "high",
+        "details": "This task involves implementing multi-tenant architecture for dashboard deployment:\n\n1.  **Tenant Identification:** Implement mechanisms to identify and route requests to appropriate tenants (e.g., subdomain, header, or path-based routing).\n2.  **Data Isolation:** Implement database-level or application-level data isolation to ensure tenant data remains separated.\n3.  **Configuration Management:** Implement tenant-specific configuration management for branding, settings, and feature flags.\n4.  **User Management:** Implement tenant-aware user management, ensuring users can only access resources within their tenant.\n5.  **Resource Isolation:** Implement isolation for resources like file uploads, dashboard customizations, and reporting.\n6.  **Billing & Usage Tracking:** Implement mechanisms to track usage and costs per tenant for billing purposes.\n7.  **Security Considerations:** Implement comprehensive security measures to prevent cross-tenant data access.\n8.  **Performance Optimization:** Optimize for multi-tenant performance, considering shared resources and scalability.\n\nThis implementation should leverage the WebSocket infrastructure developed in Task 46 for real-time tenant-specific updates.",
+        "testStrategy": "Testing will ensure multi-tenant isolation and functionality work correctly:\n1.  **Data Isolation Tests:** Verify tenant data remains completely separated.\n2.  **Routing Tests:** Test tenant identification and routing mechanisms work correctly.\n3.  **Configuration Tests:** Verify tenant-specific configurations are applied correctly.\n4.  **Security Tests:** Verify no cross-tenant data access is possible.\n5.  **Performance Tests:** Test multi-tenant performance under various load scenarios.\n6.  **Integration Tests:** Full integration with existing dashboard functionality.",
+        "subtasks": []
+      },
+      {
+        "id": 50,
+        "title": "Integrate AI Insights Engine with Dashboard (Scientific Branch)",
+        "description": "Integrate advanced AI insights engine with the dashboard to provide intelligent analytics, predictions, and recommendations.",
+        "status": "pending",
+        "dependencies": [
+          46
+        ],
+        "priority": "high",
+        "details": "This task involves integrating an advanced AI insights engine with the dashboard:\n\n1.  **AI Model Integration:** Integrate trained AI models for analytics, predictions, and recommendations into the dashboard backend.\n2.  **API Design:** Design APIs for requesting AI insights and receiving processed results.\n3.  **Data Preprocessing:** Implement data preprocessing pipelines to format dashboard data for AI model input.\n4.  **Result Visualization:** Implement visualization components to display AI insights, predictions, and recommendations in the dashboard UI.\n5.  **Real-time Insights:** Leverage the WebSocket infrastructure from Task 46 to provide real-time AI insights updates.\n6.  **Model Serving:** Implement model serving infrastructure for efficient prediction requests.\n7.  **Performance Optimization:** Optimize AI model inference for speed and efficiency.\n8.  **Accuracy Monitoring:** Implement monitoring to track AI model accuracy and performance.\n\nThe integration should enhance the dashboard with intelligent features while maintaining usability.",
+        "testStrategy": "Testing will ensure AI insights integration works correctly and provides accurate results:\n1.  **Model Accuracy Tests:** Verify AI model predictions are accurate and reliable.\n2.  **Integration Tests:** Test AI insights API endpoints function correctly with dashboard services.\n3.  **Performance Tests:** Test AI model inference performance and optimize as needed.\n4.  **Visualization Tests:** Verify AI insights are displayed correctly in the dashboard UI.\n5.  **Real-time Update Tests:** Test real-time AI insights updates via WebSockets.\n6.  **Data Preprocessing Tests:** Verify data preprocessing pipelines format data correctly for AI models.",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-11-25T00:00:00.000Z",
+      "updated": "2025-11-25T00:00:00.000Z",
+      "description": "Scope creep tasks that were removed from main workflow for later completion"
+    }
+  }
+}
