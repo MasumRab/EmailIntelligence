@@ -22,9 +22,8 @@ from .types import (
     ResolutionStrategy,
     ResolutionStep,
     RiskLevel,
-    PromptContext,
 )
-from .prompts import PromptEngine
+from .prompts import PromptEngine, PromptContext
 
 # ARCHIVED: PR Resolution System - AI client moved to archive
 # from ..ai.client import get_openai_client  # Original import commented out - moved to archive/pr-resolution-archive/src/ai/
@@ -73,8 +72,9 @@ class StrategyGenerator:
     async def initialize(self) -> bool:
         """Initialize the strategy generator"""
         try:
-            self.openai_client = await get_openai_client()
-            logger.info("Strategy generator initialized successfully")
+            # ARCHIVED: OpenAI client moved to archive
+            # self.openai_client = await get_openai_client()
+            logger.warning("Strategy generator initialized without OpenAI client (archived)")
             return True
         except Exception as e:
             logger.error("Failed to initialize strategy generator", error=str(e))

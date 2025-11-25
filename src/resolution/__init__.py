@@ -1,49 +1,69 @@
 """
 Intelligent Conflict Resolution Engine for PR Resolution Automation System
 
-This module provides AI-powered conflict resolution capabilities including:
-- Resolution strategy generation with OpenAI
-- Code change generation and intelligent merging
-- Validation and testing framework
-- Human-in-the-loop validation
-- Resolution execution with rollback mechanisms
-- Workflow orchestration and queue management
+Available modules:
+- ConstitutionalEngine: Constitutional validation
+- StrategyGenerator: AI-powered strategy generation (requires OpenAI)
+- PromptEngine: Prompt engineering for AI
+- Data models: MergeConflict, ResolutionStrategy, etc.
 """
 
-from .engine import ResolutionEngine
+# ===== EXISTING MODULES =====
 from .strategies import StrategyGenerator
-from .generation import CodeChangeGenerator
-from .validation import ValidationFramework
-from .execution import ExecutionEngine
-from .workflows import WorkflowOrchestrator
 from .prompts import PromptEngine
-from .metrics import QualityMetrics
 from .constitutional_engine import ConstitutionalEngine
 from .types import (
+    # Enums
+    ConflictTypeExtended,
+    RiskLevel,
+    ExecutionStatus,
+    ValidationStatus,
+    # Models
+    CodeChange,
+    ResolutionStep,
+    ResolutionStrategy,
+    ValidationResult,
+    QualityMetrics,
+    ResolutionPlan,
+    # Conflict types (imported from models.graph_entities)
     MergeConflict,
     DependencyConflict,
     ArchitectureViolation,
     SemanticConflict,
     ResourceConflict,
-    ResolutionPlan,
 )
-from .queue import ResolutionQueue
+
+# ===== MISSING MODULES (commented out) =====
+# TODO: Implement these modules or remove from API
+# from .engine import ResolutionEngine
+# from .generation import CodeChangeGenerator
+# from .validation import ValidationFramework
+# from .execution import ExecutionEngine
+# from .workflows import WorkflowOrchestrator
+# from .metrics import QualityMetrics  # Note: Model exists in types.py
+# from .queue import ResolutionQueue
 
 __all__ = [
-    "ResolutionEngine",
+    # Available classes
     "StrategyGenerator",
-    "CodeChangeGenerator",
-    "ValidationFramework",
-    "ExecutionEngine",
-    "WorkflowOrchestrator",
     "PromptEngine",
-    "QualityMetrics",
     "ConstitutionalEngine",
+    # Enums
+    "ConflictTypeExtended",
+    "RiskLevel",
+    "ExecutionStatus",
+    "ValidationStatus",
+    # Models
+    "CodeChange",
+    "ResolutionStep",
+    "ResolutionStrategy",
+    "ValidationResult",
+    "QualityMetrics",
+    "ResolutionPlan",
+    # Conflict types
     "MergeConflict",
     "DependencyConflict",
     "ArchitectureViolation",
     "SemanticConflict",
     "ResourceConflict",
-    "ResolutionPlan",
-    "ResolutionQueue",
 ]
