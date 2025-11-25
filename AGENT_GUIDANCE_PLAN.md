@@ -1,66 +1,43 @@
-# Agent Guidance Plan: Backlog, Task-Master-AI, and GitHub
+# Task Master AI - Agent Guidance Plan
 
 ## Overview
-This plan provides comprehensive guidance for AI agents working with three primary tools: Backlog, Task-Master-AI, and GitHub. Agents need clear instructions on usage, integration, and best practices for each tool.
+This plan provides comprehensive guidance for AI agents working with Task Master AI. Agents need clear instructions on usage, integration, and best practices for Task Master AI workflows.
 
-## Tool Guidance
+## Task Master AI Guidance
 
-### 1. Backlog
-**Purpose**: Project management and issue tracking
-**Key Features**:
-- Issue creation and management
-- Sprint planning
-- Time tracking
-- Team collaboration
+### Purpose
+AI-powered task management and development workflow orchestration
 
-**Agent Guidance**:
-- Use Backlog for tracking development tasks
-- Create issues for bugs, features, and improvements
-- Link issues to code changes
-- Update status regularly
-
-### 2. Task-Master-AI
-**Purpose**: AI-powered task management and code generation
-**Key Features**:
-- Automated task breakdown
+### Key Features
+- Automated task breakdown and planning
 - Code generation assistance
-- Project planning
-- Quality assurance
+- Project complexity analysis
+- Dependency management
+- Research-backed task creation
+- Multi-agent workflow coordination
 
-**Agent Guidance**:
-- Leverage for complex task decomposition
-- Use for code review and suggestions
-- Integrate with development workflow
-- Maintain code quality standards
-
-### 3. GitHub
-**Purpose**: Version control and collaboration platform
-**Key Features**:
-- Repository management
-- Pull requests and code review
-- Issue tracking
-- CI/CD integration
-
-**Agent Guidance**:
-- Follow GitHub flow for contributions
-- Create meaningful commit messages
-- Use pull requests for code changes
-- Participate in code reviews
+### Agent Guidance
+- Use Task Master for all development task management
+- Leverage AI for complex task decomposition
+- Integrate with version control workflows
+- Maintain code quality through structured task completion
+- Use research capabilities for informed decision making
+- Coordinate with other agents through task dependencies
 
 ## Integration Strategy
 
 ### Workflow Integration
-1. **Task Initiation**: Use Task-Master-AI to break down requirements
-2. **Issue Creation**: Create Backlog issues for tasks
-3. **Development**: Use GitHub for version control
-4. **Code Review**: Leverage Task-Master-AI for quality checks
-5. **Deployment**: Update Backlog and GitHub statuses
+1. **Project Setup**: Initialize Task Master and parse PRDs
+2. **Task Planning**: Use AI to analyze complexity and expand tasks
+3. **Development**: Work through tasks systematically with status tracking
+4. **Code Review**: Leverage Task Master for quality assurance
+5. **Completion**: Mark tasks done and update documentation
 
 ### Communication Guidelines
-- Maintain clear documentation
-- Use consistent naming conventions
+- Maintain clear task documentation
+- Use consistent task naming conventions
 - Provide regular status updates
-- Ensure cross-tool synchronization
+- Ensure task dependency synchronization
 
 ## Implementation Plan
 
