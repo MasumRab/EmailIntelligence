@@ -1,0 +1,44 @@
+# Aider Configuration for Email Intelligence Projects
+# Loads all API keys from environment
+
+env-file: ~/.env
+
+# Default model (can be overridden with --model flag)
+model: gemini/gemini-2.5-pro
+
+# Multi-provider support
+openai-api-key: ${ACTIVE_OPENAI_API_KEY}
+anthropic-api-key: ${ACTIVE_ANTHROPIC_API_KEY}
+openai-api-base: https://generativelanguage.googleapis.com/v1beta/openai/
+
+# For working with multiple file types in the project
+show-diffs: true
+map-tokens: 2048
+max-chat-history-tokens: 8192
+
+# Git integration
+auto-commits: true
+commit-prompt: "Update EmailIntelligence project based on conversation"
+
+# Custom aliases for easy model switching
+alias:
+  - "g:gemini/gemini-2.5-flash"
+  - "gp:gemini/gemini-2.5-pro"
+  - "o:gpt-4o"
+  - "c:anthropic/claude-3-5-sonnet-20241022"
+
+# Provider-specific API keys (loaded from environment)
+api-key:
+  - "openai=${OPENAI_API_KEY_1}"
+  - "openai2=${OPENAI_API_KEY_2}"  # Gemini as OpenAI compatible
+  - "gemini=${GEMINI_API_KEY_1}"
+  - "gemini2=${GEMINI_API_KEY_2}"
+  - "anthropic=${LONGCAT_ANTHROPIC_API_KEY}"
+  - "openrouter=${OPENROUTER_API_KEY}"
+  - "deepseek=${DEEPSEEK_API_KEY}"
+  - "groq=${GROQ_API_KEY}"
+  - "cohere=${COHERE_API_KEY}"
+  - "mistral=${MISTRALCODE_API_KEY}"
+  - "cerebras=${CEREBRAS_API_KEY}"
+  - "perplexity=${PERPLEXITY_API_KEY}"
+  - "xai=${XAI_API_KEY}"
