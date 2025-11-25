@@ -830,6 +830,59 @@
             "details": "Review the CI build logs for each PR to ensure all tests pass. Address any code review comments by pushing new commits to the respective branches. After a PR is fully validated and approved, update its status to 'Completed' in the `ALIGNMENT_CHECKLIST.md` file.",
             "status": "pending",
             "testStrategy": "Final validation is successful when all created PRs have a 'green' build status, have been approved by at least one reviewer, and the `ALIGNMENT_CHECKLIST.md` file is updated to show all branches as 'Completed'."
+          },
+          {
+            "id": 9,
+            "title": "Initial Branch Discovery, Assessment, and Target Identification",
+            "description": "Identify all active feature branches, collect their Git history, and analyze codebase similarity against 'main', 'scientific', and 'orchestration-tools'. Prioritize branches, rename any with ambiguous names or conflicting content, and propose an optimal integration target for each, explicitly justifying the choice to avoid defaulting to 'scientific'. Exclude 'fix/import-error-corrections'.",
+            "dependencies": [],
+            "details": "Utilize `git branch --remote` and `git log` to extract relevant history for `feature/backlog-ac-updates`, `docs-cleanup`, `feature/search-in-category`, `feature/merge-clean`, `feature/merge-setup-improvements`. Create a shared checklist (e.g., repository markdown file) for these branches. Document renaming decisions for any branches with similar names but different codebases to match their content or target.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 10,
+            "title": "Establish Justification Framework and Architectural Prioritization Guidelines",
+            "description": "Develop a formal framework to explicitly justify the chosen optimal integration target for each feature branch based on shared history, codebase similarity, and architectural compatibility. Create guidelines for prioritizing advanced architectural solutions from feature branches over target branch patterns, detailing how to document partial updates to the target's architecture if necessary.",
+            "dependencies": [
+              "7.9"
+            ],
+            "details": "Define clear criteria for target selection, such as shared commits, API dependencies, and UI component usage. Guidelines must outline when to prefer a feature branch's architecture if it's more advanced, and specify the format for recording these architectural decisions and partial target updates for review.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 11,
+            "title": "Perform Direct Feature Branch Alignment and Conflict Resolution",
+            "description": "For each identified feature branch, create a local backup, check out the branch, and integrate changes directly from its determined optimal integration target using merge or rebase, resolving all conflicts on the feature branch itself. Systematically handle complex merge conflicts using visual tools and document resolutions in merge commit messages. Implement safety mechanisms to prevent accidental pushes to the wrong branch during this critical phase.",
+            "dependencies": [
+              "7.10"
+            ],
+            "details": "Before execution, create a local backup (`git branch <branch-name>-backup-pre-align`). Execute `git merge <determined_target_branch>` or `git rebase <determined_target_branch>`. Utilize `git mergetool` for conflict resolution and ensure comprehensive commit messages for complex resolutions. Focus on targeted strategies for branches with large shared history and avoid creating intermediate alignment branches.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 12,
+            "title": "Implement Pre and Post-Alignment Validation & Quality Gates",
+            "description": "Integrate validation checks to run both before and after the alignment process for each feature branch. This includes running existing test suites (unit, integration, end-to-end), performing architectural alignment checks, and ensuring all CI/CD quality gates are passed. Create branch-specific testing to verify functionality is preserved and no regressions are introduced.",
+            "dependencies": [
+              "7.11"
+            ],
+            "details": "Before beginning alignment on a branch, run its existing test suite to establish a baseline. After local merge/rebase and conflict resolution, run the full project test suite. Integrate with existing CI/CD pipelines (e.g., from Task 80, 61, 9, 19) to ensure all quality gates are met. Architectural checks should specifically look for consistent design patterns and documented architectural adaptations.",
+            "status": "pending",
+            "testStrategy": "Run existing test suites for feature branches before and after alignment. Configure CI/CD to simulate passing and failing validations to ensure the alignment process correctly handles all outcomes."
+          },
+          {
+            "id": 13,
+            "title": "Document Alignment Outcomes, Architectural Adaptations, and Rollback Procedures",
+            "description": "Thoroughly document the alignment process for each feature branch, including the justification for the chosen target, specific architectural decisions made, and any partial updates to the target branch's architecture. Update the central alignment checklist, push aligned branches to remote, and establish clear rollback procedures for any failed alignment operations.",
+            "dependencies": [
+              "7.12"
+            ],
+            "details": "Create Pull Requests for each successfully aligned feature branch to its determined optimal integration target. Document all architectural decisions and justifications within the PR description or linked design documents. Update the central alignment checklist to reflect the status of each branch. Define step-by-step rollback instructions for situations where an alignment operation introduces critical issues or regressions.",
+            "status": "pending",
+            "testStrategy": null
           }
         ]
       },
@@ -983,6 +1036,51 @@
             "details": "Integrate tools like `safety`, `pip-audit`, or a similar dependency scanner to check `requirements.txt` or `pyproject.toml`. Additionally, integrate a SAST tool like `Bandit` to scan the `src/backend` Python code for common security issues. Configure these tools within the GitHub Actions workflow to fail the PR if critical or high-severity vulnerabilities/issues are found.",
             "status": "pending",
             "testStrategy": "Create a new branch and deliberately introduce a known vulnerable dependency (e.g., an older version of a package with a documented CVE) or a common SAST pattern that `Bandit` would flag. Create a pull request to `main` and verify that the security validation step fails, blocking the merge."
+          },
+          {
+            "id": 15,
+            "title": "Implement Architectural Enforcement for Module Boundaries and Imports",
+            "description": "Develop and integrate static analysis rules to enforce defined module boundaries and import rules within the `src/backend` directory. This ensures architectural consistency and proper adherence to `src/backend` structure after migration.",
+            "dependencies": [],
+            "details": "Utilize static analysis tools (e.g., custom `flake8` plugins, `pylint` checks, or `ruff` rules) to create an automated check within the CI/CD pipeline. The checks should specifically target and prevent disallowed cross-module imports or incorrect package structures that violate the new `src/backend` architecture. Focus on ensuring no remnants of the old `backend` structure are incorrectly referenced.",
+            "status": "pending",
+            "testStrategy": "Create small, isolated code snippets or temporary test branches that deliberately violate the defined architectural rules (e.g., incorrect imports, package structures). Run the static analysis job to confirm these violations are detected and reported correctly, leading to a build failure."
+          },
+          {
+            "id": 16,
+            "title": "Integrate Functional Correctness Checks with Test Suite Execution",
+            "description": "Configure the GitHub Actions CI/CD pipeline to automatically execute the full unit and integration test suites for `src/backend`, along with end-to-end smoke tests against a deployed instance of the FastAPI application.",
+            "dependencies": [],
+            "details": "Set up a dedicated CI/CD job in GitHub Actions (e.g., in `.github/workflows/main_pr_validation.yml`) to run `pytest` for all unit and integration tests under `src/backend`. Additionally, implement a job to deploy a temporary instance of the FastAPI application and execute end-to-end smoke tests against it to verify critical functionality. Ensure test results are parsed and their pass/fail status determines the job outcome.",
+            "status": "pending",
+            "testStrategy": "Create a pull request with changes that introduce a known failing unit test or intentionally break an existing critical API endpoint. Verify that the CI/CD pipeline correctly identifies these failures, reports them, and marks the functional correctness check as failed, blocking the merge."
+          },
+          {
+            "id": 17,
+            "title": "Develop Performance Benchmarking for Critical FastAPI Endpoints",
+            "description": "Implement automated performance benchmarking within the CI/CD pipeline to establish measurable performance baselines and detect regressions on critical FastAPI endpoints for the `src/backend` application.",
+            "dependencies": [],
+            "details": "Research and integrate a suitable performance testing tool (e.g., `locust`, `pytest-benchmark`, `k6`). Define critical FastAPI endpoints that require performance monitoring. Develop scripts to run these benchmarks and compare current pull request performance against established baselines. Configure the CI/CD job to fail if predefined performance thresholds (e.g., response time increase, throughput decrease) are exceeded.",
+            "status": "pending",
+            "testStrategy": "Artificially introduce a performance bottleneck in a critical FastAPI endpoint (e.g., add a `time.sleep()` call or an inefficient query). Submit a pull request with this change and verify that the performance benchmarking job detects the regression and fails the check, providing detailed metrics."
+          },
+          {
+            "id": 18,
+            "title": "Implement Security Validation (Dependency Scanning & SAST)",
+            "description": "Integrate automated dependency vulnerability scanning and Static Application Security Testing (SAST) tools into the CI/CD pipeline for the Python/FastAPI codebase, specifically targeting `src/backend`.",
+            "dependencies": [],
+            "details": "Configure GitHub Actions to incorporate security scanning tools. For dependency scanning, consider tools like `Dependabot` alerts (if not already active) or integrate `Snyk` or `OWASP Dependency-Check`. For SAST, implement tools like `Bandit`, `Semgrep`, or `Pylint` with security-focused plugins. Ensure critical findings from these scans block the pull request merge, providing clear remediation guidance.",
+            "status": "pending",
+            "testStrategy": "Create a separate branch with an intentional, easily detectable security vulnerability (e.g., an outdated, vulnerable dependency with a known CVE; a basic SQL injection pattern identifiable by SAST). Submit a pull request from this branch and verify that the security validation job correctly identifies and reports these issues, failing the build and blocking the merge."
+          },
+          {
+            "id": 19,
+            "title": "Design and Integrate Validation Framework into GitHub Actions Workflow",
+            "description": "Design the overall GitHub Actions workflow structure and integrate the various validation layers (architectural, functional, performance, security) to run automatically and sequentially or in parallel on pull requests to the `main` branch from `scientific`.",
+            "dependencies": [],
+            "details": "Create or modify the main GitHub Actions workflow file (`.github/workflows/main_pr_validation.yml`) to orchestrate the execution of the sub-tasks defined above. Define clear job dependencies and conditional steps to ensure that any failure in an individual validation layer (architectural, functional, performance, security) results in the entire workflow failing and blocking the pull request merge. Ensure the workflow is triggered specifically for PRs targeting `main` from `scientific`.",
+            "status": "pending",
+            "testStrategy": "Create a dummy workflow file and test its triggering conditions with a non-critical PR. Once individual validation jobs are available (even if just dummy jobs), create a pull request that should pass all checks and verify the workflow executes successfully. Subsequently, create PRs that are designed to fail specific validation checks (e.g., a failing test) and verify that the workflow correctly detects the failure and blocks the merge."
           }
         ],
         "notes": "## Notes (From Backlog)\n- This is the final validation step before merge\n- Requires coordination with multiple team members\n- Should catch any remaining architectural inconsistencies\n- Framework should be reusable for future branch alignments"
@@ -1999,6 +2097,56 @@
             "details": "Expand the CI/CD framework (from Task 7) to add a post-merge stage in `main.yml` for the 'scientific' branch. Develop new integration and E2E tests for core scientific workflows and AI agent interactions, to run immediately after a successful merge. Document all implemented policies, best practices, selective revert procedures, asset preservation guidelines, and regression recovery steps (e.g., `docs/dev_guides/regression_recovery.md`).",
             "status": "pending",
             "testStrategy": "1. Introduce a subtle regression in a feature branch, merge it, and verify the post-merge tests fail and trigger alerts. 2. Review the comprehensive documentation for clarity, accuracy, and completeness by multiple team members and ensure it's easily accessible."
+          },
+          {
+            "id": 8,
+            "title": "Enhance pre-merge validation for critical file deletions",
+            "description": "Implement and enhance existing pre-merge validation scripts and CI/CD checks to detect critical file or module deletions. If a deletion is identified, the merge request must either include a functional replacement or explicit, documented approval from a designated lead.",
+            "dependencies": [],
+            "details": "Modify `scripts/validate_critical_files.py` (from Task 17) and update `.github/workflows/pull_request.yml` (from Task 7) to use `git diff --name-only <target-branch>...<source-branch>` to compare file lists. Configure the CI/CD pipeline to make this a mandatory status check, blocking merges without proper resolution.",
+            "status": "pending",
+            "testStrategy": "Create a feature branch that deletes a critical file without replacement and verify CI/CD blocks the merge. Then, create a branch that deletes a file and includes a replacement or documentation/approval, and verify it passes."
+          },
+          {
+            "id": 9,
+            "title": "Implement selective revert policy and tools",
+            "description": "Establish and enforce a policy that discourages or blocks mass reverts, favoring selective reverts for specific problematic commits or changes. This ensures unrelated, functional code is not accidentally removed.",
+            "dependencies": [],
+            "details": "Utilize Git hooks or enhance branch protection rules (from Task 18) to flag merge requests containing large revert operations. Provide developers with tools and training on `git revert -n` followed by cherry-picking, or `git cherry-pick` for specific desired changes. Detail this policy in the documentation (Task 12).",
+            "status": "pending",
+            "testStrategy": "Attempt a mass revert via a PR and verify it's flagged or blocked. Perform a selective revert using the recommended tools/workflow and verify it integrates correctly without affecting unrelated code."
+          },
+          {
+            "id": 10,
+            "title": "Develop branch-specific asset protection mechanisms",
+            "description": "Implement mechanisms to protect critical branch-specific assets (e.g., AI agent configurations, scientific models, unique data schemas) from being overwritten or deleted during merges or synchronizations from other branches.",
+            "dependencies": [],
+            "details": "Identify all critical `scientific` branch-specific files and directories (e.g., `config/agent_settings.json`, `src/models/`). Utilize Git's `.gitattributes` for specific merge strategies (e.g., `merge=ours` for certain paths) or develop custom merge drivers/scripts. Integrate CI/CD checks that warn or block merges attempting to force-overwrite these protected assets without explicit conflict resolution.",
+            "status": "pending",
+            "testStrategy": "Attempt a merge from a different branch (`main` to `scientific`) that would overwrite a protected `scientific` asset. Verify the mechanism warns or blocks the merge. Then, perform a merge with explicit conflict resolution for a protected asset and verify it proceeds as expected."
+          },
+          {
+            "id": 11,
+            "title": "Implement automated post-merge validation for critical functions",
+            "description": "Extend the CI/CD pipeline to include a robust suite of post-merge integration and end-to-end tests that specifically target the critical functionalities of the `scientific` branch.",
+            "dependencies": [],
+            "details": "Expand on the CI/CD framework provided by Task 7, specifically in `.github/workflows/main.yml`. Write new integration tests for core scientific workflows, AI agent interactions, and critical data processing pipelines. These tests must run on the target branch (e.g., `scientific`) immediately after a successful merge. Configure their failure to trigger high-priority alerts and rollback procedures.",
+            "status": "pending",
+            "testStrategy": "Merge a change that subtly breaks a critical `scientific` functionality (e.g., AI agent output). Verify the post-merge validation pipeline fails and triggers alerts/rollback. Merge a non-breaking change and verify the post-merge pipeline passes successfully."
+          },
+          {
+            "id": 12,
+            "title": "Document merge best practices and recovery procedures",
+            "description": "Collaborate with Task 19 to create and publish comprehensive documentation covering the newly implemented policies, best practices for merging, how to perform selective reverts, procedures for preserving branch-specific assets, and step-by-step recovery guides.",
+            "dependencies": [
+              "27.8",
+              "27.9",
+              "27.10",
+              "27.11"
+            ],
+            "details": "Develop detailed guides (e.g., `docs/dev_guides/merge_best_practices.md`, `docs/dev_guides/regression_recovery.md`) that are easily accessible to all development team members. Include examples and common pitfalls for all new safeguards. Plan and conduct training sessions for developers on these new procedures and tools to ensure widespread adoption and understanding.",
+            "status": "pending",
+            "testStrategy": "Review the documentation for clarity, completeness, and accuracy by a diverse group of developers. Verify all new policies and procedures are clearly explained with examples. Conduct a mock regression scenario and use the recovery guide to ensure its effectiveness."
           }
         ],
         "complexity": 9,
@@ -4016,6 +4164,172 @@
             "details": "Create a `README.md` or a section in an existing `docs/` file (e.g., `docs/branch_alignment.md`). Detail how to run the script, what inputs are required, how to handle conflicts, and common issues with solutions.",
             "status": "pending",
             "testStrategy": "Review the documentation for clarity, completeness, and accuracy by an independent party. Ensure all script functionalities and error messages are covered."
+          },
+          {
+            "id": 16,
+            "title": "Integrate with Optimal Target Determination (Task 57)",
+            "description": "Integrate the alignment logic with the output of Task 57 to receive the optimal primary branch target for the feature branch, validating its suitability for alignment operations.",
+            "dependencies": [],
+            "details": "Develop a function `get_primary_target(feature_branch_name)` that consults or simulates the output of Task 57 to determine the recommended primary branch (main, scientific, or orchestration-tools). Validate that the suggested primary branch exists and is accessible in the local repository or remote.",
+            "status": "pending",
+            "testStrategy": "Simulate output from Task 57 for various feature branches and verify the script correctly identifies and validates the suggested primary target. Test cases with existing and non-existing primary branches."
+          },
+          {
+            "id": 17,
+            "title": "Implement Branch Comparison Mechanisms",
+            "description": "Develop functions to comprehensively compare the feature branch with the primary target, identifying shared history depth, divergence points, and code overlap for preliminary conflict assessment.",
+            "dependencies": [
+              "59.16"
+            ],
+            "details": "Use `GitPython` to run `git merge-base <feature_branch> <primary_target>` to find the common ancestor. Implement analysis of `git log --oneline <common_ancestor>..<feature_branch>` and `git log --oneline <common_ancestor>..<primary_target>` to quantify divergence. Use `git diff --stat` to estimate file overlap and potential conflict areas.",
+            "status": "pending",
+            "testStrategy": "Create test repositories with various levels of shared history and divergence. Manually calculate expected metrics (merge-base, commit counts, diff stats) and verify the functions return accurate comparison data. Simulate scenarios leading to high/low conflict likelihood."
+          },
+          {
+            "id": 18,
+            "title": "Create Intelligent Integration Strategy Selection Logic",
+            "description": "Implement logic to intelligently select the most appropriate Git integration strategy (rebase, merge, or cherry-pick) for the given feature and primary branches, defaulting to rebase as per the parent task's preference.",
+            "dependencies": [
+              "59.17"
+            ],
+            "details": "Based on the branch comparison results from Subtask 17 (e.g., divergence, conflict likelihood estimation), implement a `select_integration_strategy()` function. The default choice must be 'rebase'. Optionally, the function can log a recommendation if 'merge' or 'cherry-pick' appears more suitable, without executing it.",
+            "status": "pending",
+            "testStrategy": "Test with different branch comparison scenarios (e.g., small divergence, large divergence, high code overlap) to ensure 'rebase' is consistently chosen as the default. Verify that alternative strategy recommendations (if implemented) are logged correctly under specific conditions."
+          },
+          {
+            "id": 19,
+            "title": "Implement Robust Pre-Alignment Safety Checks",
+            "description": "Develop a comprehensive set of pre-alignment safety checks, including verifying a clean working directory, no pending stashes, and sufficient repository permissions, to prevent data loss or unintended operations.",
+            "dependencies": [],
+            "details": "Before initiating any alignment, implement checks using GitPython for: `repo.is_dirty()` to detect uncommitted changes; `git stash list` to check for active stashes; verification that the target feature branch is currently checked out; and basic permission checks to ensure write access to the repository.",
+            "status": "pending",
+            "testStrategy": "Test with a dirty working directory, an active stash, attempting alignment from a different branch, and with read-only repository permissions. Verify that the script correctly identifies these unsafe states and prevents the alignment operation, providing clear error messages."
+          },
+          {
+            "id": 20,
+            "title": "Develop Automated Pre-Alignment Branch Backup",
+            "description": "Implement a robust automated backup procedure that creates a temporary backup branch of the feature branch before initiating any rebase or integration operation to ensure a stable rollback point.",
+            "dependencies": [
+              "59.19"
+            ],
+            "details": "Before executing the chosen integration strategy, create a new branch (e.g., `feature_branch_backup_YYYYMMDD_HHMMSS`) pointing to the current HEAD of the feature branch using `repo.create_head()`. Store the name of this backup branch for potential rollback.",
+            "status": "pending",
+            "testStrategy": "Run the script and verify that a new backup branch with a clear naming convention is created before the alignment. Ensure this backup branch points to the correct commit. Verify the backup branch is deleted after a successful alignment, or kept for rollback after failure."
+          },
+          {
+            "id": 21,
+            "title": "Implement Core Rebase/Integration Operation",
+            "description": "Implement the core execution of the chosen integration strategy, primarily `git rebase`, using `GitPython` or direct subprocess calls, and monitor its immediate success or failure.",
+            "dependencies": [
+              "59.18",
+              "59.20"
+            ],
+            "details": "Execute `git rebase origin/<primary_target>` using `repo.git.rebase()` or `subprocess.run()`. Capture the command's standard output and error. Check the command's exit code or `GitPython` exceptions to determine if the operation was immediately successful, failed, or entered a conflicted state.",
+            "status": "pending",
+            "testStrategy": "Test with a clean rebase scenario (no conflicts). Verify the rebase completes successfully and the feature branch history is updated. Test with scenarios expected to cause conflicts to verify the script enters the correct conflict handling state."
+          },
+          {
+            "id": 22,
+            "title": "Develop Advanced Conflict Detection and Resolution Flow",
+            "description": "Implement an interactive conflict detection and resolution flow during the rebase operation, pausing, notifying the user, and guiding them through manual conflict resolution steps.",
+            "dependencies": [
+              "59.21"
+            ],
+            "details": "After `git rebase` (Subtask 21), continuously check if the repository is in a rebase-in-progress state and if there are unmerged paths (`repo.index.diff(None)`). If conflicts are detected, print clear, actionable instructions to the user (e.g., `git status`, `git add <file>`, `git rebase --continue`/`--abort`). Prompt the user for input to continue or abort after manual resolution.",
+            "status": "pending",
+            "testStrategy": "Create test branches with deliberate conflicts. Run the script and verify it pauses at conflicts, provides correct instructions, and allows the user to manually resolve, then continue or abort. Test both successful conflict resolution and aborting the rebase."
+          },
+          {
+            "id": 23,
+            "title": "Implement Intelligent Rollback Mechanisms",
+            "description": "Design and implement intelligent rollback mechanisms that can revert the feature branch to its pre-alignment state using the automated backup in case of unresolvable conflicts, user-initiated aborts, or other failures.",
+            "dependencies": [
+              "59.20",
+              "59.22"
+            ],
+            "details": "If the rebase fails, is aborted by the user, or encounters any critical error (Subtask 22), automatically `git reset --hard` to the backup branch created in Subtask 20. Ensure the temporary backup branch is then deleted. Log the rollback action.",
+            "status": "pending",
+            "testStrategy": "Simulate rebase failures and user aborts. Verify that the feature branch is correctly reset to the state of the backup branch. Confirm that the temporary backup branch is cleaned up after a successful rollback."
+          },
+          {
+            "id": 24,
+            "title": "Design Graceful Error Handling for Failed Alignments",
+            "description": "Develop a comprehensive error handling system that catches `GitPython` exceptions and `subprocess` errors, provides clear diagnostic information, and suggests appropriate recovery steps to the user for failed alignment operations.",
+            "dependencies": [
+              "59.21",
+              "59.22"
+            ],
+            "details": "Implement `try-except` blocks around all critical Git operations. Catch specific `GitCommandError` exceptions and general `Exception` types. Log detailed error messages including the Git command executed, its output, and the Python traceback. Present user-friendly error messages that suggest next steps or refer to documentation.",
+            "status": "pending",
+            "testStrategy": "Introduce various error conditions (e.g., invalid branch names, network issues preventing fetch, unexpected Git states) and verify the script catches them gracefully, logs detailed diagnostics, and provides helpful user messages without crashing."
+          },
+          {
+            "id": 25,
+            "title": "Implement Progress Tracking and Monitoring",
+            "description": "Integrate progress tracking and monitoring into the alignment process, providing real-time feedback to the user and logging key states to enable safe interruption and potential resumption (though actual resumption logic might be future scope).",
+            "dependencies": [
+              "59.21"
+            ],
+            "details": "Use Python's `logging` module to output messages at each major step of the alignment process: 'Starting pre-checks...', 'Creating backup branch...', 'Fetching primary branch...', 'Initiating rebase...', 'Conflict detected, waiting for resolution...', 'Rebase complete/failed.', 'Running post-checks...'.",
+            "status": "pending",
+            "testStrategy": "Run the alignment script and observe the console output and logs. Verify that all major steps are clearly indicated, providing the user with real-time feedback on the alignment's progress. Test during conflict resolution."
+          },
+          {
+            "id": 26,
+            "title": "Implement Performance Monitoring for Operations",
+            "description": "Develop and integrate performance monitoring capabilities to measure and log the execution time of critical alignment phases (e.g., fetch, rebase, conflict detection, validation) to ensure acceptable execution time.",
+            "dependencies": [
+              "59.25"
+            ],
+            "details": "Use Python's `time` module or a profiling library to record timestamps for the start and end of significant operations (e.g., fetching, rebase execution, time spent in conflict resolution). Log these durations as part of the overall report for performance analysis.",
+            "status": "pending",
+            "testStrategy": "Run the alignment script under various conditions (e.g., different repository sizes, number of commits to rebase, number of conflicts). Verify that the elapsed time for each major phase is accurately measured and reported in the logs/report."
+          },
+          {
+            "id": 27,
+            "title": "Create Post-Alignment Verification Procedures",
+            "description": "Develop procedures to verify the successful integration and propagation of changes after a successful alignment, ensuring the feature branch history is linear and includes the primary branch's updates.",
+            "dependencies": [
+              "59.21"
+            ],
+            "details": "After a successful rebase, use `git log --graph --oneline <feature_branch>` to programmatically verify that the history is linear. Optionally, compare the state of the feature branch to the primary target and common ancestor to confirm that all expected changes have been integrated correctly.",
+            "status": "pending",
+            "testStrategy": "Perform a successful rebase and then verify programmatically that the Git history of the feature branch is linear. Check that the latest commits from the primary branch are present in the feature branch history. Test with various successful rebase scenarios."
+          },
+          {
+            "id": 28,
+            "title": "Implement Comprehensive Branch Validation (Integrity & Functionality)",
+            "description": "Integrate comprehensive branch validation steps after a successful alignment, including running linting, basic static analysis, and placeholder calls for unit/integration tests to ensure code integrity and functionality.",
+            "dependencies": [
+              "59.27"
+            ],
+            "details": "After successful verification (Subtask 27), implement placeholder calls for external validation tools. This could include executing predefined linting scripts (e.g., `flake8`, `mypy`), running basic static analysis, or invoking a subset of unit tests (`pytest`). Capture their output and integrate results into the final report.",
+            "status": "pending",
+            "testStrategy": "Test the post-alignment validation with branches that are expected to pass and fail linting/static analysis/tests. Verify that the script correctly executes these external checks, captures their results, and indicates success or failure in its output."
+          },
+          {
+            "id": 29,
+            "title": "Design Comprehensive Reporting System",
+            "description": "Develop a detailed reporting system that summarizes the alignment operation's outcome, including success/failure, number of conflicts, time taken, and results of all validation and verification steps.",
+            "dependencies": [
+              "59.24",
+              "59.26",
+              "59.28"
+            ],
+            "details": "Create a function `generate_final_report()` that compiles all gathered information: feature branch, primary target, final status (success/failure/aborted), any conflicts encountered/resolved, time spent in each phase (Subtask 26), and a summary of post-alignment validation results (Subtask 28). Output this report to the console and optionally to a log file.",
+            "status": "pending",
+            "testStrategy": "Run the script through various successful, failed (aborted), and conflicted scenarios. Verify that the generated reports are comprehensive, accurate, and clearly summarize the outcome of each alignment attempt, including performance metrics and validation results."
+          },
+          {
+            "id": 30,
+            "title": "Document Alignment Logic and Algorithms",
+            "description": "Create thorough documentation covering the alignment script's design, underlying algorithms, integration strategies, error handling, usage instructions, and maintenance guidelines for the development team.",
+            "dependencies": [
+              "59.29"
+            ],
+            "details": "Prepare a comprehensive document (e.g., `docs/branch_alignment_guide.md`) detailing the script's purpose, command-line arguments, how it determines target branches (integration with Task 57), pre-alignment checks, backup and rollback mechanisms, the conflict resolution workflow, post-alignment validation, reporting, and troubleshooting.",
+            "status": "pending",
+            "testStrategy": "Review the generated documentation for clarity, completeness, accuracy, and ease of understanding by a developer. Verify that all key aspects of the alignment logic, usage, and error handling are adequately explained and illustrated."
           }
         ]
       },
@@ -4222,6 +4536,201 @@
             "details": "Create a comprehensive guide that covers everything from identifying complex branches, using the iterative rebase script, resolving conflicts, performing architectural reviews, understanding rollback procedures, and knowing when to escalate for expert intervention. This should leverage templates from Subtask 9.",
             "status": "pending",
             "testStrategy": "Review the compiled documentation for accuracy, completeness, and clarity. Have a new team member or an external reviewer follow the documentation to perform complex branch alignment and provide feedback on any ambiguities or missing information."
+          },
+          {
+            "id": 16,
+            "title": "Implement Complex Branch Identification Logic",
+            "description": "Develop and implement algorithms to classify branches as 'complex' based on metrics like history depth, number of affected files, commit count, shared history with other branches, and architectural impact.",
+            "dependencies": [
+              59
+            ],
+            "details": "Extend the existing branch analysis tools (from Task 59) to incorporate new metrics for complexity. Utilize Git commands such as 'git rev-list --count', 'git diff --numstat', and 'git merge-base' to gather necessary data. Define configurable thresholds for each complexity metric to allow for flexible classification.",
+            "status": "pending",
+            "testStrategy": "Create a diverse set of test branches with varying levels of complexity (e.g., shallow, deep, many files, few files, highly divergent, recently branched). Verify that the identification logic correctly classifies them according to the predefined complexity rules and thresholds."
+          },
+          {
+            "id": 17,
+            "title": "Develop Iterative Rebase Procedure for Shared History",
+            "description": "Create a specialized procedure for handling branches with large shared histories, focusing on iterative rebase or cherry-picking to manage complexity and reduce conflict burden.",
+            "dependencies": [
+              "60.16"
+            ],
+            "details": "Implement a script or a sequence of Git commands that guides the user through rebasing a few commits at a time. This can involve scripting 'git rebase -i' for interactive rebase or automating 'git cherry-pick' in small, manageable batches. This procedure should be automatically engaged when a complex branch with large shared history is detected by Task 16.",
+            "status": "pending",
+            "testStrategy": "Generate a branch with 50+ commits that have diverged significantly from a long-lived shared base. Test the iterative rebase process, ensuring it can handle batches of 5-10 commits, and that progress is correctly saved between iterations. Introduce conflicts to verify the step-by-step resolution."
+          },
+          {
+            "id": 18,
+            "title": "Implement Enhanced Integration Branch Strategies",
+            "description": "Develop and implement specific strategies for integration branches, focusing on careful conflict resolution and staged merges for complex features to ensure stability.",
+            "dependencies": [
+              "60.16",
+              "60.17"
+            ],
+            "details": "Define a structured workflow that might involve creating a temporary 'integration branch', merging the complex feature branch into it, carefully resolving conflicts on this temporary branch, and then performing a clean merge of the integration branch into the final target branch. This entire process should be guided and automated by the alignment script.",
+            "status": "pending",
+            "testStrategy": "Create a complex feature branch that, when merged directly into a target branch, would result in multiple, non-trivial conflicts. Test the script's ability to guide the creation of an integration branch and facilitate the staged and controlled resolution of these conflicts before final integration."
+          },
+          {
+            "id": 19,
+            "title": "Develop Enhanced Conflict Resolution Workflow with Visual Tools",
+            "description": "Establish focused conflict resolution workflows that provide enhanced visual tools and step-by-step guidance for resolving complex conflicts effectively.",
+            "dependencies": [
+              "60.17",
+              "60.18"
+            ],
+            "details": "Integrate the alignment script with popular visual diff and merge tools (e.g., 'git mergetool' configurable with 'meld', 'kdiff3', 'vscode diff'). Provide clear, guided prompts to the user during conflict resolution, explaining common strategies, identifying conflict types, and suggesting optimal tools.",
+            "status": "pending",
+            "testStrategy": "Introduce various types of conflicts (e.g., content conflicts, rename conflicts, delete conflicts) in test branches. Verify that the workflow correctly invokes the chosen visual tool and provides clear, actionable instructions at each conflict point. Test with at least two different configurable merge tools."
+          },
+          {
+            "id": 20,
+            "title": "Implement Targeted Testing for Complex Branch Integrations",
+            "description": "Develop and implement targeted testing strategies that can validate functionality preservation immediately after iterative steps in complex branch integrations.",
+            "dependencies": [
+              "60.17",
+              "60.18",
+              61
+            ],
+            "details": "Integrate with the existing validation system (Task 61). After each iterative rebase step, or upon integration into an integration branch, automatically identify and run a subset of relevant tests. This could involve tests specifically related to changed files, modules, or components affected by the rebase, using tools like 'pytest --last-failed' or custom change-detection logic.",
+            "status": "pending",
+            "testStrategy": "For a designated complex test branch, define a set of unit and integration tests that are directly relevant to its changes. After an iterative rebase step, verify that only these targeted tests are run, and that they pass before allowing the process to continue. Introduce a known bug to ensure tests fail appropriately."
+          },
+          {
+            "id": 21,
+            "title": "Create Specialized Verification Procedures for Complex Alignments",
+            "description": "Design and implement specialized verification procedures for complex branch alignments that go beyond standard validation checks, ensuring architectural integrity and quality.",
+            "dependencies": [
+              "60.16",
+              "60.20"
+            ],
+            "details": "Beyond automated unit and integration tests, this could include checks for code style adherence, architectural pattern consistency, security best practices, or specific performance metrics that are critical for the affected components. This might involve generating a 'git diff' to facilitate a quick architectural review after each significant rebase step.",
+            "status": "pending",
+            "testStrategy": "Define a set of 'complex' architectural rules (e.g., specific forbidden dependencies, required interfaces). Create a test branch that intentionally violates one of these rules. Ensure the specialized verification procedure flags this architectural issue after an alignment step, preventing further progression."
+          },
+          {
+            "id": 22,
+            "title": "Design Intelligent Rollback Strategies for Complex Branches",
+            "description": "Develop and implement intelligent rollback strategies specific to complex branches that minimize disruption to other development work and restore a stable state upon failure.",
+            "dependencies": [
+              "60.17",
+              "60.18",
+              55
+            ],
+            "details": "Implement mechanisms to automatically or manually revert to a known good state if an iterative rebase or integration operation fails catastrophically. Utilize Git features like 'git reflog', 'git reset --hard', and potentially 'git revert' with clear user guidance. Integrate with the centralized error detection system (Task 55) for trigger points.",
+            "status": "pending",
+            "testStrategy": "Simulate a catastrophic failure during an iterative rebase (e.g., after a few successful steps, force a conflict that is intentionally made unresolvable). Verify that the rollback mechanism correctly restores the branch to its stable state before the problematic rebase attempt, with minimal user intervention."
+          },
+          {
+            "id": 23,
+            "title": "Implement Enhanced Monitoring for Complex Branch Operations",
+            "description": "Develop and implement enhanced monitoring capabilities during complex branch operations to detect and alert on potential issues early in the process, providing better visibility.",
+            "dependencies": [
+              "60.17",
+              "60.18",
+              52
+            ],
+            "details": "Integrate detailed logging (using the Python 'logging' module) for each step of the iterative rebase and conflict resolution process. Report progress, warnings, and errors to a central logging system. Potentially provide real-time feedback and status updates directly to the user. Leverage the centralized error handling (Task 52) for consistency.",
+            "status": "pending",
+            "testStrategy": "During an iterative rebase or integration, introduce various warning conditions (e.g., a large number of unresolved conflicts in a single commit batch, a test suite taking excessively long). Verify that these warnings are logged, surfaced to the user, and potentially alerted to system administrators or a monitoring dashboard."
+          },
+          {
+            "id": 24,
+            "title": "Create Documentation Templates for Complex Branch Handling",
+            "description": "Develop comprehensive documentation templates specific to complex branch handling that capture special considerations, procedures, and best practices for future reference.",
+            "dependencies": [
+              "60.16"
+            ],
+            "details": "Create Markdown-based templates for documenting the complexity assessment of a branch, the chosen rebase/integration strategy, detailed conflict resolution logs, and post-alignment verification results. These templates should be integrated into the workflow and prompt the developer to fill them out as part of the complex alignment process.",
+            "status": "pending",
+            "testStrategy": "Apply the complex branch identification logic (Task 16) to a test branch. Trigger the generation of the documentation template and verify that it contains all necessary fields and prompts for capturing relevant information specific to that branch's complexity and the chosen strategy."
+          },
+          {
+            "id": 25,
+            "title": "Establish Expert Intervention Thresholds and Approval Workflow",
+            "description": "Define and implement expert intervention thresholds for complex branches that require senior developer review and approval before proceeding with critical alignment steps.",
+            "dependencies": [
+              "60.16",
+              "60.24"
+            ],
+            "details": "Based on the complexity metrics (Task 16), if a branch exceeds certain predefined thresholds, the alignment script should pause execution and require explicit approval (e.g., via a command-line prompt or integration with a Pull Request review system) from a designated expert or team lead before executing potentially disruptive operations. Documentation templates (Task 24) should be part of this approval process.",
+            "status": "pending",
+            "testStrategy": "Configure an intervention threshold (e.g., a branch with more than 30 divergent commits or affecting critical architectural components). Create a test branch exceeding this threshold and verify that the alignment process correctly pauses and requests expert approval. Test both the approval and rejection paths."
+          },
+          {
+            "id": 26,
+            "title": "Develop Parallel/Sequential Processing for Complex Branches",
+            "description": "Implement strategies for parallel versus sequential processing specifically for complex branches to prevent resource contention and ensure alignment stability during operations.",
+            "dependencies": [
+              "60.16",
+              "60.17"
+            ],
+            "details": "For very large and complex branches, evaluate if certain tasks (e.g., running specific test suites, linting, static analysis) can be parallelized during iterative steps while ensuring that core 'git' operations remain strictly sequential to maintain repository integrity. This might involve orchestrating integration with CI/CD pipelines to manage parallel execution.",
+            "status": "pending",
+            "testStrategy": "Design a test scenario where a large, complex branch is being processed. If possible within a controlled test environment, simulate multiple concurrent complex branch operations. Verify that resource contention is minimized and that all operations complete successfully without unexpected failures or race conditions."
+          },
+          {
+            "id": 27,
+            "title": "Implement Enhanced Error Detection and Reporting for Complex Alignments",
+            "description": "Create enhanced error detection and reporting systems that can identify subtle issues and edge cases in complex alignments, providing detailed diagnostics.",
+            "dependencies": [
+              55,
+              52,
+              "60.23"
+            ],
+            "details": "Build upon Task 55 (error detection) and Task 52 (centralized error handling) by implementing custom error types specifically for complex alignment scenarios (e.g., unresolvable cyclic dependencies, unexpected merge base changes, inconsistent history states). Provide detailed stack traces, relevant Git command outputs, and contextual information in error reports to aid debugging. Leverage monitoring (Task 23).",
+            "status": "pending",
+            "testStrategy": "Introduce subtle, hard-to-detect errors during a complex rebase (e.g., a silent data corruption during a merge, a change in a dependency that doesn't immediately cause a build failure but would cause runtime issues). Verify that the enhanced system identifies these issues and provides detailed, actionable reports."
+          },
+          {
+            "id": 28,
+            "title": "Implement Performance Optimization for Complex Branch Processing",
+            "description": "Develop and implement performance optimization strategies for complex branch processing to reduce execution time and resource usage of alignment operations.",
+            "dependencies": [
+              "60.16",
+              "60.17"
+            ],
+            "details": "Optimize underlying 'git' commands by utilizing efficient flags (e.g., '--depth' for fetching, 'git repack', 'git gc'). Implement caching mechanisms for frequently accessed Git objects, branch analysis results, or intermediate states. Profile script execution to identify and eliminate bottlenecks in the complex alignment workflow.",
+            "status": "pending",
+            "testStrategy": "Benchmark the execution time and resource usage (CPU, memory) of the complex branch alignment process before and after implementing optimizations. Compare the performance against a defined baseline for a very large and complex test branch, aiming for significant reductions in processing time."
+          },
+          {
+            "id": 29,
+            "title": "Design Specialized UI/CLI for Complex Branch Operations",
+            "description": "Design and implement specialized user interfaces or command-line patterns that provide enhanced visibility, interactive guidance, and feedback during complex branch operations.",
+            "dependencies": [
+              "60.17",
+              "60.19",
+              "60.23",
+              "60.27"
+            ],
+            "details": "Develop an interactive command-line interface (CLI) that guides the user through each step of the iterative rebase, conflict resolution, and verification process. Provide clear status updates, progress bars, and interactive prompts for decisions. Integrate with the enhanced logging (Task 23) and error reporting (Task 27) to provide real-time, actionable feedback.",
+            "status": "pending",
+            "testStrategy": "Perform a full complex branch alignment using the new UI/CLI. Verify that the interface is intuitive, provides clear and concise feedback, and correctly guides the user through all required steps, including complex conflict resolution, error handling, and decision points."
+          },
+          {
+            "id": 30,
+            "title": "Document Complex Branch Handling Procedures and Create Training",
+            "description": "Create comprehensive documentation of all complex branch handling procedures and develop specialized training materials for developers dealing with challenging alignment scenarios.",
+            "dependencies": [
+              "60.16",
+              "60.17",
+              "60.18",
+              "60.19",
+              "60.20",
+              "60.21",
+              "60.22",
+              "60.23",
+              "60.24",
+              "60.25",
+              "60.26",
+              "60.27",
+              "60.28",
+              "60.29"
+            ],
+            "details": "Compile all developed procedures, strategies, tools, and best practices into a central, searchable guide. Create step-by-step tutorials, practical examples, and frequently asked questions (FAQs). Develop comprehensive training modules for both new and experienced developers, focusing on practical application, troubleshooting, and understanding the 'why' behind the complex branch strategies.",
+            "status": "pending",
+            "testStrategy": "Conduct a review of the created documentation and training materials with a diverse group of target users (e.g., junior, mid, and senior developers). Gather feedback on clarity, completeness, accuracy, and overall usability. Ensure all scenarios covered by the new tools and procedures are adequately explained."
           }
         ]
       },
@@ -4253,7 +4762,7 @@
             "title": "Implement Pre-alignment Branch Readiness Validation",
             "description": "Implement validation logic to be executed before any rebase or merge operation begins, ensuring the feature branch meets predefined criteria for alignment readiness (e.g., no pending local changes, correct base branch, no uncommitted files).",
             "dependencies": [
-              1
+              "61.1"
             ],
             "details": "Develop a `pre_alignment_check()` function that verifies the branch's state. This function should check for a clean working directory (`git status --porcelain`), correct branch name patterns, and potentially enforce the use of a specific base branch for alignment.",
             "status": "pending",
@@ -4264,7 +4773,7 @@
             "title": "Create Validation Checkpoints for Intermediate Alignment States",
             "description": "Introduce a validation checkpoint immediately following successful rebase or merge operations, but before manual conflict resolution, to detect issues like merge artifacts, corrupted files, or syntax errors introduced by the base changes.",
             "dependencies": [
-              2
+              "61.2"
             ],
             "details": "Integrate a call to the error detection mechanism (from Task 55) after the initial `git rebase` or `git merge` command, to catch initial problems before conflicts are presented to the user. This checkpoint runs before any user interaction for conflict resolution.",
             "status": "pending",
@@ -4275,7 +4784,7 @@
             "title": "Implement Post-Alignment Validation Trigger for Feature Branch",
             "description": "Implement the logic to trigger the Pre-merge Validation Scripts (Task 19) and the Comprehensive Merge Validation Framework (Task 9) on the aligned feature branch. These validations must run after the successful alignment but before any potential pull request creation or push.",
             "dependencies": [
-              3
+              "61.3"
             ],
             "details": "After all rebase/merge steps and error detection are completed, invoke `run_pre_merge_validation(aligned_branch)` (Task 19) and `run_comprehensive_validation(aligned_branch)` (Task 9). The results of these validations determine if the aligned branch can be pushed.",
             "status": "pending",
@@ -4286,7 +4795,7 @@
             "title": "Integrate Automated Error Detection Scripts (Task 55) with Alignment Workflow",
             "description": "Modify the alignment scripts to explicitly call the Automated Error Detection Scripts (Task 55) at the defined integration points, specifically after rebase/merge and after conflict resolution, to catch merge artifacts, garbled text, and missing imports.",
             "dependencies": [
-              4
+              "61.4"
             ],
             "details": "Create a Python wrapper function `execute_error_detection(branch_path)` that calls the external scripts from Task 55. This wrapper should interpret the script's exit code and convert it into a structured result for the alignment workflow's internal use.",
             "status": "pending",
@@ -4297,7 +4806,7 @@
             "title": "Design Standardized Validation Failure Handling Procedures",
             "description": "Define a clear protocol for how the alignment workflow should react when any integrated validation (pre-alignment, error detection, pre-merge, comprehensive) reports a failure. This includes standardized messaging, logging, and state management.",
             "dependencies": [
-              5
+              "61.5"
             ],
             "details": "Establish a consistent error reporting interface. Failures should result in clear, actionable messages for the developer. Define different levels of failure (e.g., warning vs. critical error) and how the alignment script should respond at each level, including logging details for debugging.",
             "status": "pending",
@@ -4308,7 +4817,7 @@
             "title": "Implement Alignment Rollback on Critical Validation Failure",
             "description": "Develop functionality to automatically stop the alignment process and revert the branch to its state before the current alignment attempt if a critical validation fails, ensuring data integrity and preventing the propagation of broken code.",
             "dependencies": [
-              6
+              "61.6"
             ],
             "details": "Utilize Git commands such as `git reset --hard HEAD@{1}` for general state restoration and `git rebase --abort` or `git merge --abort` specifically for in-progress operations. This needs to be robust enough to handle failures at different stages of the alignment.",
             "status": "pending",
@@ -4319,7 +4828,7 @@
             "title": "Develop Validation Result Reporting for Alignment Workflow",
             "description": "Establish a mechanism to capture, aggregate, and present the results of all executed validation checks within the alignment system. This should provide clear pass/fail status and detailed logs for diagnostics.",
             "dependencies": [
-              7
+              "61.7"
             ],
             "details": "Design a reporting class or module that collects outcomes from each validation step. The report should include the validation name, its status (pass/fail), any detailed output or logs, and the duration of its execution. Output could be to the console, a dedicated log file, or a structured format (e.g., JSON).",
             "status": "pending",
@@ -4330,7 +4839,7 @@
             "title": "Define Criteria for Halting Alignment on Validation Failures",
             "description": "Specify the conditions and thresholds under which a validation failure should halt the alignment process, requiring manual intervention, versus non-blocking warnings that allow alignment to continue.",
             "dependencies": [
-              8
+              "61.8"
             ],
             "details": "Create a configuration file or internal mapping that assigns a severity level (e.g., `CRITICAL`, `WARNING`, `INFO`) to different types of validation failures or specific error codes. Only `CRITICAL` failures will trigger an immediate halt and potential rollback.",
             "status": "pending",
@@ -4341,7 +4850,7 @@
             "title": "Integrate Alignment Validations with CI/CD Pipelines",
             "description": "Explore and implement methods to integrate the results and trigger additional checks within existing CI/CD pipelines, if applicable, to avoid redundant validation effort and leverage established reporting and notification mechanisms.",
             "dependencies": [
-              9
+              "61.9"
             ],
             "details": "Investigate how to communicate alignment validation results to existing CI/CD systems (e.g., by updating job status, emitting webhooks, or writing to shared artifacts). The goal is to make alignment status visible within the broader CI/CD context.",
             "status": "pending",
@@ -4352,7 +4861,7 @@
             "title": "Define Custom Validation Rules and Schema for Alignment",
             "description": "Outline the process for defining and implementing custom validation rules specific to the alignment workflow that go beyond the generic error detection or pre-merge scripts, addressing unique project requirements.",
             "dependencies": [
-              10
+              "61.10"
             ],
             "details": "Identify any specific project-level rules (e.g., enforcing certain commit message formats, checking for specific license headers, or confirming dependency updates in `pyproject.toml`). Design a simple plugin-like system or a configuration-driven approach for adding these custom rules.",
             "status": "pending",
@@ -4363,7 +4872,7 @@
             "title": "Implement Performance Monitoring for Validation Steps",
             "description": "Integrate logging and metrics collection to track the execution time and resource usage of each validation step, identifying potential bottlenecks and areas for optimization within the alignment process.",
             "dependencies": [
-              11
+              "61.11"
             ],
             "details": "Use Python's `time` module or a dedicated profiling tool to measure the execution duration of each called validation function. Log these performance metrics alongside the validation results for later analysis. Consider initial CPU/memory usage tracking if feasible.",
             "status": "pending",
@@ -4374,7 +4883,7 @@
             "title": "Develop Configuration Management for Validation Settings",
             "description": "Design and implement a robust system for managing the configuration of all integrated validation scripts and frameworks, allowing for easy updates, environmental variations, and disabling specific checks.",
             "dependencies": [
-              12
+              "61.12"
             ],
             "details": "Utilize a centralized configuration file (e.g., YAML or TOML) to manage paths to external validation scripts, severity thresholds, custom rule definitions, and reporting preferences. Implement a configuration loader that applies these settings dynamically at runtime.",
             "status": "pending",
@@ -4385,7 +4894,7 @@
             "title": "Implement Archiving for Alignment Validation Results",
             "description": "Define and implement procedures for archiving detailed validation results and logs over time, enabling historical analysis, auditing, and debugging of past alignment attempts.",
             "dependencies": [
-              13
+              "61.13"
             ],
             "details": "Store complete validation reports (e.g., as JSON files with a timestamp) in a designated archive directory. Ensure these results are linked to the specific branch and commit IDs of the alignment attempt. Implement a basic retention policy or cleanup mechanism to manage storage.",
             "status": "pending",
@@ -4396,7 +4905,7 @@
             "title": "Document Validation Integration Points and Procedures",
             "description": "Create comprehensive documentation detailing all validation integration points, failure handling procedures, configuration options, and reporting mechanisms within the alignment workflow for maintainers and developers.",
             "dependencies": [
-              14
+              "61.14"
             ],
             "details": "Generate a Markdown document or update the existing developer guide with sections on: 'Validation Overview', 'Integration Points', 'Configuring Validations', 'Handling Failures', 'Interpreting Reports', and 'Adding Custom Validations'. Include diagrams for clarity.",
             "status": "pending",
@@ -5171,7 +5680,171 @@
           65
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and Define Core `get_database_manager` Factory Interface",
+            "description": "Define the primary factory function `get_database_manager`'s signature, expected parameters, and return type. This function will serve as the entry point for obtaining `DatabaseManager` instances with various configurations.",
+            "dependencies": [],
+            "details": "Create an initial `get_database_manager` function. It should accept optional parameters for overriding default configuration sources or providing explicit configuration values. Consider using keyword-only arguments for clarity.",
+            "status": "pending",
+            "testStrategy": "Review function signature for clarity and completeness. No executable tests at this stage."
+          },
+          {
+            "id": 2,
+            "title": "Implement `DatabaseConfig` Loading from Environment Variables within Factory",
+            "description": "Enhance the factory function to load `DatabaseConfig` parameters, such as database URI, pool size, etc., directly from environment variables if specific parameters are not provided explicitly.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify `get_database_manager` or a helper function to read relevant database configuration settings (e.g., `DB_ENGINE_URI`, `DB_POOL_SIZE`) from `os.getenv()`. Prioritize explicit parameters over environment variables.",
+            "status": "pending",
+            "testStrategy": "Write unit tests that verify the factory correctly uses environment variables when no explicit config is passed. Test with and without environment variables set."
+          },
+          {
+            "id": 3,
+            "title": "Implement `DatabaseConfig` Loading from Configuration Files within Factory",
+            "description": "Extend the factory function to support loading `DatabaseConfig` from external configuration files (e.g., YAML, JSON, .ini). This allows for flexible deployment and management of settings.",
+            "dependencies": [
+              2
+            ],
+            "details": "Integrate a mechanism to parse configuration files (e.g., `config.yaml`, `config.json`) for `DatabaseConfig` parameters. Define a standard path for these files and a loading order (e.g., explicit args > env vars > config file > defaults).",
+            "status": "pending",
+            "testStrategy": "Create mock configuration files for various scenarios (complete, partial, invalid). Write tests to ensure the factory correctly parses and applies settings from these files."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Default `DatabaseConfig` Values as Fallback",
+            "description": "Ensure the factory function provides sensible default `DatabaseConfig` values if no configuration is found from explicit parameters, environment variables, or configuration files, ensuring a functional fallback.",
+            "dependencies": [
+              3
+            ],
+            "details": "Define a set of hardcoded default values for `DatabaseConfig` (e.g., SQLite in a temp directory) that are used if all other configuration sources are absent. Document these defaults clearly.",
+            "status": "pending",
+            "testStrategy": "Write unit tests that invoke the factory without any external configuration sources and verify that a `DatabaseManager` is instantiated with the expected default settings."
+          },
+          {
+            "id": 5,
+            "title": "Implement `EnhancedCachingManager` Dependency Injection within Factory",
+            "description": "Manage the creation and injection of the `EnhancedCachingManager` dependency into the `DatabaseManager` instance through the factory function, ensuring proper lifecycle management.",
+            "dependencies": [
+              4
+            ],
+            "details": "Modify the `get_database_manager` factory to instantiate `EnhancedCachingManager` (potentially using its own factory or constructor with config parameters) and then pass it to the `DatabaseManager` constructor. Ensure `EnhancedCachingManager` config can also be parameterized.",
+            "status": "pending",
+            "testStrategy": "Test that the `DatabaseManager` instance returned by the factory has a correctly initialized `EnhancedCachingManager` dependency. Use mocks for `EnhancedCachingManager` if its internal logic is complex."
+          },
+          {
+            "id": 6,
+            "title": "Implement Instance Caching Strategy within the Factory",
+            "description": "Introduce a caching mechanism within the factory to prevent unnecessary re-creation of `DatabaseManager` instances when the configuration remains the same, promoting resource efficiency.",
+            "dependencies": [
+              5
+            ],
+            "details": "Implement a cache (e.g., a dictionary mapping config hashes to `DatabaseManager` instances) within the factory. Before creating a new instance, check the cache. If a matching instance exists, return it. Consider thread-safety for the cache.",
+            "status": "pending",
+            "testStrategy": "Write tests that call the factory multiple times with the same configuration and verify that the same `DatabaseManager` instance (by object identity) is returned. Test with different configurations to ensure new instances are created when needed."
+          },
+          {
+            "id": 7,
+            "title": "Create Environment-Specific Factory Functions (Development, Test, Production)",
+            "description": "Develop specialized factory functions (e.g., `get_dev_database_manager`, `get_test_database_manager`, `get_prod_database_manager`) that pre-configure settings for different deployment environments.",
+            "dependencies": [
+              6
+            ],
+            "details": "Create wrapper functions around the main `get_database_manager` that automatically load environment-specific configurations (e.g., 'dev_config.json', 'test_config.env'). These should leverage the existing config loading hierarchy.",
+            "status": "pending",
+            "testStrategy": "Test each environment-specific factory to ensure it loads the correct configuration settings for its intended environment."
+          },
+          {
+            "id": 8,
+            "title": "Implement Configuration Parameter Validation in Factory",
+            "description": "Add robust validation logic within the factory functions to check the integrity and correctness of `DatabaseConfig` parameters before attempting to create a `DatabaseManager` instance.",
+            "dependencies": [
+              7
+            ],
+            "details": "Before `DatabaseManager` instantiation, implement checks for mandatory fields (e.g., `engine_uri` cannot be empty), format validation (e.g., valid URI format), and range checks (e.g., `pool_size` > 0). Raise specific exceptions for validation failures.",
+            "status": "pending",
+            "testStrategy": "Write negative tests with invalid or missing configuration parameters to ensure appropriate validation errors are raised by the factory."
+          },
+          {
+            "id": 9,
+            "title": "Implement Robust Error Handling for Factory Failures",
+            "description": "Design and implement comprehensive error handling within the factory functions to gracefully manage scenarios like missing configuration, invalid connection parameters, and other instantiation failures.",
+            "dependencies": [
+              8
+            ],
+            "details": "Wrap critical sections of the factory logic in `try-except` blocks. Catch specific exceptions (e.g., `FileNotFoundError` for config files, connection errors from `create_engine`, validation errors). Log errors effectively and re-raise custom, descriptive exceptions if appropriate, leveraging Task 52's centralized error handling.",
+            "status": "pending",
+            "testStrategy": "Introduce scenarios that cause expected failures (e.g., unreachable database, corrupt config file) and verify that the factory functions handle them gracefully, logging errors and raising appropriate custom exceptions."
+          },
+          {
+            "id": 10,
+            "title": "Create Specialized Factories for Different Database Configurations",
+            "description": "Develop additional specialized factory functions to create `DatabaseManager` instances configured for specific roles, such as primary, secondary, or read-only databases, each with tailored settings.",
+            "dependencies": [
+              9
+            ],
+            "details": "Create functions like `get_primary_db_manager()`, `get_read_only_db_manager()`. These functions will call the core `get_database_manager` with predefined or role-specific `DatabaseConfig` overrides.",
+            "status": "pending",
+            "testStrategy": "Verify that these specialized factories produce `DatabaseManager` instances with the expected role-specific configurations (e.g., read-only mode enabled if applicable)."
+          },
+          {
+            "id": 11,
+            "title": "Integrate Factory Functions with Application Initialization",
+            "description": "Modify the application's main initialization routine to use the new factory functions for instantiating the primary `DatabaseManager`, replacing direct instantiation.",
+            "dependencies": [
+              10
+            ],
+            "details": "Locate the `init_managers` function or similar entry point in the application (as seen in context `async def init_managers`). Replace `_db_manager = DatabaseManager(...)` with a call to the appropriate factory function, e.g., `_db_manager = get_database_manager()`. Ensure proper `async` handling if needed.",
+            "status": "pending",
+            "testStrategy": "Run end-to-end integration tests to ensure the application starts up correctly and the `DatabaseManager` is initialized via the factory during startup. Verify logs for successful initialization."
+          },
+          {
+            "id": 12,
+            "title": "Update All Existing `DatabaseManager` Instantiation Sites to Use Factories",
+            "description": "Refactor all existing code that directly instantiates `DatabaseManager` to instead use the newly created factory functions, centralizing control over database instance creation.",
+            "dependencies": [
+              11
+            ],
+            "details": "Perform a codebase search for `DatabaseManager(...)` instantiations outside of the factory implementation. Replace each instance with a call to the most appropriate factory function (e.g., `get_database_manager()` or a specialized variant).",
+            "status": "pending",
+            "testStrategy": "Execute comprehensive regression tests across the application to ensure all functionalities relying on `DatabaseManager` continue to work correctly after refactoring."
+          },
+          {
+            "id": 13,
+            "title": "Implement Cleanup and Disposal Methods via Factory",
+            "description": "Provide a mechanism through the factory functions to properly close and dispose of `DatabaseManager` instances and their underlying resources (e.g., database connections), especially for cached instances.",
+            "dependencies": [
+              12
+            ],
+            "details": "Add a `dispose_database_manager()` function to the factory interface. This function should iterate through cached instances, calling their `.close()` or `.dispose()` methods. Ensure this is called during application shutdown or when a configuration change invalidates cached instances.",
+            "status": "pending",
+            "testStrategy": "Test the disposal function to ensure database connections are correctly closed and resources are released. Verify that subsequent calls to `get_database_manager` after disposal create new instances."
+          },
+          {
+            "id": 14,
+            "title": "Develop Comprehensive Unit Tests for All Factory Functions",
+            "description": "Write a dedicated suite of unit tests for all implemented factory functions, covering various configuration inputs, dependency injection, caching, validation, and error handling scenarios.",
+            "dependencies": [
+              13
+            ],
+            "details": "Create a `test_database_manager_factories.py` file. Use mocking (e.g., `unittest.mock.patch`) to isolate the factory logic from actual database connections or complex dependencies. Cover all major paths, including default usage, environment variable overrides, config file usage, caching hits/misses, and all error conditions.",
+            "status": "pending",
+            "testStrategy": "Ensure high code coverage (aim for >90%) for the factory functions and their helper methods. Automate these tests in the CI/CD pipeline."
+          },
+          {
+            "id": 15,
+            "title": "Document Factory Function Usage Patterns and Best Practices",
+            "description": "Create detailed documentation for developers on how to use the `DatabaseManager` factory functions, including configuration options, environment-specific setups, and common usage patterns.",
+            "dependencies": [
+              14
+            ],
+            "details": "Create a new section in the developer documentation or update an existing one. Include code examples for initializing `DatabaseManager` in different scenarios, explaining the order of precedence for configuration sources, detailing parameter validation, and advising on cleanup procedures. Mention how this setup works with different deployment scenarios (containerized, local, cloud).",
+            "status": "pending",
+            "testStrategy": "Conduct a peer review of the documentation for clarity, accuracy, and completeness. Verify that examples are correct and runnable."
+          }
+        ]
       },
       {
         "id": 67,
@@ -5185,7 +5858,185 @@
           66
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Identify all legacy DatabaseManager public static methods and global variables",
+            "description": "Compile a comprehensive list of all public static methods and global variables previously associated with the old `DatabaseManager` interface that require deprecation shims and warnings.",
+            "dependencies": [],
+            "details": "Review the old `DatabaseManager` codebase, `DatabaseSession` initialization, and any direct global accesses to identify every entry point that needs to be covered by the deprecation process.",
+            "status": "pending",
+            "testStrategy": "Cross-reference identified APIs with historical code versions and usage patterns to ensure completeness. Review existing `DatabaseManager` methods and attributes."
+          },
+          {
+            "id": 2,
+            "title": "Define standard format for DeprecationWarning messages",
+            "description": "Establish a consistent and informative template for `DeprecationWarning` messages, ensuring they clearly state deprecation, suggest the new API, and link to migration guidance.",
+            "dependencies": [
+              1
+            ],
+            "details": "The warning message format should include the deprecated item, the reason for deprecation, the recommended new approach (DI-based `DatabaseManager`), and a placeholder for a migration guide URL.",
+            "status": "pending",
+            "testStrategy": "Review sample warning messages for clarity, conciseness, and actionable advice to users."
+          },
+          {
+            "id": 3,
+            "title": "Implement default DatabaseManager factory and access point for shims",
+            "description": "Create the `create_default_database_manager()` factory function (as described in task 66) and the global `_legacy_db_manager` instance, including a `DeprecationWarning` upon its first initialization.",
+            "dependencies": [
+              2
+            ],
+            "details": "This involves defining `_legacy_db_manager = None`, implementing `_get_legacy_db_manager()` to call `create_default_database_manager()` (from task 66), and issuing a `DeprecationWarning` via `warnings.warn` when `_legacy_db_manager` is first set.",
+            "status": "pending",
+            "testStrategy": "Write a unit test to ensure that calling `_get_legacy_db_manager()` for the first time raises a `DeprecationWarning` and that a valid `DatabaseManager` instance is returned. Verify subsequent calls do not raise warnings."
+          },
+          {
+            "id": 4,
+            "title": "Develop deprecation shim for a sample legacy static method (e.g., `legacy_load_emails`)",
+            "description": "Implement a backward compatibility shim for a specific legacy static method, ensuring it issues a `DeprecationWarning` and internally calls the new `DatabaseManager` instance.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Create a function `legacy_load_emails()` that calls `warnings.warn` with the defined format, then retrieves the DI-based `DatabaseManager` via `_get_legacy_db_manager()` and invokes its equivalent method (e.g., `load_emails()`).",
+            "status": "pending",
+            "testStrategy": "Write a unit test that calls `legacy_load_emails()` and asserts that a `DeprecationWarning` is issued, and the underlying new `DatabaseManager` method is correctly invoked."
+          },
+          {
+            "id": 5,
+            "title": "Develop deprecation shim for a sample global variable access (e.g., `get_legacy_data_dir`)",
+            "description": "Implement a backward compatibility shim for accessing a global variable, issuing a `DeprecationWarning` and retrieving the value from the new `DatabaseManager` configuration.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Create a function `get_legacy_data_dir()` that calls `warnings.warn` with the defined format, then retrieves the DI-based `DatabaseManager` via `_get_legacy_db_manager()` and accesses its configuration (e.g., `_config.data_dir`).",
+            "status": "pending",
+            "testStrategy": "Write a unit test that calls `get_legacy_data_dir()` and asserts that a `DeprecationWarning` is issued, and the correct data directory path is returned as per the new configuration."
+          },
+          {
+            "id": 6,
+            "title": "Implement deprecation shims for all identified legacy static methods",
+            "description": "Systematically create deprecation shims for all remaining public static methods identified in subtask 1, following the pattern established in subtask 4.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "For each legacy static method, create a wrapper function that issues a `DeprecationWarning` using the standard format and delegates the call to the corresponding method on the `_get_legacy_db_manager()` instance.",
+            "status": "pending",
+            "testStrategy": "Develop a set of unit tests, one for each shimmed static method, to verify `DeprecationWarning` issuance and correct delegation to the new `DatabaseManager` functionality."
+          },
+          {
+            "id": 7,
+            "title": "Implement deprecation shims for all identified legacy global variable accesses",
+            "description": "Systematically create deprecation shims for all remaining global variable access points identified in subtask 1, following the pattern established in subtask 5.",
+            "dependencies": [
+              1,
+              5
+            ],
+            "details": "For each legacy global variable access, create a property or function that issues a `DeprecationWarning` using the standard format and retrieves the value from the `_get_legacy_db_manager()` instance's configuration or properties.",
+            "status": "pending",
+            "testStrategy": "Develop unit tests for each shimmed global variable access to verify `DeprecationWarning` issuance and correct value retrieval from the new `DatabaseManager`."
+          },
+          {
+            "id": 8,
+            "title": "Create configuration option to enable/disable deprecation warnings",
+            "description": "Design and implement a mechanism (e.g., environment variable or configuration setting) to allow users to suppress or enable `DeprecationWarning`s during the migration period.",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement a check within the warning issuance logic (e.g., in `warnings.warn` calls or a custom wrapper) that respects a configured setting (e.g., `LEGACY_DB_WARNINGS_ENABLED=false`).",
+            "status": "pending",
+            "testStrategy": "Write tests to verify that warnings are issued when the configuration is enabled and suppressed when it is disabled. Ensure the default behavior is warnings enabled."
+          },
+          {
+            "id": 9,
+            "title": "Create test coverage for all deprecated API shims",
+            "description": "Develop comprehensive unit tests for every deprecation shim to ensure they correctly issue warnings, maintain backward compatibility, and gracefully delegate to the new DI-based API.",
+            "dependencies": [
+              6,
+              7
+            ],
+            "details": "Tests should cover: warning issuance (`DeprecationWarning`), correct functionality (return values, side effects), proper internal delegation to the new `DatabaseManager` instance, and handling of edge cases for each shimmed method/access.",
+            "status": "pending",
+            "testStrategy": "Use `pytest.warns(DeprecationWarning)` context manager for each shim call. Mock the underlying `DatabaseManager` methods to verify correct invocation and arguments. Ensure full code coverage for the shim layer."
+          },
+          {
+            "id": 10,
+            "title": "Draft comprehensive migration guide for legacy API users",
+            "description": "Develop a detailed migration guide for users, explaining how to transition from the deprecated `DatabaseManager` APIs to the new dependency injection pattern, including code examples.",
+            "dependencies": [
+              1,
+              6,
+              7
+            ],
+            "details": "The guide should cover each deprecated method/global access, showing the old usage and the new, recommended DI-based approach. Include setup instructions for the new `DatabaseManager` and common migration scenarios.",
+            "status": "pending",
+            "testStrategy": "Conduct an internal review with potential users to ensure clarity, completeness, and ease of understanding of the migration steps and examples."
+          },
+          {
+            "id": 11,
+            "title": "Update API documentation to mark deprecated methods",
+            "description": "Modify the official API documentation to clearly mark all legacy `DatabaseManager` methods and global accesses as deprecated, providing links to the new API and the migration guide.",
+            "dependencies": [
+              10
+            ],
+            "details": "Add `@deprecated` decorators or equivalent documentation tags to the relevant code. Update docstrings and auto-generated documentation with explicit deprecation notices, recommended alternatives, and a link to the migration guide.",
+            "status": "pending",
+            "testStrategy": "Generate documentation and verify that all deprecated APIs are visibly marked and contain correct references to new APIs and the migration guide."
+          },
+          {
+            "id": 12,
+            "title": "Design metrics tracking for deprecated API usage",
+            "description": "Outline a strategy for tracking the usage of deprecated APIs, collecting data on frequency and call sites to inform future removal decisions.",
+            "dependencies": [
+              6,
+              7
+            ],
+            "details": "Consider integrating logging of `DeprecationWarning` events with additional context (e.g., calling module, stack trace). Define how this data will be aggregated and analyzed to gauge the remaining usage of legacy APIs.",
+            "status": "pending",
+            "testStrategy": "Document the proposed tracking mechanism and conduct a peer review to ensure feasibility, privacy compliance, and usefulness of the collected metrics."
+          },
+          {
+            "id": 13,
+            "title": "Establish deprecation timeline and communication plan",
+            "description": "Define a clear timeline with milestones for the deprecation period, leading up to the eventual removal of the legacy `DatabaseManager` API, and plan communication to users.",
+            "dependencies": [
+              10,
+              11
+            ],
+            "details": "The timeline should include stages like 'deprecated (with warnings)', 'warnings become errors', and 'removal'. Develop a communication plan for announcing deprecation to the community, including release notes and official announcements.",
+            "status": "pending",
+            "testStrategy": "Review the timeline and communication plan with project stakeholders to ensure alignment and feasibility. Draft announcement content."
+          },
+          {
+            "id": 14,
+            "title": "Draft removal plan and migration checklist for deprecated APIs",
+            "description": "Create a detailed internal document outlining the steps and checklist for the eventual removal of each deprecated `DatabaseManager` API, ensuring a smooth transition.",
+            "dependencies": [
+              1,
+              13
+            ],
+            "details": "For each deprecated item, specify the exact version in which it will be removed, the necessary code changes (e.g., deleting shims, removing old factory methods), and checks to confirm no remaining usage within the codebase. Include criteria for removal readiness based on metrics.",
+            "status": "pending",
+            "testStrategy": "Conduct a peer review of the removal plan and checklist with core developers to identify potential issues or missing steps."
+          },
+          {
+            "id": 15,
+            "title": "Implement graceful degradation for remaining legacy uses during transition (monitoring)",
+            "description": "Ensure that the deprecation shims are robust and handle potential failures or unexpected states gracefully, minimizing impact on legacy users during the migration period.",
+            "dependencies": [
+              6,
+              7,
+              9
+            ],
+            "details": "This involves adding robust error handling within the shims to catch exceptions from the underlying new `DatabaseManager` methods and re-raising them appropriately, or logging them without crashing the application. The goal is to maintain functionality, even if deprecated usage is not ideal.",
+            "status": "pending",
+            "testStrategy": "Introduce simulated errors in the underlying new `DatabaseManager` methods and verify that the deprecated shims handle these errors without immediate crashes, logging them appropriately, and maintaining a reasonable level of functionality or error reporting."
+          }
+        ]
       },
       {
         "id": 68,
@@ -5196,7 +6047,180 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Isolated Database Test Environment",
+            "description": "Define the architectural approach for creating and managing isolated database instances for testing. This includes strategies for schema management, connection pooling, and specific configurations for different database types (e.g., in-memory SQLite for unit tests, containerized PostgreSQL for integration tests).",
+            "dependencies": [],
+            "details": "Investigate using `pytest-postgresql` or `pytest-sqllite` for managing test databases. Specify how database connection strings and credentials will be dynamically managed and injected into test fixtures. Document design choices for database instance provisioning per test run or session.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Implement Comprehensive Mocking Framework",
+            "description": "Integrate and configure a robust mocking library (e.g., `pytest-mock` built on `unittest.mock`) to facilitate the substitution of all external dependencies, including APIs, databases, file systems, and network calls, during testing.",
+            "dependencies": [],
+            "details": "Install `pytest-mock` and ensure its fixtures are available globally for tests. Develop a set of common patterns for mocking `subprocess` calls, HTTP requests (`requests` library), database interactions (e.g., ORM sessions, raw cursors), and file I/O operations. Provide example usage.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 3,
+            "title": "Configure Scenario-Specific Test Environments",
+            "description": "Establish distinct configurations and `pytest` markers to differentiate and run tests for various scenarios: unit tests, integration tests, and end-to-end (e2e) tests. This allows for selective test execution based on context.",
+            "dependencies": [],
+            "details": "Define `pytest` markers such as `@pytest.mark.unit`, `@pytest.mark.integration`, and `@pytest.mark.e2e` in `pytest.ini`. Configure `pytest_addoption` to enable filtering tests by these markers via command-line arguments (e.g., `--run-unit`). Ensure appropriate fixtures are loaded for each test type.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 4,
+            "title": "Implement Test Data Seeding and Management",
+            "description": "Develop systematic mechanisms for generating, seeding, and managing test data to ensure consistency, reproducibility, and isolation across different test runs and scenarios.",
+            "dependencies": [
+              1
+            ],
+            "details": "Explore and integrate data generation libraries like `Faker` for creating realistic but synthetic test data. Create a set of reusable `pytest` fixtures for common data structures and database seeding routines that can be parameterized or customized per test.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 5,
+            "title": "Develop Database Isolation Techniques for Concurrency",
+            "description": "Implement robust database isolation techniques to prevent test data contamination when running tests concurrently. This includes strategies like transactional rollbacks, separate schemas/databases per test, or leveraging containerization.",
+            "dependencies": [
+              1,
+              14
+            ],
+            "details": "Investigate and implement either `transactional_db` fixtures for ORM-based tests, or programmatic creation/deletion of databases/schemas for each `pytest-xdist` worker. Ensure connections are scoped correctly and tear-down logic is robust for concurrent execution.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 6,
+            "title": "Design Advanced Mocking Strategies with Fallbacks",
+            "description": "Design detailed and comprehensive mocking strategies for complex external services, including the ability to simulate various success and failure scenarios, network latency, and specific edge cases, along with defining proper fallback mechanisms.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a centralized library or registry of common mock implementations for frequently consumed external APIs (e.g., cloud services, payment gateways). Develop patterns for error injection, delayed responses, and partial failures to ensure resilience testing. Include default mock behaviors.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 7,
+            "title": "Implement Test Environment Monitoring & Debugging",
+            "description": "Integrate tools and configurations to effectively monitor test execution, capture detailed logs, and enable efficient debugging capabilities within the testing environment for quicker troubleshooting.",
+            "dependencies": [],
+            "details": "Configure `pytest` logging to output comprehensive information (e.g., stdout/stderr capture). Integrate `pdb` or `ipdb` for interactive debugging sessions. Explore `pytest-sugar` or `pytest-html` for enhanced test reporting and visualization of results.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 8,
+            "title": "Configure Performance and Load Testing Environment",
+            "description": "Set up a dedicated testing environment and configurations for conducting performance and load tests. This includes selecting appropriate tools and implementing resource optimization strategies to simulate realistic user traffic and stress conditions.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Define a `pytest` marker for performance tests. Investigate and integrate tools like `locust` or `JMeter` into the CI/CD pipeline or a separate testing workflow. Ensure test data generation and cleanup scale with the load profile and that resource limits are appropriately configured.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 9,
+            "title": "Implement Robust Cleanup and Resource Release Procedures",
+            "description": "Develop and implement comprehensive cleanup and resource release procedures that guarantee all temporary resources (e.g., temporary files, database connections, mock server processes, network sockets) are properly deallocated and reset after each test execution or test session.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Utilize `pytest` fixtures with `yield` for reliable setup and teardown. Implement context managers or `addfinalizer` for more complex resource management, especially for external services or processes started during tests. Verify no resource leaks after large test runs.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 10,
+            "title": "Ensure Cross-Platform Test Compatibility",
+            "description": "Configure the entire testing environment to ensure consistent operation and results across different operating systems, specifically Linux, macOS, and Windows, by addressing OS-specific differences in paths, environment variables, and tool installations.",
+            "dependencies": [],
+            "details": "Adopt `pathlib` for all file path manipulations to ensure OS-agnostic behavior. Document any OS-specific environment variable requirements or tool installations necessary for local developer setups. Conduct smoke tests on each target platform.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 11,
+            "title": "Develop Container-Based Testing Environment",
+            "description": "Create Docker images and `docker-compose` configurations to provide a fully reproducible, isolated, and consistent testing environment. This environment should encapsulate all necessary dependencies, including databases, external mock services, and the application code itself.",
+            "dependencies": [
+              1,
+              6
+            ],
+            "details": "Write optimized Dockerfiles for the application and any required services (e.g., PostgreSQL, Redis, custom mock servers). Develop a `docker-compose.yml` file to orchestrate the entire test stack. Integrate this containerized setup into the CI/CD pipeline.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 12,
+            "title": "Implement Test Database Snapshot and Restore Capabilities",
+            "description": "Integrate database snapshot and restore capabilities into the testing framework to enable rapid setup and reset of complex database states, significantly improving the speed and efficiency of test execution.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Explore database-specific features (e.g., PostgreSQL `pg_dump`/`psql`, MySQL `mysqldump`/`mysql`) or `pytest` plugins for managing database snapshots. Implement fixtures that can restore a known good database state before each relevant test or suite.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 13,
+            "title": "Design Comprehensive Test Configuration Management System",
+            "description": "Create a flexible system for managing test configurations, allowing for environment-specific overrides (e.g., local development, CI/CD, staging). This system should support `.ini` files, environment variables, or custom configuration loaders.",
+            "dependencies": [],
+            "details": "Utilize `pytest.ini` for general `pytest` settings. Implement a custom configuration module that loads settings based on environment variables (e.g., `TEST_ENV`) or specific command-line options. Ensure sensitive information is handled securely.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 14,
+            "title": "Enable Safe Parallel Test Execution",
+            "description": "Configure `pytest-xdist` or a similar tool to enable parallel test execution across multiple CPU cores or machines, while rigorously ensuring full isolation between test processes to prevent resource conflicts and shared state issues.",
+            "dependencies": [
+              5,
+              9
+            ],
+            "details": "Install and configure `pytest-xdist` in `pytest.ini` (e.g., `--numprocesses=auto`). Verify parallel execution by running a test suite with concurrent database access and ensure no cross-test contamination occurs. Confirm that mocks and fixtures are properly isolated per worker process.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 15,
+            "title": "Document Test Environment Setup and Maintenance",
+            "description": "Create comprehensive and accessible documentation covering the complete setup, configuration, usage, and ongoing maintenance procedures for the entire testing environment. This includes mocking strategies, test data management, and integration with CI/CD pipelines for all developers and system administrators.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14
+            ],
+            "details": "Consolidate all instructions in a dedicated `docs/testing_environment.md` file or similar. Include step-by-step guides for local environment setup, CI/CD integration, common debugging patterns, and best practices for writing new tests and maintaining existing ones.",
+            "status": "pending",
+            "testStrategy": null
+          }
+        ]
       },
       {
         "id": 69,
@@ -5275,7 +6299,160 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Review Existing Branch Protections",
+            "description": "Conduct a thorough review of the current branch protection rules applied to the `main`, `scientific`, and `orchestration-tools` branches to identify existing configurations and gaps.",
+            "dependencies": [],
+            "details": "Access the Git hosting service (GitHub/GitLab) settings for the repository. Navigate to the branch protection rules for each specified branch and document their current state, noting any existing rules, bypasses, or missing protections. Pay special attention to the `scientific` branch as per User Story 1.",
+            "status": "pending",
+            "testStrategy": "Manually verify documented current rules against the actual settings in the Git hosting service UI or API for accuracy."
+          },
+          {
+            "id": 2,
+            "title": "Configure Required Reviewers for Critical Branches",
+            "description": "Implement the requirement for at least one approving review for all pull requests targeting the `main`, `scientific`, and `orchestration-tools` branches.",
+            "dependencies": [
+              "74.1"
+            ],
+            "details": "For each critical branch (`main`, `scientific`, `orchestration-tools`), configure branch protection settings to mandate 'Require pull request reviews before merging' with 'Required approving reviews' set to at least 1. Also enforce 'Dismiss stale pull request approvals when new commits are pushed'.",
+            "status": "pending",
+            "testStrategy": "Attempt to merge a Pull Request into a protected branch without an approving review and confirm it fails. Push new commits to an approved PR and verify approval is reset."
+          },
+          {
+            "id": 3,
+            "title": "Enforce Passing Status Checks for Merges",
+            "description": "Configure branch protection rules to ensure that all required status checks (e.g., CI/CD builds, linters, tests) must pass successfully before any pull request can be merged into `main`, `scientific`, or `orchestration-tools`.",
+            "dependencies": [
+              "74.1"
+            ],
+            "details": "Within the branch protection settings for `main`, `scientific`, and `orchestration-tools`, enable 'Require status checks to pass before merging' and select all relevant CI/CD checks. Ensure these checks are configured in the CI pipeline.",
+            "status": "pending",
+            "testStrategy": "Create a PR that intentionally fails a required status check and attempt to merge it, verifying the merge is blocked. Create a PR where all checks pass and verify it can be merged."
+          },
+          {
+            "id": 4,
+            "title": "Design Alignment-Specific Merge Conflict Prevention",
+            "description": "Develop strategies and mechanisms to proactively prevent merge conflicts, particularly those arising from concurrent development and integration within the alignment process, focusing on the `scientific` branch.",
+            "dependencies": [],
+            "details": "Research and outline best practices for merge conflict avoidance (e.g., frequent rebasing, smaller PRs, clear feature boundaries, feature flags). Consider specific tools or Git-specific configurations that can minimize conflicts in the alignment workflow, especially for data-intensive or model-related changes in `scientific` branch.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 5,
+            "title": "Implement Branch Creation Restrictions",
+            "description": "Restrict the creation of new branches directly from critical branches (`main`, `scientific`, `orchestration-tools`) if such restrictions are appropriate to enforce a structured branching model for the alignment workflow.",
+            "dependencies": [],
+            "details": "Investigate if the Git hosting service offers features to control who can create branches or from which source branches. If applicable, configure rules to enforce a hierarchical branching strategy (e.g., only allowing creation from a `develop` branch or specific prefixes).",
+            "status": "pending",
+            "testStrategy": "Attempt to create a branch from a restricted source or by an unauthorized user and confirm it fails. Verify authorized users can create branches from allowed sources."
+          },
+          {
+            "id": 6,
+            "title": "Configure Git Hooks for Alignment Code Quality",
+            "description": "Develop and implement Git pre-commit or pre-push hooks to enforce code quality standards, style guides, and linting rules specific to the alignment codebase before changes are pushed to remote repositories.",
+            "dependencies": [],
+            "details": "Write scripts for pre-commit/pre-push hooks that integrate with linters (e.g., Black, Flake8, ESLint), formatters, and static analysis tools relevant to the project's tech stack. Provide clear instructions for developers on how to install and use these hooks.",
+            "status": "pending",
+            "testStrategy": "Attempt to commit or push code that violates configured quality standards (e.g., linting errors, style guide deviations) and confirm the hook prevents the action with an informative message."
+          },
+          {
+            "id": 7,
+            "title": "Design Protection for Sensitive Config Files",
+            "description": "Formulate specific protection rules and access controls for sensitive configuration files, ensuring they are handled securely during the alignment process without accidental exposure or unauthorized modification.",
+            "dependencies": [],
+            "details": "Identify all sensitive configuration files (e.g., API keys, database credentials, environment variables) within the repository. Design rules using `.gitignore`, `.gitattributes`, repository-level secrets management (e.g., GitHub Secrets, GitLab CI/CD variables), and potentially encryption for these files. Define strict review processes for changes to these files.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 8,
+            "title": "Implement All Required Status Checks (Alignment Specific)",
+            "description": "Integrate and enforce all necessary status checks, including standard CI/CD checks and any custom alignment-specific validation checks, across `main`, `scientific`, and `orchestration-tools` branches.",
+            "dependencies": [
+              "74.3"
+            ],
+            "details": "Beyond basic CI, identify and configure additional status checks relevant to the alignment process (e.g., specific data validation, model performance testing, compliance checks, security scans). Ensure these are registered with the Git hosting service and marked as required for merging into critical branches.",
+            "status": "pending",
+            "testStrategy": "Trigger a PR with both standard and alignment-specific checks, verifying all must pass before merging. Introduce a failure in an alignment-specific check and confirm the PR merge is blocked."
+          },
+          {
+            "id": 9,
+            "title": "Enforce Merge Strategies for Alignment Operations",
+            "description": "Define and configure specific merge strategies (rebase, merge commit, squash) for pull requests targeting critical branches, particularly within the context of the alignment workflow, and enforce linear history.",
+            "dependencies": [],
+            "details": "Configure repository settings to enforce a desired merge strategy (e.g., 'Require linear history' for rebase/squash merges on `scientific` and `orchestration-tools` for cleaner history, allowing merge commits for `main` with specific conditions). Document the rationale for each strategy.",
+            "status": "pending",
+            "testStrategy": "Attempt to merge a PR using a disallowed strategy (e.g., merge commit where rebase is required) and verify it is blocked. Perform a successful merge with the enforced strategy."
+          },
+          {
+            "id": 10,
+            "title": "Design Branch Deletion Protection",
+            "description": "Develop safeguards to prevent the accidental or unauthorized deletion of primary branches (`main`, `scientific`, `orchestration-tools`), which is critical during active alignment phases.",
+            "dependencies": [],
+            "details": "Configure branch protection rules to prevent deletion of `main`, `scientific`, and `orchestration-tools` branches. Additionally, consider setting up alerts or auditing mechanisms for any deletion attempts on these branches to enhance security.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 11,
+            "title": "Implement Alignment-Specific Commit Validation Hooks",
+            "description": "Create and deploy Git hooks or CI pipeline steps that perform advanced commit message validation or content checks tailored to the requirements of alignment operations and User Story 1.",
+            "dependencies": [
+              "74.6"
+            ],
+            "details": "Extend existing Git hooks or CI checks to validate commit messages against specific patterns (e.g., requiring Jira ticket IDs, semantic commit guidelines) or analyze commit content for specific data or structural requirements pertinent to the alignment workflow and `scientific` branch. Integrate this into the CI/CD pipeline.",
+            "status": "pending",
+            "testStrategy": "Attempt to commit with a non-conforming message or content (e.g., missing a required prefix, violating content rules) and verify the validation fails, blocking the commit."
+          },
+          {
+            "id": 12,
+            "title": "Document Alignment Branch Protection Policies",
+            "description": "Author comprehensive documentation detailing all established branch protection policies, their rationale, and how they contribute to the integrity and consistency of the alignment workflow.",
+            "dependencies": [
+              "74.2",
+              "74.3",
+              "74.5",
+              "74.8",
+              "74.9",
+              "74.10"
+            ],
+            "details": "Create or update a document in the `docs/` directory outlining the branch protection rules for `main`, `scientific`, and `orchestration-tools`. Include details on required reviewers, status checks, merge strategies, deletion protection, branch creation restrictions, and the special handling of the `scientific` branch, along with the 'Require pull requests before merging' rule.",
+            "status": "pending",
+            "testStrategy": "Review the generated documentation for clarity, completeness, accuracy, and adherence to company standards. Ensure all implemented rules are clearly explained."
+          },
+          {
+            "id": 13,
+            "title": "Design Commit Signing Enforcement",
+            "description": "Investigate and design methods to enforce GPG commit signing for all commits made to critical branches, enhancing code origin authenticity and non-repudiation within the alignment process.",
+            "dependencies": [],
+            "details": "Explore options within the Git hosting service (e.g., GitHub's 'Require signed commits' setting) and client-side Git configurations for requiring signed commits. Outline the setup process for developers to configure GPG keys and sign their commits, as well as verification steps in CI pipelines.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 14,
+            "title": "Establish Monitoring for Protection Bypasses",
+            "description": "Set up monitoring and alerting mechanisms to detect and report any attempts to bypass or circumvent established branch protection rules, ensuring rapid response to security incidents during alignment.",
+            "dependencies": [],
+            "details": "Utilize Git hosting service audit logs, webhooks, or external security tools to monitor for unauthorized force pushes, merges without required reviews, direct pushes to protected branches, or other policy violations. Configure real-time alerts for such events to appropriate teams.",
+            "status": "pending",
+            "testStrategy": "Simulate a bypass attempt (e.g., force push to a protected branch in a controlled test environment) and verify that monitoring systems detect and alert on it as expected."
+          },
+          {
+            "id": 15,
+            "title": "Document Configuration and Maintenance Procedures",
+            "description": "Create detailed documentation for the configuration, ongoing maintenance, and troubleshooting procedures related to all implemented branch protections and Git workflow enhancements for the alignment process.",
+            "dependencies": [
+              "74.12"
+            ],
+            "details": "Complement the policy documentation with practical guides for administrators and developers on how to configure, monitor, update, and troubleshoot the branch protection rules, Git hooks, merge strategies, and other implemented safeguards. Include common issues and their resolutions.",
+            "status": "pending",
+            "testStrategy": "Review the documentation for completeness and clarity, ensuring it covers all configuration aspects, maintenance scenarios, and provides actionable troubleshooting steps."
+          }
+        ]
       },
       {
         "id": 75,
@@ -5286,7 +6463,193 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement logic to identify all active feature branches using git commands",
+            "description": "Develop and implement Python code to execute Git commands (e.g., 'git branch -r') to list all remote branches. This subtask includes filtering out known primary branches (main, scientific, orchestration-tools) and other non-feature branches (e.g., release, hotfix branches based on established conventions) to accurately identify only active feature branches.",
+            "dependencies": [],
+            "details": "Utilize `subprocess` to run `git branch -r` and parse its output. Implement robust filtering logic based on common primary branch names and patterns. Consider potential edge cases like detached HEAD or atypical branch names.",
+            "status": "pending",
+            "testStrategy": "Create a test repository with various remote branches including primary, release, and feature branches. Verify that the script correctly identifies only the intended feature branches and excludes others."
+          },
+          {
+            "id": 2,
+            "title": "Create branch analysis algorithm to determine optimal target branch (main, scientific, orchestration-tools) based on codebase similarity",
+            "description": "Design and implement a core algorithm that orchestrates various analysis components (Git history, file change patterns, content similarity) to determine the most suitable primary integration target (main, scientific, or orchestration-tools) for each feature branch.",
+            "dependencies": [
+              "75.1",
+              "75.3"
+            ],
+            "details": "Define a weighted scoring mechanism or a decision tree approach to combine signals from history analysis, file path heuristics, and future content similarity. The algorithm should output a primary target and a confidence score.",
+            "status": "pending",
+            "testStrategy": "Develop a suite of test branches that clearly target 'main', 'scientific', or 'orchestration-tools' based on their modifications. Verify that the algorithm consistently assigns the correct target with high confidence."
+          },
+          {
+            "id": 3,
+            "title": "Implement Git history analysis to identify shared history between branches",
+            "description": "Develop Python functions to analyze the Git history of feature branches against potential primary targets (main, scientific, orchestration-tools) to identify common ancestors and measure the depth of shared and divergent history.",
+            "dependencies": [
+              "75.1"
+            ],
+            "details": "Use `git merge-base <branch1> <branch2>` to find the common ancestor. Then, use `git log <common_ancestor>..<feature_branch>` and `git log <common_ancestor>..<target_branch>` to count divergent commits and analyze their characteristics.",
+            "status": "pending",
+            "testStrategy": "Create a test repository with branches diverging at different points from primary branches. Verify that the script accurately identifies the common merge-bases and counts the divergent/shared commits."
+          },
+          {
+            "id": 4,
+            "title": "Create categorization system to group branches by target and similarity",
+            "description": "Define and implement a structured output format (e.g., JSON) to represent the categorized feature branches. The system should group branches based on their determined primary integration target and further by a measure of their similarity or relatedness.",
+            "dependencies": [
+              "75.2"
+            ],
+            "details": "The output structure should include branch name, identified primary target, a confidence score, and potentially secondary target suggestions or other relevant metadata. Implement Python logic to serialize this data into a human-readable and machine-parseable format.",
+            "status": "pending",
+            "testStrategy": "Run the script on a diverse set of feature branches and inspect the generated JSON output. Ensure the categorization is clear, consistent, and includes all necessary information as per the defined structure."
+          },
+          {
+            "id": 5,
+            "title": "Implement similarity analysis between branches to identify potential conflicts or duplication",
+            "description": "Develop functionality to compare the changes introduced in a feature branch against its potential target branches and other active feature branches to detect overlapping modifications, potential merge conflicts, or duplicated effort.",
+            "dependencies": [
+              "75.1",
+              "75.3"
+            ],
+            "details": "Utilize `git diff --name-only <branch1> <branch2>` to identify common files modified. Consider using `git diff --stat` or parsing full diffs to analyze the content overlap. This can help identify potential `main`, `scientific`, or `orchestration-tools` conflicts.",
+            "status": "pending",
+            "testStrategy": "Create test branches with deliberate overlapping file modifications (both conflicting and non-conflicting) and identical code changes. Verify that the analysis correctly identifies these similarities and flags potential conflicts or duplications."
+          },
+          {
+            "id": 6,
+            "title": "Develop logic to prioritize branches based on importance and complexity of divergence",
+            "description": "Implement a system to assign a priority score to each feature branch. This score should reflect the branch's importance (e.g., activity, linked work items) and the complexity of its divergence from primary targets.",
+            "dependencies": [
+              "75.3",
+              "75.10"
+            ],
+            "details": "Define quantifiable metrics for importance (e.g., number of commits, last commit date, number of contributors) and complexity (e.g., lines changed, number of files, depth of divergent history). Implement a configurable scoring model to combine these metrics into a single priority score.",
+            "status": "pending",
+            "testStrategy": "Apply the prioritization logic to a set of branches with known importance and divergence complexities. Manually verify that the assigned priority scores align with expectations and accurately reflect the branch's status."
+          },
+          {
+            "id": 7,
+            "title": "Create detailed branch assessment reports with recommendations for target branch",
+            "description": "Generate comprehensive reports for each feature branch that include its determined target, confidence level, rationale for categorization, identified conflicts, age, prioritization score, and clear recommendations for integration actions.",
+            "dependencies": [
+              "75.4",
+              "75.5",
+              "75.6",
+              "75.9",
+              "75.10"
+            ],
+            "details": "Design a template for the branch assessment report (e.g., Markdown or structured text). Populate this template with data gathered from previous subtasks. The report should be easily readable and provide actionable insights for developers.",
+            "status": "pending",
+            "testStrategy": "Generate reports for a sample of categorized branches. Review each report to ensure clarity, completeness, accuracy of data, and the usefulness of recommendations. Check for consistent formatting."
+          },
+          {
+            "id": 8,
+            "title": "Implement branch naming convention checks to identify improperly named branches",
+            "description": "Develop a module to validate feature branch names against predefined naming conventions (e.g., using regular expressions or specific prefixes). The module should report any non-compliant branch names.",
+            "dependencies": [
+              "75.1"
+            ],
+            "details": "Define a configurable set of regular expressions (e.g., `^(feature|bugfix|chore)\\/[A-Z]+-\\d+-.+$`) or specific patterns for acceptable branch names. Implement a function that takes a branch name and returns `True` if compliant, `False` otherwise, along with a reason for non-compliance.",
+            "status": "pending",
+            "testStrategy": "Create a test repository with branches that follow conventions, some that partially follow, and some that completely ignore conventions. Verify that the script correctly flags all improperly named branches."
+          },
+          {
+            "id": 9,
+            "title": "Create branch age analysis to identify long-running feature branches",
+            "description": "Implement functionality to calculate the age of each feature branch from its creation date (first commit) and identify branches that have been active for an unusually long period, potentially indicating stalled development or integration challenges.",
+            "dependencies": [
+              "75.1"
+            ],
+            "details": "Use `git log --reverse --format=%ai <branch_name> | head -1` to find the first commit date. Calculate the duration from this date to the current date. Define a configurable threshold (e.g., 30, 60, 90 days) for flagging long-running branches.",
+            "status": "pending",
+            "testStrategy": "Create test branches with varying ages. Verify that the script accurately calculates their ages and flags those exceeding predefined thresholds."
+          },
+          {
+            "id": 10,
+            "title": "Implement code change assessment to determine scope and risk of alignment",
+            "description": "Analyze the size and nature of code changes within each feature branch to quantify the scope and potential risk associated with integrating those changes into a primary target branch.",
+            "dependencies": [
+              "75.1",
+              "75.3"
+            ],
+            "details": "Use `git diff --numstat <common_ancestor> <feature_branch>` to get lines added/deleted and files changed. Categorize changes by file type and directory (e.g., `src/scientific/`, `src/orchestration/`, `tests/`) to infer impact on different system components. Assign a risk score based on these metrics.",
+            "status": "pending",
+            "testStrategy": "Create branches with small, large, and critical changes in different parts of the codebase. Verify that the assessment accurately reflects the scope and assigns appropriate risk levels."
+          },
+          {
+            "id": 11,
+            "title": "Develop branch dependency mapping to understand inter-branch relationships",
+            "description": "Identify and map dependencies between feature branches, determining if one feature branch is directly based on, or has merged changes from, another feature branch. This helps understand complex development flows.",
+            "dependencies": [
+              "75.1",
+              "75.3"
+            ],
+            "details": "Utilize `git log --graph --decorate --all` to visualize the branch topology or programmatically use `git merge-base --is-ancestor <potential_parent_branch> <feature_branch>` to check for direct ancestry relationships between feature branches.",
+            "status": "pending",
+            "testStrategy": "Create a test repository with multiple feature branches where some are branched off others or have merged other feature branches. Verify that the script correctly identifies these parent-child or merged relationships."
+          },
+          {
+            "id": 12,
+            "title": "Create visualization tools to display branch relationships and suggested alignment paths",
+            "description": "Develop functionality to generate visual representations of the identified branch relationships, suggested target integrations, and overall branch hierarchy, aiding in quick comprehension and decision-making.",
+            "dependencies": [
+              "75.4",
+              "75.11"
+            ],
+            "details": "Integrate with a Python graphing library (e.g., `NetworkX` to model relationships, `pyvis` or `graphviz` to render interactive/static graphs) or generate data for external visualization tools (e.g., Mermaid JS syntax). The visualization should highlight target branches and problematic areas.",
+            "status": "pending",
+            "testStrategy": "Generate visualizations for test repositories with simple and complex branch structures. Manually inspect the generated graphs to ensure they accurately represent relationships and suggested paths clearly and legibly."
+          },
+          {
+            "id": 13,
+            "title": "Implement automated branch status monitoring for the alignment process",
+            "description": "Configure the categorization script to run periodically and implement a mechanism to monitor changes in branch status, new branch creations, deletions, and categorization updates. This allows for continuous tracking of the alignment process.",
+            "dependencies": [
+              "75.4"
+            ],
+            "details": "Develop a persistent storage mechanism (e.g., a simple database, JSON file) to store the last known state of branches and their categorization. Implement logic to compare the current run's output with the stored state and report any significant changes. Integrate with system scheduling tools like `cron` or CI/CD pipelines.",
+            "status": "pending",
+            "testStrategy": "Run the script multiple times with simulated changes in branches (add/remove/modify). Verify that the monitoring system correctly detects and reports these changes, maintaining an accurate historical record of branch statuses."
+          },
+          {
+            "id": 14,
+            "title": "Establish branch categorization validation to confirm accuracy of target assignments",
+            "description": "Develop a comprehensive validation framework, including unit and integration tests, to systematically confirm the accuracy of the script's branch categorization and target assignments against known ground truth.",
+            "dependencies": [
+              "75.2",
+              "75.4"
+            ],
+            "details": "Create a dedicated test Git repository with various feature branches whose correct target branches are predetermined. Implement Python test cases (e.g., using `pytest`) that execute the categorization script on this test repository and assert that the output matches the expected classifications.",
+            "status": "pending",
+            "testStrategy": "Execute the validation suite. Ensure that all test cases pass for branches with clear targets and that edge cases are handled gracefully. Measure the categorization accuracy on a significant test dataset."
+          },
+          {
+            "id": 15,
+            "title": "Document the branch identification and categorization methodology for future reference",
+            "description": "Create comprehensive documentation detailing the entire methodology, including how feature branches are identified, the algorithms and heuristics used for categorization, confidence scoring, prioritization, risk assessment, and interpretation of reports and visualizations.",
+            "dependencies": [
+              "75.1",
+              "75.2",
+              "75.3",
+              "75.4",
+              "75.5",
+              "75.6",
+              "75.7",
+              "75.8",
+              "75.9",
+              "75.10",
+              "75.11",
+              "75.12"
+            ],
+            "details": "Write clear, concise documentation (e.g., in Markdown or Sphinx) in a designated `docs/` folder. Include sections on script usage, configuration options, underlying Git commands, interpretation of output, and guidelines for manual override or refinement of categorization. Provide examples.",
+            "status": "pending",
+            "testStrategy": "Conduct a peer review of the documentation to ensure clarity, completeness, accuracy, and ease of understanding for future developers or users of the script. Verify that all key aspects of the methodology are covered."
+          }
+        ]
       },
       {
         "id": 76,
@@ -5348,8 +6711,8 @@
             "title": "Implement Python Missing Imports Validator and Consolidate Detectors",
             "description": "Develop a Python script to validate imports within Python files, ensuring all imported modules are resolvable. Subsequently, consolidate the merge artifact, garbled text, and missing import detectors into a single, comprehensive error detection utility.",
             "dependencies": [
-              4,
-              5
+              "76.4",
+              "76.5"
             ],
             "details": "For Python files (`.py` extension), implement logic to verify import statements. This can involve using Python's `ast` module to parse the file and extract import nodes, then attempting to resolve these imports dynamically using `importlib.util.find_spec` or by running a static analysis tool like `flake8` with relevant import checks (e.g., F401, F403). Create a main `run_error_detection` function that orchestrates the execution of the merge artifact detector (ID 4), the garbled text detector (ID 5), and this new missing imports validator across a given set of changed files. This function should aggregate all detected issues into a structured report, including the file path, error type, and a brief description.",
             "status": "pending",
@@ -5415,7 +6778,62 @@
           77
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and Formalize Markdown Summary Template",
+            "description": "Create a comprehensive Markdown template for `CHANGES_SUMMARY.md` that includes sections for overall summary, categorized changes (features, fixes, architectural), file changes, and placeholders for deviations from plan.",
+            "dependencies": [],
+            "details": "The template should include headings for 'Overview', 'Commit Log', 'New Features', 'Bug Fixes', 'Architectural Modifications', and 'Deviations from Original Plan'. Consider using Jinja2 for templating to allow for dynamic content generation. Ensure the structure supports automated population from Git data and manual additions for specific insights.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Implement Commit Categorization from Git Log",
+            "description": "Modify the script to parse `git log` output and categorize commits into 'New Features' (feat:), 'Bug Fixes' (fix:), and 'Other Changes' based on conventional commit message prefixes.",
+            "dependencies": [
+              "78.1"
+            ],
+            "details": "Use regular expressions or string matching to identify conventional commit types (e.g., `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`) from each commit message's subject line. Populate respective sections in the markdown summary based on these categories. The script should handle commits without specific prefixes by grouping them under an 'Other Changes' category.",
+            "status": "pending",
+            "testStrategy": "Create test Git repositories with various commit message types (e.g., 'feat: new feature', 'fix: bug fix', 'chore: update deps', 'refactor: code cleanup'). Run the generator and verify that the script correctly categorizes commits into the appropriate sections in the generated Markdown summary."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Detailed Git Diff for Architectural Modifications",
+            "description": "Enhance the `git diff` analysis to identify potential architectural changes by looking at modifications to specific file types (e.g., configuration files, core utility files, infrastructure-as-code) or significant structural alterations.",
+            "dependencies": [
+              "78.1"
+            ],
+            "details": "Instead of solely relying on `git diff --stat`, use `git diff --name-only` or similar commands combined with file path filtering and/or size heuristics to highlight changes in key architectural directories (e.g., `/src/core`, `/infra`, `/config`) or files with significant line changes. Include a summary of these potentially architectural changes in the designated section of the report.",
+            "status": "pending",
+            "testStrategy": "Create a feature branch with changes specifically targeting core architectural files (e.g., a new database migration script, a change in a central utility module). Run the generator and verify that these changes are highlighted in the 'Architectural Modifications' section beyond just a simple file count."
+          },
+          {
+            "id": 4,
+            "title": "Create CLI for Documentation Generator Script",
+            "description": "Implement a command-line interface for the Python script, allowing users to specify the feature branch, primary branch, and output directory as arguments.",
+            "dependencies": [],
+            "details": "Use the `argparse` module to define command-line arguments: `--feature-branch` (required), `--primary-branch` (required), and `--output-dir` (optional, with a default value). The script should validate the provided branch names and output directory paths, and handle potential `git` command failures gracefully by providing informative error messages.",
+            "status": "pending",
+            "testStrategy": "Execute the script with valid and invalid arguments, including missing required arguments, non-existent branches, and invalid output paths. Verify that the script correctly parses arguments, handles validation errors, and runs successfully with valid inputs to produce an output file."
+          },
+          {
+            "id": 5,
+            "title": "Develop Unit and Integration Tests for Generator",
+            "description": "Write unit tests for individual functions (e.g., commit parsing, diff analysis, template rendering) and integration tests for the overall script to ensure correctness and robustness.",
+            "dependencies": [
+              "78.1",
+              "78.2",
+              "78.3",
+              "78.4"
+            ],
+            "details": "Utilize `pytest` for testing. Implement mocking for `subprocess.run` calls to simulate `git log` and `git diff` output without requiring an actual Git repository. Create fixtures for various expected log and diff outputs. Verify the content, structure, and accuracy of the generated Markdown file against predefined expected outputs. Include tests for edge cases and error conditions.",
+            "status": "pending",
+            "testStrategy": "Tests will include mocking git commands and checking parsed output structures. An end-to-end integration test will generate a summary for a predefined test repository (e.g., a temporary directory initialized as a Git repo with specific commits) and assert its content against an expected markdown file."
+          }
+        ]
       },
       {
         "id": 79,
@@ -5478,7 +6896,7 @@
             "title": "Implement Parallel Execution and Concurrency Control within Target Groups",
             "description": "Develop the mechanisms for safe parallel execution of individual feature branch alignment tasks *within* a single primary target group. This includes implementing concurrency control (e.g., using `concurrent.futures.ThreadPoolExecutor` or `ProcessPoolExecutor`), preventing race conditions during Git operations, defining module boundaries for individual branch processing, and managing system resources to avoid overload.",
             "dependencies": [
-              4
+              "79.4"
             ],
             "details": "Refactor `run_alignment_for_branch` to ensure it is re-entrant and thread/process-safe. Implement the `ThreadPoolExecutor` loop shown in the provided snippet, ensuring that Git commands within `run_alignment_for_branch` operate on isolated working directories or temporary clones to prevent race conditions. Define clear boundaries for each parallel task to prevent cross-contamination of Git repositories or local states. Incorporate logic for resource limits (e.g., maximum concurrent Git operations, memory usage).",
             "status": "pending",
@@ -5489,8 +6907,8 @@
             "title": "Integrate Robust Error Handling, Monitoring, Rollback, and Validation",
             "description": "Implement robust error detection, isolation, and recovery mechanisms for parallel alignment tasks. This includes detailed logging and audit trails, status tracking, circuit breaker patterns for failure thresholds, validation checks that can run in a parallel context, and safe rollback procedures for failed alignments.",
             "dependencies": [
-              4,
-              5
+              "79.4",
+              "79.5"
             ],
             "details": "Enhance `run_alignment_for_branch` to capture exceptions and return structured error information. Implement a centralized logging system that can handle concurrent writes from multiple threads/processes, including context-specific information (e.g., branch name, target). Develop status tracking to monitor the progress of each parallel task and report overall progress. Design and implement rollback strategies (e.g., reverting to a backup branch) for `run_alignment_for_branch`. Implement a circuit breaker in the orchestrator that can stop further parallel execution if a predefined failure rate is exceeded. Integrate validation steps (from Task 76) that are compatible with parallel execution.",
             "status": "pending",
@@ -5526,7 +6944,7 @@
             "title": "Implement Pre-merge Validation Scripts (Task 19) invocation",
             "description": "Integrate the execution of the existing pre-merge validation scripts (Task 19) into the `run_alignment_for_branch` function. This involves implementing the actual call to these scripts and capturing their pass/fail status.",
             "dependencies": [
-              1,
+              "80.1",
               19
             ],
             "details": "Replace the placeholder `run_pre_merge_validation_scripts` with a concrete implementation that invokes the scripts from Task 19. This might involve calling an external command-line tool, a Python module, or an API. Ensure that the return value accurately reflects the validation outcome (True for success, False for failure).",
@@ -5538,7 +6956,7 @@
             "title": "Implement Comprehensive Merge Validation Framework (Task 9) invocation",
             "description": "Integrate the execution of the comprehensive merge validation framework (Task 9) into the `run_alignment_for_branch` function. This subtask focuses on correctly invoking the framework and capturing its pass/fail status.",
             "dependencies": [
-              1,
+              "80.1",
               9
             ],
             "details": "Replace the placeholder `run_comprehensive_merge_validation_framework` with a concrete implementation that invokes the framework from Task 9. This could involve an API call to a CI/CD system, a dedicated Python library, or another integration point. Ensure that the return value accurately reflects the validation outcome (True for success, False for failure).",
@@ -5550,8 +6968,8 @@
             "title": "Develop validation failure handling and developer notification system",
             "description": "Implement the logic within `run_alignment_for_branch` to evaluate the results of both pre-merge and comprehensive validations. If any validation fails, the alignment process for that specific feature branch must be immediately halted, and an automated notification mechanism should be triggered to inform the developer of the failure and provide details for addressing the issues.",
             "dependencies": [
-              2,
-              3
+              "80.2",
+              "80.3"
             ],
             "details": "Integrate conditional checks after each validation call. If `run_pre_merge_validation_scripts` or `run_comprehensive_merge_validation_framework` returns `False`, the function should exit early, returning a status like `failed_pre_merge_validation` or `failed_comprehensive_validation` as shown in the example. Implement a notification function (e.g., email, Slack message, or console output for POC) that takes the branch name and failure reason as arguments.",
             "status": "pending",
@@ -5562,7 +6980,7 @@
             "title": "Establish logging, reporting, and status updates for validation outcomes",
             "description": "Enhance the alignment framework to provide detailed logging for the execution and outcomes of both pre-merge and comprehensive validations. This includes recording successes, specific failure reasons, and any relevant output. Update the overall alignment status reporting to accurately reflect validation failures and successes.",
             "dependencies": [
-              4
+              "80.4"
             ],
             "details": "Implement logging statements before and after each validation call, detailing the start and completion status. Log the output/error messages from the validation scripts/frameworks. Modify the return dictionary of `run_alignment_for_branch` to include more granular validation results and status messages, possibly differentiating between 'completed_with_warnings' vs. 'failed'. Ensure these logs are accessible for debugging and auditing.",
             "status": "pending",
@@ -5582,7 +7000,63 @@
           79
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define and Refine Complex Branch Identification Criteria",
+            "description": "Establish concrete, actionable criteria for categorizing a feature branch as 'complex', leveraging insights from Task 75. This includes metrics like commit count, divergence from primary, number of changed files, age of the branch, and number of contributors.",
+            "dependencies": [],
+            "details": "Analyze existing repository data and past 'difficult' merges to define quantifiable thresholds for complexity metrics. Document these criteria, potentially integrating them into the branch categorization logic from Task 75. Consider how these criteria will be programmatically assessed.",
+            "status": "pending",
+            "testStrategy": "Develop a set of test branches representing various levels of complexity (e.g., highly divergent, many commits, few commits but old). Implement a diagnostic tool or script to evaluate these branches against the defined criteria and ensure they are correctly identified as 'complex' or 'simple'."
+          },
+          {
+            "id": 2,
+            "title": "Implement the Integration Branch Alignment Strategy",
+            "description": "Develop and integrate the 'integration branch' strategy into the alignment utility. This involves creating a temporary integration branch, merging the feature branch into it, rebasing the integration branch onto the primary, resolving conflicts, and finally merging back into the original feature branch.",
+            "dependencies": [
+              "81.1"
+            ],
+            "details": "Implement the `integrate_complex_branch` function using the integration branch approach as outlined in the parent task's description and code snippet. Focus on Git commands for branch creation, merging, rebasing, and cleanup. Ensure error handling for Git command failures and prompt for manual conflict resolution when needed.",
+            "status": "pending",
+            "testStrategy": "Create a feature branch with known conflicts against the primary. Test the integration branch strategy to ensure it correctly creates the temporary branch, allows for rebase and conflict resolution, and cleans up after successfully merging back. Verify that the final state of the feature branch is correctly aligned with the primary."
+          },
+          {
+            "id": 3,
+            "title": "Develop the Iterative Rebase Mechanism for Complex Branches",
+            "description": "Design and implement an iterative rebase process for complex branches, allowing the rebase to occur in smaller, manageable chunks (e.g., commit-by-commit or in small batches of commits) rather than a single, monolithic operation.",
+            "dependencies": [
+              "81.1"
+            ],
+            "details": "Implement the iterative rebase logic, potentially utilizing `git cherry-pick` or `git rebase -i` programmatically. The implementation should guide the user through resolving conflicts for each chunk or commit. Provide options to skip, edit, or abort specific commits during the iterative process.",
+            "status": "pending",
+            "testStrategy": "Create a long-lived feature branch with many commits and a high probability of conflicts. Test the iterative rebase mechanism, ensuring it presents conflicts on a per-commit basis and allows for resolution. Verify that the final branch history is clean and correctly rebased onto the primary."
+          },
+          {
+            "id": 4,
+            "title": "Enhance Conflict Resolution Workflows for Specialized Strategies",
+            "description": "Improve the conflict resolution workflow within the alignment utility to provide better guidance and potentially integrate with visual diff/merge tools when handling conflicts arising from integration branch or iterative rebase strategies.",
+            "dependencies": [
+              "81.2",
+              "81.3"
+            ],
+            "details": "For both the integration branch and iterative rebase strategies, ensure that upon conflict detection, the system clearly communicates the conflict, provides options for resolving (e.g., manual edit, abort), and optionally invokes a user-configured visual diff tool. Implement logging of conflict details for review.",
+            "status": "pending",
+            "testStrategy": "Introduce conflicts that require manual intervention during both integration branch rebase and iterative rebase. Verify that the system pauses, clearly indicates the conflict files, and allows the user to resolve them using their preferred tools. Ensure the process can resume correctly after resolution."
+          },
+          {
+            "id": 5,
+            "title": "Integrate Targeted Feature Testing After Alignment Steps",
+            "description": "Implement the capability to run a targeted test suite specifically relevant to the features of a complex branch immediately after each significant alignment step (e.g., after an integration branch rebase, or after an iterative rebase chunk).",
+            "dependencies": [
+              "81.2",
+              "81.3"
+            ],
+            "details": "Identify a mechanism to associate specific test suites with feature branches or their changes. Integrate hooks within the `integrate_complex_branch` and iterative rebase functions to execute these targeted tests. The system should report test results and halt the alignment process if critical tests fail, allowing for immediate debugging.",
+            "status": "pending",
+            "testStrategy": "Create a feature branch with associated targeted tests. During the alignment process (using either integration branch or iterative rebase), introduce a regression that causes a targeted test to fail. Verify that the system executes the targeted tests, detects the failure, and pauses/reports appropriately, preventing further progression until the issue is addressed."
+          }
+        ]
       },
       {
         "id": 82,
@@ -5593,7 +7067,62 @@
         "priority": "medium",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Document Branching Strategy and Core Merge Best Practices",
+            "description": "Create comprehensive documentation outlining the project's branching strategy (main, scientific, orchestration-tools) and fundamental merge best practices relevant to these branches.",
+            "dependencies": [],
+            "details": "Define the purpose, lifecycle, and interaction rules for the `main`, `scientific`, and `orchestration-tools` branches. Detail when to use rebase vs. merge, provide guidelines for writing clear and concise commit messages, and emphasize the importance of small, atomic commits. Include a section on squash merges in the context of streamlining merge histories for alignment work.",
+            "status": "pending",
+            "testStrategy": "Review the documented branching strategy for clarity and adherence to project conventions. Verify that merge best practices are actionable and cover common scenarios. Ensure all branch types mentioned in the parent task are clearly defined."
+          },
+          {
+            "id": 2,
+            "title": "Detail Common Conflict Resolution Procedures for Alignment",
+            "description": "Develop step-by-step instructions for resolving common merge conflicts, with an emphasis on patterns frequently encountered during branch alignment operations.",
+            "dependencies": [
+              "82.1"
+            ],
+            "details": "Provide clear, actionable procedures for resolving various conflict types, including file-level conflicts, subtree conflicts, and conflicts arising from rebase operations. Include detailed guidance on leveraging `git mergetool` and manual editing techniques. Highlight conflict patterns and resolution strategies specifically relevant to aligning `scientific` and `orchestration-tools` branches with `main`.",
+            "status": "pending",
+            "testStrategy": "Create mock repositories with common conflict scenarios (file-level, rebase) between `scientific`/`orchestration-tools` and `main`. Follow the documented procedures to ensure they lead to successful and correct conflict resolution without errors. Verify the instructions for `git mergetool` are practical."
+          },
+          {
+            "id": 3,
+            "title": "Address Complex Conflicts and Destructive Merge Artifacts",
+            "description": "Document procedures for resolving advanced and complex merge conflicts, and provide guidance on identifying and rectifying destructive merge artifacts, particularly from legacy orchestration implementations.",
+            "dependencies": [
+              "82.2"
+            ],
+            "details": "Create step-by-step procedures for handling non-trivial conflicts that may involve logical dependencies or significant code restructuring. Detail methods for identifying and safely resolving 'destructive merge artifacts' – issues originating from previous sub-optimal `orchestration-tools` implementations that might lead to unintended code overwrites, regressions, or incorrect merges. Include strategies to recover from such scenarios.",
+            "status": "pending",
+            "testStrategy": "Simulate complex conflict scenarios, including those that might produce destructive artifacts, in a controlled environment. Apply the documented procedures to confirm their effectiveness and safety in resolving such conflicts. Conduct code reviews of the resolved state to ensure no unintended consequences."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Automated Alignment Workflow & Conflict Prevention",
+            "description": "Explain how to interact with the automated alignment process, provide guidelines for choosing between manual and automated conflict resolution, and document common anti-patterns to avoid during alignment.",
+            "dependencies": [
+              "82.1"
+            ],
+            "details": "Describe the developer's role and interaction points with the automated alignment process (referencing Task 79) and when manual intervention is required due to conflicts or validation failures. Establish clear criteria and guidelines for deciding when to use manual conflict resolution vs. relying on automated tools. Document common anti-patterns in merge operations during the alignment process and provide strategies to prevent them. Include verification steps to ensure that resolved conflicts do not introduce new issues.",
+            "status": "pending",
+            "testStrategy": "Review the documentation with the understanding of Task 79's output to ensure seamless integration. Create scenarios where both manual and automated conflict resolution would be appropriate and verify the guidance helps make the correct choice. Test that anti-patterns are clearly illustrated and actionable prevention strategies are provided."
+          },
+          {
+            "id": 5,
+            "title": "Establish Conflict Documentation, Escalation & Critical File Handling",
+            "description": "Define processes for documenting conflict resolutions, establishing escalation paths for unresolved conflicts, and specialized handling for critical files like configuration or core infrastructure.",
+            "dependencies": [
+              "82.3",
+              "82.4"
+            ],
+            "details": "Create a standardized template or set of guidelines for logging conflict details, the resolution steps taken, and lessons learned for future reference. Outline clear escalation procedures for conflicts that are too complex or high-risk to be resolved by a single developer. Specify specialized procedures and peer review requirements for resolving conflicts in critical files such as configuration files (`config.json`), `.env` files, or core infrastructure code to ensure maximum safety and reliability.",
+            "status": "pending",
+            "testStrategy": "Develop a mock conflict log/template and test its usability for documenting conflicts. Simulate a complex, unresolvable conflict and verify the escalation procedure is clear. Propose a conflict in a 'critical file' and ensure the specialized handling and peer review requirements are practical and clearly communicated."
+          }
+        ]
       },
       {
         "id": 83,
@@ -5622,7 +7151,7 @@
             "title": "Implement automated test environment provisioning and data generation",
             "description": "Develop scripts and utilities to automatically set up temporary Git repositories, populate them with the specified test data, and configure them for a controlled testing environment. This includes creating primary and feature branches, committing files, and simulating relevant Git history based on the designed scenarios.",
             "dependencies": [
-              1
+              "83.1"
             ],
             "details": "Create a Python script (or similar) that leverages `git init`, `git checkout`, `git commit`, `touch`, `cp`, etc., to build the temporary repositories. It should be capable of generating various branch structures and file content as defined in the test scenarios from subtask 1. Ensure the environment can be isolated (e.g., in a Docker container if necessary) and cleaned up automatically after each test run. The provided `setup_test_repo` function serves as a starting point.",
             "status": "pending",
@@ -5633,7 +7162,7 @@
             "title": "Integrate and orchestrate the full alignment workflow within the test runner",
             "description": "Develop the core end-to-end test runner that orchestrates the execution of the entire branch alignment framework. This involves calling the branch categorization script (Task 75), the modular alignment framework (Task 79), including its sub-components (Task 77, 76, 78, 80), in the correct sequence within the provisioned test environment.",
             "dependencies": [
-              2
+              "83.2"
             ],
             "details": "Create a main test function (like `run_e2e_alignment_test`) that sequentially calls the relevant functions or command-line interfaces of Tasks 75, 79 (which includes 77, 76, 78, 80). Capture any output or intermediate results from these steps for subsequent verification and reporting. Ensure error handling is in place to gracefully manage failures at any stage of the workflow.",
             "status": "pending",
@@ -5644,7 +7173,7 @@
             "title": "Develop post-alignment verification procedures",
             "description": "Implement automated checks and assertions to verify the state of the aligned branches after the workflow execution. This includes inspecting Git history for cleanliness, validating file contents for correctness, confirming error detection logs, and verifying the output of documentation generation and comprehensive validation.",
             "dependencies": [
-              3
+              "83.3"
             ],
             "details": "Create verification modules that: 1) Use Git commands (`git log`, `git diff`) to check for clean merge commits and absence of unexpected changes. 2) Compare file contents against expected outcomes for successful alignments. 3) Parse logs from Task 76 to confirm error detection (or absence of errors). 4) Read generated documentation (from Task 78) to ensure it's present and correctly formatted. 5) Analyze results from Task 80 for overall validation status. These procedures should output a clear pass/fail status for each aspect.",
             "status": "pending",
@@ -5655,7 +7184,7 @@
             "title": "Implement automated reporting and comprehensive test automation framework",
             "description": "Build an automated reporting system that consolidates results from scenario execution and verification into a detailed, human-readable report. Establish a comprehensive test automation framework that allows running multiple scenarios, aggregating results, and providing statistics on alignment successes, failures, and errors.",
             "dependencies": [
-              4
+              "83.4"
             ],
             "details": "Develop a module (e.g., `TaskLogger` or `ErrorReportGenerator` inspired) to compile results for each test scenario, including: `status` (success/failure), `errors detected` (list of messages from Task 76), `validation results` (from Task 80), `time taken`, and `links to generated change summaries` (if applicable from Task 78). The report should support both console output and file export (e.g., Markdown, JSON). Integrate this with a test runner that iterates through all defined scenarios, executing the full E2E workflow and generating a summary report for the entire test suite.",
             "status": "pending",
