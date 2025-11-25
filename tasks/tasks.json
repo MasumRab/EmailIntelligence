@@ -7641,11 +7641,205 @@
             "testStrategy": "Verify that each file in the list has appropriate resolution recommendations that are practical, achievable, and specific to the file's function and type."
           }
         ]
+      },
+      {
+        "id": 101,
+        "title": "Align All Orchestration-Tools Named Branches with Local Alignment Implementation",
+        "description": "Systematically align all branches with 'orchestration-tools' in their name (e.g., orchestration-tools, orchestration-tools-changes, orchestration-tools-consolidated, etc.) using a local implementation of the core alignment framework, ensuring each orchestration branch alignment is independent and properly validated.",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Identify Orchestration Branches and Establish Local Alignment Environment",
+            "description": "Develop a script or process to identify all branches within the repository that contain 'orchestration-tools' in their name (e.g., orchestration-tools, orchestration-tools-changes, orchestration-tools-consolidated). For each identified branch, establish a local environment to host the core alignment framework components, preparing them for independent alignment operations.",
+            "dependencies": [],
+            "details": "This subtask involves using Git commands or a similar version control tool to list and filter branches based on the naming convention. For each matched branch, a dedicated local workspace or configuration should be created to manage its specific alignment process. This setup will serve as the foundation for 'local copies of the core alignment framework' components.",
+            "status": "pending",
+            "testStrategy": "Write unit tests for the branch identification script to ensure it correctly filters branch names. Manually verify the creation of local alignment environments for a sample set of 'orchestration-tools' branches."
+          },
+          {
+            "id": 2,
+            "title": "Implement Local Validation and Pre-Merge Checks for Orchestration Branches",
+            "description": "Adapt and implement local copies of core alignment validation scripts specifically for each identified 'orchestration-tools' branch. This includes integrating pre-merge validation checks and establishing robust error detection and correction mechanisms tailored to the unique changes within these branches.",
+            "dependencies": [
+              "101.1"
+            ],
+            "details": "This involves duplicating and modifying existing validation scripts (from the core alignment framework, e.g., tasks 74-83) to operate independently within each orchestration branch's local alignment environment. Focus on customizing error detection to catch issues specific to orchestration logic and implementing automatic or guided correction procedures for common alignment discrepancies.",
+            "status": "pending",
+            "testStrategy": "Create mock orchestration branch scenarios with known validation errors and pre-merge conflicts. Run the local validation scripts and pre-merge checks to confirm they correctly identify errors and suggest appropriate corrections. Verify that valid changes pass without false positives."
+          },
+          {
+            "id": 3,
+            "title": "Develop Local Integration Utilities and Modular Alignment Framework",
+            "description": "Create local integration utilities designed to facilitate the merging and synchronization of changes within 'orchestration-tools' branches. Simultaneously, establish a modular framework for managing the alignment process locally, allowing for flexible and independent execution of alignment steps for each branch.",
+            "dependencies": [
+              "101.2"
+            ],
+            "details": "Develop scripts or tools that automate common integration tasks such as applying patches, resolving specific merge conflicts, or updating dependencies. The modular framework should allow alignment components (like validation, documentation generation, etc.) to be plugged in or out as needed for each orchestration branch, ensuring a scalable and maintainable local alignment solution.",
+            "status": "pending",
+            "testStrategy": "Design integration tests for the utilities, simulating various merge scenarios and verifying correct application of changes. Test the modular framework by dynamically enabling/disabling alignment modules and confirming the process flow adapts as expected for different orchestration branches."
+          },
+          {
+            "id": 4,
+            "title": "Generate Local Documentation and Best Practices for Orchestration Alignment",
+            "description": "Implement local documentation generation capabilities specifically for changes within 'orchestration-tools' branches, leveraging existing documentation generation tools (e.g., from Task 78). Additionally, create and document best practices for merging and maintaining alignment for these specialized branches.",
+            "dependencies": [
+              "101.3"
+            ],
+            "details": "Adapt the documentation generator from the core alignment framework (potentially based on Task 78's output) to produce change summaries (`CHANGES_SUMMARY.md`) and other relevant documentation tailored to the specific context of 'orchestration-tools' branches. Develop a 'merge best practices' guide outlining recommended workflows, conflict resolution strategies, and communication protocols for aligning these branches.",
+            "status": "pending",
+            "testStrategy": "Apply a set of changes to a mock orchestration branch and run the local documentation generator. Verify that the generated output accurately reflects the changes. Review the 'merge best practices' documentation for clarity, completeness, and adherence to established standards."
+          },
+          {
+            "id": 5,
+            "title": "Establish Local End-to-End Testing and Specialized Handling for Complex Orchestration Branches",
+            "description": "Set up local end-to-end testing procedures to validate the complete alignment process for 'orchestration-tools' branches. This includes implementing specialized handling for complex orchestration branches that may require unique alignment strategies or tools.",
+            "dependencies": [
+              "101.4"
+            ],
+            "details": "Design comprehensive end-to-end test suites that simulate the full lifecycle of an orchestration branch alignment, from initial identification to final merge and documentation. Identify and define 'complex orchestration branches' based on factors like size, number of dependencies, or rate of change, and implement specific automated or manual procedures to manage their alignment challenges effectively.",
+            "status": "pending",
+            "testStrategy": "Develop and execute end-to-end test cases that cover the entire alignment workflow for both simple and identified complex orchestration branches. Verify that all steps (identification, validation, integration, documentation, merge) complete successfully and produce the expected outcomes without errors or regressions."
+          }
+        ]
+      },
+      {
+        "id": 101,
+        "title": "Align All Orchestration-Tools Named Branches with Local Alignment Implementation",
+        "description": "Systematically align all branches with \"orchestration-tools\" in their name (including: 001-orchestration-tools-consistency, 001-orchestration-tools-verification-review, 002-validate-orchestration-tools, add-comparison-files-to-orchestration-tools, diverged-orchestration-tools-20251115161102, etc.) using a local implementation of the core alignment framework, ensuring each orchestration branch alignment is independent and properly validated.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "Precalculated orchestration-tools branches to align: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis\n\nThis task implements local copies of the core alignment framework (tasks 74-83) specifically for orchestration-tools branches. Rather than relying on external task dependencies, this task executes its own independent alignment process for orchestration branches with self-contained validation, error detection, integration utilities, documentation generation, and testing.\n\nEach orchestration-tools branch will undergo: 1) Local Git repository protection validation, 2) Local branch identification and categorization, 3) Local error detection and correction, 4) Local integration utility application, 5) Local documentation generation, 6) Local modular framework application, 7) Local validation integration, 8) Local specialized handling for complex branches, 9) Local best practices documentation, 10) Local end-to-end testing and reporting.\n\nThe task maintains independence from the main alignment framework while implementing equivalent functionality specific to orchestration branches.",
+        "testStrategy": "Execute the local alignment framework on each orchestration-tools branch and verify: 1) Proper validation of Git repository protections on each branch, 2) Effective error detection and correction within each branch, 3) Successful integration of changes, 4) Accurate documentation generation, 5) Proper validation framework integration, 6) Specialized handling of complex branches, 7) End-to-end functionality testing.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Identify and Catalog All Orchestration-Tools Branches",
+            "description": "Comprehensive identification and cataloging of all branches containing \"orchestration-tools\" - specifically: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Precalculated branches: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis\nSystematically identify all remote branches with \"orchestration-tools\" in their name. Create a detailed catalog including creation dates, commit counts, and content summaries for each branch: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis. Focus on those that require alignment to main, scientific, or consolidation.",
+            "testStrategy": "Verification requires confirming all branches 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis are properly cataloged with identifying information."
+          },
+          {
+            "id": 2,
+            "title": "Implement Local Git Repository Protection Validation",
+            "description": "Execute local copy of Task 74 validation specifically within orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "Apply the equivalent of Task 74 (Validate Git Repository Protections) individually to each orchestration branch. Configure branch protection rules, merge guards, and required reviewers specifically for orchestration branches without relying on global framework.",
+            "testStrategy": "Verify Git repository protections are correctly configured for each orchestration branch independently."
+          },
+          {
+            "id": 3,
+            "title": "Execute Local Branch Identification and Categorization",
+            "description": "Implement local copy of Task 75 process specifically for orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "Apply the equivalent of Task 75 (Identify and Categorize Feature Branches) with focus on orchestration-tools branches. Analyze each branch in {\",\".join(cleaned_branches)} for optimal integration target determination.",
+            "testStrategy": "Confirm each orchestration-tools branch is properly analyzed and categorized with appropriate target determination."
+          },
+          {
+            "id": 4,
+            "title": "Run Local Error Detection and Correction Framework",
+            "description": "Execute local copy of Task 76 error detection specifically within orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Apply the equivalent of Task 76 (Error Detection) locally to each orchestration branch. Scan for merge artifacts, encoding issues, missing imports, and file integrity specifically within orchestration-tools context.",
+            "testStrategy": "Validate that error detection runs independently on each orchestration branch and identifies/corrects issues properly."
+          },
+          {
+            "id": 5,
+            "title": "Apply Local Integration Utility for Orchestration Branches",
+            "description": "Execute local copy of Task 77 integration process specifically for orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Apply the equivalent of Task 77 (Integration Utility) to orchestration-tools branches only. Safely integrate changes with proper verification specific to orchestration branch requirements.",
+            "testStrategy": "Verify integration utility operates independently for orchestration branches with proper validation and error handling."
+          },
+          {
+            "id": 6,
+            "title": "Execute Local Documentation Generation for Orchestration Changes",
+            "description": "Implement local copy of Task 78 documentation process specifically for orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "Apply the equivalent of Task 78 (Documentation Generator) to orchestration-tools branches. Generate alignment change summaries specifically for orchestration work.",
+            "testStrategy": "Confirm documentation generation works independently for orchestration branches producing accurate change summaries."
+          },
+          {
+            "id": 7,
+            "title": "Instantiate Local Modular Alignment Framework for Orchestration Branches",
+            "description": "Implement local copy of Task 79 modular framework specifically for orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "details": "Apply the equivalent of Task 79 (Modular Framework) specifically to orchestration-tools branches. Create targeted alignment workflow for orchestration ecosystem.",
+            "testStrategy": "Validate modular framework operates correctly when applied specifically to orchestration branches."
+          },
+          {
+            "id": 8,
+            "title": "Integrate Local Pre-merge Validation for Orchestration Branches",
+            "description": "Execute local copy of Task 80 validation integration specifically within orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              7
+            ],
+            "details": "Apply the equivalent of Task 80 (Validation Integration) specifically for orchestration branches. Ensure validation framework operates within orchestration branch context.",
+            "testStrategy": "Verify pre-merge validation operates correctly for orchestration branches independently."
+          },
+          {
+            "id": 9,
+            "title": "Apply Local Specialized Handling for Complex Orchestration Branches",
+            "description": "Implement local copy of Task 81 specialized handling specifically for complex orchestration-tools branches",
+            "status": "pending",
+            "dependencies": [
+              5,
+              7
+            ],
+            "details": "Apply the equivalent of Task 81 (Specialized Handling) specifically for complex orchestration branches that may have large history or complex merge requirements.",
+            "testStrategy": "Confirm complex orchestration branches receive appropriate specialized handling during local alignment process."
+          },
+          {
+            "id": 10,
+            "title": "Complete Local Testing and Reporting for Orchestration Alignments",
+            "description": "Execute local copy of Task 83 testing and reporting specifically for orchestration-tools branch alignment activities",
+            "status": "pending",
+            "dependencies": [
+              7,
+              8
+            ],
+            "details": "Apply the equivalent of Task 83 (End-to-End Testing) specifically for orchestration-tools branches. Create targeted validation for orchestration branch work.",
+            "testStrategy": "Verify testing and reporting operates correctly for orchestration branch alignment activities, confirming successful local alignment."
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-11-25T00:00:00.000Z",
-      "updated": "2025-11-25T00:00:00.000Z",
+      "updated": "2025-11-25T15:14:10.271Z",
       "description": "Combined tasks from tasks.json, tasks_backup.json, tasks_backup2.json, tasks_backup3.json",
       "source_files": [
         "tasks.json",
