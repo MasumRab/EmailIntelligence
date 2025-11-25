@@ -3,9 +3,24 @@
 ## Overview
 The task system has been restructured to address critical issues with task conflation, scope creep, and safety concerns during branch alignment. This document explains the changes made and the new workflow structure.
 
-## Critical Updates: Script Distribution Process
+## Critical Updates: Task Classification System
 
-A new critical process has been added to ensure consistent tooling across all branches: **each branch now receives essential alignment tools before alignment begins through targeted cherry-picking**.
+### Process Tasks vs. Feature Development Tasks (New Critical Distinction)
+
+A new critical classification system has been implemented to differentiate between **process tasks** and **feature development tasks**:
+
+#### **Alignment Process Tasks (74-83)**: 
+- **Are NOT feature development tasks** requiring individual branches
+- **Define procedures and tools** for the core alignment workflow
+- **Should be implemented as part of the alignment process** on target branches during alignment operations
+- **Create the framework** that will be applied to other feature branches
+- **Contribute to the alignment infrastructure** rather than being independent features
+
+#### **Feature Development Tasks (All others)**: 
+- **ARE feature development work** that typically requires dedicated branches
+- **Implement specific features, fixes, or refactoring** as independent work items
+- **Follow standard development workflow** with dedicated feature branches
+- **Will be aligned to primary branches** using the framework created by Tasks 74-83
 
 ### Script Distribution Process
 - **New Tool**: `scripts/distribute_alignment_scripts.sh` - Distributes alignment tools to target branch
@@ -45,16 +60,21 @@ A new critical process has been added to ensure consistent tooling across all br
 - Orchestration file integrity check
 
 ### Phase 3: Core Alignment Execution
-- Execute Tasks 74-83 (core alignment framework)
-- Verify each step before proceeding
-- Monitor orchestration integrity during alignment using local tools
+- **CRITICAL CLARIFICATION**: Execute Tasks 74-83 (core alignment framework) **as part of the alignment process on target branches**, NOT on separate alignment branch
+- **Process Tasks**: Tasks 74-83 are implemented directly as the framework/infrastructure during alignment
+- **Verify each step before proceeding**
+- **Monitor orchestration integrity during alignment using local tools**
 
-### Phase 4: Post-Alignment Verification
+### Phase 4: Feature Branch Alignment
+- Apply the alignment framework from Tasks 74-83 to align feature branches with primary targets
+- Execute the alignment process using the tools and procedures created in Phase 3
+
+### Phase 5: Post-Alignment Verification
 - Confirm alignment success
 - Verify orchestration functionality
 - Update documentation and checklists
 
-### Phase 5: Deferred Tasks
+### Phase 6: Deferred Tasks
 - Task 31: Conflict scanning (post-alignment)
 - Scope creep tasks: Feature development work (later)
 
@@ -75,6 +95,7 @@ A new critical process has been added to ensure consistent tooling across all br
 - **Similarity Analysis**: Check for branches with similar names but different content
 - **Target Verification**: Confirm each branch aligns with appropriate target
 - **Conflict Resolution**: Safeguard against destructive merge patterns
+- **Task Classification**: Ensure alignment process tasks (74-83) are implemented as part of alignment, not on separate branches
 
 ## Files Created/Updated
 
@@ -87,15 +108,17 @@ A new critical process has been added to ensure consistent tooling across all br
 - `TASK_SYSTEM_UPDATES_SUMMARY.md` - Comprehensive update documentation
 - `EXECUTIVE_SUMMARY_TASK_CHANGES.md` - Executive summary of changes
 - `SCRIPT_DISTRIBUTION_WORKFLOW.md` - Documentation of new script distribution process
+- `TASK_CLASSIFICATION_SYSTEM.md` - New task classification system documentation
 
 ## Implementation Status
 
 ✅ **Scope creep tasks removed** from core workflow
-✅ **Task 31 properly deferred** due to risk  
+✅ **Task 31 properly deferred** due to risk
+✅ **Task Classification System implemented** with clear process vs. feature distinction
 ✅ **Script distribution process implemented** for consistent tooling
 ✅ **Safety checks implemented** before alignment
 ✅ **Monitoring systems created** for orchestration integrity
 ✅ **Migration verification process** established
 ✅ **Documentation updated** to reflect new structure
 
-The alignment process can now proceed safely with proper safeguards while maintaining focus on the core objectives. Each branch will now have the necessary tools available locally during alignment via the new distribution process.
+The alignment process can now proceed safely with proper safeguards while maintaining focus on the core objectives. Each branch will now have the necessary tools available locally during alignment via the new distribution process. The critical distinction between process tasks (74-83) and feature development tasks is now clearly established.
