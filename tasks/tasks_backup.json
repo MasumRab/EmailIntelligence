@@ -143,103 +143,6 @@
             "description": "Run complete pipeline tests with sample emails. Verify all stages work together. Document results",
             "dependencies": [],
             "details": "Run complete pipeline tests with sample emails. Verify all stages work together. Document results"
-          },
-          {
-            "id": 10,
-            "title": "Diagnose Email Ingestion Stage Failures",
-            "description": "Identify specific failing tests, broken components, and error types within the `src/backend/email_ingestion/` module. This includes reviewing logs, existing unit tests, and data flow.",
-            "dependencies": [],
-            "details": "Examine `src/backend/email_ingestion/` for common issues such as connection errors, malformed input handling, or file system access problems. Document all identified error messages and stack traces.",
-            "status": "pending",
-            "testStrategy": "Review existing ingestion unit tests; if none, identify key functionalities to manually test with sample malformed and valid email inputs."
-          },
-          {
-            "id": 11,
-            "title": "Diagnose Email Parsing Stage Failures",
-            "description": "Identify specific failing tests, broken components, and error types within the `src/backend/email_parser/` module. Focus on issues related to content extraction, format handling, and data structuring.",
-            "dependencies": [],
-            "details": "Analyze `src/backend/email_parser/` for issues like incorrect MIME type handling, failure to extract text from various email formats (HTML, plain text), or errors in structuring parsed data. Document error types (e.g., parsing exceptions, data format mismatches).",
-            "status": "pending",
-            "testStrategy": "Run existing parser unit tests; develop new tests for edge cases like emails with unusual encodings or complex attachments to pinpoint failures."
-          },
-          {
-            "id": 12,
-            "title": "Diagnose AI Analysis Stage Failures",
-            "description": "Identify specific failing tests, broken components, and error types in `src/backend/ai/email_filter_node.py` and `src/backend/ai/sentiment_analyzer.py`. This includes model loading, inference, and output processing issues.",
-            "dependencies": [],
-            "details": "Investigate `email_filter_node.py` and `sentiment_analyzer.py` for errors such as incorrect model loading, data input mismatches for AI models, inference failures, or issues with processing/serializing AI outputs. Log all exceptions and unexpected results.",
-            "status": "pending",
-            "testStrategy": "Execute unit tests specifically targeting the AI components; check model input/output shapes and data types with various test cases. Verify sentiment scores against expected labels."
-          },
-          {
-            "id": 13,
-            "title": "Develop Comprehensive Implementation Plan for Fixes",
-            "description": "Consolidate findings from diagnosis tasks and create a detailed, prioritized implementation plan for fixing all identified issues across ingestion, parsing, and AI analysis stages. Prioritize isolated fixes.",
-            "dependencies": [
-              10,
-              11,
-              12
-            ],
-            "details": "Based on the error analysis, outline specific code changes required for each component. Include potential refactoring needed for robustness. Prioritize fixes that resolve root causes and enable subsequent stage functionality.",
-            "status": "pending",
-            "testStrategy": "Review plan with team leads to ensure all identified issues are addressed and proposed solutions align with architectural standards."
-          },
-          {
-            "id": 14,
-            "title": "Implement Fixes for Email Ingestion Component",
-            "description": "Apply code changes and bug fixes to the `src/backend/email_ingestion/` module as per the implementation plan, ensuring proper email reception and initial processing.",
-            "dependencies": [
-              13
-            ],
-            "details": "Execute the ingestion-related tasks outlined in the implementation plan. Focus on resolving connectivity, data integrity, and initial storage issues. Ensure error handling is robust.",
-            "status": "pending",
-            "testStrategy": "Develop or update unit tests for fixed ingestion functionalities. Perform isolated testing with valid and problematic email inputs to confirm issue resolution and prevent regressions."
-          },
-          {
-            "id": 15,
-            "title": "Implement Fixes for Email Parsing Component",
-            "description": "Apply code changes and bug fixes to the `src/backend/email_parser/` module, ensuring accurate and consistent parsing of diverse email formats.",
-            "dependencies": [
-              13
-            ],
-            "details": "Implement the parsing-related fixes identified in the plan, focusing on improving reliability across various email content types (HTML, attachments, multi-part messages) and ensuring correct data extraction and structuring.",
-            "status": "pending",
-            "testStrategy": "Enhance or create unit tests for specific parsing logic. Use a diverse set of sample emails to validate correct parsing and extraction, including previously failing cases."
-          },
-          {
-            "id": 16,
-            "title": "Implement Fixes for AI Analysis Components",
-            "description": "Apply code changes and bug fixes to `src/backend/ai/email_filter_node.py` and `src/backend/ai/sentiment_analyzer.py`, addressing model interaction and analysis logic issues.",
-            "dependencies": [
-              13
-            ],
-            "details": "Implement the AI analysis-related fixes, which may involve updating model loading mechanisms, adjusting data preparation for inference, correcting sentiment analysis algorithms, or refining filtering logic in `email_filter_node.py`.",
-            "status": "pending",
-            "testStrategy": "Update and run specific unit tests for `email_filter_node.py` and `sentiment_analyzer.py`. Verify correct model predictions and outputs against a baseline dataset, ensuring functionality post-fix."
-          },
-          {
-            "id": 17,
-            "title": "Conduct Integration Testing of Fixed Pipeline Stages",
-            "description": "Perform integration tests for each pipeline stage (ingestion-to-parsing, parsing-to-AI analysis) to ensure data flows correctly between components post-fix.",
-            "dependencies": [
-              14,
-              15,
-              16
-            ],
-            "details": "Design and execute tests that simulate the handoff of data between ingestion and parsing, and then between parsing and AI analysis. Verify data contracts and error propagation between modules.",
-            "status": "pending",
-            "testStrategy": "Create dedicated integration tests simulating data flow between stages using mock data representing output from preceding stages. Verify data transformation and consistency."
-          },
-          {
-            "id": 18,
-            "title": "Perform End-to-End Email Pipeline Verification",
-            "description": "Execute a full end-to-end test of the entire email processing pipeline using a diverse set of sample emails, from ingestion through AI analysis, to confirm all issues are resolved.",
-            "dependencies": [
-              17
-            ],
-            "details": "Simulate the entire email lifecycle from initial receipt by the ingestion service to the final output of the AI analysis. Use a comprehensive suite of sample emails including previously problematic ones to confirm full functionality and stability.",
-            "status": "pending",
-            "testStrategy": "Deploy the fixed pipeline components in a testing environment. Run a suite of diverse sample emails through the entire pipeline and verify the final AI analysis results against expected outcomes. Monitor logs for any unexpected errors."
           }
         ]
       },
@@ -445,6 +348,50 @@
         ]
       },
       {
+        "id": 8,
+        "title": "Integrate `feature-notmuch-tagging-1` into `scientific` with Architecture Alignment",
+        "description": "Execute a comprehensive integration of the `feature-notmuch-tagging-1` branch's functionalities into the `scientific` branch. This process involves first aligning `feature-notmuch-tagging-1` with `scientific`'s architectural and common files, then deeply integrating its enhanced NotmuchDataSource, AI analysis, smart tagging, and full CRUD operations. Significant refactoring will ensure scalability, fault tolerance, and compatibility with existing data structures, while carefully preserving and optimizing the feature branch's distinct functionalities. Attention will be paid to data model evolution, performance, and security hardening, especially prioritizing `feature-notmuch-tagging-1`'s architectural solutions if they are more advanced.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          4
+        ],
+        "priority": "high",
+        "details": "The `scientific` branch is the designated target for the integration of `feature-notmuch-tagging-1`. The `feature-notmuch-tagging-1` branch is first prepared by integrating changes from `scientific`, and then its unique features are merged into `scientific`.\n\n1.  **Strategic Branch Alignment & Conflict Resolution:** Initiate by first rebasing `feature-notmuch-tagging-1` directly onto the latest `scientific` branch, applying changes and resolving conflicts *on* `feature-notmuch-tagging-1`. Then, integrate the refined functionalities *from* `feature-notmuch-tagging-1` *into* `scientific` via a merge, resolving any remaining conflicts directly on `scientific`. Document all non-trivial conflict resolutions. If `feature-notmuch-tagging-1` exhibits a more advanced architectural pattern for its specific functionalities, its design will be preferred, and `scientific`'s architecture will be partially updated to accommodate it, with these changes documented for the final PR.\n2.  **NotmuchDataSource Integration & Optimization:** Integrate and optimize the `NotmuchDataSource` from the `feature-notmuch-tagging-1` branch. Ensure its implementation adheres to the existing `DataSource` interface and that its `delete_email`, `get_dashboard_aggregates`, and `get_category_breakdown` methods are performant and compatible with existing data structures. Focus on optimizing the feature branch's data retrieval and processing logic within the current data platform capabilities.\n3.  **AI Analysis & Tagging Logic Integration:** Integrate the AI-powered sentiment analysis and categorization logic from `feature-notmuch-tagging-1` into the `scientific` branch's existing AI processing framework. Ensure the feature branch's AI logic is integrated as a background process and that its output (e.g., AI-derived tags) is correctly stored and linked within existing data models.\n4.  **SmartFilterManager Compatibility:** Ensure the smart tagging logic from `feature-notmuch-tagging-1` is fully compatible with and leverages the existing `SmartFilterManager`. Adapt the feature branch's rule application to use existing SmartFilterManager mechanisms.\n5.  **Tagging and Category Management Integration:** Integrate the feature branch's logic for tag-based category mapping, ensuring it aligns with existing category management systems and data models. Provide CRUD operations for tags and categories inherent to the `feature-notmuch-tagging-1`'s scope.\n6.  **Observability & Monitoring Integration:** Ensure that the integrated `feature-notmuch-tagging-1` components (DataSource, AI logic, tagging) correctly utilize the `scientific` branch's existing logging and monitoring infrastructure. Verify that relevant logs are generated and available in the centralized logging solution, and that basic performance metrics for its operations can be observed.\n7.  **Security Framework Alignment:** Ensure that all new data entry points or internal processing introduced by the `feature-notmuch-tagging-1` branch adhere to existing security standards, including input sanitization and API authentication/authorization for any newly exposed internal endpoints from the feature.\n8.  **Database Layer Compatibility:** Update `src/core/database.py` with any necessary adjustments for compatibility with the integrated `NotmuchDataSource`, focusing on using existing data types and query patterns. Ensure transactional integrity for all tagging and AI-related operations introduced by the feature branch.\n9.  **API Exposure & Documentation:** If `feature-notmuch-tagging-1` exposes new capabilities via API endpoints, ensure these are robust, versioned, and documented using OpenAPI/Swagger, adhering to existing security considerations and usage examples.\n10. **Comprehensive Documentation:** Update all relevant design documents, architectural diagrams, and user guides to reflect the integrated `NotmuchDataSource` capabilities, AI integration, and tagging system from the `feature-notmuch-tagging-1` branch.\n\nAll pre-integration alignment work (rebase, conflict resolution) will be performed directly on the `feature-notmuch-tagging-1` branch. The subsequent integration of `feature-notmuch-tagging-1`'s features into `scientific` will be managed through a Pull Request, ensuring the final changes are applied directly to `scientific`.\n\n### Scope Creep Note:\nThis task encompasses a very broad scope, combining branch alignment with the integration of multiple features (NotmuchDataSource, AI analysis, smart tagging, category management) and significant cross-cutting concerns such as scalability, fault tolerance, performance, security hardening, and observability. It is highly recommended to split this into several smaller, more focused tasks (e.g., one for core feature integration, separate tasks for observability, security alignment, and deeper refactoring initiatives) to improve manageability and track progress more effectively.\n\n### Tags:\n- `work_type:feature-integration`\n- `refactoring`\n- `component:notmuch-data-source`, `ai-platform`\n- `scope:scientific-branch`, `data-platform`\n- `purpose:feature-enhancement`, `scalability`, `security`, `architectural-alignment`",
+        "testStrategy": "A rigorous and multi-layered testing strategy is required to ensure the stability, correctness, performance, and security of this complex integration:\n1.  **Expanded Regression Test Suite:** Execute a full regression test suite across the entire application to ensure no existing functionality is broken. This must include performance baselining before and after integration to identify any regressions in response times or resource consumption.\n2.  **Detailed Unit & Integration Tests for NotmuchDataSource:** Develop comprehensive unit tests covering all methods of the `NotmuchDataSource`, including edge cases for each (`delete_email`, `get_dashboard_aggregates` with various date ranges and filters, `get_category_breakdown` with empty data). Integration tests should thoroughly verify the `NotmuchDataSource`'s interaction with the actual database and `SmartFilterManager`.\n3.  **Advanced AI/Background Process Validation:** Create specific integration tests to verify the end-to-end flow of the background AI analysis and tagging processes. This includes testing message queue interactions, error handling for failed AI jobs (e.g., malformed input, AI model errors), retry mechanisms, and the persistence of AI-derived metadata. Validate AI model accuracy with a diverse test dataset, tracking false positives and negatives.\n4.  **Smart Filtering & Tagging System Validation:** Develop comprehensive tests for the `SmartFilterManager` and the new hierarchical tagging system. This includes validating dynamic rule creation, application, and persistence, as well as complex category mapping scenarios (e.g., overlapping tags, nested categories, tag deprecation).\n5.  **Observability & Monitoring Integration:** Ensure that the integrated `feature-notmuch-tagging-1` components (DataSource, AI logic, tagging) correctly utilize the `scientific` branch's existing logging and monitoring infrastructure. Verify that relevant logs are generated and available in the centralized logging solution, and that basic performance metrics for its operations can be observed.\n6.  **Comprehensive Security Testing:** Beyond functional security tests, conduct vulnerability scanning, penetration testing simulations (e.g., SQL injection, XSS for new inputs if applicable, broken access control for new endpoints), and data privacy compliance checks. Verify all input sanitization and authorization rules.\n7.  **Performance, Load, and Stress Testing:** Conduct extensive performance testing, including load tests (simulating expected peak usage), stress tests (exceeding peak usage to find breaking points), and soak tests (long-duration tests to detect memory leaks or resource exhaustion). Focus on the `NotmuchDataSource` aggregation methods and AI background processing under high concurrency.\n8.  **Data Migration & Schema Evolution Testing:** Rigorously test any proposed database schema changes or data migrations. This includes testing forward compatibility (new code with old schema) and backward compatibility (old code with new schema, if necessary for rollback plans). Ensure data integrity and consistency throughout the migration process.\n9.  **User Acceptance Testing (UAT):** Plan and execute UAT sessions with key business stakeholders to validate that the new smart tagging, AI analysis results, and filtering capabilities meet business requirements and provide an intuitive user experience.\n10. **Continuous Integration/Continuous Deployment (CI/CD) Integration:** Ensure all newly developed tests, including unit, integration, and security checks, are integrated into the CI/CD pipeline for automated execution on every code change.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Perform Strategic Branch Alignment and Conflict Resolution",
+            "description": "Initiate by rebasing the `feature-notmuch-tagging-1` branch onto the latest `scientific` branch. Resolve all encountered conflicts directly on `feature-notmuch-tagging-1`. Once conflicts are resolved and the feature branch is aligned, merge the refined `feature-notmuch-tagging-1` into `scientific`, resolving any remaining conflicts. Prioritize `feature-notmuch-tagging-1`'s architectural patterns for its specific functionalities if they are more advanced, documenting these decisions for the final Pull Request.",
+            "dependencies": [],
+            "details": "Checkout `feature-notmuch-tagging-1`. Run `git rebase scientific`. Systematically resolve all conflicts, ensuring `feature-notmuch-tagging-1`'s architectural strengths are preserved where applicable. Once rebase is clean, switch to `scientific` and run `git merge feature-notmuch-tagging-1`. Resolve any final merge conflicts. Document all non-trivial conflict resolutions, especially those involving architectural choices, in a temporary text file or commit message.",
+            "status": "pending",
+            "testStrategy": "Verify successful rebase and merge operations. Conduct a sanity check build and run basic tests on the merged `scientific` branch to ensure no immediate regressions after conflict resolution. Review the codebase for any lingering merge markers or incorrect conflict resolutions."
+          },
+          {
+            "id": 2,
+            "title": "Integrate NotmuchDataSource and Ensure Database Compatibility",
+            "description": "Integrate the `NotmuchDataSource` from `feature-notmuch-tagging-1` into the `scientific` branch. Ensure it fully adheres to the existing `DataSource` interface. Simultaneously, update `src/core/database.py` to ensure compatibility and transactional integrity for all data access patterns introduced by the `NotmuchDataSource`.",
+            "dependencies": [
+              1
+            ],
+            "details": "Migrate the `NotmuchDataSource` class definition and its associated files from `feature-notmuch-tagging-1` to `scientific`. Implement or adapt necessary methods (`delete_email`, `get_dashboard_aggregates`, `get_category_breakdown`) to leverage existing data platform capabilities and ensure performance. Modify `src/core/database.py` to support the `NotmuchDataSource`'s data structures and query needs, ensuring existing data types and transactional integrity for its operations. This includes defining new schemas or extending existing ones if required for Notmuch data.",
+            "status": "pending",
+            "testStrategy": "Develop unit tests for the `NotmuchDataSource` methods (`delete_email`, `get_dashboard_aggregates`, `get_category_breakdown`) to verify correct functionality and data retrieval. Implement integration tests to confirm `NotmuchDataSource` interaction with the database layer via `src/core/database.py` is robust and maintains transactional integrity. Performance tests for data retrieval methods will be conducted using sample Notmuch data."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Core AI Analysis and Tagging Logic",
+            "description": "Integrate the fundamental AI-powered sentiment analysis and categorization logic from `feature-notmuch-tagging-1` into `scientific`'s existing AI processing framework. Ensure this logic operates as a background process and that its output, such as AI-derived tags, is correctly stored and linked within the updated data models.",
+            "dependencies": [],
+            "details": "Extract the core AI analysis and tagging algorithms and integrate them into `scientific`'s AI processing infrastructure (e.g., using existing NLP models or `PromptEngineer` concepts if applicable). Configure the AI logic to run as a background process, potentially leveraging existing task queues or asynchronous processing mechanisms. Define and implement the data structures to store AI-derived tags and ensure they are linked correctly to the `NotmuchDataSource` entities. Update relevant data models to accommodate new tag attributes.",
+            "status": "pending",
+            "testStrategy": "Create unit tests for the AI analysis components, focusing on the accuracy of sentiment analysis and categorization for sample inputs. Implement integration tests to verify the background processing of the AI logic and the correct storage and linking of generated tags to the Notmuch data entities in the database. Test the retrieval of AI-derived tags through the `NotmuchDataSource` to confirm data integrity."
+          }
+        ]
+      },
+      {
         "id": 9,
         "title": "Create Comprehensive Merge Validation Framework",
         "description": "Create a comprehensive validation framework to ensure all architectural updates have been properly implemented before merging scientific branch to main. This framework will leverage research-backed CI/CD practices to validate consistency, functionality, performance, and security across all components, specifically tailored for our Python/FastAPI application. This task is directly linked to the backlog item: `backlog/tasks/alignment/create-merge-validation-framework.md`.",
@@ -545,7 +492,9 @@
             "id": 9,
             "title": "Configure GitHub Branch Protection Rules",
             "description": "Configure GitHub Branch Protection Rules for the `main` branch to enforce that all required CI/CD validation checks must pass before a pull request from `scientific` can be merged.",
-            "dependencies": [],
+            "dependencies": [
+              8
+            ],
             "details": "Access GitHub repository settings, navigate to 'Branches', and configure protection rules for the `main` branch. Enable 'Require status checks to pass before merging' and select all relevant status checks generated by the merge validation framework. Ensure 'Require branches to be up to date before merging' is also enabled.",
             "status": "pending",
             "testStrategy": "Create a PR from `scientific` to `main` that intentionally fails one or more validation checks. Attempt to merge it and confirm that GitHub's branch protection rules prevent the merge. Then, fix the failure, re-run CI, and verify that the PR can now be merged."
@@ -843,7 +792,9 @@
             "id": 9,
             "title": "Implement Chosen Module Resolution and Update References",
             "description": "Execute the chosen strategy from subtask 8. This involves either relocating `deployment/test_stages.py` to `setup/` and updating all import references, or ensuring `deployment` is a package and updating relevant imports.",
-            "dependencies": [],
+            "dependencies": [
+              8
+            ],
             "details": "If moving: move `deployment/test_stages.py` to `setup/test_stages.py`. Ensure any pre-existing `setup/test_stages.py` (if any) is merged or handled. Update all files identified in subtask 6 to correctly import `test_stages` from its new location (e.g., `from setup import test_stages`). Delete the original file from `deployment/`. If restructuring: create `deployment/__init__.py` and update all `from setup import test_stages` to `from deployment import test_stages`.",
             "status": "done",
             "testStrategy": "Initial compile/lint checks to catch basic import errors. Manual verification that file has moved and old path no longer exists. No functional tests at this stage.",
@@ -1157,6 +1108,63 @@
         "expansionPrompt": "Generate subtasks for configuring branch protection rules and merge guards, including identifying critical branches, defining protection policies, configuring the rules in the VCS platform, and thoroughly testing the implemented safeguards."
       },
       {
+        "id": 21,
+        "title": "Create Merge Best Practices Documentation",
+        "description": "Develop comprehensive documentation and training materials for merge operations to improve developer practices and reduce errors.",
+        "details": "Compile a detailed guide in `docs/dev_guides/merge_best_practices.md` on best practices for merging code, specifically addressing common issues encountered during the regression (e.g., handling merge conflicts, resolving data migration conflicts, preserving critical files). Include step-by-step instructions for performing merges, using rebase vs. merge, resolving complex conflicts, and utilizing the newly implemented prevention tools. Outline communication protocols for significant merge operations.\n\n### Tags:\n- `work_type:documentation`\n- `component:git-workflow`\n- `scope:developer-experience`\n- `purpose:stability`",
+        "testStrategy": "Circulate the draft documentation among development team members for review and feedback. Conduct a small training session or workshop based on the materials and observe participant understanding and retention. Use feedback to refine the documentation until it is clear, comprehensive, and effective in guiding merge operations.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          12,
+          13
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Documentation Structure and Key Topics",
+            "description": "Create a detailed outline for the `merge_best_practices.md` document, identifying all necessary sections and key topics based on the parent task's description and project context, such as merge conflict resolution, rebase vs. merge scenarios, prevention tools integration, and communication protocols.",
+            "dependencies": [],
+            "details": "Analyze the parent task description, including common issues during regression (e.g., data migration conflicts, critical file preservation), newly implemented prevention tools (referencing Task 19 when available), and communication protocols. Structure the document logically with headings and subheadings for clear understanding by developers.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Draft Initial Content for Merge Best Practices Guide",
+            "description": "Write the first comprehensive draft of the `docs/dev_guides/merge_best_practices.md` documentation, incorporating all outlined topics. Provide practical, project-specific examples, step-by-step instructions, and relevant code snippets to illustrate best practices for merging.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop content covering topics like advanced merge conflict resolution techniques, when to use rebase vs. merge, how to leverage prevention tools (e.g., pre-merge validation scripts from Task 19) to avoid common issues, and procedures for preserving critical files. Ensure the language is clear, concise, and actionable for developers.",
+            "status": "pending",
+            "testStrategy": "Internal review by the author to ensure all points from the outline (Subtask 1) are addressed and the content flows logically. Verify that examples are clear and relevant."
+          },
+          {
+            "id": 3,
+            "title": "Conduct Internal Review and Refine Documentation",
+            "description": "Circulate the drafted documentation for internal review among a small group of senior developers or technical leads to ensure accuracy, clarity, technical correctness, completeness, and adherence to internal documentation standards. Incorporate all actionable feedback received.",
+            "dependencies": [],
+            "details": "Distribute the draft `docs/dev_guides/merge_best_practices.md` to 2-3 experienced team members for a thorough technical review. Solicit specific feedback on the accuracy of technical details, clarity of explanations, practical applicability of examples, and overall readability. Revise the document based on the consolidated feedback, addressing all identified discrepancies and suggestions.",
+            "status": "pending",
+            "testStrategy": "Ensure all feedback from reviewers is documented and addressed in the revised version of the document. Confirm that reviewers are satisfied with the incorporated changes."
+          },
+          {
+            "id": 4,
+            "title": "Conduct Team Training Session and Gather Final Feedback",
+            "description": "Organize and conduct a training session for the development team based on the refined documentation. Gather final feedback from participants to ensure the guide effectively addresses their needs and improves merge practices, making any necessary minor adjustments.",
+            "dependencies": [],
+            "details": "Prepare a presentation and interactive materials based on the `merge_best_practices.md` document. Schedule and lead a training session for relevant development teams to disseminate the best practices. Encourage questions and discussions. Collect structured feedback from participants through a survey or facilitated discussion to assess the documentation's usefulness and clarity, then apply any final minor refinements.",
+            "status": "pending",
+            "testStrategy": "Observe participant engagement and understanding during the training session. Analyze collected feedback to ensure the documentation is perceived as helpful and clear, and that it effectively addresses developer pain points related to merge operations."
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Generate subtasks for creating merge best practices documentation, including outlining key topics, drafting the content with practical examples, reviewing for accuracy and clarity, and conducting team training/feedback sessions."
+      },
+      {
         "id": 22,
         "title": "Develop Automated Recovery Procedures and Documentation",
         "description": "Develop and document automated recovery procedures for common merge mistakes and data-related incidents to minimize downtime and data loss.",
@@ -1322,7 +1330,9 @@
             "id": 9,
             "title": "Develop Comprehensive Merge Strategy and Scientific Code Preservation Plan",
             "description": "Formulate a detailed plan outlining the approach for merging 'main' features into 'scientific', including specific Git commands (merge, cherry-pick) and a strategy to preserve or adapt 'scientific'-specific code without regressions.",
-            "dependencies": [],
+            "dependencies": [
+              8
+            ],
             "details": "Based on the identified differences (Task 8), devise a step-by-step merge strategy. This plan should specify whether to use a standard merge commit, selective cherry-picking, or manual porting for different sections. Crucially, outline how 'scientific'-specific context management scripts and other unique features will be handled to ensure their continued functionality and prevent conflicts. Document the strategy clearly.",
             "status": "pending",
             "testStrategy": null
@@ -1460,6 +1470,119 @@
         "complexity": 9,
         "recommendedSubtasks": 6,
         "expansionPrompt": "Generate subtasks for restoring the Agent Context Control Module, including Git history research for precise file recovery, thorough code review and integration planning, careful dependency alignment, comprehensive unit and integration test development, and performance evaluation."
+      },
+      {
+        "id": 25,
+        "title": "Restore Core Backend Infrastructure and Functionality",
+        "description": "Restore over 100 backend files, including workflow engines, API routes, database layers, and plugin systems, from the 'main' branch to recover 'src/backend/' and 'src/core/' content.",
+        "details": "This task requires a thorough and systematic approach to recover critical backend components that were lost due to a destructive revert. This restoration impacts Python and TypeScript backends, database systems, and workflow management components.\n1.  **Identify Target Files and Commits:** Precisely identify the specific files within `src/backend/` and `src/core/` that were removed by commit `2abe41e3` or subsequent related reverts. Utilize `git log --oneline --grep=\"2abe41e3\" --stat` and `git diff <commit-hash>~1 <commit-hash> --name-only` to compile a definitive list of lost assets.\n2.  **Strategic File Recovery:**\n    *   Perform a targeted recovery of `src/backend/` and `src/core/` from the `main` branch's state prior to the destructive revert. This can involve `git checkout <source-commit-hash> -- src/backend/` and `git checkout <source-commit-hash> -- src/core/` to reintroduce entire directories.\n    *   For scenarios with potential conflicts or intricate merges, identify individual missing files and selectively cherry-pick their additions from `main`'s history, or manually re-introduce them with careful conflict resolution.\n    *   Ensure all necessary Python `__init__.py` files and TypeScript module entry points (e.g., `index.ts` in `src/backend/` or `src/core/`) are correctly placed to maintain proper package and module recognition.\n3.  **Dependency Reconstruction:** Analyze the restored code for both external and internal dependencies. Update `requirements.txt` for Python, `package.json` for Node.js/TypeScript, and any other relevant dependency management files to reflect the reintroduced backend components. Run dependency installation commands (e.g., `pip install -r requirements.txt`, `npm install`).\n4.  **Database Layer Re-integration:**\n    *   Verify database connectivity, configuration settings, and credentials for all reinstated database systems (e.g., PostgreSQL, MongoDB). Check connection strings in `config/*.json` or environment variables.\n    *   Confirm schema integrity and execute any necessary database migrations (`SQLAlchemy` migrations for Python ORM, `TypeORM` migrations for TypeScript ORM, etc.) to bring the database to the expected state.\n    *   Integrate the restored database layers with the backup and recovery mechanisms established in Task 15, ensuring data resilience.\n5.  **Workflow Engine and API Route Re-activation:**\n    *   Validate that all workflow definitions are present, correctly parsed, and properly configured within the restored workflow engines.\n    *   Verify API route registration, middleware application, and handler mappings to ensure all endpoints are functional and accessible in `src/backend/routes/` or similar.\n    *   Check for proper instantiation, lifecycle management, and execution of plugin systems.\n6.  **Code Review and Refactoring:** Conduct a thorough code review of all restored components. Address any potential integration issues, resolve conflicts arising from the re-introduction, and update any deprecated patterns or practices *necessary for the code to function correctly and integrate with the current architecture*. This refactoring should not encompass large-scale architectural improvements beyond the scope of recovery and immediate functional compatibility. Ensure compatibility with current language versions (e.g., Python 3.9+, TypeScript 4.x+) and leverage static analysis tools (e.g., MyPy, ESLint, Pylint) to identify and rectify immediate issues.\n\n### Tags:\n- `work_type:recovery`\n- `work_type:restoration`\n- `component:backend-core`\n- `component:api`\n- `component:database`\n- `scope:architectural`\n- `scope:system-restoration`\n- `purpose:functional-restoration`\n- `purpose:stability`",
+        "testStrategy": "1.  **Unit Tests:** Execute all existing unit test suites for the restored `src/backend/` and `src/core/` components. Develop new unit tests for any critical functionality or code paths that currently lack coverage, with a focus on API route handlers, workflow engine logic, database abstraction layers, and plugin interfaces.\n2.  **Integration Tests:**\n    *   Perform comprehensive integration tests to verify the end-to-end functionality of key API endpoints, including authentication, authorization, data validation, and response formatting.\n    *   Trigger various workflow scenarios, both simple and complex, to confirm proper execution, state transitions, and data flow through the entire system.\n    *   Validate core database operations (Create, Read, Update, Delete) through the restored backend services, ensuring data persistence and integrity.\n    *   Confirm correct loading, initialization, and execution of all plugin systems.\n3.  **System/E2E Tests:**\n    *   Deploy the restored backend components to a dedicated staging environment that mirrors production as closely as possible.\n    *   Conduct comprehensive system-level and end-to-end tests to ensure all backend services communicate correctly with each other and integrate seamlessly with any dependent frontend applications or external services. Verify that no regressions have been introduced.\n    *   Perform basic load and stress testing to ensure the restored backend components maintain stability and performance under anticipated operational conditions.\n4.  **Data Integrity Verification:** After successful integration, perform data integrity checks. This includes comparing data states before and after critical operations performed via the restored backend, especially for areas related to Task 15's data migration audit and recovery procedures.\n5.  **Preliminary Security Audit:** Conduct a preliminary security scan of the restored code and configurations for common vulnerabilities, such as SQL injection, Cross-Site Scripting (if applicable in API responses), broken access control for new endpoints), and misconfigurations, to identify immediate risks.",
+        "status": "pending",
+        "dependencies": [
+          12,
+          13,
+          22
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Identify All Lost Backend Files and Commits",
+            "description": "Precisely identify all files within `src/backend/` and `src/core/` that were removed by commit `2abe41e3` or subsequent related reverts.",
+            "dependencies": [],
+            "details": "Utilize `git log --oneline --grep=\"2abe41e3\" --stat` and `git diff <commit-hash>~1 <commit-hash> --name-only` to compile a definitive list of lost assets in `src/backend/` and `src/core/`. Document the exact commits that removed them.Investigation for commit `2abe41e3` (Revert \"Merge main into orchestration-tools - complete merge with all files\") is complete. This commit removed 35 files in total. However, it has been confirmed that *none* of these removed files were located within the `src/backend/` or `src/core/` directories. Both `src/backend/` (containing 111 files) and `src/core/` (containing 38 files) are present and intact on the current branch, matching the file counts from the main branch. Therefore, no restoration is needed for these specific directories as a result of commit `2abe41e3`. The files removed by this revert were primarily documentation (e.g., AGENTS.md, GEMINI.md), setup files, and some test files, which are being addressed in other related tasks (e.g., Task 26).",
+            "status": "done",
+            "testStrategy": "Verify that a comprehensive list of all removed files and their associated removal commits is generated and reviewed for accuracy by at least two team members."
+          },
+          {
+            "id": 2,
+            "title": "Recover `src/backend/` Components",
+            "description": "Perform targeted recovery of all identified missing files and directories within `src/backend/` from the `main` branch's history, resolving any conflicts.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use `git checkout <source-commit-hash> -- src/backend/` for directory recovery. For scenarios with conflicts or intricate merges, identify individual missing files and selectively cherry-pick their additions or manually re-introduce them with careful conflict resolution. Ensure all necessary Python `__init__.py` files and TypeScript module entry points (e.g., `index.ts`) are correctly placed.",
+            "status": "done",
+            "testStrategy": "Visually inspect the `src/backend/` directory to confirm the presence of all previously identified missing files and correct directory structure. Verify `__init__.py` and `index.ts` files are in place where required for package/module recognition."
+          },
+          {
+            "id": 3,
+            "title": "Recover `src/core/` Components",
+            "description": "Perform targeted recovery of all identified missing files and directories within `src/core/` from the `main` branch's history, resolving any conflicts.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use `git checkout <source-commit-hash> -- src/core/` for directory recovery. For scenarios with conflicts or intricate merges, identify individual missing files and selectively cherry-pick their additions or manually re-introduce them with careful conflict resolution. Ensure all necessary Python `__init__.py` files and TypeScript module entry points (e.g., `index.ts`) are correctly placed.",
+            "status": "done",
+            "testStrategy": "Visually inspect the `src/core/` directory to confirm the presence of all previously identified missing files and correct directory structure. Verify `__init__.py` and `index.ts` files are in place where required for package/module recognition."
+          },
+          {
+            "id": 4,
+            "title": "Reconstruct and Validate Project Dependencies",
+            "description": "Analyze the restored code, update dependency management files, and install all required external and internal dependencies for Python and Node.js/TypeScript.",
+            "dependencies": [],
+            "details": "Update `requirements.txt` for Python and `package.json` for Node.js/TypeScript based on the restored `src/backend/` and `src/core/` components. Run dependency installation commands like `pip install -r requirements.txt` and `npm install` to ensure all dependencies are resolved and installed correctly.",
+            "status": "done",
+            "testStrategy": "Successfully run dependency installation commands without errors. Verify that all expected libraries and packages are present in the virtual environment or `node_modules` directory. Perform basic import/require tests for key dependencies."
+          },
+          {
+            "id": 5,
+            "title": "Re-integrate and Validate Database Layers",
+            "description": "Verify database connectivity, configuration settings, credentials, schema integrity, and execute necessary migrations for all reinstated database systems.",
+            "dependencies": [
+              4
+            ],
+            "details": "Verify database connectivity, configuration settings, and credentials for all reinstated database systems (e.g., PostgreSQL, MongoDB). Check connection strings in `config/*.json` or environment variables. Confirm schema integrity by reviewing restored ORM models and execute any necessary database migrations (`SQLAlchemy` for Python, `TypeORM` for TypeScript). Ensure integration with backup and recovery mechanisms established in Task 15.",
+            "status": "pending",
+            "testStrategy": "Establish successful database connections for all configured databases. Run all database migrations. Perform basic CRUD operations against key restored models to verify data integrity and schema functionality. Verify that the database layers are correctly interacting with the backup and recovery mechanisms."
+          },
+          {
+            "id": 6,
+            "title": "Re-activate Workflow Engines and API Routes",
+            "description": "Validate that all workflow definitions are present and correctly configured, and that API route registrations, middleware, and handler mappings are functional within the restored backend.",
+            "dependencies": [],
+            "details": "Confirm that all workflow definitions are present, correctly parsed, and properly configured within the restored workflow engines. Verify API route registration, middleware application, and handler mappings to ensure all endpoints are functional and accessible in `src/backend/routes/` or similar. Check for proper instantiation, lifecycle management, and execution of plugin systems.",
+            "status": "pending",
+            "testStrategy": "Use API testing tools (e.g., Postman, curl, Insomnia) to hit key API endpoints and verify expected responses and status codes. Execute sample workflows to confirm their correct parsing and execution. Verify plugin loading and activation through application logs."
+          },
+          {
+            "id": 7,
+            "title": "Initial Code Review and Static Analysis",
+            "description": "Conduct a thorough code review of all restored components, address any potential integration issues, resolve conflicts, and leverage static analysis tools to identify and rectify immediate problems.",
+            "dependencies": [
+              4,
+              6
+            ],
+            "details": "Perform a comprehensive code review focusing on integration points, potential conflicts arising from re-introduction, and deprecated patterns. Utilize static analysis tools such as MyPy, ESLint, and Pylint to identify type errors, linting violations, and other common code quality issues. Resolve all critical and major findings.",
+            "status": "pending",
+            "testStrategy": "Ensure all restored code passes linting and static analysis checks without critical errors. Document review findings and their resolutions. Verify that no obvious integration issues are present after this step by compiling and running basic sanity checks."
+          },
+          {
+            "id": 8,
+            "title": "Comprehensive Multi-level Testing (Unit, Integration, E2E)",
+            "description": "Execute all existing unit, integration, and end-to-end (E2E) test suites for the restored `src/backend/` and `src/core/` components. Develop new unit tests for any critical functionality or code paths that currently lack coverage.",
+            "dependencies": [
+              7
+            ],
+            "details": "Run all pre-existing unit test suites for `src/backend/` and `src/core/` components. Execute integration tests to verify interactions between restored modules and other systems. Run E2E tests to validate full system flows. Create new unit tests for any identified critical functionality gaps, especially for API route handlers, workflow engine logic, and database abstraction layers, ensuring high coverage.",
+            "status": "pending",
+            "testStrategy": "Achieve a high percentage of passing tests across all unit, integration, and E2E suites. Document any test failures and their root causes, tracking them as bugs. Ensure critical new functionality (if any) is covered by new tests, aiming to meet or exceed previous code coverage metrics."
+          },
+          {
+            "id": 9,
+            "title": "Reconcile Task Description with Actual Recovery Scope",
+            "description": "Adjust the overall task description and future subtasks to accurately reflect the discovery in subtask 1 that `src/backend/` and `src/core/` were not affected by commit `2abe41e3` and thus do not require restoration from that specific commit.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update the task's main description to clarify that while this task is about restoring core backend infrastructure, the specific destructive commit `2abe41e3` did *not* impact `src/backend/` or `src/core/`. Instead, focus the task on general backend integrity and functionality recovery, ensuring all critical `src/backend/` and `src/core/` components are present and functional, regardless of the cause of their potential absence (which is now implied to be other factors, not `2abe41e3`). If subsequent commits or other issues necessitate recovery for `src/backend/` or `src/core/`, these steps would still apply.",
+            "status": "pending",
+            "testStrategy": "Review the revised task description and subtasks to ensure they accurately reflect the true scope of recovery needed for `src/backend/` and `src/core/` components, rather than specifically attributing their loss to `2abe41e3`."
+          }
+        ],
+        "complexity": 10,
+        "recommendedSubtasks": 8,
+        "expansionPrompt": "Generate subtasks for restoring core backend infrastructure and functionality, including identifying all lost files and relevant Git history, strategically recovering and integrating 100+ files, reconstructing and validating all dependencies, meticulously re-integrating database layers, reactivating workflow engines and API routes, and performing comprehensive multi-level testing (unit, integration, E2E)."
       },
       {
         "id": 26,
@@ -1817,7 +1940,7 @@
         "description": "Scan all remote branches to identify and resolve any lingering merge conflict markers (<<<<<<< HEAD, =======, >>>>>>>), ensuring a clean and functional codebase.",
         "details": "This task involves a systematic audit and cleanup of merge conflict artifacts across all remote branches. The goal is to eliminate any `<<<<<<<`, `=======`, and `>>>>>>>` markers that indicate unresolved conflicts, which can cause subtle bugs or compilation issues.\n\n1.  **Preparation**: Ensure local repository is up-to-date by running `git fetch --all --prune`. This fetches all remote branches and removes any stale local tracking branches.\n2.  **Branch Iteration**: Programmatically (e.g., using a shell script or Python script) or manually, iterate through every remote-tracking branch (e.g., `origin/main`, `origin/develop`, `origin/feature-X`). For each remote branch:\n    a.  Checkout a new local branch based on the remote branch: `git checkout -b fix/resolve-conflicts-<branch_name> <remote>/<branch_name>`.\n    b.  **Conflict Identification**: Use `git grep -l '<<<<<<<\\|=======\\|>>>>>>>'` across all tracked files to pinpoint files containing merge conflict markers. Focus on all text-based files, including but not limited to: Python files (`src/**/*.py`, `setup/**/*.py`, `scripts/**/*.py`, `tests/**/*.py`), JSON files (e.g., `data/processed/email_data.json`), Markdown documentation (`*.md` files like `AGENTS.md`, `docs/**/*.md`), configuration files (`.github/workflows/*.yml`).\n    c.  **Resolution**: For each identified file, manually inspect and carefully resolve the merge conflict. This requires understanding the context of the conflict and making the correct decision to preserve desired code/data.\n        *   **Python files**: Ensure correct syntax and logical flow after resolution.\n        *   **JSON files**: Validate the JSON structure after resolution. If `data/processed/email_data.json` is affected, pay special attention to data integrity; consider leveraging insights or tooling related to `scripts/restore_json_data.sh` if data corruption is a risk.\n        *   **Documentation files**: Ensure the intended content is preserved and formatting remains consistent.\n    d.  **Commit**: Once conflicts in a branch are resolved, commit the changes with a clear message: `git commit -am 'FIX: Resolved merge conflicts on <branch_name>'`.\n    e.  **Push and PR**: Push the `fix/resolve-conflicts-<branch_name>` branch to remote and, if applicable, open a Pull Request against the original remote branch, requesting review and merge.\n3.  **Documentation**: Maintain a log of all branches where conflicts were found, the files affected, and a brief description of the resolution applied. This log should be stored in `docs/maintenance/merge_conflict_resolutions.md`.\n4.  **Verification**: After each resolution and merge, perform a quick spot-check on the original branch to ensure the conflicts are indeed gone and no new issues were introduced.\n\n### Tags:\n- `work_type:maintenance`\n- `work_type:conflict-resolution`\n- `component:git-workflow`\n- `scope:codebase-wide`\n- `scope:branch-management`\n- `purpose:code-consistency`\n- `purpose:stability`",
         "testStrategy": "1.  **Pre-Resolution State Verification**: Before initiating fixes on a branch, document the specific lines and files containing conflict markers using `git grep` output. This serves as a baseline.\n2.  **Post-Resolution Content Review**: After resolving conflicts in a file, perform a line-by-line review of the changes to ensure the correct code or data has been retained or integrated and no new issues (syntax errors, logical flaws) have been introduced. This is especially critical for files like `src/agents/core.py` or `data/processed/email_data.json`.\n3.  **No New Conflict Markers**: After committing resolutions for a branch, run `git grep -l '<<<<<<<\\|=======\\|>>>>>>>'` again on the cleaned branch to confirm that all conflict markers have been successfully removed.\n4.  **Local Functional Test**: For branches affecting application logic, perform basic functional tests (e.g., run relevant unit tests, execute common commands using `python -m src.main`) to ensure core functionalities are still working as expected.\n5.  **Codebase-wide Search (Final)**: After all resolution branches have been merged back to their respective targets, perform a final `git grep -l '<<<<<<<\\|=======\\|>>>>>>>'` across the entire (locally updated) repository to confirm a clean state.",
-        "status": "deferred",
+        "status": "pending",
         "dependencies": [],
         "priority": "medium",
         "subtasks": [
@@ -2292,8 +2415,7 @@
               3,
               4
             ],
-            "details": "Thoroughly review `src/backend/email_profile/email_profile_manager.py` and any other affected files. Verify that `",
-            "status": "pending"
+            "details": "Thoroughly review `src/backend/email_profile/email_profile_manager.py` and any other affected files. Verify that `"
           }
         ]
       },
@@ -2324,8 +2446,7 @@
             "title": "Evaluate `src/launch.py` Regression Risks via Git History Analysis",
             "description": "Examine the Git commit history of `src/launch.py` to identify periods of high churn or significant reverts that might indicate past or potential regression risks.",
             "dependencies": [],
-            "details": "Utilize `git log --follow src/launch.py` to trace the file's evolution. Analyze commit messages and `git diff` for major changes, reverts, or patterns of 'fix-on",
-            "status": "pending"
+            "details": "Utilize `git log --follow src/launch.py` to trace the file's evolution. Analyze commit messages and `git diff` for major changes, reverts, or patterns of 'fix-on"
           }
         ]
       },
@@ -2429,6 +2550,7 @@
               4,
               6,
               7,
+              8,
               9
             ],
             "details": "Create a new Python 3.12 virtual environment (e.g., `python3.12 -m venv .venv`). Activate the environment. Run the project's dependency installation command (e.g., `poetry install` or `pip install -r requirements.txt`). Execute all existing unit tests and integration tests to confirm no regressions. Manually launch the application or key entry points to verify basic functionality and ensure all dependencies correctly resolve and operate under Python 3.12.",
@@ -2531,7 +2653,9 @@
             "id": 9,
             "title": "Document launch.py Critical Files in dev_guides/critical_files.md",
             "description": "Update the `docs/dev_guides/critical_files.md` documentation to include the newly consolidated list of files essential for `src/launch.py`'s functionality and merge stability.",
-            "dependencies": [],
+            "dependencies": [
+              8
+            ],
             "details": "Edit `docs/dev_guides/critical_files.md` to add a dedicated section or update an existing one that clearly lists and briefly describes the importance of each critical file related to `src/launch.py`.",
             "status": "pending",
             "testStrategy": "Review `docs/dev_guides/critical_files.md`. Verify that the new section for `launch.py` critical files is present, accurate, and easy to understand. Ensure formatting and readability are maintained."
@@ -2551,7 +2675,9 @@
             "id": 11,
             "title": "Enhance CI/CD Critical File Integrity Check for launch.py",
             "description": "Improve the existing critical file validation step in `.github/workflows/pull_request.yml` (potentially from Task 19) to specifically include checks for the presence and basic integrity of the `launch.py`-related critical files.",
-            "dependencies": [],
+            "dependencies": [
+              8
+            ],
             "details": "Update the script or logic behind the existing critical file validation in `.github/workflows/pull_request.yml`. Ensure it now verifies the existence and basic integrity (e.g., not empty, parseable if JSON/YAML) of all files identified in Subtask 8.",
             "status": "pending",
             "testStrategy": "Create a dummy PR: 1) Delete one of the identified `launch.py` critical files (should fail). 2) Corrupt a config file (e.g., invalid JSON/YAML if applicable, should fail). 3) Create a clean PR (should pass). Verify CI workflow outcomes."
@@ -2847,6 +2973,47 @@
         "notes": "## Notes (From Backlog)\n- This security audit was deferred until after Docker/container deployment is implemented\n- Requires coordination with production deployment infrastructure (Task 39)\n- Should be conducted before final production deployment"
       },
       {
+        "id": 43,
+        "title": "Database Refactoring for Dependency Injection & Global State Elimination",
+        "description": "Refactor the core database implementation to eliminate global state management, singleton patterns, and hidden side effects. Implement proper dependency injection for `DatabaseManager` instances. This addresses key weaknesses identified in architectural reviews and aligns with `DataSource` interface requirements.",
+        "details": "Identify all instances of global state and singleton patterns in database-related modules (e.g., `src/core/database.py`, potentially `backend/python_backend/models.py`). Introduce a dependency injection framework (e.g., FastAPI's dependency injection system, or a custom one if needed for core modules) to manage `DatabaseManager` instances. Modify `DatabaseManager` to accept its configuration via constructor arguments or a dedicated factory, rather than relying on global access. Ensure all data access operations use the injected `DatabaseManager` or `DataSource` instances. Remove hidden side effects from database initialization by explicitly managing resource setup and teardown. Consider using SQLAlchemy's session management for transaction safety and connection pooling if not already in place.\n\n### Tags:\n- `work_type:refactoring`\n- `work_type:architectural-improvement`\n- `component:database`\n- `component:data-access`\n- `scope:backend-core`\n- `scope:dependency-injection`\n- `purpose:testability`\n- `purpose:maintainability`\n- `purpose:scalability`",
+        "testStrategy": "Create dedicated unit tests for the `DatabaseManager` class to verify proper dependency injection and removal of global state. Add integration tests to ensure all application components correctly retrieve and use the injected database instances. Verify that no global state variables related to the database are modified or accessed directly after refactoring. Implement performance tests to ensure refactoring doesn't degrade search performance.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Identify & Isolate Global Database State and Singletons",
+            "description": "Conduct a thorough audit of all database-related modules (e.g., `src/core/database.py`, potentially `backend/python_backend/models.py`) to identify existing global variables, singleton patterns (e.g., `_instance`, `_init_lock`), and hidden side effects related to database connection or session management. Document their usage and impact. Isolate these global references as much as possible to prepare for their removal.",
+            "dependencies": [],
+            "details": "Review the `DatabaseManager` class for the `_init_lock`. Analyze `DatabaseSession` for its explicit singleton pattern (`_instance`, `initialize` class methods). Investigate the `_db_manager` global variable currently used by the `get_db()` dependency provider. Examine `MetricsDatabase`'s direct `create_engine` call with `DB_PATH`. Check `SettingsManager` and `WebSocketManager` for direct or indirect reliance on global database state. Document all identified global state, their points of modification, and their consumers. Create a temporary isolation mechanism (e.g., encapsulate global state within a module-level dictionary) if it helps in progressive refactoring, to be replaced later by proper DI.",
+            "status": "pending",
+            "testStrategy": "Documentation of audit findings, including file paths, line numbers, and a brief description of each identified global state or singleton. No new automated tests are required at this stage beyond existing coverage."
+          },
+          {
+            "id": 2,
+            "title": "Refactor Core Database Classes for Non-Global Instantiation",
+            "description": "Modify the `DatabaseManager` and `DatabaseSession` classes to remove all internal global state management and singleton patterns. The `DatabaseManager` constructor must be updated to accept all necessary configurations (e.g., `engine_uri`, `base_dir`) as direct arguments. The `DatabaseSession`'s singleton implementation (`_instance`, `initialize` class methods) must be entirely removed, transforming it into a standard class or a factory that produces SQLAlchemy sessions without relying on global state. Ensure database engine creation and session factories are properly encapsulated within these non-global constructs.",
+            "dependencies": [
+              1
+            ],
+            "details": "Remove the `_init_lock` from `DatabaseManager` or convert it to an instance-specific lock if concurrent access to internal state is still required for instance methods. Remove `_instance`, `_engine`, and `_session_factory` class variables, and the `initialize` class method from `DatabaseSession`. Update `DatabaseSession`'s `__init__` to create its `engine` and `session_factory` upon instantiation, or create a factory function that returns a new `Session` instance. Ensure `DatabaseManager`'s `__init__` fully configures the instance without relying on module-level variables or side effects. Adjust `MetricsDatabase` to accept an `engine` or `session_factory` as an argument instead of creating its own.",
+            "status": "pending",
+            "testStrategy": "Dedicated unit tests for the `DatabaseManager` and `DatabaseSession` classes (or their factory). Verify that multiple instances can be created independently without sharing state. Use mock database connections or in-memory SQLite to test constructor arguments and ensure proper initialization. Ensure resource disposal (`engine.dispose()`) functions correctly per instance."
+          },
+          {
+            "id": 3,
+            "title": "Implement DI for DatabaseManager and Update All Consumers",
+            "description": "Introduce a robust dependency injection mechanism to manage and provide `DatabaseManager` instances throughout the application. For FastAPI endpoints, this will involve implementing a dependency function (e.g., updating `get_db()`) that correctly instantiates or retrieves `DatabaseManager` and manages its lifecycle. All existing codebases (including `WebSocketManager`, `SettingsManager`, and `MetricsDatabase`) that previously relied on global database state or singletons must be updated to receive `DatabaseManager` (or its underlying session/engine) via explicit dependency injection. This ensures all data access operations use properly managed and isolated database instances.",
+            "dependencies": [],
+            "details": "Update the `get_db()` dependency provider to instantiate `DatabaseManager` using its new, non-global constructor arguments and manage its lifecycle (e.g., `engine.dispose()` on application shutdown). Modify `WebSocketManager` to receive `DatabaseManager` via its constructor. Update `SettingsManager` to receive `db_session` (or a `DatabaseManager` instance) via its constructor, removing reliance on the `get_instance` singleton pattern. Update `MetricsDatabase`'s `__init__` method to receive its `engine` or `DatabaseManager` instance via its constructor. Adjust the `run_migrations` function signature and all its call sites to accept a configured `engine` or `DatabaseManager` instance directly. Review all other identified database access points from Subtask 1 and refactor them to use injected dependencies.",
+            "status": "pending",
+            "testStrategy": "Integration tests to ensure that all application components (e.g., FastAPI endpoints, `WebSocketManager`, `SettingsManager`, `MetricsDatabase`) successfully receive and use the injected `DatabaseManager` instances. Develop end-to-end tests to verify that the application functions correctly with the new DI setup, particularly focusing on data persistence and retrieval. Verify the correct lifecycle management of `DatabaseManager` instances, including creation and disposal, in the context of the DI framework."
+          }
+        ]
+      },
+      {
         "id": 44,
         "title": "Standardize Dependency Management System",
         "description": "Consolidate the mixed usage of `uv` and `Poetry` for dependency management into a single, consistent approach across the entire codebase to improve build reliability and developer experience.",
@@ -2884,6 +3051,270 @@
             "details": "Review and update all CI/CD pipeline scripts (e.g., `.github/workflows/*.yml`), local setup scripts, and any `Makefile` or similar build scripts to replace old dependency installation commands (`pip install -r`, `uv venv`, etc.) with commands for the chosen tool (e.g., `poetry install`). Update `README.md` and `docs/developer_guide.md` with detailed instructions on setting up the development environment, adding new dependencies, and managing existing ones using the standardized tool. Include guidelines for specific scenarios where `uv` might be used for speed, if applicable.",
             "status": "pending",
             "testStrategy": "Execute all CI/CD pipelines to confirm successful execution with the updated dependency commands. Test the local development environment setup process on a fresh machine or virtual environment by following the updated documentation. Verify that all project commands and tests can be run successfully after following the new setup instructions. Conduct a peer review of the updated documentation for clarity and accuracy."
+          }
+        ]
+      },
+      {
+        "id": 45,
+        "title": "Implement Dashboard Caching & Background Processing",
+        "description": "Implement a caching layer for dashboard statistics using Redis or an in-memory cache to reduce database load and improve response times. Additionally, introduce background job processing for computationally expensive dashboard calculations (e.g., weekly growth, performance metrics aggregation).",
+        "details": "For caching, integrate Redis client (e.g., `redis-py`) or configure an in-memory cache solution (e.g., `functools.lru_cache` for simple cases, or a more robust library like `cachetools`). Implement caching around `DataSource.get_dashboard_aggregates()` and `DataSource.get_category_breakdown()` methods. Define cache invalidation strategies (e.g., time-based expiry, event-driven invalidation upon data changes). For background jobs, choose a background task queue (e.g., Celery, FastAPI BackgroundTasks, Dramatiq). Move heavy calculations (e.g., `time_saved` calculation, performance metrics aggregation, weekly growth analysis) from API request paths to background jobs. Implement a mechanism to store and retrieve results of background jobs for dashboard display.\n\n### Tags:\n- `work_type:feature-implementation`\n- `work_type:optimization`\n- `component:dashboard`\n- `component:caching`\n- `component:background-processing`\n- `scope:performance`\n- `scope:data-management`\n- `purpose:responsiveness`\n- `purpose:efficiency`",
+        "testStrategy": "Measure API response times for dashboard endpoints before and after caching, verifying significant improvement. Verify that cached data is correctly served and invalidated. Ensure background jobs execute successfully and their results are correctly reflected in the dashboard. Test dashboard performance under high load conditions to confirm scalability benefits.",
+        "priority": "high",
+        "dependencies": [
+          41
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Dashboard Data Caching Layer",
+            "description": "Integrate a caching mechanism (e.g., Redis or a suitable in-memory solution like 'cachetools') to store results from DataSource.get_dashboard_aggregates() and DataSource.get_category_breakdown() methods. This will significantly reduce database load and improve response times for frequently accessed dashboard statistics.",
+            "dependencies": [],
+            "details": "Choose between a dedicated Redis client (e.g., `redis-py`) or a robust in-memory cache library such as `cachetools.TTLCache` or `cachetools.LRUCache`. Integrate the selected cache with the application's data retrieval layer, specifically applying it to the `DataSource.get_dashboard_aggregates()` and `DataSource.get_category_breakdown()` methods. Ensure a consistent and deterministic cache key generation strategy that accounts for different method parameters. Configure initial Time-To-Live (TTL) and maximum cache size.",
+            "status": "pending",
+            "testStrategy": "Unit test the caching mechanism to verify that data is stored and retrieved correctly. Implement integration tests to confirm that subsequent calls to cached methods retrieve data from the cache rather than re-executing the original data source logic. Measure and compare API response times for dashboard endpoints before and after implementing the caching layer to quantify performance improvements."
+          },
+          {
+            "id": 2,
+            "title": "Develop and Implement Cache Invalidation Strategies",
+            "description": "Define and implement appropriate cache invalidation strategies for the dashboard data. This includes both time-based expiry and event-driven invalidation to ensure data freshness and consistency, preventing stale data from being displayed.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement time-based expiry (TTL) for cached dashboard data, setting reasonable durations (e.g., 5-15 minutes) for aggregate statistics. Explore and implement event-driven invalidation mechanisms; for example, if underlying data relevant to the dashboard changes (e.g., new research entry, updated evaluation, task completion), trigger invalidation of affected cache entries. This might involve using a publish-subscribe pattern or directly calling invalidation logic from data modification points. Ensure that cached items are either removed or explicitly marked as stale when their source data is updated.",
+            "status": "pending",
+            "testStrategy": "Test time-based expiry by configuring a short TTL and verifying that cached data is re-fetched from the source after expiration. Test event-driven invalidation by simulating data changes in the system and confirming that relevant dashboard cache entries are cleared, leading to the display of fresh data on subsequent requests."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Background Job Processing for Heavy Calculations",
+            "description": "Move computationally expensive dashboard calculations, such as 'time_saved' analysis, performance metrics aggregation ('compute_aggregate_metrics'), and weekly growth analysis, from synchronous API request paths to an asynchronous background job queue. This will significantly prevent long-running requests and improve overall dashboard responsiveness.",
+            "dependencies": [],
+            "details": "Select and set up a background task queue system (e.g., Celery with Redis/RabbitMQ as a broker, or FastAPI BackgroundTasks for simpler cases). Identify specific heavy calculations like the `time_saved` calculation, the various `compute_aggregate_metrics` and `compute_aggregate_metrics_multiple_runs` functions, and any weekly growth analysis logic. Refactor these calculations into independent functions that can be submitted as background jobs. Implement a mechanism (e.g., a dedicated database table or a persistent key-value store) to store the processed results of these background jobs. Update the dashboard display logic to asynchronously retrieve and present the latest available results from this persistent storage.",
+            "status": "pending",
+            "testStrategy": "Verify that identified heavy calculations no longer block synchronous API responses by confirming their execution is offloaded to background jobs. Ensure that background jobs execute successfully, process data correctly, and store results accurately. Test the storage and retrieval mechanisms for background job results, verifying that the dashboard displays the latest processed data reliably. Monitor the background job queue for successful job processing, error handling, and resource utilization."
+          }
+        ]
+      },
+      {
+        "id": 46,
+        "title": "Implement WebSocket Support for Real-time Dashboard Updates",
+        "description": "Implement WebSocket support for real-time dashboard updates, allowing live streaming of metrics and automatic UI updates when data changes without requiring manual refresh.",
+        "details": "Integrate a WebSocket library into the FastAPI application (FastAPI has built-in WebSocket support). Create a WebSocket endpoint (e.g., `/ws/dashboard`). Establish a mechanism for the backend to push updates to connected clients (e.g., when a background job completes, or data changes). On the frontend (Gradio UI), implement WebSocket client logic to subscribe to updates and dynamically update dashboard components. Consider using a message broker (like Redis Pub/Sub) to fan out messages to multiple connected WebSocket clients.\n\n### Tags:\n- `work_type:feature-implementation`\n- `work_type:real-time`\n- `component:dashboard`\n- `component:websocket",
+        "testStrategy": "Verify that dashboard metrics update automatically in the UI in response to backend data changes. Test WebSocket connection stability and message delivery under various network conditions. Ensure that multiple concurrent users receive real-time updates correctly. Monitor server resource usage with active WebSocket connections.",
+        "priority": "high",
+        "dependencies": [
+          43
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Backend WebSocket Endpoint and Redis Pub/Sub Integration",
+            "description": "Create a FastAPI WebSocket endpoint (`/ws/dashboard`) to handle client connections. Integrate a message broker (e.g., Redis Pub/Sub) to manage and broadcast real-time updates to all connected dashboard clients efficiently. This involves setting up the connection manager and the broadcasting logic.",
+            "dependencies": [],
+            "details": "Implement methods within a `WebSocketManager` for connecting clients, accepting messages, and broadcasting messages. Configure Redis Pub/Sub as the backend for message fanning out. Ensure proper error handling and connection lifecycle management, drawing inspiration from the `WebSocketManager` class provided in the context.",
+            "status": "pending",
+            "testStrategy": "Use WebSocket testing tools (e.g., `websockets` library in Python, Postman) to connect to the `/ws/dashboard` endpoint. Verify that multiple clients can connect simultaneously. Test publishing a message to Redis Pub/Sub and confirm that all connected clients receive it correctly."
+          },
+          {
+            "id": 2,
+            "title": "Implement Data Change Trigger and Backend Update Broadcasting Logic",
+            "description": "Identify key points in the backend where dashboard data changes or background jobs complete (e.g., results from Task 45). Implement logic to trigger the WebSocket message broadcasting mechanism from Subtask 1 with relevant dashboard metrics or status updates whenever these events occur.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify relevant data update functions (e.g., after `DataSource.get_dashboard_aggregates()` or `DataSource.get_category_breakdown()` complete, or when a background task finishes) to publish standardized JSON messages containing dashboard metrics or status updates to the Redis Pub/Sub channel used by the WebSocket endpoint.",
+            "status": "pending",
+            "testStrategy": "Simulate data changes or background job completions in the backend. Monitor Redis Pub/Sub to confirm messages are published. Verify that a WebSocket client connected to `/ws/dashboard` receives the expected messages with accurate content and in a timely manner."
+          },
+          {
+            "id": 3,
+            "title": "Develop Gradio Frontend WebSocket Client for Real-time Updates",
+            "description": "Implement the client-side WebSocket logic within the Gradio UI. This includes establishing a connection to the `/ws/dashboard` endpoint, subscribing to real-time updates, and dynamically updating dashboard components (charts, metrics, tables) based on received messages.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use JavaScript's `WebSocket` API or a suitable library within the Gradio frontend to connect to the backend WebSocket endpoint. Parse incoming JSON messages and update the Gradio UI elements (e.g., `gr.Markdown`, `gr.Plot`, `gr.Dataframe`) accordingly. Implement robust connection status handling (e.g., display loading indicators, reconnection attempts).",
+            "status": "pending",
+            "testStrategy": "Open the Gradio dashboard UI in multiple browser tabs/users. Trigger backend data changes (manual or simulated) and verify that all opened UIs update automatically and immediately without manual refresh. Test robustness by intentionally disconnecting and reconnecting the client WebSocket."
+          }
+        ]
+      },
+      {
+        "id": 47,
+        "title": "Implement Dashboard Export Functionality (CSV, PDF, JSON)",
+        "description": "Implement comprehensive export functionality for dashboard statistics and reports in multiple formats (CSV, PDF, JSON) for data analysis and sharing.",
+        "details": "On the backend, create API endpoints for each export format (e.g., `/api/dashboard/export/csv`, `/api/dashboard/export/pdf`, `/api/dashboard/export/json`). Use appropriate libraries for data serialization: `pandas` for CSV, `reportlab` or `Fpdf` for PDF generation, `json` module for JSON. Handle large datasets efficiently, potentially integrating with background processing. Ensure proper content-type headers for file downloads. On the frontend (Gradio UI), add UI elements (buttons/dropdowns) to trigger export for each format. Handle file downloads in the browser.",
+        "testStrategy": "Verify that exported files are generated correctly for each format and contain accurate data. Test with various dashboard configurations and data volumes. Ensure proper file naming and download experience. Validate data integrity in exported files against displayed dashboard data.",
+        "priority": "medium",
+        "dependencies": [
+          43
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Backend CSV Export API and Data Generation",
+            "description": "Develop a backend API endpoint (`/api/dashboard/export/csv`) that retrieves dashboard statistics, converts them into a structured CSV format, and serves the file for download.",
+            "dependencies": [],
+            "details": "Create a FastAPI endpoint at `/api/dashboard/export/csv`. Retrieve relevant dashboard data using existing data source methods (e.g., `DataSource.get_dashboard_aggregates()`). Use Python's `csv` module or `pandas.DataFrame.to_csv` with `io.StringIO` to construct the CSV content dynamically. Ensure proper `Content-Type: text/csv` and `Content-Disposition` headers are set for browser download, including a filename like `dashboard_report.csv`. Focus on handling a typical dataset size efficiently in memory.",
+            "status": "pending",
+            "testStrategy": "Verify that accessing `/api/dashboard/export/csv` downloads a file named `dashboard_report.csv` (or similar). Open the CSV file and confirm its structure, header rows, and data accuracy against displayed dashboard data. Test with different data volumes to ensure no corruption."
+          },
+          {
+            "id": 2,
+            "title": "Implement Backend JSON Export API and Data Generation",
+            "description": "Develop a backend API endpoint (`/api/dashboard/export/json`) that retrieves dashboard statistics, serializes them into a standard JSON format, and serves the file for download.",
+            "dependencies": [],
+            "details": "Create a FastAPI endpoint at `/api/dashboard/export/json`. Fetch dashboard data from the application's data sources. Serialize the retrieved data into a valid JSON string using Python's `json` module. Set the `Content-Type: application/json` and `Content-Disposition` headers to enable direct file download (e.g., `dashboard_report.json`). Ensure the JSON output is well-formatted and easily parseable.",
+            "status": "pending",
+            "testStrategy": "Verify that accessing `/api/dashboard/export/json` downloads a file named `dashboard_report.json`. Open the JSON file in a text editor or JSON viewer and confirm its validity, structure, and data content against the dashboard."
+          },
+          {
+            "id": 3,
+            "title": "Implement Backend PDF Export API and Document Generation",
+            "description": "Develop a backend API endpoint (`/api/dashboard/export/pdf`) that retrieves dashboard statistics, renders them into a formatted PDF document, and serves the file for download.",
+            "dependencies": [],
+            "details": "Create a FastAPI endpoint at `/api/dashboard/export/pdf`. Obtain dashboard data from existing data access layers. Utilize a Python PDF generation library such as `ReportLab` or `Fpdf` to create a new PDF document. Structure the PDF with a title, relevant dashboard metrics, and possibly tables or charts (as text descriptions for now). Set the `Content-Type: application/pdf` and `Content-Disposition` headers for file download (e.g., `dashboard_report.pdf`).",
+            "status": "pending",
+            "testStrategy": "Verify that accessing `/api/dashboard/export/pdf` downloads a PDF file. Open the PDF to visually inspect the layout, readability, and presence of all expected dashboard data. Confirm that text content within the PDF accurately reflects the dashboard statistics."
+          }
+        ]
+      },
+      {
+        "id": 48,
+        "title": "Develop Comprehensive Dashboard API for Programmatic Access (Scientific Branch)",
+        "description": "Develop a robust REST API for dashboard functionality, enabling programmatic access to dashboard data, third-party integrations, and automated workflows. This task should be implemented within the scientific branch as it adds new API capabilities.",
+        "details": "Design and implement new FastAPI endpoints (e.g., under `/api/scientific/dashboard`) to expose all dashboard statistics and aggregation methods (email stats, categories, unread counts, auto-labeled, time saved, weekly growth, performance metrics). Define clear request/response models using Pydantic. Implement proper authentication and authorization mechanisms (using `get_current_active_user` dependency from existing `task-32`). Ensure efficient data retrieval, leveraging the caching and background processing implemented in `task-43`. Provide API documentation (e.g., using FastAPI's automatic OpenAPI/Swagger UI generation).",
+        "testStrategy": "Develop API integration tests to verify all endpoints return correct data and handle various input parameters. Test authentication and authorization for API access. Verify API performance and scalability under load. Ensure API documentation is accurate and up-to-date.",
+        "priority": "high",
+        "dependencies": [
+          43
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Dashboard API Endpoints and Pydantic Schemas",
+            "description": "Identify all required dashboard statistics (email stats, categories, unread counts, auto-labeled, time saved, weekly growth, performance metrics). Design the REST API endpoints and their URL structure (e.g., `/api/scientific/dashboard/email_stats`). Define clear request and response Pydantic models for each endpoint, ensuring they accurately represent the data structures and validation rules.",
+            "dependencies": [],
+            "details": "Create a design document or set of Pydantic model definitions (e.g., `app/schemas/dashboard.py`) for the various dashboard data points and aggregations. This includes defining data types, validation rules, and example responses for: email statistics (total, average, sentiment), category distribution, unread counts, auto-labeled counts, time saved calculations, weekly growth metrics, and overall performance indicators.",
+            "status": "pending",
+            "testStrategy": "Review Pydantic models for correctness, completeness, and adherence to data types. Verify endpoint designs align with RESTful principles and cover all required dashboard metrics."
+          },
+          {
+            "id": 2,
+            "title": "Implement FastAPI Endpoints with Authentication and Data Logic",
+            "description": "Develop the FastAPI endpoints based on the designed schemas. Integrate `get_current_active_user` for authentication and authorization (from `task-32`). Implement the data retrieval logic for each dashboard metric, ensuring efficient access and leveraging the caching and background processing mechanisms from `task-43`.",
+            "dependencies": [
+              43
+            ],
+            "details": "Create a new router (`app/api/scientific/dashboard.py`) and implement `GET` endpoints for each dashboard metric. Utilize dependency injection for `get_current_active_user` to secure access. For data retrieval, interface with existing services or database queries. Ensure that calls to underlying data services are properly cached or processed in the background as per `task-43` to optimize performance.",
+            "status": "pending",
+            "testStrategy": "Unit tests for data retrieval functions. Integration tests for each endpoint to verify data correctness, proper authentication/authorization handling (both success and failure cases), and effective use of caching/background processing."
+          },
+          {
+            "id": 3,
+            "title": "Generate OpenAPI Docs and Develop Comprehensive Integration Tests",
+            "description": "Ensure FastAPI's automatic OpenAPI/Swagger UI generation accurately reflects the implemented dashboard API endpoints and their Pydantic models. Develop a comprehensive suite of integration tests to validate the functionality, data integrity, authentication/authorization, and performance of the dashboard API.",
+            "dependencies": [
+              1
+            ],
+            "details": "Verify that the FastAPI application is configured to expose OpenAPI documentation. Access the `/docs` and `/redoc` endpoints to confirm all dashboard API endpoints are listed correctly with their request/response schemas. Write integration tests using `pytest` and `httpx` (or `requests`) to call each endpoint, assert correct data formats and values, test various edge cases, and verify authentication token usage.",
+            "status": "pending",
+            "testStrategy": "Manual verification of generated OpenAPI/Swagger UI documentation. Automated integration tests covering all happy paths, error conditions (e.g., unauthorized access, invalid input), and data consistency. Measure response times for key endpoints under simulated load if possible."
+          }
+        ]
+      },
+      {
+        "id": 49,
+        "title": "Implement Multi-Tenant Dashboard Support (Scientific Branch)",
+        "description": "Enable a multi-tenant architecture for dashboard deployment, allowing multiple organizations to use isolated dashboard instances with proper data segregation and tenant-specific configurations. This task should be implemented in the scientific branch.",
+        "details": "Implement a mechanism to associate all dashboard data with a specific tenant ID. This could involve adding a `tenant_id` column to relevant database tables and filtering all queries by this ID. Extend existing authentication to include tenant identification, ensuring users only access data for their assigned tenant(s). Implement a system for storing and retrieving tenant-specific configurations (e.g., branding, feature flags, data source settings). Modify existing dashboard endpoints and data retrieval logic to operate within the context of the authenticated tenant. Consider how new tenants will be provisioned and managed.",
+        "testStrategy": "Create multiple test tenants and verify complete data isolation between them. Test user access control, ensuring users cannot access data from other tenants. Verify that tenant-specific configurations are correctly applied. Stress test the multi-tenant setup to ensure performance and scalability are maintained.",
+        "priority": "high",
+        "dependencies": [
+          46
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Database Schema and Data Access Layer Implementation for Multi-Tenancy",
+            "description": "Modify relevant database tables to include a 'tenant_id' column, ensuring all dashboard-related data can be associated with a specific tenant. Update existing data models (e.g., using SQLModel/SQLAlchemy) to incorporate 'tenant_id' and implement global query filters or session-level tenant context to automatically filter data based on the active tenant's ID. This includes handling foreign key constraints and indexing for 'tenant_id'.",
+            "dependencies": [
+              46
+            ],
+            "details": "Identify all dashboard-related tables (e.g., those storing metrics, configurations, user-generated content) that require a 'tenant_id' column. Add a 'tenant_id' column (e.g., UUID type) to these tables, ensuring it's properly indexed for performance. Update SQLModel/SQLAlchemy ORM definitions to reflect the new column. Modify the 'DatabaseManager' class or equivalent data access methods to automatically include 'tenant_id' in all CRUD operations (insert, update, delete, select) by accepting a 'tenant_id' parameter or retrieving it from a context variable. Implement mechanisms to enforce tenant isolation at the database query level.",
+            "status": "pending",
+            "testStrategy": "Create unit tests for all CRUD operations on affected database tables. Verify that data inserted by one tenant cannot be retrieved by another tenant's query. Ensure that filtering by 'tenant_id' correctly isolates data. Test performance of queries with 'tenant_id' filtering on large datasets. Validate foreign key constraints involving 'tenant_id' if applicable."
+          },
+          {
+            "id": 2,
+            "title": "Implement Tenant Identification in Authentication & Authorization",
+            "description": "Extend the existing authentication system to identify the 'tenant_id' of the logged-in user. Based on this 'tenant_id', enforce strict authorization policies, ensuring users can only access data and configurations belonging to their assigned tenant(s). This involves storing 'tenant_id' in user sessions or authentication tokens.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify the user authentication flow (e.g., login, token generation) to retrieve and embed the 'tenant_id' into the user's session or authentication token (e.g., JWT payload). Implement FastAPI dependencies or middleware to extract the 'tenant_id' from authenticated requests. Develop authorization logic to use this extracted 'tenant_id' to validate access to resources and to pass it down to the data access layer (from subtask 1). Ensure that all API endpoints and dashboard components receive the correct tenant context.",
+            "status": "pending",
+            "testStrategy": "Test authentication with multiple users associated with different tenants. Verify that authentication tokens correctly contain the 'tenant_id'. Attempt to access API endpoints for data of a tenant different from the authenticated user's tenant and confirm that access is denied with appropriate error messages. Verify that users associated with a specific tenant can only view/modify their own tenant's data."
+          },
+          {
+            "id": 3,
+            "title": "Develop Tenant-Specific Configuration Management and Dashboard Adapters",
+            "description": "Implement a system to store, retrieve, and apply tenant-specific configurations (e.g., branding, feature flags, data source settings, custom dashboards). Modify existing dashboard endpoints and data retrieval logic to dynamically load and display content and settings tailored to the authenticated tenant.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define a flexible schema for storing tenant configurations (e.g., as a JSONB field in a dedicated 'tenants' table or a 'tenant_config' table). Create API endpoints for CRUD operations on tenant configurations, accessible only to authorized personnel. Update existing dashboard rendering logic (Gradio UI components) to fetch and apply the specific configuration for the active tenant. Refactor dashboard API endpoints (e.g., '/metrics_dashboard', '/benchmark_dashboard') to dynamically load data sources, layouts, and filters based on the authenticated 'tenant_id' from the authorization context. Plan for default configurations for new tenants.",
+            "status": "pending",
+            "testStrategy": "Create and update configurations for several test tenants. Verify that when a user from a specific tenant logs in, their dashboard displays the correct branding, enabled features, and data source settings as defined in their tenant configuration. Test that changes to tenant configurations are immediately reflected in the dashboard. Ensure tenant-specific dashboards only display data relevant to that tenant, utilizing the tenant-scoped data access layer."
+          }
+        ]
+      },
+      {
+        "id": 50,
+        "title": "Integrate AI Insights Engine with Dashboard (Scientific Branch)",
+        "description": "Implement an AI insights engine that uses machine learning to provide intelligent recommendations for email management optimization, such as categorization improvements and workflow suggestions, and integrate these insights into the dashboard. This task builds on existing AI capabilities in the scientific branch.",
+        "details": "Enhance the AI engine (potentially building upon the `PromptEngineer` concept or existing NLP models) to generate actionable insights from email data (e.g., identifying frequently miscategorized emails, suggesting new categories, flagging unusual communication patterns). Expose AI-generated insights via new endpoints in the Dashboard API (`task-46`), e.g., `/api/scientific/dashboard/ai-insights`. Design and implement new UI components within the Gradio dashboard to display these insights (e.g., a 'Recommendations' widget, an 'AI Analysis Summary' section). Leverage existing AI model management (`task-high.1`) for loading/unloading necessary models.",
+        "testStrategy": "Verify that AI insights are accurately generated and displayed in the dashboard. Test the relevance and usefulness of recommendations provided by the AI engine. Ensure the integration scales with varying data volumes and model complexities. Conduct A/B testing (if `task-52` from PRD is implemented) on different ways to present AI insights to users.",
+        "priority": "high",
+        "dependencies": [
+          46
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Enhance AI Engine for Email Management Insights",
+            "description": "Extend the existing AI engine (potentially building upon `PromptEngineer` concepts or existing NLP models) within the scientific branch to analyze email data and generate specific, actionable insights for optimization. This includes identifying frequently miscategorized emails, suggesting new categories based on content, and detecting unusual communication patterns. This subtask requires leveraging existing AI model management (`task-high.1`) for loading and unloading necessary models efficiently.",
+            "dependencies": [],
+            "details": "Develop or adapt NLP models for tasks like classification error detection, topic modeling for new category suggestions, and anomaly detection in email communication. Integrate these models into the AI engine. Ensure the output format of these insights is structured and easily consumable by the API layer. Implement efficient model loading and unloading mechanisms using `task-high.1`'s capabilities to manage computational resources.",
+            "status": "pending",
+            "testStrategy": "Develop comprehensive datasets containing examples of miscategorized emails, potential new categories, and anomalous communication to test the accuracy and relevance of generated insights. Implement unit tests for each new AI model component. Verify model loading and unloading functionalities with `task-high.1`."
+          },
+          {
+            "id": 2,
+            "title": "Develop AI Insights API Endpoints for Scientific Dashboard",
+            "description": "Implement new backend API endpoints within the scientific branch's Dashboard API (`task-46`) to expose the AI-generated email management insights. These endpoints will serve structured data for insights such as frequently miscategorized emails, suggested new categories, and detected unusual communication patterns to the frontend Gradio dashboard.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define a clear API contract (request/response format) for new endpoints like `/api/scientific/dashboard/ai-insights` and potentially more specific sub-endpoints. Implement the data retrieval logic that interfaces with the enhanced AI engine (Subtask 1) to fetch the generated insights. Ensure proper data serialization, error handling, and security measures are in place, aligning with the existing Dashboard API structure (`task-46`).",
+            "status": "pending",
+            "testStrategy": "Write unit tests for each new endpoint to verify correct data retrieval and formatting. Implement integration tests to ensure seamless communication between the new API endpoints and the enhanced AI engine (Subtask 1), using mocked or dummy AI insight data initially. Verify compliance with API specifications defined in `task-46`."
+          },
+          {
+            "id": 3,
+            "title": "Implement Dashboard UI Components for AI Insights Display",
+            "description": "Design and develop new user interface components and dedicated sections within the Gradio dashboard to visually present the AI-generated insights for email management optimization. This includes creating interactive widgets for recommendations, an 'AI Analysis Summary' section, and potentially detailed views for specific insights.",
+            "dependencies": [],
+            "details": "Design the UI/UX for various insight types, considering clarity and actionability. Examples include bar charts for miscategorization frequency, expandable lists for suggested new categories with example emails, and timeline visualizations for unusual communication patterns. Implement frontend logic to fetch data from the newly developed `/api/scientific/dashboard/ai-insights` API endpoints (Subtask 2) and render it using appropriate Gradio components. Ensure responsiveness and user-friendliness.",
+            "status": "pending",
+            "testStrategy": "Conduct end-to-end testing to verify that AI insights are accurately fetched from the backend (Subtask 2) and displayed correctly in the Gradio dashboard. Perform user acceptance testing (UAT) to assess the usability, clarity, and relevance of the displayed recommendations. Check for responsiveness across different screen sizes and ensure UI components are interactive as intended."
           }
         ]
       },
@@ -2977,7 +3408,7 @@
         "testStrategy": "1.  **Task 2 Completion Verification**: Confirm that Task 2 (the actual migration execution) is marked as complete, with all its sub-tasks successfully verified according to its own test strategy.\n2.  **Validation Framework Execution Report Review**: Review the results from the Merge Validation Framework (Task 7). Specifically, verify that all architectural, functional, performance, and security checks related to the `src/backend` migration pass successfully on the `scientific` branch. This includes reviewing output from `pytest` runs and static analysis tools.\n3.  **Smoke Test and Functionality Check**: Conduct high-level, manual smoke tests or request reports from the QA team to ensure critical API endpoints (e.g., `/api/v1/health`, core AI services, database interactions) are fully functional on the `scientific` branch after migration.\n4.  **Dependency Review**: Verify that tasks dependent on the migration (e.g., Task 3 and Task 4) can proceed without encountering foundational issues related to the `src/backend` structure.\n5.  **Stakeholder Sign-off**: Obtain formal sign-off from relevant stakeholders (e.g., project lead, architecture review board) confirming satisfaction with the completed migration and its adherence to architectural standards.",
         "status": "pending",
         "dependencies": [
-          4
+          "7"
         ],
         "priority": "high",
         "subtasks": [
@@ -3027,492 +3458,12 @@
             "parentTaskId": 11
           }
         ]
-      },
-      {
-        "id": 54,
-        "title": "Establish Core Branch Alignment Framework",
-        "description": "Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.",
-        "details": "This task involves setting up the environment by ensuring existing dependencies (Task 9, 19, 20, 21) are properly configured and integrated into a unified workflow. This includes configuring local Git settings to reflect branch protection rules (similar to Task 20 but for local development, e.g., using pre-commit hooks or local Git configuration checks), making sure pre-merge validation scripts (Task 19) are executable, and the comprehensive merge validation framework (Task 9) is ready for use. The documentation from Task 21 will serve as the primary guide. The goal is to create a 'local' version of these rules and frameworks that can be run by a single developer before pushing changes, ensuring adherence to governance without needing full CI/CD for every step. Use Python for scripting configurations where possible. Example: a Python script to check current Git branch and prevent certain operations if not on a feature branch, or to prompt for code review before allowing a push to a primary-like local branch.",
-        "testStrategy": "Verify that branch protection settings, merge guard simulations, and pre-merge scripts can be triggered and provide expected feedback. Confirm that best practices documentation (Task 21) is accessible and accurately reflects the local setup. Test with dummy repositories to ensure rules prevent direct commits/pushes to 'primary' branches without proper procedure. Check that the comprehensive merge validation framework (Task 9) can be invoked manually.",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 55,
-        "title": "Develop Automated Error Detection Scripts for Merges",
-        "description": "Implement scripts to automatically detect and flag common merge-related errors such as merge artifacts (<<<<<<<, =======, >>>>>>>), garbled text/encoding issues, missing imports, and accidentally deleted modules after a branch alignment operation.",
-        "details": "Create Python scripts to analyze changed files post-merge/rebase. \n1.  **Merge Artifacts:** Use `git diff --check` or `grep -E '^(<<<<<<<|=======|>>>>>>>)'` in changed files to find uncleaned merge markers. \n2.  **Garbled Text/Encoding:** Implement checks for common encoding errors. Files can be opened with `utf-8` and fallbacks (e.g., `errors='replace'`) and then checked for replacement characters or patterns indicating malformed text. Consider using `chardet` for initial encoding detection if files are not strictly UTF-8. \n3.  **Missing Imports:** For Python files, parse the AST (`ast` module) to extract import statements and verify that the imported modules/packages exist in the current environment or codebase. For other languages (if applicable), use `grep` or language-specific parsers to identify import/require statements and check for corresponding file paths. \n4.  **Accidentally Deleted Modules:** Compare the file list before and after alignment using `git diff --name-only --diff-filter=D` to identify deleted files. For modules, check if any deleted files were part of an active import path. The scripts should log findings and, if possible, suggest corrective actions. Output should be concise for a single developer.",
-        "testStrategy": "Create test branches with deliberate merge conflicts, garbled text (e.g., inserting non-UTF8 chars), removing an imported file, and introducing un-resolved merge markers. Run the developed scripts on these branches and verify that all error types are correctly identified and reported. Ensure false positives are minimized.",
-        "priority": "high",
-        "dependencies": [
-          54
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 56,
-        "title": "Implement Robust Branch Backup and Restore Mechanism",
-        "description": "Develop and integrate procedures for creating temporary local backups of feature and primary branches before any significant alignment operations, and a mechanism to restore these backups if issues arise.",
-        "details": "Before initiating any `git rebase` or `git merge` operation on a feature branch, create a temporary backup branch using `git branch backup-<original_branch_name>-<timestamp> <original_branch_name>`. For primary branches, if 'targeted modifications' are allowed and carry significant risk, consider creating a more comprehensive backup, such as `git clone --mirror` to a local temporary directory or creating a remote backup branch. The mechanism should allow for easy restoration (e.g., `git reset --hard backup-<branch_name>`) and clean-up of temporary backup branches after successful alignment. This should be a Python script that wraps Git commands, ensuring backup creation is part of the automated workflow before destructive operations.",
-        "testStrategy": "Perform a branch alignment on a dummy feature branch. Before alignment, execute the backup procedure. Introduce an error during alignment. Attempt to restore the branch using the implemented mechanism. Verify that the branch is successfully restored to its pre-alignment state. Test both successful backup/restore and clean-up of temporary branches.",
-        "priority": "high",
-        "dependencies": [
-          54
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 57,
-        "title": "Develop Feature Branch Identification and Categorization Tool",
-        "description": "Create a Python tool to automatically identify active feature branches, analyze their Git history, and suggest the optimal primary branch target (main, scientific, or orchestration-tools) based on codebase similarity and shared history.",
-        "details": "The tool should use `GitPython` or direct `git` CLI commands to:\n1.  List all remote feature branches: `git branch -r --list 'origin/feature-*'`. \n2.  For each feature branch, determine its common ancestor with `main`, `scientific`, and `orchestration-tools` using `git merge-base`. \n3.  Analyze `git log --oneline <common_ancestor>..<feature_branch>` and `git log --oneline <common_ancestor>..<primary_branch>` to find shared history depth and divergent changes. \n4.  Calculate codebase similarity (e.g., by comparing file hashes or a simpler heuristic like shared file paths) between the feature branch and each potential primary target. This could involve comparing `git ls-tree -r <branch>` outputs or `git diff --stat` from the common ancestor. \n5.  Suggest the most suitable primary target based on criteria like the longest shared history, fewest divergent changes, or highest codebase similarity. \n6.  Output a categorized list of feature branches, e.g., a JSON or CSV file, with suggested primary targets and a confidence score or rationale. This tool should be command-line executable.",
-        "testStrategy": "Create a test repository with several feature branches diverging from `main`, `scientific`, and `orchestration-tools` at different points, with varying degrees of shared history and divergence. Manually determine the correct primary target for each. Run the tool and compare its output categorization against the manual assessment. Verify that it correctly identifies complex branches (e.g., `feature-notmuch*`) if they have significantly divergent histories or unique dependencies.",
-        "priority": "medium",
-        "dependencies": [
-          54
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 58,
-        "title": "Automate Changes Summary and Alignment Checklist Generation",
-        "description": "Design and implement templates for `CHANGES_SUMMARY.md` and `ALIGNMENT_CHECKLIST.md` and develop a script to semi-automatically generate and update these documents for each aligned feature branch, providing a clear record of modifications.",
-        "details": "Define a Markdown template for `CHANGES_SUMMARY.md` that includes sections for new features, bug fixes, architectural modifications, rationale for deviations, and alignment details (e.g., target primary branch, merge/rebase strategy used). The script should:\n1.  Prompt the developer for key information or extract it from commit messages (`git log --format='...'`) within the aligned range (`git log <common_ancestor>..<feature_branch>`). \n2.  Populate the `CHANGES_SUMMARY.md` template. \n3.  For `ALIGNMENT_CHECKLIST.md`, maintain a central Markdown file that lists all feature branches, their status (e.g., 'pending alignment', 'aligned to main', 'validation pending'), and links to their `CHANGES_SUMMARY.md`. The script should update this central checklist upon successful alignment. \n4.  Leverage Python's `os` and file I/O for reading/writing Markdown files. The `parse_readme_content` snippets provided could be adapted for parsing sections if needed, though for *generating* new Markdown, simpler string formatting would suffice.",
-        "testStrategy": "After performing a sample branch alignment, execute the script. Verify that `CHANGES_SUMMARY.md` is generated correctly with all relevant sections populated (even if with placeholder text for manual input). Ensure that `ALIGNMENT_CHECKLIST.md` is updated with the status of the aligned feature branch. Check that the markdown formatting is correct and readable.",
-        "priority": "medium",
-        "dependencies": [
-          54
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 59,
-        "title": "Develop Core Primary-to-Feature Branch Alignment Logic",
-        "description": "Implement the core logic for integrating changes from a determined primary branch (main, scientific, or orchestration-tools) into a feature branch using `git rebase` for a clean history, with robust error handling.",
-        "details": "Create a Python script that takes a feature branch name and its determined primary target as input. The script should:\n1.  Switch to the feature branch. \n2.  Pull the latest changes from the primary target branch: `git fetch origin <primary_target>`. \n3.  Initiate a rebase operation: `git rebase origin/<primary_target>`. This is preferred over `merge` to maintain a linear history for feature branches. \n4.  Include logic to handle rebase conflicts. The script should pause, notify the developer of conflicts, and provide instructions for manual resolution, then allow resuming the rebase (`git rebase --continue`). \n5.  Implement comprehensive error handling for failed rebase operations, including options to abort (`git rebase --abort`) and revert to the backup created in Task 56. \n6.  After a successful rebase, it should indicate completion and prompt for further steps (e.g., running tests). Use `GitPython` or subprocess calls to `git` commands.",
-        "testStrategy": "Create test feature branches that diverge from a primary branch and introduce changes that will cause conflicts when rebased. Execute the alignment logic, manually resolve conflicts when prompted, and verify that the rebase completes successfully with a clean, linear history. Test the abort and restore-from-backup functionality in case of unresolvable conflicts. Verify that the feature branch is updated with the latest changes from the primary branch.",
-        "priority": "high",
-        "dependencies": [
-          54,
-          56,
-          57
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 60,
-        "title": "Implement Focused Strategies for Complex Branches",
-        "description": "Extend the core alignment logic to provide specialized handling for complex feature branches (e.g., `feature-notmuch*`) with large shared histories or significant divergence, focusing on iterative rebase and streamlined conflict resolution.",
-        "details": "This task builds upon Task 59. For branches identified as 'complex' by Task 57, the alignment script should offer or automatically engage a more granular rebase strategy. This might involve:\n1.  **Iterative Rebase:** Rebase a few commits at a time rather than the entire branch at once, making conflict resolution more manageable. `git rebase -i` or scripting `git cherry-pick` for smaller batches of commits. \n2.  **Conflict Resolution Workflow:** Provide enhanced prompts and tools for conflict resolution, perhaps integrating with a visual diff tool. \n3.  **Architectural Review Integration:** After each significant rebase step, prompt the developer to perform a quick architectural review using `git diff` to ensure consistency before proceeding. \n4.  **Targeted Feature Testing:** Suggest or automatically run a subset of tests relevant to the rebased changes immediately after an iterative step, leveraging Task 61's validation integration. The script should be configurable to define what constitutes a 'complex' branch and what strategy to apply.",
-        "testStrategy": "Create a highly divergent and complex feature branch. Test the iterative rebase approach, ensuring that conflicts can be resolved incrementally. Verify that the script guides the developer through the process effectively. Test integration with the error detection scripts (Task 55) after each rebase step to catch issues early. Ensure the process is manageable for a single developer.",
-        "priority": "medium",
-        "dependencies": [
-          55,
-          59
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 61,
-        "title": "Integrate Validation Framework into Alignment Workflow",
-        "description": "Embed the execution of pre-merge validation scripts, comprehensive merge validation, and automated error detection into the branch alignment process to ensure quality and integrity at each step.",
-        "details": "Modify the alignment scripts (from Task 59 and Task 60) to automatically invoke:\n1.  **Automated Error Detection Scripts (Task 55):** Run these immediately after any rebase or merge operation completes successfully or after conflicts are resolved, to catch merge artifacts, garbled text, and missing imports. \n2.  **Pre-merge Validation Scripts (Task 19):** These should be run against the feature branch after alignment, before any potential pull request creation. \n3.  **Comprehensive Merge Validation Framework (Task 9):** Execute the full test suite or relevant parts of it on the aligned feature branch to ensure functionality and stability. \n4.  The integration should provide clear pass/fail feedback and stop the alignment process if critical validations fail, guiding the developer to address issues. This ensures that only validated changes are propagated. The Python script should wrap the calls to these external tools/scripts and interpret their exit codes.",
-        "testStrategy": "Execute the alignment workflow on various test branches. Verify that after each alignment (both core and complex), the error detection scripts (Task 55), pre-merge validation (Task 19), and relevant parts of the comprehensive validation (Task 9) are automatically triggered. Introduce failures in these sub-components (e.g., make a test fail, introduce an error the detection script catches) and verify that the alignment workflow correctly stops and reports the failure.",
-        "priority": "high",
-        "dependencies": [
-          55,
-          59,
-          60
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 62,
-        "title": "Orchestrate Sequential Branch Alignment Workflow",
-        "description": "Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.",
-        "details": "Develop a high-level Python script acting as the primary interface for the single developer. This script should:\n1.  **Initiate Categorization:** Call the tool from Task 57 to identify and categorize feature branches. \n2.  **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7). \n3.  **Iterate through Branches:** For each selected feature branch:\n    a.  **Backup:** Invoke Task 56's backup procedure. \n    b.  **Align:** Call Task 59 (core logic) or Task 60 (complex logic) based on the branch's categorization. \n    c.  **Error Check:** Run Task 55's error detection scripts. \n    d.  **Validate:** Trigger Task 61's integrated validation. \n    e.  **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 58. \n4.  **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution. \n5.  **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.",
-        "testStrategy": "Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.",
-        "priority": "high",
-        "dependencies": [
-          57,
-          58,
-          59,
-          60,
-          61
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 63,
-        "title": "Finalize and Publish Comprehensive Alignment Documentation",
-        "description": "Consolidate all documentation, including merge best practices, conflict resolution procedures, architectural alignment strategies, the central `ALIGNMENT_CHECKLIST.md`, and guidance on using the alignment framework for the single developer.",
-        "details": "Gather all existing and newly created documentation: \n1.  **Merge Best Practices (Task 21):** Update to reflect the specific strategies adopted in this framework. \n2.  **Conflict Resolution Procedures:** Detail the manual steps required when the scripts (Task 59, 60) prompt for resolution. \n3.  **Architectural Alignment Strategies:** Outline how to ensure consistency during complex branch integration. \n4.  **`CHANGES_SUMMARY.md` templates and process (Task 58).** \n5.  **Central `ALIGNMENT_CHECKLIST.md` (Task 58).** \n6.  **Usage Guide for Orchestration Script (Task 62):** Provide clear instructions on how to use the main alignment tool. \nConsolidate these into a coherent, accessible format (e.g., a README.md in the repository's root or a dedicated `docs/alignment_guide.md`). Ensure this documentation specifically addresses the needs of a single developer with minimal overhead, focusing on practical steps and troubleshooting.",
-        "testStrategy": "Review all documentation for clarity, completeness, and accuracy. Verify that it is easy to understand for a single developer. Cross-reference with the implemented framework (Task 62) to ensure all steps and procedures are correctly documented. Check that all links and references within the documentation are valid.",
-        "priority": "low",
-        "dependencies": [
-          58,
-          62
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 64,
-        "title": "Define and Implement Database Configuration Object",
-        "description": "Create a `DatabaseConfig` class or data structure to encapsulate all database connection and configuration parameters, replacing direct usage of global variables like DATA_DIR and EMAILS_FILE.",
-        "details": "Implement a `DatabaseConfig` Pydantic model or dataclass to hold database-related configuration. This object will replace global variables such as `DATA_DIR`, `EMAILS_FILE`, etc. Ensure properties are type-hinted and include validation logic (e.g., path existence, file format validation). This class will serve as the primary configuration source for `DatabaseManager` and its related components.\n\n```python\nfrom pathlib import Path\nfrom pydantic import BaseModel, Field, ValidationError\n\nclass DatabaseConfig(BaseModel):\n    data_dir: Path = Field(..., description=\"Root directory for database files\")\n    emails_file: Path = Field(..., description=\"Path to the emails data file\")\n    # Add other configuration parameters currently exposed as global variables\n    # e.g., cache_enabled: bool = True\n\n    class Config:\n        arbitrary_types_allowed = True\n\n    @classmethod\n    def create_default_config(cls) -> 'DatabaseConfig':\n        # Example of a factory method for default configuration\n        return cls(data_dir=Path('./data'), emails_file=Path('./data/emails.json'))\n\ndef validate_config(config: DatabaseConfig):\n    # Example of runtime validation beyond Pydantic's basic checks\n    if not config.data_dir.is_dir():\n        raise ValueError(f\"Data directory does not exist: {config.data_dir}\")\n    # Further checks for emails_file existence, permissions, etc.\n```",
-        "testStrategy": "Create unit tests for `DatabaseConfig` to verify its instantiation with valid and invalid parameters. Test that configuration validation logic correctly identifies missing or incorrect paths. Ensure default configurations can be created and are valid.",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 65,
-        "title": "Refactor DatabaseManager for Constructor Dependency Injection",
-        "description": "Modify the `DatabaseManager` class to accept a `DatabaseConfig` object and its internal dependencies (e.g., `EnhancedCachingManager`) directly via its constructor, completely eliminating reliance on global state and the singleton pattern.",
-        "details": "Update the `DatabaseManager` class to remove any `__new__` or `__init__` logic enforcing a singleton pattern. Modify its `__init__` method signature to explicitly accept `DatabaseConfig` and any other internal dependencies (e.g., `cache_manager: EnhancedCachingManager`). Ensure all internal methods that previously accessed global variables now retrieve these values from the injected `DatabaseConfig` object.\n\n```python\n# Assume EnhancedCachingManager is a dependency\nclass EnhancedCachingManager:\n    def __init__(self, cache_size: int = 100):\n        self.cache_size = cache_size\n        # ... initialization logic ...\n\nclass DatabaseManager:\n    # Remove any singleton pattern implementation\n\n    def __init__(\n        self,\n        config: DatabaseConfig,\n        cache_manager: EnhancedCachingManager  # Injected dependency\n    ):\n        self._config = config\n        self._cache_manager = cache_manager\n        # Initialize database connections, file paths using self._config\n        self.emails_filepath = self._config.emails_file\n        # ... other initializations ...\n\n    def load_emails(self):\n        # Use self._config and self._cache_manager instead of globals\n        with open(self.emails_filepath, 'r', encoding='utf-8') as f:\n            # ... logic ...\n            pass\n```",
-        "testStrategy": "Write unit tests for `DatabaseManager` that involve instantiating it with different `DatabaseConfig` objects and mocked `EnhancedCachingManager` instances. Verify that it correctly uses the injected dependencies for its operations. Ensure that multiple instances of `DatabaseManager` can be created and operate independently without state conflicts.",
-        "priority": "high",
-        "dependencies": [
-          64
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 66,
-        "title": "Implement Factory Functions for DatabaseManager Construction",
-        "description": "Create factory functions to properly construct and configure `DatabaseManager` instances, abstracting the dependency injection process for consumers and allowing for different configurations.",
-        "details": "Develop one or more factory functions responsible for creating `DatabaseManager` instances. These functions should handle the creation of `DatabaseConfig` (potentially from environment variables or a configuration file) and any other dependencies like `EnhancedCachingManager` before injecting them into `DatabaseManager`. This centralizes object creation and promotes a clean API for consumers.\n\n```python\n# Assume EnhancedCachingManager and DatabaseConfig are defined\n\ndef create_enhanced_caching_manager() -> EnhancedCachingManager:\n    # Logic to create and configure EnhancedCachingManager\n    return EnhancedCachingManager(cache_size=200) # Example configuration\n\ndef create_database_manager_from_config(config: DatabaseConfig) -> DatabaseManager:\n    cache_manager = create_enhanced_caching_manager()\n    return DatabaseManager(config=config, cache_manager=cache_manager)\n\ndef create_default_database_manager() -> DatabaseManager:\n    default_config = DatabaseConfig.create_default_config() # From task 64\n    return create_database_manager_from_config(default_config)\n```",
-        "testStrategy": "Test the factory functions to ensure they correctly instantiate `DatabaseManager` with all its dependencies. Verify that different factory functions produce `DatabaseManager` instances with the expected configurations. Use mocks for `EnhancedCachingManager` during testing of the factory functions.",
-        "priority": "medium",
-        "dependencies": [
-          65
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 67,
-        "title": "Develop Deprecation Shims and Warning Mechanisms for Legacy API",
-        "description": "Implement backward compatibility by creating deprecation shims for all public static methods and global variable access points related to the old `DatabaseManager` interface. Issue warnings when legacy APIs are used to guide migration.",
-        "details": "For any static methods or direct global variable accesses that were part of the old `DatabaseManager` interface, create wrapper functions or properties that issue `DeprecationWarning`s. These shims should internally call the new, DI-based `DatabaseManager` instances, likely by using a globally accessible (but internally managed) `DatabaseManager` instance or a factory function. Document the migration path clearly.\n\n```python\nimport warnings\n\n# Global variable to hold a default DatabaseManager instance for shims\n# This is an internal detail for backward compatibility, not a global state replacement\n_legacy_db_manager = None\n\ndef _get_legacy_db_manager():\n    global _legacy_db_manager\n    if _legacy_db_manager is None:\n        warnings.warn(\"Initializing default DatabaseManager via legacy API. Please migrate to dependency injection.\", DeprecationWarning, stacklevel=2)\n        _legacy_db_manager = create_default_database_manager() # Use factory from task 66\n    return _legacy_db_manager\n\ndef legacy_load_emails():\n    warnings.warn(\"Calling legacy_load_emails. Please use the new DatabaseManager API via dependency injection.\", DeprecationWarning, stacklevel=2)\n    return _get_legacy_db_manager().load_emails()\n\n# Example of how to deprecate a global config access\ndef get_legacy_data_dir():\n    warnings.warn(\"Accessing DATA_DIR via legacy global access. Please use DatabaseConfig.\", DeprecationWarning, stacklevel=2)\n    return _get_legacy_db_manager()._config.data_dir\n\n```",
-        "testStrategy": "Write tests that specifically invoke the deprecated APIs. Assert that `DeprecationWarning`s are correctly issued. Verify that the deprecated APIs still function as expected by internally delegating to the new DI-based `DatabaseManager`. Ensure existing functionalities are preserved.",
-        "priority": "medium",
-        "dependencies": [
-          65,
-          66
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 68,
-        "title": "Setup Comprehensive Testing Environment and Mocking Framework",
-        "description": "Configure the project's testing environment to support advanced testability requirements, including isolation capabilities, concurrent execution, and integration with a mocking framework suitable for dependency injection tests.",
-        "details": "Ensure `pytest` is installed and configured. Integrate a mocking library such as `unittest.mock` (or `pytest-mock` if preferred) for easily substituting dependencies during unit and integration tests. Set up `pytest-xdist` or similar for parallel test execution, and verify that tests can run concurrently without shared state conflicts. This task also involves configuring test data generation/cleanup strategies to ensure isolation across test runs.\n\n```python\n# Example pytest.ini configuration for parallel testing\n# [pytest]\n# addopts = --numprocesses=auto --reuse-db # Example for database reuse, adjust as needed\n\n# Example of using pytest-mock for dependency injection tests\n# def test_database_manager_with_mocked_cache(mocker):\n#     mock_cache_manager = mocker.Mock(spec=EnhancedCachingManager)\n#     config = DatabaseConfig(...)\n#     db_manager = DatabaseManager(config, mock_cache_manager)\n#     # ... test logic ...\n```",
-        "testStrategy": "Create a dummy test suite that verifies parallel test execution and test isolation. Write a simple test that uses the mocking framework to substitute a dependency. Confirm that test reports indicate proper test execution and no unexpected interactions due to shared state.",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 69,
-        "title": "Implement DatabaseManager Unit and Integration Tests with DI",
-        "description": "Develop a comprehensive suite of unit and integration tests for the refactored `DatabaseManager` to validate its correct usage of dependency injection, configuration isolation, and its ability to operate correctly in parallel test environments.",
-        "details": "Write detailed unit tests for `DatabaseManager` methods, ensuring all dependencies are mocked. Create integration tests that use real or in-memory `DatabaseConfig` objects and `EnhancedCachingManager` instances, verifying the interaction between these components. Focus on test data isolation by setting up and tearing down test data for each test case or using temporary files. Validate that `DatabaseManager` instances created with different configurations indeed operate on isolated datasets.\n\n```python\nimport pytest\nfrom pathlib import Path\nfrom tempfile import TemporaryDirectory\n\ndef test_database_manager_with_custom_config(mocker):\n    with TemporaryDirectory() as tmp_dir_str:\n        tmp_data_dir = Path(tmp_dir_str)\n        emails_file = tmp_data_dir / 'test_emails.json'\n        emails_file.write_text('[]') # Initialize empty file\n\n        test_config = DatabaseConfig(data_dir=tmp_data_dir, emails_file=emails_file)\n        mock_cache_manager = mocker.Mock(spec=EnhancedCachingManager)\n        db_manager = DatabaseManager(config=test_config, cache_manager=mock_cache_manager)\n\n        # Perform operations and assert outcomes\n        db_manager.load_emails() # Should use emails_file from test_config\n        mock_cache_manager.do_something.assert_called_once() # Example interaction\n\ndef test_parallel_db_operations_isolation(mocker):\n    # Simulate multiple test runs or concurrent operations\n    # Use distinct temporary directories for each simulated 'instance'\n    # Assert that data written by one instance is not visible to another\n    pass\n```",
-        "testStrategy": "Execute unit and integration tests using the configured `pytest` environment. Verify that all tests pass, cover critical paths, and that no tests interfere with each other when run in parallel. Aim for high test coverage (90%+) on `DatabaseManager` and its associated components.",
-        "priority": "high",
-        "dependencies": [
-          65,
-          66,
-          68
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 70,
-        "title": "Implement Context Isolation Validation Tests for Multi-Agent Systems",
-        "description": "Develop specialized tests to ensure that the operational environment or 'context' of one agent does not leak into or interfere with the context of another agent, especially in concurrent or multi-tenant systems. This builds upon existing context control refactoring.",
-        "details": "Design tests that simulate multiple agents (e.g., using threads or async tasks) operating concurrently. Each agent should operate within its own isolated context (e.g., using `threading.local()` or `contextvars` in Python). Tests must verify that global variables, module-level state, or shared resources are not inadvertently accessed or modified across contexts. The existing refactoring from Task 33 (static to instance methods) should aid in this. Measure the performance overhead of context isolation to ensure it remains below the 5% threshold.\n\n```python\nimport threading\nimport time\n\n# Assume a context management utility from Task 33\n# class AgentContext:\n#    _current_context = threading.local()\n#    def __init__(self, agent_id):\n#        self.agent_id = agent_id\n#        self.local_data = {}\n#    @staticmethod\n#    def get_current_context():\n#        return getattr(AgentContext._current_context, 'context', None)\n#    def __enter__(self):\n#        AgentContext._current_context.context = self\n#    def __exit__(self, exc_type, exc_val, exc_tb):\n#        AgentContext._current_context.context = None\n\ndef agent_task(agent_id: int):\n    with AgentContext(agent_id) as ctx:\n        ctx.local_data['message'] = f\"Hello from agent {agent_id}\"\n        time.sleep(0.1) # Simulate work\n        assert AgentContext.get_current_context().agent_id == agent_id\n        # Verify no global state interference\n        # For example, a shared counter should not be unexpectedly modified\n\ndef test_multi_agent_context_isolation():\n    threads = []\n    for i in range(5):\n        thread = threading.Thread(target=agent_task, args=(i,))\n        threads.append(thread)\n        thread.start()\n\n    for thread in threads:\n        thread.join()\n\n    # Assert final state, ensuring no cross-contamination\n```",
-        "testStrategy": "Execute multi-threaded/multi-process tests. Monitor shared resources or global variables for unintended modifications across agent contexts. Use assertions to verify that each agent operates on its own isolated data. Conduct profiling to measure the performance impact of context switching and isolation, ensuring it's within the specified limits (<5%).",
-        "priority": "high",
-        "dependencies": [
-          68
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 71,
-        "title": "Implement Static Analysis for Circular Import Detection",
-        "description": "Integrate and configure static analysis tools or scripts to automatically detect and report circular dependencies between Python modules within the codebase. This helps maintain code health and prevent runtime errors.",
-        "details": "Identify and integrate a suitable static analysis tool for Python, such as `deptry`, `interrogate`, or `pylint` (which can be configured to detect import cycles). Alternatively, a custom script leveraging Python's `modulefinder` or AST analysis could be developed for more specific needs. Configure the chosen tool to run as part of the continuous integration (CI/CD) pipeline. Initially, document all existing circular dependencies found, then work to eliminate them, and finally enforce prevention for new ones.\n\n```bash\n# Example for running deptry to find circular dependencies\n# deptry --json --ignore-dev --respect-optional --circular\n\n# Or a custom script using modulefinder\n# python -m modulefinder your_project_root_directory\n```",
-        "testStrategy": "Run the chosen static analysis tool on the codebase. Document the output, specifically listing any detected circular imports. Create a test case by introducing a known circular import and verify that the tool correctly identifies it. Ensure the analysis is integrated into the CI/CD pipeline to prevent future regressions.",
-        "priority": "medium",
-        "dependencies": [
-          68
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 72,
-        "title": "Develop Comprehensive End-to-End Tests for Integrated Features",
-        "description": "Create a full suite of end-to-end tests that validate complete user workflows, data persistence, and integration across all system components for key integrated features, ensuring functional correctness after refactoring.",
-        "details": "Design end-to-end tests that simulate real user interactions and data flows through the application. These tests should cover the full lifecycle of data (creation, reading, updating, deletion) using the refactored `DatabaseManager` and interacting with other integrated services or agents. Utilize the testing environment established in Task 68, ensuring test data is isolated and cleaned up. Focus on validating that core business logic and feature functionality remain robust and correct.\n\n```python\nimport pytest\nfrom my_app.main import app # Assuming a main application entry point\nfrom my_app.api import client # Assuming an API client for testing\n\ndef test_user_email_processing_workflow(client_fixture, database_fixture):\n    # Simulate user registration, email submission\n    response = client_fixture.post('/users', json={'username': 'testuser'})\n    assert response.status_code == 201\n\n    # Verify data persistence through the database_fixture (which uses the new DI-based DatabaseManager)\n    user_in_db = database_fixture.get_user('testuser')\n    assert user_in_db is not None\n\n    # Simulate email processing by an agent, verify its output and database updates\n    # This involves the multi-agent context (Task 70) and DI-based DB (Task 69)\n    # ... more complex integration steps ...\n\n    # Verify final state and clean up\n```",
-        "testStrategy": "Execute the end-to-end test suite. All tests must pass with 100% success. Verify that user workflows are correctly handled, data is persistently stored and retrieved, and all integrated components interact as expected. Pay attention to edge cases and error handling. This test suite will be the ultimate validation of the refactoring and isolation efforts.",
-        "priority": "medium",
-        "dependencies": [
-          69,
-          70
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 73,
-        "title": "Implement Performance Benchmarks and Scalability Tests",
-        "description": "Conduct performance benchmarks for critical database operations and other core processes, and implement scalability tests to ensure the system meets performance requirements and scales effectively under load and realistic data volumes.",
-        "details": "Define clear performance benchmarks (e.g., query response times, transaction throughput, latency) for critical operations involving the `DatabaseManager` and other heavily used components. Use profiling tools (e.g., `cProfile`, `perf`) to identify bottlenecks. Implement load testing scenarios (e.g., using `locust`, `JMeter`) to simulate high concurrency and large data volumes. Evaluate the system's behavior under various load conditions to ensure it remains stable and responsive.\n\n```python\nimport time\nimport pytest\n\ndef test_database_read_performance(database_fixture, benchmark):\n    # Populate database with a realistic volume of test data\n    database_fixture.populate_large_dataset(100000)\n\n    @benchmark\n    def read_operation():\n        database_fixture.query_random_emails(100) # Example operation\n\n    # Assert that benchmarked time is within acceptable limits\n    assert benchmark.stats['mean'] < 0.5 # Example: mean time < 500ms\n\n\ndef test_concurrent_write_scalability(database_fixture, threads=10, writes_per_thread=100):\n    start_time = time.time()\n    # Use threading or multiprocessing to simulate concurrent writes\n    # Measure total time and ensure it scales reasonably with number of threads/operations\n    # ... implementation ...\n    end_time = time.time()\n    assert (end_time - start_time) < expected_max_time\n```",
-        "testStrategy": "Run performance and scalability tests under controlled environments. Collect metrics on response times, throughput, and resource utilization (CPU, memory). Compare results against defined performance targets. Generate a performance regression report highlighting any areas that do not meet the requirements or show degradation compared to previous baselines. Verify that the performance impact of isolation (Task 70) is minimal.",
-        "priority": "low",
-        "dependencies": [
-          72
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 74,
-        "title": "Validate and Configure Core Git Repository Protections",
-        "description": "Establish and verify branch protection rules for critical branches (main, scientific, orchestration-tools) including merge guards, required reviewers, and quality gates to ensure code consistency and integrity.",
-        "details": "This task involves configuring repository settings, ideally through a `git` client or directly via the GitHub/GitLab UI, to enforce branch protection rules. These rules must include: requiring pull requests before merging, requiring at least one approving review, requiring status checks to pass before merging (e.g., CI/CD checks), and enforcing linear history. Special attention should be paid to the `scientific` branch, as specified in User Story 1. The configuration should be documented in the `docs/` directory.\n\nPseudo-code for verification (manual/scripted):\n```python\n# Assumes a Git Python library or direct shell commands\ndef verify_branch_protections(repo_path, critical_branches):\n    for branch in critical_branches:\n        print(f\"Checking protection for {branch}...\")\n        # Example: Check if PRs are required\n        # git_command = f\"git config --get branch.{branch}.protect.requirePullRequest\"\n        # Add checks for required reviews, status checks, etc.\n        # This might involve API calls to GitHub/GitLab for comprehensive checks\n        # e.g., github_api.get_branch_protection(repo, branch)\n        # Ensure 'require_signed_commits' is considered if applicable.\n        print(f\"Protection for {branch} configured successfully.\")\n\n# Example usage\n# verify_branch_protections('./my_repo', ['main', 'scientific', 'orchestration-tools'])\n```",
-        "testStrategy": "Manually verify via the Git hosting service (e.g., GitHub settings -> Branches -> Branch protection rules) that `main`, `scientific`, and `orchestration-tools` branches have the specified protection rules enabled. Attempt to push directly to a protected branch, merge a PR without reviews, or merge a PR with failing status checks to confirm merge guards are active. Document the verification process and results.",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 75,
-        "title": "Develop a Script to Identify and Categorize Feature Branches",
-        "description": "Create a Python script that identifies all active feature branches in the repository and categorizes them based on their intended primary integration target (main, scientific, or orchestration-tools) using Git history analysis and codebase similarity heuristics.",
-        "details": "This script will utilize `git` commands (e.g., `git branch --remote`, `git log`) to list all remote feature branches. For each feature branch, it will analyze its commit history and potentially its file changes to infer its primary target. A simple heuristic could involve checking common files or directories modified in the feature branch against known patterns for `main`, `scientific`, or `orchestration-tools` related development (e.g., `scientific/` folder for `scientific` branch, `orchestration/` for `orchestration-tools`). The script should output a structured list (e.g., JSON) of branches and their determined target.\n\n```python\nimport subprocess\nimport json\n\ndef get_remote_feature_branches():\n    # Example: List all remote branches excluding primary ones\n    result = subprocess.run(['git', 'branch', '-r'], capture_output=True, text=True)\n    branches = []\n    for line in result.stdout.splitlines():\n        branch_name = line.strip().replace('origin/', '')\n        if not any(b in branch_name for b in ['main', 'scientific', 'orchestration-tools', 'HEAD -> main']):\n            branches.append(branch_name)\n    return branches\n\ndef categorize_branch(branch_name):\n    # Heuristic: Check for common ancestor, or changed files\n    # For simplicity, let's assume a basic keyword matching for now\n    # A more advanced approach would involve git merge-base, git diff --name-only, etc.\n    if 'scientific' in branch_name or any(f.startswith('scientific/') for f in get_changed_files(branch_name)):\n        return 'scientific'\n    elif 'orchestration' in branch_name or any(f.startswith('orchestration/') for f in get_changed_files(branch_name)):\n        return 'orchestration-tools'\n    else:\n        return 'main'\n\ndef get_changed_files(branch_name):\n    # dummy function for illustration, actual implementation would compare with main/base\n    # e.g., git diff --name-only origin/main..origin/{branch_name}\n    return [] # Placeholder\n\ndef main():\n    feature_branches = get_remote_feature_branches()\n    categorized_branches = []\n    for branch in feature_branches:\n        target = categorize_branch(branch)\n        categorized_branches.append({'branch': branch, 'target': target})\n    \n    with open('categorized_branches.json', 'w') as f:\n        json.dump(categorized_branches, f, indent=4)\n    print('Branches categorized and saved to categorized_branches.json')\n\nif __name__ == '__main__':\n    main()\n```",
-        "testStrategy": "Run the script against a test repository with various feature branches (some clearly targeting 'main', others 'scientific' or 'orchestration-tools' through their names or file changes). Manually verify that the categorization output is accurate for at least 80% of the branches. Ensure the script handles branches with large shared history effectively. Verify the output JSON format.",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 76,
-        "title": "Implement Automated Error Detection and Correction for Merge Issues",
-        "description": "Develop a suite of Python scripts to automatically detect and flag common post-merge errors such as merge artifacts (<<<<<<<, =======, >>>>>>>), garbled text, missing imports, and accidentally deleted modules after a branch alignment operation.",
-        "details": "This task involves creating several distinct error detection scripts. The scripts should be runnable as part of a post-alignment hook or as a standalone validation step. \n1.  **Merge Artifact Detector:** A script to `grep` for `<<<<<<<`, `=======`, `>>>>>>>` patterns in changed files. \n2.  **Garbled Text/Encoding Detector:** A script that attempts to decode files with UTF-8 and flags common encoding errors or identifies non-standard characters that might indicate garbled text. Could use `chardet` for robust encoding detection. \n3.  **Missing Imports Validator:** For Python, this could involve parsing `*.py` files to extract import statements and then verifying if the imported modules/packages are resolvable in the current environment (e.g., using `importlib` or a static analysis tool like `flake8` or `pylint` with specific checks). \n4.  **Accidentally Deleted Modules:** A script that compares the list of modules/files in the current branch against a baseline (e.g., the primary branch before alignment) and flags significant deletions, especially for core modules.\n\n```python\nimport re\nimport os\nimport subprocess\n\ndef detect_merge_artifacts(file_path):\n    with open(file_path, 'r', errors='ignore') as f:\n        content = f.read()\n        if re.search(r'<<<<<<<|=======|>>>>>>>', content):\n            return True\n    return False\n\ndef validate_imports(file_path):\n    # Simplified: A real implementation would parse AST or use a linter\n    # For Python, might run 'flake8 --isolated --select=F401,F403,F404,F405' etc.\n    return os.path.exists(file_path) # Placeholder\n\ndef detect_deleted_modules(base_ref, current_ref):\n    # Compare file lists between two git refs\n    deleted_files = subprocess.run(\n        ['git', 'diff', '--name-only', '--diff-filter=D', base_ref, current_ref],\n        capture_output=True, text=True\n    ).stdout.splitlines()\n    return [f for f in deleted_files if f.endswith('.py')] # Focus on modules\n\n# Main function to orchestrate checks\ndef run_error_detection(changed_files, base_ref, current_ref):\n    errors = []\n    for file in changed_files:\n        if detect_merge_artifacts(file):\n            errors.append(f\"Merge conflict artifact in {file}\")\n        if file.endswith('.py') and not validate_imports(file):\n            errors.append(f\"Potential missing import in {file}\")\n    \n    deleted = detect_deleted_modules(base_ref, current_ref)\n    if deleted:\n        errors.append(f\"Accidentally deleted modules: {', '.join(deleted)}\")\n    \n    return errors\n```",
-        "testStrategy": "Create a dedicated test repository. Introduce various types of errors (manual merge conflicts, corrupt encoding, intentionally break imports, delete a critical module) into feature branches. Run each detection script individually and then collectively to ensure they accurately identify and report the introduced errors. Verify that false positives are minimized. The scripts should handle large files efficiently. Integrate with Python's `unittest` or `pytest` for automated checks.",
-        "priority": "high",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 77,
-        "title": "Create a Utility for Safe Integration of Primary Branch Changes into Feature Branches",
-        "description": "Develop a Python-based command-line utility that fetches the latest changes from a specified primary branch (main, scientific, or orchestration-tools) and integrates them into a target feature branch, ensuring changes flow 'from primary TO feature branches' as a default.",
-        "details": "This utility will automate the process of keeping feature branches up-to-date. It should accept the feature branch name and its determined primary target (from Task 75). The utility will perform the following steps:\n1.  Checkout the feature branch.\n2.  Fetch latest from `origin`.\n3.  Perform a `git rebase` from the primary target branch onto the feature branch to maintain a clean history. (Or `git merge --no-ff` if rebase is not preferred, but `rebase` is generally cleaner for feature branches).\n4.  If conflicts arise, prompt the single developer for manual resolution and provide instructions.\n5.  After successful integration (rebase/merge), run the error detection scripts from Task 76.\n6.  If no errors are detected, push the updated feature branch (force push if rebase was used, with caution).\n\n```python\nimport subprocess\nfrom typing import List\n\n# Assume run_error_detection from Task 76 is available\n# from .error_detection import run_error_detection \n\ndef integrate_primary_changes(feature_branch: str, primary_branch: str) -> bool:\n    print(f\"Integrating {primary_branch} into {feature_branch}...\")\n    \n    # 1. Checkout feature branch\n    subprocess.run(['git', 'checkout', feature_branch], check=True)\n    \n    # 2. Fetch latest\n    subprocess.run(['git', 'fetch', 'origin'], check=True)\n    \n    # 3. Rebase onto primary branch\n    try:\n        subprocess.run(['git', 'rebase', f'origin/{primary_branch}'], check=True)\n    except subprocess.CalledProcessError as e:\n        print(f\"Merge/Rebase conflicts detected. Resolve manually and then run 'git rebase --continue'.\")\n        print(f\"Or abort with 'git rebase --abort'. Error: {e}\")\n        return False # Indicate manual intervention needed\n\n    # 4. Run error detection (using Task 76's functionality)\n    # Placeholder for actual error detection call\n    changed_files = subprocess.run(['git', 'diff', '--name-only', f'origin/{primary_branch}...{feature_branch}'], capture_output=True, text=True).stdout.splitlines()\n    errors = [] # run_error_detection(changed_files, f'origin/{primary_branch}', feature_branch)\n    \n    if errors:\n        print(f\"Errors detected after integration: {errors}\")\n        return False\n\n    # 5. Push updated feature branch (force with lease recommended after rebase)\n    try:\n        subprocess.run(['git', 'push', '--force-with-lease', 'origin', feature_branch], check=True)\n        print(f\"Successfully integrated {primary_branch} into {feature_branch} and pushed.\")\n        return True\n    except subprocess.CalledProcessError as e:\n        print(f\"Failed to push {feature_branch}. Error: {e}\")\n        return False\n\n# Example usage:\n# integrate_primary_changes('my-feature-branch', 'main')\n```",
-        "testStrategy": "Create a test repository with a `main` branch and several feature branches. Perform various scenarios: successful rebase with no conflicts, rebase with minor conflicts that can be resolved automatically (if implemented), rebase with major conflicts requiring manual intervention (verify utility gracefully handles this), rebase followed by introduced merge artifacts, missing imports, etc. Verify that `git log` shows a clean history after successful rebases and pushes. Test with different primary branch targets (`scientific`, `orchestration-tools`).",
-        "priority": "high",
-        "dependencies": [
-          75,
-          76
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 78,
-        "title": "Implement a Documentation Generator for Alignment Change Summaries",
-        "description": "Develop a script that generates a summary document (e.g., `CHANGES_SUMMARY.md`) for each aligned feature branch, detailing major changes, new features, bug fixes, architectural modifications, and any deviations from the original plan.",
-        "details": "This generator will be a Python script that takes a feature branch name and its primary target as input. It will use `git log` to extract commit messages and potentially `git diff` for a higher-level overview of changes between the feature branch's base commit and its HEAD after alignment. The script should use a markdown template to format the summary. It can categorize changes based on commit message keywords (e.g., 'feat:', 'fix:', 'chore:', 'docs:').\n\n```python\nimport subprocess\nimport os\n\ndef generate_changes_summary(feature_branch: str, primary_branch: str, output_dir: str = 'docs/alignment_summaries'):\n    os.makedirs(output_dir, exist_ok=True)\n    output_file = os.path.join(output_dir, f'{feature_branch}_CHANGES_SUMMARY.md')\n\n    # Get a summary of changes since divergence from the primary branch\n    # Find the merge base for a better comparison point\n    merge_base = subprocess.run(\n        ['git', 'merge-base', f'origin/{primary_branch}', feature_branch],\n        capture_output=True, text=True, check=True\n    ).stdout.strip()\n\n    log_output = subprocess.run(\n        ['git', 'log', '--pretty=format:\"- %s (Authored by %an on %ad)\"', f'{merge_base}..{feature_branch}'],\n        capture_output=True, text=True, check=True\n    ).stdout\n\n    # Get diff stats for architectural changes or modified files\n    diff_stats = subprocess.run(\n        ['git', 'diff', '--stat', f'{merge_base}..{feature_branch}'],\n        capture_output=True, text=True\n    ).stdout\n\n    summary_content = f\"\"\"\n# Alignment Summary for {feature_branch}\n\n**Aligned with:** `{primary_branch}`\n\n## Overview of Changes\n\n### Commit Log\n{log_output}\n\n### File Changes\n```\n{diff_stats}\n```\n\n## New Features, Bug Fixes, and Architectural Modifications\n(This section should be manually filled or enhanced with more sophisticated commit message parsing or static analysis)\n\n## Deviations from Original Plan\n(Manually fill this section if applicable)\n\n\"\"\"\n    with open(output_file, 'w') as f:\n        f.write(summary_content)\n    print(f\"Generated changes summary for {feature_branch} at {output_file}\")\n\n# Example usage:\n# generate_changes_summary('my-feature-branch', 'main')\n```",
-        "testStrategy": "Create several feature branches with distinct changes (new features, bug fixes, refactoring). Align them using the utility from Task 77. Run the documentation generator for each. Verify that the generated `CHANGES_SUMMARY.md` files accurately reflect the commit history and file changes. Check markdown formatting and ensure it's readable. Test edge cases like branches with very few changes or very complex histories. Ensure minimal overhead for generation.",
-        "priority": "medium",
-        "dependencies": [
-          75,
-          77
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 79,
-        "title": "Develop a Modular Framework for Parallel Alignment Task Execution",
-        "description": "Build a modular Python framework that orchestrates the execution of branch alignment tasks, allowing safe parallel processing of feature branches grouped by their target primary branch (main, scientific, orchestration-tools).",
-        "details": "This framework will be the core orchestrator. It should read the categorized branches from Task 75. For each category (main, scientific, orchestration-tools), it will process its assigned feature branches. The modularity should allow for independent execution of alignment for branches targeting `main` versus `scientific`, for instance, to avoid conflicts between parallel tasks operating on different target branches. For branches within the *same* primary target, parallel execution can be implemented using Python's `concurrent.futures` (ThreadPoolExecutor or ProcessPoolExecutor) for tasks like `git fetch`, `git rebase` (carefully, as rebase can be interactive), error detection, and documentation generation. The framework must handle errors gracefully and log progress.\n\n```python\nimport json\nfrom concurrent.futures import ThreadPoolExecutor, as_completed\n# from .branch_categorization import get_categorized_branches # From Task 75\n# from .integration_utility import integrate_primary_changes # From Task 77\n# from .error_detection import run_error_detection # From Task 76\n# from .doc_generator import generate_changes_summary # From Task 78\n\ndef run_alignment_for_branch(branch_info: dict) -> dict:\n    feature_branch = branch_info['branch']\n    primary_target = branch_info['target']\n    print(f\"\\nProcessing branch: {feature_branch} (Target: {primary_target})\")\n\n    # Step 1: Create a local backup (optional but good practice)\n    # subprocess.run(['git', 'branch', f'backup/{feature_branch}', feature_branch])\n    \n    # Step 2: Integrate primary changes (Task 77)\n    success = True # integrate_primary_changes(feature_branch, primary_target)\n    \n    if not success:\n        return {'branch': feature_branch, 'status': 'failed_integration'}\n\n    # Step 3: Generate changes summary (Task 78)\n    # generate_changes_summary(feature_branch, primary_target)\n    \n    return {'branch': feature_branch, 'status': 'completed'}\n\ndef main_orchestrator():\n    # Load categorized branches (e.g., from 'categorized_branches.json' generated by Task 75)\n    try:\n        with open('categorized_branches.json', 'r') as f:\n            categorized_branches = json.load(f)\n    except FileNotFoundError:\n        print(\"Error: categorized_branches.json not found. Run Task 75 first.\")\n        return\n\n    # Group branches by their primary target\n    grouped_branches = {}\n    for branch_info in categorized_branches:\n        target = branch_info['target']\n        if target not in grouped_branches:\n            grouped_branches[target] = []\n        grouped_branches[target].append(branch_info)\n\n    results = []\n    # Process each primary target group independently (or in parallel at higher level)\n    for target, branches_to_align in grouped_branches.items():\n        print(f\"\\n--- Aligning branches targeting: {target} ---\")\n        # Use ThreadPoolExecutor for parallel processing within a target group\n        with ThreadPoolExecutor(max_workers=4) as executor:\n            future_to_branch = {\n                executor.submit(run_alignment_for_branch, branch_info): branch_info \n                for branch_info in branches_to_align\n            }\n            for future in as_completed(future_to_branch):\n                branch_info = future_to_branch[future]\n                try:\n                    result = future.result()\n                    results.append(result)\n                except Exception as exc:\n                    print(f'{branch_info[\"branch\"]} generated an exception: {exc}')\n                    results.append({'branch': branch_info['branch'], 'status': 'exception', 'error': str(exc)})\n    \n    print(\"\\n--- Alignment Summary ---\")\n    for res in results:\n        print(f\"Branch {res['branch']}: {res['status']}\")\n\nif __name__ == '__main__':\n    main_orchestrator()\n```",
-        "testStrategy": "Set up a test repository with multiple feature branches categorized across different primary targets. Run the orchestrator. Verify that branches targeting 'main' are processed independently of those targeting 'scientific'. Introduce errors (e.g., manual conflicts, broken tests) in certain branches to ensure the framework handles failures gracefully without halting the entire process. Monitor CPU/memory usage during parallel execution. Check logs for proper sequencing and error reporting. Ensure that the branch protection rules (Task 74) are respected throughout the process.",
-        "priority": "high",
-        "dependencies": [
-          74,
-          75,
-          76,
-          77,
-          78
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 80,
-        "title": "Integrate Pre-merge Validation Scripts and Comprehensive Validation Framework",
-        "description": "Integrate existing pre-merge validation scripts (Task 19) and the comprehensive merge validation framework (Task 9) into the modular alignment execution framework (Task 79) to ensure all quality gates are passed after each feature branch alignment.",
-        "details": "This task involves modifying the `run_alignment_for_branch` function within the modular framework (Task 79) to include calls to the pre-merge validation scripts and the comprehensive merge validation framework. These validations should run *after* the primary branch integration (Task 77) and *before* pushing the aligned feature branch. The framework should handle the results of these validations: if any validation fails, the alignment for that specific feature branch should be halted, and the developer should be notified to address the issues. This task assumes that Task 9 and Task 19 are either already implemented or will be provided as external scripts/APIs.\n\n```python\n# ... (from Task 79's main_orchestrator and run_alignment_for_branch)\n\n# Placeholder functions for external dependencies\ndef run_pre_merge_validation_scripts(branch_name: str) -> bool:\n    print(f\"Running pre-merge validation scripts for {branch_name}...\")\n    # Simulate running Task 19 scripts\n    # subprocess.run(['python', 'pre_merge_scripts.py', branch_name], check=True)\n    return True # Simulate success\n\ndef run_comprehensive_merge_validation_framework(branch_name: str) -> bool:\n    print(f\"Running comprehensive merge validation framework for {branch_name}...\")\n    # Simulate running Task 9 framework, e.g., CI/CD checks\n    # api_client.trigger_ci_build(branch_name)\n    # status = api_client.wait_for_ci_status(branch_name)\n    return True # Simulate success\n\n# Modified run_alignment_for_branch\ndef run_alignment_for_branch_with_validation(branch_info: dict) -> dict:\n    feature_branch = branch_info['branch']\n    primary_target = branch_info['target']\n    print(f\"\\nProcessing branch: {feature_branch} (Target: {primary_target})\")\n\n    # ... (existing integration logic from Task 77)\n    # Assuming integrate_primary_changes returns True on success and False on failure/manual resolve\n    integration_success = True # integrate_primary_changes(feature_branch, primary_target)\n    if not integration_success:\n        return {'branch': feature_branch, 'status': 'failed_integration'}\n\n    # Run error detection (Task 76 - already part of integration_utility, or called here)\n    # errors = run_error_detection(...) # Assuming this is run by integrate_primary_changes\n    \n    # Run pre-merge validation scripts (Task 19)\n    if not run_pre_merge_validation_scripts(feature_branch):\n        print(f\"Pre-merge validation failed for {feature_branch}.\")\n        return {'branch': feature_branch, 'status': 'failed_pre_merge_validation'}\n\n    # Run comprehensive merge validation framework (Task 9)\n    if not run_comprehensive_merge_validation_framework(feature_branch):\n        print(f\"Comprehensive merge validation failed for {feature_branch}.\")\n        return {'branch': feature_branch, 'status': 'failed_comprehensive_validation'}\n\n    # ... (existing documentation generation and push logic from Task 77/78)\n    # Assuming the push now happens after all validations pass within integrate_primary_changes\n    \n    return {'branch': feature_branch, 'status': 'completed'}\n\n# The main_orchestrator from Task 79 would then call run_alignment_for_branch_with_validation\n```",
-        "testStrategy": "Configure the external validation scripts (Task 19) and framework (Task 9) to sometimes pass and sometimes fail. Run the modular alignment framework (Task 79) with these integrated validations. Verify that when validations pass, the branch alignment completes successfully. When validations fail, ensure the alignment process for that specific branch halts appropriately, does not push changes, and logs the failure clearly. Test that successful alignments are not impacted by concurrent failures in other branches being processed in parallel.",
-        "priority": "high",
-        "dependencies": [
-          79
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 81,
-        "title": "Implement Specialized Handling for Complex Feature Branches",
-        "description": "Enhance the alignment utility and modular framework to provide focused strategies for feature branches identified as having complex requirements or large shared history, such as using an integration branch strategy or an iterative rebase process.",
-        "details": "This task extends the functionality of the integration utility (Task 77) and the orchestrator (Task 79). Complex branches might be identified during the categorization phase (Task 75) based on metrics like divergence from primary branch, number of commits, or number of changed files. For these branches, the alignment process should be adapted:\n1.  **Integration Branch Strategy:** Instead of directly rebasing a complex feature branch onto the primary, consider merging the feature branch into a temporary 'integration branch' which is then rebased onto the primary. This can isolate conflict resolution. \n2.  **Iterative Rebase/Merge:** For very long-lived branches, a single `git rebase` can be overwhelming. Implement an iterative approach, rebasing in smaller chunks (e.g., commit by commit, or against intermediate primary branch tags/commits). \n3.  **Targeted Feature Testing:** Ensure that after each iteration or significant alignment step for a complex branch, a targeted test suite focused on the features implemented in that branch is run.\n\n```python\n# (Building on integrate_primary_changes from Task 77)\ndef integrate_complex_branch(feature_branch: str, primary_branch: str) -> bool:\n    print(f\"Handling complex branch: {feature_branch} (Target: {primary_branch})\")\n    \n    # Option 1: Iterative Rebase\n    # Get commit hashes for the feature branch, rebase each onto primary, resolving conflicts\n    # for commit in feature_commits:\n    #     try:\n    #         subprocess.run(['git', 'cherry-pick', commit])\n    #     except subprocess.CalledProcessError:\n    #         # Handle conflict, prompt user, continue/abort\n    #         pass\n    \n    # Option 2: Use an 'integration branch'\n    integration_branch = f\"integration/{feature_branch}\"\n    subprocess.run(['git', 'checkout', '-b', integration_branch, feature_branch], check=True)\n    subprocess.run(['git', 'rebase', f'origin/{primary_branch}'], check=True) # Rebase integration branch\n    # (Manual conflict resolution if needed)\n    # Run targeted tests\n    # subprocess.run(['pytest', '--target', feature_branch]) # Example targeted testing\n\n    # Merge integration branch back into feature branch\n    subprocess.run(['git', 'checkout', feature_branch], check=True)\n    subprocess.run(['git', 'merge', integration_branch], check=True)\n    subprocess.run(['git', 'branch', '-d', integration_branch], check=True) # Clean up\n\n    # ... (Then run error detection, comprehensive validation, doc generation, push)\n    \n    return True\n\n# The modular framework (Task 79) would decide when to call this specialized function\n# Example modification in run_alignment_for_branch_with_validation:\n# if is_complex_branch(feature_branch): # Heuristic from Task 75 categorization\n#     success = integrate_complex_branch(feature_branch, primary_target)\n# else:\n#     success = integrate_primary_changes(feature_branch, primary_target)\n```",
-        "testStrategy": "Identify or create a 'complex' feature branch (e.g., one with many commits, diverged history, or significant file changes). Apply the specialized handling. Verify that the chosen strategy (e.g., integration branch, iterative rebase) executes correctly. Ensure conflicts are managed, and history remains clean. Confirm that targeted tests specific to that complex branch execute and pass. Compare the results and effort with a 'standard' integration for a similar complex branch to quantify efficiency improvements for the single developer.",
-        "priority": "medium",
-        "dependencies": [
-          77,
-          79
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 82,
-        "title": "Document Merge Best Practices and Conflict Resolution Procedures",
-        "description": "Create and publish comprehensive documentation outlining best practices for merge operations, detailed procedures for conflict resolution, and the project's current branching strategy, suitable for a single developer's reference.",
-        "details": "This task focuses on creating static documentation files, likely in Markdown format, within the `docs/` directory of the repository. The documentation should cover:\n1.  **Branching Strategy:** Clearly define the roles of `main`, `scientific`, and `orchestration-tools` branches, and how feature branches interact with them.\n2.  **Merge Best Practices:** Guidelines on when to rebase vs. merge, how to write clear commit messages, importance of small, atomic commits, etc.\n3.  **Conflict Resolution Procedures:** Step-by-step instructions for resolving various types of conflicts (file-level, subtree, rebase conflicts), including using `git mergetool` or manual editing. \n4.  **Workflow for Alignment:** Explain the automated alignment process (from Task 79) and how the developer should interact with it, including when manual intervention is required for conflicts or validation failures.\n\nThis documentation needs to be regularly updated and easily accessible.",
-        "testStrategy": "Review the generated documentation for clarity, completeness, and accuracy. Have an external developer (if available) or yourself follow the conflict resolution procedures using a mock conflict scenario to ensure the steps are unambiguous and effective. Verify that the documentation is published in an easily accessible location (e.g., `docs/` folder in GitHub, rendered via GitHub Pages if applicable).",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 83,
-        "title": "Establish End-to-End Testing and Reporting for Alignment Activities",
-        "description": "Implement an end-to-end testing process for the entire branch alignment framework and generate comprehensive reports detailing alignment successes, failures, identified errors, and overall branch health.",
-        "details": "This task involves setting up a dedicated test suite that simulates the full alignment workflow. It will:\n1.  Provision a temporary Git repository (or a Dockerized environment) with primary and feature branches.\n2.  Run the branch categorization script (Task 75).\n3.  Execute the modular alignment framework (Task 79), including its integration utility (Task 77), error detection (Task 76), documentation generation (Task 78), and comprehensive validation (Task 80).\n4.  After the workflow, verify the state of the aligned branches (clean history, no errors, correct content, etc.).\n5.  Generate a detailed report summarizing the outcome of each branch's alignment, including: `status` (success/failure), `errors detected`, `validation results`, `time taken`, and `links to generated change summaries`.\n\n```python\nimport subprocess\nimport os\nimport shutil\n# Assume imports for all other tasks are available\n\ndef setup_test_repo(path):\n    # Create a dummy repo with primary and feature branches\n    if os.path.exists(path): shutil.rmtree(path)\n    os.makedirs(path)\n    subprocess.run(['git', 'init'], cwd=path, check=True)\n    subprocess.run(['git', 'config', 'user.email', 'test@example.com'], cwd=path, check=True)\n    subprocess.run(['git', 'config', 'user.name', 'Test User'], cwd=path, check=True)\n    \n    # Simulate primary branches (main, scientific, orchestration-tools)\n    for branch in ['main', 'scientific', 'orchestration-tools']:\n        subprocess.run(['git', 'checkout', '-b', branch], cwd=path, check=True)\n        subprocess.run(['touch', f'{branch}.txt'], cwd=path, check=True)\n        subprocess.run(['git', 'add', '.'], cwd=path, check=True)\n        subprocess.run(['git', 'commit', '-m', f'Initial commit on {branch}'], cwd=path, check=True)\n    \n    # Simulate feature branches\n    subprocess.run(['git', 'checkout', 'main'], cwd=path, check=True)\n    subprocess.run(['git', 'checkout', '-b', 'feat/login'], cwd=path, check=True)\n    subprocess.run(['touch', 'login.py'], cwd=path, check=True)\n    subprocess.run(['git', 'add', '.'], cwd=path, check=True)\n    subprocess.run(['git', 'commit', '-m', 'feat: Add login feature'], cwd=path, check=True)\n    # ... more branches for scientific, orchestration-tools, and complex scenarios\n    \n    print(f\"Test repository setup at {path}\")\n\ndef run_e2e_alignment_test():\n    test_repo_path = './temp_e2e_repo'\n    setup_test_repo(test_repo_path)\n    os.chdir(test_repo_path)\n\n    # 1. Run branch categorization (Task 75)\n    # main_categorizer() \n    \n    # 2. Run modular alignment framework (Task 79)\n    # main_orchestrator() \n\n    # 3. Verify outcomes\n    # Check git log for clean history, check for presence of summary docs, etc.\n    # For this pseudo-code, just a placeholder\n    subprocess.run(['git', 'log', '--oneline'], check=True)\n\n    os.chdir('../') # Go back to original directory\n    # Generate a report\n    with open('e2e_report.txt', 'w') as f:\n        f.write(\"End-to-End Alignment Test Report\\n\")\n        f.write(\"-------------------------------\\n\")\n        f.write(\"Overall Status: SUCCESS (placeholder)\\n\")\n        # Add detailed results from orchestrated tasks\n    \n    print(\"E2E test completed. Report generated.\")\n\nif __name__ == '__main__':\n    run_e2e_alignment_test()\n```",
-        "testStrategy": "Execute the end-to-end testing script. Verify that the entire process from repository setup to final reporting runs without unhandled errors. Check the generated report for accuracy and completeness. Manually inspect the `git log` of a few aligned branches in the temporary repository to ensure correct history and content. Introduce failures at different stages (e.g., categorization error, integration conflict, validation failure) to verify the E2E test's ability to catch and report them accurately. Ensure the test environment is ephemeral and cleaned up after execution.",
-        "priority": "medium",
-        "dependencies": [
-          79,
-          80
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 100,
-        "title": "Create Ordered File Resolution List for Post-Alignment Merge Issues",
-        "description": "Develop a prioritized and ordered list of files that will need to be addressed to resolve complex merge issues that emerge after the alignment process is completed, with files grouped by criticality and type to guide resolution in the proper order focusing on foundational issues first.",
-        "status": "pending",
-        "dependencies": [
-          74,
-          75,
-          76,
-          77,
-          78,
-          79,
-          80,
-          81,
-          82,
-          83
-        ],
-        "priority": "high",
-        "details": "After completing the core alignment process (Tasks 74-83), complex merge issues will likely remain that need systematic resolution. This task involves creating an ordered, prioritized list of files that will require attention, organized to ensure foundational issues are addressed first in proper architectural sequence.\n\nThe list should be organized as follows:\n\n**CRITICAL FOUNDATIONAL FILES (Address First):**\n- Core infrastructure files (database.py, config files, dependency management)\n- Entry points and initialization files (main.py, __init__.py, launch.py)\n- Security and authentication modules\n- Global state and singleton pattern files\n- Core data models and schemas\n\n**ARCHITECTURAL FOUNDATIONS (Address Second):**\n- Core orchestration and coordination modules\n- Communication protocols (API routes, messaging)\n- Core service implementations\n- Data access layer components\n- Error handling and logging infrastructure\n\n**BUSINESS LOGIC COMPONENTS (Address Third):**\n- Core business logic modules\n- Feature-specific implementations\n- AI/ML model integration components\n- Data processing pipelines\n\n**INTEGRATION POINTS (Address Fourth):**\n- Cross-module communication\n- External service integrations\n- Third-party API connections\n\n**UTILITY AND SUPPORT FUNCTIONS (Address Fifth):**\n- Helper functions and utilities\n- Test utilities\n- Documentation and configuration files\n\n**USER INTERFACE COMPONENTS (Address Sixth):**\n- Frontend integration points\n- UI-specific logic\n- Styling and asset files\n\nEach file/grouping should include:\n- Priority level (Critical, High, Medium, Low)\n- Type classification\n- Estimated complexity\n- Dependencies on other files\n- Recommended resolution approach\n\nThe list should be ordered to ensure that when a developer or AI assistant begins resolving post-alignment merge issues, they address the most foundational and critical files first, following the architectural direction established during the alignment process.",
-        "testStrategy": "The output should be a comprehensive, ordered list that can be used as a roadmap for resolving post-alignment merge issues. The list should be validated by checking that: 1) Critical foundational files appear first in the order, 2) Files are properly categorized by type and criticality, 3) Dependencies between files are respected in the ordering, 4) The order follows architectural best practices (foundational components before dependent ones), 5) The recommended resolution approaches are practical and achievable.",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Identify and Catalog All Files with Merge Issues Post-Alignment",
-            "description": "After alignment process completion, scan the repository to identify all files that contain merge conflicts, inconsistencies, or require attention due to the alignment process.",
-            "dependencies": [],
-            "details": "Use git tools and custom scripts to identify all files that have been affected by the alignment process and may contain merge issues, inconsistencies, or require attention. This includes files with conflict markers, files that were heavily modified during alignment, and files that may have been inconsistently updated across branches.",
-            "status": "pending",
-            "testStrategy": "Verify that the scan identifies all files that need attention post-alignment. The output should be a comprehensive list of all files requiring resolution."
-          },
-          {
-            "id": 2,
-            "title": "Classify Files by Criticality and Type",
-            "description": "Categorize each identified file by its criticality level and functional type to enable proper prioritization.",
-            "dependencies": [
-              1
-            ],
-            "details": "Analyze each file from the catalog and classify it according to criticality (Critical, High, Medium, Low) and type (Infrastructure, Architecture, Business Logic, Integration, Utilities, UI). This classification will guide the ordering process.",
-            "status": "pending",
-            "testStrategy": "Verify that all files are properly classified with both criticality and type. The classification should align with the architectural importance of each file."
-          },
-          {
-            "id": 3,
-            "title": "Analyze File Dependencies and Interconnections",
-            "description": "Determine the dependencies between files to ensure proper resolution order where foundational files are addressed before dependent ones.",
-            "dependencies": [
-              2
-            ],
-            "details": "Map out the dependencies between files to understand which files need to be resolved before others. This includes import dependencies, data flow dependencies, and architectural dependencies.",
-            "status": "pending",
-            "testStrategy": "Verify that the dependency analysis correctly identifies which files must be resolved before others. The dependency map should reflect actual code relationships."
-          },
-          {
-            "id": 4,
-            "title": "Generate Prioritized Resolution Order",
-            "description": "Create the final ordered list of files based on criticality, type, and dependencies to guide systematic resolution of merge issues.",
-            "dependencies": [
-              3
-            ],
-            "details": "Using the classifications and dependencies identified in previous steps, generate the final ordered list of files to resolve. Ensure that critical foundational files appear first, followed by other files in an order that respects dependencies and architectural best practices.",
-            "status": "pending",
-            "testStrategy": "Validate the final order by checking that critical foundational files are listed first, dependencies are respected, and the sequence follows architectural best practices for resolution."
-          },
-          {
-            "id": 5,
-            "title": "Document Resolution Approaches and Recommendations",
-            "description": "For each file in the ordered list, provide specific recommendations and approaches for resolving the merge issues.",
-            "dependencies": [
-              4
-            ],
-            "details": "Add detailed resolution recommendations for each file in the ordered list, including specific approaches, tools to use, considerations for the resolution, and potential pitfalls to avoid.",
-            "status": "pending",
-            "testStrategy": "Verify that each file in the list has appropriate resolution recommendations that are practical, achievable, and specific to the file's function and type."
-          }
-        ]
       }
     ],
     "metadata": {
-      "created": "2025-11-25T00:00:00.000Z",
-      "updated": "2025-11-25T00:00:00.000Z",
-      "description": "Combined tasks from tasks.json, tasks_backup.json, tasks_backup2.json, tasks_backup3.json",
-      "source_files": [
-        "tasks.json",
-        "tasks_backup.json",
-        "tasks_backup2.json",
-        "tasks_backup3.json"
-      ]
+      "created": "2025-11-23T17:29:33.181Z",
+      "updated": "2025-11-23T17:29:33.181Z",
+      "description": "Tasks for master context"
     }
   }
 }
