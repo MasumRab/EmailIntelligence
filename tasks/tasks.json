@@ -240,6 +240,105 @@
             "details": "Simulate the entire email lifecycle from initial receipt by the ingestion service to the final output of the AI analysis. Use a comprehensive suite of sample emails including previously problematic ones to confirm full functionality and stability.",
             "status": "pending",
             "testStrategy": "Deploy the fixed pipeline components in a testing environment. Run a suite of diverse sample emails through the entire pipeline and verify the final AI analysis results against expected outcomes. Monitor logs for any unexpected errors."
+          },
+          {
+            "id": 19,
+            "title": "Run Existing Tests and Document Pipeline Failures",
+            "description": "Execute all existing unit and integration tests across ingestion, parsing, and AI analysis stages to get an initial overview of failures and identify common patterns. Document all failing tests and high-level error messages.",
+            "dependencies": [],
+            "details": "Run `pytest` for `src/backend/email_ingestion/`, `src/backend/email_parser/`, `src/backend/ai/email_filter_node.py`, and `src/backend/ai/sentiment_analyzer.py`. Collect output, noting specific test failures and their tracebacks for each component.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 20,
+            "title": "Diagnose Email Ingestion Component Failures",
+            "description": "Investigate the `src/backend/email_ingestion/` component in detail based on the initial health check. Identify specific broken modules, error types (e.g., connection issues, malformed input handling, file access errors), and missing functionalities.",
+            "dependencies": [
+              19
+            ],
+            "details": "Review logs, reproduce ingestion failures with a variety of sample emails, and pinpoint root causes within `src/backend/email_ingestion/` code. Document specific functions or classes causing issues and their associated error messages.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 21,
+            "title": "Plan Fixes for Email Ingestion Issues",
+            "description": "Based on the diagnosis from subtask 20, create a detailed implementation plan for addressing all identified issues within the email ingestion component (`src/backend/email_ingestion/`). Specify necessary code changes, potential refactorings, and new tests.",
+            "dependencies": [
+              20
+            ],
+            "details": "Outline step-by-step code modifications, including any required external library updates or configuration changes for the ingestion component. Define expected outcomes for each fix and how they will be verified.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 22,
+            "title": "Diagnose Email Parsing Component Failures",
+            "description": "Investigate the `src/backend/email_parser/` component, focusing on issues related to incorrect parsing, data extraction errors, or handling of various email formats. Identify specific broken modules and error types (e.g., malformed headers, content extraction issues).",
+            "dependencies": [
+              19
+            ],
+            "details": "Use a variety of problematic email samples to trigger and debug parsing failures. Analyze logs and tracebacks from `src/backend/email_parser/` to identify faulty logic, edge case mishandling, or incorrect data structure population.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 23,
+            "title": "Plan Fixes for Email Parsing Issues",
+            "description": "Create a comprehensive implementation plan for resolving all identified problems within the `src/backend/email_parser/` component. Include steps for improving robustness, error handling, and data extraction accuracy for various email types.",
+            "dependencies": [
+              22
+            ],
+            "details": "Detail specific code changes, including adjustments to regex patterns, data structure handling, or parsing libraries. Outline new unit tests to cover fixed bugs and improve code coverage for different email formats and content types.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 24,
+            "title": "Diagnose AI Analysis Component Failures",
+            "description": "Investigate `src/backend/ai/email_filter_node.py` and `src/backend/ai/sentiment_analyzer.py` for errors in classification, sentiment detection, or integration with other AI models. Identify specific failure modes (e.g., incorrect predictions, model loading errors, performance bottlenecks).",
+            "dependencies": [
+              19
+            ],
+            "details": "Run AI analysis components with diverse datasets, including known problematic cases and edge cases. Monitor model output, analyze logs, and debug logic within `email_filter_node.py` and `sentiment_analyzer.py` to find the root cause of AI-related issues.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 25,
+            "title": "Plan Fixes for AI Analysis Issues",
+            "description": "Formulate a detailed implementation plan for rectifying issues in `src/backend/ai/email_filter_node.py` and `src/backend/ai/sentiment_analyzer.py`. This includes potential model retraining, code logic adjustments, or dependency updates.",
+            "dependencies": [
+              24
+            ],
+            "details": "Specify changes to model loading, inference logic, data preprocessing for AI models, or integration points. Outline necessary data preparation or re-training steps if model performance is the issue, and define new validation metrics.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 26,
+            "title": "Implement Code Fixes for All Pipeline Stages",
+            "description": "Execute the implementation plans developed for the email ingestion, parsing, and AI analysis stages. Apply all necessary code changes, refactorings, and add new unit tests as defined in the planning subtasks.",
+            "dependencies": [
+              21,
+              23,
+              25
+            ],
+            "details": "Implement fixes in `src/backend/email_ingestion/`, `src/backend/email_parser/`, `src/backend/ai/email_filter_node.py`, and `src/backend/ai/sentiment_analyzer.py`. Ensure new and existing unit tests pass for each fixed component.",
+            "status": "pending",
+            "testStrategy": "Individual unit tests for each component will be executed to confirm the fixes. New unit tests will be added for newly identified edge cases or bugs to ensure regression prevention."
+          },
+          {
+            "id": 27,
+            "title": "Conduct End-to-End Pipeline Verification",
+            "description": "Perform a comprehensive end-to-end test of the entire email processing pipeline using a diverse set of real-world and edge-case emails. Verify that ingestion, parsing, and AI analysis components function correctly and integrate seamlessly.",
+            "dependencies": [
+              26
+            ],
+            "details": "Set up an environment to simulate the full pipeline. Process a predefined suite of test emails, monitoring logs and output at each stage. Confirm that the final AI analysis results are accurate and as expected, handling various inputs robustly.",
+            "status": "pending",
+            "testStrategy": "Develop a set of integration tests covering various email types (e.g., plain text, HTML, attachments, malformed, spam) to validate the complete flow. Verify data integrity and correctness across all pipeline stages, from ingestion to final AI output."
           }
         ]
       },
@@ -299,6 +398,61 @@
             "details": "After all tests pass and functional verification is complete, safely delete the original top-level `backend` directory. Ensure no lingering files or references remain that could cause confusion or issues.",
             "status": "pending",
             "testStrategy": null
+          },
+          {
+            "id": 6,
+            "title": "Prepare Git environment and physically move backend directory",
+            "description": "Create a new feature branch from the main development branch and then physically move the entire 'backend' directory into 'src/' and rename it to 'src/backend'. Ensure the new directory structure is correctly established.",
+            "dependencies": [
+              1
+            ],
+            "details": "1. Create a new Git branch, e.g., 'feature/backend-to-src'. 2. Use file system commands (e.g., `mv backend src/backend`) to relocate the directory. 3. Ensure that 'src/' and 'src/backend/' have `__init__.py` files to be recognized as Python packages.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 7,
+            "title": "Update all Python import statements project-wide",
+            "description": "Perform a comprehensive find-and-replace operation across the entire project to update all Python import statements from 'from backend...' to 'from src.backend...'. This includes all Python source files and any scripts that might contain these imports.",
+            "dependencies": [
+              6
+            ],
+            "details": "Use an IDE's refactoring tools or command-line utilities like `grep -rl 'from backend' . | xargs sed -i 's/from backend/from src.backend/g'` for initial replacement. Manually review changes to catch any edge cases or incorrect replacements. Ensure relative imports within the moved 'backend' module are not inadvertently broken.",
+            "status": "pending",
+            "testStrategy": "After initial replacement, run static analysis tools (e.g., pylint, mypy) to detect unresolved imports or module errors. Verify changes by inspecting a sample of modified files."
+          },
+          {
+            "id": 8,
+            "title": "Modify configuration files to reflect new backend path",
+            "description": "Update all relevant configuration files that reference the old 'backend' path to point to the new 'src/backend' location. This includes environment variables, Docker configurations, CI/CD pipelines, and project metadata.",
+            "dependencies": [
+              7
+            ],
+            "details": "1. Update `PYTHONPATH` definitions in Dockerfiles (e.g., `ENV PYTHONPATH=\"/app/src:$PYTHONPATH\"`). 2. Modify `docker-compose.yml` if it references specific backend services or paths. 3. Adjust CI/CD pipeline scripts (e.g., `.github/workflows/ci.yml`) for build, test, and deployment stages. 4. Review `pyproject.toml` or `setup.py` for editable installs or package discovery.",
+            "status": "pending",
+            "testStrategy": "Build Docker images, start services via `docker-compose`, and trigger a CI/CD pipeline run to ensure all path references are correctly resolved and the environment is set up properly."
+          },
+          {
+            "id": 9,
+            "title": "Execute comprehensive regression testing",
+            "description": "Run the full suite of automated tests (unit, integration, end-to-end) and perform manual smoke testing to ensure that the backend migration has not introduced any regressions or broken existing functionality.",
+            "dependencies": [
+              8
+            ],
+            "details": "1. Execute the entire existing automated test suite (e.g., `pytest`). 2. Achieve 100% test pass rate. 3. Perform a manual smoke test by starting the application locally. 4. Use tools like Postman or cURL to hit key API endpoints and verify expected responses and data integrity. 5. Monitor logs for any new errors or warnings.",
+            "status": "pending",
+            "testStrategy": "Compare test results before and after migration. Document any failures and link them back to potential migration issues. Ensure critical user flows and API functionalities are fully verified."
+          },
+          {
+            "id": 10,
+            "title": "Clean up old backend directory and finalize migration",
+            "description": "Once all tests pass and the application is confirmed to be fully functional in the new 'src/backend' structure, safely delete the original top-level 'backend' directory.",
+            "dependencies": [
+              9
+            ],
+            "details": "1. Double-check that no remaining code or configuration files explicitly reference the old 'backend' directory. 2. Remove the old `backend/` directory using `rm -rf backend/`. 3. Commit all changes to the feature branch and prepare for merging into the main development branch.",
+            "status": "pending",
+            "testStrategy": "After deletion, re-run all tests and perform a quick smoke test to confirm that no unexpected dependencies on the old directory existed."
           }
         ]
       },
@@ -347,6 +501,49 @@
             "details": "Assuming 'migrate_sqlite_to_json' currently handles the entire process, create granular functions such as '_connect_to_sqlite(db_path)', '_extract_data_from_db(connection)', '_serialize_data_to_json(data)', and '_write_json_to_file(json_data, filename)'. The main migration function will then coordinate these smaller, focused steps.",
             "status": "pending",
             "testStrategy": "Create unit tests for each sub-function, employing mocks for external dependencies like database connections and file I/O to ensure isolated testing. Develop integration tests to validate the complete migration pipeline."
+          },
+          {
+            "id": 5,
+            "title": "Define Module Splitting Architecture for smart_filters.py and smart_retrieval.py",
+            "description": "Analyze `smart_filters.py` and `smart_retrieval.py` to identify distinct functionalities and propose new, smaller modules. Define clear responsibilities and interfaces for each new module to reduce coupling and improve maintainability.",
+            "dependencies": [],
+            "details": "Conduct a thorough review of `smart_filters.py` to separate filtering logic, data transformation, and utility functions into new logical modules (e.g., `filter_strategies.py`, `data_preprocessors.py`). Perform a similar analysis for `smart_retrieval.py`, identifying potential modules for query processing, retrieval mechanisms, and result aggregation (e.g., `query_optimizers.py`, `retrieval_agents.py`). Document the proposed module structure, new module names, their primary responsibilities, and how they will interact. Consider common patterns or helper functions that can be extracted into shared utility modules.",
+            "status": "pending",
+            "testStrategy": "N/A. This subtask focuses on architectural definition. The output will be a design document outlining the new module structure, responsibilities, and proposed interfaces."
+          },
+          {
+            "id": 6,
+            "title": "Develop Characterization Tests (Golden Master) for smart_filters.py and smart_retrieval.py",
+            "description": "Before initiating any code changes, develop a comprehensive suite of characterization tests (golden master tests) that capture the current external behavior of `smart_filters.py` and `smart_retrieval.py`. These tests will serve as a safety net to prevent regressions during refactoring.",
+            "dependencies": [
+              5
+            ],
+            "details": "Identify all public interfaces and critical internal interactions of `smart_filters.py` and `smart_retrieval.py`. Write tests that exercise these interfaces with a wide range of inputs, capturing the exact outputs. Use mock objects for external dependencies (e.g., database, external APIs, other AI components) to ensure tests are deterministic and isolated. Ensure high test coverage for the existing functionality within these modules, focusing on end-to-end flows. Store test inputs and expected outputs (the 'golden master') securely.",
+            "status": "pending",
+            "testStrategy": "The subtask itself is about creating tests. Verification involves running these characterization tests against the *original* code to ensure they pass and accurately reflect current behavior. Any failures indicate an incorrect test."
+          },
+          {
+            "id": 7,
+            "title": "Perform Incremental Refactoring and Module Splitting of smart_filters.py and smart_retrieval.py",
+            "description": "Execute the module splitting and refactoring plan for `smart_filters.py` and `smart_retrieval.py` in small, incremental steps. Each step will involve moving functionality to new modules, simplifying complex functions, and continuously running characterization tests to ensure no regressions are introduced.",
+            "dependencies": [
+              5,
+              6
+            ],
+            "details": "For each identified new module from Subtask 5, create the new file and move relevant functions/classes from the original module. Update import statements and references in the original modules and across the codebase to use the new modules. Refactor high-complexity functions within both original and new modules, applying principles like single responsibility, smaller functions, and clearer naming. After *each small change*, run the characterization tests developed in Subtask 6. Only proceed if all tests pass. Track code coverage and complexity metrics (e.g., cyclomatic complexity) to monitor improvement.",
+            "status": "pending",
+            "testStrategy": "Continuous execution of the characterization test suite after every minor change to ensure that the external behavior remains identical throughout the refactoring process. This confirms no regressions are introduced."
+          },
+          {
+            "id": 8,
+            "title": "Validate Refactoring Impact with Static Analysis and Code Metrics",
+            "description": "After the core refactoring of `smart_filters.py` and `smart_retrieval.py` is complete, perform a final validation using static analysis tools and code quality metrics. This will confirm that the refactoring has achieved its goals of reducing complexity, improving maintainability, and adhering to best practices.",
+            "dependencies": [
+              7
+            ],
+            "details": "Run static analysis tools (e.g., pylint, flake8, mypy) on the refactored codebase to identify new issues or ensure existing ones are resolved. Calculate and compare code complexity metrics (e.g., cyclomatic complexity per function, average lines of code per function) before and after refactoring for the affected modules. Verify that code duplication has been significantly reduced using appropriate tools. Ensure that the module coupling has decreased and cohesion has increased as per the design defined in Subtask 5. Document the improvements in code quality metrics.",
+            "status": "pending",
+            "testStrategy": "Analysis of static analysis reports and code metric comparisons. The primary 'test' is the favorable change in these metrics (e.g., reduced complexity, higher cohesion), along with the continued passing of all characterization and unit tests."
           }
         ]
       },
