@@ -1,9 +1,9 @@
 {
 	"meta": {
-		"generatedAt": "2025-11-24T03:09:17.671Z",
-		"tasksAnalyzed": 41,
-		"totalTasks": 51,
-		"analysisCount": 41,
+		"generatedAt": "2025-11-25T02:22:31.973Z",
+		"tasksAnalyzed": 60,
+		"totalTasks": 70,
+		"analysisCount": 61,
 		"thresholdScore": 5,
 		"projectName": "Taskmaster",
 		"usedResearch": true
@@ -13,57 +13,46 @@
 			"taskId": 3,
 			"taskTitle": "Fix Email Processing Pipeline",
 			"complexityScore": 8,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "This is a critical, high-priority task involving debugging and fixing a core business pipeline across multiple, technically diverse modules: email ingestion (I/O, external services), parsing (content extraction, format handling), and AI analysis (model inference, data preprocessing). The interconnectedness of these stages means a fix in one can expose issues in another, increasing debugging complexity. The comprehensive testing requirements (unit, integration, end-to-end) are necessary but add significant effort. The existing 9 subtasks provide a good breakdown, but the inherent technical difficulty remains high."
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Identify failing tests or broken components across email ingestion, parsing, and AI analysis stages. Create a detailed implementation plan for each fix, focusing on isolated issues first, then verify the entire pipeline end-to-end. Provide specific component names and error types for each stage.",
+			"reasoning": "This is a high-priority debugging and fixing task across three critical and interconnected components: email ingestion, parsing, and AI analysis. Debugging existing broken code, especially within a pipeline where issues can cascade, is often more complex and time-consuming than greenfield development. The AI analysis component may involve complex machine learning models, adding another layer of difficulty. End-to-end verification requires meticulous attention to data flow and inter-component communication, significantly increasing the complexity."
 		},
 		{
 			"taskId": 4,
 			"taskTitle": "Backend Migration from 'backend' to 'src/backend'",
-			"complexityScore": 6,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "This task involves a significant structural refactoring, requiring a codebase-wide update of import statements and various configuration files (Docker, CI/CD, pyproject.toml). While tools can automate much of this, identifying and resolving all subtle references and ensuring no regressions are introduced (especially in dynamic imports or non-code files) is challenging. The high potential for subtle errors and regressions, despite the task being well-defined with 5 subtasks, warrants a moderate to high complexity score. Comprehensive regression testing is essential here."
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Detail the steps for migrating files, updating all Python import statements across the codebase, modifying diverse configuration files (Dockerfile, docker-compose.yml, CI/CD, pyproject.toml), and performing comprehensive regression testing to ensure no functionality is broken.",
+			"reasoning": "This task involves a large-scale refactoring that, while mechanical in nature (moving files, find-and-replace for imports), carries significant risk due to its breadth. Updating import statements across potentially hundreds of Python files, and modifying various configuration file formats (Python, YAML, Dockerfile, GitHub Actions) introduces many potential points of failure. A single missed reference or incorrect path could break the entire application, necessitating thorough regression testing."
 		},
 		{
 			"taskId": 6,
 			"taskTitle": "Refactor High-Complexity Modules and Duplicated Code",
-			"complexityScore": 10,
-			"recommendedSubtasks": 6,
-			"expansionPrompt": "Generate subtasks for refactoring high-complexity modules, reducing code duplication in the AI engine, and simplifying complex functions. Include subtasks for splitting `smart_filters.py` and `smart_retrieval.py`, abstracting common logic for AI engine duplication, and breaking down `setup_dependencies`, `migrate_sqlite_to_json`, and `run` functions into smaller, single-responsibility methods.",
-			"reasoning": "This is a monumental architectural refactoring effort. It involves decomposing two very large, monolithic files (1500+ and 1100+ lines) into smaller, cohesive modules, reducing hundreds of code duplications across AI components, and simplifying functions with high cyclomatic complexity. Each sub-task requires deep understanding of domain logic, careful design of new abstractions (SRP, high cohesion, low coupling), and meticulous execution to maintain functional equivalence. The stringent, test-driven approach with characterization tests and continuous static analysis is crucial but adds significantly to the effort and complexity. This type of deep refactoring often uncovers hidden assumptions and technical debt, making it inherently unpredictable and highly complex."
-		},
-		{
-			"taskId": 9,
-			"taskTitle": "Create Comprehensive Merge Validation Framework",
 			"complexityScore": 8,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Implementing a comprehensive merge validation framework for a CI/CD pipeline is a significant DevOps and QA undertaking. It requires integrating and configuring multiple tools for architectural enforcement, functional testing (unit, integration, E2E smoke tests), performance benchmarking, and security scanning. The challenge lies in orchestrating these diverse checks, correctly interpreting their output, configuring branch protection, and robustly testing the validation framework itself (e.g., with deliberate failures). The existing 14 detailed subtasks highlight the extensive scope and effort involved."
-		},
-		{
-			"taskId": 25,
-			"taskTitle": "Restore Core Backend Infrastructure and Functionality",
-			"complexityScore": 10,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "This is a highly critical and complex task given the goal to restore over 100 backend files crucial to the application's core infrastructure across multiple layers (workflow engines, API routes, database, plugin systems). Even with Git-based recovery, re-integrating such a large volume of foundational code in Python and TypeScript, reconstructing dependencies, re-establishing database layers (including migrations), and reactivating complex systems, carries extremely high risk of regressions and subtle errors. The comprehensive testing (unit, integration, E2E, data integrity, security audit) is mandatory but underscores the deep challenges involved. The clarification that the specified commit didn't cause the loss doesn't reduce the scope of verifying and potentially restoring these core components."
-		},
-		{
-			"taskId": 34,
-			"taskTitle": "Create Integration Migration Guide for Context Control Module Refactoring",
-			"complexityScore": 6,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "While a documentation task, this migration guide is critical for developer adoption and stability of a major architectural change within the `context_control` module (static methods to instance-based DI). It requires deep technical understanding to accurately describe breaking changes, provide precise side-by-side code examples, anticipate common pitfalls, and outline an effective testing strategy for the new patterns. The quality of this guide directly impacts developer productivity and the success of the refactoring. Its dependence on completed refactoring (Task 33, 35) and testing (Task 32) means it cannot proceed in isolation."
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the refactoring of 'smart_filters.py' and 'smart_retrieval.py' into concrete steps for module splitting, specifying new module names and responsibilities. Detail the process for creating characterization tests before refactoring, performing incremental changes, and validating with static analysis metrics.",
+			"reasoning": "Refactoring large, high-complexity modules and reducing code duplication without introducing regressions is an inherently difficult task. It requires a deep understanding of the existing codebase, careful architectural design for the new modules, and meticulous incremental changes. The explicit requirement for characterization tests (golden master) and continuous, iterative testing after each small change is the correct but demanding approach. Maintaining or improving performance while refactoring adds another layer of challenge."
 		},
 		{
 			"taskId": 38,
 			"taskTitle": "Comprehensive Analysis of launch.py",
-			"complexityScore": 8,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "This is a highly detailed and multi-faceted audit of `src/launch.py`, identified as a critical entry point. It involves scrutinizing security aspects (unsafe functions, injection vectors), analyzing extensive Git history for regressions and technical debt, mapping complex import dependencies (including circular imports), and identifying deviations from project architectural standards and coding style. The combination of manual code review with multiple static analysis and Git history tools, and the subsequent interpretation of findings, requires significant expertise and effort across several domains. The 8 detailed subtasks clearly outline the breadth of this complex analytical work."
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Generate subtasks for conducting a comprehensive audit of `src/launch.py`, including detailed steps for identifying security concerns (e.g., unsafe function calls, injection vulnerabilities), evaluating regression risks via Git history analysis, mapping import dependencies, and assessing implementation inconsistencies.",
+			"reasoning": "This task is a comprehensive audit of a critical entry point (`src/launch.py`), requiring a deep dive into its security posture, historical evolution, dependencies, and adherence to coding standards. While primarily analytical, it demands specialized knowledge in security analysis, Git forensics, and static code analysis. Synthesizing information from various tools and manual reviews into actionable insights is a non-trivial effort."
+		},
+		{
+			"taskId": 71,
+			"taskTitle": "Implement Static Analysis for Circular Import Detection",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Generate subtasks for integrating static analysis for circular imports, including tool selection and configuration, initial codebase scan and documentation of existing cycles, resolution of identified cycles, and setting up CI/CD checks to prevent future occurrences.",
+			"reasoning": "Integrating a static analysis tool for circular import detection is a moderately complex task. The primary challenges lie in selecting the most appropriate tool, accurately configuring it for the project's specific needs (minimizing false positives/negatives), and integrating it smoothly into the CI/CD pipeline. The initial phase of identifying and potentially resolving *existing* circular imports might also require minor refactoring, adding to the effort."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Audit Backend Data Migration and Implement Backup/Recovery",
+			"complexityScore": 0.12345678901234566
 		},
 		{
 			"taskId": 7,
@@ -74,11 +63,11 @@
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		},
 		{
-			"taskId": 8,
-			"taskTitle": "Integrate `feature-notmuch-tagging-1` into `scientific` with Architecture Alignment",
+			"taskId": 9,
+			"taskTitle": "Create Comprehensive Merge Validation Framework",
 			"complexityScore": 5,
 			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on integrate `feature-notmuch-tagging-1` into `scientific` with architecture alignment.",
+			"expansionPrompt": "Break down this task with a focus on create comprehensive merge validation framework.",
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		},
 		{
@@ -103,14 +92,6 @@
 			"complexityScore": 5,
 			"recommendedSubtasks": 3,
 			"expansionPrompt": "Break down this task with a focus on develop and integrate pre-merge validation scripts.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 21,
-			"taskTitle": "Create Merge Best Practices Documentation",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on create merge best practices documentation.",
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		},
 		{
@@ -170,14 +151,6 @@
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		},
 		{
-			"taskId": 31,
-			"taskTitle": "Scan and Resolve Unresolved Merge Conflicts Across All Remote Branches",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on scan and resolve unresolved merge conflicts across all remote branches.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
 			"taskId": 32,
 			"taskTitle": "Create Comprehensive Test Suite for Context Control Module",
 			"complexityScore": 5,
@@ -191,6 +164,14 @@
 			"complexityScore": 5,
 			"recommendedSubtasks": 3,
 			"expansionPrompt": "Break down this task with a focus on add deprecation shims for context control static methods.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 34,
+			"taskTitle": "Create Integration Migration Guide for Context Control Module Refactoring",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on create integration migration guide for context control module refactoring.",
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		},
 		{
@@ -250,67 +231,11 @@
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		},
 		{
-			"taskId": 43,
-			"taskTitle": "Database Refactoring for Dependency Injection & Global State Elimination",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on database refactoring for dependency injection & global state elimination.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
 			"taskId": 44,
 			"taskTitle": "Standardize Dependency Management System",
 			"complexityScore": 5,
 			"recommendedSubtasks": 3,
 			"expansionPrompt": "Break down this task with a focus on standardize dependency management system.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 45,
-			"taskTitle": "Implement Dashboard Caching & Background Processing",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement dashboard caching & background processing.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 46,
-			"taskTitle": "Implement WebSocket Support for Real-time Dashboard Updates",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement websocket support for real-time dashboard updates.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 47,
-			"taskTitle": "Implement Dashboard Export Functionality (CSV, PDF, JSON)",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement dashboard export functionality (csv, pdf, json).",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 48,
-			"taskTitle": "Develop Comprehensive Dashboard API for Programmatic Access (Scientific Branch)",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop comprehensive dashboard api for programmatic access (scientific branch).",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 49,
-			"taskTitle": "Implement Multi-Tenant Dashboard Support (Scientific Branch)",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement multi-tenant dashboard support (scientific branch).",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 50,
-			"taskTitle": "Integrate AI Insights Engine with Dashboard (Scientific Branch)",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on integrate ai insights engine with dashboard (scientific branch).",
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		},
 		{
@@ -335,6 +260,238 @@
 			"complexityScore": 5,
 			"recommendedSubtasks": 3,
 			"expansionPrompt": "Break down this task with a focus on project management: oversee backend migration to src/.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 54,
+			"taskTitle": "Establish Core Branch Alignment Framework",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on establish core branch alignment framework.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 55,
+			"taskTitle": "Develop Automated Error Detection Scripts for Merges",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on develop automated error detection scripts for merges.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 56,
+			"taskTitle": "Implement Robust Branch Backup and Restore Mechanism",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement robust branch backup and restore mechanism.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 57,
+			"taskTitle": "Develop Feature Branch Identification and Categorization Tool",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on develop feature branch identification and categorization tool.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 58,
+			"taskTitle": "Automate Changes Summary and Alignment Checklist Generation",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on automate changes summary and alignment checklist generation.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 59,
+			"taskTitle": "Develop Core Primary-to-Feature Branch Alignment Logic",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on develop core primary-to-feature branch alignment logic.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 60,
+			"taskTitle": "Implement Focused Strategies for Complex Branches",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement focused strategies for complex branches.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 61,
+			"taskTitle": "Integrate Validation Framework into Alignment Workflow",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on integrate validation framework into alignment workflow.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 62,
+			"taskTitle": "Orchestrate Sequential Branch Alignment Workflow",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on orchestrate sequential branch alignment workflow.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 63,
+			"taskTitle": "Finalize and Publish Comprehensive Alignment Documentation",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on finalize and publish comprehensive alignment documentation.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 64,
+			"taskTitle": "Define and Implement Database Configuration Object",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on define and implement database configuration object.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 65,
+			"taskTitle": "Refactor DatabaseManager for Constructor Dependency Injection",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on refactor databasemanager for constructor dependency injection.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 66,
+			"taskTitle": "Implement Factory Functions for DatabaseManager Construction",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement factory functions for databasemanager construction.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 67,
+			"taskTitle": "Develop Deprecation Shims and Warning Mechanisms for Legacy API",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on develop deprecation shims and warning mechanisms for legacy api.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 68,
+			"taskTitle": "Setup Comprehensive Testing Environment and Mocking Framework",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on setup comprehensive testing environment and mocking framework.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 69,
+			"taskTitle": "Implement DatabaseManager Unit and Integration Tests with DI",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement databasemanager unit and integration tests with di.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 70,
+			"taskTitle": "Implement Context Isolation Validation Tests for Multi-Agent Systems",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement context isolation validation tests for multi-agent systems.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 72,
+			"taskTitle": "Develop Comprehensive End-to-End Tests for Integrated Features",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on develop comprehensive end-to-end tests for integrated features.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 73,
+			"taskTitle": "Implement Performance Benchmarks and Scalability Tests",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement performance benchmarks and scalability tests.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 74,
+			"taskTitle": "Validate and Configure Core Git Repository Protections",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on validate and configure core git repository protections.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 75,
+			"taskTitle": "Develop a Script to Identify and Categorize Feature Branches",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on develop a script to identify and categorize feature branches.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 76,
+			"taskTitle": "Implement Automated Error Detection and Correction for Merge Issues",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement automated error detection and correction for merge issues.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 77,
+			"taskTitle": "Create a Utility for Safe Integration of Primary Branch Changes into Feature Branches",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on create a utility for safe integration of primary branch changes into feature branches.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 78,
+			"taskTitle": "Implement a Documentation Generator for Alignment Change Summaries",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement a documentation generator for alignment change summaries.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 79,
+			"taskTitle": "Develop a Modular Framework for Parallel Alignment Task Execution",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on develop a modular framework for parallel alignment task execution.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 80,
+			"taskTitle": "Integrate Pre-merge Validation Scripts and Comprehensive Validation Framework",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on integrate pre-merge validation scripts and comprehensive validation framework.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 81,
+			"taskTitle": "Implement Specialized Handling for Complex Feature Branches",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on implement specialized handling for complex feature branches.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 82,
+			"taskTitle": "Document Merge Best Practices and Conflict Resolution Procedures",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on document merge best practices and conflict resolution procedures.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": 83,
+			"taskTitle": "Establish End-to-End Testing and Reporting for Alignment Activities",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on establish end-to-end testing and reporting for alignment activities.",
 			"reasoning": "Automatically added due to missing analysis in AI response."
 		}
 	]
