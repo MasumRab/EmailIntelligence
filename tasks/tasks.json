@@ -3234,7 +3234,40 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Local Git Hook Integration for Branch Protection",
+            "description": "Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.",
+            "dependencies": [],
+            "details": "Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Integrate Existing Pre-Merge Validation Scripts and Frameworks",
+            "description": "Adapt and integrate the existing pre-merge validation scripts (Task 19) and the comprehensive merge validation framework (Task 9) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.",
+            "dependencies": [
+              1
+            ],
+            "details": "Review the outputs/requirements of Task 19 (pre-merge validation scripts) and Task 9 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 3,
+            "title": "Develop Centralized Local Alignment Orchestration Script",
+            "description": "Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.",
+            "status": "pending",
+            "testStrategy": null
+          }
+        ]
       },
       {
         "id": 55,
@@ -3247,7 +3280,40 @@
           54
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Merge Artifact and Deleted Module Detection",
+            "description": "Create Python scripts to efficiently detect uncleaned merge markers (<<<<<<<, =======, >>>>>>>) within changed files and identify accidentally deleted modules post-merge or rebase operations.",
+            "dependencies": [],
+            "details": "Implement detection for merge artifacts using 'git diff --check' or 'grep -E '^(<<<<<<<|=======|>>>>>>>)' on staged/changed files. For deleted modules, compare the file list before and after alignment using 'git diff --name-only --diff-filter=D' to identify deleted files and check if any were part of an active import path.",
+            "status": "pending",
+            "testStrategy": "Create a test Git repository. Introduce branches with merge conflicts, resolve them but leave merge markers, and intentionally delete a Python module that is imported elsewhere. Run the script and verify that both merge artifacts and the deleted module are correctly identified."
+          },
+          {
+            "id": 2,
+            "title": "Implement Garbled Text and Initial Import Statement Extraction",
+            "description": "Develop functionality to detect garbled text/encoding issues in changed files and perform initial extraction of import statements from Python files, paying special attention to potential issues from a 'backend' to 'src' migration.",
+            "dependencies": [
+              1
+            ],
+            "details": "For garbled text, iterate through changed files. Attempt to open files with 'utf-8' encoding and 'errors='replace''. Subsequently, check the content for common replacement characters (e.g., '') that indicate encoding errors. Consider using 'chardet' for more robust encoding detection for non-UTF-8 files. For Python files, use regular expressions or simple string parsing to extract 'import' and 'from ... import' statements to build a list of potential module dependencies. Specifically note any imports referencing 'backend' paths.",
+            "status": "pending",
+            "testStrategy": "Create a file with non-UTF8 characters that cause garbling. Modify a Python file to have an invalid import path and one referring to 'backend'. Run the script and verify that garbled text is flagged and initial import statements (including the 'backend' reference) are extracted correctly."
+          },
+          {
+            "id": 3,
+            "title": "Consolidate Error Detection and Implement Comprehensive Import Validation",
+            "description": "Integrate all previously developed error detection mechanisms into a single, robust Python script. This includes performing comprehensive AST-based import validation for Python files, ensuring safe execution, and providing clear, actionable reporting, specifically for `backend` to `src` migration-related import issues.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Combine the detection logic for merge artifacts, deleted modules, garbled text, and import issues. For Python files, use the 'ast' module to parse the Abstract Syntax Tree (AST) to accurately extract all import statements. For each extracted import, verify if the module or package exists in the current environment or codebase. Validate that 'backend' imports are either correctly migrated to 'src' paths or flagged as missing if they still point to non-existent 'backend' locations. Implement safety measures to ensure the script does not perform Git operations that could lead to wrong-branch pushes. The script should output a concise report of all detected errors, including file paths, error types, and suggested corrective actions.",
+            "status": "pending",
+            "testStrategy": "Create a comprehensive test scenario including: unresolved merge markers, a file with encoding errors, a Python file with a non-existent import, a Python file attempting to import a 'backend' module after it has been moved/renamed to 'src', and a deleted Python module that is still imported. Run the consolidated script and confirm all error types are accurately reported with appropriate suggestions. Verify the script runs without making any Git modifications."
+          }
+        ]
       },
       {
         "id": 56,
@@ -3260,7 +3326,43 @@
           54
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop temporary local branch backup and restore for feature branches",
+            "description": "Implement a Python function to automatically create a local backup branch (e.g., 'backup-<original_branch>-<timestamp>') for feature branches before significant alignment operations like rebase or merge. Additionally, implement a corresponding function to safely restore the branch to its pre-alignment state using `git reset --hard` from this temporary backup.",
+            "dependencies": [
+              54
+            ],
+            "details": "The implementation should detect the current branch and its type (feature). It will use `git branch <new_backup_name> <current_branch>` for backup creation and `git reset --hard <backup_branch_name>` for restoration. Ensure timestamps are part of the backup branch name to avoid conflicts and allow multiple backups.",
+            "status": "pending",
+            "testStrategy": "Create a dummy Git repository with a feature branch. Make several commits. Run the backup function. Introduce an intentional conflict or error during a simulated rebase/merge operation. Execute the restore function and verify that the branch's history and working directory are identical to the state before the alignment attempt, by comparing commit hashes or file contents."
+          },
+          {
+            "id": 2,
+            "title": "Enhance backup for primary/complex branches and implement backup integrity verification",
+            "description": "Extend the backup mechanism to provide more comprehensive solutions for primary branches or complex feature branches identified as having destructive merge artifacts. This includes using `git clone --mirror` to a temporary local directory or creating remote backup branches. Crucially, develop a verification step to confirm the integrity of the created backups before proceeding with any destructive operations.",
+            "dependencies": [
+              1
+            ],
+            "details": "For primary branches, implement `git clone --mirror` to a dedicated temporary directory. For remote backups, use `git push origin <local_backup_branch_name>:refs/heads/<remote_backup_name>`. The integrity verification should involve comparing the latest commit hash of the original branch against the latest commit hash of the backup, or performing a basic `git log` comparison to ensure reachable commits are consistent.",
+            "status": "pending",
+            "testStrategy": "Set up a test repository with a primary branch and a complex feature branch that simulates destructive merge artifacts. Test `git clone --mirror` backup/restore for the primary branch. Introduce a scenario where a backup is intentionally corrupted or incomplete and ensure the integrity check mechanism accurately detects and flags the issue, preventing further operations. Verify that backups handle branches with destructive merge artifacts correctly."
+          },
+          {
+            "id": 3,
+            "title": "Integrate backup/restore into automated workflow with cleanup and robust error handling",
+            "description": "Develop the overarching Python script that orchestrates the entire backup, alignment (as an integration point), restore, and cleanup processes. Ensure robust error handling for all Git commands, gracefully managing failures, and implementing automatic cleanup of temporary backup branches upon successful alignment or if the restore operation results in a new stable state.",
+            "dependencies": [
+              1,
+              2,
+              52
+            ],
+            "details": "The Python script will serve as the entry point, calling the backup functions (Task 1 & 2), allowing an integration point for the alignment logic (Task 54), providing an option to trigger the restore function (Task 1 & 2) upon failure, and finally calling `git branch -D` for cleanup of temporary branches. Leverage Task 52 for consistent error reporting. Ensure comprehensive logging of all operations.",
+            "status": "pending",
+            "testStrategy": "Conduct end-to-end testing of the Python script in various scenarios: 1) Successful alignment: backup -> align -> cleanup (verify no temporary branches remain). 2) Failed alignment with successful restore: backup -> align fails -> restore -> cleanup (verify original branch state restored, temporary branches removed). 3) Failed alignment and failed restore: backup -> align fails -> restore fails (verify user notification and no unintended state changes). Confirm all Git commands are handled, and error messages are clear and consistent."
+          }
+        ]
       },
       {
         "id": 57,
@@ -3273,7 +3375,40 @@
           54
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Destructive Merge Artifact Detection for Feature Branches",
+            "description": "Extend the feature branch analysis to identify potential destructive merge artifacts (e.g., '<<<<<<<', '=======', '>>>>>>>' markers) within the feature branch itself or in its comparison against a potential merge target. This will flag branches that are already 'broken' or indicate poor merging practices that would result in destructive artifacts.",
+            "dependencies": [],
+            "details": "Utilize `git diff --check` or `grep -E '^(<<<<<<<|=======|>>>>>>>)'` patterns on the feature branch's files compared to its common ancestor or potential merge target. Incorporate this detection into the overall branch analysis, flagging branches exhibiting such patterns. The presence of such artifacts should contribute to a lower confidence score or a specific 'merge_artifact_detected' flag in the tool's output.",
+            "status": "pending",
+            "testStrategy": "Create a test repository with a feature branch containing unresolved merge markers. Run the tool and verify that this branch is correctly identified and flagged for destructive merge artifacts. Ensure branches without such artifacts are not flagged."
+          },
+          {
+            "id": 2,
+            "title": "Develop Logic for Detecting Content Mismatches in Similarly Named Branches",
+            "description": "Create a mechanism to compare feature branches, especially those with similar naming conventions (e.g., 'feature-scientific-X', 'feature-main-Y'), to their proposed primary targets. This logic should identify significant content differences that suggest incorrect merging or rebase history, beyond typical divergence, indicating a likely mis-merge or mis-rebase due to naming discrepancies.",
+            "dependencies": [
+              1
+            ],
+            "details": "Building upon the existing codebase similarity logic (point 4 in the parent task), specifically focus on identifying cases where a feature branch named for one primary target shows higher similarity to another primary target, or significant divergence from its expected target. This could involve enhanced diff analysis, file hash comparisons, or structural comparisons (e.g., directory layouts) across relevant parts of the codebase to quantify content misalignment. The output should include a 'content_mismatch_alert' or a specific rationale for such a detection.",
+            "status": "pending",
+            "testStrategy": "Set up a test repository where a feature branch, e.g., 'feature-scientific-bugfix', is accidentally based off or merged from 'main' instead of 'scientific'. The branch should contain content more aligned with 'main'. Run the tool and verify that it correctly detects the content mismatch despite the naming convention, suggesting 'main' as a more suitable primary target or flagging the inconsistency."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Backend-to-Src Migration Status Analysis",
+            "description": "Add a specific analysis step to evaluate the backend→src migration status within each feature branch. This involves checking for the presence, absence, or modification patterns of files/directories related to the migration, assessing if the migration is complete, incomplete, or in an inconsistent state.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Define clear criteria for a 'migrated' state (e.g., `backend/` directory is empty or removed, all relevant files moved to `src/` or specific files existing/missing in new `src/` locations). For each feature branch, analyze its directory structure and file contents using `git ls-tree -r <branch>` or `git diff <common_ancestor>..<feature_branch>` outputs to determine the migration status against a defined baseline. Categorize branches as 'migrated', 'partially migrated', 'not migrated', or 'inconsistent' based on these checks. This status should be a distinct field in the tool's output for each branch.",
+            "status": "pending",
+            "testStrategy": "Create multiple test branches: one where the migration is fully completed, one where it's partially done (some files moved, some remain in `backend/`), and one where it's not started. Run the tool and verify that it accurately identifies the migration status for each branch according to the defined criteria. Include tests for edge cases like conflicting changes during migration."
+          }
+        ]
       },
       {
         "id": 58,
