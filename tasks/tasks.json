@@ -3786,7 +3786,7 @@
           {
             "id": 3,
             "title": "Integrate Backend-to-Src Migration Status Analysis",
-            "description": "Add a specific analysis step to evaluate the backend→src migration status within each feature branch. This involves checking for the presence, absence, or modification patterns of files/directories related to the migration, assessing if the migration is complete, incomplete, or in an inconsistent state.",
+            "description": "Add a specific analysis step to evaluate the backend\u2192src migration status within each feature branch. This involves checking for the presence, absence, or modification patterns of files/directories related to the migration, assessing if the migration is complete, incomplete, or in an inconsistent state.",
             "dependencies": [
               "57.1",
               "57.2"
@@ -5695,7 +5695,7 @@
             "title": "Implement `DatabaseConfig` Loading from Environment Variables within Factory",
             "description": "Enhance the factory function to load `DatabaseConfig` parameters, such as database URI, pool size, etc., directly from environment variables if specific parameters are not provided explicitly.",
             "dependencies": [
-              1
+              "66.1"
             ],
             "details": "Modify `get_database_manager` or a helper function to read relevant database configuration settings (e.g., `DB_ENGINE_URI`, `DB_POOL_SIZE`) from `os.getenv()`. Prioritize explicit parameters over environment variables.",
             "status": "pending",
@@ -5706,7 +5706,7 @@
             "title": "Implement `DatabaseConfig` Loading from Configuration Files within Factory",
             "description": "Extend the factory function to support loading `DatabaseConfig` from external configuration files (e.g., YAML, JSON, .ini). This allows for flexible deployment and management of settings.",
             "dependencies": [
-              2
+              "66.2"
             ],
             "details": "Integrate a mechanism to parse configuration files (e.g., `config.yaml`, `config.json`) for `DatabaseConfig` parameters. Define a standard path for these files and a loading order (e.g., explicit args > env vars > config file > defaults).",
             "status": "pending",
@@ -5717,7 +5717,7 @@
             "title": "Integrate Default `DatabaseConfig` Values as Fallback",
             "description": "Ensure the factory function provides sensible default `DatabaseConfig` values if no configuration is found from explicit parameters, environment variables, or configuration files, ensuring a functional fallback.",
             "dependencies": [
-              3
+              "66.3"
             ],
             "details": "Define a set of hardcoded default values for `DatabaseConfig` (e.g., SQLite in a temp directory) that are used if all other configuration sources are absent. Document these defaults clearly.",
             "status": "pending",
@@ -5728,7 +5728,7 @@
             "title": "Implement `EnhancedCachingManager` Dependency Injection within Factory",
             "description": "Manage the creation and injection of the `EnhancedCachingManager` dependency into the `DatabaseManager` instance through the factory function, ensuring proper lifecycle management.",
             "dependencies": [
-              4
+              "66.4"
             ],
             "details": "Modify the `get_database_manager` factory to instantiate `EnhancedCachingManager` (potentially using its own factory or constructor with config parameters) and then pass it to the `DatabaseManager` constructor. Ensure `EnhancedCachingManager` config can also be parameterized.",
             "status": "pending",
@@ -5739,7 +5739,7 @@
             "title": "Implement Instance Caching Strategy within the Factory",
             "description": "Introduce a caching mechanism within the factory to prevent unnecessary re-creation of `DatabaseManager` instances when the configuration remains the same, promoting resource efficiency.",
             "dependencies": [
-              5
+              "66.5"
             ],
             "details": "Implement a cache (e.g., a dictionary mapping config hashes to `DatabaseManager` instances) within the factory. Before creating a new instance, check the cache. If a matching instance exists, return it. Consider thread-safety for the cache.",
             "status": "pending",
@@ -5750,7 +5750,7 @@
             "title": "Create Environment-Specific Factory Functions (Development, Test, Production)",
             "description": "Develop specialized factory functions (e.g., `get_dev_database_manager`, `get_test_database_manager`, `get_prod_database_manager`) that pre-configure settings for different deployment environments.",
             "dependencies": [
-              6
+              "66.6"
             ],
             "details": "Create wrapper functions around the main `get_database_manager` that automatically load environment-specific configurations (e.g., 'dev_config.json', 'test_config.env'). These should leverage the existing config loading hierarchy.",
             "status": "pending",
@@ -5761,7 +5761,7 @@
             "title": "Implement Configuration Parameter Validation in Factory",
             "description": "Add robust validation logic within the factory functions to check the integrity and correctness of `DatabaseConfig` parameters before attempting to create a `DatabaseManager` instance.",
             "dependencies": [
-              7
+              "66.7"
             ],
             "details": "Before `DatabaseManager` instantiation, implement checks for mandatory fields (e.g., `engine_uri` cannot be empty), format validation (e.g., valid URI format), and range checks (e.g., `pool_size` > 0). Raise specific exceptions for validation failures.",
             "status": "pending",
@@ -5772,7 +5772,7 @@
             "title": "Implement Robust Error Handling for Factory Failures",
             "description": "Design and implement comprehensive error handling within the factory functions to gracefully manage scenarios like missing configuration, invalid connection parameters, and other instantiation failures.",
             "dependencies": [
-              8
+              "66.8"
             ],
             "details": "Wrap critical sections of the factory logic in `try-except` blocks. Catch specific exceptions (e.g., `FileNotFoundError` for config files, connection errors from `create_engine`, validation errors). Log errors effectively and re-raise custom, descriptive exceptions if appropriate, leveraging Task 52's centralized error handling.",
             "status": "pending",
@@ -5783,7 +5783,7 @@
             "title": "Create Specialized Factories for Different Database Configurations",
             "description": "Develop additional specialized factory functions to create `DatabaseManager` instances configured for specific roles, such as primary, secondary, or read-only databases, each with tailored settings.",
             "dependencies": [
-              9
+              "66.9"
             ],
             "details": "Create functions like `get_primary_db_manager()`, `get_read_only_db_manager()`. These functions will call the core `get_database_manager` with predefined or role-specific `DatabaseConfig` overrides.",
             "status": "pending",
@@ -5794,7 +5794,7 @@
             "title": "Integrate Factory Functions with Application Initialization",
             "description": "Modify the application's main initialization routine to use the new factory functions for instantiating the primary `DatabaseManager`, replacing direct instantiation.",
             "dependencies": [
-              10
+              "66.10"
             ],
             "details": "Locate the `init_managers` function or similar entry point in the application (as seen in context `async def init_managers`). Replace `_db_manager = DatabaseManager(...)` with a call to the appropriate factory function, e.g., `_db_manager = get_database_manager()`. Ensure proper `async` handling if needed.",
             "status": "pending",
@@ -5805,7 +5805,7 @@
             "title": "Update All Existing `DatabaseManager` Instantiation Sites to Use Factories",
             "description": "Refactor all existing code that directly instantiates `DatabaseManager` to instead use the newly created factory functions, centralizing control over database instance creation.",
             "dependencies": [
-              11
+              "66.11"
             ],
             "details": "Perform a codebase search for `DatabaseManager(...)` instantiations outside of the factory implementation. Replace each instance with a call to the most appropriate factory function (e.g., `get_database_manager()` or a specialized variant).",
             "status": "pending",
@@ -5816,7 +5816,7 @@
             "title": "Implement Cleanup and Disposal Methods via Factory",
             "description": "Provide a mechanism through the factory functions to properly close and dispose of `DatabaseManager` instances and their underlying resources (e.g., database connections), especially for cached instances.",
             "dependencies": [
-              12
+              "66.12"
             ],
             "details": "Add a `dispose_database_manager()` function to the factory interface. This function should iterate through cached instances, calling their `.close()` or `.dispose()` methods. Ensure this is called during application shutdown or when a configuration change invalidates cached instances.",
             "status": "pending",
@@ -5827,7 +5827,7 @@
             "title": "Develop Comprehensive Unit Tests for All Factory Functions",
             "description": "Write a dedicated suite of unit tests for all implemented factory functions, covering various configuration inputs, dependency injection, caching, validation, and error handling scenarios.",
             "dependencies": [
-              13
+              "66.13"
             ],
             "details": "Create a `test_database_manager_factories.py` file. Use mocking (e.g., `unittest.mock.patch`) to isolate the factory logic from actual database connections or complex dependencies. Cover all major paths, including default usage, environment variable overrides, config file usage, caching hits/misses, and all error conditions.",
             "status": "pending",
@@ -5838,7 +5838,7 @@
             "title": "Document Factory Function Usage Patterns and Best Practices",
             "description": "Create detailed documentation for developers on how to use the `DatabaseManager` factory functions, including configuration options, environment-specific setups, and common usage patterns.",
             "dependencies": [
-              14
+              "66.14"
             ],
             "details": "Create a new section in the developer documentation or update an existing one. Include code examples for initializing `DatabaseManager` in different scenarios, explaining the order of precedence for configuration sources, detailing parameter validation, and advising on cleanup procedures. Mention how this setup works with different deployment scenarios (containerized, local, cloud).",
             "status": "pending",
@@ -5873,7 +5873,7 @@
             "title": "Define standard format for DeprecationWarning messages",
             "description": "Establish a consistent and informative template for `DeprecationWarning` messages, ensuring they clearly state deprecation, suggest the new API, and link to migration guidance.",
             "dependencies": [
-              1
+              "67.1"
             ],
             "details": "The warning message format should include the deprecated item, the reason for deprecation, the recommended new approach (DI-based `DatabaseManager`), and a placeholder for a migration guide URL.",
             "status": "pending",
@@ -5884,7 +5884,7 @@
             "title": "Implement default DatabaseManager factory and access point for shims",
             "description": "Create the `create_default_database_manager()` factory function (as described in task 66) and the global `_legacy_db_manager` instance, including a `DeprecationWarning` upon its first initialization.",
             "dependencies": [
-              2
+              "67.2"
             ],
             "details": "This involves defining `_legacy_db_manager = None`, implementing `_get_legacy_db_manager()` to call `create_default_database_manager()` (from task 66), and issuing a `DeprecationWarning` via `warnings.warn` when `_legacy_db_manager` is first set.",
             "status": "pending",
@@ -5895,9 +5895,9 @@
             "title": "Develop deprecation shim for a sample legacy static method (e.g., `legacy_load_emails`)",
             "description": "Implement a backward compatibility shim for a specific legacy static method, ensuring it issues a `DeprecationWarning` and internally calls the new `DatabaseManager` instance.",
             "dependencies": [
-              1,
-              2,
-              3
+              "67.1",
+              "67.2",
+              "67.3"
             ],
             "details": "Create a function `legacy_load_emails()` that calls `warnings.warn` with the defined format, then retrieves the DI-based `DatabaseManager` via `_get_legacy_db_manager()` and invokes its equivalent method (e.g., `load_emails()`).",
             "status": "pending",
@@ -5908,9 +5908,9 @@
             "title": "Develop deprecation shim for a sample global variable access (e.g., `get_legacy_data_dir`)",
             "description": "Implement a backward compatibility shim for accessing a global variable, issuing a `DeprecationWarning` and retrieving the value from the new `DatabaseManager` configuration.",
             "dependencies": [
-              1,
-              2,
-              3
+              "67.1",
+              "67.2",
+              "67.3"
             ],
             "details": "Create a function `get_legacy_data_dir()` that calls `warnings.warn` with the defined format, then retrieves the DI-based `DatabaseManager` via `_get_legacy_db_manager()` and accesses its configuration (e.g., `_config.data_dir`).",
             "status": "pending",
@@ -5921,8 +5921,8 @@
             "title": "Implement deprecation shims for all identified legacy static methods",
             "description": "Systematically create deprecation shims for all remaining public static methods identified in subtask 1, following the pattern established in subtask 4.",
             "dependencies": [
-              1,
-              4
+              "67.1",
+              "67.4"
             ],
             "details": "For each legacy static method, create a wrapper function that issues a `DeprecationWarning` using the standard format and delegates the call to the corresponding method on the `_get_legacy_db_manager()` instance.",
             "status": "pending",
@@ -5933,8 +5933,8 @@
             "title": "Implement deprecation shims for all identified legacy global variable accesses",
             "description": "Systematically create deprecation shims for all remaining global variable access points identified in subtask 1, following the pattern established in subtask 5.",
             "dependencies": [
-              1,
-              5
+              "67.1",
+              "67.5"
             ],
             "details": "For each legacy global variable access, create a property or function that issues a `DeprecationWarning` using the standard format and retrieves the value from the `_get_legacy_db_manager()` instance's configuration or properties.",
             "status": "pending",
@@ -5945,7 +5945,7 @@
             "title": "Create configuration option to enable/disable deprecation warnings",
             "description": "Design and implement a mechanism (e.g., environment variable or configuration setting) to allow users to suppress or enable `DeprecationWarning`s during the migration period.",
             "dependencies": [
-              2
+              "67.2"
             ],
             "details": "Implement a check within the warning issuance logic (e.g., in `warnings.warn` calls or a custom wrapper) that respects a configured setting (e.g., `LEGACY_DB_WARNINGS_ENABLED=false`).",
             "status": "pending",
@@ -5956,8 +5956,8 @@
             "title": "Create test coverage for all deprecated API shims",
             "description": "Develop comprehensive unit tests for every deprecation shim to ensure they correctly issue warnings, maintain backward compatibility, and gracefully delegate to the new DI-based API.",
             "dependencies": [
-              6,
-              7
+              "67.6",
+              "67.7"
             ],
             "details": "Tests should cover: warning issuance (`DeprecationWarning`), correct functionality (return values, side effects), proper internal delegation to the new `DatabaseManager` instance, and handling of edge cases for each shimmed method/access.",
             "status": "pending",
@@ -5968,9 +5968,9 @@
             "title": "Draft comprehensive migration guide for legacy API users",
             "description": "Develop a detailed migration guide for users, explaining how to transition from the deprecated `DatabaseManager` APIs to the new dependency injection pattern, including code examples.",
             "dependencies": [
-              1,
-              6,
-              7
+              "67.1",
+              "67.6",
+              "67.7"
             ],
             "details": "The guide should cover each deprecated method/global access, showing the old usage and the new, recommended DI-based approach. Include setup instructions for the new `DatabaseManager` and common migration scenarios.",
             "status": "pending",
@@ -5981,7 +5981,7 @@
             "title": "Update API documentation to mark deprecated methods",
             "description": "Modify the official API documentation to clearly mark all legacy `DatabaseManager` methods and global accesses as deprecated, providing links to the new API and the migration guide.",
             "dependencies": [
-              10
+              "67.10"
             ],
             "details": "Add `@deprecated` decorators or equivalent documentation tags to the relevant code. Update docstrings and auto-generated documentation with explicit deprecation notices, recommended alternatives, and a link to the migration guide.",
             "status": "pending",
@@ -5992,8 +5992,8 @@
             "title": "Design metrics tracking for deprecated API usage",
             "description": "Outline a strategy for tracking the usage of deprecated APIs, collecting data on frequency and call sites to inform future removal decisions.",
             "dependencies": [
-              6,
-              7
+              "67.6",
+              "67.7"
             ],
             "details": "Consider integrating logging of `DeprecationWarning` events with additional context (e.g., calling module, stack trace). Define how this data will be aggregated and analyzed to gauge the remaining usage of legacy APIs.",
             "status": "pending",
@@ -6004,8 +6004,8 @@
             "title": "Establish deprecation timeline and communication plan",
             "description": "Define a clear timeline with milestones for the deprecation period, leading up to the eventual removal of the legacy `DatabaseManager` API, and plan communication to users.",
             "dependencies": [
-              10,
-              11
+              "67.10",
+              "67.11"
             ],
             "details": "The timeline should include stages like 'deprecated (with warnings)', 'warnings become errors', and 'removal'. Develop a communication plan for announcing deprecation to the community, including release notes and official announcements.",
             "status": "pending",
@@ -6016,8 +6016,8 @@
             "title": "Draft removal plan and migration checklist for deprecated APIs",
             "description": "Create a detailed internal document outlining the steps and checklist for the eventual removal of each deprecated `DatabaseManager` API, ensuring a smooth transition.",
             "dependencies": [
-              1,
-              13
+              "67.1",
+              "67.13"
             ],
             "details": "For each deprecated item, specify the exact version in which it will be removed, the necessary code changes (e.g., deleting shims, removing old factory methods), and checks to confirm no remaining usage within the codebase. Include criteria for removal readiness based on metrics.",
             "status": "pending",
@@ -6028,9 +6028,9 @@
             "title": "Implement graceful degradation for remaining legacy uses during transition (monitoring)",
             "description": "Ensure that the deprecation shims are robust and handle potential failures or unexpected states gracefully, minimizing impact on legacy users during the migration period.",
             "dependencies": [
-              6,
-              7,
-              9
+              "67.6",
+              "67.7",
+              "67.9"
             ],
             "details": "This involves adding robust error handling within the shims to catch exceptions from the underlying new `DatabaseManager` methods and re-raising them appropriately, or logging them without crashing the application. The goal is to maintain functionality, even if deprecated usage is not ideal.",
             "status": "pending",
@@ -6061,7 +6061,9 @@
             "id": 2,
             "title": "Implement Comprehensive Mocking Framework",
             "description": "Integrate and configure a robust mocking library (e.g., `pytest-mock` built on `unittest.mock`) to facilitate the substitution of all external dependencies, including APIs, databases, file systems, and network calls, during testing.",
-            "dependencies": [],
+            "dependencies": [
+              "68.1"
+            ],
             "details": "Install `pytest-mock` and ensure its fixtures are available globally for tests. Develop a set of common patterns for mocking `subprocess` calls, HTTP requests (`requests` library), database interactions (e.g., ORM sessions, raw cursors), and file I/O operations. Provide example usage.",
             "status": "pending",
             "testStrategy": null
@@ -6070,7 +6072,9 @@
             "id": 3,
             "title": "Configure Scenario-Specific Test Environments",
             "description": "Establish distinct configurations and `pytest` markers to differentiate and run tests for various scenarios: unit tests, integration tests, and end-to-end (e2e) tests. This allows for selective test execution based on context.",
-            "dependencies": [],
+            "dependencies": [
+              "68.2"
+            ],
             "details": "Define `pytest` markers such as `@pytest.mark.unit`, `@pytest.mark.integration`, and `@pytest.mark.e2e` in `pytest.ini`. Configure `pytest_addoption` to enable filtering tests by these markers via command-line arguments (e.g., `--run-unit`). Ensure appropriate fixtures are loaded for each test type.",
             "status": "pending",
             "testStrategy": null
@@ -6080,7 +6084,7 @@
             "title": "Implement Test Data Seeding and Management",
             "description": "Develop systematic mechanisms for generating, seeding, and managing test data to ensure consistency, reproducibility, and isolation across different test runs and scenarios.",
             "dependencies": [
-              1
+              "68.3"
             ],
             "details": "Explore and integrate data generation libraries like `Faker` for creating realistic but synthetic test data. Create a set of reusable `pytest` fixtures for common data structures and database seeding routines that can be parameterized or customized per test.",
             "status": "pending",
@@ -6091,8 +6095,7 @@
             "title": "Develop Database Isolation Techniques for Concurrency",
             "description": "Implement robust database isolation techniques to prevent test data contamination when running tests concurrently. This includes strategies like transactional rollbacks, separate schemas/databases per test, or leveraging containerization.",
             "dependencies": [
-              1,
-              14
+              "68.4"
             ],
             "details": "Investigate and implement either `transactional_db` fixtures for ORM-based tests, or programmatic creation/deletion of databases/schemas for each `pytest-xdist` worker. Ensure connections are scoped correctly and tear-down logic is robust for concurrent execution.",
             "status": "pending",
@@ -6103,7 +6106,7 @@
             "title": "Design Advanced Mocking Strategies with Fallbacks",
             "description": "Design detailed and comprehensive mocking strategies for complex external services, including the ability to simulate various success and failure scenarios, network latency, and specific edge cases, along with defining proper fallback mechanisms.",
             "dependencies": [
-              2
+              "68.5"
             ],
             "details": "Create a centralized library or registry of common mock implementations for frequently consumed external APIs (e.g., cloud services, payment gateways). Develop patterns for error injection, delayed responses, and partial failures to ensure resilience testing. Include default mock behaviors.",
             "status": "pending",
@@ -6113,7 +6116,9 @@
             "id": 7,
             "title": "Implement Test Environment Monitoring & Debugging",
             "description": "Integrate tools and configurations to effectively monitor test execution, capture detailed logs, and enable efficient debugging capabilities within the testing environment for quicker troubleshooting.",
-            "dependencies": [],
+            "dependencies": [
+              "68.6"
+            ],
             "details": "Configure `pytest` logging to output comprehensive information (e.g., stdout/stderr capture). Integrate `pdb` or `ipdb` for interactive debugging sessions. Explore `pytest-sugar` or `pytest-html` for enhanced test reporting and visualization of results.",
             "status": "pending",
             "testStrategy": null
@@ -6123,8 +6128,7 @@
             "title": "Configure Performance and Load Testing Environment",
             "description": "Set up a dedicated testing environment and configurations for conducting performance and load tests. This includes selecting appropriate tools and implementing resource optimization strategies to simulate realistic user traffic and stress conditions.",
             "dependencies": [
-              3,
-              4
+              "68.7"
             ],
             "details": "Define a `pytest` marker for performance tests. Investigate and integrate tools like `locust` or `JMeter` into the CI/CD pipeline or a separate testing workflow. Ensure test data generation and cleanup scale with the load profile and that resource limits are appropriately configured.",
             "status": "pending",
@@ -6135,8 +6139,7 @@
             "title": "Implement Robust Cleanup and Resource Release Procedures",
             "description": "Develop and implement comprehensive cleanup and resource release procedures that guarantee all temporary resources (e.g., temporary files, database connections, mock server processes, network sockets) are properly deallocated and reset after each test execution or test session.",
             "dependencies": [
-              1,
-              2
+              "68.8"
             ],
             "details": "Utilize `pytest` fixtures with `yield` for reliable setup and teardown. Implement context managers or `addfinalizer` for more complex resource management, especially for external services or processes started during tests. Verify no resource leaks after large test runs.",
             "status": "pending",
@@ -6146,7 +6149,9 @@
             "id": 10,
             "title": "Ensure Cross-Platform Test Compatibility",
             "description": "Configure the entire testing environment to ensure consistent operation and results across different operating systems, specifically Linux, macOS, and Windows, by addressing OS-specific differences in paths, environment variables, and tool installations.",
-            "dependencies": [],
+            "dependencies": [
+              "68.9"
+            ],
             "details": "Adopt `pathlib` for all file path manipulations to ensure OS-agnostic behavior. Document any OS-specific environment variable requirements or tool installations necessary for local developer setups. Conduct smoke tests on each target platform.",
             "status": "pending",
             "testStrategy": null
@@ -6156,8 +6161,7 @@
             "title": "Develop Container-Based Testing Environment",
             "description": "Create Docker images and `docker-compose` configurations to provide a fully reproducible, isolated, and consistent testing environment. This environment should encapsulate all necessary dependencies, including databases, external mock services, and the application code itself.",
             "dependencies": [
-              1,
-              6
+              "68.10"
             ],
             "details": "Write optimized Dockerfiles for the application and any required services (e.g., PostgreSQL, Redis, custom mock servers). Develop a `docker-compose.yml` file to orchestrate the entire test stack. Integrate this containerized setup into the CI/CD pipeline.",
             "status": "pending",
@@ -6168,8 +6172,7 @@
             "title": "Implement Test Database Snapshot and Restore Capabilities",
             "description": "Integrate database snapshot and restore capabilities into the testing framework to enable rapid setup and reset of complex database states, significantly improving the speed and efficiency of test execution.",
             "dependencies": [
-              1,
-              4
+              "68.11"
             ],
             "details": "Explore database-specific features (e.g., PostgreSQL `pg_dump`/`psql`, MySQL `mysqldump`/`mysql`) or `pytest` plugins for managing database snapshots. Implement fixtures that can restore a known good database state before each relevant test or suite.",
             "status": "pending",
@@ -6179,7 +6182,9 @@
             "id": 13,
             "title": "Design Comprehensive Test Configuration Management System",
             "description": "Create a flexible system for managing test configurations, allowing for environment-specific overrides (e.g., local development, CI/CD, staging). This system should support `.ini` files, environment variables, or custom configuration loaders.",
-            "dependencies": [],
+            "dependencies": [
+              "68.12"
+            ],
             "details": "Utilize `pytest.ini` for general `pytest` settings. Implement a custom configuration module that loads settings based on environment variables (e.g., `TEST_ENV`) or specific command-line options. Ensure sensitive information is handled securely.",
             "status": "pending",
             "testStrategy": null
@@ -6189,8 +6194,7 @@
             "title": "Enable Safe Parallel Test Execution",
             "description": "Configure `pytest-xdist` or a similar tool to enable parallel test execution across multiple CPU cores or machines, while rigorously ensuring full isolation between test processes to prevent resource conflicts and shared state issues.",
             "dependencies": [
-              5,
-              9
+              "68.13"
             ],
             "details": "Install and configure `pytest-xdist` in `pytest.ini` (e.g., `--numprocesses=auto`). Verify parallel execution by running a test suite with concurrent database access and ensure no cross-test contamination occurs. Confirm that mocks and fixtures are properly isolated per worker process.",
             "status": "pending",
@@ -6201,20 +6205,7 @@
             "title": "Document Test Environment Setup and Maintenance",
             "description": "Create comprehensive and accessible documentation covering the complete setup, configuration, usage, and ongoing maintenance procedures for the entire testing environment. This includes mocking strategies, test data management, and integration with CI/CD pipelines for all developers and system administrators.",
             "dependencies": [
-              1,
-              2,
-              3,
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12,
-              13,
-              14
+              "68.14"
             ],
             "details": "Consolidate all instructions in a dedicated `docs/testing_environment.md` file or similar. Include step-by-step guides for local environment setup, CI/CD integration, common debugging patterns, and best practices for writing new tests and maintaining existing ones.",
             "status": "pending",
@@ -6235,7 +6226,200 @@
           68
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Unit Test DatabaseManager Constructor and Dependency Assignment",
+            "description": "Develop unit tests to verify that the `DatabaseManager` constructor (`__init__`) correctly initializes its `engine` and `schema_manager` attributes using the provided `engine_uri` and `base_dir`. Ensure `SchemaManager` is instantiated with the correct `engine` and `base_dir`.",
+            "dependencies": [],
+            "details": "Create a pytest fixture for mocking `create_engine`, `SchemaManager`, and `Path` objects. Test that `self.engine` is set to the mocked engine and `self.schema_manager` is an instance of the mocked `SchemaManager` with expected constructor arguments.",
+            "status": "pending",
+            "testStrategy": "Execute unit tests using mocked dependencies to confirm correct attribute assignment and initial setup. Verify that the `check_same_thread` argument is passed correctly for SQLite URIs."
+          },
+          {
+            "id": 2,
+            "title": "Implement Comprehensive Mocking for Database Operations in Unit Tests",
+            "description": "Create detailed mocks for `sqlalchemy.create_engine`, `SQLModel.metadata.create_all`, `sqlalchemy.inspect`, `Session`, and `text` calls to isolate `DatabaseManager` unit tests from actual database interactions.",
+            "dependencies": [
+              "69.1"
+            ],
+            "details": "Use `mocker.patch` to replace external database-related functions and classes. Mocks should simulate successful and failed operations for various scenarios (e.g., `inspect.get_table_names()` returning empty or populated lists, `Session` returning query results or raising exceptions).",
+            "status": "pending",
+            "testStrategy": "Run unit tests ensuring that mocked functions are called with expected arguments and that `DatabaseManager` correctly handles their return values or raised exceptions. No actual database connection should be made."
+          },
+          {
+            "id": 3,
+            "title": "Unit Test `initialize_database` for New Database Creation",
+            "description": "Develop unit tests for the `initialize_database` method when no tables exist in the database, verifying that `SQLModel.metadata.create_all` and `schema_manager.initialize_migrations` are called correctly.",
+            "dependencies": [
+              "69.2"
+            ],
+            "details": "Mock `inspect.get_table_names()` to return an empty list. Assert that `SQLModel.metadata.create_all(self.engine)` is called once, and `self.schema_manager.initialize_migrations(force=force_init_alembic)` is called. Test various combinations of `auto_upgrade` and `force_init_alembic`.",
+            "status": "pending",
+            "testStrategy": "Execute unit tests and verify the sequence of calls to mocked components. Check that the returned `Response` object indicates success (status=True) and the correct message."
+          },
+          {
+            "id": 4,
+            "title": "Unit Test `initialize_database` for Existing Database with Schema Checks",
+            "description": "Develop unit tests for the `initialize_database` method when tables already exist, focusing on the logic for `auto_upgrade` and `_should_auto_upgrade` using mocked `SchemaManager` methods.",
+            "dependencies": [
+              "69.2"
+            ],
+            "details": "Mock `inspect.get_table_names()` to return a non-empty list. Mock `self.schema_manager.check_schema_status()` and `self.schema_manager.ensure_schema_up_to_date()` to simulate scenarios where an upgrade is needed or not needed. Test both `auto_upgrade=True` and `auto_upgrade=False` cases.",
+            "status": "pending",
+            "testStrategy": "Verify that `SQLModel.metadata.create_all` is NOT called when tables exist. Assert that `_should_auto_upgrade()` is called appropriately and `ensure_schema_up_to_date()` is called when an upgrade is triggered. Check for correct `Response` messages and status."
+          },
+          {
+            "id": 5,
+            "title": "Unit Test `reset_db` Method for Table Dropping and Recreation",
+            "description": "Create unit tests for the `reset_db` method, ensuring that it correctly disposes the engine, drops all tables, and optionally recreates them, including handling SQLite foreign key pragmas.",
+            "dependencies": [
+              "69.2"
+            ],
+            "details": "Mock `self.engine.dispose()`, `SQLModel.metadata.drop_all()`, and `self.initialize_database()`. Simulate `sqlite` engine URLs to check `PRAGMA foreign_keys` execution. Test `recreate_tables=True` and `recreate_tables=False` scenarios. Ensure rollback is called on exceptions.",
+            "status": "pending",
+            "testStrategy": "Verify that `dispose()` is called, `drop_all()` is called, and `initialize_database()` is called only when `recreate_tables` is true. Confirm `PRAGMA` statements are executed for SQLite. Check for correct `Response` and error handling."
+          },
+          {
+            "id": 6,
+            "title": "Unit Test CRUD Operations (`upsert`, `get`, `delete`)",
+            "description": "Develop comprehensive unit tests for `upsert`, `get`, and `delete` methods, mocking `Session` interactions to cover create, update, retrieve (with filters/ordering), and deletion scenarios, including error conditions.",
+            "dependencies": [
+              "69.2"
+            ],
+            "details": "Mock `Session` methods (`exec`, `add`, `commit`, `refresh`, `delete`, `rollback`) to simulate database behavior. Test `upsert` for both new model creation and existing model updates. Test `get` with various `filters` and `order` options. Test `delete` for existing and non-existing rows, and for `IntegrityError`.",
+            "status": "pending",
+            "testStrategy": "Execute tests asserting correct calls to mocked `Session` methods, proper data transformation (e.g., `model_dump()`), and appropriate `Response` objects for success and failure, including integrity errors during deletion."
+          },
+          {
+            "id": 7,
+            "title": "Integration Test `DatabaseManager` Initialization with In-Memory SQLite",
+            "description": "Create integration tests for `DatabaseManager`'s initialization using a real in-memory SQLite database, verifying that tables are correctly created and migrations are initialized when no existing tables are found.",
+            "dependencies": [
+              "69.1",
+              "69.2"
+            ],
+            "details": "Set up a `DatabaseManager` with `engine_uri='sqlite:///:memory:'`. Call `initialize_database()` and then use `inspector` to verify that `SQLModel.metadata` tables exist. Verify `alembic_version` table is created by `SchemaManager`.",
+            "status": "pending",
+            "testStrategy": "After initialization, inspect the in-memory database to confirm the presence of expected tables (`SQLModel.metadata` and `alembic_version`). Ensure the `Response` indicates success."
+          },
+          {
+            "id": 8,
+            "title": "Integration Test `reset_db` with In-Memory SQLite",
+            "description": "Develop integration tests for the `reset_db` method using a real in-memory SQLite database to confirm tables are dropped and optionally recreated correctly, respecting foreign key constraints.",
+            "dependencies": [
+              "69.7"
+            ],
+            "details": "First, initialize the database and populate with some data. Then call `reset_db(recreate_tables=True)` and verify that data is gone and tables are present. Call `reset_db(recreate_tables=False)` and verify tables are gone. Ensure `PRAGMA foreign_keys` commands are effective.",
+            "status": "pending",
+            "testStrategy": "Confirm table presence/absence using `inspector.get_table_names()` after `reset_db` calls. Attempt to insert data after `reset_db` to ensure functional tables. Check `Response` for success messages."
+          },
+          {
+            "id": 9,
+            "title": "Integration Test CRUD Operations with In-Memory SQLite",
+            "description": "Create integration tests for `upsert`, `get`, and `delete` methods against a real in-memory SQLite database, ensuring data persistence, retrieval, and deletion work end-to-end.",
+            "dependencies": [
+              "69.7"
+            ],
+            "details": "Define a simple SQLModel (`Team` from context could work, or a new test model). Perform `upsert` (create and update), `get` (individual and filtered lists), and `delete` operations. Verify results by performing subsequent `get` calls or direct database inspection.",
+            "status": "pending",
+            "testStrategy": "After each CRUD operation, query the database directly or via `DatabaseManager.get()` to confirm the expected state of the data. Test edge cases like deleting non-existent items or retrieving with no filters."
+          },
+          {
+            "id": 10,
+            "title": "Test Isolation with `TemporaryDirectory` for File-Based SQLite",
+            "description": "Implement test data isolation mechanisms for integration tests that use file-based SQLite databases, leveraging `tempfile.TemporaryDirectory` to ensure each test operates on its own isolated database instance.",
+            "dependencies": [
+              "69.7",
+              "69.8",
+              "69.9"
+            ],
+            "details": "Modify existing integration tests to use `f'sqlite:///{tmp_data_dir}/test.db'` as the `engine_uri` within a `TemporaryDirectory` context manager. Ensure the directory and database file are cleaned up after each test.",
+            "status": "pending",
+            "testStrategy": "Run a suite of integration tests concurrently or sequentially. Verify that data written by one test does not affect the outcome or state of another test. Confirm that temporary directories are created and removed."
+          },
+          {
+            "id": 11,
+            "title": "Concurrency Tests for `initialize_database` and `reset_db` Locks",
+            "description": "Develop concurrency tests for `initialize_database` and `reset_db` to validate the proper functioning of the `_init_lock` in `DatabaseManager` under parallel access.",
+            "dependencies": [
+              "69.7"
+            ],
+            "details": "Use Python's `threading` module or `pytest-asyncio` and `asyncio.gather` to simulate multiple concurrent calls to `initialize_database` and `reset_db`. Assert that only one operation proceeds while others are blocked or return appropriate 'already in progress' responses.",
+            "status": "pending",
+            "testStrategy": "Verify that `_init_lock` prevents race conditions. Assert that only the first call successfully acquires the lock and proceeds, while subsequent calls correctly detect the lock and return specific messages or wait appropriately. Confirm the lock is released after completion or error."
+          },
+          {
+            "id": 12,
+            "title": "Test `DatabaseManager` Error Handling for Invalid `engine_uri`",
+            "description": "Design test cases to verify how `DatabaseManager` handles errors arising from invalid or unreachable `engine_uri` during its operations.",
+            "dependencies": [
+              "69.1",
+              "69.2"
+            ],
+            "details": "Instantiate `DatabaseManager` with a malformed `engine_uri` (e.g., `invalid://path`). Attempt to call methods like `initialize_database()` or `_should_auto_upgrade()` and assert that `DatabaseManager` catches and logs exceptions, returning `Response(status=False)`.",
+            "status": "pending",
+            "testStrategy": "Execute tests with intentionally bad `engine_uri` and confirm that internal exceptions (e.g., from `create_engine` or `connect`) are caught, logged, and result in a graceful `Response` object with `status=False`."
+          },
+          {
+            "id": 13,
+            "title": "Test Dependency Lifecycle Management for `DatabaseManager`",
+            "description": "Validate that `DatabaseManager.close()` correctly disposes the underlying SQLAlchemy engine and releases resources. For `DatabaseSession` (if used by a factory), ensure singleton behavior and proper closure.",
+            "dependencies": [
+              "69.7",
+              "69.11"
+            ],
+            "details": "After performing database operations, call `db_manager.close()` and verify that `self.engine.dispose()` is invoked. If using a factory (like `get_db()`) that relies on `DatabaseSession`, ensure `DatabaseSession.close()` also works and subsequent `get_db()` calls re-initialize if needed.",
+            "status": "pending",
+            "testStrategy": "Inspect mock calls to `engine.dispose()` after `close()`. For `DatabaseSession`, verify that its `_engine` and `_session_factory` attributes are reset to `None` after `close()` and re-initialized on subsequent requests."
+          },
+          {
+            "id": 14,
+            "title": "Establish Test Coverage Requirements and Verification for DI Functionality",
+            "description": "Define minimum test coverage targets for `DatabaseManager` and its related dependency injection mechanisms, and integrate coverage reporting into the CI/CD pipeline.",
+            "dependencies": [
+              "69.1",
+              "69.3",
+              "69.4",
+              "69.5",
+              "69.6",
+              "69.7",
+              "69.8",
+              "69.9",
+              "69.10",
+              "69.11",
+              "69.12",
+              "69.13"
+            ],
+            "details": "Configure `pytest-cov` to generate coverage reports. Aim for 90%+ coverage for `DatabaseManager` and associated `SchemaManager` methods directly related to dependency handling. Review coverage reports to identify uncovered branches or lines within DI-related code paths.",
+            "status": "pending",
+            "testStrategy": "Run `pytest` with coverage generation. Analyze the reports to ensure critical code paths related to dependency injection, configuration, and resource management are adequately tested. Set up CI/CD to fail if coverage thresholds are not met."
+          },
+          {
+            "id": 15,
+            "title": "Document Testing Patterns and Practices for DI-Enabled Database Components",
+            "description": "Document successful testing patterns, mocking strategies, and isolation techniques used for `DatabaseManager` and other DI-enabled database components, to serve as a guideline for future development.",
+            "dependencies": [
+              "69.1",
+              "69.2",
+              "69.3",
+              "69.4",
+              "69.5",
+              "69.6",
+              "69.7",
+              "69.8",
+              "69.9",
+              "69.10",
+              "69.11",
+              "69.12",
+              "69.13",
+              "69.14"
+            ],
+            "details": "Create a new section in the project's testing documentation (e.g., `TESTING.md`) outlining how to effectively unit test classes that rely on `SQLAlchemy` engines and `SQLModel` metadata. Include examples for mocking, using in-memory databases, and managing test data isolation using `TemporaryDirectory`.",
+            "status": "pending",
+            "testStrategy": "Conduct a peer review of the documentation to ensure clarity, completeness, and accuracy of the described testing patterns and practices. Verify that the examples provided are functional and illustrate the concepts effectively."
+          }
+        ]
       },
       {
         "id": 70,
@@ -6248,7 +6432,197 @@
           68
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Context Isolation Test Framework",
+            "description": "Design and set up a comprehensive testing framework capable of validating context isolation boundaries for multi-agent systems, including utilities for context management and test execution.",
+            "dependencies": [],
+            "details": "Establish a foundational testing structure, including base test classes, assertion helpers for context isolation, and mechanisms to instantiate and manage multiple agent contexts (e.g., using `threading.local()` or `contextvars`). This framework will be extensible for various isolation checks.",
+            "status": "pending",
+            "testStrategy": "Develop a skeleton test case that successfully initializes the framework and can run a basic agent task within an isolated context. Verify that context access methods are correctly implemented."
+          },
+          {
+            "id": 2,
+            "title": "Implement Thread/Process Isolation Tests",
+            "description": "Develop tests specifically to verify that agent contexts remain isolated when agents are run in separate threads or processes.",
+            "dependencies": [
+              "70.1"
+            ],
+            "details": "Create test cases that simulate multiple agents running concurrently in distinct threads or processes. Each agent should attempt to modify a unique identifier within its context and attempt to read identifiers from other contexts. Assert that agents can only access their own context's data.",
+            "status": "pending",
+            "testStrategy": "Run tests with N threads/processes. Each agent writes a unique value to its context and then attempts to read another agent's context. Assert that the read fails or returns null/incorrect data, confirming isolation."
+          },
+          {
+            "id": 3,
+            "title": "Create Validation Tests for Shared Resource Access Prevention",
+            "description": "Create validation tests to ensure that agents do not inadvertently access or modify shared, non-contextual resources in a way that violates isolation.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "Introduce a global or module-level shared resource (e.g., a dictionary, a file handle, or a database connection mock). Each agent will attempt to read from and write to this shared resource. Tests must assert that such access either fails (if explicitly prevented) or that changes made by one agent are not erroneously reflected in another agent's perceived context.",
+            "status": "pending",
+            "testStrategy": "Run concurrent agents. Each agent attempts to modify a shared resource. After execution, verify that the shared resource's state is either unchanged or that modifications are only present where explicitly intended and do not leak into agent-specific contexts."
+          },
+          {
+            "id": 4,
+            "title": "Establish Environment Variable Isolation Testing",
+            "description": "Establish tests to verify that environment variables set or modified by one agent do not affect other concurrent agents.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "Design test scenarios where different agents attempt to set or modify environment variables (e.g., using `os.environ`). Verify that these changes are strictly local to the agent's context or thread, and do not leak to other agents or the parent process.",
+            "status": "pending",
+            "testStrategy": "In multi-threaded/processed tests, one agent sets an environment variable, while another agent simultaneously reads it (or a different one). Assert that the second agent does not see the first agent's modification, confirming isolation."
+          },
+          {
+            "id": 5,
+            "title": "Design Dependency Injection Scope Validation Tests",
+            "description": "Design validation tests to ensure that dependency-injected components maintain their isolation scope across different agent contexts.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "If a dependency injection framework is in use, create tests where singletons or scoped dependencies are injected into agents. Verify that scoped dependencies are distinct for each agent's context, while singletons are correctly shared without state leakage.",
+            "status": "pending",
+            "testStrategy": "Mock a dependency injection container. Inject a 'scoped' dependency into multiple agents. Verify that each agent receives a unique instance of the scoped dependency and that singleton instances are correctly shared."
+          },
+          {
+            "id": 6,
+            "title": "Implement Global State Prevention Validation",
+            "description": "Implement tests to validate that global variables and module-level state are effectively prevented from being modified or accessed inappropriately across agent contexts.",
+            "dependencies": [
+              "70.1",
+              "70.3"
+            ],
+            "details": "Similar to shared resources, but specifically targeting language-level global state. Define global variables and have agents attempt to modify them. The tests should ensure that the context management system either prevents direct modification or that any modifications are immediately reverted or contained, preserving isolation.",
+            "status": "pending",
+            "testStrategy": "Introduce global variables. Have concurrent agents attempt to modify these globals. Assert that the global variables retain their original state or that the agent's perceived state is isolated from actual global changes."
+          },
+          {
+            "id": 7,
+            "title": "Create Session/Cookie Isolation Validation Tests",
+            "description": "Create validation tests to ensure that session data and cookies are correctly isolated between agents making concurrent communication requests.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "Simulate scenarios where agents make network requests (e.g., HTTP) and manage session-like state or cookies. Verify that one agent's session data or cookies are not mistakenly sent or received by another agent, leading to cross-contamination.",
+            "status": "pending",
+            "testStrategy": "Mock an HTTP server. Have concurrent agents make requests, each with unique session data or cookies. Assert that the server receives correct, isolated data for each agent's request."
+          },
+          {
+            "id": 8,
+            "title": "Develop Cross-Agent Data Leakage Detection and Prevention Tests",
+            "description": "Develop tests specifically designed to detect and prevent subtle data leakage between agent contexts.",
+            "dependencies": [
+              "70.1",
+              "70.3",
+              "70.6"
+            ],
+            "details": "Focus on more complex scenarios than simple global variables. This could involve shared data structures where pointers or references might allow unintended access, or mutable objects passed between contexts. Implement deep checks to ensure data integrity.",
+            "status": "pending",
+            "testStrategy": "Create complex, mutable data structures. Have agents operate on 'copies' of these structures or parts of them. Verify that modifications by one agent do not unintentionally alter data used by another, ensuring no reference-based leakage."
+          },
+          {
+            "id": 9,
+            "title": "Design Authentication Context Isolation Validation",
+            "description": "Design validation tests to ensure that authentication tokens or session IDs used by agents are strictly isolated and cannot be misused by other agents.",
+            "dependencies": [
+              "70.1",
+              "70.7"
+            ],
+            "details": "Simulate a system where agents authenticate and receive tokens. Verify that agent A cannot use agent B's token, and that authentication state is not shared or corrupted across contexts.",
+            "status": "pending",
+            "testStrategy": "Mock an authentication service. Have agents obtain distinct tokens. Attempt to make requests with tokens swapped between agents. Assert that these requests fail due to invalid authentication, proving isolation."
+          },
+          {
+            "id": 10,
+            "title": "Establish Configuration Isolation Testing",
+            "description": "Establish tests to ensure that configuration settings loaded or modified by one agent are isolated from others.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "Design tests where agents load their configurations, potentially from different files or dynamically modify settings. Verify that an agent's configuration changes do not impact other agents' configurations, maintaining individual operational parameters.",
+            "status": "pending",
+            "testStrategy": "Provide different configuration mock objects or files to concurrent agents. Have agents read and optionally modify their 'local' configuration. Assert that each agent maintains its distinct configuration."
+          },
+          {
+            "id": 11,
+            "title": "Implement Performance Overhead Validation for Context Isolation",
+            "description": "Implement tests to measure and validate the performance overhead introduced by the context isolation mechanisms, ensuring it remains below the 5% threshold.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "Create benchmark tests that compare the execution time of a standard agent workload with and without context isolation enabled. Collect metrics such as CPU usage, memory consumption, and execution time. The tests should alert if the overhead exceeds the specified threshold.",
+            "status": "pending",
+            "testStrategy": "Run a baseline scenario without context isolation. Run the same scenario with context isolation enabled. Compare execution times and resource usage. Automate threshold checks."
+          },
+          {
+            "id": 12,
+            "title": "Create Edge Case Testing for Context Boundary Conditions",
+            "description": "Create tests for edge cases related to context boundary conditions and failure scenarios, such as agents failing unexpectedly or attempting to access invalid contexts.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "Design tests that simulate agents terminating abruptly, attempting to access contexts that no longer exist, or handling scenarios where context data might be corrupted. Ensure graceful failure or error handling, and that such events do not compromise other agents' contexts.",
+            "status": "pending",
+            "testStrategy": "Introduce simulated errors (e.g., exceptions) within an agent's task. Verify that the context for other agents remains valid and unaffected. Test scenarios where an agent tries to read an uninitialized or destroyed context."
+          },
+          {
+            "id": 13,
+            "title": "Design Stress Testing for High-Concurrency Scenarios",
+            "description": "Design and implement stress tests for high-concurrency multi-agent scenarios to validate context isolation under heavy load.",
+            "dependencies": [
+              "70.1",
+              "70.11"
+            ],
+            "details": "Scale up the number of concurrent agents (e.g., hundreds or thousands) performing operations that touch their isolated contexts. Monitor for any signs of context leakage, race conditions, or performance degradation specific to isolation under extreme load.",
+            "status": "pending",
+            "testStrategy": "Run a large number of concurrent agent tasks (e.g., 1000 threads). Monitor for data corruption, unexpected shared state, and ensure the system remains stable and isolated. Measure average transaction time and look for anomalies."
+          },
+          {
+            "id": 14,
+            "title": "Implement Context Cleanup Validation After Termination",
+            "description": "Implement tests to ensure that agent contexts are properly cleaned up and released after an agent terminates, preventing resource leaks or stale context data.",
+            "dependencies": [
+              "70.1",
+              "70.2"
+            ],
+            "details": "After an agent completes its task, verify that its associated context data is correctly deallocated and that no references remain that could lead to memory leaks or incorrect state for future agents reusing resources.",
+            "status": "pending",
+            "testStrategy": "Create agents that run and terminate. After termination, check memory usage and object references to ensure the context object and its data have been garbage collected or released. Use `weakref` or similar tools if applicable."
+          },
+          {
+            "id": 15,
+            "title": "Document Context Isolation Testing Methodology",
+            "description": "Document the entire context isolation testing methodology, including test framework usage, test cases, and procedures for validating context isolation.",
+            "dependencies": [
+              "70.1",
+              "70.2",
+              "70.3",
+              "70.4",
+              "70.5",
+              "70.6",
+              "70.7",
+              "70.8",
+              "70.9",
+              "70.10",
+              "70.11",
+              "70.12",
+              "70.13",
+              "70.14"
+            ],
+            "details": "Create comprehensive documentation covering how to write new context isolation tests, how to interpret results, the types of isolation being validated, and the best practices for maintaining context integrity in multi-agent systems. Include setup instructions for the test framework.",
+            "status": "pending",
+            "testStrategy": "Review documentation for clarity, completeness, and accuracy by a peer. Ensure all critical aspects of the testing methodology are covered and easily understandable."
+          }
+        ]
       },
       {
         "id": 71,
@@ -7095,7 +7469,7 @@
             "dependencies": [
               "82.2"
             ],
-            "details": "Create step-by-step procedures for handling non-trivial conflicts that may involve logical dependencies or significant code restructuring. Detail methods for identifying and safely resolving 'destructive merge artifacts' – issues originating from previous sub-optimal `orchestration-tools` implementations that might lead to unintended code overwrites, regressions, or incorrect merges. Include strategies to recover from such scenarios.",
+            "details": "Create step-by-step procedures for handling non-trivial conflicts that may involve logical dependencies or significant code restructuring. Detail methods for identifying and safely resolving 'destructive merge artifacts' \u2013 issues originating from previous sub-optimal `orchestration-tools` implementations that might lead to unintended code overwrites, regressions, or incorrect merges. Include strategies to recover from such scenarios.",
             "status": "pending",
             "testStrategy": "Simulate complex conflict scenarios, including those that might produce destructive artifacts, in a controlled environment. Apply the documented procedures to confirm their effectiveness and safety in resolving such conflicts. Conduct code reviews of the resolved state to ensure no unintended consequences."
           },
