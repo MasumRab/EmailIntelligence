@@ -26,25 +26,22 @@ The taskmaster branch must **never include** orchestration infrastructure:
 
 The `.taskmaster/` directory is a **git worktree**, not a regular directory:
 
-✅ **Prevent commits via pre-commit hook (not .gitignore):**
-```bash
-# scripts/hooks/pre-commit
-TASKMASTER_FILES=$(git diff --cached --name-only | grep "^\.taskmaster/" || true)
-if [[ -n "$TASKMASTER_FILES" ]]; then
-    echo "ERROR: Task Master worktree files cannot be committed"
-    exit 1
-fi
-```
+✅ **Naturally isolated by git - NO HOOK NEEDED:**
+- Worktree has its own `.git/worktrees/*` directory
+- Git automatically prevents staging files from other worktrees
+- Testing: `git add .taskmaster/file` does not stage anything
+- Minimal approach - relies on git's natural design
 
 ✅ **Must NOT be in .gitignore (allows agent access):**
 - Keep `.taskmaster/` visible to agents/tools
 - Not in `.gitignore`, not whitelisted with `!.taskmaster/**`
-- Just left untracked naturally
+- Just left untracked naturally (git handles this automatically)
 
-✅ **Pre-commit hook propagates across clones:**
-- Hook installed by `install-hooks.sh` on setup
-- Consistent behavior across all clones
-- Can't be bypassed accidentally
+✅ **Minimal, efficient isolation:**
+- No pre-commit hook overhead
+- No false failures or edge cases
+- Git's worktree design handles everything
+- Faster commits - one less operation
 
 ❌ **Must NOT whitelist files from it:**
 ```gitignore
@@ -56,9 +53,10 @@ fi
 - Worktree directories are working copies, not tracked
 - Creating .gitignore inside violates isolation principle
 
-**Key approach:**
-- **Not in .gitignore**: Files visible to agents
-- **Pre-commit hook checks**: Prevents commits, propagates via hook installation
+**Key principle:**
+- Git's worktree design naturally isolates directories
+- `.taskmaster/` is accessible to agents but cannot be staged
+- No explicit checks needed - git handles it automatically
 
 ### 3. .gitignore Rules - Clean Whitelisting
 
