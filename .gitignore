@@ -133,3 +133,20 @@ dmypy.json
 # Project-specific ignores
 .orchestration-disabled
 .taskmaster/
+worktrees/
+.merge-notes/
+.context-control/
+.rules
+.rulesync/
+.rulesyncignore
+.cursorignore
+.validation_cache.json
+.emailintelligence/
+#QWEN.md
+#AGENTS.md
+#GEMINI.md
+#CRUSH.md
+#IFLOW.md
+!docs/agents/AMP.md
+terminal-jarvis_AGENTS.md
+cognee-AGENTS.md

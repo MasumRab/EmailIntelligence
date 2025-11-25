@@ -3,6 +3,8 @@ description = "Create or update the feature specification from a natural languag
 prompt = """
 ---
 description: Create or update the feature specification from a natural language feature description.
+<<<<<<< HEAD
+=======
 handoffs: 
   - label: Build Technical Plan
     agent: speckit.plan
@@ -11,6 +13,7 @@ handoffs:
     agent: speckit.clarify
     prompt: Clarify specification requirements
     send: true
+>>>>>>> 82176d4f0fdcf4942a5e57c4ff993cd30afe8165
 ---
 
 ## User Input

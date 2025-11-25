@@ -3,6 +3,8 @@ description = "Execute the implementation planning workflow using the plan templ
 prompt = """
 ---
 description: Execute the implementation planning workflow using the plan template to generate design artifacts.
+<<<<<<< HEAD
+=======
 handoffs: 
   - label: Create Tasks
     agent: speckit.tasks
@@ -11,6 +13,7 @@ handoffs:
   - label: Create Checklist
     agent: speckit.checklist
     prompt: Create a checklist for the following domain...
+>>>>>>> 82176d4f0fdcf4942a5e57c4ff993cd30afe8165
 ---
 
 ## User Input

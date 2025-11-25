@@ -3,6 +3,8 @@ description = "Generate an actionable, dependency-ordered tasks.md for the featu
 prompt = """
 ---
 description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+<<<<<<< HEAD
+=======
 handoffs: 
   - label: Analyze For Consistency
     agent: speckit.analyze
@@ -12,6 +14,7 @@ handoffs:
     agent: speckit.implement
     prompt: Start the implementation in phases
     send: true
+>>>>>>> 82176d4f0fdcf4942a5e57c4ff993cd30afe8165
 ---
 
 ## User Input
