@@ -1,0 +1,101 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    FILE PERMISSION QUICK REFERENCE                        ║
+║                    EmailIntelligence Project                              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌─ INSTANT FIX ──────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Problem?  →  ./scripts/fix-permissions.sh                                │
+│                                                                             │
+│  That's it. One command fixes everything.                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PERMISSION CODES ─────────────────────────────────────────────────────────┐
+│                                                                             │
+│  755 (rwxr-xr-x)  ← Scripts, hooks, executables                          │
+│  644 (rw-r--r--)  ← Data files, config, docs                             │
+│  700 (rwx------)  ← Owner-only (rarely needed)                            │
+│  600 (rw-------)  ← Secrets (API keys, private files)                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ ONE-LINERS ────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Make executable:   chmod +x filename                                     │
+│  Make readable:     chmod 644 filename                                    │
+│  Fix directory:     chmod 755 dirname                                     │
+│  Fix all scripts:   chmod +x scripts/*.sh setup/*.sh                      │
+│  Fix hooks:         ./scripts/install-hooks.sh --force                    │
+│  Fix everything:    ./scripts/fix-permissions.sh                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ AFTER CLONE/PULL ──────────────────────────────────────────────────────────┐
+│                                                                             │
+│  1. ./scripts/fix-permissions.sh    (fix all permissions)                 │
+│  2. ./scripts/install-hooks.sh      (update git hooks)                    │
+│  3. ./setup/activate_env.sh         (activate environment)                │
+│                                                                             │
+│  Done! Ready to develop.                                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ PROBLEM → SOLUTION ───────────────────────────────────────────────────────┐
+│                                                                             │
+│  "permission denied: ./script.sh"                                         │
+│      → chmod +x script.sh                                                 │
+│                                                                             │
+│  "permission denied: cannot open directory"                               │
+│      → chmod 755 dirname                                                  │
+│                                                                             │
+│  "permission denied" on hooks                                             │
+│      → ./scripts/install-hooks.sh --force                                 │
+│                                                                             │
+│  "permission denied" on setup                                             │
+│      → chmod +x setup/setup_*.sh && bash setup/setup_*.sh                │
+│                                                                             │
+│  Can't read file (GEMINI.md, .env, etc)                                  │
+│      → chmod 644 filename                                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ FILE TYPE GUIDE ──────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Type                Mode    Command                                      │
+│  ─────────────────────────────────────────────────────────────────────    │
+│  Shell scripts      755     chmod +x script.sh                            │
+│  Python scripts     755     chmod +x script.py                            │
+│  Git hooks          755     chmod +x .git/hooks/*                        │
+│  Data files         644     chmod 644 data.json                           │
+│  Source code        644     chmod 644 src/**/*.py                        │
+│  Directories        755     chmod 755 dirname                             │
+│  API secrets        600     chmod 600 .env                               │
+│  Config files       644     chmod 644 config.json                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ VERIFY IT WORKS ──────────────────────────────────────────────────────────┐
+│                                                                             │
+│  ls -la .git/hooks/pre-commit        # Should show: -rwxr-xr-x             │
+│  ./scripts/install-hooks.sh          # Should complete successfully       │
+│  ./setup/activate_env.sh             # Should activate environment        │
+│  python --version                    # Should show version                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ NEED HELP? ───────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Quick reference:       QUICK_PERMISSION_FIX.md                           │
+│  Detailed guide:        FILE_ACCESS_GUIDE.md                              │
+│  Technical details:     FILE_PERMISSIONS_ANALYSIS.md                      │
+│  Automated fixes:       ./scripts/fix-permissions.sh --verbose            │
+│                                                                             │
+│  Or just run:  ./scripts/fix-permissions.sh --check --verbose             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  Remember: When in doubt, run ./scripts/fix-permissions.sh                ║
+║  It's safe, informative, and fixes most issues automatically.             ║
+╚════════════════════════════════════════════════════════════════════════════╝

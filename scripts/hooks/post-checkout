@@ -1,70 +1,89 @@
 #!/bin/bash
 
-# Post-checkout hook - minimal operations only
-# Does NOT force synchronization or require approval
-# Allows free branch switching without blocking
+# Simplified Post-checkout hook for orchestration branch validation
+# Detects branch switches and runs safety checks only - no file distribution
 
-# Recursion prevention
+# Recursion prevention: Exit if sync is already active
 if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
     exit 0
 fi
 
 # Check for disable flag
 if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration validation disabled, skipping post-checkout validation"
     exit 0
 fi
 
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+set -e
 
-echo "Switched to branch: $CURRENT_BRANCH"
+# Get previous and current branch
+PREV_BRANCH="$1"
+NEW_BRANCH="$2"
+FILES_CHECKED="$3"
 
-# IMPORTANT: Do NOT force sync or require approval on branch switch
-# Branch switching must be fast and unblocked for normal workflows
+echo "Post-checkout validation: $PREV_BRANCH → $NEW_BRANCH"
 
-# Only safe, non-blocking operations:
+# Branch-specific validation
+case "$NEW_BRANCH" in
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Switched to orchestration-tools branch: $NEW_BRANCH"
 
-# 1. Update git hooks if on orchestration-tools or orchestration-tools-* branch
-if [[ "$CURRENT_BRANCH" == "orchestration-tools" || "$CURRENT_BRANCH" == orchestration-tools-* ]]; then
-    echo "On orchestration-tools branch"
-    
-    # Check if hook installation script exists
-    if [[ -f "scripts/install-hooks.sh" ]]; then
-        # Only update hooks if they've changed in orchestration-tools
-        CURRENT_ORCH_COMMIT=$(git rev-parse "orchestration-tools" 2>/dev/null)
-        LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
-        
-        if [[ -z "$LAST_INSTALLED_ORCH_COMMIT" ]] || [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
-            echo "Updating git hooks from orchestration-tools branch..."
-            if bash scripts/install-hooks.sh --quiet 2>/dev/null; then
-                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
-                echo "✓ Hooks updated"
-            fi
+        # Verify orchestration environment is properly set up
+        if [[ -f "scripts/install-hooks.sh" ]]; then
+            echo "INFO: Orchestration hooks available"
+        else
+            echo "WARNING: Orchestration setup incomplete"
+            echo "Consider running: scripts/install-hooks.sh"
         fi
-    fi
-fi
 
-# 2. Ensure important files are present (info only)
-case "$CURRENT_BRANCH" in
-    "orchestration-tools")
-        if [[ ! -f "emailintelligence_cli.py" ]]; then
-            echo "INFO: emailintelligence_cli.py not found on orchestration-tools"
+        # Warn about Task Master worktree isolation
+        if [[ -d ".taskmaster" ]]; then
+            echo "INFO: Task Master worktree detected (git handles isolation automatically)"
         fi
+
+        echo "✓ Orchestration-tools post-checkout validation complete"
         ;;
-    "taskmaster")
-        if [[ ! -f "AGENT.md" ]]; then
-            echo "INFO: AGENT.md not found on taskmaster branch"
+
+    "taskmaster"|taskmaster-*)
+        echo "Switched to Task Master branch: $NEW_BRANCH"
+        echo "INFO: Task Master branches are isolated (git worktree handles isolation)"
+        ;;
+
+    "main"|"scientific")
+        echo "Switched to branch: $NEW_BRANCH"
+        # Verify no conflicting orchestration files
+        if [[ -f ".git/hooks/post-commit-setup-sync" ]]; then
+            echo "INFO: Orchestration-specific hook detected on $NEW_BRANCH"
         fi
+        echo "✓ Post-checkout validation complete"
+        ;;
+
+    *)
+        echo "Switched to branch: $NEW_BRANCH"
+        echo "✓ Generic post-checkout validation complete"
         ;;
 esac
 
-# 3. Verify .taskmaster/ is isolated (reminder, non-blocking)
-if [[ -d ".taskmaster" && "$CURRENT_BRANCH" != "taskmaster" ]]; then
-    # Taskmaster worktree exists on non-taskmaster branch
-    # This is OK - it's a separate worktree - just note it
-    TASKMASTER_BRANCH=$(.taskmaster/.git/rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-    if [[ -n "$TASKMASTER_BRANCH" ]]; then
-        echo "ℹ Task Master worktree is on branch: $TASKMASTER_BRANCH (separate)"
+# Common validation for all branches
+echo "Running common post-checkout validation..."
+
+# Check if this was a file checkout (not branch switch)
+if [[ "$PREV_BRANCH" == "0000000000000000000000000000000000000000" ]]; then
+    echo "File checkout detected, no branch validation needed"
+    exit 0
+fi
+
+# Verify git status is clean if expected
+if [[ "$FILES_CHECKED" == "1" ]]; then
+    echo "Files were checked out during switch"
+fi
+
+# Suggest sync if switching to orchestration branch and setup incomplete
+if [[ ("$NEW_BRANCH" == "orchestration-tools" || "$NEW_BRANCH" == orchestration-tools-*) ]]; then
+    if [[ ! -f "setup/launch.py" ]]; then
+        echo "INFO: Orchestration setup may need synchronization"
+        echo "Consider running: scripts/sync_orchestration_files.sh --verify"
     fi
 fi
 
-echo "✓ Post-checkout complete"
+echo "✓ Post-checkout validation completed successfully"

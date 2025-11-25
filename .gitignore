@@ -1,104 +1,84 @@
-# Node.js
-**/node_modules/
-dist/
-**/*.DS_Store
-server/public/
-vite.config.ts.*
-*.tar.gz
-
-# Python virtual environment
-venv/
-.venv/
-.env
-.env.*
-*.env
-!.env.example
-
-# Credentials and sensitive data
-token.json
-credentials.json
-apikey.json
-jsons/
-jsons/*
-
-# Build / packaging artifacts
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
 dist/
-*.egg-info/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
 *.egg
-*.whl
-
-# Databases
-*.sqlite3
-*.db
-*.db-journal
-
-# Test and coverage reports
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
 .coverage
 .coverage.*
+.cache
+nosetests.xml
 coverage.xml
-coverage/
 *.cover
+*.py,cover
+.hypothesis/
 .pytest_cache/
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# IDEs / editor-specific
+# IDE
 .vscode/
 .idea/
-*.iml
-*.sublime-project
-*.sublime-workspace
-.history
+*.swp
+*.swo
+*~
+.DS_Store
 
-# Misc
-diagnosis_message.txt
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
 logs/
 
-# Ignore configuration and local environment files
-*.local.config
-*.local.json
-*.local.yaml
-*.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
-config.local.*
-config/llm_guidelines.local.json
-
-# Ignore hidden files and directories, with exceptions
-!docs/.gitkeep
-!.semgrep/
-!.gitignore
-!.git/hooks/
-!.git/info/exclude
-!.flake8
-!.pylintrc
-!.github/
-!.specify/**
-!.gemini/**
-!.qwen/**
-!.claude/
-
-# Python cache
-**/__pycache__/
-
-# Miscellaneous
-diagnosis_message.txt
-performance_metrics_log.jsonl
-config/llm_guidelines.local.json
-models/*.pkl
+# Project specific
+.orchestration-disabled
+.taskmaster/
 worktrees/
-
-
-# Centralized Agent Markdown Files
-!docs/agents/
-#AGENTS.md
-#CLAUDE.md
-#GEMINI.md
-#QWEN.md
-!docs/agents/OPENCODE.md
-!docs/agents/AIDER.md
-!docs/agents/CURSOR.md
+.merge-notes/
+.context-control/
+.qwen/
+.zed/
+.rules
+.rulesync/
+.rulesyncignore
+.cursorignore
+.validation_cache.json
+.emailintelligence/
+QWEN.md
+AGENTS.md
+GEMINI.md
+CRUSH.md
+IFLOW.md
 !docs/agents/AMP.md
 terminal-jarvis_AGENTS.md
 cognee-AGENTS.md
