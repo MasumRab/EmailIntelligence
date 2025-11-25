@@ -13,9 +13,9 @@
       "temperature": 0.1
     },
     "fallback": {
-      "provider": "gemini-cli",
-      "modelId": "gemini-2.5-flash",
-      "maxTokens": 65536,
+      "provider": "groq",
+      "modelId": "qwen-qwq-32b-preview",
+      "maxTokens": 32768,
       "temperature": 0.2
     }
   },
