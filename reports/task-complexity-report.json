@@ -1,498 +1,501 @@
 {
-	"meta": {
-		"generatedAt": "2025-11-25T02:22:31.973Z",
-		"tasksAnalyzed": 60,
-		"totalTasks": 70,
-		"analysisCount": 61,
-		"thresholdScore": 5,
-		"projectName": "Taskmaster",
-		"usedResearch": true
-	},
-	"complexityAnalysis": [
-		{
-			"taskId": 3,
-			"taskTitle": "Fix Email Processing Pipeline",
-			"complexityScore": 8,
-			"recommendedSubtasks": 9,
-			"expansionPrompt": "Identify failing tests or broken components across email ingestion, parsing, and AI analysis stages. Create a detailed implementation plan for each fix, focusing on isolated issues first, then verify the entire pipeline end-to-end. Provide specific component names and error types for each stage.",
-			"reasoning": "This is a high-priority debugging and fixing task across three critical and interconnected components: email ingestion, parsing, and AI analysis. Debugging existing broken code, especially within a pipeline where issues can cascade, is often more complex and time-consuming than greenfield development. The AI analysis component may involve complex machine learning models, adding another layer of difficulty. End-to-end verification requires meticulous attention to data flow and inter-component communication, significantly increasing the complexity."
-		},
-		{
-			"taskId": 4,
-			"taskTitle": "Backend Migration from 'backend' to 'src/backend'",
-			"complexityScore": 7,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Detail the steps for migrating files, updating all Python import statements across the codebase, modifying diverse configuration files (Dockerfile, docker-compose.yml, CI/CD, pyproject.toml), and performing comprehensive regression testing to ensure no functionality is broken.",
-			"reasoning": "This task involves a large-scale refactoring that, while mechanical in nature (moving files, find-and-replace for imports), carries significant risk due to its breadth. Updating import statements across potentially hundreds of Python files, and modifying various configuration file formats (Python, YAML, Dockerfile, GitHub Actions) introduces many potential points of failure. A single missed reference or incorrect path could break the entire application, necessitating thorough regression testing."
-		},
-		{
-			"taskId": 6,
-			"taskTitle": "Refactor High-Complexity Modules and Duplicated Code",
-			"complexityScore": 8,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Break down the refactoring of 'smart_filters.py' and 'smart_retrieval.py' into concrete steps for module splitting, specifying new module names and responsibilities. Detail the process for creating characterization tests before refactoring, performing incremental changes, and validating with static analysis metrics.",
-			"reasoning": "Refactoring large, high-complexity modules and reducing code duplication without introducing regressions is an inherently difficult task. It requires a deep understanding of the existing codebase, careful architectural design for the new modules, and meticulous incremental changes. The explicit requirement for characterization tests (golden master) and continuous, iterative testing after each small change is the correct but demanding approach. Maintaining or improving performance while refactoring adds another layer of challenge."
-		},
-		{
-			"taskId": 38,
-			"taskTitle": "Comprehensive Analysis of launch.py",
-			"complexityScore": 6,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Generate subtasks for conducting a comprehensive audit of `src/launch.py`, including detailed steps for identifying security concerns (e.g., unsafe function calls, injection vulnerabilities), evaluating regression risks via Git history analysis, mapping import dependencies, and assessing implementation inconsistencies.",
-			"reasoning": "This task is a comprehensive audit of a critical entry point (`src/launch.py`), requiring a deep dive into its security posture, historical evolution, dependencies, and adherence to coding standards. While primarily analytical, it demands specialized knowledge in security analysis, Git forensics, and static code analysis. Synthesizing information from various tools and manual reviews into actionable insights is a non-trivial effort."
-		},
-		{
-			"taskId": 71,
-			"taskTitle": "Implement Static Analysis for Circular Import Detection",
-			"complexityScore": 5,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Generate subtasks for integrating static analysis for circular imports, including tool selection and configuration, initial codebase scan and documentation of existing cycles, resolution of identified cycles, and setting up CI/CD checks to prevent future occurrences.",
-			"reasoning": "Integrating a static analysis tool for circular import detection is a moderately complex task. The primary challenges lie in selecting the most appropriate tool, accurately configuring it for the project's specific needs (minimizing false positives/negatives), and integrating it smoothly into the CI/CD pipeline. The initial phase of identifying and potentially resolving *existing* circular imports might also require minor refactoring, adding to the effort."
-		},
-		{
-			"taskId": 15,
-			"taskTitle": "Audit Backend Data Migration and Implement Backup/Recovery",
-			"complexityScore": 0.12345678901234566
-		},
-		{
-			"taskId": 7,
-			"taskTitle": "Align and Architecturally Integrate Feature Branches with Justified Targets",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on align and architecturally integrate feature branches with justified targets.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 9,
-			"taskTitle": "Create Comprehensive Merge Validation Framework",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on create comprehensive merge validation framework.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 11,
-			"taskTitle": "Align import-error-corrections Branch with Main Branch",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on align import-error-corrections branch with main branch.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 12,
-			"taskTitle": "Improve Task Management with Advanced Testing Integration",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on improve task management with advanced testing integration.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 19,
-			"taskTitle": "Develop and Integrate Pre-merge Validation Scripts",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop and integrate pre-merge validation scripts.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 22,
-			"taskTitle": "Develop Automated Recovery Procedures and Documentation",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop automated recovery procedures and documentation.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 23,
-			"taskTitle": "Execute Scientific Branch Recovery and Feature Integration",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on execute scientific branch recovery and feature integration.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 26,
-			"taskTitle": "Restore Critical AI Agent and Workflow Documentation",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on restore critical ai agent and workflow documentation.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 27,
-			"taskTitle": "Implement Comprehensive Merge Regression Prevention Safeguards",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement comprehensive merge regression prevention safeguards.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 28,
-			"taskTitle": "Comprehensive Codebase Audit for Incomplete Features and Placeholders",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on comprehensive codebase audit for incomplete features and placeholders.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 29,
-			"taskTitle": "Investigate and Optimize Async Implementation and Testing in Python Backends",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on investigate and optimize async implementation and testing in python backends.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 30,
-			"taskTitle": "Refactor Deprecation Warnings and Migrate Pydantic V1 to V2",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on refactor deprecation warnings and migrate pydantic v1 to v2.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 32,
-			"taskTitle": "Create Comprehensive Test Suite for Context Control Module",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on create comprehensive test suite for context control module.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 33,
-			"taskTitle": "Add Deprecation Shims for Context Control Static Methods",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on add deprecation shims for context control static methods.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 34,
-			"taskTitle": "Create Integration Migration Guide for Context Control Module Refactoring",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on create integration migration guide for context control module refactoring.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 35,
-			"taskTitle": "Refactor ContextController Config Initialization for Thread Safety",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on refactor contextcontroller config initialization for thread safety.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 36,
-			"taskTitle": "Verify and Resolve Circular Imports in Context Control Module",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on verify and resolve circular imports in context control module.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 37,
-			"taskTitle": "Refactor EmailProfileManager API to ID-based Interface with Backward Compatibility",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on refactor emailprofilemanager api to id-based interface with backward compatibility.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 39,
-			"taskTitle": "Update Minimum Python Requirement to 3.12",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on update minimum python requirement to 3.12.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 40,
-			"taskTitle": "Refine launch.py Dependencies and Orchestration for Merge Stability",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on refine launch.py dependencies and orchestration for merge stability.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 41,
-			"taskTitle": "Production Deployment Infrastructure Setup",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on production deployment infrastructure setup.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 42,
-			"taskTitle": "Security Audit and Hardening for Production",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on security audit and hardening for production.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 44,
-			"taskTitle": "Standardize Dependency Management System",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on standardize dependency management system.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 51,
-			"taskTitle": "Improve Testing Infrastructure & Code Quality",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on improve testing infrastructure & code quality.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 52,
-			"taskTitle": "Implement Centralized Error Handling with Consistent Error Codes",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement centralized error handling with consistent error codes.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 53,
-			"taskTitle": "Project Management: Oversee Backend Migration to src/",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on project management: oversee backend migration to src/.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 54,
-			"taskTitle": "Establish Core Branch Alignment Framework",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on establish core branch alignment framework.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 55,
-			"taskTitle": "Develop Automated Error Detection Scripts for Merges",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop automated error detection scripts for merges.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 56,
-			"taskTitle": "Implement Robust Branch Backup and Restore Mechanism",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement robust branch backup and restore mechanism.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 57,
-			"taskTitle": "Develop Feature Branch Identification and Categorization Tool",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop feature branch identification and categorization tool.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 58,
-			"taskTitle": "Automate Changes Summary and Alignment Checklist Generation",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on automate changes summary and alignment checklist generation.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 59,
-			"taskTitle": "Develop Core Primary-to-Feature Branch Alignment Logic",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop core primary-to-feature branch alignment logic.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 60,
-			"taskTitle": "Implement Focused Strategies for Complex Branches",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement focused strategies for complex branches.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 61,
-			"taskTitle": "Integrate Validation Framework into Alignment Workflow",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on integrate validation framework into alignment workflow.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 62,
-			"taskTitle": "Orchestrate Sequential Branch Alignment Workflow",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on orchestrate sequential branch alignment workflow.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 63,
-			"taskTitle": "Finalize and Publish Comprehensive Alignment Documentation",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on finalize and publish comprehensive alignment documentation.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 64,
-			"taskTitle": "Define and Implement Database Configuration Object",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on define and implement database configuration object.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 65,
-			"taskTitle": "Refactor DatabaseManager for Constructor Dependency Injection",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on refactor databasemanager for constructor dependency injection.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 66,
-			"taskTitle": "Implement Factory Functions for DatabaseManager Construction",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement factory functions for databasemanager construction.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 67,
-			"taskTitle": "Develop Deprecation Shims and Warning Mechanisms for Legacy API",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop deprecation shims and warning mechanisms for legacy api.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 68,
-			"taskTitle": "Setup Comprehensive Testing Environment and Mocking Framework",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on setup comprehensive testing environment and mocking framework.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 69,
-			"taskTitle": "Implement DatabaseManager Unit and Integration Tests with DI",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement databasemanager unit and integration tests with di.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 70,
-			"taskTitle": "Implement Context Isolation Validation Tests for Multi-Agent Systems",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement context isolation validation tests for multi-agent systems.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 72,
-			"taskTitle": "Develop Comprehensive End-to-End Tests for Integrated Features",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop comprehensive end-to-end tests for integrated features.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 73,
-			"taskTitle": "Implement Performance Benchmarks and Scalability Tests",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement performance benchmarks and scalability tests.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 74,
-			"taskTitle": "Validate and Configure Core Git Repository Protections",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on validate and configure core git repository protections.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 75,
-			"taskTitle": "Develop a Script to Identify and Categorize Feature Branches",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop a script to identify and categorize feature branches.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 76,
-			"taskTitle": "Implement Automated Error Detection and Correction for Merge Issues",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement automated error detection and correction for merge issues.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 77,
-			"taskTitle": "Create a Utility for Safe Integration of Primary Branch Changes into Feature Branches",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on create a utility for safe integration of primary branch changes into feature branches.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 78,
-			"taskTitle": "Implement a Documentation Generator for Alignment Change Summaries",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement a documentation generator for alignment change summaries.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 79,
-			"taskTitle": "Develop a Modular Framework for Parallel Alignment Task Execution",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on develop a modular framework for parallel alignment task execution.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 80,
-			"taskTitle": "Integrate Pre-merge Validation Scripts and Comprehensive Validation Framework",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on integrate pre-merge validation scripts and comprehensive validation framework.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 81,
-			"taskTitle": "Implement Specialized Handling for Complex Feature Branches",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on implement specialized handling for complex feature branches.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 82,
-			"taskTitle": "Document Merge Best Practices and Conflict Resolution Procedures",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on document merge best practices and conflict resolution procedures.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		},
-		{
-			"taskId": 83,
-			"taskTitle": "Establish End-to-End Testing and Reporting for Alignment Activities",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down this task with a focus on establish end-to-end testing and reporting for alignment activities.",
-			"reasoning": "Automatically added due to missing analysis in AI response."
-		}
-	]
+  "meta": {
+    "generatedAt": "2025-11-25T06:37:40.682Z",
+    "tasksAnalyzed": 61,
+    "totalTasks": 71,
+    "analysisCount": 61,
+    "thresholdScore": 5,
+    "projectName": "Taskmaster",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 3,
+      "taskTitle": "Fix Email Processing Pipeline",
+      "complexityScore": 9,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined for the overall task.",
+      "reasoning": "This task involves diagnosing and fixing systemic failures across multiple critical stages of an email processing pipeline (ingestion, parsing, AI analysis). It requires extensive debugging, root cause analysis, multi-component fixes, and end-to-end verification. The dependency on a prior code recovery task (Task 1) implies a potentially unstable codebase, increasing risk. The presence of 36 already defined subtasks further confirms the high complexity and the extensive breakdown already undertaken."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Backend Migration from 'backend' to 'src/backend'",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This is a critical architectural refactoring task involving a significant codebase structural change. It requires physically moving a large directory, performing project-wide import statement updates, modifying various configuration files (Dockerfiles, CI/CD, `pyproject.toml`), and thorough regression testing. The risk of breaking functionality across the entire application is high. The task has 15 subtasks explicitly defined, which reflects a good breakdown for a high-impact refactoring task, so no further top-level expansion is needed."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Refactor High-Complexity Modules and Duplicated Code",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Refactoring high-complexity modules, especially AI-related ones like `smart_filters.py` and `smart_retrieval.py`, and reducing code duplication is inherently complex and high-risk. It demands a deep understanding of existing intricate logic, meticulous decomposition into smaller units, and an exhaustive test-driven approach (characterization tests) to ensure no regressions. The goal of reducing cyclomatic complexity and improving maintainability across core components makes this a significant undertaking. The 12 existing subtasks demonstrate a thorough breakdown for this refactoring effort."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Align and Architecturally Integrate Feature Branches with Justified Targets",
+      "complexityScore": 9,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This is a complex Git workflow and branch management task with high potential for merge conflicts and architectural inconsistencies. It involves analyzing divergent histories, resolving conflicts directly on feature branches, and potentially adapting target branch architectures. The emphasis on 'explicitly justified' targets and avoiding intermediate branches adds to the precision and potential difficulty. The 8 subtasks are a reasonable breakdown but do not diminish the inherent complexity of dealing with potentially long-lived, divergent branches and architectural alignment."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Create Comprehensive Merge Validation Framework",
+      "complexityScore": 9,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task involves creating a critical, multi-layered CI/CD framework from the ground up, integrating architectural enforcement, functional correctness, performance benchmarking, and security validation. The scope is broad, touching upon static analysis, testing, performance, and security tools, all within a GitHub Actions pipeline designed to block merges on failure. This greenfield development of core infrastructure is highly complex due to the breadth of integrations, the need for robust failure-blocking logic, and the critical impact on release quality. The 14 existing subtasks reflect the detailed planning required."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "Align import-error-corrections Branch with Main Branch",
+      "complexityScore": 6,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task focuses on aligning a specific bug-fix branch (`fix/import-error-corrections`) with `main` using a rebase strategy. While 'rebase' itself can be complex, the scope is limited to a single, focused branch aiming to resolve import errors. The existing 8 subtasks provide a clear step-by-step guide, including testing and conflict resolution, indicating a well-understood process. The main complexity lies in meticulously resolving potential conflicts and ensuring functional integrity, but it is less broad than general feature branch alignment."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "Improve Task Management with Advanced Testing Integration",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task involves a deep integration of testing and validation into task management and CI/CD pipelines. It requires enhancing existing workflows with automated validation, implementing branch-specific rules, integrating specialized scientific testing, and enforcing testing requirements at task creation. This involves modifying CI/CD pipelines, potentially developing custom GitHub Actions, and ensuring consistency across diverse testing needs. While building upon existing frameworks, the breadth of integrations and enforcement mechanisms adds significant complexity. The 4 existing subtasks are high-level and each represents a substantial piece of work."
+    },
+    {
+      "taskId": 19,
+      "taskTitle": "Develop and Integrate Pre-merge Validation Scripts",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task involves developing critical pre-merge validation scripts to ensure file integrity and prevent data loss. It requires careful identification of critical files, implementation of robust existence/integrity checks (including JSON schema validation), and seamless integration into CI/CD as a mandatory status check. The development of new tooling and its integration into a critical workflow makes this moderately complex. The 5 existing subtasks provide a comprehensive breakdown of the necessary steps."
+    },
+    {
+      "taskId": 22,
+      "taskTitle": "Develop Automated Recovery Procedures and Documentation",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task requires identifying common failure scenarios, developing automated recovery scripts (or detailed manual procedures), and comprehensively documenting them. The complexity stems from the need for robust, error-handling scripts that can restore system state or data, and the critical importance of accurate, actionable documentation. It involves both technical implementation and strong communication/documentation skills. The 5 existing subtasks provide a clear path for this task."
+    },
+    {
+      "taskId": 23,
+      "taskTitle": "Execute Scientific Branch Recovery and Feature Integration",
+      "complexityScore": 9,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This is a highly complex and high-risk task due to the nature of recovering and integrating features between two potentially significantly diverged branches (`main` and `scientific`). It requires intricate Git operations, meticulous conflict resolution that balances stable `main` features with unique `scientific` logic, and rigorous multi-stage validation. The risk of data loss, regressions, or reintroducing architectural mismatches is substantial. The 14 subtasks provided highlight the detailed planning and execution required for such a recovery."
+    },
+    {
+      "taskId": 26,
+      "taskTitle": "Restore Critical AI Agent and Workflow Documentation",
+      "complexityScore": 6,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task is a recovery effort for lost documentation. While recovering from Git history is straightforward, the subsequent steps of content reconstruction, collaboration with SMEs, and ensuring adherence to current standards add complexity. The documentation covers critical AI agents and workflows, so accuracy and completeness are paramount. The 5 existing subtasks provide a clear, actionable plan."
+    },
+    {
+      "taskId": 27,
+      "taskTitle": "Implement Comprehensive Merge Regression Prevention Safeguards",
+      "complexityScore": 9,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task is exceptionally complex and critical, aiming to establish multiple layers of safeguards against future merge regressions. It involves designing and implementing enhanced pre-merge validations, a selective revert policy, branch-specific asset protection, automated post-merge validations, and extensive documentation. Each of these sub-components is substantial, requiring deep integration with Git, CI/CD pipelines, and project policies. The description explicitly mentions the potential for 'scope creep,' which further underscores its high complexity and breadth. The 7 existing subtasks indicate a significant and multi-faceted effort."
+    },
+    {
+      "taskId": 28,
+      "taskTitle": "Comprehensive Codebase Audit for Incomplete Features and Placeholders",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This is a comprehensive, codebase-wide audit requiring systematic scanning for various markers of incomplete code, mock implementations, and technical debt. It involves using multiple tools (grep, static analysis) across different file types and then meticulously categorizing, prioritizing, and reporting findings. The sheer volume of potential issues and the need for accurate categorization make this a detailed and time-consuming task. The 5 existing subtasks provide a structured approach to this audit."
+    },
+    {
+      "taskId": 29,
+      "taskTitle": "Investigate and Optimize Async Implementation and Testing in Python Backends",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task involves a deep dive into asynchronous programming patterns, which are inherently complex and prone to subtle bugs. It requires comprehensive code scanning, analysis of anti-patterns, identification of performance bottlenecks, evaluation of testing strategies, and development of recommendations/PoCs. The breadth of analysis and the need for expert knowledge in async Python makes this a moderately high-complexity task. The 5 subtasks provided outline a clear investigative process."
+    },
+    {
+      "taskId": 30,
+      "taskTitle": "Refactor Deprecation Warnings and Migrate Pydantic V1 to V2",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Migrating a core dependency like Pydantic from V1 to V2 is a significant refactoring effort, often introducing breaking changes across the codebase. It involves identifying all Pydantic model usages, adhering to a detailed migration guide, updating configurations, and meticulously addressing all related deprecation warnings. The impact assessment and comprehensive testing required to ensure stability make this a high-complexity task. The 5 existing subtasks provide a thorough breakdown of the migration process."
+    },
+    {
+      "taskId": 32,
+      "taskTitle": "Create Comprehensive Test Suite for Context Control Module",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Developing a comprehensive test suite for a critical module like `context_control` is a substantial undertaking. It requires granular unit tests for multiple components, integration tests for orchestrator logic, validation of dependency injection patterns, exhaustive edge case/error handling, testing of legacy compatibility layers, context isolation integrity, and thread safety. The requirement for high code coverage (e.g., 90%+) and attention to complex scenarios makes this a high-complexity task. The 7 existing subtasks provide a detailed breakdown of the testing effort."
+    },
+    {
+      "taskId": 33,
+      "taskTitle": "Add Deprecation Shims for Context Control Static Methods",
+      "complexityScore": 6,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task involves implementing backward compatibility shims, which requires careful understanding of both old static methods and new instance-based methods, accurate argument mapping, and correct `DeprecationWarning` emission. While the concept is straightforward, precision is key to avoid subtle bugs and ensure a smooth migration path for consumers. The 4 subtasks break down the identification, implementation, and testing of these shims effectively."
+    },
+    {
+      "taskId": 34,
+      "taskTitle": "Create Integration Migration Guide for Context Control Module Refactoring",
+      "complexityScore": 5,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Creating a comprehensive migration guide requires clear communication of breaking changes, side-by-side examples, a step-by-step checklist, common pitfalls, and testing strategies. While primarily a documentation task, it demands a deep understanding of the refactored module and its usage. The 5 subtasks outline a structured approach to ensure the guide is accurate and actionable."
+    },
+    {
+      "taskId": 35,
+      "taskTitle": "Refactor ContextController Config Initialization for Thread Safety",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Refactoring critical configuration initialization to eliminate global state mutation and ensure thread safety is a moderately complex task. It involves implementing a factory pattern, explicit config passing, and potentially thread-safe singleton patterns, all while updating numerous call sites. The impact on application stability and testability is high, making careful implementation and thorough testing crucial. The 6 subtasks provide a clear path for this architectural improvement."
+    },
+    {
+      "taskId": 36,
+      "taskTitle": "Verify and Resolve Circular Imports in Context Control Module",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Identifying and resolving circular imports, especially in a critical and refactored module like `context_control`, requires static analysis, careful design of resolution strategies (refactoring, dependency inversion, lazy imports), and meticulous implementation. Ensuring no functional regressions are introduced and implementing safeguards against future occurrences adds to the complexity. The 5 subtasks outline a comprehensive approach to tackling this issue."
+    },
+    {
+      "taskId": 37,
+      "taskTitle": "Refactor EmailProfileManager API to ID-based Interface with Backward Compatibility",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Refactoring a core API from a path-based to an ID-based system while maintaining backward compatibility is a significant undertaking. It requires implementing new CRUD operations, deprecating old methods with warnings, developing export/import utilities, and thoroughly documenting the new serialization format. The need to ensure smooth transition, prevent regressions, and manage file system interactions makes this a high-complexity task. The 7 subtasks provide a detailed plan for this refactoring."
+    },
+    {
+      "taskId": 38,
+      "taskTitle": "Comprehensive Analysis of launch.py",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Conducting a comprehensive audit of a critical entry-point script like `launch.py` across multiple dimensions (security, regressions, dependencies, history, inconsistencies) is a detailed and demanding analysis task. It requires proficiency with various Git and static analysis tools, meticulous review, and the ability to synthesize findings into actionable insights. The 7 subtasks delineate a thorough investigative process."
+    },
+    {
+      "taskId": 39,
+      "taskTitle": "Update Minimum Python Requirement to 3.12",
+      "complexityScore": 6,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Upgrading the minimum Python version across an entire project involves updating configuration files (pyproject.toml, Dockerfile), CI/CD pipelines, documentation, and potentially hardcoded version checks in source files. While usually a straightforward find-and-replace, the breadth of changes and the need to ensure no regressions are introduced (especially with dependencies) makes it a moderately complex maintenance task. The 10 subtasks provide a good, systematic plan for this upgrade."
+    },
+    {
+      "taskId": 40,
+      "taskTitle": "Refine launch.py Dependencies and Orchestration for Merge Stability",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task builds upon the `launch.py` analysis (Task 38) to fortify merge stability around this critical entry point. It involves refining dependencies, identifying critical files for conflict resolution, and enhancing CI/CD orchestration with dependency drift and critical file integrity checks. This requires careful integration of new checks into the CI/CD pipeline and documenting new procedures, making it moderately complex due to its impact on a critical application component and the CI/CD workflow. The 12 subtasks provide a detailed plan."
+    },
+    {
+      "taskId": 41,
+      "taskTitle": "Production Deployment Infrastructure Setup",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Establishing a robust production deployment infrastructure is a major undertaking. It encompasses refining containerization (multi-stage builds, optimization), developing a comprehensive CI/CD pipeline (production jobs, vulnerability scanning, secrets management, cloud deployment logic, automated rollbacks), and implementing integrated monitoring and alerting. The breadth of components, the need for security and reliability, and integration with existing CI/CD frameworks make this a highly complex task. The 12 subtasks represent a very detailed plan for this infrastructure work."
+    },
+    {
+      "taskId": 42,
+      "taskTitle": "Security Audit and Hardening for Production",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Conducting a comprehensive security audit and implementing hardening measures for production is a critical and complex task. It covers dependency vulnerability scanning, secure configuration and secrets management, API security review (auth, input validation, CORS), rate limiting, and security monitoring/alerting. The multi-faceted nature of security, the need for deep technical understanding, and the direct impact on system trustworthiness make this highly complex. The 12 subtasks provide a thorough breakdown of the security effort."
+    },
+    {
+      "taskId": 44,
+      "taskTitle": "Standardize Dependency Management System",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Consolidating dependency management from mixed tools (uv, Poetry, requirements.txt) to a single, consistent approach (Poetry) is a significant refactoring task. It involves migrating all dependencies, updating numerous configuration files (CI/CD, local scripts), and ensuring no regressions. The goal of improving build reliability and developer experience is high-impact, but the process of ensuring full compatibility across a potentially diverse set of existing dependencies makes this moderately complex. The 3 existing subtasks are broad but cover the essential phases."
+    },
+    {
+      "taskId": 51,
+      "taskTitle": "Improve Testing Infrastructure & Code Quality",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task is a broad code quality and testing infrastructure improvement effort. It involves refactoring error handling (bare `except`), adding type hints (codebase-wide), establishing comprehensive test coverage (with targets), and implementing negative security test cases. Additionally, it targets refactoring large NLP modules and reducing duplication. This multi-pronged approach across different aspects of code quality and testing makes it highly complex and impactful. The 3 high-level subtasks provided each represent a significant undertaking."
+    },
+    {
+      "taskId": 52,
+      "taskTitle": "Implement Centralized Error Handling with Consistent Error Codes",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Implementing a centralized, consistent error handling mechanism across an application is a significant architectural improvement. It requires defining a standardized error response format, creating a registry of error codes, implementing a global exception handler, and refactoring existing error handling logic throughout the codebase. This enhances debugging, API communication, and robustness, but involves broad changes that need careful implementation to avoid regressions. The 3 subtasks provide a clear plan."
+    },
+    {
+      "taskId": 53,
+      "taskTitle": "Project Management: Oversee Backend Migration to src/",
+      "complexityScore": 5,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This is a project management and oversight task. Its complexity relates to coordinating with development teams, monitoring progress, managing risks, and ensuring documentation for a critical migration (Task 4). While it is highly important, it is not a direct implementation task. The 5 existing subtasks outline the typical responsibilities of project management, so no further direct subtask expansion is needed."
+    },
+    {
+      "taskId": 54,
+      "taskTitle": "Establish Core Branch Alignment Framework",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "This task involves configuring and integrating several foundational elements (branch protection rules, merge guards, pre-merge scripts, validation frameworks) into a unified local developer workflow. It requires setting up Git hooks, wrapping existing validation scripts, and orchestrating them, making it a moderately complex development and tooling task. The 3 existing subtasks provide a high-level breakdown of this foundational setup."
+    },
+    {
+      "taskId": 55,
+      "taskTitle": "Develop Automated Error Detection Scripts for Merges",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Developing scripts to detect various merge-related errors (artifacts, garbled text, missing imports, deleted modules) requires a good understanding of Git internals, file system operations, and Python's AST for import analysis. The script needs to be robust, accurate, and avoid false positives, making it a moderately complex scripting task. The 3 subtasks break down the detection mechanisms effectively."
+    },
+    {
+      "taskId": 56,
+      "taskTitle": "Implement Robust Branch Backup and Restore Mechanism",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Implementing a robust backup and restore mechanism for Git branches is crucial for safety during alignment. It requires careful scripting of Git commands, handling different branch types (feature vs. primary), integrity verification, and robust error handling for restoration and cleanup. The critical nature of data preservation and the need for reliable automation makes this moderately complex. The 3 subtasks provide a clear implementation plan."
+    },
+    {
+      "taskId": 57,
+      "taskTitle": "Develop Feature Branch Identification and Categorization Tool",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks already sufficiently defined.",
+      "reasoning": "Developing a Python tool to automatically identify, categorize, and suggest optimal primary targets for feature branches involves complex Git history analysis (merge-base, log comparison) and potentially codebase similarity heuristics. It requires careful scripting and robust logic to ensure accurate categorization, making it a moderately complex development task. The 3 subtasks indicate a clear focus on specific aspects of the categorization logic."
+    },
+    {
+      "taskId": 58,
+      "taskTitle": "Automate Changes Summary and Alignment Checklist Generation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 59,
+      "taskTitle": "Develop Core Primary-to-Feature Branch Alignment Logic",
+      "complexityScore": 8,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 60,
+      "taskTitle": "Implement Focused Strategies for Complex Branches",
+      "complexityScore": 8,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 61,
+      "taskTitle": "Integrate Validation Framework into Alignment Workflow",
+      "complexityScore": 8,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 62,
+      "taskTitle": "Orchestrate Sequential Branch Alignment Workflow",
+      "complexityScore": 9,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 63,
+      "taskTitle": "Finalize and Publish Comprehensive Alignment Documentation",
+      "complexityScore": 4,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 64,
+      "taskTitle": "Define and Implement Database Configuration Object",
+      "complexityScore": 5,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 65,
+      "taskTitle": "Refactor DatabaseManager for Constructor Dependency Injection",
+      "complexityScore": 7,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 66,
+      "taskTitle": "Implement Factory Functions for DatabaseManager Construction",
+      "complexityScore": 6,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 67,
+      "taskTitle": "Develop Deprecation Shims and Warning Mechanisms for Legacy API",
+      "complexityScore": 6,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 68,
+      "taskTitle": "Setup Comprehensive Testing Environment and Mocking Framework",
+      "complexityScore": 6,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 69,
+      "taskTitle": "Implement DatabaseManager Unit and Integration Tests with DI",
+      "complexityScore": 7,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 70,
+      "taskTitle": "Implement Context Isolation Validation Tests for Multi-Agent Systems",
+      "complexityScore": 7,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 71,
+      "taskTitle": "Implement Static Analysis for Circular Import Detection",
+      "complexityScore": 6,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 72,
+      "taskTitle": "Develop Comprehensive End-to-End Tests for Integrated Features",
+      "complexityScore": 7,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 73,
+      "taskTitle": "Implement Performance Benchmarks and Scalability Tests",
+      "complexityScore": 6,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 74,
+      "taskTitle": "Validate and Configure Core Git Repository Protections",
+      "complexityScore": 5,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 75,
+      "taskTitle": "Develop a Script to Identify and Categorize Feature Branches",
+      "complexityScore": 6,
+      "recommendedSubtasks": 15,
+      "expansionPrompt": "Break down this task with a focus on creating detailed, granular subtasks that address the core objective in atomic steps.",
+      "reasoning": "This task requires detailed granular breakdown into 15 atomic steps to ensure safe and systematic execution."
+    },
+    {
+      "taskId": 76,
+      "taskTitle": "Implement Automated Error Detection and Correction for Merge Issues",
+      "complexityScore": 7,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Generate subtasks for developing merge conflict marker detection, garbled text/encoding error detection, and Python missing import validation scripts, consolidating them into a comprehensive error detection utility.",
+      "reasoning": "Developing automated scripts to detect merge artifacts, garbled text, missing imports, and deleted modules after Git operations is a critical component for merge stability. It requires robust scripting, knowledge of text processing, Python's AST for imports, and Git internals. Ensuring accuracy and minimizing false positives for a diverse set of error conditions makes this a moderately complex scripting task. The existing description suggests breaking this into several distinct detection mechanisms."
+    },
+    {
+      "taskId": 77,
+      "taskTitle": "Create a Utility for Safe Integration of Primary Branch Changes into Feature Branches",
+      "complexityScore": 8,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Generate subtasks for developing the core utility with pre-integration safeguards and branch validation, implementing advanced integration strategies and conflict management, and establishing robust error handling, rollback, audit logging, and documentation.",
+      "reasoning": "Developing a utility for safe integration of primary branch changes into feature branches involves automating `git rebase` or `git merge`, which is inherently complex due to potential conflicts. It requires robust error handling, user prompts for manual resolution, integration with error detection scripts (Task 76), and a careful push strategy. The critical nature of maintaining clean Git history and ensuring safety makes this a high-complexity scripting task. The existing description clearly outlines several distinct phases of development for this utility."
+    },
+    {
+      "taskId": 78,
+      "taskTitle": "Implement a Documentation Generator for Alignment Change Summaries",
+      "complexityScore": 5,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks are not explicitly listed in the global context, but implied in description, if needed a general prompt would be 'Generate subtasks for designing the Markdown template, extracting commit log and diff stats from Git, and populating the summary document.'",
+      "reasoning": "Developing a script to generate `CHANGES_SUMMARY.md` files involves using `git log` and `git diff` to extract information and populate a Markdown template. While it requires scripting and understanding Git output, the core task is automation of documentation, making it of moderate complexity. It leverages existing Git capabilities rather than developing new complex logic."
+    },
+    {
+      "taskId": 79,
+      "taskTitle": "Develop a Modular Framework for Parallel Alignment Task Execution",
+      "complexityScore": 9,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Generate subtasks for designing and implementing the core orchestration engine for grouped execution, implementing parallel alignment task execution with safety and rollback, and developing monitoring, validation, logging, and advanced conflict resolution mechanisms.",
+      "reasoning": "Building a modular framework to orchestrate parallel Git alignment tasks is highly complex. It requires handling concurrency (e.g., `ThreadPoolExecutor`) for Git operations, grouping branches by target, integrating multiple other tools (Tasks 75, 76, 77, 78), and implementing robust error handling and logging. The safety aspect of parallel Git operations and managing potential conflicts across multiple branches concurrently makes this a very challenging architectural and implementation task. The existing subtasks outline distinct, complex areas for this framework."
+    },
+    {
+      "taskId": 80,
+      "taskTitle": "Integrate Pre-merge Validation Scripts and Comprehensive Validation Framework",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks are not explicitly listed in the global context, but implied in description, if needed a general prompt would be 'Generate subtasks for modifying the alignment framework to invoke pre-merge validation scripts and the comprehensive validation framework, and handling their pass/fail results.'",
+      "reasoning": "Integrating existing pre-merge validation scripts (Task 19) and the comprehensive merge validation framework (Task 9) into the modular alignment framework (Task 79) is critical for ensuring quality gates are met. It requires modifying the core alignment logic to invoke these external tools, interpret their results, and halt the alignment process on failure. The challenge lies in robust integration, error handling, and ensuring seamless feedback within a complex, potentially parallel, workflow. This is a high-complexity integration task."
+    },
+    {
+      "taskId": 81,
+      "taskTitle": "Implement Specialized Handling for Complex Feature Branches",
+      "complexityScore": 8,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks are not explicitly listed in the global context, but implied in description, if needed a general prompt would be 'Generate subtasks for extending the integration utility and orchestrator to support integration branch strategies, iterative rebase, and targeted testing for complex branches.'",
+      "reasoning": "Extending the alignment utility and modular framework to provide specialized handling for complex feature branches (e.g., long-lived, highly divergent) is a significant enhancement. It requires implementing strategies like integration branches or iterative rebase, which introduce additional Git complexity and error management. The goal is to make these difficult merges manageable for a single developer, requiring sophisticated scripting and workflow design, making it a high-complexity task."
+    },
+    {
+      "taskId": 82,
+      "taskTitle": "Document Merge Best Practices and Conflict Resolution Procedures",
+      "complexityScore": 5,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks are not explicitly listed in the global context, but implied in description, if needed a general prompt would be 'Generate subtasks for defining branching strategies, outlining merge best practices, detailing conflict resolution steps, and explaining the automated alignment workflow interaction.'",
+      "reasoning": "This task involves creating comprehensive static documentation for merge best practices, conflict resolution, and the branching strategy. While crucial for developer guidance, it is primarily a documentation effort. The complexity lies in ensuring accuracy, clarity, and completeness across various Git scenarios for a single developer, making it a moderate-complexity documentation task."
+    },
+    {
+      "taskId": 83,
+      "taskTitle": "Establish End-to-End Testing and Reporting for Alignment Activities",
+      "complexityScore": 7,
+      "recommendedSubtasks": 0,
+      "expansionPrompt": "N/A - subtasks are not explicitly listed in the global context, but implied in description, if needed a general prompt would be 'Generate subtasks for provisioning a temporary Git repository, executing the full alignment workflow, verifying aligned branch states, and generating a detailed report of alignment outcomes.'",
+      "reasoning": "Implementing end-to-end testing for the entire branch alignment framework is crucial for validating its reliability and correctness. It requires setting up a dedicated test suite that simulates complex Git environments, executes the full alignment workflow (Tasks 75-80), and generates detailed reports. This is a moderately complex testing task due to the need to simulate Git scenarios, orchestrate multiple scripts, and verify the final state of aligned branches."
+    },
+    {
+      "taskId": 100,
+      "taskTitle": "Create Ordered File Resolution List for Post-Alignment Merge Issues",
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Generate subtasks for identifying and cataloging files with merge issues post-alignment, classifying them by criticality and type, analyzing their dependencies, generating a prioritized resolution order, and documenting recommended resolution approaches.",
+      "reasoning": "This task involves analyzing a post-alignment codebase to create a prioritized and ordered list of files needing resolution. This requires systematic identification of problem files, classification by criticality and type, and thorough dependency analysis to ensure a proper architectural resolution order. While it's primarily an analytical and documentation task, the depth of analysis and the need for architectural understanding to create an effective resolution roadmap make it moderately complex. The current description provides an excellent framework for subtask generation."
+    }
+  ]
 }
