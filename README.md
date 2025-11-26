@@ -1,166 +1,137 @@
+# Orchestration Tools Branch
 
-## Table of Contents
+This branch (`orchestration-tools`) serves as the **central source of truth** for development environment tooling, configuration management, scripts, and Git hooks that ensure consistency across all project branches.
 
-- [Project Overview](#project-overview)
-- [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
-- [Prerequisites](#prerequisites)
-- [Setup](#setup)
-  - [AI Models Setup](#ai-models-setup)
-  - [Database Setup for Development](#database-setup-for-development)
-- [Configuration](#configuration)
-- [Security Considerations](#security-considerations)
-- [Gmail API Integration Setup](#gmail-api-integration-setup)
-- [Running the Application](#running-the-application)
-- [AI System Overview](#ai-system-overview)
-- [Building for Production](#building-for-production)
-- [Database](#database)
-- [Extension System](#extension-system)
-- [Debugging Hangs](#debugging-hangs)
+## Purpose
 
-## Project Overview
+The primary goal is to keep the core email intelligence codebase clean by separating orchestration concerns from application code. This branch will **NOT** be merged with other branches, but instead provides essential tools and configurations that are synchronized to other branches via Git hooks.
 
+## Files to KEEP (Essential for Orchestration)
 
-The Gradio UI acts as a full-featured client to the FastAPI backend.
+### Orchestration Scripts & Tools
+- `scripts/` - All orchestration scripts and utilities
+  - `install-hooks.sh` - Installs Git hooks for automated environment management
+  - `cleanup_orchestration.sh` - Removes orchestration-specific files when not on orchestration-tools
+  - `sync_setup_worktrees.sh` - Synchronizes worktrees for different branches
+  - `reverse_sync_orchestration.sh` - Reverse synchronization for orchestration updates
+  - `cleanup.sh` - Cleanup utilities
+  - `lib/` - Shared utility libraries (common.sh, error_handling.sh, git_utils.sh, logging.sh, validation.sh)
+  - `hooks/` - Git hook source files (pre-commit, post-checkout, post-commit, post-merge, post-push)
 
-```
-Gradio UI (gradio_app.py)
-==========================
-|
-├── 📈 Dashboard Tab
-|   └── Calls GET /api/dashboard/stats ──> Displays key metrics & charts
-|
-├── 📥 Inbox Tab
-|   ├── Calls GET /api/emails ─────> Displays searchable email list
-|   └── Calls GET /api/categories ─> Populates category filter dropdown
-|
-├── 📧 Gmail Tab
-|   └── Calls POST /api/gmail/sync ──> Triggers Gmail synchronization
-|
-├── 🔬 AI Lab Tab (Advanced Tools)
-|   ├── Analysis Sub-Tab ──────────> Calls POST /api/ai/analyze
-|   └── Model Management Sub-Tab ────> Calls GET/POST /api/models/*
-|
-└── ⚙️ System Status Tab
-    ├── Calls GET /health ───────────> Displays system health
-    └── Calls GET /api/gmail/performance -> Displays performance metrics
-```
+### Setup & Environment Management
+- `setup/` - Launch scripts and environment setup
+  - `launch.py` - Main launcher with environment setup functionality
+  - `pyproject.toml` - Python project configuration
+  - `requirements.txt` - Runtime dependencies
+  - `requirements-dev.txt` - Development dependencies
+  - `setup_environment_*.sh` - Environment setup scripts
+  - `launch.*` - Cross-platform launch scripts
 
-## Project Overview
+### Configuration Files
+- `.flake8`, `.pylintrc` - Python linting configuration
+- `.gitignore`, `.gitattributes` - Git configuration
+- `launch.py` (root wrapper) - Forwards to setup/launch.py (backward compatibility)
 
-To successfully set up and run EmailIntelligence, you will need the following:
+### Orchestration Documentation
+- `docs/orchestration_summary.md` - Summary of orchestration workflow
+- `docs/orchestration_validation_tests.md` - Validation tests for orchestration
+- `docs/env_management.md` - Environment management documentation
+- `docs/git_workflow_plan.md` - Git workflow planning
+- `docs/current_orchestration_docs/` - All orchestration-specific documentation
+- `docs/guides/` - Orchestration guides
 
-## Prerequisites
+## Files to REMOVE (Application-Specific)
 
-To successfully set up and run EmailIntelligence, you will need the following:
+The following files are NOT needed in this orchestration-focused branch and can be safely removed:
 
-- **Python 3.11+**: Required for the backend services
-- **Node.js 16+**: Required for the frontend (optional if running API-only)
-- **Conda (optional)**: For conda environment management (venv is used by default)
+### Application Source Code
+- `src/` - Application source code
+- `modules/` - Application modules
+- `backend/` - Backend implementation
+- `client/` - Frontend implementation
+- `tests/` - Application tests
 
-You can run any combination of services by using the launcher scripts:
+### Application Data & Dependencies
+- `data/` - Application data
+- `node_modules/` - Node.js dependencies
+- `performance_metrics_log.jsonl` - Runtime logs
 
--   **Run only the Python backend and Gradio UI:**
-    ```bash
-    python launch.py --no-client --no-server-ts
-    ```
--   **Run only the React client:**
-    ```bash
-    python launch.py --no-backend --no-ui --no-server-ts
-    ```
--   **Run in "API only" mode (just the Python backend):**
-    ```bash
-    python launch.py --no-client --no-server-ts --no-ui
-    ```
--   **Use a specific conda environment:**
-    ```bash
-    python launch.py --conda-env myenv
-    ```
+### Application-Specific Configurations
+- `.env.example` - Application environment example
+- `.mcp.json` - MCP-specific configuration (if application-specific)
+- `.rules` - Application-specific rules
+- Any documentation files in `docs/` that are not orchestration-related
 
-Use `python launch.py --help` to see all available options.
+## Git Hook Behavior
 
-## Development Notes
+### `pre-commit` Hook
+- **Purpose**: Prevent accidental changes to orchestration-managed files
+- **Behavior**: Allows all changes on orchestration-tools; warns on orchestration-managed file changes on other branches
 
--   **Python Environment:** The launcher automatically detects and uses conda environments if available, otherwise creates and manages a virtual environment in the `./venv` directory. You do not need to activate environments manually.
--   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv` (or Poetry). All Node.js dependencies are defined in the `package.json` files.
--   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside your active environment (conda or venv).
--   **Data Storage:** This version uses local file-based storage, primarily located in `data/`. SQLite databases (`.db` files) are created in the project root. The data directory is now configurable via the `DATA_DIR` environment variable.
--   **Modular Architecture:** The application uses a modular design where core functionality is in `src/core/`, and features are added via modules in `modules/`. This allows for easy extension and maintenance.
--   **Node-based Workflows:** The node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
--   **New Node-Based Workflow System:** The platform has been enhanced with a sophisticated node-based workflow system:
+### `post-checkout` Hook
+- **Purpose**: Sync essential files when switching branches
+- **Behavior**: Syncs setup/ directory, shared configs, and installs hooks when switching FROM orchestration-tools; skips sync when switching TO orchestration-tools
 
-    ### Core Components:
-    - **src/core/advanced_workflow_engine.py**: Advanced node-based workflow engine with security and performance features
-    - **src/core/security.py**: Enterprise-grade security framework
-    - **backend/python_backend/workflow_editor_ui.py**: Visual workflow editor UI
-    - **backend/python_backend/advanced_workflow_routes.py**: API endpoints for workflow management
+### `post-merge` Hook
+- **Purpose**: Ensure environment consistency after merges
+- **Behavior**: Syncs setup/ directory, installs/updates Git hooks, cleans up temporary worktrees
 
-    ### Key Features:
-    - **Node-Based Processing**: Visual workflow creation with drag-and-drop interface
-    - **Security Framework**: Multi-layer security with authentication, authorization, and audit logging
-    - **Extensibility**: Plugin system for adding new node types
-    - **Performance Monitoring**: Built-in metrics collection and monitoring
-    - **Enterprise Features**: Data sanitization, execution sandboxing, audit trails
+### `post-push` Hook
+- **Purpose**: Detect orchestration changes and create PRs
+- **Behavior**: Creates automatic draft PRs when orchestration-managed files are changed on non-orchestration branches
 
-    ### API Endpoints:
-    - `POST /api/workflows/advanced/workflows` - Create new workflows
-    - `GET /api/workflows/advanced/workflows` - List available workflows
-    - `GET /api/workflows/advanced/workflows/{id}` - Get specific workflow
-    - `PUT /api/workflows/advanced/workflows/{id}` - Update workflow
-    - `DELETE /api/workflows/advanced/workflows/{id}` - Delete workflow
-    - `POST /api/workflows/advanced/workflows/{id}/execute` - Execute workflow
-    - `GET /api/workflows/advanced/nodes` - List available node types
-    - `GET /api/workflows/advanced/execution/status` - Get execution status
-    - `POST /api/workflows/advanced/execution/cancel/{id}` - Cancel execution
+## Development Workflow
 
--   **Enhanced Filtering System:** Advanced email filtering capabilities with multiple criteria types:
+1. **For orchestration development**: Work directly in `orchestration-tools` branch
+2. **For environment setup**: The `setup/` directory contains all necessary tools
+3. **For configuration changes**: Make changes in orchestration-tools, they propagate automatically
+4. **For Git hook management**: Use `install-hooks.sh` to install consistent hook versions
 
-    ### New Filtering Features:
-    - **Multi-Criteria Filtering**: Support for keyword, sender, recipient, category, date/time, and size-based filtering
-    - **Complex Boolean Logic**: AND, OR, and NOT operations for creating complex filtering rules
-    - **UI Component**: AdvancedFilterPanel for creating and managing filters through an intuitive interface
-    - **Node Integration**: Enhanced FilterNode compatible with the existing workflow engine
-    - **API Integration**: Filter criteria can be passed through the workflow system for processing emails according to user-defined rules
+## Branch Policy
 
-    ### Filtering Capabilities:
-    - Required/excluded keywords in subject or content
-    - Required/excluded senders and recipients
-    - Category-based filtering
-    - Date/time range filtering
-    - Size-based filtering
-    - Priority-based filtering
-    - Custom boolean logic operations
+- **This branch will NOT be merged with other branches**
+- **Focus only on orchestration tools, scripts, and configurations**
+- **Remove application-specific files to keep the branch clean**
+- **Maintain backward compatibility for the launch system**
+- **Ensure all hooks and automation scripts work correctly**
 
-    For more details on the enhanced filtering system, see [Advanced Filtering Documentation](docs/advanced_filtering_system.md)
+## Hook Management and Updates
 
--   **Performance Monitoring:** The `@log_performance` decorator has been refactored for improved flexibility and direct logging to a file.
--   **Dependency Management:** Enhanced testing for Node.js dependency installation ensures more robust setup.
--   **Special Components:**
-    - **Model Manager**: Handles dynamic loading/unloading of AI models
-    - **Workflow Engine**: Manages configurable email processing workflows
-    - **Performance Monitor**: Tracks system performance metrics
-    - **Plugin Manager**: Enables extensible functionality
-    - **Security Manager**: Provides enterprise-grade security
-    - **Smart Filters**: Provides advanced email filtering capabilities
+When making changes to orchestration files, follow these important steps:
 
-## Quick Start
+1. **Always work in the orchestration-tools branch**
+2. **Test your changes thoroughly**
+3. **After pushing changes, other developers will receive updates automatically when switching branches**
+4. **For immediate updates, run**: `scripts/install-hooks.sh --force`
+5. **Refer to**: `docs/orchestration_hook_management.md` for detailed procedures
 
-The fastest way to get EmailIntelligence running locally for development is by using the unified launcher. This process involves a few key steps:
+## Cleanup Strategy
 
-**Step 1: Clone the Repository**
+To clean this branch for orchestration-only purposes:
+
 ```bash
-git clone <repository_url> # Replace <repository_url> with the actual URL
-cd EmailIntelligence
+# Remove application-specific directories
+rm -rf src/
+rm -rf modules/
+rm -rf tests/
+rm -rf data/
+rm -rf backend/
+rm -rf client/
+rm -rf node_modules/
+
+# Remove application-specific files
+rm -f .env.example
+rm -f .mcp.json
+rm -f .rules
+rm -f performance_metrics_log.jsonl
+
+# Review docs/ and remove non-orchestration documentation
+# (Keep orchestration_summary.md, orchestration_validation_tests.md, env_management.md, git_workflow_plan.md, and directories)
 ```
 
-**Step 2: Install Node.js Dependencies**
-Before running the launcher for the first time, or if frontend/Node.js backend dependencies change, install them:
-```bash
-npm install
-```
-This command should be run in the project's root directory (where `package.json` is located).
+## Important Notes
 
+<<<<<<< Updated upstream
 **Step 3: Database Setup**
 The application now uses SQLite. The database file (e.g., `sqlite.db`) will typically be created in the `backend` directory when the application starts or when database operations are first performed. Ensure the `backend` directory is writable.
 
@@ -261,7 +232,11 @@ This section details important environment variables used by the application. Th
 *   **`DATABASE_URL`**: Connection string for the database. For SQLite, this might be `sqlite:sqlite.db` or similar if used, though the application may default to a hardcoded path.
 *   **`GMAIL_CREDENTIALS_JSON`**: JSON content of OAuth 2.0 Client ID credentials for Gmail API.
 *   **`credentials.json` (File Alternative)**: Alternative to `GMAIL_CREDENTIALS_JSON`, placed in project root. Ensure this file is in `.gitignore` if used.
+<<<<<<< HEAD
 *   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `token.json`). Ensure this file is in `.gitignore`.
+=======
+*   **`GMAIL_TOKEN_PATH`**: File path for storing Gmail API OAuth 2.0 token (default: `jsons/token.json`). Ensure this file is in `.gitignore`.
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 *   **`NLP_MODEL_DIR`**: Directory for trained NLP models (default: `backend/python_nlp/`).
 *   **`PORT`**: Port for the Python FastAPI server (default: `8000`).
 
@@ -432,3 +407,10 @@ For more detailed guides and specific component documentation, please refer to t
 - Attempts to override these nested `esbuild` versions to a non-vulnerable version (e.g., `^0.25.5`, which is used by other parts of this project like Vite) using npm's `overrides` feature in `package.json` were made. However, these overrides were not fully effective, with `npm list` indicating version incompatibilities for the overridden packages. `npm audit` continued to report the vulnerabilities.
 - These `esbuild` vulnerabilities cannot be fully remediated without an update to `drizzle-kit` itself that addresses its `esbuild` dependency requirements, particularly for the deprecated `@esbuild-kit/*` packages.
 - On a related note, `vite` and `@vitejs/plugin-react` were successfully updated to their latest compatible versions (`vite@6.3.5` and `@vitejs/plugin-react@4.5.2` respectively) during the audit process to address other potential issues and ensure compatibility.
+=======
+- The root `launch.py` wrapper is essential and should be kept for backward compatibility
+- The `setup/` directory is critical for environment setup and should be maintained
+- All Git hooks in `scripts/hooks/` are essential for the orchestration workflow
+- This branch serves as the single source of truth for all environment and tooling configurations
+- Changes to orchestration-managed files require PRs through the automated system
+>>>>>>> Stashed changes

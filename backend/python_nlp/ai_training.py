@@ -124,3 +124,7 @@ class PromptEngineer:
             f"Provide a concise summary that captures the key points and any important details."
         )
         return prompt
+<<<<<<< HEAD
+>>>>>>> 9f31a0001a06081252566d811b8d577b63b7a0ed
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2

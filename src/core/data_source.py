@@ -77,6 +77,14 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
+<<<<<<< HEAD
+=======
+    async def delete_email(self, email_id: int) -> bool:
+        """Deletes an email by its internal ID."""
+        pass
+
+    @abstractmethod
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
     async def shutdown(self) -> None:
         """Performs any necessary cleanup."""
         pass
