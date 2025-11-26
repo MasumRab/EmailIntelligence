@@ -12,7 +12,8 @@ Resolve all comments and issues raised in PR #176, handle merge conflicts with t
 ## Technical Context
 
 **Language/Version**: Python 3.11
-**Primary Dependencies**: Git, GitHub CLI, standard Python libraries
+**Primary Dependencies**: Git, GitHub CLI (gh), standard Python libraries
+**GitHub CLI Usage**: Essential for inspecting PR issues, comments, statuses, and merge conflicts using commands like `gh pr view`, `gh pr comments`, `gh pr diff`, `gh issue list`, etc.
 **Storage**: N/A (this is a process-focused feature)
 **Testing**: Manual validation and CI checks
 **Target Platform**: Linux/Unix-based development environment
