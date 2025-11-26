@@ -94,10 +94,12 @@ Create documentation that details how this PR integrates with other outstanding 
 - **FR-003**: System MUST identify and implement any missing functionality identified during PR review
 - **FR-004**: System MUST fix any missing files or incorrect paths throughout the codebase
 - **FR-005**: System MUST align the feature branch with the latest architectural decisions
+- **FR-009**: System MUST use GitHub CLI (gh) tool to inspect, review, and manage PR issues, comments, and merge conflicts in PR #176
 
 *Example of marking unclear requirements:*
 
 - **FR-006**: System MUST maintain backward compatibility with existing features during integration (Full compatibility - API, data format, and UI must all maintain compatibility)
+- **FR-010**: System MUST use gh command line tool to retrieve PR details, comments, and status information (Using gh pr view, gh pr comments, gh pr diff, and related commands)
 - **FR-007**: System MUST document integration with other outstanding PRs (Using both high-level integration diagrams and inline comments in code)
 - **FR-008**: System MUST NOT perform complete architectural refactoring (out of scope for this feature)
 

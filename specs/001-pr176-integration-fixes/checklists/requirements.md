@@ -28,6 +28,7 @@
 - [ ] User scenarios cover primary flows
 - [ ] Feature meets measurable outcomes defined in Success Criteria
 - [ ] No implementation details leak into specification
+- [ ] GitHub CLI (gh) tool usage is properly specified for PR inspection tasks
 
 ## Notes
 
