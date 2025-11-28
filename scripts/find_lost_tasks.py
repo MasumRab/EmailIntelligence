@@ -5,12 +5,17 @@ Usage: python scripts/find_lost_tasks.py [--commits N] [--output FILE]
 """
 
 import json
+import os
 import sys
 import subprocess
 import argparse
 import re
 from pathlib import Path
 from collections import defaultdict
+
+# Add the task_scripts directory to the path to import shared utilities
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'task_scripts'))
+from taskmaster_common import SecurityValidator, FileValidator
 
 def get_git_commits(file_path, max_commits=50):
     """Get list of commits that modified the task files"""

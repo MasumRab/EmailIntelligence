@@ -60,17 +60,29 @@ class TaskResult:
 
 class SecurityValidator:
     """Security validation utilities for file paths and commands."""
-    
+
     @staticmethod
     def validate_path(path: str, base_dir: str = None) -> bool:
         """Validate that a path is safe and within allowed boundaries."""
         try:
-            path_obj = Path(path).resolve()
-            
-            # Check for path traversal attempts
-            if ".." in path.split("/") or ".." in path.split("\\"):
+            # Check for null bytes and other dangerous characters
+            if '\x00' in path:
                 return False
-            
+
+            # Use Path.resolve() to normalize the path
+            path_obj = Path(path).resolve()
+            normalized_path = str(path_obj)
+
+            # Check for URL encoding and other bypass attempts
+            path_lower = normalized_path.lower()
+            if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+                return False
+
+            # Check for directory traversal using multiple methods
+            path_str = str(path_obj).replace('\\', '/')
+            if ".." in path_str.split("/"):
+                return False
+
             # If base directory is specified, ensure path is within it
             if base_dir:
                 base_path = Path(base_dir).resolve()
@@ -78,7 +90,7 @@ class SecurityValidator:
                     path_obj.relative_to(base_path)
                 except ValueError:
                     return False
-            
+
             # Additional safety checks
             suspicious_patterns = [
                 r'\.\./',  # Path traversal
@@ -87,13 +99,19 @@ class SecurityValidator:
                 r'`.*`',   # Command substitution
                 r';.*;',   # Multiple commands
                 r'&&.*&&', # Multiple commands
-                r'\|\|.*\|\|' # Multiple commands
+                r'\|\|.*\|\|', # Multiple commands
+                r'\.git',  # Git directory access
+                r'\.ssh',  # SSH directory access
+                r'/etc/',  # System config directory
+                r'/root/', # Root directory
+                r'C:\\Windows\\', # Windows system directory
+                r'\x00',   # Null byte
             ]
-            
+
             for pattern in suspicious_patterns:
-                if re.search(pattern, path, re.IGNORECASE):
+                if re.search(pattern, normalized_path, re.IGNORECASE):
                     return False
-            
+
             return True
         except Exception:
             return False
@@ -105,8 +123,20 @@ class SecurityValidator:
         for arg in cmd:
             # Remove potentially dangerous characters
             if isinstance(arg, str):
-                # Basic sanitization - in production, you might want more sophisticated validation
-                if not re.match(r'^[a-zA-Z0-9._/-]+$', arg):
+                # More restrictive pattern to prevent command injection
+                if not re.match(r'^[a-zA-Z0-9._/-][a-zA-Z0-9._/-]*$', arg):
+                    # Additional checks for dangerous patterns
+                    dangerous_patterns = [
+                        r'[;&|`$()]',  # Shell metacharacters
+                        r'\\x[0-9a-fA-F]{2}',  # Hex escapes
+                        r'\\[0-7]{3}',  # Octal escapes
+                        r'%[0-9a-fA-F]{2}'  # URL encoding
+                    ]
+                    for pattern in dangerous_patterns:
+                        if re.search(pattern, arg, re.IGNORECASE):
+                            raise ValueError(f"Invalid command argument: {arg}")
+                # Check for path traversal in arguments
+                if '..' in arg or arg.startswith('-') and len(arg) > 1 and not arg[1:].isalpha():
                     raise ValueError(f"Invalid command argument: {arg}")
             sanitized.append(arg)
         return sanitized
@@ -316,30 +346,48 @@ class FileValidator:
             # Check file exists
             if not os.path.exists(file_path):
                 return TaskResult(False, f"File does not exist: {file_path}")
-            
+
             # Check file size
             max_size = self.config.get("security.max_file_size_mb", 100) * 1024 * 1024
-            if os.path.getsize(file_path) > max_size:
-                return TaskResult(False, f"File too large: {file_path}")
-            
+            file_size = os.path.getsize(file_path)
+            if file_size > max_size:
+                return TaskResult(False, f"File too large: {file_path} ({file_size} bytes, max: {max_size})")
+
             # Check file extension
             allowed_extensions = self.config.get("security.allowed_extensions", [])
             file_ext = Path(file_path).suffix.lower()
             if file_ext not in allowed_extensions:
                 return TaskResult(False, f"File extension not allowed: {file_ext}")
-            
+
             # Check for forbidden patterns (security scan)
             if self.config.get("validation.enable_security_scan", True):
+                # Read file in chunks to prevent memory exhaustion
+                content = ""
+                chunk_size = 8192  # 8KB chunks
+                bytes_read = 0
+                max_read_size = min(max_size, 10 * 1024 * 1024)  # Read max 10MB even if file is larger
+
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    content = f.read()
-                
+                    while bytes_read < max_read_size:
+                        chunk = f.read(chunk_size)
+                        if not chunk:
+                            break
+                        content += chunk
+                        bytes_read += len(chunk.encode('utf-8'))
+
+                        # Check for dangerous patterns as we read
+                        forbidden_patterns = self.config.get("security.forbidden_patterns", [])
+                        for pattern in forbidden_patterns:
+                            if re.search(pattern, content, re.IGNORECASE):
+                                return TaskResult(False, f"Forbidden pattern found in {file_path}: {pattern}")
+
                 forbidden_patterns = self.config.get("security.forbidden_patterns", [])
                 for pattern in forbidden_patterns:
                     if re.search(pattern, content, re.IGNORECASE):
                         return TaskResult(False, f"Forbidden pattern found in {file_path}: {pattern}")
-            
+
             return TaskResult(True, "File validation passed")
-        
+
         except Exception as e:
             return TaskResult(False, f"File validation error: {str(e)}", error_details=str(e))
     
@@ -411,22 +459,53 @@ class GitManager:
         try:
             # Validate command arguments
             cmd = self.validator.sanitize_command(cmd)
-            
+
+            # Additional validation: ensure the command is a git command
+            if not cmd or len(cmd) == 0 or not cmd[0].lower().startswith('git'):
+                return False, "", "Invalid git command: must start with 'git'"
+
+            # Whitelist allowed git commands to prevent execution of dangerous commands
+            allowed_git_commands = {
+                'git', 'git-add', 'git-commit', 'git-merge', 'git-pull',
+                'git-push', 'git-status', 'git-diff', 'git-log', 'git-checkout',
+                'git-branch', 'git-reset', 'git-rebase', 'git-fetch', 'git-tag',
+                'git-stash', 'git-submodule'
+            }
+
+            if cmd[0].lower() not in allowed_git_commands:
+                return False, "", f"Git command not allowed: {cmd[0]}"
+
+            # Validate that all command arguments are safe paths
+            for arg in cmd[1:]:
+                if isinstance(arg, str):
+                    # Check if the argument looks like a path and validate it
+                    if '/' in arg or '\\' in arg or '..' in arg:
+                        if not SecurityValidator.validate_path(arg):
+                            return False, "", f"Invalid path in git command: {arg}"
+
+                    # Additional check to prevent command injection through arguments
+                    dangerous_patterns = [r'[;&|`$()]', r'\\x[0-9a-fA-F]{2}', r'\\[0-7]{3}', r'%[0-9a-fA-F]{2}']
+                    for pattern in dangerous_patterns:
+                        if re.search(pattern, arg, re.IGNORECASE):
+                            return False, "", f"Dangerous pattern in git command argument: {arg}"
+
+            # Execute with timeout and proper error handling
             result = subprocess.run(
                 cmd,
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=30  # 30 second timeout
+                timeout=30,  # 30 second timeout
+                check=False
             )
-            
+
             success = result.returncode == 0
             stdout = result.stdout.strip()
             stderr = result.stderr.strip()
-            
+
             return success, stdout, stderr
         except subprocess.TimeoutExpired:
-            return False, "", "Git command timed out"
+            return False, "", "Git command timed out after 30 seconds"
         except Exception as e:
             return False, "", f"Git command error: {str(e)}"
     

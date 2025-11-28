@@ -1,0 +1,35 @@
+{
+  "orchestration_branches": [
+    "001-orchestration-tools-consistency",
+    "001-orchestration-tools-verification-review",
+    "002-validate-orchestration-tools",
+    "add-comparison-files-to-orchestration-tools",
+    "diverged-orchestration-tools-20251115161102",
+    "diverged-orchestration-tools-changes-20251115161154",
+    "fix-orchestration-tools-deps",
+    "orchestration-tools",
+    "orchestration-tools-changes",
+    "orchestration-tools-changes-2",
+    "orchestration-tools-changes-4",
+    "orchestration-tools-changes-emailintelligence-cli-20251112",
+    "orchestration-tools-changes-recovery-framework",
+    "orchestration-tools-clean",
+    "orchestration-tools-consolidated",
+    "orchestration-tools-consolidated-clean",
+    "orchestration-tools-consolidated-temp",
+    "orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045",
+    "orchestration-tools-integrated-recover-lost-commit-20251115164220",
+    "orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250",
+    "orchestration-tools-launch-refractor",
+    "orchestration-tools-stashed-changes",
+    "orchestration-tools-temp",
+    "update-orchestration-tools-with-analysis"
+  ],
+  "metadata": {
+    "generated_at": "2025-11-28T00:00:00.000Z",
+    "description": "Precalculated list of orchestration-tools branches for alignment tasks",
+    "source": "Task 101 in tasks.json",
+    "file_reference": "task_data/orchestration_branches.json"
+  },
+  "count": 24
+}

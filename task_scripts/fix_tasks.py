@@ -13,14 +13,14 @@ This script provides a comprehensive solution for fixing common issues in task f
 
 import json
 import os
-import sys
+import re
 import shutil
+import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Union
-import re
 import hashlib
-import time
 import copy
 from datetime import datetime
 
@@ -33,16 +33,89 @@ class ComprehensiveTaskFixer:
         self.security_patterns = [
             r'\.\./', r'\.\.\\', r'/etc/', r'/root/', r'C:\\Windows\\', r'~/.ssh/'
         ]
+
+    def validate_path_security(self, filepath: str, base_dir: str = None) -> bool:
+        """Validate that a path is safe and within allowed boundaries."""
+        try:
+            # Check for null bytes and other dangerous characters
+            if '\x00' in filepath:
+                return False
+
+            # Use Path.resolve() to normalize the path
+            path_obj = Path(filepath).resolve()
+            normalized_path = str(path_obj)
+
+            # Check for URL encoding and other bypass attempts
+            path_lower = normalized_path.lower()
+            if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+                return False
+
+            # Check for directory traversal using multiple methods
+            path_str = str(path_obj).replace('\\', '/')
+            if ".." in path_str.split("/"):
+                return False
+
+            # If base directory is specified, ensure path is within it
+            if base_dir:
+                base_path = Path(base_dir).resolve()
+                try:
+                    path_obj.relative_to(base_path)
+                except ValueError:
+                    return False
+
+            # Additional safety checks
+            suspicious_patterns = [
+                r'\.\./',  # Path traversal
+                r'\.\.\\', # Path traversal (Windows)
+                r'\$\(',   # Command substitution
+                r'`.*`',   # Command substitution
+                r';.*;',   # Multiple commands
+                r'&&.*&&', # Multiple commands
+                r'\|\|.*\|\|', # Multiple commands
+                r'\.git',  # Git directory access
+                r'\.ssh',  # SSH directory access
+                r'/etc/',  # System config directory
+                r'/root/', # Root directory
+                r'C:\\Windows\\', # Windows system directory
+                r'\x00',   # Null byte
+            ]
+
+            for pattern in suspicious_patterns:
+                if re.search(pattern, normalized_path, re.IGNORECASE):
+                    return False
+
+            return True
+        except Exception:
+            return False
     
     def create_backup(self, filepath: str) -> str:
         """Create a backup of the original file"""
+        # Check file size before creating backup
+        max_file_size = 50 * 1024 * 1024  # 50 MB limit
+        file_size = os.path.getsize(filepath)
+        if file_size > max_file_size:
+            raise ValueError(f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+
+        # Use UUID to avoid race conditions
+        import uuid
         timestamp = int(time.time())
+        unique_id = uuid.uuid4().hex[:8]
         original_path = Path(filepath)
-        backup_name = f"{original_path.stem}_{timestamp}{original_path.suffix}"
+        backup_name = f"{original_path.stem}_{timestamp}_{unique_id}{original_path.suffix}"
         backup_path = self.backup_dir / backup_name
-        
+
+        # Copy file and verify creation
         shutil.copy2(filepath, backup_path)
-        print(f"  - Created backup: {backup_path}")
+
+        # Verify backup was created successfully
+        if not backup_path.exists():
+            raise Exception(f"Failed to create backup file: {backup_path}")
+
+        # Verify file sizes match
+        if os.path.getsize(filepath) != os.path.getsize(backup_path):
+            raise Exception(f"Backup size mismatch: {filepath} vs {backup_path}")
+
+        print(f"  - Created verified backup: {backup_path}")
         return str(backup_path)
     
     def validate_path_security(self, filepath: str) -> bool:
@@ -173,21 +246,40 @@ class ComprehensiveTaskFixer:
     def fix_file(self, filepath: str) -> bool:
         """Comprehensive fix of a task file"""
         print(f"Processing: {filepath}")
-        
+
         # Security validation
         if not self.validate_path_security(filepath):
             print(f"  - Security validation failed, skipping: {filepath}")
             return False
-        
+
         # Check for merge conflicts
         if self.check_merge_conflicts(filepath):
             print(f"  - Skipping file with merge conflicts: {filepath}")
             return False
-        
+
         try:
-            # Load original data
+            # Check file size before loading to prevent memory issues
+            max_file_size = 50 * 1024 * 1024  # 50 MB limit
+            file_size = os.path.getsize(filepath)
+            if file_size > max_file_size:
+                print(f"  - File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+                return False
+
+            # Read file in chunks to prevent memory issues with very large files
             with open(filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                content = f.read(max_file_size)  # Limit read to max file size
+
+            # Check if we read the entire file
+            if len(content) == max_file_size:
+                # Check if there's more content in the file
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    f.seek(max_file_size)
+                    remaining = f.read(1)
+                    if remaining:
+                        print(f"  - File size exceeds maximum allowed size of {max_file_size} bytes")
+                        return False
+
+            data = json.loads(content)
             
             original_data = copy.deepcopy(data)
             
@@ -234,16 +326,26 @@ class ComprehensiveTaskFixer:
     
     def process_directory(self, directory: str, pattern: str = "**/tasks.json") -> Tuple[int, int]:
         """Process all task files in a directory"""
+        # Validate directory path security
+        if not self.validate_path_security(directory):
+            print(f"Error: Invalid or unsafe directory path: {directory}")
+            return 0, 0
+
         dir_path = Path(directory)
         task_files = list(dir_path.glob(pattern))
-        
+
         print(f"Found {len(task_files)} task files to process")
-        
+
         success_count = 0
         for task_file in task_files:
-            if self.fix_file(str(task_file)):
-                success_count += 1
-        
+            # Validate each task file path
+            task_file_str = str(task_file)
+            if self.validate_path_security(task_file_str):
+                if self.fix_file(task_file_str):
+                    success_count += 1
+            else:
+                print(f"Skipping unsafe file: {task_file}")
+
         return success_count, len(task_files)
 
 def main():
@@ -260,7 +362,12 @@ def main():
     fixer = ComprehensiveTaskFixer()
     
     path_to_process = args.file or args.path
-    
+
+    # Validate path security before processing
+    if not fixer.validate_path_security(path_to_process):
+        print(f"Error: Invalid or unsafe path: {path_to_process}")
+        sys.exit(1)
+
     if os.path.isfile(path_to_process):
         print(f"Processing single file: {path_to_process}")
         success = fixer.fix_file(path_to_process)

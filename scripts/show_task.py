@@ -5,9 +5,14 @@ Usage: python scripts/show_task.py <task_id> [--file FILE] [--tag TAG]
 """
 
 import json
+import os
 import sys
 import argparse
 from pathlib import Path
+
+# Add the task_scripts directory to the path to import shared utilities
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'task_scripts'))
+from taskmaster_common import SecurityValidator, FileValidator
 
 def find_task_by_id(tasks, task_id):
     """Find a task by ID, including in subtasks"""
@@ -58,11 +63,15 @@ def format_task_details(task, indent=0):
     return '\n'.join(lines)
 
 def load_tasks(file_path, tag="master"):
-    """Load tasks from JSON file"""
+    """Load tasks from JSON file using shared utilities"""
+    # Validate path security first
+    if not SecurityValidator.validate_path_security(file_path):
+        print(f"Error: Invalid or unsafe file path: {file_path}", file=sys.stderr)
+        return []
+
     try:
-        with open(file_path, 'r') as f:
-            data = json.load(f)
-        
+        data = FileValidator.load_json_secure(file_path)
+
         if tag in data:
             return data[tag].get('tasks', [])
         elif 'tasks' in data:
@@ -74,8 +83,8 @@ def load_tasks(file_path, tag="master"):
     except FileNotFoundError:
         print(f"Error: {file_path} not found", file=sys.stderr)
         return []
-    except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON in {file_path}: {e}", file=sys.stderr)
+    except Exception as e:
+        print(f"Error: Loading JSON from {file_path}: {e}", file=sys.stderr)
         return []
 
 def main():

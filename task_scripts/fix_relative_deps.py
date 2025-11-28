@@ -9,15 +9,16 @@ dependency consistency.
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Dict, Any, List, Union
 from collections import defaultdict
 
-def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all_tasks: List[Dict[str, Any]]) -> Union[str, int, None]:
+def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all_tasks: List[Dict[str, Any]], task_index_map: Dict[Union[str, int], int] = None) -> Union[str, int, None]:
     """
     Resolve a relative dependency reference to an absolute task ID.
-    
+
     Relative references can be:
     - '+1', '+2', etc. (next task(s))
     - '-1', '-2', etc. (previous task(s))
@@ -27,15 +28,18 @@ def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all
         if relative_ref.startswith(('+', '-')):
             try:
                 offset = int(relative_ref)
-                target_index = None
-                
-                # Find current task index
-                current_index = None
-                for i, task in enumerate(all_tasks):
-                    if str(task.get('id')) == str(task_id):
-                        current_index = i
-                        break
-                
+
+                # Use the pre-computed task index map for O(1) lookup instead of O(n) linear search
+                if task_index_map is not None:
+                    current_index = task_index_map.get(task_id)
+                else:
+                    # Fallback to linear search if no index map provided
+                    current_index = None
+                    for i, task in enumerate(all_tasks):
+                        if str(task.get('id')) == str(task_id):
+                            current_index = i
+                            break
+
                 if current_index is not None:
                     target_index = current_index + offset
                     if 0 <= target_index < len(all_tasks):
@@ -47,7 +51,7 @@ def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all
             # Handle parent/ancestor references (implementation depends on your hierarchy structure)
             # This is a placeholder - implement based on your specific hierarchy needs
             pass
-    
+
     return None
 
 def normalize_dependency(dep: Any) -> Union[str, int]:
@@ -59,21 +63,21 @@ def normalize_dependency(dep: Any) -> Union[str, int]:
         return dep
     return str(dep)
 
-def fix_dependencies_in_task(task: Dict[str, Any], all_tasks: List[Dict[str, Any]], task_id_map: Dict[Union[str, int], Dict[str, Any]]) -> Dict[str, Any]:
+def fix_dependencies_in_task(task: Dict[str, Any], all_tasks: List[Dict[str, Any]], task_id_map: Dict[Union[str, int], Dict[str, Any]], task_index_map: Dict[Union[str, int], int] = None) -> Dict[str, Any]:
     """Fix dependencies in a single task"""
     if 'dependencies' not in task or not isinstance(task['dependencies'], list):
         return task
-    
+
     original_deps = task['dependencies']
     fixed_deps = []
     resolved_deps = []
-    
+
     for dep in original_deps:
         normalized_dep = normalize_dependency(dep)
-        
+
         # Check if this is a relative reference
         if isinstance(normalized_dep, str) and (normalized_dep.startswith(('+', '-')) or normalized_dep.startswith('^')):
-            resolved = resolve_relative_dependency(task.get('id'), normalized_dep, all_tasks)
+            resolved = resolve_relative_dependency(task.get('id'), normalized_dep, all_tasks, task_index_map)
             if resolved is not None:
                 resolved_deps.append(f"{normalized_dep} -> {resolved}")
                 fixed_deps.append(resolved)
@@ -85,12 +89,12 @@ def fix_dependencies_in_task(task: Dict[str, Any], all_tasks: List[Dict[str, Any
             if normalized_dep not in task_id_map:
                 print(f"  - Warning: Dependency '{normalized_dep}' not found for task {task.get('id')}")
             fixed_deps.append(normalized_dep)
-    
+
     task['dependencies'] = fixed_deps
-    
+
     if resolved_deps:
         print(f"  - Resolved relative dependencies for task {task.get('id')}: {', '.join(resolved_deps)}")
-    
+
     return task
 
 def validate_dependency_consistency(tasks: List[Dict[str, Any]]) -> List[str]:
@@ -151,11 +155,90 @@ def validate_dependency_consistency(tasks: List[Dict[str, Any]]) -> List[str]:
     
     return warnings
 
+def validate_path_security(filepath: str, base_dir: str = None) -> bool:
+    """Validate that a path is safe and within allowed boundaries."""
+    try:
+        # Check for null bytes and other dangerous characters
+        if '\x00' in filepath:
+            return False
+
+        # Use Path.resolve() to normalize the path
+        path_obj = Path(filepath).resolve()
+        normalized_path = str(path_obj)
+
+        # Check for URL encoding and other bypass attempts
+        path_lower = normalized_path.lower()
+        if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+            return False
+
+        # Check for directory traversal using multiple methods
+        path_str = str(path_obj).replace('\\', '/')
+        if ".." in path_str.split("/"):
+            return False
+
+        # If base directory is specified, ensure path is within it
+        if base_dir:
+            base_path = Path(base_dir).resolve()
+            try:
+                path_obj.relative_to(base_path)
+            except ValueError:
+                return False
+
+        # Additional safety checks
+        suspicious_patterns = [
+            r'\.\./',  # Path traversal
+            r'\.\.\\', # Path traversal (Windows)
+            r'\$\(',   # Command substitution
+            r'`.*`',   # Command substitution
+            r';.*;',   # Multiple commands
+            r'&&.*&&', # Multiple commands
+            r'\|\|.*\|\|', # Multiple commands
+            r'\.git',  # Git directory access
+            r'\.ssh',  # SSH directory access
+            r'/etc/',  # System config directory
+            r'/root/', # Root directory
+            r'C:\\Windows\\', # Windows system directory
+            r'\x00',   # Null byte
+        ]
+
+        for pattern in suspicious_patterns:
+            if re.search(pattern, normalized_path, re.IGNORECASE):
+                return False
+
+        return True
+    except Exception:
+        return False
+
 def fix_task_file(filepath: str) -> bool:
     """Fix relative dependencies in a task file"""
+    # Validate path security first
+    if not validate_path_security(filepath):
+        print(f"Error: Invalid or unsafe file path: {filepath}")
+        return False
+
     try:
+        # Check file size before loading to prevent memory issues
+        max_file_size = 50 * 1024 * 1024  # 50 MB limit
+        file_size = os.path.getsize(filepath)
+        if file_size > max_file_size:
+            print(f"Error: File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+            return False
+
+        # Read file in chunks to prevent memory issues with very large files
         with open(filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            content = f.read(max_file_size)  # Limit read to max file size
+
+        # Check if we read the entire file
+        if len(content) == max_file_size:
+            # Check if there's more content in the file
+            with open(filepath, 'r', encoding='utf-8') as f:
+                f.seek(max_file_size)
+                remaining = f.read(1)
+                if remaining:
+                    print(f"Error: File size exceeds maximum allowed size of {max_file_size} bytes")
+                    return False
+
+        data = json.loads(content)
         
         if not isinstance(data, dict) or 'tasks' not in data:
             print(f"Warning: {filepath} does not have a valid tasks structure")
@@ -193,11 +276,24 @@ def fix_task_file(filepath: str) -> bool:
             print(f"  - Dependency warning: {warning}")
         
         if modified or warnings:
-            # Create backup
-            backup_path = f"{filepath}.backup_{int(os.path.getmtime(filepath))}"
-            os.rename(filepath, backup_path)
+            # Create backup with UUID to avoid race conditions
+            import uuid
+            timestamp = int(time.time())
+            unique_id = uuid.uuid4().hex[:8]
+            backup_path = f"{filepath}.backup_{timestamp}_{unique_id}"
+
+            # Copy file instead of rename to avoid race condition with mtime
+            import shutil
+            shutil.copy2(filepath, backup_path)
+
+            # Verify backup was created successfully
+            import os
+            if not os.path.exists(backup_path):
+                print(f"Error: Failed to create backup {backup_path}")
+                return False
+
             print(f"  - Created backup: {backup_path}")
-            
+
             # Write updated file
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
@@ -216,17 +312,27 @@ def fix_task_file(filepath: str) -> bool:
 
 def process_directory(directory: str, pattern: str = "**/tasks.json"):
     """Process all task files in a directory"""
+    # Validate directory path security
+    if not validate_path_security(directory):
+        print(f"Error: Invalid or unsafe directory path: {directory}")
+        return 0
+
     dir_path = Path(directory)
     task_files = list(dir_path.glob(pattern))
-    
+
     print(f"Found {len(task_files)} task files to process")
-    
+
     success_count = 0
     for task_file in task_files:
-        print(f"Processing: {task_file}")
-        if fix_task_file(str(task_file)):
-            success_count += 1
-    
+        # Validate each task file path
+        task_file_str = str(task_file)
+        if validate_path_security(task_file_str):
+            print(f"Processing: {task_file}")
+            if fix_task_file(task_file_str):
+                success_count += 1
+        else:
+            print(f"Skipping unsafe file: {task_file}")
+
     print(f"\nProcessed {success_count}/{len(task_files)} files successfully")
 
 def main():
@@ -241,7 +347,12 @@ def main():
     args = parser.parse_args()
     
     path_to_process = args.file or args.path
-    
+
+    # Validate path security before processing
+    if not validate_path_security(path_to_process):
+        print(f"Error: Invalid or unsafe path: {path_to_process}")
+        sys.exit(1)
+
     if os.path.isfile(path_to_process):
         print(f"Processing single file: {path_to_process}")
         success = fix_task_file(path_to_process)

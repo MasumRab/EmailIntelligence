@@ -68,30 +68,65 @@ class AdvancedTaskManager:
         self.reverse_graph = defaultdict(list)
         self.merge_conflicts_detected = False
 
-    def validate_path_security(self, filepath: str) -> bool:
+    def validate_path_security(self, filepath: str, allowed_base_dir: str = None) -> bool:
         """Validate file path security to prevent path traversal and other vulnerabilities."""
-        normalized_path = os.path.normpath(filepath)
-
-        # Check against security patterns
-        for pattern in self.security_patterns:
-            if re.search(pattern, normalized_path, re.IGNORECASE):
-                self.logger.error(f"Security violation detected: {filepath}")
+        try:
+            # Check for null bytes and other dangerous characters
+            if '\x00' in filepath:
+                self.logger.error(f"Null byte detected in path: {filepath}")
                 return False
 
-        # Additional checks for potentially dangerous paths
-        # Exclude temporary directories used in testing
-        dangerous_paths = [
-            '/etc/', '/root/', '~/.ssh',
-            'C:\\Windows\\', 'C:\\Program Files\\'
-        ]
+            from pathlib import Path
 
-        # Only check for dangerous paths if not in a temp directory
-        is_temp_path = any(temp_dir in normalized_path for temp_dir in [tempfile.gettempdir(), '/tmp/'])
-        if not is_temp_path:
-            for dangerous_path in dangerous_paths:
-                if dangerous_path.lower() in normalized_path.lower():
-                    self.logger.warning(f"Potentially dangerous path detected: {filepath}")
+            # Use Path.resolve() to normalize and resolve the path
+            resolved_path = Path(filepath).resolve()
+            normalized_path = str(resolved_path)
+
+            # Check for URL encoding and other bypass attempts
+            path_lower = normalized_path.lower()
+            if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+                self.logger.error(f"URL encoding detected in path: {filepath}")
+                return False
+
+            # Check for directory traversal using multiple methods
+            path_str = str(resolved_path).replace('\\', '/')
+            if ".." in path_str.split("/"):
+                self.logger.error(f"Path traversal detected: {filepath}")
+                return False
+
+            # Check against security patterns
+            for pattern in self.security_patterns:
+                if re.search(pattern, normalized_path, re.IGNORECASE):
+                    self.logger.error(f"Security violation detected: {filepath}")
                     return False
+
+            # If allowed base directory is specified, ensure path is within it
+            if allowed_base_dir:
+                try:
+                    resolved_allowed = Path(allowed_base_dir).resolve()
+                    resolved_path.relative_to(resolved_allowed)
+                except ValueError:
+                    self.logger.error(f"Path outside allowed base directory: {filepath}")
+                    return False
+
+            # Additional checks for potentially dangerous paths
+            # Exclude temporary directories used in testing
+            dangerous_patterns = [
+                r'\.git', r'\.ssh', r'/etc', r'/root', r'C:\\Windows', r'/proc', r'/sys', r'\x00'
+            ]
+
+            path_lower = normalized_path.lower()
+            for pattern in dangerous_patterns:
+                if re.search(pattern, path_lower):
+                    # Only flag as dangerous if not in temp directory
+                    is_temp_path = any(temp_dir.lower() in path_lower for temp_dir in [tempfile.gettempdir().lower(), '/tmp/'])
+                    if not is_temp_path:
+                        self.logger.warning(f"Potentially dangerous path pattern detected: {filepath}")
+                        return False
+
+        except Exception:
+            self.logger.error(f"Invalid path format: {filepath}")
+            return False
 
         return True
 
@@ -99,14 +134,27 @@ class AdvancedTaskManager:
         """Create a backup of the original file with timestamp."""
         if not self.validate_path_security(filepath):
             raise ValueError(f"Security validation failed for: {filepath}")
-        
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+
+        # Use UUID to avoid race conditions that could occur with timestamp-based naming
+        import uuid
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_id = uuid.uuid4().hex[:8]
         original_path = Path(filepath)
-        backup_name = f"{original_path.stem}_{timestamp}{original_path.suffix}"
+        backup_name = f"{original_path.stem}_{timestamp}_{unique_id}{original_path.suffix}"
         backup_path = self.backup_dir / backup_name
 
+        # Copy the file and verify it was created successfully
         shutil.copy2(filepath, backup_path)
-        self.logger.info(f"Created backup: {backup_path}")
+
+        # Verify backup was created successfully
+        if not backup_path.exists():
+            raise Exception(f"Failed to create backup file: {backup_path}")
+
+        # Verify the backup has content and matches the original size (optional verification)
+        if os.path.getsize(filepath) != os.path.getsize(backup_path):
+            raise Exception(f"Backup size mismatch: {filepath} vs {backup_path}")
+
+        self.logger.info(f"Created verified backup: {backup_path}")
         return str(backup_path)
 
     def check_merge_conflicts(self, filepath: str) -> bool:
@@ -130,46 +178,64 @@ class AdvancedTaskManager:
     def load_tasks(self, filepath: Optional[str] = None) -> Dict[str, Any]:
         """
         Load tasks from the JSON file with comprehensive error handling.
-        
+
         Args:
             filepath: Optional specific file to load (defaults to self.tasks_file)
-            
+
         Returns:
             Loaded JSON data as dictionary
         """
         file_to_load = Path(filepath) if filepath else self.tasks_file
-        
+
         if not self.validate_path_security(str(file_to_load)):
             raise ValueError(f"Security validation failed for: {file_to_load}")
-        
+
         try:
+            # Check file size before loading to prevent memory issues
+            max_file_size = 50 * 1024 * 1024  # 50 MB limit
+            file_size = os.path.getsize(file_to_load)
+            if file_size > max_file_size:
+                raise ValueError(f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+
+            # Read file in chunks to prevent memory issues with very large files
             with open(file_to_load, 'r', encoding='utf-8') as f:
-                content = f.read().strip()
-                
-                # Handle empty files
-                if not content:
-                    return {"tasks": []}
-                
-                # Try to parse JSON
-                try:
-                    data = json.loads(content)
-                    return data
-                except json.JSONDecodeError as e:
-                    self.logger.warning(f"JSON parsing failed: {e}")
-                    
-                    # Try to fix common JSON issues
-                    fixed_content = self.attempt_json_fix(content)
-                    if fixed_content:
-                        try:
-                            data = json.loads(fixed_content)
-                            self.logger.info("Successfully fixed JSON structure")
-                            return data
-                        except json.JSONDecodeError:
-                            self.logger.error("Could not fix JSON structure")
-                            raise e
-                    else:
+                content = f.read(max_file_size)  # Limit read to max file size
+
+            # Check if we read the entire file
+            if len(content) == max_file_size:
+                # Check if there's more content in the file
+                with open(file_to_load, 'r', encoding='utf-8') as f:
+                    f.seek(max_file_size)
+                    remaining = f.read(1)
+                    if remaining:
+                        raise ValueError(f"File size exceeds maximum allowed size of {max_file_size} bytes")
+
+            content = content.strip()
+
+            # Handle empty files
+            if not content:
+                return {"tasks": []}
+
+            # Try to parse JSON
+            try:
+                data = json.loads(content)
+                return data
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"JSON parsing failed: {e}")
+
+                # Try to fix common JSON issues
+                fixed_content = self.attempt_json_fix(content)
+                if fixed_content:
+                    try:
+                        data = json.loads(fixed_content)
+                        self.logger.info("Successfully fixed JSON structure")
+                        return data
+                    except json.JSONDecodeError:
+                        self.logger.error("Could not fix JSON structure")
                         raise e
-                        
+                else:
+                    raise e
+
         except FileNotFoundError:
             self.logger.error(f"File not found: {file_to_load}")
             # Create a default structure

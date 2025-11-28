@@ -16,6 +16,7 @@ including:
 """
 
 import json
+import os
 import sys
 import re
 import copy
@@ -55,23 +56,109 @@ class TaskValidatorFixer:
         self.dependency_graph = defaultdict(list)
         self.reverse_graph = defaultdict(list)
 
+    @staticmethod
+    def validate_path_security(filepath: str, base_dir: str = None) -> bool:
+        """Validate that a path is safe and within allowed boundaries."""
+        try:
+            # Check for null bytes and other dangerous characters
+            if '\x00' in filepath:
+                return False
+
+            # Use Path.resolve() to normalize the path
+            path_obj = Path(filepath).resolve()
+            normalized_path = str(path_obj)
+
+            # Check for URL encoding and other bypass attempts
+            path_lower = normalized_path.lower()
+            if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+                return False
+
+            # Check for directory traversal using multiple methods
+            path_str = str(path_obj).replace('\\', '/')
+            if ".." in path_str.split("/"):
+                return False
+
+            # If base directory is specified, ensure path is within it
+            if base_dir:
+                base_path = Path(base_dir).resolve()
+                try:
+                    path_obj.relative_to(base_path)
+                except ValueError:
+                    return False
+
+            # Additional safety checks
+            suspicious_patterns = [
+                r'\.\./',  # Path traversal
+                r'\.\.\\', # Path traversal (Windows)
+                r'\$\(',   # Command substitution
+                r'`.*`',   # Command substitution
+                r';.*;',   # Multiple commands
+                r'&&.*&&', # Multiple commands
+                r'\|\|.*\|\|', # Multiple commands
+                r'\.git',  # Git directory access
+                r'\.ssh',  # SSH directory access
+                r'/etc/',  # System config directory
+                r'/root/', # Root directory
+                r'C:\\Windows\\', # Windows system directory
+                r'\x00',   # Null byte
+            ]
+
+            for pattern in suspicious_patterns:
+                if re.search(pattern, normalized_path, re.IGNORECASE):
+                    return False
+
+            return True
+        except Exception:
+            return False
+
     def backup_tasks(self) -> Path:
         """Create a backup of the current tasks file."""
+        # Validate path security for the original file
+        if not self.validate_path_security(str(self.tasks_file)):
+            raise ValueError(f"Invalid or unsafe file path: {self.tasks_file}")
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_file = self.backup_dir / f"tasks_backup_{timestamp}.json"
-        
+
+        # Validate path security for the backup file
+        if not self.validate_path_security(str(backup_file)):
+            raise ValueError(f"Invalid or unsafe backup file path: {backup_file}")
+
         with open(self.tasks_file, 'r', encoding='utf-8') as src:
             with open(backup_file, 'w', encoding='utf-8') as dst:
                 dst.write(src.read())
-        
+
         self.logger.info(f"Backup created: {backup_file}")
         return backup_file
 
     def load_tasks(self) -> Dict:
         """Load tasks from the JSON file with error handling."""
+        # Validate path security first
+        if not self.validate_path_security(str(self.tasks_file)):
+            raise ValueError(f"Invalid or unsafe file path: {self.tasks_file}")
+
         try:
+            # Check file size before loading to prevent memory issues
+            max_file_size = 50 * 1024 * 1024  # 50 MB limit
+            file_size = os.path.getsize(self.tasks_file)
+            if file_size > max_file_size:
+                raise ValueError(f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+
+            # Read file in chunks to prevent memory issues with very large files
             with open(self.tasks_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                content = f.read(max_file_size)  # Limit read to max file size
+
+            # Check if we read the entire file
+            if len(content) == max_file_size:
+                # Check if there's more content in the file
+                with open(self.tasks_file, 'r', encoding='utf-8') as f:
+                    f.seek(max_file_size)
+                    remaining = f.read(1)
+                    if remaining:
+                        raise ValueError(f"File size exceeds maximum allowed size of {max_file_size} bytes")
+
+            # Parse JSON with size validation
+            data = json.loads(content)
             return data
         except json.JSONDecodeError as e:
             self.logger.error(f"JSON Decode Error: {e}")
@@ -79,12 +166,34 @@ class TaskValidatorFixer:
         except FileNotFoundError:
             self.logger.error(f"File not found: {self.tasks_file}")
             raise
+        except ValueError as e:
+            self.logger.error(f"File size validation error: {e}")
+            raise
         except Exception as e:
             self.logger.error(f"Error reading file: {e}")
             raise
 
+    def load_tasks_with_timeout(self, timeout: int = 30) -> Dict:
+        """Load tasks from the JSON file with timeout protection.
+
+        For cross-platform compatibility, this method uses file size limits
+        and basic validation rather than signal-based timeouts.
+        """
+        # Check file size first to prevent loading huge files
+        max_file_size = 50 * 1024 * 1024  # 50 MB limit
+        file_size = os.path.getsize(self.tasks_file)
+        if file_size > max_file_size:
+            raise ValueError(f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+
+        # Additional validation could be added here if needed
+        return self.load_tasks()
+
     def save_tasks(self, data: Dict) -> None:
         """Save tasks back to the JSON file."""
+        # Validate path security first
+        if not self.validate_path_security(str(self.tasks_file)):
+            raise ValueError(f"Invalid or unsafe file path: {self.tasks_file}")
+
         with open(self.tasks_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -693,6 +802,11 @@ def main():
     parser.add_argument("--keep-backups", type=int, default=5, help="Number of backup files to keep (for cleanup)")
     
     args = parser.parse_args()
+
+    # Validate path security before creating validator
+    if not TaskValidatorFixer.validate_path_security(args.file):
+        print(f"Error: Invalid or unsafe file path: {args.file}")
+        sys.exit(1)
 
     validator = TaskValidatorFixer(args.file)
 

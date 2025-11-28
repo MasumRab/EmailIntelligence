@@ -5,15 +5,24 @@ Usage: python scripts/list_tasks.py [--status STATUS] [--priority PRIORITY] [--t
 """
 
 import json
+import os
 import sys
 import argparse
 from pathlib import Path
 
+# Add the task_scripts directory to the path to import shared utilities
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'task_scripts'))
+from taskmaster_common import SecurityValidator, FileValidator
+
 def load_tasks(file_path, tag="master"):
-    """Load tasks from tasks.json file"""
+    """Load tasks from tasks.json file using shared utilities"""
+    # Validate path security first
+    if not SecurityValidator.validate_path_security(file_path):
+        print(f"Error: Invalid or unsafe file path: {file_path}")
+        return []
+
     try:
-        with open(file_path, 'r') as f:
-            data = json.load(f)
+        data = FileValidator.load_json_secure(file_path)
         
         if tag in data:
             return data[tag].get('tasks', [])

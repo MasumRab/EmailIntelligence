@@ -3786,7 +3786,7 @@
           {
             "id": 3,
             "title": "Integrate Backend-to-Src Migration Status Analysis",
-            "description": "Add a specific analysis step to evaluate the backend\u2192src migration status within each feature branch. This involves checking for the presence, absence, or modification patterns of files/directories related to the migration, assessing if the migration is complete, incomplete, or in an inconsistent state.",
+            "description": "Add a specific analysis step to evaluate the backend→src migration status within each feature branch. This involves checking for the presence, absence, or modification patterns of files/directories related to the migration, assessing if the migration is complete, incomplete, or in an inconsistent state.",
             "dependencies": [
               "57.1",
               "57.2"
@@ -4541,9 +4541,7 @@
             "id": 16,
             "title": "Implement Complex Branch Identification Logic",
             "description": "Develop and implement algorithms to classify branches as 'complex' based on metrics like history depth, number of affected files, commit count, shared history with other branches, and architectural impact.",
-            "dependencies": [
-              59
-            ],
+            "dependencies": [],
             "details": "Extend the existing branch analysis tools (from Task 59) to incorporate new metrics for complexity. Utilize Git commands such as 'git rev-list --count', 'git diff --numstat', and 'git merge-base' to gather necessary data. Define configurable thresholds for each complexity metric to allow for flexible classification.",
             "status": "pending",
             "testStrategy": "Create a diverse set of test branches with varying levels of complexity (e.g., shallow, deep, many files, few files, highly divergent, recently branched). Verify that the identification logic correctly classifies them according to the predefined complexity rules and thresholds."
@@ -4589,8 +4587,7 @@
             "description": "Develop and implement targeted testing strategies that can validate functionality preservation immediately after iterative steps in complex branch integrations.",
             "dependencies": [
               "60.17",
-              "60.18",
-              61
+              "60.18"
             ],
             "details": "Integrate with the existing validation system (Task 61). After each iterative rebase step, or upon integration into an integration branch, automatically identify and run a subset of relevant tests. This could involve tests specifically related to changed files, modules, or components affected by the rebase, using tools like 'pytest --last-failed' or custom change-detection logic.",
             "status": "pending",
@@ -4614,8 +4611,7 @@
             "description": "Develop and implement intelligent rollback strategies specific to complex branches that minimize disruption to other development work and restore a stable state upon failure.",
             "dependencies": [
               "60.17",
-              "60.18",
-              55
+              "60.18"
             ],
             "details": "Implement mechanisms to automatically or manually revert to a known good state if an iterative rebase or integration operation fails catastrophically. Utilize Git features like 'git reflog', 'git reset --hard', and potentially 'git revert' with clear user guidance. Integrate with the centralized error detection system (Task 55) for trigger points.",
             "status": "pending",
@@ -4627,8 +4623,7 @@
             "description": "Develop and implement enhanced monitoring capabilities during complex branch operations to detect and alert on potential issues early in the process, providing better visibility.",
             "dependencies": [
               "60.17",
-              "60.18",
-              52
+              "60.18"
             ],
             "details": "Integrate detailed logging (using the Python 'logging' module) for each step of the iterative rebase and conflict resolution process. Report progress, warnings, and errors to a central logging system. Potentially provide real-time feedback and status updates directly to the user. Leverage the centralized error handling (Task 52) for consistency.",
             "status": "pending",
@@ -4674,8 +4669,6 @@
             "title": "Implement Enhanced Error Detection and Reporting for Complex Alignments",
             "description": "Create enhanced error detection and reporting systems that can identify subtle issues and edge cases in complex alignments, providing detailed diagnostics.",
             "dependencies": [
-              55,
-              52,
               "60.23"
             ],
             "details": "Build upon Task 55 (error detection) and Task 52 (centralized error handling) by implementing custom error types specifically for complex alignment scenarios (e.g., unresolvable cyclic dependencies, unexpected merge base changes, inconsistent history states). Provide detailed stack traces, relevant Git command outputs, and contextual information in error reports to aid debugging. Leverage monitoring (Task 23).",
@@ -7306,9 +7299,7 @@
             "id": 1,
             "title": "Refactor `run_alignment_for_branch` for validation integration",
             "description": "Modify the `run_alignment_for_branch` function within the modular alignment framework (Task 79) to establish clear integration points for pre-merge and comprehensive validation processes. This involves restructuring the function's control flow to ensure that validations are executed sequentially after primary branch integration (Task 77) and prior to the final push of the aligned feature branch.",
-            "dependencies": [
-              79
-            ],
+            "dependencies": [],
             "details": "Analyze the existing `run_alignment_for_branch` function (or `run_alignment_for_branch_with_validation` from the snippet) to identify the optimal location for inserting validation calls. Create placeholder function calls or clear code blocks for where `run_pre_merge_validation_scripts` and `run_comprehensive_merge_validation_framework` will be invoked. Ensure that the function signature can accommodate potential validation results or context.",
             "status": "pending",
             "testStrategy": "Verify that the modified function structure allows for easy insertion of validation logic without disrupting the existing integration and push steps. Unit tests should confirm that the sequence of operations (integration -> validation -> push) is preserved structurally."
@@ -7318,8 +7309,7 @@
             "title": "Implement Pre-merge Validation Scripts (Task 19) invocation",
             "description": "Integrate the execution of the existing pre-merge validation scripts (Task 19) into the `run_alignment_for_branch` function. This involves implementing the actual call to these scripts and capturing their pass/fail status.",
             "dependencies": [
-              "80.1",
-              19
+              "80.1"
             ],
             "details": "Replace the placeholder `run_pre_merge_validation_scripts` with a concrete implementation that invokes the scripts from Task 19. This might involve calling an external command-line tool, a Python module, or an API. Ensure that the return value accurately reflects the validation outcome (True for success, False for failure).",
             "status": "pending",
@@ -7330,8 +7320,7 @@
             "title": "Implement Comprehensive Merge Validation Framework (Task 9) invocation",
             "description": "Integrate the execution of the comprehensive merge validation framework (Task 9) into the `run_alignment_for_branch` function. This subtask focuses on correctly invoking the framework and capturing its pass/fail status.",
             "dependencies": [
-              "80.1",
-              9
+              "80.1"
             ],
             "details": "Replace the placeholder `run_comprehensive_merge_validation_framework` with a concrete implementation that invokes the framework from Task 9. This could involve an API call to a CI/CD system, a dedicated Python library, or another integration point. Ensure that the return value accurately reflects the validation outcome (True for success, False for failure).",
             "status": "pending",
@@ -7469,7 +7458,7 @@
             "dependencies": [
               "82.2"
             ],
-            "details": "Create step-by-step procedures for handling non-trivial conflicts that may involve logical dependencies or significant code restructuring. Detail methods for identifying and safely resolving 'destructive merge artifacts' \u2013 issues originating from previous sub-optimal `orchestration-tools` implementations that might lead to unintended code overwrites, regressions, or incorrect merges. Include strategies to recover from such scenarios.",
+            "details": "Create step-by-step procedures for handling non-trivial conflicts that may involve logical dependencies or significant code restructuring. Detail methods for identifying and safely resolving 'destructive merge artifacts' – issues originating from previous sub-optimal `orchestration-tools` implementations that might lead to unintended code overwrites, regressions, or incorrect merges. Include strategies to recover from such scenarios.",
             "status": "pending",
             "testStrategy": "Simulate complex conflict scenarios, including those that might produce destructive artifacts, in a controlled environment. Apply the documented procedures to confirm their effectiveness and safety in resolving such conflicts. Conduct code reviews of the resolved state to ensure no unintended consequences."
           },
@@ -7645,21 +7634,21 @@
       {
         "id": 101,
         "title": "Align All Orchestration-Tools Named Branches with Local Alignment Implementation",
-        "description": "Systematically align all branches with \"orchestration-tools\" in their name (including: 001-orchestration-tools-consistency, 001-orchestration-tools-verification-review, 002-validate-orchestration-tools, add-comparison-files-to-orchestration-tools, diverged-orchestration-tools-20251115161102, etc.) using a local implementation of the core alignment framework, ensuring each orchestration branch alignment is independent and properly validated.",
+        "description": "Systematically align all branches with \"orchestration-tools\" in their name (see task_data/orchestration_branches.json for complete list of 24 precalculated branches) using a local implementation of the core alignment framework, ensuring each orchestration branch alignment is independent and properly validated.",
         "status": "pending",
         "priority": "high",
         "dependencies": [],
-        "details": "Precalculated orchestration-tools branches to align: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis\n\nThis task implements local copies of the core alignment framework (tasks 74-83) specifically for orchestration-tools branches. Rather than relying on external task dependencies, this task executes its own independent alignment process for orchestration branches with self-contained validation, error detection, integration utilities, documentation generation, and testing.\n\nEach orchestration-tools branch will undergo: 1) Local Git repository protection validation, 2) Local branch identification and categorization, 3) Local error detection and correction, 4) Local integration utility application, 5) Local documentation generation, 6) Local modular framework application, 7) Local validation integration, 8) Local specialized handling for complex branches, 9) Local best practices documentation, 10) Local end-to-end testing and reporting.\n\nThe task maintains independence from the main alignment framework while implementing equivalent functionality specific to orchestration branches.",
+        "details": "Referenced orchestration-tools branches to align: See task_data/orchestration_branches.json for complete list of 24 branches to align\n\nThis task implements local copies of the core alignment framework (tasks 74-83) specifically for orchestration-tools branches. Rather than relying on external task dependencies, this task executes its own independent alignment process for orchestration branches with self-contained validation, error detection, integration utilities, documentation generation, and testing.\n\nEach orchestration-tools branch will undergo: 1) Local Git repository protection validation, 2) Local branch identification and categorization, 3) Local error detection and correction, 4) Local integration utility application, 5) Local documentation generation, 6) Local modular framework application, 7) Local validation integration, 8) Local specialized handling for complex branches, 9) Local best practices documentation, 10) Local end-to-end testing and reporting.\n\nThe task maintains independence from the main alignment framework while implementing equivalent functionality specific to orchestration branches.",
         "testStrategy": "Execute the local alignment framework on each orchestration-tools branch and verify: 1) Proper validation of Git repository protections on each branch, 2) Effective error detection and correction within each branch, 3) Successful integration of changes, 4) Accurate documentation generation, 5) Proper validation framework integration, 6) Specialized handling of complex branches, 7) End-to-end functionality testing.",
         "subtasks": [
           {
             "id": 1,
             "title": "Identify and Catalog All Orchestration-Tools Branches",
-            "description": "Comprehensive identification and cataloging of all branches containing \"orchestration-tools\" - specifically: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis",
+            "description": "Comprehensive identification and cataloging of all branches containing \"orchestration-tools\" - see task_data/orchestration_branches.json for complete list of 24 branches",
             "status": "pending",
             "dependencies": [],
-            "details": "Precalculated branches: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis\nSystematically identify all remote branches with \"orchestration-tools\" in their name. Create a detailed catalog including creation dates, commit counts, and content summaries for each branch: 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis. Focus on those that require alignment to main, scientific, or consolidation.",
-            "testStrategy": "Verification requires confirming all branches 001-orchestration-tools-consistency,001-orchestration-tools-verification-review,002-validate-orchestration-tools,add-comparison-files-to-orchestration-tools,diverged-orchestration-tools-20251115161102,diverged-orchestration-tools-changes-20251115161154,fix-orchestration-tools-deps,orchestration-tools,orchestration-tools-changes,orchestration-tools-changes-2,orchestration-tools-changes-4,orchestration-tools-changes-emailintelligence-cli-20251112,orchestration-tools-changes-recovery-framework,orchestration-tools-clean,orchestration-tools-consolidated,orchestration-tools-consolidated-clean,orchestration-tools-consolidated-temp,orchestration-tools-integrated-cleanup-orchestration-tools-20251115164045,orchestration-tools-integrated-recover-lost-commit-20251115164220,orchestration-tools-integrated-temp-for-orchestration-changes-20251115164250,orchestration-tools-launch-refractor,orchestration-tools-stashed-changes,orchestration-tools-temp,update-orchestration-tools-with-analysis are properly cataloged with identifying information."
+            "details": "See referenced file: task_data/orchestration_branches.json for complete list of precalculated branches\nSystematically identify all remote branches with \"orchestration-tools\" in their name. Create a detailed catalog including creation dates, commit counts, and content summaries for each branch. Focus on those that require alignment to main, scientific, or consolidation.",
+            "testStrategy": "Verification requires confirming all branches listed in task_data/orchestration_branches.json are properly cataloged with identifying information."
           },
           {
             "id": 2,
@@ -7667,7 +7656,7 @@
             "description": "Execute local copy of Task 74 validation specifically within orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              1
+              "101.1"
             ],
             "details": "Apply the equivalent of Task 74 (Validate Git Repository Protections) individually to each orchestration branch. Configure branch protection rules, merge guards, and required reviewers specifically for orchestration branches without relying on global framework.",
             "testStrategy": "Verify Git repository protections are correctly configured for each orchestration branch independently."
@@ -7678,7 +7667,7 @@
             "description": "Implement local copy of Task 75 process specifically for orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              1
+              "101.1"
             ],
             "details": "Apply the equivalent of Task 75 (Identify and Categorize Feature Branches) with focus on orchestration-tools branches. Analyze each branch in {\",\".join(cleaned_branches)} for optimal integration target determination.",
             "testStrategy": "Confirm each orchestration-tools branch is properly analyzed and categorized with appropriate target determination."
@@ -7689,8 +7678,8 @@
             "description": "Execute local copy of Task 76 error detection specifically within orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              2,
-              3
+              "101.2",
+              "101.3"
             ],
             "details": "Apply the equivalent of Task 76 (Error Detection) locally to each orchestration branch. Scan for merge artifacts, encoding issues, missing imports, and file integrity specifically within orchestration-tools context.",
             "testStrategy": "Validate that error detection runs independently on each orchestration branch and identifies/corrects issues properly."
@@ -7701,8 +7690,8 @@
             "description": "Execute local copy of Task 77 integration process specifically for orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              3,
-              4
+              "101.3",
+              "101.4"
             ],
             "details": "Apply the equivalent of Task 77 (Integration Utility) to orchestration-tools branches only. Safely integrate changes with proper verification specific to orchestration branch requirements.",
             "testStrategy": "Verify integration utility operates independently for orchestration branches with proper validation and error handling."
@@ -7713,8 +7702,8 @@
             "description": "Implement local copy of Task 78 documentation process specifically for orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              3,
-              5
+              "101.3",
+              "101.5"
             ],
             "details": "Apply the equivalent of Task 78 (Documentation Generator) to orchestration-tools branches. Generate alignment change summaries specifically for orchestration work.",
             "testStrategy": "Confirm documentation generation works independently for orchestration branches producing accurate change summaries."
@@ -7725,11 +7714,11 @@
             "description": "Implement local copy of Task 79 modular framework specifically for orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              2,
-              3,
-              4,
-              5,
-              6
+              "101.2",
+              "101.3",
+              "101.4",
+              "101.5",
+              "101.6"
             ],
             "details": "Apply the equivalent of Task 79 (Modular Framework) specifically to orchestration-tools branches. Create targeted alignment workflow for orchestration ecosystem.",
             "testStrategy": "Validate modular framework operates correctly when applied specifically to orchestration branches."
@@ -7740,7 +7729,7 @@
             "description": "Execute local copy of Task 80 validation integration specifically within orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              7
+              "101.7"
             ],
             "details": "Apply the equivalent of Task 80 (Validation Integration) specifically for orchestration branches. Ensure validation framework operates within orchestration branch context.",
             "testStrategy": "Verify pre-merge validation operates correctly for orchestration branches independently."
@@ -7751,8 +7740,8 @@
             "description": "Implement local copy of Task 81 specialized handling specifically for complex orchestration-tools branches",
             "status": "pending",
             "dependencies": [
-              5,
-              7
+              "101.5",
+              "101.7"
             ],
             "details": "Apply the equivalent of Task 81 (Specialized Handling) specifically for complex orchestration branches that may have large history or complex merge requirements.",
             "testStrategy": "Confirm complex orchestration branches receive appropriate specialized handling during local alignment process."
@@ -7763,8 +7752,8 @@
             "description": "Execute local copy of Task 83 testing and reporting specifically for orchestration-tools branch alignment activities",
             "status": "pending",
             "dependencies": [
-              7,
-              8
+              "101.7",
+              "101.8"
             ],
             "details": "Apply the equivalent of Task 83 (End-to-End Testing) specifically for orchestration-tools branches. Create targeted validation for orchestration branch work.",
             "testStrategy": "Verify testing and reporting operates correctly for orchestration branch alignment activities, confirming successful local alignment."

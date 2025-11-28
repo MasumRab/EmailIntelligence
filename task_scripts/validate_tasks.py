@@ -3,16 +3,26 @@
 Validate Task Master tasks.json file for structural issues, dependencies, and consistency.
 """
 import json
+import os
 import sys
 from collections import defaultdict
+from pathlib import Path
+
+# Import shared utilities
+from taskmaster_common import SecurityValidator, FileValidator
 
 def validate_tasks_structure(tasks_file):
     """Validate the tasks.json file for structural issues."""
+    # Validate path security first using shared utility
+    if not SecurityValidator.validate_path_security(tasks_file):
+        print(f"❌ Error: Invalid or unsafe file path: {tasks_file}")
+        return False
+
     print(f"Validating tasks file: {tasks_file}")
-    
+
+    # Use centralized file validator
     try:
-        with open(tasks_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        data = FileValidator.load_json_secure(tasks_file)
     except json.JSONDecodeError as e:
         print(f"❌ JSON Decode Error: {e}")
         return False
@@ -168,6 +178,10 @@ def validate_tasks_structure(tasks_file):
 
 def main():
     tasks_file = "tasks/tasks.json"
+    # Validate path security before processing using shared utility
+    if not SecurityValidator.validate_path_security(tasks_file):
+        print(f"❌ Error: Invalid or unsafe path: {tasks_file}")
+        sys.exit(1)
     success = validate_tasks_structure(tasks_file)
     sys.exit(0 if success else 1)
 
