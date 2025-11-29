@@ -104,7 +104,7 @@ class ResolutionStep(BaseModel):
     dependencies: List[str] = Field(default_factory=list, description="IDs of steps this depends on")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": "step_1",
                 "description": "Update import statements to resolve dependency conflict",
@@ -140,7 +140,7 @@ class ResolutionStrategy(BaseModel):
     prompt_context: Dict[str, Any] = Field(default_factory=dict, description="Context used in AI prompt")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": "strategy_1",
                 "name": "Intelligent Merge Strategy",
@@ -206,7 +206,7 @@ class ResolutionPlan(BaseModel):
     timeout_seconds: int = Field(300, description="Timeout for resolution execution")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "id": "plan_123",
                 "conflict_id": "conflict_456",
@@ -239,7 +239,7 @@ class MergeConflict(BaseModel):
     line_numbers: Dict[str, List[int]] = Field(..., description="Line numbers for each version")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "pr1_id": "pr_1",
                 "pr2_id": "pr_2",
@@ -274,7 +274,7 @@ class DependencyConflict(BaseModel):
     resolution_suggestions: List[str] = Field(default_factory=list, description="Suggested resolutions")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "conflict_type": "circular_dependency",
                 "affected_nodes": ["module_a", "module_b", "module_c"],
@@ -299,7 +299,7 @@ class ArchitectureViolation(BaseModel):
     layer_violations: List[Dict[str, str]] = Field(default_factory=list, description="Specific layer violations")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "violation_type": "layer_violation",
                 "pattern_name": "layered_architecture",
@@ -325,7 +325,7 @@ class SemanticConflict(BaseModel):
     resolution_suggestions: List[str] = Field(default_factory=list, description="Suggested resolutions")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "pr1_id": "pr_1",
                 "pr2_id": "pr_2",
@@ -349,7 +349,7 @@ class ResourceConflict(BaseModel):
     resolution_suggestions: List[str] = Field(default_factory=list, description="Suggested resolutions")
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "resource_type": "database",
                 "resource_id": "main_db",

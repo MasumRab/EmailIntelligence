@@ -27,6 +27,10 @@ async def main():
             await commands.resolve(args.conflict_id, args.strategy_id)
         elif args.command == "validate":
             await commands.validate()
+        elif args.command == "analyze-history":
+            await commands.analyze_history(args.branch, args.output)
+        elif args.command == "plan-rebase":
+            await commands.plan_rebase(args.branch, args.output)
         else:
             parser.print_help()
             

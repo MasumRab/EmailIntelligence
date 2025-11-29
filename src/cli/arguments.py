@@ -27,5 +27,15 @@ def create_parser() -> argparse.ArgumentParser:
     
     # Validate command
     validate_parser = subparsers.add_parser("validate", help="Run validation checks")
+
+    # Analyze History command
+    history_parser = subparsers.add_parser("analyze-history", help="Analyze git history")
+    history_parser.add_argument("--branch", default="HEAD", help="Branch to analyze")
+    history_parser.add_argument("--output", help="Output file for report")
+
+    # Plan Rebase command
+    rebase_parser = subparsers.add_parser("plan-rebase", help="Generate rebase plan")
+    rebase_parser.add_argument("--branch", default="HEAD", help="Branch to plan rebase for")
+    rebase_parser.add_argument("--output", required=True, help="Output file for rebase plan")
     
     return parser

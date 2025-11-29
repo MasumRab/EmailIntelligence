@@ -73,3 +73,58 @@ class CLICommands:
         results = await self.validator.validate({"files": []})
         for res in results:
             print(f"[{res.status.value}] {res.component}: {res.score}")
+
+    async def analyze_history(self, branch: str, output: Optional[str] = None):
+        """
+        Analyze git history.
+        """
+        from ..git.history import GitHistory
+        from ..analysis.commits import CommitClassifier
+        
+        print(f"Analyzing history for branch: {branch}...")
+        history = GitHistory()
+        classifier = CommitClassifier()
+        
+        commits = await history.get_commits(branch, limit=500)
+        stats = classifier.analyze_history(commits)
+        
+        report = f"Analysis Report for {branch}\n"
+        report += f"Total Commits: {stats['total']}\n\n"
+        report += "By Category:\n"
+        for cat, count in stats['by_category'].items():
+            report += f"  - {cat}: {count}\n"
+            
+        report += "\nBy Risk:\n"
+        for risk, count in stats['by_risk'].items():
+            report += f"  - {risk}: {count}\n"
+            
+        print(report)
+        
+        if output:
+            with open(output, "w") as f:
+                f.write(report)
+            print(f"Report saved to {output}")
+
+    async def plan_rebase(self, branch: str, output: str):
+        """
+        Generate rebase plan.
+        """
+        from ..git.history import GitHistory
+        from ..analysis.commits import CommitClassifier
+        from ..strategy.reordering import RebasePlanner
+        
+        print(f"Planning rebase for branch: {branch}...")
+        history = GitHistory()
+        classifier = CommitClassifier()
+        planner = RebasePlanner()
+        
+        commits = await history.get_commits(branch, limit=500)
+        # Classify all
+        for c in commits:
+            classifier.classify(c)
+            
+        plan = planner.generate_plan(commits)
+        
+        with open(output, "w") as f:
+            f.write(plan)
+        print(f"Rebase plan saved to {output}")

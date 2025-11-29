@@ -5,13 +5,10 @@ Available modules:
 - ConstitutionalEngine: Constitutional validation
 - StrategyGenerator: AI-powered strategy generation (requires OpenAI)
 - PromptEngine: Prompt engineering for AI
-- Data models: MergeConflict, ResolutionStrategy, etc.
 """
 
 # ===== EXISTING MODULES =====
-from .strategies import StrategyGenerator
 from .prompts import PromptEngine
-from .constitutional_engine import ConstitutionalEngine
 from .types import (
     # Enums
     ConflictTypeExtended,
@@ -45,9 +42,7 @@ from .types import (
 
 __all__ = [
     # Available classes
-    "StrategyGenerator",
     "PromptEngine",
-    "ConstitutionalEngine",
     # Enums
     "ConflictTypeExtended",
     "RiskLevel",
