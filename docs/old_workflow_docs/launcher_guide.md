@@ -37,7 +37,7 @@ python launch.py --stage dev
 
 - `--setup`: Run environment setup.
 - `--force-recreate-venv`: Force recreation of the venv.
-
+- `--use-poetry`: Use Poetry for dependency management.
 - `--use-conda`: Use Conda environment instead of venv.
 - `--conda-env NAME`: Conda environment name to use (default: base).
 - `--no-venv`: Don't create or use a virtual environment.
@@ -176,7 +176,7 @@ This will create a new extension template in the `backend/extensions/my_extensio
 You can customize the launcher by modifying the following files:
 
 - `launch.py`: The main launcher script, which now integrates environment management.
-- `setup/test_stages.py`: Manages testing for different stages.
+- `deployment/test_stages.py`: Manages testing for different stages.
 
 ## Troubleshooting
 
