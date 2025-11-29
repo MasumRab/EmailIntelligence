@@ -214,6 +214,10 @@ class DatabaseManager(DataSource):
                 )
         return full_email
 
+    async def initialize(self) -> None:
+        """Initialize the database manager."""
+        await self._ensure_initialized()
+
     async def _ensure_initialized(self) -> None:
         """Ensure data is loaded and indexes are built."""
         if not self._initialized:
