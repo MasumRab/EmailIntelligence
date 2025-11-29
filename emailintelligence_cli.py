@@ -19,6 +19,9 @@ from typing import Any, Dict, List, Optional, NoReturn
 
 # Constitutional Engine integration
 from src.resolution import ConstitutionalEngine
+# Git Operations integration
+from src.git.conflict_detector import GitConflictDetector
+from src.core.models import Conflict
 
 try:
     import yaml
@@ -49,6 +52,9 @@ class EmailIntelligenceCLI:
         )
         # Initialize async (run in constructor)
         asyncio.run(self.constitutional_engine.initialize())
+        
+        # Initialize Git Conflict Detector
+        self.conflict_detector = GitConflictDetector(self.repo_root)
         
         # Initialize git repository check
         self._check_git_repository()
@@ -197,7 +203,7 @@ class EmailIntelligenceCLI:
                 self._info(f"   └─ Specification: {spec}")
             
             # Step 4: Detect conflicts
-            conflicts = self._detect_conflicts(worktree_a_path, worktree_b_path)
+            conflicts = self._detect_conflicts(worktree_a_path, worktree_b_path, source_branch, target_branch)
             
             # Step 5: Create resolution metadata
             resolution_metadata = {
@@ -249,40 +255,75 @@ class EmailIntelligenceCLI:
         self._info(f"   ├─ worktree-a: {source_branch} → {worktree_a_path}")
         self._info(f"   └─ worktree-b: {target_branch} → {worktree_b_path}")
         
+        # Attempt conflict detection in dry-run (since it doesn't require worktrees)
+        conflicts = self._detect_conflicts(worktree_a_path, worktree_b_path, source_branch, target_branch)
+        
         return {
             'dry_run': True,
             'would_create_branch': resolution_branch,
             'would_create_worktrees': [str(worktree_a_path), str(worktree_b_path)],
+            'detected_conflicts': len(conflicts),
             'message': 'Dry run completed - no changes made'
         }
     
-    def _detect_conflicts(self, worktree_a_path: Path, worktree_b_path: Path) -> List[Dict[str, Any]]:
-        """Detect conflicts between worktrees"""
+    def _detect_conflicts(
+        self, 
+        worktree_a_path: Path, 
+        worktree_b_path: Path,
+        source_branch: str = None,
+        target_branch: str = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Detect conflicts between worktrees using GitConflictDetector.
+        
+        Args:
+            worktree_a_path: Path to source worktree
+            worktree_b_path: Path to target worktree
+            source_branch: Source branch name (required for real detection)
+            target_branch: Target branch name (required for real detection)
+            
+        Returns:
+            List of conflict dictionaries
+        """
+        if not source_branch or not target_branch:
+            self._warn("Branch names not provided for conflict detection. Falling back to mock/empty.")
+            return []
+
         try:
-            # Get list of conflicting files
-            result = subprocess.run(
-                ["git", "diff", "--name-only"],
-                cwd=worktree_a_path,
-                check=True,
-                capture_output=True,
-                text=True
+            self._info(f"🔍 Detecting conflicts between {source_branch} and {target_branch}...")
+            
+            # Run async conflict detection
+            # We use asyncio.run because this is called from a synchronous context
+            conflicts: List[Conflict] = asyncio.run(
+                self.conflict_detector.detect_conflicts_between_branches(
+                    source_branch, 
+                    target_branch
+                )
             )
             
-            conflicts = []
-            for file_path in result.stdout.strip().split('\n'):
-                if file_path and not file_path.startswith('.'):
-                    conflict_info = {
-                        'file': file_path,
-                        'path_a': str(worktree_a_path / file_path),
-                        'path_b': str(worktree_b_path / file_path),
-                        'detected_at': datetime.now().isoformat()
-                    }
-                    conflicts.append(conflict_info)
+            # Convert to dictionary format expected by CLI
+            conflict_dicts = []
+            for conflict in conflicts:
+                # Use model_dump if available (Pydantic v2), else dict()
+                c_dict = conflict.model_dump() if hasattr(conflict, 'model_dump') else conflict.dict()
+                
+                # Ensure 'file' key exists as it's used extensively in CLI
+                # Conflict model has 'file_paths' list
+                if conflict.file_paths:
+                    c_dict['file'] = conflict.file_paths[0]
+                
+                # Add legacy keys for compatibility if needed
+                c_dict['path_a'] = str(worktree_a_path / c_dict.get('file', ''))
+                c_dict['path_b'] = str(worktree_b_path / c_dict.get('file', ''))
+                c_dict['detected_at'] = datetime.now().isoformat()
+                
+                conflict_dicts.append(c_dict)
             
-            self._info(f"🔍 Detected {len(conflicts)} potential conflicts")
-            return conflicts
+            self._info(f"🔍 Detected {len(conflict_dicts)} conflicts")
+            return conflict_dicts
             
-        except subprocess.CalledProcessError:
+        except Exception as e:
+            self._error(f"Conflict detection failed: {e}")
             return []
     
     def analyze_constitutional(
@@ -1371,6 +1412,12 @@ Merge conflict detected between {metadata.get('source_branch')} and {metadata.ge
 
 def main():
     """Main CLI entry point"""
+    # Force UTF-8 encoding for stdout/stderr to handle emojis on Windows
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout.reconfigure(encoding='utf-8')
+    if sys.stderr.encoding != 'utf-8':
+        sys.stderr.reconfigure(encoding='utf-8')
+
     parser = argparse.ArgumentParser(
         description="EmailIntelligence CLI - AI-powered git worktree-based conflict resolution tool",
         formatter_class=argparse.RawDescriptionHelpFormatter,

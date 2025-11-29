@@ -81,7 +81,8 @@ class GitConflictDetector(IConflictDetector):
             
             conflicts = []
             for file_path in conflicting_files:
-                if not file_path.strip():
+                file_path = file_path.strip()
+                if not file_path or file_path.startswith("CONFLICT") or file_path.startswith("Auto-merging"):
                     continue
                     
                 conflict = await self._analyze_file_conflict(

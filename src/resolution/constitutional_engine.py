@@ -133,6 +133,7 @@ class ConstitutionalEngine:
                 categories=list(self.rule_categories),
             )
             return True
+        except Exception as e:
             logger.error("Failed to initialize constitutional engine", error=str(e))
             return False
 

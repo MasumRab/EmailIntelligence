@@ -21,6 +21,7 @@ async def git_repo_with_conflict(temp_dir):
         return await repo.run_git(list(args))
 
     await git("init")
+    await git("branch", "-M", "main")
     await git("config", "user.email", "test@example.com")
     await git("config", "user.name", "Test User")
     
@@ -46,7 +47,7 @@ async def git_repo_with_conflict(temp_dir):
 
 @pytest.mark.asyncio
 async def test_detect_conflicts_between_branches(git_repo_with_conflict):
-    repo_path = await git_repo_with_conflict
+    repo_path = git_repo_with_conflict
     detector = GitConflictDetector(repo_path)
     
     conflicts = await detector.detect_conflicts_between_branches("feature", "main")
