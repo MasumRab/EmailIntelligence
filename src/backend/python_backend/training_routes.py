@@ -26,9 +26,9 @@ training_jobs: Dict[str, Dict[str, Any]] = {}
 @router.post("/api/training/start")
 @log_performance(operation="start_training")
 async def start_training(
-model_config: ModelConfig,
-background_tasks: BackgroundTasks,
-current_user: str = Depends(get_current_active_user),
+    model_config: ModelConfig,
+    current_user: str = Depends(get_current_active_user),
+    background_tasks: BackgroundTasks,
 ):
     """
     Start training a model with the given configuration.

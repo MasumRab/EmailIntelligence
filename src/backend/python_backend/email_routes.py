@@ -12,7 +12,6 @@ from backend.node_engine.workflow_engine import WorkflowEngine
 from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
 from .models import EmailResponse
 from .models import EmailCreate, EmailUpdate
-from .workflow_engine import WorkflowEngine
 from .performance_monitor import log_performance
 from .utils import create_log_data, handle_pydantic_validation
 from .services.email_service import EmailService
@@ -114,7 +113,7 @@ async def create_email(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Create new email with AI analysis using the active workflow.
-
+    
     Requires authentication.
     """
     try:
