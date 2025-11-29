@@ -2,16 +2,27 @@
 """
 EmailIntelligence Unified Launcher
 
-This script is a wrapper that forwards to the actual launch.py in the setup subtree.
-It maintains backward compatibility for references to launch.py in the root directory.
+This script provides a single, unified way to set up, manage, and run all
+components of the EmailIntelligence application, including the Python backend,
+Gradio UI, and Node.js services. It uses 'uv' for Python dependency management
+based on pyproject.toml.
+
+Usage:
+    python launch.py [arguments]
 """
 
+import argparse
+import atexit
+import logging
+import os
+import platform
+import re
+import shutil
+import signal
 import subprocess
 import sys
-<<<<<<< ours
-import os
-=======
 import time
+import threading
 import venv
 from pathlib import Path
 from typing import List, Optional
@@ -50,11 +61,19 @@ class ProcessManager:
     """Manages child processes for the application."""
     def __init__(self):
         self.processes = []
+        self.lock = threading.Lock()  # Add lock for thread safety
+        
     def add_process(self, process):
-        self.processes.append(process)
+        with self.lock:
+            self.processes.append(process)
+            
     def cleanup(self):
         logger.info("Performing explicit resource cleanup...")
-        for p in self.processes[:]:
+        # Create a copy of the list to avoid modifying while iterating
+        with self.lock:
+            processes_copy = self.processes[:]
+            
+        for p in processes_copy:
             if p.poll() is None:
                 logger.info(f"Terminating process {p.pid}...")
                 p.terminate()
@@ -64,6 +83,7 @@ class ProcessManager:
                     logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                     p.kill()
         logger.info("Resource cleanup completed.")
+        
     def shutdown(self):
         logger.info("Received shutdown signal, cleaning up processes...")
         self.cleanup()
@@ -305,21 +325,28 @@ def activate_conda_env(env_name: str = None) -> bool:
         logger.info(f"Already in conda environment: {conda_info['env_name']}")
         return True
 
+    # Check if the requested environment exists
     try:
-        # Try to activate the specified environment
-        logger.info(f"Activating conda environment: {env_name}")
         result = subprocess.run(
-            ["conda", "activate", env_name],
-            shell=True,  # shell=True is needed for conda activate
+            ["conda", "info", "--envs"],
             capture_output=True,
             text=True,
             check=True
         )
-        logger.info(f"Successfully activated conda environment: {env_name}")
-        return True
+        envs = result.stdout.strip().split('\n')
+        env_names = [line.split()[0] for line in envs if line.strip() and not line.startswith('#')]
+        if env_name not in env_names:
+            logger.warning(f"Conda environment '{env_name}' not found.")
+            return False
     except subprocess.CalledProcessError as e:
-        logger.warning(f"Failed to activate conda environment {env_name}: {e}")
+        logger.warning(f"Failed to list conda environments: {e}")
         return False
+
+    logger.info(f"Will use conda environment: {env_name}")
+    # We don't actually activate the environment here since subprocess.run
+    # cannot persist environment changes. Instead, we rely on get_python_executable()
+    # to find the correct Python executable for the environment.
+    return True
 
 
 def get_python_executable() -> str:
@@ -474,67 +501,6 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
 
 
-def start_backend(host: str, port: int, debug: bool = False):
-    """Start the Python FastAPI backend."""
-    if not check_uvicorn_installed():
-        logger.error(
-            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
-        )
-        return None
-
-    python_exe = get_python_executable()
-
-    # Use uvicorn to run the FastAPI app directly
-    cmd = [
-        python_exe,
-        "-m",
-        "uvicorn",
-        "backend.python_backend.main:app",
-        "--host",
-        host,
-        "--port",
-        str(port),
-    ]
-    if debug:
-        cmd.append("--reload")  # Enable auto-reload in debug mode
-
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
-
-    logger.info(f"Starting Python backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
-    process_manager.add_process(process)
-    return process
-
-
-def start_gradio_ui(
-    venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
-):
-    """Start the Gradio UI."""
-    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
-
-    cmd = [str(venv_python), str(gradio_path), "--host", host]
-    if port:
-        cmd.extend(["--port", str(port)])
-        logger.info(f"Starting Gradio UI on {host}:{port}")
-    else:
-        logger.info(f"Starting Gradio UI on {host}:7860 (default port)")
-
-    if share:
-        cmd.append("--share")  # Enable public sharing
-    if port:
-        # Gradio doesn't take port as a command line param directly,
-        # we'd need to modify the app to accept it
-        logger.info(f"Starting Gradio UI (on default or next available port)")
-    else:
-        logger.info("Starting Gradio UI on default port")
-
-    logger.info("Starting Gradio UI...")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    process_manager.add_process(process)
-    return process
-
-
 def start_client():
     """Start the Node.js frontend."""
     logger.info("Starting Node.js frontend...")
@@ -560,25 +526,153 @@ def start_server_ts():
     if not pkg_json_path.exists():
         logger.debug("No package.json in 'server/', skipping TypeScript backend server startup.")
         return None
->>>>>>> theirs
 
-# Get the directory where this script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Install Node.js dependencies if node_modules doesn't exist
+    node_modules_path = ROOT_DIR / "server" / "node_modules"
+    if not node_modules_path.exists():
+        logger.info("Installing TypeScript server dependencies...")
 
-# Path to the actual launch.py in the setup subtree
-setup_launch_path = os.path.join(script_dir, 'setup', 'launch.py')
+# --- Service Startup Functions ---
+def start_backend(host: str, port: int, debug: bool = False):
+    python_exe = get_python_executable()
+    cmd = [python_exe, "-m", "uvicorn", "src.main:create_app", "--factory", "--host", host, "--port", str(port)]
+    if debug:
+        cmd.append("--reload")
+    logger.info(f"Starting backend on {host}:{port}")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
 
-if __name__ == "__main__":
-    # Forward all arguments to the actual launch.py in the setup directory
-    # Add the script directory to Python path so imports work
+def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
+    """Start a Node.js service."""
+    if not service_path.exists():
+        logger.warning(f"{service_name} path not found at {service_path}, skipping.")
+        return
+    logger.info(f"Starting {service_name} on port {port}...")
     env = os.environ.copy()
-    python_path = env.get('PYTHONPATH', '')
-    if python_path:
-        env['PYTHONPATH'] = f"{script_dir}:{python_path}"
+    env["PORT"] = str(port)
+    env["VITE_API_URL"] = api_url
+    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
+    process_manager.add_process(process)
+
+def setup_node_dependencies(service_path: Path, service_name: str):
+    """Install npm dependencies for a Node.js service."""
+    if not (service_path / "package.json").exists():
+        logger.warning(f"package.json not found for {service_name}, skipping dependency installation.")
+        return
+    logger.info(f"Installing npm dependencies for {service_name}...")
+    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
+
+def start_gradio_ui(host, port, share, debug):
+    logger.info("Starting Gradio UI...")
+    python_exe = get_python_executable()
+    cmd = [python_exe, "-m", "src.main"] # Assuming Gradio is launched from main
+    if share:
+        cmd.append("--share")
+    if debug:
+        cmd.append("--debug")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    process_manager.add_process(process)
+
+def handle_setup(args, venv_path):
+    """Handles the complete setup process."""
+    logger.info("Starting environment setup...")
+
+    if args.use_conda:
+    # For Conda, we assume the environment is already set up
+        # Could add Conda environment creation here in the future
+        logger.info("Using Conda environment - assuming dependencies are already installed")
     else:
-<<<<<<< ours
-        env['PYTHONPATH'] = script_dir
-=======
+        # Use venv
+        create_venv(venv_path, args.force_recreate_venv)
+        install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
+        setup_dependencies(venv_path, args.use_poetry)
+        if not args.no_download_nltk:
+            download_nltk_data(venv_path)
+
+        # Setup Node.js dependencies
+        setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
+        setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
+    logger.info("Setup complete.")
+
+def prepare_environment(args):
+    """Prepares the environment for running the application."""
+    if not args.no_venv:
+        # Try conda first
+        if not activate_conda_env():
+            venv_path = ROOT_DIR / VENV_DIR
+            create_venv(venv_path)
+        if args.update_deps:
+            setup_dependencies(ROOT_DIR / VENV_DIR, args.use_poetry)
+    if not args.no_download_nltk:
+        download_nltk_data()
+
+def start_services(args):
+    """Starts the required services based on arguments."""
+    api_url = args.api_url or f"http://{args.host}:{args.port}"
+
+    if not args.frontend_only:
+        start_backend(args.host, args.port, args.debug)
+        start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
+
+    if not args.api_only:
+        start_gradio_ui(args.host, 7860, args.share, args.debug)
+        start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
+
+def handle_test_stage(args):
+    """Handles the test stage execution."""
+    logger.info("Starting test stage...")
+    results = []
+    if args.unit:
+        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
+    if args.integration:
+        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
+    if args.e2e:
+        results.append(test_stages.run_e2e_tests(headless=not args.debug, debug=args.debug))
+    if args.performance:
+        results.append(test_stages.run_performance_tests(duration=300, users=10, debug=args.debug))
+    if args.security:
+        results.append(test_stages.run_security_tests(target_url=f"http://{args.host}:{args.port}", debug=args.debug))
+
+    # If no specific test type is selected, run a default set (e.g., unit and integration)
+    if not any([args.unit, args.integration, args.e2e, args.performance, args.security]):
+        logger.info("No specific test type selected, running unit and integration tests.")
+        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
+        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
+
+    if all(results):
+        logger.info("All tests passed successfully.")
+        sys.exit(0)
+    else:
+        logger.error("Some tests failed.")
+        sys.exit(1)
+
+def print_system_info():
+    """Print detailed system, Python, and project configuration information."""
+    import platform
+    import sys
+
+    print("=== System Information ===")
+    print(f"OS: {platform.system()} {platform.release()}")
+    print(f"Architecture: {platform.machine()}")
+    print(f"Python Version: {sys.version}")
+    print(f"Python Executable: {sys.executable}")
+
+    print("\\n=== Project Information ===")
+    print(f"Project Root: {ROOT_DIR}")
+    print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
+
+    print("\\n=== Environment Status ===")
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
+        print(f"Virtual Environment: {venv_path} (exists)")
+        python_exe = get_venv_executable(venv_path, "python")
+        if python_exe.exists():
+            print(f"Venv Python: {python_exe}")
+        else:
+            print("Venv Python: Not found")
+    else:
         print(f"Virtual Environment: {venv_path} (not created)")
 
     conda_available = is_conda_available()
@@ -670,8 +764,6 @@ def main():
     setup_wsl_environment()
     check_wsl_requirements()
 
-    check_python_version()
-
     if not args.skip_python_version_check:
         check_python_version()
 
@@ -733,8 +825,27 @@ def main():
 
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
->>>>>>> theirs
 
-    cmd = [sys.executable, setup_launch_path] + sys.argv[1:]
-    result = subprocess.run(cmd, env=env)
-    sys.exit(result.returncode)
+    if args.system_info:
+        print_system_info()
+        return
+
+    # Stage-specific logic
+    if args.stage == 'test':
+        handle_test_stage(args)
+        return
+
+    # Service startup logic
+    start_services(args)
+
+    logger.info("All services started. Press Ctrl+C to shut down.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Shutdown signal received.")
+    finally:
+        process_manager.cleanup()
+
+if __name__ == "__main__":
+    main()
