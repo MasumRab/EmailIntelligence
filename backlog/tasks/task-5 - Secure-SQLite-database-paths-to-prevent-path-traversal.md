@@ -4,12 +4,11 @@ title: Secure SQLite database paths to prevent path traversal
 status: To Do
 assignee: []
 created_date: '2025-10-25 04:47'
-updated_date: '2025-10-28 08:54'
+updated_date: '2025-10-28 08:16'
 labels:
   - security
   - sqlite
 dependencies: []
-priority: medium
 ---
 
 ## Description
