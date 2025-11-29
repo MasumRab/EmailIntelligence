@@ -60,5 +60,5 @@ async def test_detect_conflicts_between_branches(git_repo_with_conflict):
     # This is expected to fail until we implement block extraction
     assert len(conflict.blocks) > 0
     assert conflict.blocks[0].start_line > 0
-    assert "Feature content" in conflict.blocks[0].content
-    assert "Main content" in conflict.blocks[0].content
+    assert "Feature content" in conflict.blocks[0].incoming_content
+    assert "Main content" in conflict.blocks[0].current_content
