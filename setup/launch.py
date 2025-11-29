@@ -40,6 +40,16 @@ except ImportError:
     DOTENV_AVAILABLE = False
     load_dotenv = None  # Will be loaded later if needed
 
+# Speckit framework integration
+try:
+    from src.speckit.command_factory import get_command_factory as get_speckit_command_factory
+    SPECKIT_AVAILABLE = True
+except ImportError:
+    def get_speckit_command_factory():
+        return None
+    SPECKIT_AVAILABLE = False
+    logger.debug("Speckit framework not available")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -910,7 +920,21 @@ def main():
     )
     parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
 
+    # Add speckit command arguments if available
+    if SPECKIT_AVAILABLE:
+        try:
+            from src.speckit.command_factory import add_speckit_arguments
+            add_speckit_arguments(parser)
+        except ImportError:
+            logger.debug("Speckit command factory not available")
+
     args = parser.parse_args()
+
+    # Check if this is a speckit command
+    if hasattr(args, 'speckit_command') and args.speckit_command:
+        # Format the command name properly
+        command_name = f"speckit.{args.speckit_command}"
+        return _execute_command(command_name, args)
 
     # Handle legacy arguments
     return _handle_legacy_args(args)
@@ -1006,17 +1030,20 @@ def _add_legacy_args(parser):
 
 def _execute_command(command_name: str, args) -> int:
     """Execute a command using the command pattern."""
-    factory = get_command_factory()
-    command = factory.create_command(command_name, args)
-
-    if command is None:
-        logger.error(f"Unknown command: {command_name}")
-        return 1
-
-    try:
-        return command.execute()
-    finally:
-        command.cleanup()
+    # Try speckit command factory first
+    if SPECKIT_AVAILABLE:
+        factory = get_speckit_command_factory()
+        if factory:
+            command = factory.create_command(command_name, args)
+            if command is not None:
+                try:
+                    return command.execute()
+                finally:
+                    command.cleanup()
+    
+    # If speckit command not found, log and return error
+    logger.error(f"Unknown command: {command_name}")
+    return 1
 
 
 def _handle_legacy_args(args) -> int:

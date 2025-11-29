@@ -28,11 +28,16 @@ description: "Task list for PR176 Integration Fixes feature implementation"
 
 **Purpose**: Project preparation and environment setup for PR integration work
 
-- [ ] T001 Clone or update local repository to match PR #176 branch from GitHub
-- [ ] T002 [P] Install required development tools (Git, GitHub CLI, Python 3.11)
-- [ ] T003 [P] Authenticate GitHub CLI tool using `gh auth login`
-- [ ] T004 [P] Review all PR #176 comments in GitHub to understand all required changes using gh CLI
-- [ ] T005 Create local working branch `pr176-integration-fixes` based on PR #176 branch
+- [ ] T001 Accept PR number as user input parameter
+- [ ] T002 Clone or update local repository to match specified PR branch from GitHub
+- [ ] T003 [P] Install required development tools (Git, GitHub CLI, Python 3.11)
+- [ ] T004 [P] Authenticate GitHub CLI tool using `gh auth login`
+- [ ] T005 [P] Review all comments in the specified PR to understand all required changes using gh CLI
+- [ ] T006 Create local working branch based on the specified PR branch
+- [ ] T007 [P] Set up automation framework with support for both interactive and automated modes
+- [ ] T008 [P] Implement configuration system for automation settings (PR number, target branch, automation level, notifications, logging)
+- [ ] T009 [P] Implement authentication support for both GitHub CLI and token-based access
+- [ ] T010 [P] Create automation context management system
 
 ---
 
@@ -44,13 +49,16 @@ description: "Task list for PR176 Integration Fixes feature implementation"
 
 Tasks for foundational setup:
 
-- [ ] T005 Identify all merge conflicts between PR #176 and target branch via `gh pr diff` and `git merge` commands
-- [ ] T006 [P] Document current state of PR #176 functionality by running existing tests in `tests/` directory
-- [ ] T007 [P] Create backup of current PR #176 state using `git stash` or branch creation
-- [ ] T008 Set up test environment by running `setup/launch.py` or equivalent setup scripts
-- [ ] T009 [P] Install security scanning tools as specified in project constitution
-- [ ] T010 [P] Install and authenticate GitHub CLI (gh) tool for PR inspection
-- [ ] T011 [P] Retrieve complete PR #176 information using `gh pr view 176 --json` command
+- [ ] T011 Identify all merge conflicts between the specified PR and target branch via `gh pr diff [PR_NUMBER]` and `git merge` commands
+- [ ] T012 [P] Document current state of specified PR functionality by running existing tests in `tests/` directory
+- [ ] T013 [P] Create backup of current PR state using `git stash` or branch creation
+- [ ] T014 Set up test environment by running `setup/launch.py` or equivalent setup scripts
+- [ ] T015 [P] Install security scanning tools as specified in project constitution
+- [ ] T016 [P] Install and authenticate GitHub CLI (gh) tool for PR inspection
+- [ ] T017 [P] Retrieve complete PR information using `gh pr view [PR_NUMBER] --json` command
+- [ ] T018 [P] Check for potential conflicts with PR #182 (pr-179) using `gh pr view 182`, `gh pr diff pr-179`, and `gh issue list --pull-request 182` commands
+- [ ] T019 [P] Implement automation task execution framework with retry and timeout mechanisms
+- [ ] T020 [P] Set up notification system for automation status (console, logs, optional email)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -58,23 +66,23 @@ Tasks for foundational setup:
 
 ## Phase 3: User Story 1 - PR Comment Resolution (Priority: P1) 🎯 MVP
 
-**Goal**: Resolve all comments and issues raised in PR #176 to get the pull request approved and merged, addressing code review feedback, fixing identified bugs, and resolving merge conflicts.
+**Goal**: Resolve all comments and issues raised in the specified PR to get the pull request approved and merged, addressing code review feedback, fixing identified bugs, and resolving merge conflicts.
 
 **Independent Test**: The PR can be successfully merged after all comments are resolved and conflicts are handled without breaking existing functionality.
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Use `gh pr view 176` to review all comments and issues in PR #176
-- [ ] T013 [P] [US1] Use `gh pr comment list 176` to retrieve all review comments for analysis
-- [ ] T014 [P] [US1] Use `gh issue list --pull-request 176` to identify related issues
-- [ ] T015 [P] [US1] Address code style comments by updating files to comply with PEP 8 standards in `src/**/*.py`
-- [ ] T016 [P] [US1] Address documentation comments by updating docstrings in `src/**/*.py` files
-- [ ] T017 [P] [US1] Fix identified bugs mentioned in PR review comments by modifying specific functions in relevant files
-- [ ] T018 [US1] Manually resolve merge conflicts in core functionality files identified using `gh pr diff 176`, editing conflicted sections in `src/**/*.py`
-- [ ] T019 [US1] Manually resolve merge conflicts in test files identified using `gh pr diff 176`, editing conflicted sections in `tests/**/*.py`
-- [ ] T020 [US1] Manually resolve merge conflicts in documentation files identified using `gh pr diff 176`, editing conflicted sections in `docs/**/*.md`
-- [ ] T021 [US1] Run existing test suite with `pytest` to ensure no regressions after conflict resolution
-- [ ] T022 [US1] Submit updated code for re-review by pushing changes to GitHub and updating PR #176
+- [ ] T021 [P] [US1] Use `gh pr view [PR_NUMBER]` to review all comments and issues in the specified PR
+- [ ] T022 [P] [US1] Use `gh pr comment list [PR_NUMBER]` to retrieve all review comments for analysis
+- [ ] T023 [P] [US1] Use `gh issue list --pull-request [PR_NUMBER]` to identify related issues
+- [ ] T024 [P] [US1] Address code style comments by updating files to comply with PEP 8 standards in `src/**/*.py`
+- [ ] T025 [P] [US1] Address documentation comments by updating docstrings in `src/**/*.py` files
+- [ ] T026 [P] [US1] Fix identified bugs mentioned in PR review comments by modifying specific functions in relevant files
+- [ ] T027 [US1] Manually resolve merge conflicts in core functionality files identified using `gh pr diff [PR_NUMBER]`, editing conflicted sections in `src/**/*.py`
+- [ ] T028 [US1] Manually resolve merge conflicts in test files identified using `gh pr diff [PR_NUMBER]`, editing conflicted sections in `tests/**/*.py`
+- [ ] T029 [US1] Manually resolve merge conflicts in documentation files identified using `gh pr diff [PR_NUMBER]`, editing conflicted sections in `docs/**/*.md`
+- [ ] T030 [US1] Run existing test suite with `pytest` to ensure no regressions after conflict resolution
+- [ ] T031 [US1] Submit updated code for re-review by pushing changes to GitHub and updating the specified PR
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -88,13 +96,13 @@ Tasks for foundational setup:
 
 ### Implementation for User Story 2
 
-- [ ] T025 [P] [US2] Identify missing functionality from PR review comments by analyzing comment threads retrieved using `gh pr comment list 176`
-- [ ] T026 [P] [US2] Create missing unit tests for identified gaps in `tests/unit/test_*.py` files
-- [ ] T027 [US2] Implement missing functionality identified in T025 by adding code to `src/**/*.py` files
-- [ ] T028 [US2] Add integration tests to verify implemented functionality in `tests/integration/test_*.py` files
-- [ ] T029 [US2] Update error handling in `src/**/*.py` to address any gaps identified in original code
-- [ ] T030 [US2] Validate that all functionality meets requirements by running feature-specific tests
-- [ ] T031 [US2] Run complete test suite with `pytest` to verify no regressions were introduced
+- [ ] T032 [P] [US2] Identify missing functionality from PR review comments by analyzing comment threads retrieved using `gh pr comment list [PR_NUMBER]`
+- [ ] T033 [P] [US2] Create missing unit tests for identified gaps in `tests/unit/test_*.py` files
+- [ ] T034 [US2] Implement missing functionality identified in T032 by adding code to `src/**/*.py` files
+- [ ] T035 [US2] Add integration tests to verify implemented functionality in `tests/integration/test_*.py` files
+- [ ] T036 [US2] Update error handling in `src/**/*.py` to address any gaps identified in original code
+- [ ] T037 [US2] Validate that all functionality meets requirements by running feature-specific tests
+- [ ] T038 [US2] Run complete test suite with `pytest` to verify no regressions were introduced
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -108,14 +116,14 @@ Tasks for foundational setup:
 
 ### Implementation for User Story 3
 
-- [ ] T032 [P] [US3] Identify missing files by running static analysis tools and checking import statements in `src/**/*.py`
-- [ ] T033 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `setup/`, and config files
-- [ ] T034 [US3] Create missing files identified in T032 by adding them to appropriate directories in `src/`
-- [ ] T035 [US3] Fix incorrect file paths identified in T033 by updating import statements and file references
-- [ ] T036 [US3] Verify file placement follows current architectural patterns by comparing with other modules in the codebase
-- [ ] T037 [US3] Update configurations in `setup/`, `pyproject.toml`, or other config files to align with latest architecture
-- [ ] T038 [US3] Update imports and references in `src/**/*.py` to use correct paths identified in T033
-- [ ] T039 [US3] Run tests with `pytest` to ensure all path updates work correctly
+- [ ] T039 [P] [US3] Identify missing files by running static analysis tools and checking import statements in `src/**/*.py`
+- [ ] T040 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `setup/`, and config files
+- [ ] T041 [US3] Create missing files identified in T039 by adding them to appropriate directories in `src/`
+- [ ] T042 [US3] Fix incorrect file paths identified in T040 by updating import statements and file references
+- [ ] T043 [US3] Verify file placement follows current architectural patterns by comparing with other modules in the codebase
+- [ ] T044 [US3] Update configurations in `setup/`, `pyproject.toml`, or other config files to align with latest architecture
+- [ ] T045 [US3] Update imports and references in `src/**/*.py` to use correct paths identified in T040
+- [ ] T046 [US3] Run tests with `pytest` to ensure all path updates work correctly
 
 **Checkpoint**: At this point, User Stories 1, 2 AND 3 should all work independently
 
@@ -129,13 +137,14 @@ Tasks for foundational setup:
 
 ### Implementation for User Story 4
 
-- [ ] T040 [US4] Identify integration points with other outstanding PRs by using `gh pr list` to review other PRs and code dependencies
-- [ ] T041 [P] [US4] Create high-level integration diagram as `docs/pr-integration-diagram.md` showing relationships
-- [ ] T042 [P] [US4] Add inline comments explaining integration points in relevant `src/**/*.py` files
-- [ ] T043 [US4] Document potential conflict areas with other PRs in `docs/pr-conflict-areas.md`
-- [ ] T044 [US4] Document dependencies on other PRs (if any) in `docs/pr-dependencies.md`
-- [ ] T045 [US4] Create integration checklist for future PR reviews in `docs/pr-integration-checklist.md`
-- [ ] T046 [US4] Update project documentation in `README.md` and related docs with integration guidelines
+- [ ] T047 [US4] Identify integration points with other outstanding PRs by using `gh pr list` to review other PRs and code dependencies
+- [ ] T048 [US4] Specifically inspect PR #182 (branch pr-179) using `gh pr view 182` to identify potential conflicts with the specified PR work
+- [ ] T049 [P] [US4] Create high-level integration diagram as `docs/pr-integration-diagram.md` showing relationships
+- [ ] T050 [P] [US4] Add inline comments explaining integration points in relevant `src/**/*.py` files
+- [ ] T051 [US4] Document potential conflict areas with other PRs in `docs/pr-conflict-areas.md`
+- [ ] T052 [US4] Document dependencies on other PRs (if any) in `docs/pr-dependencies.md`
+- [ ] T053 [US4] Create integration checklist for future PR reviews in `docs/pr-integration-checklist.md`
+- [ ] T054 [US4] Update project documentation in `README.md` and related docs with integration guidelines
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -145,15 +154,15 @@ Tasks for foundational setup:
 
 **Purpose**: Improvements that affect multiple user stories and final validation
 
-- [ ] T047 [P] Run security validation using configured tools as specified in quality requirements
-- [ ] T048 [P] Review and clean up code formatting in `src/**/*.py` to adhere to PEP 8 standards
-- [ ] T049 [P] Add type hints to functions in `src/**/*.py` as specified in quality requirements
-- [ ] T050 Confirm backward compatibility by running compatibility tests and verifying API stability
-- [ ] T051 Run complete test suite with `pytest` to ensure 100% pass rate
-- [ ] T052 Validate that all success criteria from spec are met by running verification scripts
-- [ ] T053 Create final documentation summary for PR #176 integration in `specs/001-pr176-integration-fixes/final-summary.md`
-- [ ] T054 Use `gh pr ready 176` to mark the PR as ready for review after all changes are complete
-- [ ] T055 Submit final PR for approval and merge by pushing to GitHub and requesting review using `gh pr create` or appropriate update commands
+- [ ] T055 [P] Run security validation using configured tools as specified in quality requirements
+- [ ] T056 [P] Review and clean up code formatting in `src/**/*.py` to adhere to PEP 8 standards
+- [ ] T057 [P] Add type hints to functions in `src/**/*.py` as specified in quality requirements
+- [ ] T058 Confirm backward compatibility by running compatibility tests and verifying API stability
+- [ ] T059 Run complete test suite with `pytest` to ensure 100% pass rate
+- [ ] T060 Validate that all success criteria from spec are met by running verification scripts
+- [ ] T061 Create final documentation summary for PR #176 integration in `specs/001-pr176-integration-fixes/final-summary.md`
+- [ ] T062 Use `gh pr ready 176` to mark the PR as ready for review after all changes are complete
+- [ ] T063 Submit final PR for approval and merge by pushing to GitHub and requesting review using `gh pr create` or appropriate update commands
 
 ---
 
