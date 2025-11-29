@@ -1,9 +1,9 @@
-from unittest.mock import AsyncMock, MagicMock
-
+import os
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
-from src.backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
-from src.backend.python_backend.model_manager import ModelManager
+from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
+from backend.python_backend.model_manager import ModelManager
 
 # This mock is for the database, which is used for category lookups
 mock_db_manager_for_ai_engine = MagicMock()
@@ -108,10 +108,7 @@ async def test_analyze_email_with_db_category_match(
     mock_db_manager_for_ai_engine.get_all_categories.return_value = mock_db_categories
 
     result = await ai_engine_instance.analyze_email(
-        subject,
-        content,
-        models_to_use=DEFAULT_MODELS_TO_USE,
-        db=mock_db_manager_for_ai_engine,
+        subject, content, models_to_use=DEFAULT_MODELS_TO_USE, db=mock_db_manager_for_ai_engine
     )
 
     assert isinstance(result, AIAnalysisResult)
@@ -121,9 +118,7 @@ async def test_analyze_email_with_db_category_match(
 
 
 @pytest.mark.asyncio
-async def test_analyze_email_with_db_no_category_match(
-    ai_engine_instance: AdvancedAIEngine,
-):
+async def test_analyze_email_with_db_no_category_match(ai_engine_instance: AdvancedAIEngine):
     subject = "Unique Topic"
     content = "Content about something new."
 
@@ -131,10 +126,7 @@ async def test_analyze_email_with_db_no_category_match(
     mock_db_manager_for_ai_engine.get_all_categories.return_value = mock_db_categories
 
     result = await ai_engine_instance.analyze_email(
-        subject,
-        content,
-        models_to_use=DEFAULT_MODELS_TO_USE,
-        db=mock_db_manager_for_ai_engine,
+        subject, content, models_to_use=DEFAULT_MODELS_TO_USE, db=mock_db_manager_for_ai_engine
     )
 
     assert isinstance(result, AIAnalysisResult)
@@ -148,9 +140,7 @@ async def test_analyze_email_model_failure(
     subject = "Test Subject"
     content = "Test Content"
 
-    mock_model_manager.mock_sentiment_model.analyze.side_effect = Exception(
-        "Model exploded"
-    )
+    mock_model_manager.mock_sentiment_model.analyze.side_effect = Exception("Model exploded")
 
     result = await ai_engine_instance.analyze_email(
         subject, content, models_to_use=DEFAULT_MODELS_TO_USE

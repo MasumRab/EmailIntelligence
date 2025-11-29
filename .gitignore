@@ -26,6 +26,7 @@ jsons/*
 
 # Build / packaging artifacts
 build/
+dist/
 *.egg-info/
 pip-wheel-metadata/
 *.egg
@@ -53,71 +54,30 @@ coverage/
 .history
 
 # Misc
-logs/
+diagnosis_message.txt
 
 # Ignore configuration and local environment files
 *.local.config
 *.local.json
 *.local.yaml
 *.local.yml
+jsons/client_id.json
+credentials.json
+jsons/apikey.json
 config.local.*
 config/llm_guidelines.local.json
 
-<<<<<<< HEAD
 # Ignore hidden files and directories, with exceptions
 .*
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
-!.git/hooks/
 
 # Python cache
 __pycache__/
 
 # Miscellaneous
+diagnosis_message.txt
 performance_metrics_log.jsonl
+config/llm_guidelines.local.json
 models/*.pkl
-worktrees/
-
-# Backup files
-*.bak
-*~
-*.backup
-backlog/config.yml.bak
-original_readme.md
-scripts/hooks/
-
-# Hidden files/directories (exceptions below)
-.aider.tags.cache.v4/
-.aider.chat.history.md
-.aider.conf.yml
-.aider.input.history
-.curl/
-.npm/
-.npm-*
-.python-version
-.ruby-version
-.tool-versions
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dev-debug.log
-# Dependency directories
-# Environment variables
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-# OS specific
-
-# Task files
-# tasks.json
-# tasks/ 
