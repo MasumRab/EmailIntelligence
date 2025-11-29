@@ -1,92 +1,73 @@
-# Crush IDE-Specific Instructions
+# EmailIntelligence Agent Guidelines
 
-> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Crush IDE-specific features and integrations.
+## Build/Lint/Test Commands
+### Python Backend
+- **Test all**: `pytest`
+- **Test single file**: `pytest python_backend/tests/test_file.py`
+- **Test single function**: `pytest python_backend/tests/test_file.py::TestClass::test_function`
+- **Format**: `black .`
+- **Lint**: `flake8 . && pylint python_backend`
+- **Type check**: `mypy .`
 
-## MCP Configuration for Crush IDE
+### TypeScript/React Frontend
+- **Build**: `cd client && npm run build`
+- **Lint**: `cd client && npm run lint`
+- **Dev server**: `cd client && npm run dev`
 
-Configure Task Master MCP server in your Crush workspace configuration:
+## Code Style Guidelines
+### Python
+- **Formatting**: Black (line length 100), isort (black profile)
+- **Naming**: `snake_case` (functions/vars), `CapWords` (classes), `UPPER_CASE` (constants)
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+- **Error handling**: Specific exceptions, meaningful messages, logging
 
-```json
-{
-  "extensions": {
-    "task-master-ai": {
-      "enabled": true,
-      "mcpServer": {
-        "command": "npx",
-        "args": ["-y", "task-master-ai"]
-      }
-    }
-  }
-}
-```
+### TypeScript/React
+- **Strict mode**: Enabled
+- **Imports**: `@/` (client src), `@shared/` (shared types)
+- **Components**: `PascalCase` naming, default export functions
+- **Styling**: Tailwind CSS
+- **API**: Use client from `lib/api.ts`
 
-**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
+## ⚠️ Critical Rules to Follow
+- No circular dependencies
+- No hard-coded paths/secrets
+- Strict typing (full annotations)
+- Consistent naming conventions
+- Security: Never expose or log sensitive data
 
-## Crush IDE-Specific Features
+## Build/Lint/Test Commands
+### Python Backend
+- **Test all**: `pytest`
+- **Test single file**: `pytest python_backend/tests/test_file.py`
+- **Test single function**: `pytest python_backend/tests/test_file.py::TestClass::test_function`
+- **Format**: `black .`
+- **Lint**: `flake8 . && pylint python_backend`
+- **Type check**: `mypy .`
 
-### Workspace Integration
+### TypeScript/React Frontend
+- **Build**: `cd client && npm run build`
+- **Lint**: `cd client && npm run lint`
+- **Dev server**: `cd client && npm run dev`
 
-- Built-in terminal with task management
-- File explorer with MCP tool integration
-- Split editor windows for parallel task work
-- Integrated debugging and linting
+## Code Style Guidelines
+### Python
+- **Formatting**: Black (line length 100), isort (black profile)
+- **Naming**: `snake_case` (functions/vars), `CapWords` (classes), `UPPER_CASE` (constants)
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+- **Error handling**: Specific exceptions, meaningful messages, logging
 
-Both `AGENTS.md` and `CRUSH.md` are auto-loaded in Crush workspace context.
+### TypeScript/React
+- **Strict mode**: Enabled
+- **Imports**: `@/` (client src), `@shared/` (shared types)
+- **Components**: `PascalCase` naming, default export functions
+- **Styling**: Tailwind CSS
+- **API**: Use client from `lib/api.ts`
 
-### File Management in Crush
-
-```bash
-# Direct file operations from integrated terminal
-task-master show 1.2    # View task details
-task-master update-subtask --id=1.2 --prompt="progress notes"
-
-# File context available via workspace explorer
-# Edit files directly in Crush editor (superior UX to terminal)
-```
-
-### Inline AI Assistance
-
-- Hover over code for explanations
-- Right-click → "Analyze with Task Master"
-- Inline suggestions for code improvements
-
-## Important Differences from Other Agents
-
-### Integrated Development Environment
-Crush provides a unified IDE experience - no need for separate terminal windows.
-
-### Visual File Tree
-Navigate repository structure with visual file explorer (more efficient than `ls`/`find`).
-
-### Real-time Collaboration
-Crush supports shared workspaces - multiple developers on same project.
-
-### No Separate Configuration Files
-Settings managed within Crush IDE GUI, not via `.crush/` directories.
-
-## Recommended Model Configuration
-
-For Crush IDE users:
-
-```bash
-# Configure via Crush IDE settings panel
-task-master models --set-main <your-preferred-model>
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
-task-master models --set-fallback <backup-model>
-```
-
-## Your Role with Crush IDE
-
-As a Crush IDE assistant with Task Master:
-
-1. **Leverage IDE features** - Use visual file explorer, split editors, integrated terminal
-2. **Use MCP tools naturally** - Available through IDE context menu and inline suggestions
-3. **Manage tasks in editor** - View task details directly in Crush
-4. **Workspace coordination** - Facilitate multi-developer workflows
-5. **Real-time feedback** - Provide immediate code analysis and suggestions
-
-**Key Principle:** Crush IDE provides a complete development environment. Task Master integrates seamlessly for task-driven development workflows.
-
----
-
-*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
+## ⚠️ Critical Rules to Follow
+- No circular dependencies
+- No hard-coded paths/secrets
+- Strict typing (full annotations)
+- Consistent naming conventions
+- Security: Never expose or log sensitive data
