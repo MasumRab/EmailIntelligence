@@ -68,7 +68,7 @@ class SmartGmailRetriever:
         with open(TOKEN_JSON_PATH, "w") as token_file:
             token_file.write(creds.to_json())
         self.logger.info("Credentials stored successfully.")
-        except Exception as e:
+    except Exception as e:
             self.logger.error(
                 f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
             )

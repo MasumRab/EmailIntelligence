@@ -1,8 +1,11 @@
 """
-Security management components for the node-based workflow engine.
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
-This module provides security features including access control, input sanitization,
-execution sandboxing, and resource management.
+Security and Resource Management for the Node-Based Email Intelligence Platform.
+
+This module implements security measures and resource management for the node-based
+workflow system.
 """
 
 import asyncio
@@ -10,138 +13,76 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from enum import Enum
+from typing import Any, Callable, Dict, Optional
 
-# Try to import bleach for HTML sanitization, fallback if not available
+# Import bleach for proper HTML sanitization
 try:
     import bleach
 except ImportError:
     bleach = None
+    import warnings
+
+    warnings.warn(
+        "bleach library not found. Install it using 'pip install bleach' for proper HTML sanitization."
+    )
+
+
+class SecurityLevel(Enum):
+    """Security levels for nodes and workflows."""
+
+    UNTRUSTED = "untrusted"
+    LIMITED = "limited"
+    TRUSTED = "trusted"
+    SYSTEM = "system"
 
 
 @dataclass
 class ResourceLimits:
-    """Defines resource limits for workflow execution."""
+    """Resource limits for node execution."""
 
-    max_api_calls: int = 1000
-    max_execution_time: int = 300  # seconds
-    max_memory_mb: int = 512
-    max_concurrent_nodes: int = 10
+    max_memory_mb: int = 100
+    max_execution_time_seconds: int = 30
+    max_api_calls: int = 10
+    max_file_size_bytes: int = 10 * 1024 * 1024  # 10MB
 
 
 class SecurityManager:
-    """
-    Manages security and authorization for workflow operations.
-    """
+    """Manages security and permissions for the node system."""
 
-    def __init__(self, user_roles: Dict[str, List[str]] = None):
-        self.user_roles = user_roles or {}
-        self._api_call_counts: Dict[str, int] = {}
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+    def __init__(self):
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.trusted_node_types = set()
+        self.security_policies = {}
+        self._api_call_counts = {}
 
-    def has_permission(self, user: Any, action: str, resource: Any) -> bool:
-        """
-            Checks if a user has permission to perform an action on a resource.
+    # TODO(P1, 3h): Implement comprehensive security policies with RBAC support
+    # TODO(P1, 4h): Add rate limiting for different user roles and node types
 
-            Args:
-                user: The user object, expected to have an 'id' attribute.
-                action: The action being performed (e.g., "execute", "edit", "view").
-                resource: The resource being acted upon (e.g., a Workflow object).
+    def register_trusted_node_type(self, node_type: str):
+        """Register a node type as trusted."""
+        self.trusted_node_types.add(node_type)
+        self.logger.info(f"Registered trusted node type: {node_type}")
 
-        # TODO(P1, 3h): Implement comprehensive security policies with RBAC support
-        # Pseudo code for RBAC security policies:
-        # - Create Role-Based Access Control system
-        # - Define roles: admin, user, guest with different permissions
-        # - Implement permission checking for node execution
-        # - Add user context to security validation
-        # - Support role hierarchies and permission inheritance
-
-        # TODO(P1, 4h): Add rate limiting for different user roles and node types
-        # Pseudo code for rate limiting:
-        # - Implement token bucket or sliding window algorithms
-        # - Different limits for different user roles (admin: 1000/min, user: 100/min)
-        # - Per-node-type rate limiting (expensive nodes: lower limits)
-        # - Add rate limit headers to responses
-        # - Implement rate limit bypass for trusted operations
-
-            Returns:
-                True if the user has permission, False otherwise.
-        """
-        user_id = getattr(user, "id", None)
-        if not user_id:
-            return False  # User must have an ID
-
-        roles = self.user_roles.get(user_id, ["guest"])
-
-        # Admins have all permissions
-        if "admin" in roles:
-            return True
-
-        # Specific resource-based permissions
-        if (
-            hasattr(resource, "__tablename__") and resource.__tablename__ == "workflows"
-        ):  # Assuming SQLAlchemy model
-            # For workflow execution
-            if action == "execute":
-                # Only allow execution of workflows marked as 'safe' for non-admins
-                # and if the user has 'editor' role or is the owner
-                is_owner = getattr(resource, "owner_id", None) == user_id
-                return (
-                    getattr(resource, "is_safe", False) and "editor" in roles
-                ) or is_owner
-
-            # For workflow editing
-            if action == "edit":
-                # Only owner or admin can edit
-                return (
-                    getattr(resource, "owner_id", None) == user_id or "editor" in roles
-                )
-
-            # For viewing workflows
-            if action == "view":
-                is_owner = getattr(resource, "owner_id", None) == user_id
-                is_public = getattr(resource, "is_public", False)
-
-                # Admins and editors can view any workflow
-                if "admin" in roles or "editor" in roles:
-                    return True
-
-                # Owners can view their own workflows
-                if is_owner:
-                    return True
-
-                # Any authenticated user can view a public workflow
-                if "user" in roles and is_public:
-                    return True
-
-                return False  # Default to no permission
-
-        # Default to no permission if no specific rule matches
-        return False
+    def is_trusted_node(self, node_type: str) -> bool:
+        """Check if a node type is trusted."""
+        return node_type in self.trusted_node_types
 
     def validate_node_execution(self, node_type: str, config: Dict[str, Any]) -> bool:
-        """
-        Validate that a node can be executed with the given configuration.
+        """Validate if a node can be executed based on security policies."""
+        # Basic validation for potentially dangerous operations
+        if node_type not in self.trusted_node_types:
+            # Check for potentially unsafe configurations
+            if config.get("code", "") or config.get("script", ""):
+                self.logger.warning(
+                    f"Untrusted node {node_type} has code configuration - access denied"
+                )
+                return False
 
-        Args:
-            node_type: The type of node being executed.
-            config: Configuration parameters for the node.
+        return True
 
-        Returns:
-            True if the node execution is valid, False otherwise.
-        """
-        # In a real implementation, this would check against security policies
-        # For now, we'll allow all trusted node types
-        trusted_nodes = [
-            "EmailSourceNode",
-            "PreprocessingNode",
-            "AIAnalysisNode",
-            "FilterNode",
-            "ActionNode",
-        ]
-        return node_type in trusted_nodes
+    # TODO(P1, 5h): Implement comprehensive node validation with static analysis of config parameters
+    # TODO(P2, 3h): Add support for dynamic security policies based on user context
 
     def check_api_call_limit(self, workflow_id: str, node_id: str) -> bool:
         """Check if API call limits are exceeded."""
@@ -167,12 +108,6 @@ class SecurityManager:
         """Reset API call count for a workflow/node."""
         key = f"{workflow_id}:{node_id}"
         self._api_call_counts[key] = 0
-
-    def register_trusted_node_type(self, node_type: str):
-        """Register a node type as trusted."""
-        # This is a placeholder method - in a real implementation,
-        # this would update the trusted nodes list
-        pass
 
 
 class InputSanitizer:
@@ -221,30 +156,13 @@ class InputSanitizer:
             sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
                 "onload", "onload&#58;"
             )
-            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace(
-                "<object", "&lt;object"
-            )
-            sanitized = sanitized.replace("<embed", "&lt;embed").replace(
-                "<form", "&lt;form"
-            )
+            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
+            sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
 
         return sanitized
 
     # TODO(P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
-    # Pseudo code for additional content type sanitization:
-    # - Add Markdown sanitization with allowed elements (headers, links, lists)
-    # - Implement CSV sanitization to prevent formula injection
-    # - Add XML sanitization with schema validation
-    # - Support YAML sanitization with type safety checks
-    # - Implement binary data sanitization for file uploads
-
     # TODO(P2, 2h): Add configurable sanitization policies based on security levels
-    # Pseudo code for configurable sanitization policies:
-    # - Create SanitizationPolicy class with different security levels
-    # - Level 1 (Strict): Minimal allowed content, maximum security
-    # - Level 2 (Standard): Balanced security and functionality
-    # - Level 3 (Permissive): Maximum functionality, reduced security
-    # - Allow per-user or per-operation policy selection
 
     @staticmethod
     def sanitize_json(value: str) -> Dict[str, Any]:
@@ -291,16 +209,12 @@ class ExecutionSandbox:
 
     def __init__(self, security_manager: SecurityManager):
         self.security_manager = security_manager
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
     # TODO(P1, 8h): Implement comprehensive execution sandboxing with resource isolation
     # TODO(P2, 4h): Add support for custom execution environments based on node security levels
 
-    async def execute_with_timeout(
-        self, coro: Callable, timeout: int, *args, **kwargs
-    ) -> Any:
+    async def execute_with_timeout(self, coro: Callable, timeout: int, *args, **kwargs) -> Any:
         """Execute a coroutine with a timeout."""
         try:
             result = await asyncio.wait_for(coro(*args, **kwargs), timeout=timeout)
@@ -308,16 +222,14 @@ class ExecutionSandbox:
         except asyncio.TimeoutError:
             raise RuntimeError(f"Execution timed out after {timeout} seconds")
 
-    def validate_input_types(
-        self, inputs: Dict[str, Any], expected_types: Dict[str, type]
-    ) -> bool:
+    def validate_input_types(self, inputs: Dict[str, Any], expected_types: Dict[str, type]) -> bool:
         """Validate input types against expected types."""
         for port_name, expected_type in expected_types.items():
             if port_name in inputs:
                 if not isinstance(inputs[port_name], expected_type):
                     self.logger.error(
-                        f"Input validation failed: {port_name} expected "
-                        f"{expected_type}, got {type(inputs[port_name])}"
+                    f"Input validation failed: {port_name} expected "
+                    f"{expected_type}, got {type(inputs[port_name])}"
                     )
                     return False
         return True
@@ -327,9 +239,7 @@ class AuditLogger:
     """Logs execution events for audit and debugging."""
 
     def __init__(self, log_file: str = "logs/workflow_audit.log"):
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
         self.logger.setLevel(logging.INFO)
 
         # Create logs directory if it doesn't exist
@@ -340,44 +250,29 @@ class AuditLogger:
         # Create file handler
         from logging.handlers import RotatingFileHandler
 
-        handler = RotatingFileHandler(
-            log_file, maxBytes=10 * 1024 * 1024, backupCount=5
-        )
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        handler = RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5)
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
 
-    def log_workflow_start(
-        self, workflow_id: str, workflow_name: str, user_id: str = None
-    ):
+    def log_workflow_start(self, workflow_id: str, workflow_name: str, user_id: str = None):
         """Log workflow execution start."""
-        self.logger.info(
-            f"WORKFLOW_START: id={workflow_id}, name={workflow_name}, user={user_id}"
-        )
+        self.logger.info(f"WORKFLOW_START: id={workflow_id}, name={workflow_name}, user={user_id}")
 
-    def log_workflow_end(
-        self, workflow_id: str, status: str, duration: float, user_id: str = None
-    ):
+    def log_workflow_end(self, workflow_id: str, status: str, duration: float, user_id: str = None):
         """Log workflow execution end."""
         self.logger.info(
-            f"WORKFLOW_END: id={workflow_id}, status={status}, "
-            f"duration={duration}s, user={user_id}"
+        f"WORKFLOW_END: id={workflow_id}, status={status}, "
+        f"duration={duration}s, user={user_id}"
         )
 
     def log_node_execution(
-        self,
-        workflow_id: str,
-        node_id: str,
-        node_name: str,
-        status: str,
-        duration: float,
+        self, workflow_id: str, node_id: str, node_name: str, status: str, duration: float
     ):
         """Log node execution."""
         self.logger.info(
-            f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={node_name}, "
-            f"status={status}, duration={duration}s"
+            f"NODE_EXEC: workflow={workflow_id}, node_id={node_id}, name={
+                         node_name}, status={status}, duration={duration}s"
         )
 
     def log_security_event(self, event_type: str, details: Dict[str, Any]):
@@ -392,19 +287,13 @@ class ResourceManager:
         self.max_concurrent_workflows = max_concurrent_workflows
         self.current_workflows = 0
         self.workflow_queue = asyncio.Queue()
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
         self._resource_usage = {}
 
-    async def acquire_resources(
-        self, workflow_id: str, required_resources: ResourceLimits
-    ) -> bool:
+    async def acquire_resources(self, workflow_id: str, required_resources: ResourceLimits) -> bool:
         """Acquire resources for a workflow."""
         if self.current_workflows >= self.max_concurrent_workflows:
-            self.logger.info(
-                f"Max concurrent workflows reached. Workflow {workflow_id} queued."
-            )
+            self.logger.info(f"Max concurrent workflows reached. Workflow {workflow_id} queued.")
             await self.workflow_queue.put(workflow_id)
             return False
 
@@ -415,8 +304,8 @@ class ResourceManager:
         }
 
         self.logger.info(
-            f"Resources acquired for workflow {workflow_id}. Current: "
-            f"{self.current_workflows}/{self.max_concurrent_workflows}"
+            f"Resources acquired for workflow {workflow_id}. Current: {
+                         self.current_workflows}/{self.max_concurrent_workflows}"
         )
         return True
 
@@ -429,8 +318,8 @@ class ResourceManager:
             self.current_workflows -= 1
 
         self.logger.info(
-            f"Resources released for workflow {workflow_id}. Current: "
-            f"{self.current_workflows}/{self.max_concurrent_workflows}"
+            f"Resources released for workflow {workflow_id}. Current: {
+                         self.current_workflows}/{self.max_concurrent_workflows}"
         )
 
     async def get_next_queued_workflow(self) -> Optional[str]:

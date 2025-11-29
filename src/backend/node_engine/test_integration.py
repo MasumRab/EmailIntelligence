@@ -10,19 +10,21 @@ security features, scalability, and workflow management.
 
 import asyncio
 import os
+import shutil
 from datetime import datetime
+from typing import Any, Dict, List
 
-from src.backend.node_engine.email_nodes import (
+from backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from src.backend.node_engine.node_base import Connection, Workflow
-from src.backend.node_engine.security_manager import resource_manager
-from src.backend.node_engine.workflow_engine import workflow_engine
-from src.backend.node_engine.workflow_manager import workflow_manager
+from backend.node_engine.node_base import Connection, Workflow
+from backend.node_engine.security_manager import audit_logger, resource_manager, security_manager
+from backend.node_engine.workflow_engine import workflow_engine
+from backend.node_engine.workflow_manager import workflow_manager
 
 
 async def test_complete_email_workflow():
@@ -113,8 +115,8 @@ async def test_complete_email_workflow():
     )
 
     print(
-        f"Created workflow with {len(workflow.nodes)} nodes and "
-        f"{len(workflow.connections)} connections"
+    f"Created workflow with {len(workflow.nodes)} nodes and "
+    f"{len(workflow.connections)} connections"
     )
 
     # Execute with security context
@@ -211,9 +213,7 @@ async def test_security_enforcement():
 
     # Test execution with user context
     try:
-        context = await workflow_engine.execute_workflow(
-            workflow, user_id="security_test_user"
-        )
+        context = await workflow_engine.execute_workflow(workflow, user_id="security_test_user")
         success = context.metadata.get("status") == "completed"
         print(f"Security enforcement test: {context.metadata.get('status')}")
 
@@ -279,9 +279,7 @@ async def test_concurrent_workflows():
         else:
             errors += 1
 
-    print(
-        f"Concurrent execution: {successful} successful, {errors} failed out of {len(workflows)}"
-    )
+    print(f"Concurrent execution: {successful} successful, {errors} failed out of {len(workflows)}")
     print(f"Total execution time: {total_time:.2f}s for {len(workflows)} workflows")
 
     return successful == len(workflows)
@@ -306,18 +304,14 @@ async def test_resource_management():
     execution_results = []
     for i, wf in enumerate(workflows):
         try:
-            result = await workflow_engine.execute_workflow(
-                wf, user_id=f"resource_user_{i}"
-            )
+            result = await workflow_engine.execute_workflow(wf, user_id=f"resource_user_{i}")
             execution_results.append(result.metadata.get("status") == "completed")
         except Exception as e:
             print(f"Resource test workflow {i} failed: {e}")
             execution_results.append(False)
 
     success_count = sum(execution_results)
-    print(
-        f"Resource management test: {success_count}/{len(workflows)} workflows completed"
-    )
+    print(f"Resource management test: {success_count}/{len(workflows)} workflows completed")
 
     final_resources = resource_manager.current_workflows
     print(f"Final resource usage: {final_resources}")
@@ -327,9 +321,7 @@ async def test_resource_management():
 
 async def run_comprehensive_test():
     """Run all integration tests."""
-    print(
-        "Starting Comprehensive Integration Tests for Node-Based Email Intelligence Platform\n"
-    )
+    print("Starting Comprehensive Integration Tests for Node-Based Email Intelligence Platform\n")
 
     tests = [
         ("Complete Email Workflow", test_complete_email_workflow),
@@ -396,8 +388,6 @@ if __name__ == "__main__":
                 "\nSUCCESS: All integration tests passed! The node-based email intelligence platform is working correctly."
             )
         else:
-            print(
-                "\nFAILURE: Some integration tests failed. Please check the implementation."
-            )
+            print("\nFAILURE: Some integration tests failed. Please check the implementation.")
     except Exception as e:
         print(f"\nERROR: Test execution failed with error: {e}")
