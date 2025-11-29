@@ -782,3 +782,5 @@ async def initialize_db():
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
+
+db_manager = DatabaseManager()

@@ -23,26 +23,8 @@ from backend.python_nlp.gmail_service import GmailAIService
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from backend.python_nlp.smart_filters import SmartFilterManager
 
-from . import (
-    action_routes,
-    ai_routes,
-    category_routes,
-    dashboard_routes,
-    email_routes,
-    filter_routes,
-    gmail_routes,
-    training_routes,
-    workflow_routes,
-    model_routes,
-    performance_routes,
-)
-from .auth import create_access_token, get_current_user, TokenData
-from src.core.auth import authenticate_user
-from fastapi.security import HTTPBearer
-from fastapi import Depends, HTTPException, status
-from datetime import timedelta
 from .ai_engine import AdvancedAIEngine
-from .exceptions import AppException
+from .exceptions import AppException, BaseAppException
 
 # Import new components
 from .model_manager import model_manager
@@ -192,6 +174,17 @@ app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
 app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
 
 # Include legacy routers for backward compatibility
+from . import action_routes
+from . import ai_routes
+from . import category_routes
+from . import dashboard_routes
+from . import email_routes
+from . import filter_routes
+from . import gmail_routes
+from . import training_routes
+from . import workflow_routes
+from . import model_routes
+from . import performance_routes
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
@@ -235,35 +228,6 @@ except ImportError:
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
-
-
-# Authentication endpoints
-@app.post("/token")
-async def login(username: str, password: str):
-    """Login endpoint to get access token"""
-    # Use the new authentication system
-    db = await get_db()
-    user = await authenticate_user(username, password, db)
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Try to get the settings if possible
-    try:
-        from .settings import settings
-        access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    except ImportError:
-        # Use a default if settings are not available
-        access_token_expires = timedelta(minutes=30)
-    
-    access_token = create_access_token(
-        data={"sub": username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # Health check endpoint (usually kept in main.py)
