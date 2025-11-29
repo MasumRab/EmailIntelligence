@@ -2,17 +2,16 @@ import json
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, Request
-
-from src.core.auth import get_current_active_user
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from .database import DatabaseManager, get_db
 from .dependencies import get_category_service
 from .exceptions import DatabaseError
 from .models import CategoryCreate, CategoryResponse
 from .performance_monitor import log_performance
+from .utils import create_log_data, handle_pydantic_validation
 from .services.category_service import CategoryService
-from .utils import create_log_data
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -23,11 +22,11 @@ router = APIRouter()
 async def get_categories(
     request: Request,
     current_user: str = Depends(get_current_active_user),
-    db: DatabaseManager = Depends(get_db),
+    db: DatabaseManager = Depends(get_db)
 ):
     """
     Retrieves all categories from the database.
-
+    
     Requires authentication.
     """
     try:
@@ -42,7 +41,7 @@ async def get_categories(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.") from db_err
+        raise DatabaseError(detail="Failed to create category.")
 
 
 @router.post("/api/categories", response_model=CategoryResponse)
@@ -80,4 +79,4 @@ async def create_category(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.") from db_err
+        raise DatabaseError(detail="Failed to create category.")

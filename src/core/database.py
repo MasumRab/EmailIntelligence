@@ -683,6 +683,33 @@ class DatabaseManager(DataSource):
 
         return self._add_category_details(email_to_update)
 
+    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get user by username from the users data."""
+        for user in self.users_data:
+            if user.get("username") == username:
+                return user
+        return None
+
+    async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new user and save to the users data."""
+        # Check if user already exists
+        existing_user = await self.get_user_by_username(user_data.get("username", ""))
+        if existing_user:
+            return None
+
+        # Generate ID for the user
+        new_id = self._generate_id(self.users_data)
+        user_record = {
+            "id": new_id,
+            "username": user_data["username"],
+            "hashed_password": user_data["hashed_password"],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        
+        self.users_data.append(user_record)
+        await self._save_data(DATA_TYPE_USERS)
+        return user_record
+
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
