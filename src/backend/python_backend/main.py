@@ -39,6 +39,10 @@ from . import (
     model_routes,
     performance_routes,
 )
+from .auth import create_access_token, get_current_user, TokenData
+from fastapi.security import HTTPBearer
+from fastapi import Depends, HTTPException, status
+from datetime import timedelta
 from .ai_engine import AdvancedAIEngine
 from .exceptions import AppException
 
@@ -286,6 +290,29 @@ except ImportError:
 
 # Request/Response Models previously defined here are now in .models
 # Ensure route files import them from .models
+
+
+# Authentication endpoints
+@app.post("/token")
+async def login(username: str, password: str):
+    """Login endpoint to get access token"""
+    # In a real implementation, you would verify the username and password
+    # against a database or other authentication system
+    # For this example, we'll just check for a hardcoded user
+    
+    # Simple example validation - replace with real authentication logic
+    if username == "admin" and password == "secret":  # This should be replaced with a secure method
+        access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+        access_token = create_access_token(
+            data={"sub": username}, expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 # Health check endpoint (usually kept in main.py)
