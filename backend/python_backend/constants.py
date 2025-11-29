@@ -5,10 +5,7 @@ It will be removed in a future release.
 Constants for the Email Intelligence backend.
 """
 
-# Field name constants (avoid circular import)
-FIELD_NAME = "name"
-FIELD_COLOR = "color"
-FIELD_COUNT = "count"
+from .database import FIELD_NAME, FIELD_COLOR, FIELD_COUNT
 
 DEFAULT_CATEGORY_COLOR = "#6366f1"
 

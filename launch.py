@@ -571,7 +571,7 @@ def start_gradio_ui(host, port, share, debug):
     if debug:
         cmd.append("--debug")
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
+    env["PYTHONPATH"] = str(ROOT_DIR.resolve())
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
 
