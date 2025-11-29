@@ -78,6 +78,53 @@ PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
+# --- WSL Support ---
+def is_wsl():
+    """Check if running in WSL environment"""
+    try:
+        with open('/proc/version', 'r') as f:
+            content = f.read().lower()
+            return 'microsoft' in content or 'wsl' in content
+    except:
+        return False
+
+def setup_wsl_environment():
+    """Setup WSL-specific environment variables if in WSL"""
+    if not is_wsl():
+        return
+
+    # Set display for GUI applications
+    if 'DISPLAY' not in os.environ:
+        os.environ['DISPLAY'] = ':0'
+
+    # Set matplotlib backend for WSL
+    os.environ['MPLBACKEND'] = 'Agg'
+
+    # Optimize for WSL performance
+    os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
+    os.environ['PYTHONUNBUFFERED'] = '1'
+
+    # Set OpenGL for WSL
+    os.environ['LIBGL_ALWAYS_INDIRECT'] = '1'
+
+    logger.info("🐧 WSL environment detected - applied optimizations")
+
+def check_wsl_requirements():
+    """Check WSL-specific requirements and warn if needed"""
+    if not is_wsl():
+        return
+
+    # Check if X11 server is accessible (optional check)
+    try:
+        result = subprocess.run(['xset', '-q'],
+                              capture_output=True,
+                              timeout=2)
+        if result.returncode != 0:
+            logger.warning("X11 server not accessible - GUI applications may not work")
+            logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass  # Silently ignore X11 check failures
+
 # --- Python Version Checking ---
 def check_python_version():
     """Check if the current Python version is compatible."""
@@ -529,7 +576,164 @@ if __name__ == "__main__":
     if python_path:
         env['PYTHONPATH'] = f"{script_dir}:{python_path}"
     else:
+<<<<<<< ours
         env['PYTHONPATH'] = script_dir
+=======
+        print(f"Virtual Environment: {venv_path} (not created)")
+
+    conda_available = is_conda_available()
+    print(f"Conda Available: {conda_available}")
+    if conda_available:
+        conda_env = os.environ.get('CONDA_DEFAULT_ENV', 'None')
+        print(f"Current Conda Env: {conda_env}")
+
+    node_available = check_node_npm_installed()
+    print(f"Node.js/npm Available: {node_available}")
+
+    print("\\n=== Configuration Files ===")
+    config_files = [
+        "pyproject.toml", "requirements.txt", "requirements-dev.txt",
+        "package.json", "launch-user.env", ".env"
+    ]
+    for cf in config_files:
+        exists = (ROOT_DIR / cf).exists()
+        print(f"{cf}: {'Found' if exists else 'Not found'}")
+
+def main():
+    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
+
+    # Environment Setup
+    parser.add_argument("--setup", action="store_true", help="Run environment setup.")
+    parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
+    parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
+    parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
+    parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
+    parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
+    parser.add_argument("--update-deps", action="store_true", help="Update dependencies before launching.")
+    parser.add_argument("--skip-torch-cuda-test", action="store_true", help="Skip CUDA availability test for PyTorch.")
+    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
+    parser.add_argument("--skip-python-version-check", action="store_true", help="Skip Python version check.")
+    parser.add_argument("--no-download-nltk", action="store_true", help="Skip downloading NLTK data.")
+    parser.add_argument("--skip-prepare", action="store_true", help="Skip all environment preparation steps.")
+    parser.add_argument("--loglevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help="Set the logging level.")
+
+    # Application Stage
+    parser.add_argument("--stage", choices=['dev', 'test'], default='dev', help="Specify the application mode.")
+
+    # Server Configuration
+    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
+    parser.add_argument("--frontend-port", type=int, default=5173, help="Specify the frontend port to run on.")
+    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
+    parser.add_argument("--api-only", action="store_true", help="Run only the API server without the frontend.")
+    parser.add_argument("--frontend-only", action="store_true", help="Run only the frontend without the API server.")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
+
+    # Testing Options
+    parser.add_argument("--coverage", action="store_true", help="Generate coverage report when running tests.")
+    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
+    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
+    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    parser.add_argument("--security", action="store_true", help="Run security tests.")
+
+    # Extensions and Models
+    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
+    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
+    parser.add_argument("--install-extension", type=str, help="Install an extension from a Git repository.")
+    parser.add_argument("--uninstall-extension", type=str, help="Uninstall an extension.")
+    parser.add_argument("--update-extension", type=str, help="Update an extension.")
+    parser.add_argument("--list-extensions", action="store_true", help="List all extensions.")
+    parser.add_argument("--create-extension", type=str, help="Create a new extension template.")
+    parser.add_argument("--download-model", type=str, help="Download a model from a URL.")
+    parser.add_argument("--model-name", type=str, help="Specify the model name for download.")
+    parser.add_argument("--list-models", action="store_true", help="List all models.")
+    parser.add_argument("--delete-model", type=str, help="Delete a model.")
+
+    # Advanced Options
+    parser.add_argument("--no-half", action="store_true", help="Disable half-precision for models.")
+    parser.add_argument("--force-cpu", action="store_true", help="Force CPU mode even if GPU is available.")
+    parser.add_argument("--low-memory", action="store_true", help="Enable low memory mode.")
+    parser.add_argument("--system-info", action="store_true", help="Print detailed system, Python, and project configuration information then exit.")
+
+    # Networking Options
+    parser.add_argument("--share", action="store_true", help="Create a public URL.")
+    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
+    parser.add_argument("--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region.")
+
+    # Environment Configuration
+    parser.add_argument("--env-file", type=str, help="Specify a custom .env file.")
+
+    args = parser.parse_args()
+
+    # Setup WSL environment if applicable (early setup)
+    setup_wsl_environment()
+    check_wsl_requirements()
+
+    check_python_version()
+
+    if not args.skip_python_version_check:
+        check_python_version()
+
+    logging.getLogger().setLevel(args.loglevel)
+
+    if DOTENV_AVAILABLE:
+        # Load user customizations from launch-user.env if it exists
+        user_env_file = ROOT_DIR / "launch-user.env"
+        if user_env_file.exists():
+            load_dotenv(user_env_file)
+            logger.info(f"Loaded user environment variables from {user_env_file}")
+        else:
+            logger.debug(f"User env file not found: {user_env_file}")
+
+        # Load environment file if specified
+        env_file = args.env_file or ".env"
+        if os.path.exists(env_file):
+            logger.info(f"Loading environment variables from {env_file}")
+            load_dotenv(env_file)
+
+    # Set conda environment name if specified
+    global CONDA_ENV_NAME
+    if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
+        CONDA_ENV_NAME = args.conda_env
+        args.use_conda = True  # Set flag when conda env is specified
+    # args.use_conda remains as set by command line argument
+
+    # Validate environment if not skipping preparation
+    if not args.skip_prepare and not validate_environment():
+        sys.exit(1)
+
+    # Validate input arguments
+    try:
+        args.port = validate_port(args.port)
+        args.host = validate_host(args.host)
+        if hasattr(args, 'frontend_port'):
+            args.frontend_port = validate_port(args.frontend_port)
+    except ValueError as e:
+        logger.error(f"Input validation failed: {e}")
+        sys.exit(1)
+
+    if args.setup:
+        venv_path = ROOT_DIR / VENV_DIR
+        handle_setup(args, venv_path)
+        return
+
+    # Handle Conda environment if requested
+    if args.use_conda:
+        if not is_conda_available():
+            logger.error("Conda is not available. Please install Conda or use venv.")
+            sys.exit(1)
+
+        if not get_conda_env_info()["is_active"]:
+            if not activate_conda_env(args.conda_env):
+                logger.error(f"Failed to activate Conda environment: {args.conda_env}")
+                sys.exit(1)
+        else:
+            logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
+
+    if not args.skip_prepare and not args.use_conda:
+        prepare_environment(args)
+>>>>>>> theirs
 
     cmd = [sys.executable, setup_launch_path] + sys.argv[1:]
     result = subprocess.run(cmd, env=env)

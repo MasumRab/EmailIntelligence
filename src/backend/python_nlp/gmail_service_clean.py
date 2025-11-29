@@ -387,8 +387,12 @@ class GmailAIService:
 async def main():
     """Demonstrates the usage of the GmailAIService."""
     logging.basicConfig(
+<<<<<<< ours
         level=logging.DEBUG,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+=======
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+>>>>>>> theirs
     )
     service = GmailAIService()
     sync_result = await service.sync_gmail_emails(max_emails=2)
