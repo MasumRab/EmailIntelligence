@@ -12,7 +12,7 @@ iFlow CLI is an interactive command-line interface agent designed to assist with
 
 ## Key Technologies
 
-- **Backend**: Python 3.12+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
+- **Backend**: Python 3.11+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
 - **Frontend**: React (Vite), TypeScript
 - **NLP/AI**: Custom NLP engine with sentiment, topic, intent, and urgency analysis models using Hugging Face transformers
 - **Database**: SQLite (default)
@@ -51,7 +51,7 @@ EmailIntelligence/
 
 ### Prerequisites
 
-- Python 3.12 or later
+- Python 3.11 or later
 - Node.js 18 or later
 - Git
 
@@ -191,27 +191,11 @@ iFlow CLI uses a todo system to manage and plan tasks:
 ```python
 # Example of using todo system
 todo_write([{
-    "id": "1",
-    "task": "Implement new feature X",
+    "id": "1", 
+    "task": "Implement new feature X", 
     "status": "pending"
 }])
 ```
-
-## Documented Development Sessions
-
-iFlow CLI supports documented development sessions to track progress and maintain context:
-
-- **Session Tracking Directory**: `/backlog/sessions/`
-- **Session File Naming**: `IFLOW-YYYYMMDD-XXX.md` (e.g., `IFLOW-20251028-001.md`)
-- **Session Structure**:
-  - Session Information (date, ID, context)
-  - Session Goals
-  - Initial Context
-  - Activities and Progress
-  - Next Steps
-  - Notes
-
-All development activities should be properly recorded in session tracking files to maintain project history and context.
 
 ## iFlow CLI Software Engineering Workflow
 
