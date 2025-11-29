@@ -8,23 +8,20 @@ marketplace integration, and runtime monitoring for extensible functionality.
 import asyncio
 import hashlib
 import logging
-import shutil
-import tempfile
 import time
-import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from urllib.request import urlopen
+import json
+import zipfile
+import tempfile
+import shutil
 
 from .plugin_base import (
-    HookSystem,
-    PluginInstance,
-    PluginMetadata,
-    PluginRegistry,
-    PluginSecurityLevel,
-    PluginStatus,
-    SecuritySandbox,
+    PluginRegistry, PluginInterface, PluginMetadata,
+    PluginInstance, PluginStatus, PluginSecurityLevel,
+    HookSystem, SecuritySandbox
 )
 
 logger = logging.getLogger(__name__)
@@ -33,7 +30,6 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PluginMarketplaceEntry:
     """Entry in the plugin marketplace."""
-
     plugin_id: str
     name: str
     version: str
@@ -55,9 +51,7 @@ class PluginManager:
 
     def __init__(self, plugins_dir: Path = None, marketplace_url: str = None):
         self.plugins_dir = plugins_dir or Path("plugins")
-        self.marketplace_url = (
-            marketplace_url or "https://api.emailintelligence.plugins/marketplace"
-        )
+        self.marketplace_url = marketplace_url or "https://api.emailintelligence.plugins/marketplace"
         self.registry = PluginRegistry(plugins_dir)
         self._marketplace_cache: Dict[str, PluginMarketplaceEntry] = {}
         self._marketplace_cache_time: float = 0
@@ -142,9 +136,7 @@ class PluginManager:
             logger.error(f"Failed to uninstall plugin {plugin_id}: {e}")
             return False
 
-    async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
-    ) -> Optional[PluginInstance]:
+    async def load_plugin(self, plugin_id: str, config: Dict[str, Any] = None) -> Optional[PluginInstance]:
         """Load a plugin into memory."""
         return await self.registry.load_plugin(plugin_id, config)
 
@@ -183,9 +175,7 @@ class PluginManager:
                 return True
 
             # Install update
-            logger.info(
-                f"Updating plugin {plugin_id} from {current_version} to {latest_info.version}"
-            )
+            logger.info(f"Updating plugin {plugin_id} from {current_version} to {latest_info.version}")
             await self.uninstall_plugin(plugin_id)
             return await self.install_plugin(plugin_id, latest_info.version)
 
@@ -205,9 +195,7 @@ class PluginManager:
         """Get the security sandbox."""
         return self.registry.get_security_sandbox()
 
-    async def get_marketplace_plugins(
-        self, refresh: bool = False
-    ) -> List[Dict[str, Any]]:
+    async def get_marketplace_plugins(self, refresh: bool = False) -> List[Dict[str, Any]]:
         """Get available plugins from the marketplace."""
         try:
             if refresh or self._should_refresh_marketplace_cache():
@@ -224,7 +212,7 @@ class PluginManager:
                     "tags": entry.tags,
                     "rating": entry.rating,
                     "downloads": entry.downloads,
-                    "installed": plugin_id in self.registry._registry,
+                    "installed": plugin_id in self.registry._registry
                 }
 
                 if plugin_id in self.registry._registry:
@@ -255,16 +243,13 @@ class PluginManager:
             "background_tasks_active": len(self._background_tasks),
             "plugins_dir": str(self.plugins_dir),
             "security_levels": {
-                level.value: len(
-                    [p for p in plugins if p.get("security_level") == level.value]
-                )
+                level.value: len([p for p in plugins if p.get("security_level") == level.value])
                 for level in PluginSecurityLevel
-            },
+            }
         }
 
-    async def execute_plugin_method(
-        self, plugin_id: str, method_name: str, *args, **kwargs
-    ) -> Any:
+    async def execute_plugin_method(self, plugin_id: str, method_name: str,
+                                  *args, **kwargs) -> Any:
         """Execute a method on a loaded plugin safely."""
         if plugin_id not in self.registry._instances:
             raise ValueError(f"Plugin {plugin_id} is not loaded")
@@ -282,12 +267,8 @@ class PluginManager:
 
         # Execute with security validation
         security_level = instance.metadata.security_level
-        if not self._validate_method_execution(
-            plugin_object, method_name, security_level
-        ):
-            raise SecurityError(
-                f"Method execution not allowed for security level {security_level}"
-            )
+        if not self._validate_method_execution(plugin_object, method_name, security_level):
+            raise SecurityError(f"Method execution not allowed for security level {security_level}")
 
         try:
             if asyncio.iscoroutinefunction(method):
@@ -295,14 +276,10 @@ class PluginManager:
             else:
                 return method(*args, **kwargs)
         except Exception as e:
-            logger.error(
-                f"Plugin method execution failed: {plugin_id}.{method_name}: {e}"
-            )
+            logger.error(f"Plugin method execution failed: {plugin_id}.{method_name}: {e}")
             raise
 
-    async def _get_plugin_from_marketplace(
-        self, plugin_id: str, version: str = None
-    ) -> Optional[PluginMarketplaceEntry]:
+    async def _get_plugin_from_marketplace(self, plugin_id: str, version: str = None) -> Optional[PluginMarketplaceEntry]:
         """Get plugin information from marketplace."""
         try:
             if self._should_refresh_marketplace_cache():
@@ -315,9 +292,7 @@ class PluginManager:
 
             # Check version
             if version and entry.version != version:
-                logger.warning(
-                    f"Requested version {version} not available for {plugin_id}"
-                )
+                logger.warning(f"Requested version {version} not available for {plugin_id}")
                 return None
 
             return entry
@@ -326,9 +301,7 @@ class PluginManager:
             logger.error(f"Failed to get plugin from marketplace: {e}")
             return None
 
-    async def _download_and_install_plugin(
-        self, plugin_info: PluginMarketplaceEntry
-    ) -> bool:
+    async def _download_and_install_plugin(self, plugin_info: PluginMarketplaceEntry) -> bool:
         """Download and install a plugin from the marketplace."""
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -340,16 +313,14 @@ class PluginManager:
 
                 # Verify checksum
                 if not await self._verify_checksum(download_path, plugin_info.checksum):
-                    logger.error(
-                        f"Checksum verification failed for {plugin_info.plugin_id}"
-                    )
+                    logger.error(f"Checksum verification failed for {plugin_info.plugin_id}")
                     return False
 
                 # Extract archive
                 extract_path = temp_path / "extracted"
                 extract_path.mkdir()
 
-                with zipfile.ZipFile(download_path, "r") as zip_ref:
+                with zipfile.ZipFile(download_path, 'r') as zip_ref:
                     zip_ref.extractall(extract_path)
 
                 # Move to plugins directory
@@ -366,9 +337,7 @@ class PluginManager:
                     plugin_dir.mkdir()
                     for file_path in extract_path.iterdir():
                         if file_path.is_file():
-                            shutil.move(
-                                str(file_path), str(plugin_dir / file_path.name)
-                            )
+                            shutil.move(str(file_path), str(plugin_dir / file_path.name))
 
                 # Register the plugin
                 metadata = PluginMetadata(
@@ -376,22 +345,20 @@ class PluginManager:
                     name=plugin_info.name,
                     version=plugin_info.version,
                     author=plugin_info.author,
-                    description=plugin_info.description,
+                    description=plugin_info.description
                 )
 
                 return await self.registry.register_plugin(metadata)
 
         except Exception as e:
-            logger.error(
-                f"Failed to download and install plugin {plugin_info.plugin_id}: {e}"
-            )
+            logger.error(f"Failed to download and install plugin {plugin_info.plugin_id}: {e}")
             return False
 
     async def _download_file(self, url: str, dest_path: Path):
         """Download a file from URL."""
         try:
             with urlopen(url) as response:
-                with open(dest_path, "wb") as f:
+                with open(dest_path, 'wb') as f:
                     f.write(response.read())
         except Exception as e:
             logger.error(f"Failed to download file from {url}: {e}")
@@ -400,7 +367,7 @@ class PluginManager:
     async def _verify_checksum(self, file_path: Path, expected_checksum: str) -> bool:
         """Verify file checksum."""
         try:
-            with open(file_path, "rb") as f:
+            with open(file_path, 'rb') as f:
                 file_hash = hashlib.sha256(f.read()).hexdigest()
             return file_hash == expected_checksum
         except Exception as e:
@@ -425,7 +392,7 @@ class PluginManager:
                     description="Enhanced sentiment analysis with emoji and confidence scoring",
                     download_url="https://plugins.emailintelligence.com/sentiment_enhancer.zip",
                     checksum="dummy_checksum",
-                    tags=["sentiment", "ai", "enhancement"],
+                    tags=["sentiment", "ai", "enhancement"]
                 ),
                 "email_filter_pro": PluginMarketplaceEntry(
                     plugin_id="email_filter_pro",
@@ -435,8 +402,8 @@ class PluginManager:
                     description="Advanced email filtering with machine learning",
                     download_url="https://plugins.emailintelligence.com/email_filter_pro.zip",
                     checksum="dummy_checksum_2",
-                    tags=["filtering", "ml", "productivity"],
-                ),
+                    tags=["filtering", "ml", "productivity"]
+                )
             }
             self._marketplace_cache_time = time.time()
             logger.info("Refreshed marketplace cache")
@@ -444,18 +411,14 @@ class PluginManager:
         except Exception as e:
             logger.error(f"Failed to refresh marketplace cache: {e}")
 
-    def _validate_method_execution(
-        self, plugin_object: Any, method_name: str, security_level: PluginSecurityLevel
-    ) -> bool:
+    def _validate_method_execution(self, plugin_object: Any, method_name: str,
+                                 security_level: PluginSecurityLevel) -> bool:
         """Validate if a method execution is allowed."""
         # Basic validation - could be enhanced
         dangerous_methods = ["__del__", "system", "exec", "eval", "__import__"]
 
         if method_name in dangerous_methods:
-            if security_level in [
-                PluginSecurityLevel.SANDBOXED,
-                PluginSecurityLevel.STANDARD,
-            ]:
+            if security_level in [PluginSecurityLevel.SANDBOXED, PluginSecurityLevel.STANDARD]:
                 return False
 
         return True
@@ -480,9 +443,7 @@ class PluginManager:
                     try:
                         validation = await self.validate_plugin(plugin_id)
                         if not validation.get("valid", True):
-                            logger.warning(
-                                f"Plugin {plugin_id} health check failed: {validation}"
-                            )
+                            logger.warning(f"Plugin {plugin_id} health check failed: {validation}")
                     except Exception as e:
                         logger.error(f"Health check failed for plugin {plugin_id}: {e}")
 
@@ -507,5 +468,4 @@ class PluginManager:
 
 class SecurityError(Exception):
     """Exception raised for plugin security violations."""
-
     pass
