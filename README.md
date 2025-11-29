@@ -196,6 +196,96 @@ The application will typically be available at http://localhost:5173.
 
 This starts the application in a local development mode. For comprehensive setup instructions, alternative methods, and details on deploying to Docker, staging, or production environments, please refer to the [Launcher Guide](docs/launcher_guide.md) and the [Deployment Guide](docs/deployment_guide.md).
 
+## Local Development Setup
+
+For a more controlled setup process, especially for new contributors or clean environments, follow these detailed steps to set up your local development environment:
+
+### Prerequisites
+
+- **Python 3.12+**: Required for the backend services
+- **Node.js 16+**: Required for the frontend (optional if running API-only)
+- **Git**: For cloning the repository
+- **Conda (optional)**: For conda environment management (venv is used by default)
+
+### Step-by-Step Setup
+
+**1. Clone and Navigate**
+```bash
+git clone https://github.com/MasumRab/EmailIntelligence.git
+cd EmailIntelligence
+```
+
+**2. Install Node.js Dependencies**
+```bash
+npm install
+```
+
+**3. Set up Python Environment**
+
+The launcher supports multiple dependency management systems. Choose one:
+
+- **Using uv (default, recommended for speed):**
+  ```bash
+  python launch.py --setup
+  ```
+  This creates a virtual environment in `venv/`, installs Python dependencies from `pyproject.toml`, and downloads NLTK data.
+
+- **Using Poetry:**
+  ```bash
+  python launch.py --setup --use-poetry
+  ```
+
+- **Using Conda:**
+  ```bash
+  python launch.py --setup --use-conda --conda-env emailintelligence
+  ```
+  (Replace `emailintelligence` with your preferred environment name)
+
+**4. Verify Setup**
+```bash
+python launch.py --system-info
+```
+This prints detailed information about your system, Python environment, and project configuration.
+
+**5. Start Development Services**
+```bash
+# Windows
+launch.bat --stage dev
+
+# Linux/macOS
+./launch.sh --stage dev
+
+# Or directly
+python launch.py --stage dev
+```
+
+### Troubleshooting Common Issues
+
+- **Python Version Error**: Ensure Python 3.12+ is installed and in PATH
+- **Node.js Missing**: Install Node.js 16+ from nodejs.org
+- **Permission Errors**: On Linux/macOS, ensure scripts are executable: `chmod +x launch.sh`
+- **Port Conflicts**: Use `--port` and `--frontend-port` to specify different ports
+- **Conda Issues**: If conda is not detected, the launcher falls back to venv
+
+### Testing the Setup
+
+To test your setup in a clean environment:
+1. Create a new directory
+2. Clone the repository fresh
+3. Follow the steps above
+4. Verify services start without errors
+5. Check that http://localhost:5173 loads the frontend
+6. Confirm API endpoints respond at http://localhost:8000/docs
+
+### Development Workflow
+
+After initial setup:
+- Use `python launch.py --stage dev` to start all services
+- Code changes auto-reload in development mode
+- Access frontend at http://localhost:5173
+- API documentation at http://localhost:8000/docs
+- Gradio UI at http://localhost:7860 (if enabled)
+
 ## Documentation
 
 This project includes comprehensive documentation in the `docs/` directory:
@@ -274,6 +364,15 @@ When deploying or running this application, please consider the following:
 *   **Log Verbosity:** Ensure sensitive information is not excessively logged in production.
 *   **CORS Policy:** Restrict CORS policy in `backend/python_backend/main.py` for production.
 *   **Input Validation:** Validate and sanitize all user-supplied and external data.
+*   **Security Headers:** The application includes security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, HSTS, CSP) to protect against common web vulnerabilities.
+*   **Error Handling:** Generic error messages are returned to prevent information disclosure.
+*   **Database Security:** SQLite database paths are configurable via environment variables to prevent path traversal attacks.
+*   **Common Pitfalls to Avoid:**
+    - Never hardcode secrets in source code
+    - Always use HTTPS in production
+    - Regularly rotate API keys and tokens
+    - Implement rate limiting for API endpoints
+    - Keep dependencies updated to patch security vulnerabilities
 
 ## Gmail API Integration Setup
 
