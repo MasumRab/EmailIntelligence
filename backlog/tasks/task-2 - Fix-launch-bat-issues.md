@@ -4,11 +4,12 @@ title: Fix launch bat issues
 status: To Do
 assignee: []
 created_date: '2025-10-25 04:46'
-updated_date: '2025-10-28 08:16'
+updated_date: '2025-10-28 08:53'
 labels:
   - windows
   - launcher
 dependencies: []
+priority: high
 ---
 
 ## Description

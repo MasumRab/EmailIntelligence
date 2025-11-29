@@ -5,13 +5,14 @@ status: To Do
 assignee:
   - '@amp'
 created_date: '2025-10-28 08:49'
-updated_date: '2025-10-28 08:49'
+updated_date: '2025-10-28 08:54'
 labels:
   - ui
   - monitoring
   - scientific
 dependencies: []
 parent_task_id: task-medium
+priority: medium
 ---
 
 ## Description
