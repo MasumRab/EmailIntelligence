@@ -133,9 +133,68 @@ class ConstitutionalEngine:
                 categories=list(self.rule_categories),
             )
             return True
-        except Exception as e:
             logger.error("Failed to initialize constitutional engine", error=str(e))
             return False
+
+    async def register_constitutional_rules(self, rules: List[ConstitutionalRule]):
+        """Register new constitutional rules"""
+        from dataclasses import dataclass
+        
+        @dataclass
+        class RegistrationResult:
+            success: bool
+            registered_rules: List[str]
+
+        registered_ids = []
+        for rule in rules:
+            self.rules[rule.id] = rule
+            self.rule_categories.add(rule.category)
+            try:
+                self.violation_patterns[rule.id] = re.compile(rule.rule_pattern, re.MULTILINE | re.IGNORECASE)
+                registered_ids.append(rule.id)
+            except re.error as e:
+                logger.error("Failed to compile rule pattern", rule_id=rule.id, error=str(e))
+        
+        return RegistrationResult(success=True, registered_rules=registered_ids)
+
+    async def validate_template(self, template_data: Dict[str, Any]) -> ComplianceResult:
+        """Generic template validation for tests"""
+        if template_data is None:
+            raise ValueError("Template data cannot be None")
+            
+        # Convert dict to string for pattern matching if needed
+        content_str = json.dumps(template_data, indent=2)
+        
+        # Determine template type from data or default
+        template_type = template_data.get("template_metadata", {}).get("template_type", "unknown")
+        
+        return await self.validate_specification_template(
+            template_content=content_str,
+            template_type=template_type,
+            context={"source": "test"}
+        )
+
+    async def batch_validate_templates(self, templates: List[Dict[str, Any]]) -> List[ComplianceResult]:
+        """Batch validate multiple templates"""
+        results = []
+        for template in templates:
+            results.append(await self.validate_template(template))
+        return results
+
+    async def load_constitutional_rules_from_directory(self, directory: str) -> None:
+        """Load rules from a specific directory"""
+        self.constitutions_dir = directory
+        await self.initialize()
+
+    def get_validation_statistics(self) -> Dict[str, Any]:
+        """Get validation statistics"""
+        stats = {
+            "total_validations": len(self.compliance_history),
+            "successful_validations": len([r for r in self.compliance_history if not r.violations]),
+            "violation_count": sum(len(r.violations) for r in self.compliance_history),
+            "average_processing_time": 0.0 # Placeholder
+        }
+        return stats
 
     async def validate_specification_template(
         self, template_content: str, template_type: str, context: Dict[str, Any]

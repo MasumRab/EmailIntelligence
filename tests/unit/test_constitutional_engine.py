@@ -34,18 +34,28 @@ class TestConstitutionalEngine:
                 name="Test Rule 1",
                 description="A test rule for validation",
                 category="quality",
-                severity="major",
-                validation_function=lambda x: x.get("quality_score", 0) > 0.7,
-                remediation_suggestion="Improve quality score"
+                violation_type=ViolationType.MAJOR,
+                rule_pattern=r"quality_score\":\s*0\.[0-6]",  # Matches low scores
+                severity_score=0.7,
+                auto_fixable=False,
+                remediation_guide="Improve quality score",
+                examples=[],
+                dependencies=[],
+                phase_applications=["all"]
             ),
             ConstitutionalRule(
                 id="test_rule_2", 
                 name="Test Rule 2",
                 description="Another test rule",
                 category="security",
-                severity="critical",
-                validation_function=lambda x: x.get("security_compliant", True),
-                remediation_suggestion="Address security issues"
+                violation_type=ViolationType.CRITICAL,
+                rule_pattern=r"security_compliant\":\s*false",
+                severity_score=0.9,
+                auto_fixable=True,
+                remediation_guide="Address security issues",
+                examples=[],
+                dependencies=[],
+                phase_applications=["all"]
             )
         ]
     
@@ -319,9 +329,14 @@ class TestConstitutionalEngine:
             name="Custom Validation Rule",
             description="Custom rule for testing",
             category="custom",
-            severity="major",
-            validation_function=lambda x: len(x.get("template_content", {})) >= 3,
-            remediation_suggestion="Add more template sections"
+            violation_type=ViolationType.MAJOR,
+            rule_pattern=r"section[0-9]+",  # Dummy pattern for testing
+            severity_score=0.7,
+            auto_fixable=False,
+            remediation_guide="Add more template sections",
+            examples=[],
+            dependencies=[],
+            phase_applications=["all"]
         )
         
         await engine.register_constitutional_rules([custom_rule])

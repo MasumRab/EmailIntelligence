@@ -76,6 +76,7 @@ class GitConflictDetector(IConflictDetector):
                 return []
                 
             # First line is OID (tree hash)
+            tree_oid = lines[0]
             conflicting_files = lines[1:]
             
             conflicts = []
@@ -86,7 +87,8 @@ class GitConflictDetector(IConflictDetector):
                 conflict = await self._analyze_file_conflict(
                     file_path, 
                     source_branch, 
-                    target_branch
+                    target_branch,
+                    tree_oid
                 )
                 conflicts.append(conflict)
                 
@@ -100,7 +102,8 @@ class GitConflictDetector(IConflictDetector):
         self, 
         file_path: str, 
         source_branch: str, 
-        target_branch: str
+        target_branch: str,
+        tree_oid: str
     ) -> Conflict:
         """
         Analyze a specific file conflict to extract details and blocks.
@@ -114,6 +117,10 @@ class GitConflictDetector(IConflictDetector):
             # base_sha = await self.repo.get_merge_base(source_branch, target_branch)
             # base_content = await self.repo.get_file_content(file_path, base_sha)
             
+            # Get merged content with markers from the tree
+            merged_content = await self.repo.get_file_content(file_path, tree_oid)
+            blocks = self._parse_conflict_blocks(merged_content, file_path)
+            
             # Create conflict object
             return Conflict(
                 id=f"conflict-{Path(file_path).name}-{hash(file_path)}",
@@ -126,8 +133,7 @@ class GitConflictDetector(IConflictDetector):
                     "target_branch": target_branch,
                     "file_type": Path(file_path).suffix
                 },
-                # TODO: Implement granular block extraction
-                blocks=[] 
+                blocks=blocks
             )
             
         except Exception as e:
@@ -169,3 +175,47 @@ class GitConflictDetector(IConflictDetector):
                     ))
                     
         return conflicts
+
+    def _parse_conflict_blocks(self, content: str, file_path: str) -> List[ConflictBlock]:
+        """Parse conflict blocks from content with markers."""
+        blocks = []
+        lines = content.splitlines()
+        
+        current_lines = []
+        incoming_lines = []
+        start_line = 0
+        
+        # Simple state machine
+        # STATES: NORMAL, IN_CURRENT, IN_INCOMING
+        state = "NORMAL"
+        
+        for i, line in enumerate(lines):
+            line_num = i + 1
+            
+            if line.startswith("<<<<<<<"):
+                state = "IN_CURRENT"
+                start_line = line_num
+                current_lines = []
+                incoming_lines = []
+            elif line.startswith("======="):
+                if state == "IN_CURRENT":
+                    state = "IN_INCOMING"
+            elif line.startswith(">>>>>>>"):
+                if state == "IN_INCOMING":
+                    state = "NORMAL"
+                    # Create block
+                    blocks.append(ConflictBlock(
+                        file_path=file_path,
+                        start_line=start_line,
+                        end_line=line_num,
+                        current_content="\n".join(current_lines),
+                        incoming_content="\n".join(incoming_lines),
+                        conflict_marker_type="git"
+                    ))
+            else:
+                if state == "IN_CURRENT":
+                    current_lines.append(line)
+                elif state == "IN_INCOMING":
+                    incoming_lines.append(line)
+                    
+        return blocks

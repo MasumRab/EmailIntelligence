@@ -1,3 +1,4 @@
+
 """
 GraphQL resolvers implementation
 """

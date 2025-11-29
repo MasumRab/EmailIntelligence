@@ -1,7 +1,7 @@
 # EmailIntelligence CLI Refactoring - Phase Progress Summary
 
 **Last Updated**: 2025-11-24 02:59 AEDT  
-**Overall Status**: Phase 0 Complete ✅ | Phase 1 & 2 Not Started
+**Overall Status**: Phase 0 Complete ✅ | Phase 1 & 2 Not Started | Phase 4 In Progress
 
 ---
 
@@ -96,6 +96,12 @@
 - **Estimated**: 2 hours
 - **Files**: `src/core/exceptions.py`
 
+##### Task 4.3: Implement Strategy Generator
+- **Status**: ✅ Implemented
+- **Estimated**: 12 hours
+- **Files**: `src/strategy/generator.py`
+- **Notes**: Implemented generation of detailed resolution steps.
+
 #### Task 1.6: Implement Metadata Storage
 - **Status**: ⏳ Not Started
 - **Estimated**: 6 hours
@@ -105,6 +111,12 @@
 - **Status**: ⏳ Not Started
 - **Estimated**: 3 hours
 - **Files**: `src/utils/logger.py`
+
+##### Task 4.6: Implement Resolution Executor
+- **Status**: ✅ Implemented
+- **Estimated**: 10 hours
+- **Files**: `src/resolution/executor.py`
+- **Notes**: Implemented execution of git commands and resolution steps.
 
 #### Task 1.8: Set Up Testing Framework
 - **Status**: ⏳ Not Started
@@ -135,29 +147,36 @@
 ## Phase 2: Git Operations ⏳ NOT STARTED
 
 **Duration**: 1 week (estimated)  
-**Status**: 🔴 **0% Complete**
+**Status**: 🟡 **Implementation Complete (Verification Pending)**
 
 ### Planned Tasks (0/4 Complete)
 
 #### Task 2.1: Implement WorktreeManager
-- **Status**: ⏳ Not Started
+- **Status**: ✅ Implemented
 - **Estimated**: 8 hours
 - **Files**: `src/git/worktree.py`
 - **Dependencies**: Phase 1 complete
 
+##### Task 4.1: Implement Strategy Selector (Replace Mock)
+- **Status**: ✅ Implemented
+- **Estimated**: 16 hours
+- **Files**: `src/strategy/selector.py`
+- **Notes**: Implemented logic to select strategies based on risk and analysis.
+
 #### Task 2.2: Implement GitConflictDetector (Replace Mock)
-- **Status**: ⏳ Not Started
+- **Status**: ✅ Implemented
 - **Estimated**: 12 hours
 - **Files**: `src/git/conflict_detector.py`
 - **Critical**: Replace hash-based mock with real git merge-tree parsing
+- **Notes**: Implemented block extraction using `git merge-tree` OID.
 
 #### Task 2.3: Implement GitMerger
-- **Status**: ⏳ Not Started
+- **Status**: ✅ Implemented
 - **Estimated**: 8 hours
 - **Files**: `src/git/merger.py`
 
 #### Task 2.4: Implement Repository Operations
-- **Status**: ⏳ Not Started
+- **Status**: ✅ Implemented
 - **Estimated**: 6 hours
 - **Files**: `src/git/repository.py`
 
