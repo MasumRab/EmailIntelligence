@@ -22,7 +22,6 @@ import signal
 import subprocess
 import sys
 import time
-import threading
 import venv
 from pathlib import Path
 from typing import List, Optional
@@ -61,19 +60,11 @@ class ProcessManager:
     """Manages child processes for the application."""
     def __init__(self):
         self.processes = []
-        self.lock = threading.Lock()  # Add lock for thread safety
-
     def add_process(self, process):
-        with self.lock:
-            self.processes.append(process)
-
+        self.processes.append(process)
     def cleanup(self):
         logger.info("Performing explicit resource cleanup...")
-        # Create a copy of the list to avoid modifying while iterating
-        with self.lock:
-            processes_copy = self.processes[:]
-
-        for p in processes_copy:
+        for p in self.processes[:]:
             if p.poll() is None:
                 logger.info(f"Terminating process {p.pid}...")
                 p.terminate()
@@ -83,7 +74,6 @@ class ProcessManager:
                     logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
                     p.kill()
         logger.info("Resource cleanup completed.")
-
     def shutdown(self):
         logger.info("Received shutdown signal, cleaning up processes...")
         self.cleanup()
@@ -93,7 +83,7 @@ process_manager = ProcessManager()
 atexit.register(process_manager.cleanup)
 
 # --- Constants ---
-PYTHON_MIN_VERSION = (3, 12)
+PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
@@ -211,8 +201,8 @@ def check_required_components() -> bool:
 
     # Check Python version
     current_version = sys.version_info[:2]
-    if not (PYTHON_MIN_VERSION <= current_version <= PYTHON_MAX_VERSION):
-        issues.append(f"Python version {current_version} is not compatible. Required: {PYTHON_MIN_VERSION[0]}.{PYTHON_MIN_VERSION[1]}-{PYTHON_MAX_VERSION[0]}.{PYTHON_MAX_VERSION[1]}")
+    if not ((3, 11) <= current_version <= (3, 13)):
+        issues.append(f"Python version {current_version} is not compatible. Required: 3.11-3.13")
 
     # Check key directories
     required_dirs = ["backend", "client", "shared", "tests"]
@@ -325,28 +315,21 @@ def activate_conda_env(env_name: str = None) -> bool:
         logger.info(f"Already in conda environment: {conda_info['env_name']}")
         return True
 
-    # Check if the requested environment exists
     try:
+        # Try to activate the specified environment
+        logger.info(f"Activating conda environment: {env_name}")
         result = subprocess.run(
-            ["conda", "info", "--envs"],
+            ["conda", "activate", env_name],
+            shell=True,  # shell=True is needed for conda activate
             capture_output=True,
             text=True,
             check=True
         )
-        envs = result.stdout.strip().split('\n')
-        env_names = [line.split()[0] for line in envs if line.strip() and not line.startswith('#')]
-        if env_name not in env_names:
-            logger.warning(f"Conda environment '{env_name}' not found.")
-            return False
+        logger.info(f"Successfully activated conda environment: {env_name}")
+        return True
     except subprocess.CalledProcessError as e:
-        logger.warning(f"Failed to list conda environments: {e}")
+        logger.warning(f"Failed to activate conda environment {env_name}: {e}")
         return False
-
-    logger.info(f"Will use conda environment: {env_name}")
-    # We don't actually activate the environment here since subprocess.run
-    # cannot persist environment changes. Instead, we rely on get_python_executable()
-    # to find the correct Python executable for the environment.
-    return True
 
 
 def get_python_executable() -> str:
@@ -501,6 +484,67 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
 
 
+def start_backend(host: str, port: int, debug: bool = False):
+    """Start the Python FastAPI backend."""
+    if not check_uvicorn_installed():
+        logger.error(
+            "Cannot start backend without uvicorn. Please run 'python launch.py --setup' first."
+        )
+        return None
+
+    python_exe = get_python_executable()
+
+    # Use uvicorn to run the FastAPI app directly
+    cmd = [
+        python_exe,
+        "-m",
+        "uvicorn",
+        "backend.python_backend.main:app",
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+    if debug:
+        cmd.append("--reload")  # Enable auto-reload in debug mode
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT_DIR)
+
+    logger.info(f"Starting Python backend on {host}:{port}")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    process_manager.add_process(process)
+    return process
+
+
+def start_gradio_ui(
+    venv_path: Path, host: str, port: Optional[int] = None, debug: bool = False, share: bool = False
+):
+    """Start the Gradio UI."""
+    gradio_path = ROOT_DIR / "backend" / "python_backend" / "gradio_app.py"
+
+    cmd = [str(venv_python), str(gradio_path), "--host", host]
+    if port:
+        cmd.extend(["--port", str(port)])
+        logger.info(f"Starting Gradio UI on {host}:{port}")
+    else:
+        logger.info(f"Starting Gradio UI on {host}:7860 (default port)")
+
+    if share:
+        cmd.append("--share")  # Enable public sharing
+    if port:
+        # Gradio doesn't take port as a command line param directly,
+        # we'd need to modify the app to accept it
+        logger.info(f"Starting Gradio UI (on default or next available port)")
+    else:
+        logger.info("Starting Gradio UI on default port")
+
+    logger.info("Starting Gradio UI...")
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process)
+    return process
+
+
 def start_client():
     """Start the Node.js frontend."""
     logger.info("Starting Node.js frontend...")
@@ -568,11 +612,7 @@ def start_gradio_ui(host, port, share, debug):
     cmd = [python_exe, "-m", "src.main"] # Assuming Gradio is launched from main
     if share:
         cmd.append("--share")
-    if debug:
-        cmd.append("--debug")
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
 
 def handle_setup(args, venv_path):
@@ -586,8 +626,8 @@ def handle_setup(args, venv_path):
     else:
         # Use venv
         create_venv(venv_path, args.force_recreate_venv)
-        install_package_manager(venv_path, "uv")
-        setup_dependencies(venv_path, False)
+        install_package_manager(venv_path, "uv" if not args.use_poetry else "poetry")
+        setup_dependencies(venv_path, args.use_poetry)
         if not args.no_download_nltk:
             download_nltk_data(venv_path)
 
@@ -604,7 +644,7 @@ def prepare_environment(args):
             venv_path = ROOT_DIR / VENV_DIR
             create_venv(venv_path)
         if args.update_deps:
-            setup_dependencies(ROOT_DIR / VENV_DIR, False)
+            setup_dependencies(ROOT_DIR / VENV_DIR, args.use_poetry)
     if not args.no_download_nltk:
         download_nltk_data()
 
@@ -699,7 +739,7 @@ def main():
     # Environment Setup
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument("--force-recreate-venv", action="store_true", help="Force recreation of the venv.")
-    
+    parser.add_argument("--use-poetry", action="store_true", help="Use Poetry for dependency management.")
     parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
     parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")
     parser.add_argument("--no-venv", action="store_true", help="Don't create or use a virtual environment.")
@@ -764,6 +804,8 @@ def main():
     setup_wsl_environment()
     check_wsl_requirements()
 
+    check_python_version()
+
     if not args.skip_python_version_check:
         check_python_version()
 
@@ -815,10 +857,12 @@ def main():
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
             sys.exit(1)
-        if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
-            logger.error(f"Failed to activate Conda environment: {args.conda_env}")
-            sys.exit(1)
-        elif get_conda_env_info()["is_active"]:
+
+        if not get_conda_env_info()["is_active"]:
+            if not activate_conda_env(args.conda_env):
+                logger.error(f"Failed to activate Conda environment: {args.conda_env}")
+                sys.exit(1)
+        else:
             logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
 
     if not args.skip_prepare and not args.use_conda:

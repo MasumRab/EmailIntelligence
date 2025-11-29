@@ -18,8 +18,8 @@ from googleapiclient.errors import HttpError
 
 load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
-TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "jsons/token.json")
-CREDENTIALS_PATH = "jsons/credentials.json"
+TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
+CREDENTIALS_PATH = "credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 # Define the project's root directory and default path for the checkpoint database
@@ -64,15 +64,15 @@ class SmartGmailRetriever:
         return None
 
     def _store_credentials(self, creds: Credentials):
-    try:
+        try:
         with open(TOKEN_JSON_PATH, "w") as token_file:
-        token_file.write(creds.to_json())
+            token_file.write(creds.to_json())
         self.logger.info("Credentials stored successfully.")
         except Exception as e:
-    self.logger.error(
-    f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
-    )
-    return None
+            self.logger.error(
+                f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
+            )
+            return None
 
     def get_optimized_retrieval_strategies(self) -> List[RetrievalStrategy]:
         """Get optimized retrieval strategies."""
@@ -103,6 +103,14 @@ class SmartGmailRetriever:
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
 
+        """
+        Execute smart retrieval using the provided strategies.
+
+        Args:
+            strategies: A list of strategies to execute. If None, uses default optimized strategies.
+            max_api_calls: The maximum number of API calls to make.
+            time_budget_minutes: The time limit in minutes for the retrieval process.
+
         Returns:
             A dictionary with retrieval results.
         """
@@ -110,7 +118,7 @@ class SmartGmailRetriever:
         return {"status": "not_implemented"}
 
     def _load_checkpoint(self, strategy_name: str) -> Optional[SyncCheckpoint]:
-    """Load checkpoint for a strategy from the database."""
+        """Load checkpoint for a strategy from the database."""
         try:
             with sqlite3.connect(self.checkpoint_db_path) as conn:
                 cursor = conn.cursor()
@@ -125,6 +133,15 @@ class SmartGmailRetriever:
                     )
         except Exception as e:
             self.logger.error(f"Failed to load checkpoint for {strategy_name}: {e}")
+        return None
+                )
+                row = cursor.fetchone()
+                if row:
+                    return SyncCheckpoint(
+                        strategy_name, datetime.fromisoformat(row[0]), row[1], 0, None, 0
+                    )
+        except Exception as e:
+            self.logger.error(f"Error loading checkpoint for {strategy_name}: {e}")
         return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
@@ -147,43 +164,4 @@ class SmartGmailRetriever:
 async def main_cli():
     """Provides a command-line interface for the SmartGmailRetriever."""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
-
-    # TODO: Implement CLI logic
-    # Pseudo code for CLI implementation:
-    # parser.add_argument("--strategies", nargs="+", help="Retrieval strategies to use")
-    # parser.add_argument("--max-api-calls", type=int, default=100, help="Maximum API calls")
-    # parser.add_argument("--time-budget", type=int, default=30, help="Time budget in minutes")
-    # parser.add_argument("--output", help="Output file path")
-    # parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-
-    # args = parser.parse_args()
-
-    # try:
-    #     # Initialize SmartGmailRetriever
-    #     # retriever = SmartGmailRetriever()
-    #
-    #     # Execute smart retrieval
-    #     # result = await retriever.execute_smart_retrieval(
-    #     #     strategies=args.strategies,
-    #     #     max_api_calls=args.max_api_calls,
-    #     #     time_budget_minutes=args.time_budget
-    #     # )
-    #
-    #     # Handle output (JSON, CSV, etc.)
-    #     # if args.output:
-    #     #     # Save to file
-    #     # else:
-    #     #     # Print to console
-    #
-    # except Exception as e:
-    #     # Handle errors
-    #     # print(f"Error: {e}", file=sys.stderr)
-    #     # sys.exit(1)
-
-    # Placeholder implementation
-    print("CLI not yet implemented. Use the API instead.")
-    pass
-
-
-if __name__ == "__main__":
     asyncio.run(main_cli())
