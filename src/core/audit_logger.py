@@ -10,6 +10,7 @@ import json
 import logging
 import threading
 import time
+import asyncio
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -27,7 +28,7 @@ class AuditEventType(Enum):
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     LOGOUT = "logout"
-    PASSWORD_CHANGE = "password_change"
+    PASSWORD_CHANGE = "password_change"  # nosec
     PERMISSION_CHANGE = "permission_change"
 
     # Data Operations
