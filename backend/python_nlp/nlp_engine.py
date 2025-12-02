@@ -146,10 +146,26 @@ class NLPEngine:
             self.stop_words = set()
 
         logger.info("Attempting to load NLP models...")
-        self.sentiment_analyzer = pipeline("sentiment-analysis", model=self.sentiment_model_path)
-        self.topic_analyzer = pipeline("text-classification", model=self.topic_model_path)
-        self.intent_analyzer = pipeline("text-classification", model=self.intent_model_path)
-        self.urgency_analyzer = pipeline("text-classification", model=self.urgency_model_path)
+        try:
+            self.sentiment_analyzer = pipeline("sentiment-analysis", model=self.sentiment_model_path)
+        except Exception as e:
+            logger.warning(f"Failed to load sentiment model: {e}")
+            self.sentiment_analyzer = None
+        try:
+            self.topic_analyzer = pipeline("text-classification", model=self.topic_model_path)
+        except Exception as e:
+            logger.warning(f"Failed to load topic model: {e}")
+            self.topic_analyzer = None
+        try:
+            self.intent_analyzer = pipeline("text-classification", model=self.intent_model_path)
+        except Exception as e:
+            logger.warning(f"Failed to load intent model: {e}")
+            self.intent_analyzer = None
+        try:
+            self.urgency_analyzer = pipeline("text-classification", model=self.urgency_model_path)
+        except Exception as e:
+            logger.warning(f"Failed to load urgency model: {e}")
+            self.urgency_analyzer = None
         self.importance_model = ImportanceModel()
 
     def initialize_patterns(self):

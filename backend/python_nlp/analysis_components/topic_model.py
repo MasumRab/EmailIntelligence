@@ -1,0 +1,2 @@
+class TopicModel:
+    pass

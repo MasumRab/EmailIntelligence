@@ -1,1 +1,93 @@
-setup/pyproject.toml
+# EmailIntelligence - Simplified Python Environment
+# Single pyproject.toml with basic cross-platform dependencies
+
+[project]
+name = "emailintelligence"
+version = "0.1.0"
+description = "AI-powered email intelligence and analysis platform"
+requires-python = ">=3.11"
+
+dependencies = [
+    # Core AI/ML (CPU-only versions)
+    "transformers>=4.40.0",
+    "accelerate>=0.30.0",
+
+    # NLP and text processing
+    "nltk>=3.9.1",
+    "textblob>=0.19.0",
+
+    # Web framework and API
+    "fastapi>=0.100.0",
+    "pydantic>=2.11.5",
+    "uvicorn>=0.30.0",
+    "httpx>=0.28.1",
+    "gradio>=4.0.0",
+
+    # Data processing
+    "scikit-learn>=1.5.0",
+    "joblib>=1.5.1",
+    "RestrictedPython>=8.0",
+    "aiosqlite>=0.20.0",
+
+    # Google APIs
+    "google-api-python-client>=2.172.0",
+    "google-auth>=2.40.3",
+
+    # Email processing
+    "email-validator>=2.2.0",
+
+    # Development and testing
+    "pytest>=8.4.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pytest.ini_options]
+addopts = "--asyncio-mode=auto"
+markers = [
+    "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
+]
+norecursedirs = ["backend", "tests/deprecated", "tests/test_gmail_api.py"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "sentencepiece.*",
+    "notmuch.*",
+]
+ignore_missing_imports = true
