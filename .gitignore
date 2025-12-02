@@ -52,6 +52,7 @@ coverage/
 # Misc
 diagnosis_message.txt
 logs/
+logs/workflow_audit.log
 
 # Ignore configuration and local environment files
 *.local.config
