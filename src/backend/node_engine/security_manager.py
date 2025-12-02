@@ -10,6 +10,7 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 # Try to import bleach for HTML sanitization, fallback if not available
@@ -17,6 +18,15 @@ try:
     import bleach
 except ImportError:
     bleach = None
+
+
+class SecurityLevel(Enum):
+    """Security levels for different operations and data access"""
+
+    PUBLIC = "public"
+    INTERNAL = "internal"
+    CONFIDENTIAL = "confidential"
+    RESTRICTED = "restricted"
 
 
 @dataclass
