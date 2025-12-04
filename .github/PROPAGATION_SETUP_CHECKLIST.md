@@ -79,16 +79,20 @@ This document confirms that branch propagation rules and enforcement mechanisms 
 
 ### Current State Check
 ```bash
+
 # Verify hooks are installed
 ls -la .git/hooks/ | grep -E "pre-commit|pre-merge"
+
 # Expected: Both files present and executable
 
 # Verify policy documents
 ls -la .github/BRANCH_PROPAGATION_POLICY.md
+
 # Expected: File exists
 
 # Test validation script
 ./scripts/validate-branch-propagation.sh
+
 # Expected: All branches pass or warnings only (no violations)
 ```
 
@@ -165,6 +169,7 @@ Violation Detected  →  Check PHASE3_ROLLBACK_OPTIONS.md  →  Execute recovery
 
 ### Test Case 1: Prevent Application Code on orchestration-tools
 ```bash
+
 # SHOULD BE BLOCKED:
 git checkout orchestration-tools
 echo "test" > src/test.ts
@@ -179,6 +184,7 @@ git checkout main  # Switch to correct branch
 
 ### Test Case 2: Prevent Hooks on main
 ```bash
+
 # SHOULD BE BLOCKED:
 git checkout main
 cp .git/hooks/pre-commit test-hook.sh
@@ -192,15 +198,18 @@ git checkout -- test-hook.sh
 
 ### Test Case 3: Prevent Merge with Violations
 ```bash
+
 # SHOULD BE BLOCKED:
 git checkout orchestration-tools
 git merge --no-commit main  # If main has src/ files
+
 # ❌ pre-merge-abort blocks merge
 git merge --abort
 ```
 
 ### Test Case 4: Allow Valid Changes
 ```bash
+
 # SHOULD SUCCEED:
 git checkout orchestration-tools
 echo "# New setup doc" > setup/new-doc.md
@@ -235,6 +244,7 @@ git push origin orchestration-tools  # ✓ ALLOWED
 
 ### Daily Checks
 ```bash
+
 # Verify no violations exist
 ./scripts/validate-branch-propagation.sh
 
@@ -245,6 +255,7 @@ git status
 
 ### Weekly Audits
 ```bash
+
 # Full branch validation with details
 ./scripts/validate-branch-propagation.sh --details
 
@@ -277,6 +288,7 @@ git status
 ```bash
 git merge --abort
 ./scripts/extract-orchestration-changes.sh <source-branch> <commit>
+
 # Cherry-pick only approved files instead
 ```
 
@@ -285,6 +297,7 @@ git merge --abort
 **Reason:** Branch may be out of sync or files deleted
 **Solution:**
 ```bash
+
 # Sync branch with upstream
 git fetch origin
 git merge origin/<branch>
@@ -300,6 +313,7 @@ git commit -m "sync: restore <file>"
 **Reason:** Branch contains blocked files or missing required files
 **Solution:**
 ```bash
+
 # See detailed violations
 ./scripts/validate-branch-propagation.sh --details --branch <branch>
 
@@ -308,6 +322,7 @@ git log --oneline <branch> -- <blocked-file>
 
 # Revert or reset
 git revert <commit-sha>
+
 # OR
 git reset --hard <good-commit-sha>
 git push origin <branch>

@@ -9,6 +9,7 @@ Update all branches with infrastructure scripts from orchestration-tools in minu
 This procedure updates all branches (main, scientific, feature/*, etc.) with the latest versions of infrastructure scripts (hooks, validation tools, helpers).
 
 ```bash
+
 # See what would be updated
 ./scripts/update-all-branches.sh --dry-run
 
@@ -26,8 +27,10 @@ This procedure updates all branches (main, scientific, feature/*, etc.) with the
 ### Step 1: Verify Everything is Ready (2 min)
 
 ```bash
+
 # Make sure working directory is clean
 git status
+
 # Should show: "nothing to commit, working tree clean"
 
 # Update local branch references
@@ -37,6 +40,7 @@ git fetch origin
 ### Step 2: Preview Changes (2 min)
 
 ```bash
+
 # See what would be updated WITHOUT making changes
 ./scripts/update-all-branches.sh --dry-run
 ```
@@ -51,6 +55,7 @@ Review the output:
 **Option A: Interactive (safer, requires confirmation)**
 ```bash
 ./scripts/update-all-branches.sh
+
 # When prompted: Proceed with updating branches? (y/N): y
 ```
 
@@ -67,14 +72,19 @@ Review the output:
 ### Step 4: Verify Success (2 min)
 
 ```bash
+
 # Check the summary at the end of script output
+
 # Should show:
+
 # - Updated branches: 70
+
 # - Failed branches: 0
 
 # Verify on main branch
 git checkout main
 git log --oneline -1
+
 # Should show: "chore: sync infrastructure scripts from orchestration-tools"
 
 # Verify scripts exist
@@ -111,9 +121,11 @@ Test on subset before full rollout:
 
 ```bash
 ./scripts/update-all-branches.sh --branches main,scientific --dry-run
+
 # Review output
 
 ./scripts/update-all-branches.sh --branches main,scientific --no-interactive
+
 # Execute
 ```
 
@@ -123,9 +135,11 @@ Get detailed information about what's happening:
 
 ```bash
 ./scripts/update-all-branches.sh --verbose --dry-run
+
 # See every operation
 
 ./scripts/update-all-branches.sh --branches problem-branch --verbose
+
 # Debug specific branch
 ```
 
@@ -164,12 +178,15 @@ After update completes, all branches should have:
 
 **Check the error message:**
 ```bash
+
 # Look for: "Failed branches: X"
+
 # Listed branches that failed
 ```
 
 **For each failed branch:**
 ```bash
+
 # Manual update approach
 git checkout <branch>
 git show orchestration-tools:scripts/install-hooks.sh > scripts/install-hooks.sh
@@ -188,13 +205,16 @@ This means the branch doesn't exist on remote or is local-only. It's safe to ign
 This usually means the branch has protection rules. Contact your branch administrator or:
 
 ```bash
+
 # Update branch protection temporarily to allow the update
+
 # Then re-run: ./scripts/update-all-branches.sh --branches <branch>
 ```
 
 ### Issue: Working directory has changes
 
 ```bash
+
 # Stash your changes first
 git stash
 
@@ -212,6 +232,7 @@ git stash pop
 If the automated script doesn't work, manually update a single branch:
 
 ```bash
+
 # Checkout the branch
 git checkout <branch>
 

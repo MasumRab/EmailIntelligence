@@ -65,7 +65,9 @@ scientific        - Research variant (alternative distribution)
 **Behavior:**
 ```bash
 git commit  # Triggers pre-commit validation
+
 # Warns about policy violations (allows with warning)
+
 # Blocks hard violations (exits with code 1)
 ```
 
@@ -88,7 +90,9 @@ git commit  # Triggers pre-commit validation
 **Behavior:**
 ```bash
 git merge --no-commit <branch>  # Triggers pre-merge validation
+
 # Blocks if propagation violation detected
+
 # Provides recovery steps with helpful context
 ```
 
@@ -270,6 +274,7 @@ $ git checkout main  # Switch to correct branch
 ```bash
 $ git checkout orchestration-tools
 $ git merge --no-commit main
+
 # If main has src/ files...
 
 ❌ MERGE BLOCKED: Propagation rule violation detected
@@ -372,6 +377,7 @@ Total warnings: 0
 5. **Test**
    ```bash
    ./scripts/validate-branch-propagation.sh
+
    # Should report new file in validation
    ```
 
@@ -393,6 +399,7 @@ Add more patterns to PROTECTED_FILES arrays in both hooks.
 
 ### Daily Operations
 ```bash
+
 # Before pushing changes
 git status  # Check what's being committed
 ./scripts/validate-branch-propagation.sh --branch $(git rev-parse --abbrev-ref HEAD)
@@ -403,6 +410,7 @@ git log --oneline -5  # Verify on correct branch
 
 ### Weekly Audits
 ```bash
+
 # Full validation of all branches
 ./scripts/validate-branch-propagation.sh --details
 

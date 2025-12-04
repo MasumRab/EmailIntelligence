@@ -1,0 +1,462 @@
+cfe2091bacd4df38348916a870d6672357581c50
+100644 ea13750b2296dfca69d7694c69f9f90105865d41 1	.github/workflows/ci.yml
+100644 8e59766f11c350012d6b493ccd77574c0ef7aff2 3	.github/workflows/ci.yml
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	.qwen/PROJECT_SUMMARY.md
+100644 b9e4397d11b5cd7bfdb0a16c345edbc581fa376a 3	.qwen/PROJECT_SUMMARY.md
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	CRUSH.md
+100644 61cd7173e10fdbe0d3f135c5f86873b26b5016e3 2	CRUSH.md
+100644 e7047f12ddd7b1fd5a8ab9a744e323fa148722e4 3	CRUSH.md
+100644 4301ebe8949f0daa1a15f9d38bc23fac4ad7f4a6 1	GEMINI.md
+100644 84778d97a19a6cc2a10e42bde06606582d0875ad 3	GEMINI.md
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	IFLOW.md
+100644 a433d9b108ff4f601a340e1fb1dc0ca8175069e8 2	IFLOW.md
+100644 2337c6760f025922f96a92ca65c0e5c7262d6254 3	IFLOW.md
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	LLXPRT.md
+100644 69cd511e4cb28391c70eeab0c6ba6ee944ebeaf8 2	LLXPRT.md
+100644 9ec570fc40b34a173c893cafef781e9820a7f8e1 3	LLXPRT.md
+100644 253d1f0c42cce3e064673e3462cfa71a681ca727 1	README.md
+100644 d5155fb667827c37fec8985ce3da8400f75d5c49 2	README.md
+100644 b9e51cd3109c75cc0a63da172d0a173b17e639a6 3	README.md
+100644 c85c5f3cf51f036624d5b7e88e5b61b79e8e6466 1	SESSION_LOG.md
+100644 537f7193571bd99125abfab27ddba3cc14ac525f 3	SESSION_LOG.md
+100644 6dec3560b5df94c0c2e74df0202dd83c4db1f317 1	client/package-lock.json
+100644 0816a2952ed8d3f8fe5696826805eec4c9102c64 3	client/package-lock.json
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	client/src/components/sidebar.tsx
+100644 4003b26172071e48b7f44f56a81bcc2c7635c7cb 3	client/src/components/sidebar.tsx
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	client/src/pages/dashboard.tsx
+100644 2812d3eec690e56e7a39d4f62ad168ab6bed702b 3	client/src/pages/dashboard.tsx
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	codebase_analysis_report.txt
+100644 d16ee9b7c54ba9e29bda194bd29c9fc2b48b5026 3	codebase_analysis_report.txt
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	codebase_issues.json
+100644 28ab2e0795196c01fd2151e083fd8c98f5c1b2f1 3	codebase_issues.json
+100644 1fd282a9fbafe5cf145a080101f5fd21a90bdbae 1	data/email_content/1.json.gz
+100644 dd1a820065e99371fd3282ccc418e7baf8c7b7a2 3	data/email_content/1.json.gz
+100644 f4f3f7abbf8481bb2a1e40c90ae6755c891a6830 1	docs/actionable_insights.md
+100644 e43a0e3ba8e46bd51337cc7b063fa898450eb43d 3	docs/actionable_insights.md
+100644 6b47aa4c7736f11d238f66355316773f84289620 1	docs/git_workflow_plan.md
+100644 ea14f051b75b1cbc7251eab7505ec0777df18263 2	docs/git_workflow_plan.md
+100644 70bf6e76e31cc50b9a3e4737efa43c31b7c7a402 3	docs/git_workflow_plan.md
+100644 a39b13c133298bd971a716e401e1a1917cca39c4 2	docs/orchestration_hook_management.md
+100644 323e99cc7b2883115312af02fd635605535844f6 3	docs/orchestration_hook_management.md
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	modules/auth/routes.py
+100644 c872b97792d74e8e4fba793fabc197d544393c96 3	modules/auth/routes.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	modules/email/routes.py
+100644 b5ba857180e2e3ea81608e53d003d13c62e4f830 3	modules/email/routes.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	modules/workflows/ui.py
+100644 18bed29a015fc0e9bef024259bfee253c46f7868 3	modules/workflows/ui.py
+100644 158c9f53bc6c340de249dfbc0ab5644c92657e92 1	package.json
+100644 b49f8340c338e4c45e33dc36c46ed322b576eb9f 3	package.json
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	plugins/example_workflow_plugin/__init__.py
+100644 504855ca3c60d812614b838d2eccc37a8b80503d 3	plugins/example_workflow_plugin/__init__.py
+100755 27449f46ea4940d323fe032e4da33489c88816af 1	scripts/hooks/post-commit
+100755 0636c0e7ca46e69b37f99166172104709bcfef34 2	scripts/hooks/post-commit
+100755 aacdadfbeb8a5c0a838000a772f68cddda3b3694 1	scripts/hooks/post-merge
+100755 b6b72aa298fb8cb29c59c94e8cde0e16834150d2 2	scripts/hooks/post-merge
+100755 bc214a0950b33d7845c5ef5873088dd5f9272318 1	scripts/hooks/post-push
+100755 73efefa214ac6b9b45fe216b7b4a3fcf703df163 2	scripts/hooks/post-push
+100755 feac2f0883a3fc1f50ce9a69febd52d59e2251ac 1	scripts/hooks/pre-commit
+100755 e015fe8efb1af8fd3dd0a8fe58cda09ced9cb2e0 2	scripts/hooks/pre-commit
+100644 8246909b73ed88ab27a9b388c630b3b5438ac0d4 1	setup/pyproject.toml
+100644 83257d15505ca0eacdb58ab595687613738ae6f5 2	setup/pyproject.toml
+100644 2a46dd22480a99df3ccf75b416517d229b8c21fa 3	setup/pyproject.toml
+100644 e44c236c2aa46c6eee5d3451f2a1a8d1881349ed 1	src/backend/data/categories.json
+100644 e44c236c2aa46c6eee5d3451f2a1a8d1881349ed 3	src/backend/data/categories.json
+100644 95be31cd65a5e5e8581e07cc1780193930887b52 1	src/backend/data/categories.json.gz
+100644 95be31cd65a5e5e8581e07cc1780193930887b52 3	src/backend/data/categories.json.gz
+100644 c8b22420fcb44b4b4baef6b821650efbed71fbf0 1	src/backend/data/emails.json
+100644 c8b22420fcb44b4b4baef6b821650efbed71fbf0 3	src/backend/data/emails.json
+100644 0ade73825df361a34876f0cb09776c583a083ede 1	src/backend/data/emails.json.gz
+100644 0ade73825df361a34876f0cb09776c583a083ede 3	src/backend/data/emails.json.gz
+100644 c8b22420fcb44b4b4baef6b821650efbed71fbf0 1	src/backend/data/users.json
+100644 c8b22420fcb44b4b4baef6b821650efbed71fbf0 3	src/backend/data/users.json
+100644 967584b2f723ab6b375aa6943323ea4a5c9cd182 1	src/backend/data/users.json.gz
+100644 967584b2f723ab6b375aa6943323ea4a5c9cd182 3	src/backend/data/users.json.gz
+100644 54e66adbd2a1d34b095ef327e338a0bf372e81c0 1	src/backend/db.ts
+100644 69a56bd131d0b1549637fb7bd8096d0917ac6f01 3	src/backend/db.ts
+100644 798fee1846c61d3b6c377b0f39e568a01727381e 1	src/backend/extensions/README.md
+100644 0dfad641c7116dbf7c746babbd79266f7a7f2940 3	src/backend/extensions/README.md
+100644 5eaff20eced68e57f61a87e0f32607ab2ea9827d 1	src/backend/extensions/example/README.md
+100644 5d3be736ce7ff992c49fdf5bd91d050a8a8790a7 3	src/backend/extensions/example/README.md
+100644 d663c130653bf260242998fcd6c8493b6b1c1d1b 1	src/backend/extensions/example/example.py
+100644 78e388ae58aec64416cd00dab221832669458f88 3	src/backend/extensions/example/example.py
+100644 43e3190f1a04bc333a58aa234b536bb7e7580c65 1	src/backend/extensions/example/metadata.json
+100644 43e3190f1a04bc333a58aa234b536bb7e7580c65 3	src/backend/extensions/example/metadata.json
+100644 a9a1a38b14229e86bc9da11a623ec1006ce19858 1	src/backend/extensions/example/requirements.txt
+100644 eaef4b373a85c968cd5065357a467ff56706d834 3	src/backend/extensions/example/requirements.txt
+100644 a5870c1c3c3631c2b6c2727d5ba997bd844e92e3 1	src/backend/node_engine/email_nodes.py
+100644 b5a48f61cfa87bdf03d7763b98d90d5633ed08bc 3	src/backend/node_engine/email_nodes.py
+100644 ace00f7c5cd4989670ff1bdd9e20a522812f5553 1	src/backend/node_engine/migration_utils.py
+100644 452f6ba764d497fe9d8e0ee7208b47f0613a13d0 3	src/backend/node_engine/migration_utils.py
+100644 c61fc61b566fada3b4cfdd2f66b001fd25a65db0 1	src/backend/node_engine/node_library.py
+100644 8a05941d51e4ac15f0100f99728300ab466ee229 3	src/backend/node_engine/node_library.py
+100644 c2e827616f3a9f02f098736593abb52877fc80dc 1	src/backend/node_engine/test_migration.py
+100644 e9889a6cd1658112910e971026e3cc7451a96e46 3	src/backend/node_engine/test_migration.py
+100644 d68e4a6ef23355df4b2893d150d58070cd91f62b 1	src/backend/node_engine/test_nodes.py
+100644 0cbac13f61e900656dd4db80ef5a49bbedae11c5 3	src/backend/node_engine/test_nodes.py
+100644 32aa47b7f0315fa2aa882a493d880678e839c243 1	src/backend/node_engine/test_sanitization.py
+100644 07b8647965589a50cbff6c34a1b2449fd2bb0ce5 3	src/backend/node_engine/test_sanitization.py
+100644 27e00d03e8809f86c28d343d712f95fa75b89531 1	src/backend/node_engine/test_security.py
+100644 9c34546f0ddf8994bf2adbfc16aabea2eb7279e2 3	src/backend/node_engine/test_security.py
+100644 37d0fe5270f785a599cd25b30c4b9f6e98d18766 1	src/backend/node_engine/workflow_manager.py
+100644 e9a936c508ea1ead457a516dc28e0a30826ced57 3	src/backend/node_engine/workflow_manager.py
+100644 bd22d5ae11c4e4ee55e3bb7ef735f9a5c7079cdb 1	src/backend/plugins/__init__.py
+100644 816e3c9da6f3c5f5dd24f711d37add66732ccdca 3	src/backend/plugins/__init__.py
+100644 01d4a55eee3037c7d177b11ad8ba2addfdee8fec 1	src/backend/plugins/base_plugin.py
+100644 bc08ad1a44620e6cdffe33444517951221eb0ba4 3	src/backend/plugins/base_plugin.py
+100644 ccc54d7f20423e15e8af8840962627abc9f5bdb5 1	src/backend/plugins/email_filter_node.py
+100644 71621982674aae96ee7a12054f0be9012e2a9e8c 3	src/backend/plugins/email_filter_node.py
+100644 dbe483de1311a9778cb6edc47a99dd2eafb1eb0b 1	src/backend/plugins/email_visualizer_plugin.py
+100644 fb8ff323c9ad84103a7c8459d3128e463112de5d 3	src/backend/plugins/email_visualizer_plugin.py
+100644 53c867f55257a859b5dfb7c5db6df783a9a2a1d9 1	src/backend/plugins/plugin_manager.py
+100644 26e7637641096d5670274f0e8da10dad9930c657 3	src/backend/plugins/plugin_manager.py
+100644 6da7f45e18a20b92f4b1a233c68f478bca80cadf 1	src/backend/python_backend/advanced_workflow_routes.py
+100644 aaf06bf3af4e4799b4e77a3efb332272652e305c 3	src/backend/python_backend/advanced_workflow_routes.py
+100644 f139b3f35df404e9bfdef3986bf14a653494483d 1	src/backend/python_backend/ai_engine.py
+100644 c508062787638de829f085ad56990aaa8567a4ea 3	src/backend/python_backend/ai_engine.py
+100644 c528a2a153efae2376ff81fc19e8e9f0a14db469 1	src/backend/python_backend/auth.py
+100644 4b7d6e597c76938e9567a7579ee8af3e037b4670 3	src/backend/python_backend/auth.py
+100644 99dc7ee426ab2dde31c5263c19ad193afb54df83 1	src/backend/python_backend/category_data_manager.py
+100644 ab236543014e430a9e647c76cf10c4c053269ea6 3	src/backend/python_backend/category_data_manager.py
+100644 8032f4d4f2627e67f284bf14a23526d65f3421a6 1	src/backend/python_backend/config.py
+100644 e41c3c0da512f16cd0bf47908e33970239432db5 3	src/backend/python_backend/config.py
+100644 61d495dae658a51426a9988c2a581123f703dd64 1	src/backend/python_backend/database.py
+100644 134d2db304771002e2b82b40046b73c51cde34bc 3	src/backend/python_backend/database.py
+100644 df390ac01f3f726d30775864dc572901e60d02d0 1	src/backend/python_backend/email_data_manager.py
+100644 df390ac01f3f726d30775864dc572901e60d02d0 3	src/backend/python_backend/email_data_manager.py
+100644 d0c4062b4599f14110c6e2469d99e394b657b882 1	src/backend/python_backend/enhanced_routes.py
+100644 ef68e0d1016ee1ba194191b5b9d8d237057c8437 3	src/backend/python_backend/enhanced_routes.py
+100644 ab3a80442e0ad9222de9d107185eda4f17049481 1	src/backend/python_backend/exceptions.py
+100644 a3d83774b648920e12378525a809c6448a4e9475 3	src/backend/python_backend/exceptions.py
+100644 d6be6cbed68c0820e6d184a417f5f31eaa754ad1 1	src/backend/python_backend/gmail_routes.py
+100644 d6be6cbed68c0820e6d184a417f5f31eaa754ad1 3	src/backend/python_backend/gmail_routes.py
+100644 58689e3d530f4e6276f7264466fde3e458920d05 1	src/backend/python_backend/json_database.py
+100644 b14cc2fb031ccbca0f04d8f33332ae2dbebfb61f 3	src/backend/python_backend/json_database.py
+100644 e0f8bdb727fb47ae5a385014f90cb064c56fe440 1	src/backend/python_backend/model_manager.py
+100644 2dead181b0d1958ad922a0508b23366b4aae117c 3	src/backend/python_backend/model_manager.py
+100644 8fd0e7dbeab86ed83fbf356679b2a88bde3bd8b1 1	src/backend/python_backend/node_workflow_routes.py
+100644 f9271fe10150215bcd867211ba82edc306880016 3	src/backend/python_backend/node_workflow_routes.py
+100644 39c704b664ccdbe473898a76a10ec78c8354dd1f 1	src/backend/python_backend/notebooks/email_analysis.ipynb
+100644 39c704b664ccdbe473898a76a10ec78c8354dd1f 3	src/backend/python_backend/notebooks/email_analysis.ipynb
+100644 4e96798f692ce662d259c7fa8fb5e24c47ef23dc 1	src/backend/python_backend/performance_routes.py
+100644 6ad6c5eec95b49567e7df13c733e8276afea5b8a 3	src/backend/python_backend/performance_routes.py
+100644 b9e4580e6088bb0d053572a6e90190077e5611b2 1	src/backend/python_backend/plugin_manager.py
+100644 9f01b2453ee97a1b2d0cb46f6365125c1c754445 3	src/backend/python_backend/plugin_manager.py
+100644 a10186080acf5ba96e23feae548bb822454dd5a5 1	src/backend/python_backend/run_server.py
+100644 174430ca056fdec01bcf360e8602a9d4359fee10 3	src/backend/python_backend/run_server.py
+100644 227e3d26a8de57c4e30d250036d082bf3cfea5cb 1	src/backend/python_backend/tests/conftest.py
+100644 0c2bc171c3e93fce12b7ab5668c7c48ce4717641 3	src/backend/python_backend/tests/conftest.py
+100644 1bc1401ba816fdf2c35885ce1c19db4ebf2c647c 1	src/backend/python_backend/tests/test_category_routes.py
+100644 1bc1401ba816fdf2c35885ce1c19db4ebf2c647c 3	src/backend/python_backend/tests/test_category_routes.py
+100644 7af84e91b972d144f1a7c08fd8248c0798198f7d 1	src/backend/python_backend/tests/test_database_optimizations.py
+100644 c46d1e708d1c0c995986fb133a11a0cf0ef4d4f1 3	src/backend/python_backend/tests/test_database_optimizations.py
+100644 e9a4e92aba97e97725ccd3df6090bf15ca165ac0 1	src/backend/python_backend/tests/test_filter_routes.py
+100644 e9a4e92aba97e97725ccd3df6090bf15ca165ac0 3	src/backend/python_backend/tests/test_filter_routes.py
+100644 4dd71482faf17b0747df8d94777aa042706cd38d 1	src/backend/python_backend/tests/test_gmail_routes.py
+100644 4dd71482faf17b0747df8d94777aa042706cd38d 3	src/backend/python_backend/tests/test_gmail_routes.py
+100644 a9b1169ae23871a3a4dbcb8cf79cb145c358ba10 1	src/backend/python_backend/tests/test_model_manager.py
+100644 a9b1169ae23871a3a4dbcb8cf79cb145c358ba10 3	src/backend/python_backend/tests/test_model_manager.py
+100644 334dcc2d5c950781daf115ed5fbdd0038ea0c638 1	src/backend/python_backend/utils.py
+100644 b574cd01989dde603bbb5b935c7ada4da075954d 3	src/backend/python_backend/utils.py
+100644 19322e2b3607794a20da48f15e6da00269a2f161 1	src/backend/python_backend/workflow_editor_ui.py
+100644 a1bd96607e1da69743944357381a136377d34555 3	src/backend/python_backend/workflow_editor_ui.py
+100644 0c6cd655d68bce33df53fa2e048edc9c8c255930 1	src/backend/python_backend/workflow_engine.py
+100644 348e13bf78f6e567c2a1e325caaddd07c0c7d4dc 3	src/backend/python_backend/workflow_engine.py
+100644 48d43534f6374710e81dfcac735ed941be318486 1	src/backend/python_backend/workflow_manager.py
+100644 6d0e00ecd982c89da0cfe1a92e43f0e64ec8fa62 3	src/backend/python_backend/workflow_manager.py
+100644 86eef8f2b081c70b436df04b82c1f4f150ca0dbc 1	src/backend/python_nlp/analysis_components/importance_model.py
+100644 8263a6efcfbefcb6bc9da9384ca1b0416a799882 3	src/backend/python_nlp/analysis_components/importance_model.py
+100644 9b212d0834318698b54b10196acd02343d878e00 1	src/backend/python_nlp/analysis_components/intent_model.py
+100644 9b212d0834318698b54b10196acd02343d878e00 3	src/backend/python_nlp/analysis_components/intent_model.py
+100644 38360f812eb3829e1bcb64f7f098c0fbff57ce97 1	src/backend/python_nlp/analysis_components/urgency_model.py
+100644 38360f812eb3829e1bcb64f7f098c0fbff57ce97 3	src/backend/python_nlp/analysis_components/urgency_model.py
+100644 c7bc6487039eb4aac05f9dfa786810fe91e84d6c 1	src/backend/python_nlp/data_strategy.py
+100644 0f28e86151efbcd82486c9458847196fbfcf3243 3	src/backend/python_nlp/data_strategy.py
+100644 bd7bc6976dbb8361d2b76bfd0143abe9e173ece8 1	src/backend/python_nlp/gmail_metadata.py
+100644 234eb527f0ea6fb16073b56f2f8f6bf41628146f 3	src/backend/python_nlp/gmail_metadata.py
+100644 659bec5ba04bb8558e63e6f5a4abddcbf36c19f6 1	src/backend/python_nlp/gmail_service.py.backup
+100644 659bec5ba04bb8558e63e6f5a4abddcbf36c19f6 3	src/backend/python_nlp/gmail_service.py.backup
+100644 659bec5ba04bb8558e63e6f5a4abddcbf36c19f6 1	src/backend/python_nlp/gmail_service.py.final
+100644 659bec5ba04bb8558e63e6f5a4abddcbf36c19f6 3	src/backend/python_nlp/gmail_service.py.final
+100644 7a79c7cb4a7e4269bbcc93097a6d7253e8180dd1 1	src/backend/python_nlp/nlp_engine.py
+100644 a5720053c3f2289034484aa1c597583aa80496ff 3	src/backend/python_nlp/nlp_engine.py
+100644 5ea54ce4d48ba2bf6def0b09f6b2f253a3fddabe 1	src/backend/python_nlp/protocols.py
+100644 4f839aa3d8bcf14923c7391c17fab2fd1477898e 3	src/backend/python_nlp/protocols.py
+100644 121da9da841dbc53c9ed6edd067c15b5a973cfe8 1	src/backend/python_nlp/retrieval_monitor.py
+100644 121da9da841dbc53c9ed6edd067c15b5a973cfe8 3	src/backend/python_nlp/retrieval_monitor.py
+100644 3c983ca98cdb3c7b015c56077675573fbc2aafc3 1	src/backend/python_nlp/tests/test_nlp_engine.py
+100644 22d749cfa3e42c53ba80f1ae63749a3b8e8001b3 3	src/backend/python_nlp/tests/test_nlp_engine.py
+100644 67b57c4ed4391f8aaf5e9ca29cc18d08a9492b05 1	src/backend/python_nlp/text_utils.py
+100644 67b57c4ed4391f8aaf5e9ca29cc18d08a9492b05 3	src/backend/python_nlp/text_utils.py
+100644 bb4b52ebcc236ba1da83699e47911bf7e2c49f17 1	src/backend/tests/setup.ts
+100644 493300464974b1d95dab7c0bba1ab7e094f7c2a1 3	src/backend/tests/setup.ts
+100644 b2e5e3e128cb380255e8d0ed64ad982aea40843c 1	src/core/advanced_workflow_engine.py
+100644 c5aa324bcd397a47c85c01438a2ed831bb13cc64 3	src/core/advanced_workflow_engine.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	src/core/ai_engine.py
+100644 799974c092f6df833f82af4292c0edbcf1262e35 3	src/core/ai_engine.py
+100644 2ba00f29bed24dfeaf7e0f12d0a1525eeee7d7f9 1	src/core/auth.py
+100644 aecf1ee7b15b9bd97eae214e095180e47cc2f950 3	src/core/auth.py
+100644 3ee406fbdd89727aa73c855dd6b227638158b3bd 1	src/core/data/data_source.py
+100644 3a715610abe824d28125313d25d5b988dfdfef47 3	src/core/data/data_source.py
+100644 b33e336e89451f7f5aff700bacb9ce06b60758ae 1	src/core/data/database_source.py
+100644 706af8790453add3c8747e02e3c192f3a2746706 3	src/core/data/database_source.py
+100644 de7fbc11473160a829a6baf8f1ee1d73d7866a41 1	src/core/data/factory.py
+100644 b60e38b1efc5889778b4f88eb272ed01fe9233a2 3	src/core/data/factory.py
+100644 348992e03739a4689fdd051c5ce3c3bba287630b 1	src/core/data/notmuch_data_source.py
+100644 7a3ed2e9115fe1b1bcea5b55fa16e1372806c33c 3	src/core/data/notmuch_data_source.py
+100644 f9cb9b3fe3cc2e86ae2855c81181358f9a194911 1	src/core/data/repository.py
+100644 4e5d744571c473511c846da8ed9aa697a06d6a8c 3	src/core/data/repository.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	src/core/data_source.py
+100644 ba634e59e7aa3ee8486f417c4a947b2a177de8cd 3	src/core/data_source.py
+100644 8b21112fad4f2eb89c14e15c3d12067f1702f850 1	src/core/database.py
+100644 6a0e7c0d247410802c906dc38c19d8616a4afeb0 3	src/core/database.py
+100644 06bab88641d721b507be9ac113ee0c207f67a160 1	src/core/enhanced_caching.py
+100644 96090b577d83172eb773f6b3af5f1c0e0f1f04c7 3	src/core/enhanced_caching.py
+100644 0c90e2935cc484281a3ebe4e6c00ef19182fb27c 1	src/core/enhanced_error_reporting.py
+100644 4be9ee24e921462a18fa8b74ea114cccce90f6b2 3	src/core/enhanced_error_reporting.py
+100644 a9b479b2e466fd3eca20c7f99db567817eabb763 1	src/core/exceptions.py
+100644 81270383feefd3e7851868f0d2e5292f97f8ff31 3	src/core/exceptions.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	src/core/factory.py
+100644 14f1009a235898f443b0298d1d77a6246203bd0e 3	src/core/factory.py
+100644 a0377dfaa024e4800e912936c310f16dbfe81903 1	src/core/models.py
+100644 90912fde795e4d8fffedde1d0138e4aed64de42d 3	src/core/models.py
+100644 04e6b4ce85ae681a6fae2538995985965811bdaf 1	src/core/notmuch_data_source.py
+100644 dd2b5fdc85ff83856186f0899a57abe93cedcfe7 3	src/core/notmuch_data_source.py
+100644 f2e1d72ae278336a249115504150e97e707f6849 1	src/core/performance_monitor.py
+100644 0bf6b3c6ad47518537f131a4c22e6265b34b6415 3	src/core/performance_monitor.py
+100644 d68be9ff1ff8f0718734f83d9442b42f13056d29 1	src/core/security.py
+100644 fe7d331a70f9235a2cc38ae09e3ec1e6e9dc43a0 3	src/core/security.py
+100644 4336441b9bed724b33d345861dd83c913c417174 1	src/core/settings.py
+100644 ac0cbc17fe40512b8fac19bd2e0d62527d19de44 3	src/core/settings.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	src/core/workflow_engine.py
+100644 6aaf402beeb884769936143a67211938e09cda09 3	src/core/workflow_engine.py
+100644 af46d1369f694f47f0440483dac409805d2152e0 1	src/main.py
+100644 9aa783334817b8609a7c03c25250766c1348ac79 3	src/main.py
+100644 b4868794f1aea01a27e18094308f4fc5363593e2 1	subtree_integration_scientific_branch.sh
+100644 0a16c4ca23604137f0a1fface6baef17340ddfbc 3	subtree_integration_scientific_branch.sh
+100644 4020a342485e4f334f7d0a04c36fd9dc8a02ee66 1	tests/conftest.py
+100644 58090118140140c639b9567db1e8c160e718c5bf 3	tests/conftest.py
+100644 0669fa1c2d92a53424d9898e8ef0040a50c11aa3 1	tests/core/test_advanced_workflow_engine.py
+100644 28969758644eb126a5bf0b75e9faecddb9a79dbc 3	tests/core/test_advanced_workflow_engine.py
+100644 b7e22e6d6c464937d4c479c7e2e90b0eed30abba 1	tests/core/test_email_repository.py
+100644 600012390dea73f2cb2929bd93159ee85f786909 3	tests/core/test_email_repository.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/core/test_security.py
+100644 064972bea1c357774cf5afcd0a743fe00783d434 3	tests/core/test_security.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/core/test_workflow_engine.py
+100644 bd522040890d940ea890adf7516a672a201180c8 3	tests/core/test_workflow_engine.py
+100644 17970357cb0de5fc0d11e0b57a26a70c2b7013f9 1	tests/modules/categories/test_categories.py
+100644 0f7362f6176d8177e64e4caf20bfc68facc30383 3	tests/modules/categories/test_categories.py
+100644 aa34cbfcba510126ec359edc99636dc4c91e0bab 1	tests/modules/default_ai_engine/test_modular_ai_engine.py
+100644 a7efc943c749cf4c4f95e0d2b49f3ad8800b37cc 3	tests/modules/default_ai_engine/test_modular_ai_engine.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_api_actions.py
+100644 3122f792d689b6e3201f93671afc3365f2f2e6ae 3	tests/test_api_actions.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_auth.py
+100644 ae99033e8d40c4ed934d09fafa4b4f73202290ad 3	tests/test_auth.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_category_api.py
+100644 e2f8160a83329cda67b973988ebaf9e9ae64c830 3	tests/test_category_api.py
+100644 36c47d7e73e66f9e13c1067c90937d8589205798 1	tests/test_dashboard_api.py
+100644 a3f58eca6553f8695532dcfda51eea2df4d6910d 3	tests/test_dashboard_api.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_database.py
+100644 ed851f7a079958ef27a6393751ab6c31e02ff1a1 3	tests/test_database.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_email_api.py
+100644 482242d53b134afa4784b5bb33a427555faaabb7 3	tests/test_email_api.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_filter_api.py
+100644 d79dc13ce8f1d73580fba9c9c1b09c681a78b9ce 3	tests/test_filter_api.py
+100644 b4c9dc07cb7a7615254a5ffa544acaced2d00a5f 1	tests/test_gmail_api.py
+100644 6e60b129072fa6b11283c04130394dab60b88930 3	tests/test_gmail_api.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_launcher.py
+100644 8c31db1a9eecefd790c94e03e5a3e00b65edb3cb 3	tests/test_launcher.py
+100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 1	tests/test_password_hashing.py
+100644 e73fa793c464e8388a055f00db5934765eed2340 3	tests/test_password_hashing.py
+100644 b8866daca103725683d7d293fc1c77c833bfd65f 1	tests/test_workflow_engine.py
+100644 3b5e58378c3913e44418ab3621748c1a0c325ad9 3	tests/test_workflow_engine.py
+100644 70c98f2c6d0f9c470fe5e973c9217ec524c6cf71 1	tsconfig.json
+100644 c370088e721746202933d63893f7fab5a6741869 3	tsconfig.json
+
+CONFLICT (modify/delete): .github/workflows/ci.yml deleted in HEAD and modified in origin/main.  Version origin/main of .github/workflows/ci.yml left in tree.
+Auto-merging .gitignore
+CONFLICT (modify/delete): .qwen/PROJECT_SUMMARY.md deleted in HEAD and modified in origin/main.  Version origin/main of .qwen/PROJECT_SUMMARY.md left in tree.
+Auto-merging AGENTS.md
+Auto-merging CRUSH.md
+CONFLICT (content): Merge conflict in CRUSH.md
+CONFLICT (modify/delete): GEMINI.md deleted in HEAD and modified in origin/main.  Version origin/main of GEMINI.md left in tree.
+Auto-merging IFLOW.md
+CONFLICT (content): Merge conflict in IFLOW.md
+Auto-merging LLXPRT.md
+CONFLICT (content): Merge conflict in LLXPRT.md
+Auto-merging README.md
+CONFLICT (content): Merge conflict in README.md
+CONFLICT (modify/delete): SESSION_LOG.md deleted in HEAD and modified in origin/main.  Version origin/main of SESSION_LOG.md left in tree.
+CONFLICT (modify/delete): client/package-lock.json deleted in HEAD and modified in origin/main.  Version origin/main of client/package-lock.json left in tree.
+CONFLICT (modify/delete): client/src/components/sidebar.tsx deleted in HEAD and modified in origin/main.  Version origin/main of client/src/components/sidebar.tsx left in tree.
+CONFLICT (modify/delete): client/src/pages/dashboard.tsx deleted in HEAD and modified in origin/main.  Version origin/main of client/src/pages/dashboard.tsx left in tree.
+CONFLICT (modify/delete): codebase_analysis_report.txt deleted in HEAD and modified in origin/main.  Version origin/main of codebase_analysis_report.txt left in tree.
+CONFLICT (modify/delete): codebase_issues.json deleted in HEAD and modified in origin/main.  Version origin/main of codebase_issues.json left in tree.
+CONFLICT (modify/delete): data/email_content/1.json.gz deleted in HEAD and modified in origin/main.  Version origin/main of data/email_content/1.json.gz left in tree.
+CONFLICT (modify/delete): docs/actionable_insights.md deleted in HEAD and modified in origin/main.  Version origin/main of docs/actionable_insights.md left in tree.
+Auto-merging docs/git_workflow_plan.md
+CONFLICT (content): Merge conflict in docs/git_workflow_plan.md
+Auto-merging docs/orchestration_hook_management.md
+CONFLICT (add/add): Merge conflict in docs/orchestration_hook_management.md
+CONFLICT (modify/delete): modules/auth/routes.py deleted in HEAD and modified in origin/main.  Version origin/main of modules/auth/routes.py left in tree.
+CONFLICT (modify/delete): modules/email/routes.py deleted in HEAD and modified in origin/main.  Version origin/main of modules/email/routes.py left in tree.
+CONFLICT (modify/delete): modules/workflows/ui.py deleted in HEAD and modified in origin/main.  Version origin/main of modules/workflows/ui.py left in tree.
+CONFLICT (modify/delete): package.json deleted in HEAD and modified in origin/main.  Version origin/main of package.json left in tree.
+CONFLICT (modify/delete): plugins/example_workflow_plugin/__init__.py deleted in HEAD and modified in origin/main.  Version origin/main of plugins/example_workflow_plugin/__init__.py left in tree.
+CONFLICT (modify/delete): scripts/hooks/post-commit deleted in origin/main and modified in HEAD.  Version HEAD of scripts/hooks/post-commit left in tree.
+CONFLICT (modify/delete): scripts/hooks/post-merge deleted in origin/main and modified in HEAD.  Version HEAD of scripts/hooks/post-merge left in tree.
+CONFLICT (modify/delete): scripts/hooks/post-push deleted in origin/main and modified in HEAD.  Version HEAD of scripts/hooks/post-push left in tree.
+CONFLICT (modify/delete): scripts/hooks/pre-commit deleted in origin/main and modified in HEAD.  Version HEAD of scripts/hooks/pre-commit left in tree.
+Auto-merging setup/pyproject.toml
+CONFLICT (content): Merge conflict in setup/pyproject.toml
+CONFLICT (rename/delete): backend/data/categories.json renamed to src/backend/data/categories.json in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/data/categories.json.gz renamed to src/backend/data/categories.json.gz in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/data/emails.json renamed to src/backend/data/emails.json in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/data/emails.json.gz renamed to src/backend/data/emails.json.gz in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/data/users.json renamed to src/backend/data/users.json in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/data/users.json.gz renamed to src/backend/data/users.json.gz in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/db.ts renamed to src/backend/db.ts in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/db.ts deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/db.ts left in tree.
+CONFLICT (rename/delete): backend/extensions/README.md renamed to src/backend/extensions/README.md in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/extensions/README.md deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/extensions/README.md left in tree.
+CONFLICT (rename/delete): backend/extensions/example/README.md renamed to src/backend/extensions/example/README.md in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/extensions/example/README.md deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/extensions/example/README.md left in tree.
+CONFLICT (rename/delete): backend/extensions/example/example.py renamed to src/backend/extensions/example/example.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/extensions/example/example.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/extensions/example/example.py left in tree.
+CONFLICT (rename/delete): backend/extensions/example/metadata.json renamed to src/backend/extensions/example/metadata.json in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/extensions/example/requirements.txt renamed to src/backend/extensions/example/requirements.txt in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/extensions/example/requirements.txt deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/extensions/example/requirements.txt left in tree.
+CONFLICT (rename/delete): backend/node_engine/email_nodes.py renamed to src/backend/node_engine/email_nodes.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/email_nodes.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/email_nodes.py left in tree.
+CONFLICT (rename/delete): backend/node_engine/migration_utils.py renamed to src/backend/node_engine/migration_utils.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/migration_utils.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/migration_utils.py left in tree.
+CONFLICT (rename/delete): backend/node_engine/node_library.py renamed to src/backend/node_engine/node_library.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/node_library.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/node_library.py left in tree.
+CONFLICT (rename/delete): backend/node_engine/test_migration.py renamed to src/backend/node_engine/test_migration.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/test_migration.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/test_migration.py left in tree.
+CONFLICT (rename/delete): backend/node_engine/test_nodes.py renamed to src/backend/node_engine/test_nodes.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/test_nodes.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/test_nodes.py left in tree.
+CONFLICT (rename/delete): backend/node_engine/test_sanitization.py renamed to src/backend/node_engine/test_sanitization.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/test_sanitization.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/test_sanitization.py left in tree.
+CONFLICT (rename/delete): backend/node_engine/test_security.py renamed to src/backend/node_engine/test_security.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/test_security.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/test_security.py left in tree.
+CONFLICT (rename/delete): backend/node_engine/workflow_manager.py renamed to src/backend/node_engine/workflow_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/node_engine/workflow_manager.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/node_engine/workflow_manager.py left in tree.
+CONFLICT (rename/delete): backend/plugins/__init__.py renamed to src/backend/plugins/__init__.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/plugins/__init__.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/plugins/__init__.py left in tree.
+CONFLICT (rename/delete): backend/plugins/base_plugin.py renamed to src/backend/plugins/base_plugin.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/plugins/base_plugin.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/plugins/base_plugin.py left in tree.
+CONFLICT (rename/delete): backend/plugins/email_filter_node.py renamed to src/backend/plugins/email_filter_node.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/plugins/email_filter_node.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/plugins/email_filter_node.py left in tree.
+CONFLICT (rename/delete): backend/plugins/email_visualizer_plugin.py renamed to src/backend/plugins/email_visualizer_plugin.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/plugins/email_visualizer_plugin.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/plugins/email_visualizer_plugin.py left in tree.
+CONFLICT (rename/delete): backend/plugins/plugin_manager.py renamed to src/backend/plugins/plugin_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/plugins/plugin_manager.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/plugins/plugin_manager.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/advanced_workflow_routes.py renamed to src/backend/python_backend/advanced_workflow_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/advanced_workflow_routes.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/advanced_workflow_routes.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/ai_engine.py renamed to src/backend/python_backend/ai_engine.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/ai_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/ai_engine.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/auth.py renamed to src/backend/python_backend/auth.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/auth.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/auth.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/category_data_manager.py renamed to src/backend/python_backend/category_data_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/category_data_manager.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/category_data_manager.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/config.py renamed to src/backend/python_backend/config.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/config.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/config.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/database.py renamed to src/backend/python_backend/database.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/database.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/database.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/email_data_manager.py renamed to src/backend/python_backend/email_data_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_backend/enhanced_routes.py renamed to src/backend/python_backend/enhanced_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/enhanced_routes.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/enhanced_routes.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/exceptions.py renamed to src/backend/python_backend/exceptions.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/exceptions.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/exceptions.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/gmail_routes.py renamed to src/backend/python_backend/gmail_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_backend/json_database.py renamed to src/backend/python_backend/json_database.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/json_database.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/json_database.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/model_manager.py renamed to src/backend/python_backend/model_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/model_manager.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/model_manager.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/node_workflow_routes.py renamed to src/backend/python_backend/node_workflow_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/node_workflow_routes.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/node_workflow_routes.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/notebooks/email_analysis.ipynb renamed to src/backend/python_backend/notebooks/email_analysis.ipynb in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_backend/performance_routes.py renamed to src/backend/python_backend/performance_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/performance_routes.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/performance_routes.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/plugin_manager.py renamed to src/backend/python_backend/plugin_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/plugin_manager.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/plugin_manager.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/run_server.py renamed to src/backend/python_backend/run_server.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/run_server.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/run_server.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/tests/conftest.py renamed to src/backend/python_backend/tests/conftest.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/tests/conftest.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/tests/conftest.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/tests/test_category_routes.py renamed to src/backend/python_backend/tests/test_category_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_backend/tests/test_database_optimizations.py renamed to src/backend/python_backend/tests/test_database_optimizations.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/tests/test_database_optimizations.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/tests/test_database_optimizations.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/tests/test_filter_routes.py renamed to src/backend/python_backend/tests/test_filter_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_backend/tests/test_gmail_routes.py renamed to src/backend/python_backend/tests/test_gmail_routes.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_backend/tests/test_model_manager.py renamed to src/backend/python_backend/tests/test_model_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_backend/utils.py renamed to src/backend/python_backend/utils.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/utils.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/utils.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/workflow_editor_ui.py renamed to src/backend/python_backend/workflow_editor_ui.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/workflow_editor_ui.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/workflow_editor_ui.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/workflow_engine.py renamed to src/backend/python_backend/workflow_engine.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/workflow_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/workflow_engine.py left in tree.
+CONFLICT (rename/delete): backend/python_backend/workflow_manager.py renamed to src/backend/python_backend/workflow_manager.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_backend/workflow_manager.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_backend/workflow_manager.py left in tree.
+CONFLICT (rename/delete): backend/python_nlp/analysis_components/importance_model.py renamed to src/backend/python_nlp/analysis_components/importance_model.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_nlp/analysis_components/importance_model.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_nlp/analysis_components/importance_model.py left in tree.
+CONFLICT (rename/delete): backend/python_nlp/analysis_components/intent_model.py renamed to src/backend/python_nlp/analysis_components/intent_model.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_nlp/analysis_components/urgency_model.py renamed to src/backend/python_nlp/analysis_components/urgency_model.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_nlp/data_strategy.py renamed to src/backend/python_nlp/data_strategy.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_nlp/data_strategy.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_nlp/data_strategy.py left in tree.
+CONFLICT (rename/delete): backend/python_nlp/gmail_metadata.py renamed to src/backend/python_nlp/gmail_metadata.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_nlp/gmail_metadata.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_nlp/gmail_metadata.py left in tree.
+CONFLICT (rename/delete): backend/python_nlp/gmail_service.py.backup renamed to src/backend/python_nlp/gmail_service.py.backup in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_nlp/gmail_service.py.final renamed to src/backend/python_nlp/gmail_service.py.final in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_nlp/nlp_engine.py renamed to src/backend/python_nlp/nlp_engine.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_nlp/nlp_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_nlp/nlp_engine.py left in tree.
+CONFLICT (rename/delete): backend/python_nlp/protocols.py renamed to src/backend/python_nlp/protocols.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_nlp/protocols.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_nlp/protocols.py left in tree.
+CONFLICT (rename/delete): backend/python_nlp/retrieval_monitor.py renamed to src/backend/python_nlp/retrieval_monitor.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/python_nlp/tests/test_nlp_engine.py renamed to src/backend/python_nlp/tests/test_nlp_engine.py in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/python_nlp/tests/test_nlp_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/python_nlp/tests/test_nlp_engine.py left in tree.
+CONFLICT (rename/delete): backend/python_nlp/text_utils.py renamed to src/backend/python_nlp/text_utils.py in origin/main, but deleted in HEAD.
+CONFLICT (rename/delete): backend/tests/setup.ts renamed to src/backend/tests/setup.ts in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): src/backend/tests/setup.ts deleted in HEAD and modified in origin/main.  Version origin/main of src/backend/tests/setup.ts left in tree.
+CONFLICT (modify/delete): src/core/advanced_workflow_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/advanced_workflow_engine.py left in tree.
+CONFLICT (modify/delete): src/core/ai_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/ai_engine.py left in tree.
+CONFLICT (modify/delete): src/core/auth.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/auth.py left in tree.
+CONFLICT (modify/delete): src/core/data/data_source.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/data/data_source.py left in tree.
+CONFLICT (modify/delete): src/core/data/database_source.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/data/database_source.py left in tree.
+CONFLICT (modify/delete): src/core/data/factory.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/data/factory.py left in tree.
+CONFLICT (modify/delete): src/core/data/notmuch_data_source.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/data/notmuch_data_source.py left in tree.
+CONFLICT (modify/delete): src/core/data/repository.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/data/repository.py left in tree.
+CONFLICT (modify/delete): src/core/data_source.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/data_source.py left in tree.
+CONFLICT (modify/delete): src/core/database.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/database.py left in tree.
+CONFLICT (modify/delete): src/core/enhanced_caching.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/enhanced_caching.py left in tree.
+CONFLICT (modify/delete): src/core/enhanced_error_reporting.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/enhanced_error_reporting.py left in tree.
+CONFLICT (modify/delete): src/core/exceptions.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/exceptions.py left in tree.
+CONFLICT (modify/delete): src/core/factory.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/factory.py left in tree.
+CONFLICT (modify/delete): src/core/models.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/models.py left in tree.
+CONFLICT (modify/delete): src/core/notmuch_data_source.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/notmuch_data_source.py left in tree.
+CONFLICT (modify/delete): src/core/performance_monitor.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/performance_monitor.py left in tree.
+CONFLICT (modify/delete): src/core/security.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/security.py left in tree.
+CONFLICT (modify/delete): src/core/settings.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/settings.py left in tree.
+CONFLICT (modify/delete): src/core/workflow_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of src/core/workflow_engine.py left in tree.
+CONFLICT (modify/delete): src/main.py deleted in HEAD and modified in origin/main.  Version origin/main of src/main.py left in tree.
+CONFLICT (rename/delete): subtree_integration_main.sh renamed to subtree_integration_scientific_branch.sh in origin/main, but deleted in HEAD.
+CONFLICT (modify/delete): subtree_integration_scientific_branch.sh deleted in HEAD and modified in origin/main.  Version origin/main of subtree_integration_scientific_branch.sh left in tree.
+CONFLICT (modify/delete): tests/conftest.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/conftest.py left in tree.
+CONFLICT (modify/delete): tests/core/test_advanced_workflow_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/core/test_advanced_workflow_engine.py left in tree.
+CONFLICT (modify/delete): tests/core/test_email_repository.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/core/test_email_repository.py left in tree.
+CONFLICT (modify/delete): tests/core/test_security.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/core/test_security.py left in tree.
+CONFLICT (modify/delete): tests/core/test_workflow_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/core/test_workflow_engine.py left in tree.
+CONFLICT (modify/delete): tests/modules/categories/test_categories.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/modules/categories/test_categories.py left in tree.
+CONFLICT (modify/delete): tests/modules/default_ai_engine/test_modular_ai_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/modules/default_ai_engine/test_modular_ai_engine.py left in tree.
+CONFLICT (modify/delete): tests/test_api_actions.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_api_actions.py left in tree.
+CONFLICT (modify/delete): tests/test_auth.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_auth.py left in tree.
+CONFLICT (modify/delete): tests/test_category_api.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_category_api.py left in tree.
+CONFLICT (modify/delete): tests/test_dashboard_api.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_dashboard_api.py left in tree.
+CONFLICT (modify/delete): tests/test_database.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_database.py left in tree.
+CONFLICT (modify/delete): tests/test_email_api.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_email_api.py left in tree.
+CONFLICT (modify/delete): tests/test_filter_api.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_filter_api.py left in tree.
+CONFLICT (modify/delete): tests/test_gmail_api.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_gmail_api.py left in tree.
+CONFLICT (modify/delete): tests/test_launcher.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_launcher.py left in tree.
+CONFLICT (modify/delete): tests/test_password_hashing.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_password_hashing.py left in tree.
+CONFLICT (modify/delete): tests/test_workflow_engine.py deleted in HEAD and modified in origin/main.  Version origin/main of tests/test_workflow_engine.py left in tree.
+CONFLICT (modify/delete): tsconfig.json deleted in HEAD and modified in origin/main.  Version origin/main of tsconfig.json left in tree.

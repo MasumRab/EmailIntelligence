@@ -1,0 +1,32 @@
+27df573d docs: add comprehensive task inventory and merge review report
+15a436e3 docs: add flake8 unification summary and implementation report
+ab35f4ef Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools
+16f012f1 chore: resolve merge conflicts - keep .gitignore with both .orchestration-disabled and .taskmaster/ ignores
+d843226d some agent files
+27df573d docs: add comprehensive task inventory and merge review report
+15a436e3 docs: add flake8 unification summary and implementation report
+ab35f4ef Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools
+16f012f1 chore: resolve merge conflicts - keep .gitignore with both .orchestration-disabled and .taskmaster/ ignores
+82176d4f orchestration tools update
+6118abf8 chore: remove subtree integration and delete Task 2
+0f423031 update
+c11366b6 continue
+0a6f36a6 merge
+eeb3aeca Add specs from orchestration-tools branch
+bc1be4bd Add orchestration-focused setup directory with launch scripts
+ce9a8f6a Integrate carefully resolved application functionality with orchestration improvements
+208bb5ff refactor: archive outdated analysis docs and remove empty files
+26499908 refactor: archive additional large documentation files
+ed4ddeaa chore: move backup task files to archive and remove unintended docs from bad merge
+42a0db3b avoiding orchestration
+ae75708e orchestration errors?
+b4e2c57c Fix subprocess security vulnerabilities in setup modules
+3f82188d Address Sourcery AI review comments: fix security path validation and email extraction
+8b99eb7a Resolve merge conflicts in PR #162 - comprehensive documentation
+c9473516 Add Jules MCP coordination schedule for Email Intelligence development
+ec8dab05 Fix merge conflicts in database.py and performance_monitor.py
+c4bf5071 Fix: Add missing ResourceLimits definition to security_manager.py
+a1ef8c66 Consolidate backlog tasks: merge docs/project-management/backlog/tasks/ into main backlog/tasks/, archive duplicates, remove redundant location
+b9f4d54b Remove duplicate task files from docs/ that exist in root backlog/tasks/
+d3c29919 feat: Complete security audit and technical debt improvements
+a8d4a537 Merge remote scientific branch

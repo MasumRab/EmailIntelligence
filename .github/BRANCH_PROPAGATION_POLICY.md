@@ -181,6 +181,7 @@ PROTECTED_FILES=(
 **Recovery:**
 ```bash
 git merge --abort
+
 # Use selective cherry-pick instead:
 ./scripts/extract-orchestration-changes.sh <branch> <commit>
 ```
@@ -199,6 +200,7 @@ git merge --abort
 
 ### Before Merging to main
 ```bash
+
 # 1. Validate no orchestration files
 ./scripts/validate-orchestration-context.sh main
 
@@ -211,6 +213,7 @@ git show main:.git/hooks/post-commit 2>/dev/null && echo "❌ FAIL: Hooks presen
 
 ### Before Merging to orchestration-tools
 ```bash
+
 # 1. Validate ONLY orchestration files
 ./scripts/validate-orchestration-context.sh
 
@@ -223,6 +226,7 @@ git show HEAD:.git/hooks/post-commit > /dev/null && echo "✓ Hooks verified"
 
 ### Before Merging to scientific
 ```bash
+
 # 1. Validate scientific-specific requirements
 ./scripts/validate-orchestration-context.sh scientific
 
@@ -238,8 +242,10 @@ grep -q "SCIENTIFIC_MODE" scientific-branch-config.sh && echo "✓ Scientific co
 ```bash
 git checkout feature/new-feature
 git pull origin main  # Get latest
+
 # Merge validation runs automatically
 git push origin feature/new-feature
+
 # Create PR in GitHub
 ```
 
@@ -248,8 +254,10 @@ git push origin feature/new-feature
 ### Scenario 2: Orchestration Update → orchestration-tools
 ```bash
 git checkout orchestration-tools-changes
+
 # Make changes
 git push origin orchestration-tools-changes
+
 # Strategy 5: Post-commit hook creates aggregated PR
 
 # After PR merges:
@@ -281,11 +289,13 @@ git push origin main
 ```bash
 git checkout main
 git merge orchestration-tools
+
 # ❌ BLOCKED: pre-merge-abort detects .git/hooks/
 
 # Recovery:
 git merge --abort
 ./scripts/extract-orchestration-changes.sh orchestration-tools <commit>
+
 # Manual cherry-pick approved files only
 ```
 
@@ -295,10 +305,12 @@ git merge --abort
 
 ### Detect Propagation Violation
 ```bash
+
 # Check if hooks are on main (BAD)
 git show main:.git/hooks/post-commit > /dev/null 2>&1
 if [[ $? -eq 0 ]]; then
     echo "❌ CONTAMINATION: Hooks found on main branch"
+
     # See: PHASE3_ROLLBACK_OPTIONS.md
 fi
 
@@ -306,12 +318,14 @@ fi
 git show orchestration-tools:src/ > /dev/null 2>&1
 if [[ $? -eq 0 ]]; then
     echo "❌ CONTAMINATION: App code found on orchestration-tools"
+
     # See: PHASE3_ROLLBACK_OPTIONS.md
 fi
 ```
 
 ### Rollback Contaminated Branch
 ```bash
+
 # Option 1: Reset to last known good state
 git checkout <branch>
 git log --oneline | grep -E "correct message"  # Find last good commit
@@ -329,6 +343,7 @@ git push origin <branch>
 
 ### Daily Checks
 ```bash
+
 # 1. Verify branch integrity
 ./scripts/validate-orchestration-context.sh main
 ./scripts/validate-orchestration-context.sh orchestration-tools
@@ -342,6 +357,7 @@ gh pr list --state open | grep -E "orchestration|main"
 
 ### Audit Log
 ```bash
+
 # List all merges to main
 git log main --oneline --grep="Merge" | head -20
 
@@ -350,6 +366,7 @@ git log main --oneline --author="<suspicious-user>" | head -10
 
 # Verify no hooks accidentally added to main
 git log main --all --oneline -- ".git/hooks" | wc -l
+
 # Output should be: 0
 ```
 
