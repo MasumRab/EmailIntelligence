@@ -37,7 +37,7 @@ class TestLaunchOrchestration:
         """Test that project root can be found."""
         pytest.skip("Project root finding test skipped - requires launch module import")
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_launch_execution(self, mock_run):
         """Test that launch script can execute without critical errors."""
         mock_run.return_value = MagicMock(returncode=0)

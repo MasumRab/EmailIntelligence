@@ -23,6 +23,7 @@ INTERACTIVE=true
 SKIP_BRANCHES=()
 TARGET_BRANCHES=()
 VERBOSE=false
+UPDATE_INTERVAL=10  # Refresh orchestration-tools source every N branches
 
 # Scripts to propagate to all branches
 SCRIPTS_TO_PROPAGATE=(
@@ -68,6 +69,10 @@ parse_args() {
                 VERBOSE=true
                 shift
                 ;;
+            --update-interval)
+                UPDATE_INTERVAL="$2"
+                shift 2
+                ;;
             --help)
                 show_help
                 exit 0
@@ -92,6 +97,7 @@ Options:
   --no-interactive       Don't prompt for confirmation
   --skip BRANCH1,BRANCH2 Skip specific branches (comma-separated)
   --branches BRANCH1,BRANCH2 Update only specific branches (comma-separated)
+  --update-interval N    Refresh repository state every N branches (default: 10)
   --verbose              Show detailed output
   --help                 Show this help message
 
@@ -110,6 +116,7 @@ Branch integrity maintained:
   - No .git/hooks/ files committed
   - Only infrastructure scripts and lib files
   - Branch policies enforced via pre-commit hook
+  - Repository state refreshed every N branches to prevent conflicts
 
 Examples:
   # Dry run to see what would happen
@@ -155,6 +162,27 @@ get_branches_to_update() {
     done
     
     echo "${filtered_branches[@]}"
+}
+
+# Refresh repository state to prevent conflicts from long-running operations
+refresh_repository_state() {
+    echo -e "${BLUE}Refreshing repository state...${NC}"
+
+    # Fetch all branches and prune stale ones
+    if [[ "$DRY_RUN" == false ]]; then
+        git fetch --all --prune 2>/dev/null || {
+            echo -e "${YELLOW}⚠ Warning: Failed to fetch all branches${NC}"
+        }
+
+        # Update current branch if it's tracking a remote
+        if git rev-parse --abbrev-ref --symbolic-full-name @{u} > /dev/null 2>&1; then
+            git pull --rebase 2>/dev/null || {
+                echo -e "${YELLOW}⚠ Warning: Failed to update current branch${NC}"
+            }
+        fi
+    fi
+
+    echo -e "${GREEN}✓ Repository state refreshed${NC}"
 }
 
 # Verify orchestration-tools has the scripts
@@ -361,8 +389,28 @@ main() {
     local current_branch=$(git rev-parse --abbrev-ref HEAD)
     local failed_branches=()
     local updated_branches=()
-    
+    local branch_count=0
+
     for branch in "${branches_to_update[@]}"; do
+        branch_count=$((branch_count + 1))
+
+        # Refresh repository state every UPDATE_INTERVAL branches to prevent conflicts
+        if [[ $((branch_count % UPDATE_INTERVAL)) -eq 1 ]] || [[ $branch_count -eq 1 ]]; then
+            echo ""
+            refresh_repository_state
+            echo ""
+        fi
+
+        # Refresh orchestration-tools source periodically
+        if [[ $((branch_count % UPDATE_INTERVAL)) -eq 0 ]]; then
+            echo -e "${BLUE}Refreshing orchestration-tools source...${NC}"
+            if [[ "$DRY_RUN" == false ]]; then
+                git fetch origin orchestration-tools 2>/dev/null || {
+                    echo -e "${YELLOW}⚠ Warning: Failed to refresh orchestration-tools source${NC}"
+                }
+            fi
+        fi
+
         if update_branch "$branch"; then
             updated_branches+=("$branch")
         else
