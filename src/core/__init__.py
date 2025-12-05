@@ -11,7 +11,7 @@ from .interfaces import (
     IMetadataStore,
 )
 
-from .models import (
+from .conflict_models import (
     Conflict,
     ConflictBlock,
     AnalysisResult,

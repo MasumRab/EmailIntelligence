@@ -1,0 +1,4 @@
+[submodule ".taskmaster"]
+	path = .taskmaster
+	url = git@github.com:MasumRab/EmailIntelligence.git
+	branch = taskmaster

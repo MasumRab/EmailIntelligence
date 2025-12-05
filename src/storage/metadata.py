@@ -9,7 +9,7 @@ import json
 from typing import Optional
 
 from ..core.interfaces import IMetadataStore
-from ..core.models import Conflict, AnalysisResult
+from ..core.conflict_models import Conflict, AnalysisResult
 from ..core.config import settings
 from ..core.exceptions import StorageError
 from ..utils.logger import get_logger

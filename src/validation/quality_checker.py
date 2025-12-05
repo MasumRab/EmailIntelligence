@@ -4,7 +4,7 @@ Quality checker module.
 
 from typing import Dict, Any
 
-from ..core.models import ValidationResult, ValidationStatus
+from ..core.conflict_models import ValidationResult, ValidationStatus
 from ..utils.logger import get_logger
 from ..analysis.code.ast_analyzer import ASTAnalyzer
 

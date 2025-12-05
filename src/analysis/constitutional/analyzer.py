@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 from ...core.interfaces import IConstitutionalAnalyzer
-from ...core.models import Conflict, AnalysisResult, RiskLevel
+from ...core.conflict_models import Conflict, AnalysisResult, RiskLevel
 from ...utils.logger import get_logger
 from .requirement_checker import (
     ErrorHandlingChecker,

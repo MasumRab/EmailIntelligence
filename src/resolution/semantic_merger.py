@@ -3,7 +3,7 @@ Semantic merger module.
 """
 
 from typing import Optional
-from ..core.models import ConflictBlock
+from ..core.conflict_models import ConflictBlock
 from ..analysis.code.ast_analyzer import ASTAnalyzer
 from ..utils.logger import get_logger
 

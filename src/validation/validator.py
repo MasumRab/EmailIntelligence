@@ -6,7 +6,7 @@ import asyncio
 from typing import Dict, Any, List
 
 from ..core.interfaces import IValidator
-from ..core.models import ValidationResult, ValidationStatus
+from ..core.conflict_models import ValidationResult, ValidationStatus
 from .test_runner import TestRunner
 
 # from .security_scanner import SecurityScanner # Not yet implemented

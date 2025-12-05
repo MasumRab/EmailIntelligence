@@ -3,7 +3,7 @@ Automated conflict resolution module.
 """
 
 from ..core.interfaces import IConflictResolver
-from ..core.models import Conflict, ResolutionStrategy, ResolutionPlan, ExecutionStatus
+from ..core.conflict_models import Conflict, ResolutionStrategy, ResolutionPlan, ExecutionStatus
 from .executor import ResolutionExecutor
 from ..utils.logger import get_logger
 

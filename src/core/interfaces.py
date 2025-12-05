@@ -7,7 +7,7 @@ of the system. All implementations must adhere to these interfaces.
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
-from .models import (
+from .conflict_models import (
     Conflict,
     AnalysisResult,
     ResolutionStrategy,

@@ -11,7 +11,7 @@ import re
 import hashlib
 
 from ..core.interfaces import IConflictDetector
-from ..core.models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
+from ..core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
 from ..core.exceptions import ConflictDetectionError
 from ..utils.logger import get_logger
 from .repository import RepositoryOperations

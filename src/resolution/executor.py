@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 
-from ..core.models import ResolutionPlan, ResolutionStep, ExecutionStatus, ConflictBlock
+from ..core.conflict_models import ResolutionPlan, ResolutionStep, ExecutionStatus, ConflictBlock
 from ..git.repository import RepositoryOperations
 from .semantic_merger import SemanticMerger
 from ..utils.logger import get_logger

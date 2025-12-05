@@ -7,7 +7,7 @@ import re
 from typing import Dict, Any
 from pathlib import Path
 
-from ..core.models import ValidationResult, ValidationStatus
+from ..core.conflict_models import ValidationResult, ValidationStatus
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)

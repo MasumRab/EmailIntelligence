@@ -2,6 +2,16 @@
 Pytest configuration and fixtures for EmailIntelligence CLI tests.
 """
 
+import sys
+from unittest.mock import MagicMock
+
+# Mock google.generativeai globally for tests if not installed
+try:
+    import google.generativeai
+except ImportError:
+    sys.modules["google"] = MagicMock()
+    sys.modules["google.generativeai"] = MagicMock()
+
 import pytest
 import tempfile
 from pathlib import Path

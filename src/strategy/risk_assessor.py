@@ -5,7 +5,7 @@ Risk assessment module for resolution strategies.
 from typing import Dict, Any, Optional
 from pathlib import Path
 
-from ..core.models import Conflict, ConflictBlock, RiskLevel
+from ..core.conflict_models import Conflict, ConflictBlock, RiskLevel
 from ..analysis.code.ast_analyzer import ASTAnalyzer
 from ..utils.logger import get_logger
 

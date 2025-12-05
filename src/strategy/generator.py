@@ -3,9 +3,14 @@ Strategy generation module.
 """
 
 from typing import List, Dict, Any
+import json
+import asyncio
+
+from ..core.config import settings
+from ..ai.gemini_client import GeminiClient
 
 from ..core.interfaces import IStrategyGenerator
-from ..core.models import (
+from ..core.conflict_models import (
     Conflict,
     AnalysisResult,
     ResolutionStrategy,
@@ -31,6 +36,7 @@ class StrategyGenerator(IStrategyGenerator):
         self.selector = StrategySelector()
         self.risk_assessor = RiskAssessor()
         self.prompt_engine = PromptEngine()
+        self.ai_client = GeminiClient() if settings.use_ai_strategies else None
 
     async def generate_strategies(
         self,
@@ -49,7 +55,7 @@ class StrategyGenerator(IStrategyGenerator):
         primary_strategy = self.selector.select_strategy(conflict, analysis, context)
 
         # 2. Populate steps for the strategy
-        if primary_strategy.type == "automated":
+        if primary_strategy.name == "Automated Semantic Merge":
             # This strategy relies on SemanticMerger
             # We assume the conflict has blocks that can be merged
             if conflict.blocks:
@@ -57,10 +63,11 @@ class StrategyGenerator(IStrategyGenerator):
                 for i, block in enumerate(conflict.blocks):
                     steps.append(
                         ResolutionStep(
-                            order=i * 2 + 1,
+                            id=f"semantic_merge_{i+1}",
                             description=f"Semantically merge block {i + 1}",
-                            action="semantic_merge",
-                            params={"block": block.dict()},
+                            risk_level=RiskLevel.MEDIUM,
+                            estimated_time=30,
+                            validation_steps=["verify_syntax", "check_semantics"],
                         )
                     )
                     # In a real scenario, we'd need to handle multiple blocks and combine them.
@@ -75,10 +82,11 @@ class StrategyGenerator(IStrategyGenerator):
 
                     steps.append(
                         ResolutionStep(
-                            order=i * 2 + 2,
+                            id=f"apply_merge_{i+1}",
                             description=f"Apply merged content to {block.file_path}",
-                            action="apply_merge",
-                            params={"file": block.file_path, "block": block.dict()},
+                            risk_level=RiskLevel.LOW,
+                            estimated_time=10,
+                            validation_steps=["verify_file_write"],
                         )
                     )
 
@@ -86,64 +94,71 @@ class StrategyGenerator(IStrategyGenerator):
             else:
                 # Fallback if no blocks
                 logger.warning("Automated strategy selected but no blocks found")
-                primary_strategy.type = "manual"
+                # Fallback - strategy already created as manual if needed
 
-        if primary_strategy.type == "manual":
+        if primary_strategy.name == "Manual Resolution":
             primary_strategy.steps = [
                 ResolutionStep(
-                    order=1,
+                    id="manual_open_tool",
                     description="Open conflict resolution tool",
-                    action="open_tool",
-                    params={"file": conflict.file_paths[0]},
+                    risk_level=RiskLevel.LOW,
+                    estimated_time=5,
+                    validation_steps=[],
                 ),
                 ResolutionStep(
-                    order=2,
+                    id="manual_resolve",
                     description="Manually resolve conflicts",
-                    action="manual_edit",
-                    params={},
+                    risk_level=RiskLevel.HIGH,
+                    estimated_time=300,
+                    validation_steps=["verify_resolution", "run_tests"],
                 ),
             ]
-        elif primary_strategy.type == "accept_incoming":
+        elif primary_strategy.name == "Accept Incoming":
             primary_strategy.steps = [
                 ResolutionStep(
-                    order=1,
+                    id="checkout_incoming",
                     description="Checkout file from incoming branch",
-                    action="git_checkout",
-                    params={"source": "incoming", "file": conflict.file_paths[0]},
+                    risk_level=RiskLevel.LOW,
+                    estimated_time=5,
+                    validation_steps=["verify_checkout"],
                 ),
                 ResolutionStep(
-                    order=2,
+                    id="stage_changes",
                     description="Stage changes",
-                    action="git_add",
-                    params={"file": conflict.file_paths[0]},
+                    risk_level=RiskLevel.LOW,
+                    estimated_time=2,
+                    validation_steps=["verify_staged"],
                 ),
             ]
-        elif primary_strategy.type == "union":
+        elif primary_strategy.name == "Union Merge":
             primary_strategy.steps = [
                 ResolutionStep(
-                    order=1,
+                    id="read_versions",
                     description="Read both versions",
-                    action="read_content",
-                    params={},
+                    risk_level=RiskLevel.LOW,
+                    estimated_time=2,
+                    validation_steps=[],
                 ),
                 ResolutionStep(
-                    order=2,
+                    id="merge_union",
                     description="Merge unique lines",
-                    action="merge_union",
-                    params={},
+                    risk_level=RiskLevel.MEDIUM,
+                    estimated_time=10,
+                    validation_steps=["verify_merge"],
                 ),
                 ResolutionStep(
-                    order=3,
+                    id="write_merged",
                     description="Write merged content",
-                    action="write_file",
-                    params={"file": conflict.file_paths[0]},
+                    risk_level=RiskLevel.LOW,
+                    estimated_time=5,
+                    validation_steps=["verify_file_write", "run_linting"],
                 ),
             ]
 
         strategies.append(primary_strategy)
 
         # 3. Enhance with AI Prompt if applicable
-        if primary_strategy.type == "manual" and analysis.risk_level != RiskLevel.CRITICAL:
+        if primary_strategy.name == "Manual Resolution" and analysis.risk_level != RiskLevel.CRITICAL:
             try:
                 # Create prompt context
                 prompt_context = PromptContext(
@@ -186,19 +201,70 @@ class StrategyGenerator(IStrategyGenerator):
                         merge_conflict, prompt_context
                     )
 
-                    # Store generated prompt in strategy context
+                    # Execute AI strategy generation if enabled
+                    if settings.use_ai_strategies and self.ai_client:
+                        logger.info("Executing AI strategy generation", conflict_id=conflict.id)
+                        ai_response = await self.ai_client.generate_content(prompt)
+                        
+                        if ai_response:
+                            try:
+                                # Clean up markdown code blocks if present
+                                clean_response = ai_response.replace("```json", "").replace("```", "").strip()
+                                strategy_data = json.loads(clean_response)
+                                
+                                if "strategy" in strategy_data:
+                                    s_data = strategy_data["strategy"]
+                                    
+                                    # Convert steps to ResolutionStep objects
+                                    ai_steps = []
+                                    for i, step_data in enumerate(s_data.get("steps", [])):
+                                        ai_steps.append(ResolutionStep(
+                                            id=step_data.get("id", f"ai_step_{i}"),
+                                            description=step_data.get("description", ""),
+                                            risk_level=RiskLevel(step_data.get("risk_level", "MEDIUM")),
+                                            estimated_time=step_data.get("estimated_time", 0),
+                                            validation_steps=step_data.get("validation", [])
+                                        ))
+
+                                    ai_strategy = ResolutionStrategy(
+                                        id=f"ai_gen_{conflict.id}",
+                                        name=s_data.get("name", "AI Generated Strategy"),
+                                        description=s_data.get("approach", "AI generated resolution"),
+                                        approach=s_data.get("approach", ""),
+                                        steps=ai_steps,
+                                        pros=s_data.get("pros", []),
+                                        cons=s_data.get("cons", []),
+                                        confidence=s_data.get("confidence", 0.8),
+                                        estimated_time=s_data.get("estimated_time", 300),
+                                        risk_level=RiskLevel(s_data.get("risk_level", "MEDIUM")),
+                                        requires_approval=s_data.get("requires_approval", True),
+                                        success_criteria=s_data.get("success_criteria", []),
+                                        rollback_strategy=s_data.get("rollback_strategy", ""),
+                                        validation_approach=s_data.get("validation_approach", ""),
+                                        ai_generated=True,
+                                        model_used=settings.gemini_model
+                                    )
+                                    
+                                    strategies.append(ai_strategy)
+                                    logger.info("Successfully generated AI strategy", strategy_name=ai_strategy.name)
+                            except json.JSONDecodeError:
+                                logger.error("Failed to parse AI response as JSON", response=ai_response[:100])
+                            except Exception as e:
+                                logger.error("Error creating AI strategy object", error=str(e))
+
+                    # Store generated prompt in strategy context (fallback or reference)
                     if not primary_strategy.prompt_context:
                         primary_strategy.prompt_context = {}
                     primary_strategy.prompt_context["generated_prompt"] = prompt
-                    logger.info("Generated AI strategy prompt", conflict_id=conflict.id)
+                    
                 else:
                     logger.warning("No blocks available for AI prompt generation")
 
             except Exception as e:
-                logger.warning("Failed to generate AI prompt", error=str(e))
+                logger.warning("Failed to generate AI prompt/strategy", error=str(e))
 
         # 4. Always offer manual fallback if primary is not manual
-        if primary_strategy.type != "manual":
+        if primary_strategy.name != "Manual Resolution":
             manual_fallback = self.selector._create_manual_strategy(conflict, "Fallback option")
             manual_fallback.id = f"{manual_fallback.id}-fallback"
             strategies.append(manual_fallback)

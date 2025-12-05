@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # Database
     neo4j_uri: str = Field(default="bolt://localhost:7687", description="Neo4j connection URI")
     neo4j_user: str = Field(default="neo4j", description="Neo4j username")
-    neo4j_password: str = Field(description="Neo4j password")
+    neo4j_password: str = Field(default="test_password", description="Neo4j password")
     redis_url: str = Field(default="redis://localhost:6379", description="Redis connection URL")
 
     # API settings
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     )
 
     # Security
-    secret_key: str = Field(..., description="Secret key for JWT tokens (env: SECRET_KEY)")
+    secret_key: str = Field(default="test_secret_key", description="Secret key for JWT tokens (env: SECRET_KEY)")
     access_token_expire_minutes: int = Field(default=30, description="Token expiration time")
     # Rate limiting
     rate_limit_requests: int = Field(default=100, description="Rate limit per minute")
@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     openai_temperature: float = Field(default=0.3, description="OpenAI temperature for responses")
     openai_timeout: int = Field(default=60, description="OpenAI request timeout in seconds")
     openai_max_retries: int = Field(default=3, description="Maximum retries for OpenAI requests")
+
+    # Gemini API settings
+    gemini_api_key: Optional[str] = Field(None, description="Google Gemini API key")
+    gemini_model: str = Field(default="gemini-pro", description="Gemini model to use")
 
     # AI Rate limiting and caching
     ai_rate_limit_rpm: int = Field(default=3, description="AI requests per minute (OpenAI limit)")
