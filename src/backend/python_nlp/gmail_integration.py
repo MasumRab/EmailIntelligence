@@ -196,7 +196,7 @@ class EmailCache:
 
     def cache_email(self, email_data: Dict[str, Any]) -> None:
         """Caches a single email's data."""
-        content_hash = hashlib.md5(email_data.get("content", "").encode()).hexdigest()
+        content_hash = hashlib.sha256(email_data.get("content", "").encode()).hexdigest()
         self.conn.execute(
             "INSERT OR REPLACE INTO emails VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
@@ -347,7 +347,7 @@ class GmailDataCollector:
         Returns:
             An EmailBatch object containing the collected emails.
         """
-        sync_id = hashlib.md5(f"{query_filter}_{datetime.now().date()}".encode()).hexdigest()
+        sync_id = hashlib.sha256(f"{query_filter}_{datetime.now().date()}".encode()).hexdigest()
         sync_state = self.cache.get_sync_state(query_filter) or {
             "sync_id": sync_id,
             "query_filter": query_filter,
