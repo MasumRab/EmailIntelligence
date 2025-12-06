@@ -9,6 +9,9 @@ requires-python = ">=3.11"
 
 dependencies = [
     # Core AI/ML (CPU-only versions)
+    "torch>=2.4.0+cpu",
+    "torchvision>=0.19.0+cpu",
+    "torchaudio>=2.4.0+cpu",
     "transformers>=4.40.0",
     "accelerate>=0.30.0",
 
@@ -68,7 +71,7 @@ addopts = "--asyncio-mode=auto"
 markers = [
     "asyncio: mark a test as asynchronous (run by pytest-asyncio)",
 ]
-norecursedirs = ["backend", "tests/deprecated", "tests/test_gmail_api.py"]
+norecursedirs = ["backend", "tests/deprecated"]
 
 [tool.mypy]
 python_version = "3.11"

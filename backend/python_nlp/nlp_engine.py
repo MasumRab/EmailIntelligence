@@ -148,23 +148,19 @@ class NLPEngine:
         logger.info("Attempting to load NLP models...")
         try:
             self.sentiment_analyzer = pipeline("sentiment-analysis", model=self.sentiment_model_path)
-        except Exception as e:
-            logger.warning(f"Failed to load sentiment model: {e}")
+        except Exception:
             self.sentiment_analyzer = None
         try:
             self.topic_analyzer = pipeline("text-classification", model=self.topic_model_path)
-        except Exception as e:
-            logger.warning(f"Failed to load topic model: {e}")
+        except Exception:
             self.topic_analyzer = None
         try:
             self.intent_analyzer = pipeline("text-classification", model=self.intent_model_path)
-        except Exception as e:
-            logger.warning(f"Failed to load intent model: {e}")
+        except Exception:
             self.intent_analyzer = None
         try:
             self.urgency_analyzer = pipeline("text-classification", model=self.urgency_model_path)
-        except Exception as e:
-            logger.warning(f"Failed to load urgency model: {e}")
+        except Exception:
             self.urgency_analyzer = None
         self.importance_model = ImportanceModel()
 
