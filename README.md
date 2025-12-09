@@ -12,7 +12,6 @@ The primary goal is to keep the core email intelligence codebase clean by separa
 - `scripts/` - All orchestration scripts and utilities
   - `install-hooks.sh` - Installs Git hooks for automated environment management
   - `cleanup_orchestration.sh` - Removes orchestration-specific files when not on orchestration-tools
-  - `sync_setup_worktrees.sh` - Synchronizes worktrees for different branches
   - `reverse_sync_orchestration.sh` - Reverse synchronization for orchestration updates
   - `cleanup.sh` - Cleanup utilities
   - `handle_stashes.sh` - Automated stash resolution for multiple branches
@@ -49,7 +48,7 @@ The primary goal is to keep the core email intelligence codebase clean by separa
 - `.mcp.json` - MCP server configuration for agent tools integration
 - `.context-control/profiles/` - Context profiles for branch-specific agent access control
 - `.specify/` - Agent specification and rule files
-- `.taskmaster/` - Task Master configuration and task management
+- **Note on .taskmaster**: This is a Git submodule managed on other branches (scientific, main) that points to the taskmaster branch. It is NOT present on orchestration-tools branch. See TASKMASTER_SUBMODULE_INTEGRATION.md for details.
 
 ### Orchestration Documentation
 - `docs/orchestration_summary.md` - Summary of orchestration workflow
@@ -101,7 +100,7 @@ The following files are NOT needed in this orchestration-focused branch and can 
 
 ### `post-merge` Hook
 - **Purpose**: Ensure environment consistency after merges
-- **Behavior**: Syncs setup/ directory, installs/updates Git hooks, cleans up temporary worktrees
+- **Behavior**: Syncs setup/ directory, installs/updates Git hooks
 
 ### `post-push` Hook
 - **Purpose**: Detect orchestration changes and create PRs
