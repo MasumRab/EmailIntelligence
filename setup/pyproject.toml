@@ -73,7 +73,13 @@ dev = [
     "pytest>=8.4.0",
     "pytest-asyncio>=0.23.0",
     "bandit",
-    "safety"
+    "safety",
+    # Notebooks
+    "jupyter>=1.0.0",
+    "ipykernel>=6.29.0",
+    "ipywidgets>=8.1.0",
+    # Other dev tools
+    "pip-autoremove>=0.10.0",
 ]
 
 [tool.black]
@@ -93,15 +99,6 @@ exclude = '''
   | dist
 )/
 '''
-
-    # Notebooks
-    "jupyter>=1.0.0",
-    "ipykernel>=6.29.0",
-    "ipywidgets>=8.1.0",
-
-    # Other dev tools
-    "pip-autoremove>=0.10.0",
-]
 
 [build-system]
 requires = ["setuptools", "wheel"]
