@@ -663,8 +663,29 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
+    def _search_content_batch(
+        self, emails: List[Dict[str, Any]], search_term_lower: str
+    ) -> List[Dict[str, Any]]:
+        """Helper to search content of a batch of emails synchronously (to be run in a thread)."""
+        results = []
+        for email_light in emails:
+            email_id = email_light.get(FIELD_ID)
+            content_path = self._get_email_content_path(email_id)
+
+            if os.path.exists(content_path):
+                try:
+                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                        heavy_data = json.load(f)
+                        content = heavy_data.get(FIELD_CONTENT, "")
+                        if isinstance(content, str) and search_term_lower in content.lower():
+                            results.append(email_light)
+                except (IOError, json.JSONDecodeError) as e:
+                    # Log but continue processing the batch
+                    pass
+        return results
+
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk asynchronously."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
         search_term_lower = search_term.lower()
@@ -672,6 +693,10 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
+
+        # First pass: Filter in-memory metadata
+        candidates_for_content_search = []
+
         for email_light in self.emails_data:
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
@@ -680,18 +705,30 @@ class DatabaseManager(DataSource):
             )
             if found_in_light:
                 filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+            else:
+                candidates_for_content_search.append(email_light)
+
+        # Second pass: Asynchronous batched content search for candidates
+        if candidates_for_content_search:
+            # Chunk size logic: larger chunks reduce thread overhead, smaller chunks allow more parallelism
+            # 500 items takes approx 50ms to process, which is a good balance for thread switching overhead
+            chunk_size = 500
+            chunks = [
+                candidates_for_content_search[i : i + chunk_size]
+                for i in range(0, len(candidates_for_content_search), chunk_size)
+            ]
+
+            # Run batches in parallel threads
+            tasks = [
+                asyncio.to_thread(self._search_content_batch, chunk, search_term_lower)
+                for chunk in chunks
+            ]
+
+            batch_results = await asyncio.gather(*tasks)
+
+            for batch in batch_results:
+                filtered_emails.extend(batch)
+
         return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
