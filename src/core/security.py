@@ -16,6 +16,7 @@ import re
 import secrets
 import time
 import os
+import html
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
@@ -153,9 +154,17 @@ class DataSanitizer:
         Sanitize input data to prevent injection attacks
         """
         if isinstance(data, str):
-            # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript-"
+            # Use html.escape to sanitize string input for HTML context
+            # This protects against XSS by converting characters like <, >, &, " to HTML entities
+            sanitized = html.escape(data)
+
+            # Additional protection for javascript: URI scheme
+            # (case-insensitive replacement)
+            sanitized = re.sub(
+                r"javascript:",
+                "javascript-",
+                sanitized,
+                flags=re.IGNORECASE
             )
             return sanitized
         elif isinstance(data, dict):
