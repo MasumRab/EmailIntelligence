@@ -669,6 +669,8 @@ class DatabaseManager(DataSource):
             return await self.get_emails(limit=limit, offset=0)
         search_term_lower = search_term.lower()
         filtered_emails = []
+        candidates_for_content_search = []
+
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
@@ -680,19 +682,43 @@ class DatabaseManager(DataSource):
             )
             if found_in_light:
                 filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+            else:
+                candidates_for_content_search.append(email_light)
+
+        # Parallel content search for candidates
+        if candidates_for_content_search:
+            content_matches = await self._search_content_parallel(candidates_for_content_search, search_term_lower)
+            filtered_emails.extend(content_matches)
+
         return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+    async def _search_content_parallel(
+        self, candidates: List[Dict[str, Any]], search_term_lower: str
+    ) -> List[Dict[str, Any]]:
+        """Helper to search email content in parallel using threads for I/O and parsing."""
+        matches = []
+        semaphore = asyncio.Semaphore(50)  # Limit concurrent file opens to avoid hitting OS limits
+
+        async def check_one(email_light):
+            async with semaphore:
+                email_id = email_light.get(FIELD_ID)
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    try:
+                        def read_and_check():
+                            with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                                heavy_data = json.load(f)
+                                content = heavy_data.get(FIELD_CONTENT, "")
+                                return isinstance(content, str) and search_term_lower in content.lower()
+
+                        is_match = await asyncio.to_thread(read_and_check)
+                        if is_match:
+                            matches.append(email_light)
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not search content for email {email_id}: {e}")
+
+        await asyncio.gather(*(check_one(email) for email in candidates))
+        return matches
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
