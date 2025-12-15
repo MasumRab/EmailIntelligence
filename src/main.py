@@ -562,9 +562,21 @@ def create_app():
     )
 
     # Add CORS middleware
+    # Define allowed origins to prevent security risks with allow_credentials=True
+    allowed_origins = [
+        "http://localhost:5173",    # Frontend dev
+        "http://127.0.0.1:5173",
+        "http://localhost:8001",    # Node server
+        "http://127.0.0.1:8001",
+        "http://localhost:7860",    # Self (Gradio)
+        "http://127.0.0.1:7860",
+        "http://localhost:8000",    # Backend alias
+        "http://127.0.0.1:8000",
+    ]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # In production, specify allowed origins
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
