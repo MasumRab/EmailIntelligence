@@ -435,6 +435,27 @@ class OptimizedPerformanceMonitor:
         except Exception as e:
             logger.error(f"Error flushing metrics to disk: {e}")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """
+        Compatibility method for the @log_performance decorator.
+        Adapts the log_entry dictionary to the new record_metric format.
+        """
+        try:
+            operation = log_entry.get("operation", "unknown_operation")
+            duration_seconds = log_entry.get("duration_seconds", 0)
+
+            # Convert to milliseconds for record_metric
+            duration_ms = duration_seconds * 1000
+
+            self.record_metric(
+                name=f"operation_duration_{operation}",
+                value=duration_ms,
+                unit="ms",
+                tags={"operation": operation}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to log performance compatibility: {e}")
+
     def shutdown(self):
         """Shutdown the performance monitor gracefully."""
         logger.info("Shutting down OptimizedPerformanceMonitor")
