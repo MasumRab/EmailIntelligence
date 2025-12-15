@@ -19,7 +19,7 @@ def mock_db_manager():
 
 
 @pytest.fixture
-async def db_data_source(mock_db_manager):
+def db_data_source(mock_db_manager):
     """Fixture to create a DatabaseDataSource with a mock DatabaseManager."""
     return DatabaseDataSource(mock_db_manager)
 

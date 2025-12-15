@@ -145,6 +145,9 @@ class DatabaseManager(DataSource):
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
 
+        # Internal Cache for sorted emails
+        self._sorted_emails_cache: Optional[List[Dict[str, Any]]] = None
+
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
@@ -239,6 +242,9 @@ class DatabaseManager(DataSource):
         Loads data from JSON files into memory.
         If a data file does not exist, it creates an empty one.
         """
+        # Invalidate sorted cache on load
+        self._sorted_emails_cache = None
+
         for data_type, file_path, data_list_attr in [
             (DATA_TYPE_EMAILS, self.emails_file, "emails_data"),
             (DATA_TYPE_CATEGORIES, self.categories_file, "categories_data"),
@@ -442,6 +448,9 @@ class DatabaseManager(DataSource):
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
 
+        # Invalidate sorted cache
+        self._sorted_emails_cache = None
+
         return self._add_category_details(light_email_record)
 
     async def get_email_by_id(
@@ -548,6 +557,28 @@ class DatabaseManager(DataSource):
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
 
+    def _get_sorted_emails(self) -> List[Dict[str, Any]]:
+        """Returns the full list of emails sorted by time, using cache if available."""
+        if self._sorted_emails_cache is not None:
+            return self._sorted_emails_cache
+
+        try:
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            logger.warning(
+                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+            )
+            sorted_emails = sorted(
+                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
+        self._sorted_emails_cache = sorted_emails
+        return sorted_emails
+
     async def get_emails(
         self,
         limit: int = 50,
@@ -555,17 +586,20 @@ class DatabaseManager(DataSource):
         category_id: Optional[int] = None,
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
-        """Get emails with pagination and filtering."""
-        filtered_emails = self.emails_data
+        """Get emails with pagination and filtering. Optimized to use cached sorted list."""
+        # Use cached sorted list to avoid sorting on every request
+        source_emails = self._get_sorted_emails()
+
+        # Apply filters on the already sorted list (preserves order)
         if category_id is not None:
-            filtered_emails = [
-                e for e in filtered_emails if e.get(FIELD_CATEGORY_ID) == category_id
+            source_emails = [
+                e for e in source_emails if e.get(FIELD_CATEGORY_ID) == category_id
             ]
         if is_unread is not None:
-            filtered_emails = [e for e in filtered_emails if e.get(FIELD_IS_UNREAD) == is_unread]
-        return await self._sort_and_paginate_emails(
-            filtered_emails, limit=limit, offset=offset
-        )
+            source_emails = [e for e in source_emails if e.get(FIELD_IS_UNREAD) == is_unread]
+
+        paginated_emails = source_emails[offset : offset + limit]
+        return [self._add_category_details(email) for email in paginated_emails]
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
@@ -621,6 +655,9 @@ class DatabaseManager(DataSource):
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
             
+            # Invalidate sorted cache
+            self._sorted_emails_cache = None
+
         return self._add_category_details(email_to_update)
 
     async def get_email_by_message_id(
@@ -766,6 +803,10 @@ class DatabaseManager(DataSource):
                 await self._update_category_count(new_category_id, increment=True)
 
         self.caching_manager.invalidate_email_record(email_id)
+
+        # Invalidate sorted cache
+        self._sorted_emails_cache = None
+
         return self._add_category_details(email_to_update)
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
