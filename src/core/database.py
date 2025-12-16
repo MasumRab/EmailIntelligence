@@ -162,6 +162,11 @@ class DatabaseManager(DataSource):
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
+    def _read_content_from_disk_sync(self, path: str) -> Dict[str, Any]:
+        """Helper to read content from disk synchronously (for use with to_thread)."""
+        with gzip.open(path, "rt", encoding="utf-8") as f:
+            return json.load(f)
+
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
         full_email = email_light.copy()
@@ -722,11 +727,10 @@ class DatabaseManager(DataSource):
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
                 try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
+                    heavy_data = await asyncio.to_thread(self._read_content_from_disk_sync, content_path)
+                    content = heavy_data.get(FIELD_CONTENT, "")
+                    if isinstance(content, str) and search_term_lower in content.lower():
+                        filtered_emails.append(email_light)
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
         return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
