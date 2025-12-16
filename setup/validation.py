@@ -62,13 +62,19 @@ def check_for_merge_conflicts() -> bool:
         if full_path.exists():
             try:
                 with open(full_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-                    for marker in conflict_markers:
-                        if marker in content:
-                            logger.error(
-                                f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
-                            )
-                            conflicts_found = True
+                    # Optimized to read line-by-line instead of loading entire file
+                    for line_num, line in enumerate(f, 1):
+                        for marker in conflict_markers:
+                            if marker in line:
+                                logger.error(
+                                    f"Unresolved merge conflict detected in {file_path} at line {line_num} with marker: {marker.strip()}"
+                                )
+                                conflicts_found = True
+                                # Don't break here to find all conflicts in the file?
+                                # Original implementation found the first marker and continued logic.
+                                # But `if marker in content` would trigger if ANY marker is present.
+                                # Since we want to report errors, finding one is enough to mark the file as bad,
+                                # but printing all is helpful. We'll set the flag and continue.
             except Exception as e:
                 logger.warning(f"Could not check {file_path} for conflicts: {e}")
 
