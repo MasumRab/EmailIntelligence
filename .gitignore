@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -10,21 +11,38 @@ __pycache__/
 .Python
 build/
 develop-eggs/
+=======
+# Node.js
+**/node_modules/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
+**/*.DS_Store
+server/public/
+vite.config.ts.*
+*.tar.gz
+
+# Python virtual environment
+venv/
+.venv/
+.env
+.env.*
+*.env
+!.env.example
+
+# Credentials and sensitive data
+token.json
+credentials.json
+apikey.json
+jsons/
+jsons/*
+
+# Build / packaging artifacts
+build/
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
+dist/
 *.egg-info/
-.installed.cfg
+pip-wheel-metadata/
 *.egg
+<<<<<<< HEAD
 MANIFEST
 
 # PyInstaller
@@ -39,15 +57,23 @@ pip-delete-this-directory.txt
 htmlcov/
 .tox/
 .nox/
+=======
+*.whl
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Test and coverage reports
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 .coverage
 .coverage.*
-.cache
-nosetests.xml
 coverage.xml
+coverage/
 *.cover
-*.py,cover
-.hypothesis/
 .pytest_cache/
+<<<<<<< HEAD
 
 # Translations
 *.mo
@@ -123,13 +149,18 @@ dmypy.json
 .pyre/
 
 # IDE settings
+=======
+
+# IDEs / editor-specific
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-.DS_Store
+*.iml
+*.sublime-project
+*.sublime-workspace
+.history
 
+<<<<<<< HEAD
 # Project-specific ignores
 .orchestration-disabled
 .taskmaster/
@@ -147,6 +178,57 @@ worktrees/
 #GEMINI.md
 #CRUSH.md
 #IFLOW.md
+=======
+# Misc
+diagnosis_message.txt
+logs/
+
+# Ignore configuration and local environment files
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+jsons/client_id.json
+credentials.json
+jsons/apikey.json
+config.local.*
+config/llm_guidelines.local.json
+
+# Ignore hidden files and directories, with exceptions
+!docs/.gitkeep
+!.semgrep/
+!.gitignore
+!.git/hooks/
+!.git/info/exclude
+!.flake8
+!.pylintrc
+!.github/
+!.specify/**
+!.gemini/**
+!.qwen/**
+!.claude/
+
+# Python cache
+**/__pycache__/
+
+# Miscellaneous
+diagnosis_message.txt
+performance_metrics_log.jsonl
+config/llm_guidelines.local.json
+models/*.pkl
+worktrees/
+
+
+# Centralized Agent Markdown Files
+!docs/agents/
+#AGENTS.md
+#CLAUDE.md
+#GEMINI.md
+#QWEN.md
+!docs/agents/OPENCODE.md
+!docs/agents/AIDER.md
+!docs/agents/CURSOR.md
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 !docs/agents/AMP.md
 terminal-jarvis_AGENTS.md
 cognee-AGENTS.md

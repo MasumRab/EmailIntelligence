@@ -41,8 +41,6 @@ class TestGitHooks:
         if post_merge_hook.exists():
             content = post_merge_hook.read_text()
             assert "orchestration-tools" in content, "post-merge should reference orchestration-tools branch"
-            assert "install-hooks.sh" in content, "post-merge should reference install-hooks.sh"
-
 
     def test_hook_orchestration_commit_tracking(self):
         """Test that hook orchestration commit tracking works."""

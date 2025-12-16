@@ -1,9 +1,0 @@
-analysis_settings:
-  detailed_reporting: true
-  enable_ai_analysis: false
-constitutional_framework:
-  compliance_threshold: 0.8
-  default_constitutions: []
-worktree_settings:
-  cleanup_on_completion: true
-  max_worktrees: 10

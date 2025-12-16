@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Simplified Post-commit hook for orchestration validation
-# Logs commits and runs validation only - no file distribution
+# Post-commit hook for orchestration synchronization
+# Ensures changes are properly synchronized across worktrees and branches
 
 # Recursion prevention: Exit if sync is already active
 if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
@@ -10,7 +10,7 @@ fi
 
 # Check for disable flag
 if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
-    echo "Orchestration validation disabled, skipping post-commit validation"
+    echo "Orchestration checks disabled, skipping post-commit sync"
     exit 0
 fi
 
@@ -21,49 +21,106 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 COMMIT_HASH="$(git rev-parse HEAD)"
 COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
 
-echo "Post-commit validation triggered on branch: $CURRENT_BRANCH"
+echo "Post-commit hook triggered on branch: $CURRENT_BRANCH"
 echo "Commit: $COMMIT_HASH"
 
-# Branch-specific validation
+# Branch-specific post-commit actions
 case "$CURRENT_BRANCH" in
     "orchestration-tools"|orchestration-tools-*)
-        echo "Running orchestration-tools validation for: $CURRENT_BRANCH"
+        echo "Running orchestration-tools post-commit actions for: $CURRENT_BRANCH"
 
-        # Validate critical orchestration files still exist
-        if [[ ! -f "scripts/install-hooks.sh" ]]; then
-            echo "WARNING: Critical orchestration script missing"
+        # Validate orchestration scripts are still functional
+        if [[ -f "emailintelligence_cli.py" ]]; then
+            echo "✓ EmailIntelligence CLI present"
+        else
+            echo "INFO: emailintelligence_cli.py not found"
         fi
 
-        # Verify setup directory integrity
-        if [[ ! -d "setup" ]]; then
-            echo "WARNING: Setup directory missing"
+        # Check if orchestration scripts are executable (non-blocking)
+        if [[ -d "scripts/bash" ]]; then
+            for script in scripts/bash/*.sh; do
+                if [[ -f "$script" && ! -x "$script" ]]; then
+                    echo "Fixing permissions for $script"
+                    chmod +x "$script"
+                fi
+            done
         fi
 
-        echo "✓ Orchestration-tools post-commit validation complete"
+        # Validate hook consistency (info only)
+        if [[ -f ".git/hooks/post-merge" ]]; then
+            echo "✓ Post-merge hook present"
+        fi
+
+        echo "✓ Orchestration-tools post-commit validation complete for: $CURRENT_BRANCH"
         ;;
 
     "main"|"scientific")
-        # Validate that no orchestration-specific files were added inappropriately
-        if [[ -f ".git/hooks/post-commit-setup-sync" ]]; then
-            echo "INFO: Orchestration hook file detected on non-orchestration branch"
+        echo "Running post-commit sync for $CURRENT_BRANCH..."
+
+        # Check if this commit affects shared files that need syncing
+        SHARED_FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E "\.(md|json|yml|yaml|cfg|ini)$" | wc -l)
+
+        if [[ $SHARED_FILES_CHANGED -gt 0 ]]; then
+            echo "Shared configuration files changed - checking sync status..."
+
+            # Validate setup directory integrity
+            if [[ -d "setup" && -f "setup/setup_environment_system.sh" ]]; then
+                echo "✓ Setup directory synchronized"
+            else
+                echo "WARNING: Setup directory may need synchronization"
+            fi
         fi
 
-        echo "✓ Post-commit validation complete"
+        # Check Task Master compatibility if .taskmaster exists
+        if [[ -d ".taskmaster" ]]; then
+            if [[ -f ".taskmaster/tasks/tasks.json" ]]; then
+                echo "✓ Task Master tasks database present"
+            else
+                echo "WARNING: Task Master tasks database missing"
+            fi
+        fi
+
+        echo "✓ Post-commit sync validation complete"
+        ;;
+
+    "taskmaster")
+        echo "Running Task Master post-commit actions..."
+
+        # Validate Task Master files (warnings only, don't block commits)
+        if [[ ! -f "AGENT.md" ]]; then
+            echo "WARNING: AGENT.md missing from Task Master branch"
+        fi
+
+        # Check for task-related changes
+        TASK_FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | grep -E "\.taskmaster|tasks/" | wc -l || echo 0)
+
+        if [[ $TASK_FILES_CHANGED -gt 0 ]]; then
+            echo "Task-related files changed - validating Task Master integrity..."
+
+            # Validate task JSON structure (warning only)
+            if [[ -f ".taskmaster/tasks/tasks.json" ]]; then
+                if python3 -m json.tool ".taskmaster/tasks/tasks.json" >/dev/null 2>&1; then
+                    echo "✓ Task Master JSON is valid"
+                else
+                    echo "WARNING: Task Master JSON may be malformed (manual review recommended)"
+                fi
+            fi
+        fi
+
+        echo "✓ Task Master post-commit validation complete"
         ;;
 
     *)
-        # Generic validation for other branches
-        echo "✓ Generic post-commit validation complete"
+        echo "Running generic post-commit checks for branch: $CURRENT_BRANCH"
         ;;
 esac
 
-# Common post-commit validation for all branches
-echo "Running common post-commit validation..."
+# Common post-commit actions for all branches
 
 # Check for large commits (potential issues)
-COMMIT_SIZE=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | wc -l || echo 0)
-if [[ $COMMIT_SIZE -gt 50 ]]; then
-    echo "Large commit detected ($COMMIT_SIZE files changed) - consider if unrelated changes should be separated"
+COMMIT_SIZE=$(git diff-tree --no-commit-id --stat HEAD | tail -1 | awk '{print $4+$6}')
+if [[ $COMMIT_SIZE -gt 100 ]]; then
+    echo "Large commit detected ($COMMIT_SIZE changes) - consider splitting if unrelated"
 fi
 
 # Log commit for orchestration tracking
@@ -71,4 +128,4 @@ if [[ -n "$ORCHESTRATION_LOG" ]]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') $CURRENT_BRANCH $COMMIT_HASH $COMMIT_MESSAGE" >> "$ORCHESTRATION_LOG"
 fi
 
-echo "✓ Post-commit validation completed successfully"
+echo "✓ Post-commit hook completed successfully"

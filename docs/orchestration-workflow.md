@@ -24,17 +24,29 @@ The `orchestration-tools` branch serves as the central hub for development envir
 
 ## File Ownership Matrix
 
-### Files ONLY in `orchestration-tools` branch:
-- `scripts/` - All orchestration scripts and utilities
-- `scripts/lib/` - Shared utility libraries
-- `scripts/hooks/` - Hook source files
+### Files ONLY in `orchestration-tools` branch (Core Orchestration Files):
+- `scripts/` - All orchestration scripts, utilities, and hooks
+- `scripts/lib/` - Shared utility libraries (common.sh, error_handling.sh, etc.)
+- `scripts/hooks/` - Git hook source files
 - `scripts/install-hooks.sh` - Hook installation script
+- `scripts/cleanup*.sh` - Cleanup utilities
+- `scripts/sync_setup_worktrees.sh` - Worktree synchronization
+- `scripts/reverse_sync_orchestration.sh` - Reverse sync utilities
+- `scripts/architectural_rule_engine.py` - Code architecture validation
 
 ### Files synced TO other branches (orchestration-managed):
-- `setup/` - Launch scripts and environment setup
-- `docs/orchestration-workflow.md` - This documentation
-- `.flake8`, `.pylintrc` - Python linting configuration
+- `setup/` - Launch scripts and environment setup (launch.py, launch.sh, etc.)
+- `deployment/` - Docker and deployment configurations
+- `docs/orchestration*.md` - Orchestration documentation
+- `docs/env_management.md` - Environment management docs
+- `docs/git_workflow_plan.md` - Git workflow documentation
+- `docs/guides/` - Branch switching and workflow guides
+- `docs/critical_files_check.md` - File validation documentation
+- `pyproject.toml` - Python project configuration
+- `requirements*.txt` - Python dependencies
+- `uv.lock` - Dependency lock file
 - `.gitignore`, `.gitattributes` - Git configuration
+- `launch.py` - Main application launcher
 
 ### Files that remain BRANCH-SPECIFIC (not orchestration-managed):
 - `tsconfig.json` - TypeScript configuration

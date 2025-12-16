@@ -246,8 +246,7 @@ Strategy:
 
 ### Recent Commits
 1. **3d59ccf8** (2025-11-18 17:20) - Restored missing setup modules and post-commit-setup-sync hook
-2. **ab6b3671** (2025-11-18 17:25) - Add centralized sync script + redesign tracking doc
-3. **[CURRENT]** (2025-11-18 17:30) - Add quick reference guide
+2. **[NEXT]** (2025-11-18 17:25) - Add centralized sync script + redesign tracking doc
 
 ### Next Commits (Planned)
 1. [THIS COMMIT] - Add `scripts/sync_orchestration_files.sh` + redesign tracking

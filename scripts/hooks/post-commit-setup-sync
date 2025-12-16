@@ -1,57 +1,46 @@
 #!/bin/bash
-# Post-commit hook for setup file validation (not distribution)
-# This hook runs after each commit to validate setup files are properly synchronized
+# Post-commit hook for setup file synchronization
+# This hook runs after each commit to keep setup files synchronized across worktrees
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Function to check if setup files were modified
 setup_files_modified() {
-    # Check if any files in the setup directory were added/modified in the last commit
-    if git diff-tree --no-commit-id --name-only --diff-filter=AM HEAD | grep -q "^setup/"; then
-        return 0  # Files were added or modified
-    else
-        return 1  # No setup files were added or modified
-    fi
+# Check if any files in the setup directory were modified in the last commit
+if git diff-tree --no-commit-id --name-only HEAD | grep -q "^setup/"; then
+return 0  # Files were modified
+else
+return 1  # No setup files were modified
+fi
 }
 
-# Function to validate setup synchronization
-validate_setup_sync() {
-    echo "Setup files detected in commit, validating synchronization..."
-
-    # Check if sync script exists
+# Function to run setup synchronization
+run_setup_sync() {
+    echo "Setup files detected in commit, running synchronization..."
+    
+    # Run the sync script
     if [[ -f "$PROJECT_ROOT/scripts/sync_setup_worktrees.sh" ]]; then
-        echo "INFO: Setup sync script exists, validation may be needed"
-        echo "Consider running: scripts/sync_setup_worktrees.sh --verify"
-    else
-        echo "WARNING: Setup sync script not found at $PROJECT_ROOT/scripts/sync_setup_worktrees.sh"
-    fi
-    
-    # Verify essential setup files exist
-    ESSENTIAL_SETUP_FILES=(
-        "setup/launch.py"
-        "setup/validation.py"
-        "setup/environment.py"
-        "setup/utils.py"
-    )
-    
-    for file in "${ESSENTIAL_SETUP_FILES[@]}"; do
-        if [[ ! -f "$PROJECT_ROOT/$file" ]]; then
-            echo "WARNING: Essential setup file missing: $file"
+        if bash "$PROJECT_ROOT/scripts/sync_setup_worktrees.sh"; then
+            echo "Setup synchronization completed successfully"
+        else
+            echo "Warning: Setup synchronization failed"
         fi
-    done
+    else
+        echo "Warning: Setup sync script not found at $PROJECT_ROOT/scripts/sync_setup_worktrees.sh"
+    fi
 }
 
 # Main execution
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]]; then
-    echo "On orchestration-tools branch, validation will proceed"
+    # Sync is handled by post-commit hook in orchestration-tools branch
+echo "On orchestration-tools branch, sync handled by dedicated post-commit hook"
+    exit 0
 fi
 
 if setup_files_modified; then
-    validate_setup_sync
+    run_setup_sync
 else
-    echo "No setup files added or modified in this commit, skipping validation"
+    echo "No setup files modified in this commit, skipping setup sync"
 fi
-
-echo "Setup validation completed"
