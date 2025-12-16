@@ -9,6 +9,7 @@ Also includes security utilities for path validation and sanitization.
 
 import pathlib
 import hashlib
+import html
 import hmac
 import json
 import logging
@@ -153,11 +154,8 @@ class DataSanitizer:
         Sanitize input data to prevent injection attacks
         """
         if isinstance(data, str):
-            # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript-"
-            )
-            return sanitized
+            # Use html.escape to prevent XSS by escaping all HTML characters
+            return html.escape(data)
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
