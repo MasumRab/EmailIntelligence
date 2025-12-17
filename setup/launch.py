@@ -140,54 +140,7 @@ def check_python_version():
 
 
 # --- Environment Validation ---
-def check_for_merge_conflicts() -> bool:
-    """Check for unresolved merge conflict markers in critical files."""
-    conflict_markers = ["<<<<<<< ", "======= ", ">>>>>>> "]
-    critical_files = [
-        "backend/python_backend/main.py",
-        "backend/python_nlp/nlp_engine.py",
-        "backend/python_backend/database.py",
-        "backend/python_backend/email_routes.py",
-        "backend/python_backend/category_routes.py",
-        "backend/python_backend/gmail_routes.py",
-        "backend/python_backend/filter_routes.py",
-        "backend/python_backend/action_routes.py",
-        "backend/python_backend/dashboard_routes.py",
-        "backend/python_backend/workflow_routes.py",
-        "backend/python_backend/performance_monitor.py",
-        "backend/python_nlp/gmail_integration.py",
-        "backend/python_nlp/gmail_service.py",
-        "backend/python_nlp/smart_filters.py",
-        "backend/python_nlp/smart_retrieval.py",
-        "backend/python_nlp/ai_training.py",
-        "README.md",
-        "pyproject.toml",
-        "requirements.txt",
-        "requirements-dev.txt",
-    ]
-
-    conflicts_found = False
-    for file_path in critical_files:
-        full_path = ROOT_DIR / file_path
-        if full_path.exists():
-            try:
-                with open(full_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-                    for marker in conflict_markers:
-                        if marker in content:
-                            logger.error(
-                                f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
-                            )
-                            conflicts_found = True
-            except Exception as e:
-                logger.warning(f"Could not check {file_path} for conflicts: {e}")
-
-    if conflicts_found:
-        logger.error("Please resolve all merge conflicts before proceeding.")
-        return False
-
-    logger.info("No unresolved merge conflicts detected in critical files.")
-    return True
+# check_for_merge_conflicts is imported from setup.validation
 
 
 def check_required_components() -> bool:
