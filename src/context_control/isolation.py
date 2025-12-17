@@ -1,9 +1,9 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
-from pathlib import Path
 from typing import Set, List, Optional, Dict, Any
 import fnmatch
 import hashlib
+import os
 
 from .models import AgentContext, ContextProfile
 from .logging import get_context_logger
@@ -127,14 +127,12 @@ class ContextIsolator:
         Returns:
             Normalized path string
         """
-        # Convert to Path object for normalization
-        path_obj = Path(file_path)
-
         # Get relative path from repository root if possible
         try:
+            # Optimize: Use os.path.realpath instead of Path.resolve() for performance
             # This is a simplified approach - in practice, you'd want to
             # resolve relative to the actual repository root
-            return str(path_obj.resolve())
+            return os.path.realpath(file_path)
         except Exception:
             # Fallback to original path
             return file_path
@@ -149,13 +147,18 @@ class ContextIsolator:
         Returns:
             True if any pattern matches, False otherwise
         """
+        # Optimize: Calculate basename once outside the loop
+        try:
+            filename = os.path.basename(file_path)
+        except Exception:
+            filename = file_path
+
         for pattern in patterns:
             try:
                 if fnmatch.fnmatch(file_path, pattern):
                     return True
 
                 # Also try matching against just the filename
-                filename = Path(file_path).name
                 if fnmatch.fnmatch(filename, pattern):
                     return True
 
