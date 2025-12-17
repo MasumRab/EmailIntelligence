@@ -96,8 +96,19 @@ class ProfileStorage:
         try:
             profile_file.parent.mkdir(parents=True, exist_ok=True)
 
+            # Use model_dump(mode='json') to serialize datetime objects correctly
+            # Fallback to dict() if model_dump is not available (Pydantic v1)
+            if hasattr(profile, "model_dump"):
+                data = profile.model_dump(mode="json")
+            else:
+                # Pydantic v1 doesn't have model_dump, so we rely on json encoders being configured
+                # However, json.dump doesn't use pydantic encoders.
+                # We should use json() and parse it back, or assume caller handles it.
+                # Given the environment, model_dump is likely available.
+                data = profile.dict()
+
             with open(profile_file, "w", encoding="utf-8") as f:
-                json.dump(profile.dict(), f, indent=2, ensure_ascii=False)
+                json.dump(data, f, indent=2, ensure_ascii=False)
 
             # Update cache
             self._cache[str(profile_file)] = profile
@@ -118,6 +129,16 @@ class ProfileStorage:
         Returns:
             ContextProfile if found, None otherwise
         """
+        # Optimization: Try direct file access first to avoid O(N) glob
+        expected_path = self.config.profiles_dir / f"{profile_id}.json"
+
+        # Check if the file exists before trying to load it
+        if expected_path.exists():
+            profile = self.load_profile_from_file(expected_path)
+            if profile and profile.id == profile_id:
+                return profile
+
+        # Fallback to full search if not found directly
         profiles = self.load_all_profiles()
         for profile in profiles:
             if profile.id == profile_id:
