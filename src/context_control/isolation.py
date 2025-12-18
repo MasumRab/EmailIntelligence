@@ -1,9 +1,10 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
-from typing import Set, List, Optional, Dict, Any
+from typing import Set, List, Optional, Dict, Any, Pattern
 import fnmatch
 import hashlib
 import os
+import re
 
 from .models import AgentContext, ContextProfile
 from .logging import get_context_logger
@@ -27,7 +28,32 @@ class ContextIsolator:
         self.context = context
         self.config = config or get_current_config()
         self._access_log: List[Dict[str, Any]] = []
+
+        # Pre-compile patterns for performance
+        self._restricted_patterns = self._compile_patterns(context.restricted_files)
+        self._accessible_patterns = self._compile_patterns(context.accessible_files)
+
         logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
+
+    def _compile_patterns(self, patterns: List[str]) -> List[Pattern]:
+        """Compile glob patterns into regex objects.
+
+        Args:
+            patterns: List of glob patterns
+
+        Returns:
+            List of compiled regex objects
+        """
+        compiled = []
+        for p in patterns:
+            try:
+                # Use fnmatch.translate to convert glob to regex
+                # It returns a regex string that we can compile
+                regex_str = fnmatch.translate(p)
+                compiled.append(re.compile(regex_str))
+            except Exception as e:
+                logger.error(f"Failed to compile pattern '{p}': {e}")
+        return compiled
 
     def is_file_accessible(self, file_path: str) -> bool:
         """Check if a file is accessible within the current context.
@@ -42,12 +68,12 @@ class ContextIsolator:
         normalized_path = self._normalize_path(file_path)
 
         # Check blocked files first (deny list)
-        if self._matches_patterns(normalized_path, self.context.restricted_files):
+        if self._matches_patterns(normalized_path, self._restricted_patterns):
             self._log_access(normalized_path, False, "blocked")
             return False
 
         # Check allowed files (allow list)
-        if self._matches_patterns(normalized_path, self.context.accessible_files):
+        if self._matches_patterns(normalized_path, self._accessible_patterns):
             self._log_access(normalized_path, True, "allowed")
             return True
 
@@ -137,12 +163,12 @@ class ContextIsolator:
             # Fallback to original path
             return file_path
 
-    def _matches_patterns(self, file_path: str, patterns: List[str]) -> bool:
-        """Check if a file path matches any of the given patterns.
+    def _matches_patterns(self, file_path: str, patterns: List[Pattern]) -> bool:
+        """Check if a file path matches any of the given compiled patterns.
 
         Args:
             file_path: File path to check
-            patterns: List of glob patterns
+            patterns: List of compiled regex patterns
 
         Returns:
             True if any pattern matches, False otherwise
@@ -155,11 +181,11 @@ class ContextIsolator:
 
         for pattern in patterns:
             try:
-                if fnmatch.fnmatch(file_path, pattern):
+                if pattern.match(file_path):
                     return True
 
                 # Also try matching against just the filename
-                if fnmatch.fnmatch(filename, pattern):
+                if pattern.match(filename):
                     return True
 
             except Exception:
