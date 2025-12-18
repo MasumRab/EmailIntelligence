@@ -5,6 +5,7 @@ JSON file storage implementation with in-memory caching and indexing.
 
 import asyncio
 import gzip
+import heapq
 import json
 import logging
 import os
@@ -226,12 +227,13 @@ class DatabaseManager(DataSource):
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
     def _get_searchable_text(self, email: Dict[str, Any]) -> str:
-        """Returns the lowercased searchable text for an email."""
-        return (
-            (email.get(FIELD_SUBJECT) or "") + " " +
-            (email.get(FIELD_SENDER) or "") + " " +
-            (email.get(FIELD_SENDER_EMAIL) or "")
-        ).lower()
+        """Generates a lowercase searchable string from email fields."""
+        parts = [
+            str(email.get(FIELD_SUBJECT, "") or ""),
+            str(email.get(FIELD_SENDER, "") or ""),
+            str(email.get(FIELD_SENDER_EMAIL, "") or "")
+        ]
+        return " ".join(parts).lower()
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
@@ -576,19 +578,59 @@ class DatabaseManager(DataSource):
         offset: int = 0,
     ) -> List[Dict[str, Any]]:
         """Sorts and paginates a list of emails."""
+        # Main sort key
+        key_func = lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, ""))
+
+        # Optimization: Use heapq for small result sets to avoid sorting the entire list
+        # O(N log k) vs O(N log N)
+        # Use if we are fetching a small page compared to the total size (e.g. < 50% of data)
+        # or just generally when limit+offset is reasonably small.
+        # Here we use a safe heuristic: if we need less than 20% of the data or < 1000 items.
+        # But generally heapq is faster for any k << N.
+        # Let's stick to the simple check from benchmark:
+        if limit > 0 and (offset + limit) < len(emails):
+            try:
+                # heapq.nlargest returns the top k elements sorted descending
+                # This is efficient for small k
+                paginated_emails = heapq.nlargest(
+                    offset + limit,
+                    emails,
+                    key=key_func
+                )[offset:]
+                return [self._add_category_details(email) for email in paginated_emails]
+            except TypeError:
+                # If data has mixed types, fall back to full sort logic which handles it
+                pass
+
         try:
             sorted_emails = sorted(
                 emails,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                key=key_func,
                 reverse=True,
             )
         except TypeError:
             logger.warning(
                 f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
             )
+            # Fallback sort key
+            key_func = lambda e: e.get(FIELD_CREATED_AT, "")
+
+            # Try heapq again with safe key if applicable
+            if limit > 0 and (offset + limit) < len(emails):
+                try:
+                    paginated_emails = heapq.nlargest(
+                        offset + limit,
+                        emails,
+                        key=key_func
+                    )[offset:]
+                    return [self._add_category_details(email) for email in paginated_emails]
+                except TypeError:
+                    pass
+
             sorted_emails = sorted(
-                emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+                emails, key=key_func, reverse=True
             )
+
         paginated_emails = sorted_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
