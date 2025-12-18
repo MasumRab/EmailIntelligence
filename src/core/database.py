@@ -159,6 +159,15 @@ class DatabaseManager(DataSource):
     # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
     # TODO(P2, 6h): Implement proper dependency injection for database manager instance
 
+    def _get_searchable_text(self, email: Dict[str, Any]) -> str:
+        """Generates a lowercase searchable string from email fields."""
+        parts = [
+            str(email.get(FIELD_SUBJECT, "") or ""),
+            str(email.get(FIELD_SENDER, "") or ""),
+            str(email.get(FIELD_SENDER_EMAIL, "") or "")
+        ]
+        return " ".join(parts).lower()
+
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
@@ -444,6 +453,7 @@ class DatabaseManager(DataSource):
 
         if message_id:
             self.emails_by_message_id[message_id] = email
+        self._search_index[email_id] = self._get_searchable_text(email)
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
@@ -664,6 +674,7 @@ class DatabaseManager(DataSource):
 
             self.emails_by_id[email_id] = email_to_update
             self.emails_by_message_id[message_id] = email_to_update
+            self._search_index[email_id] = self._get_searchable_text(email_to_update)
             idx = next(
                 (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
             )
@@ -816,6 +827,7 @@ class DatabaseManager(DataSource):
 
         if email.get(FIELD_MESSAGE_ID):
             self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
+        self._search_index[email_id] = self._get_searchable_text(email)
         idx = next(
             (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
             -1,
