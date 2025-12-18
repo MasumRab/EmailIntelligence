@@ -8,6 +8,7 @@ execution sandboxing, and resource management.
 import asyncio
 import json
 import logging
+import html
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -223,15 +224,8 @@ class InputSanitizer:
             )
         else:
             # Fallback to basic implementation if bleach is not available
-            # Remove potentially dangerous characters/patterns
-            sanitized = value.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript&#58;"
-            )
-            sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
-                "onload", "onload&#58;"
-            )
-            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
-            sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
+            # Use html.escape for secure-by-default behavior
+            sanitized = html.escape(value)
 
         return sanitized
 
