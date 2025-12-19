@@ -20,6 +20,8 @@ dependencies = [
     "python-multipart>=0.0.20",
     "gradio>=4.31.0",
     "RestrictedPython>=8.0",
+    "argon2-cffi>=23.1.0",
+    "pyjwt>=2.8.0",
 
     "pyngrok>=0.7.0",
 
