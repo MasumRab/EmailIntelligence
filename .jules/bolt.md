@@ -1,0 +1,3 @@
+## 2024-03-24 - [Optimized Regex Matching in ContextIsolator]
+**Learning:** Python's `re.match` inside a loop over many patterns is significantly slower (O(N)) than combining patterns into a single regex (O(1) with optimizations). However, `fnmatch.translate` returns patterns suitable for `match` only if handled carefully (it anchors to end with `\Z` but not start implicitly if inside a larger group without `^`, though `re.match` enforces start anchor). Combining with `|` works well.
+**Action:** When matching against multiple static patterns, pre-compile them into a single `|`-joined regex for better performance.
