@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
+import argon2
 from argon2 import PasswordHasher
 
 import jwt
@@ -115,6 +116,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
+# Dummy hash for timing attack prevention
+# This is a valid Argon2 hash for the password "dummy_password_for_timing_mitigation"
+DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$7vq9rrhcL4J6qaT2+1OU+A$lMTOAUORVj5Xr4ZtY+Rc93ncUaIG/K/g8zeqEdl8cvE"
+
+
 async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
@@ -130,7 +136,16 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
     try:
         # Try to get user from database
         user_data = await db.get_user_by_username(username)
-        if user_data and verify_password(password, user_data.get("hashed_password", "")):
+
+        # Always verify password to prevent timing attacks (user enumeration)
+        if user_data:
+            hashed_password = user_data.get("hashed_password", "")
+        else:
+            hashed_password = DUMMY_HASH
+
+        is_valid = verify_password(password, hashed_password)
+
+        if user_data and is_valid:
             return user_data
         return None
     except Exception as e:
