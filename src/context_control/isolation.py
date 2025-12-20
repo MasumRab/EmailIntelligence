@@ -44,16 +44,31 @@ class ContextIsolator:
         Returns:
             List of compiled regex objects
         """
-        compiled = []
+        if not patterns:
+            return []
+
+        regex_parts = []
         for p in patterns:
             try:
                 # Use fnmatch.translate to convert glob to regex
                 # It returns a regex string that we can compile
                 regex_str = fnmatch.translate(p)
-                compiled.append(re.compile(regex_str))
+                regex_parts.append(regex_str)
             except Exception as e:
                 logger.error(f"Failed to compile pattern '{p}': {e}")
-        return compiled
+
+        if not regex_parts:
+            return []
+
+        try:
+            # Join all patterns with OR (|) to create a single regex engine call
+            # This changes complexity from O(N) to O(1) for the python loop
+            combined_regex = "|".join(regex_parts)
+            return [re.compile(combined_regex)]
+        except Exception as e:
+            logger.error(f"Failed to compile combined patterns: {e}")
+            # Fallback to individual compilation if combination fails
+            return [re.compile(r) for r in regex_parts]
 
     def is_file_accessible(self, file_path: str) -> bool:
         """Check if a file is accessible within the current context.
