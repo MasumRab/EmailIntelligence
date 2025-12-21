@@ -44,7 +44,7 @@ class CheckCommand(Command):
         """
         try:
             from setup.validation import validate_orchestration_environment, check_critical_files
-
+            
             logger.info("Running orchestration checks...")
 
             # Handle specific check types
@@ -67,10 +67,10 @@ class CheckCommand(Command):
                     else:
                         logger.error("Orchestration environment validation failed")
                         return 1
-
+            
             # Default: run all checks
             success = validate_orchestration_environment()
-
+            
             if success:
                 logger.info("Orchestration checks passed successfully!")
                 return 0

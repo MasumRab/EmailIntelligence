@@ -10,27 +10,27 @@ from typing import Any
 class Container:
     """
     Simple dependency injection container.
-
+    
     This class manages the creation and lifecycle of application services.
     """
-
+    
     def __init__(self):
         self._services = {}
         self._singletons = {}
-
+    
     def register(self, name: str, service: Any, singleton: bool = False):
         """Register a service with the container."""
         if singleton:
             self._singletons[name] = service
         else:
             self._services[name] = service
-
+    
     def get(self, name: str) -> Any:
         """Get a service from the container."""
         if name in self._singletons:
             return self._singletons[name]
         return self._services.get(name)
-
+    
     def has(self, name: str) -> bool:
         """Check if a service is registered."""
         return name in self._services or name in self._singletons

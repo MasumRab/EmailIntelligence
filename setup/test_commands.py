@@ -26,13 +26,13 @@ logger = logging.getLogger(__name__)
 def test_command_creation():
     """Test command creation through the factory."""
     logger.info("Testing command creation...")
-
+    
     factory = get_command_factory()
-
+    
     # Test available commands
     commands = factory.get_available_commands()
     logger.info(f"Available commands: {commands}")
-
+    
     # Test creating each command
     for cmd_name in commands:
         try:
@@ -51,9 +51,9 @@ def test_command_creation():
 def test_command_execution():
     """Test command execution."""
     logger.info("Testing command execution...")
-
+    
     factory = get_command_factory()
-
+    
     # Test creating and getting description for each command
     for cmd_name in factory.get_available_commands():
         try:
@@ -70,15 +70,15 @@ def test_command_execution():
 def main():
     """Main test function."""
     logger.info("Starting command pattern tests...")
-
+    
     # Initialize services
     container = get_container()
     initialize_all_services(container)
-
+    
     # Run tests
     test_command_creation()
     test_command_execution()
-
+    
     logger.info("Command pattern tests completed.")
 
 

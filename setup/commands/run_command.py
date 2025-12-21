@@ -53,9 +53,9 @@ class RunCommand(Command):
         try:
             from setup.services import start_services, validate_services
             from setup.launch import prepare_environment
-
+            
             logger.info("Starting EmailIntelligence application...")
-
+            
             # Prepare the environment
             prepare_environment(self.args)
 
