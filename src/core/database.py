@@ -746,7 +746,15 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
-        for email_light in self.emails_data:
+
+        # Optimization: Iterate over sorted emails and stop once we have enough matches
+        # This significantly reduces I/O when matches are found in recent emails
+        source_emails = self._get_sorted_emails()
+
+        for email_light in source_emails:
+            if len(filtered_emails) >= limit:
+                break
+
             email_id = email_light[FIELD_ID]
 
             # Use search index if available for O(1) text access instead of repeated .lower()
