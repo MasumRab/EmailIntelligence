@@ -225,14 +225,6 @@ class DatabaseManager(DataSource):
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
-    def _get_searchable_text(self, email: Dict[str, Any]) -> str:
-        """Returns the lowercased searchable text for an email."""
-        return (
-            (email.get(FIELD_SUBJECT) or "") + " " +
-            (email.get(FIELD_SENDER) or "") + " " +
-            (email.get(FIELD_SENDER_EMAIL) or "")
-        ).lower()
-
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
@@ -737,51 +729,70 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
-    async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+    async def search_emails_with_limit(self, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Search emails with pagination.
+        Optimized to iterate over time-sorted emails and exit early once the requested page is filled.
+        """
         if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
+            return await self.get_emails(limit=limit, offset=offset)
+
         search_term_lower = search_term.lower()
         filtered_emails = []
-        logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
-        )
-        for email_light in self.emails_data:
-            email_id = email_light[FIELD_ID]
+        match_count = 0
+
+        # Iterate over pre-sorted emails to avoid sorting results later
+        # and to enable early exit once we have enough results.
+        sorted_source = self._get_sorted_emails()
+
+        # Calculate how many matches we need to find to satisfy offset + limit
+        target_count = offset + limit
+
+        for email_light in sorted_source:
+            email_id = email_light.get(FIELD_ID)
+            if email_id is None:
+                continue
 
             # Use search index if available for O(1) text access instead of repeated .lower()
             if email_id in self._search_index:
-                found_in_light = search_term_lower in self._search_index[email_id]
+                found = search_term_lower in self._search_index[email_id]
             else:
-                found_in_light = (
-                    search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                    or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                    or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+                found = (
+                    search_term_lower in (email_light.get(FIELD_SUBJECT) or "").lower()
+                    or search_term_lower in (email_light.get(FIELD_SENDER) or "").lower()
+                    or search_term_lower in (email_light.get(FIELD_SENDER_EMAIL) or "").lower()
                 )
 
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
-
-            # Check content cache first to avoid disk I/O
-            cached_content = self.caching_manager.get_email_content(email_id)
-            if cached_content:
-                content = cached_content.get(FIELD_CONTENT, "")
-                if isinstance(content, str) and search_term_lower in content.lower():
-                    filtered_emails.append(email_light)
-                continue
-
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                    content = heavy_data.get(FIELD_CONTENT, "")
+            if not found:
+                # Check content cache first to avoid disk I/O
+                cached_content = self.caching_manager.get_email_content(email_id)
+                if cached_content:
+                    content = cached_content.get(FIELD_CONTENT, "")
                     if isinstance(content, str) and search_term_lower in content.lower():
-                        filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+                        found = True
+                else:
+                    # Only check disk if strictly necessary and we haven't found a match yet
+                    content_path = self._get_email_content_path(email_id)
+                    if os.path.exists(content_path):
+                        try:
+                            # Offload synchronous file I/O to a thread
+                            heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
+                            content = heavy_data.get(FIELD_CONTENT, "")
+                            if isinstance(content, str) and search_term_lower in content.lower():
+                                found = True
+                        except (IOError, json.JSONDecodeError) as e:
+                            logger.error(f"Could not search content for email {email_id}: {e}")
+
+            if found:
+                match_count += 1
+                if match_count > offset:
+                    filtered_emails.append(email_light)
+
+                if match_count >= target_count:
+                    break
+
+        # Results are already sorted because we iterated over a sorted list
+        return [self._add_category_details(email) for email in filtered_emails]
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
