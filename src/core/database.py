@@ -574,21 +574,26 @@ class DatabaseManager(DataSource):
         emails: List[Dict[str, Any]],
         limit: int = 50,
         offset: int = 0,
+        sort: bool = True,
     ) -> List[Dict[str, Any]]:
         """Sorts and paginates a list of emails."""
-        try:
-            sorted_emails = sorted(
-                emails,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            logger.warning(
-                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
-            )
-            sorted_emails = sorted(
-                emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
+        if sort:
+            try:
+                sorted_emails = sorted(
+                    emails,
+                    key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                    reverse=True,
+                )
+            except TypeError:
+                logger.warning(
+                    f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+                )
+                sorted_emails = sorted(
+                    emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+                )
+        else:
+            sorted_emails = emails
+
         paginated_emails = sorted_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
@@ -746,7 +751,15 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
-        for email_light in self.emails_data:
+
+        # Optimization: Iterate over sorted emails to allow early exit
+        source_emails = self._get_sorted_emails()
+
+        for email_light in source_emails:
+            # Early exit if we found enough matches
+            if len(filtered_emails) >= limit:
+                break
+
             email_id = email_light[FIELD_ID]
 
             # Use search index if available for O(1) text access instead of repeated .lower()
@@ -781,7 +794,9 @@ class DatabaseManager(DataSource):
                         filtered_emails.append(email_light)
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+        # Results are already naturally sorted because we iterated source_emails (which is sorted)
+        return await self._sort_and_paginate_emails(filtered_emails, limit=limit, sort=False)
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
