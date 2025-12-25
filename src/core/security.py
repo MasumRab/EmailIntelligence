@@ -178,10 +178,21 @@ class DataSanitizer:
             # This regex looks for common sensitive keys followed by a colon and captures the value.
             sensitive_keys = ["password", "token", "key", "secret", "auth"]
             for key in sensitive_keys:
-                # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
-                # It handles optional whitespace and stops at the next comma or end of string.
+                # Improved regex:
+                # 1. Key part: Matches optional quotes, then any word characters surrounding the sensitive key
+                #    e.g. "api_key", 'auth_token', password
+                # 2. Value part: Matches either quoted string (simple) or unquoted characters until separator
+                pattern = (
+                    rf'((?:["\']?[\w-]*{re.escape(key)}[\w-]*["\']?)\s*:\s*)'  # Capture group 1: Key + colon
+                    r'(?:'
+                    r'(?:"[^"]*")|'      # Double quoted value
+                    r"(?:'[^']*')|"      # Single quoted value
+                    r'[^,\s}]+'          # Unquoted value
+                    r')'
+                )
+
                 data = re.sub(
-                    rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
+                    pattern,
                     r"\1[REDACTED]",
                     data,
                     flags=re.IGNORECASE,
