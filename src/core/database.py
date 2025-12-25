@@ -106,7 +106,11 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
-    def __init__(self, config: DatabaseConfig = None):
+    def __init__(
+        self,
+        config: Optional[DatabaseConfig] = None,
+        caching_manager: Optional[EnhancedCachingManager] = None
+    ):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
         # Support both new config-based initialization and legacy initialization
         if config is not None:
@@ -142,8 +146,8 @@ class DatabaseManager(DataSource):
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
 
-        # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        # Enhanced caching system (with dependency injection)
+        self.caching_manager = caching_manager or EnhancedCachingManager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -151,9 +155,6 @@ class DatabaseManager(DataSource):
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
-
-    # TODO(P1, 12h): Refactor to eliminate global state and singleton pattern per functional_analysis_report.md
-    # TODO(P2, 6h): Implement proper dependency injection for database manager instance
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
@@ -807,12 +808,15 @@ class DatabaseManager(DataSource):
         return bool(updated_email)  # Return True if update was successful (not empty dict)
 
 # Factory functions and configuration management
-async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
+async def create_database_manager(
+    config: DatabaseConfig,
+    caching_manager: Optional[EnhancedCachingManager] = None
+) -> DatabaseManager:
     """
     Factory function to create and initialize a DatabaseManager instance.
     This implements the dependency injection approach for proper instance management.
     """
-    manager = DatabaseManager(config=config)
+    manager = DatabaseManager(config=config, caching_manager=caching_manager)
     await manager._ensure_initialized()
     return manager
 
