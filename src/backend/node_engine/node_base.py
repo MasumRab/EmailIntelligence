@@ -12,7 +12,7 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 try:
     import networkx as nx
@@ -59,15 +59,24 @@ class NodePort:
     """Defines an input or output port for a node."""
 
     def __init__(
-        self, name: str, data_type: DataType, required: bool = True, description: str = ""
+        self,
+        name: str,
+        data_type: Union[DataType, List[DataType]],
+        required: bool = True,
+        description: str = "",
     ):
         self.name = name
-        self.data_type = data_type
+        if isinstance(data_type, list):
+            self.data_type = DataType.ANY  # Default for UI/primary type
+            self.allowed_types = data_type
+        else:
+            self.data_type = data_type
+            self.allowed_types = [data_type]
         self.required = required
         self.description = description
 
     def __repr__(self):
-        return f"NodePort(name='{self.name}', data_type={self.data_type}, required={self.required})"
+        return f"NodePort(name='{self.name}', data_type={self.data_type}, allowed_types={self.allowed_types}, required={self.required})"
 
 
 class Connection:
@@ -186,6 +195,7 @@ class BaseNode(ABC):
                 {
                     "name": port.name,
                     "type": port.data_type.value,
+                    "allowed_types": [t.value for t in port.allowed_types],
                     "required": port.required,
                     "description": port.description,
                 }
@@ -195,6 +205,7 @@ class BaseNode(ABC):
                 {
                     "name": port.name,
                     "type": port.data_type.value,
+                    "allowed_types": [t.value for t in port.allowed_types],
                     "required": port.required,  # All outputs are required by definition
                     "description": port.description,
                 }
