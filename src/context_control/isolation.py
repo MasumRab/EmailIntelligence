@@ -1,14 +1,12 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
-from typing import Set, List, Optional, Dict, Any, Pattern
+from typing import List, Optional, Dict, Any, Pattern
 import fnmatch
-import hashlib
 import os
 import re
 
-from .models import AgentContext, ContextProfile
+from .models import AgentContext
 from .logging import get_context_logger
-from .exceptions import ContextIsolationError
 from .config import get_current_config
 
 
@@ -30,30 +28,48 @@ class ContextIsolator:
         self._access_log: List[Dict[str, Any]] = []
 
         # Pre-compile patterns for performance
-        self._restricted_patterns = self._compile_patterns(context.restricted_files)
-        self._accessible_patterns = self._compile_patterns(context.accessible_files)
+        # OPTIMIZATION: Compile all patterns into a single regex for O(1) matching
+        self._restricted_patterns: Optional[Pattern] = self._compile_patterns(
+            context.restricted_files
+        )
+        self._accessible_patterns: Optional[Pattern] = self._compile_patterns(
+            context.accessible_files
+        )
 
         logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
 
-    def _compile_patterns(self, patterns: List[str]) -> List[Pattern]:
-        """Compile glob patterns into regex objects.
+    def _compile_patterns(self, patterns: List[str]) -> Optional[Pattern]:
+        """Compile glob patterns into a single optimized regex object.
 
         Args:
             patterns: List of glob patterns
 
         Returns:
-            List of compiled regex objects
+            Compiled regex object or None if no valid patterns
         """
-        compiled = []
+        if not patterns:
+            return None
+
+        regex_strs = []
         for p in patterns:
             try:
                 # Use fnmatch.translate to convert glob to regex
                 # It returns a regex string that we can compile
                 regex_str = fnmatch.translate(p)
-                compiled.append(re.compile(regex_str))
+                regex_strs.append(regex_str)
             except Exception as e:
-                logger.error(f"Failed to compile pattern '{p}': {e}")
-        return compiled
+                logger.error(f"Failed to translate pattern '{p}': {e}")
+
+        if not regex_strs:
+            return None
+
+        try:
+            # Join with OR operator to create single regex
+            combined_pattern = '|'.join(regex_strs)
+            return re.compile(combined_pattern)
+        except Exception as e:
+            logger.error(f"Failed to compile combined patterns: {e}")
+            return None
 
     def is_file_accessible(self, file_path: str) -> bool:
         """Check if a file is accessible within the current context.
@@ -163,34 +179,36 @@ class ContextIsolator:
             # Fallback to original path
             return file_path
 
-    def _matches_patterns(self, file_path: str, patterns: List[Pattern]) -> bool:
-        """Check if a file path matches any of the given compiled patterns.
+    def _matches_patterns(self, file_path: str, pattern: Optional[Pattern]) -> bool:
+        """Check if a file path matches the compiled pattern.
 
         Args:
             file_path: File path to check
-            patterns: List of compiled regex patterns
+            pattern: Compiled regex pattern (or None)
 
         Returns:
-            True if any pattern matches, False otherwise
+            True if pattern matches, False otherwise
         """
-        # Optimize: Calculate basename once outside the loop
+        if pattern is None:
+            return False
+
+        # Optimize: Calculate basename once
         try:
             filename = os.path.basename(file_path)
         except Exception:
             filename = file_path
 
-        for pattern in patterns:
-            try:
-                if pattern.match(file_path):
-                    return True
+        try:
+            # Check full path
+            if pattern.match(file_path):
+                return True
 
-                # Also try matching against just the filename
-                if pattern.match(filename):
-                    return True
+            # Check filename only
+            if pattern.match(filename):
+                return True
 
-            except Exception:
-                # Skip invalid patterns
-                continue
+        except Exception:
+            pass
 
         return False
 
