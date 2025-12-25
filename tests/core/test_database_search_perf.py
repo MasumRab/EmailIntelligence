@@ -4,7 +4,7 @@ import os
 import json
 import gzip
 from unittest.mock import MagicMock, AsyncMock, patch
-from src.core.database import DatabaseManager, DatabaseConfig, FIELD_CONTENT, FIELD_ID
+from src.core.database import DatabaseManager, DatabaseConfig, FIELD_CONTENT, FIELD_ID, FIELD_CREATED_AT
 
 @pytest.fixture
 def db_config(tmp_path):
@@ -84,3 +84,35 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
                 break
 
         assert found_call, "asyncio.to_thread should have been called with _read_content_sync"
+
+@pytest.mark.asyncio
+async def test_search_emails_stops_early(db_manager):
+    """Test that search stops processing once limit is reached."""
+    # Setup many emails that match the content search
+    limit = 5
+    total_emails = 50
+    emails = []
+    for i in range(total_emails):
+        emails.append({
+            FIELD_ID: i,
+            "subject": "Generic Subject",
+            FIELD_CREATED_AT: f"2023-01-{i+1:02d}T00:00:00Z" # Sorted by date ascending
+        })
+
+    # Sort descending to match _get_sorted_emails order (which we use in search_emails_with_limit)
+    emails.reverse()
+
+    db_manager.emails_data = emails
+    db_manager._build_indexes()
+
+    # Mock content cache miss
+    db_manager.caching_manager.get_email_content.return_value = None
+
+    # Mock content read to always match "secret"
+    with patch.object(db_manager, '_read_content_sync', return_value={FIELD_CONTENT: "secret content"}) as mock_read:
+        with patch("os.path.exists", return_value=True):
+             results = await db_manager.search_emails_with_limit("secret", limit=limit)
+
+    assert len(results) == limit
+    # With early exit, we should only inspect 'limit' emails because they all match
+    assert mock_read.call_count == limit
