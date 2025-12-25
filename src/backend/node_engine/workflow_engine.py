@@ -19,6 +19,7 @@ from backend.node_engine.node_base import (
     Connection,
     DataType,
     ExecutionContext,
+    NodePort,
     SecurityContext,
     Workflow,
 )
@@ -36,6 +37,62 @@ class WorkflowExecutionException(Exception):
     """Exception raised when workflow execution fails."""
 
     pass
+
+
+class TypeRegistry:
+    """Manages type relationships and compatibility."""
+
+    _hierarchy = {
+        DataType.EMAIL: [DataType.STRING],
+        DataType.JSON: [DataType.STRING],  # JSON string representation
+        # Add more inheritance rules here
+    }
+
+    @staticmethod
+    def is_compatible(source: DataType, target: DataType) -> bool:
+        """Check if source type is compatible with target type."""
+        if target == DataType.ANY:
+            return True
+        if source == target:
+            return True
+
+        # Check hierarchy (Inheritance)
+        # Check if source is a subtype of target
+        if TypeRegistry._is_subtype(source, target):
+            return True
+
+        # Special cases (e.g. List expansion, serialization)
+        if target == DataType.EMAIL and source == DataType.EMAIL_LIST:
+            return True  # A list can be treated as a single item in some contexts (e.g. iterate)
+
+        if target == DataType.JSON:
+            # Check if source is one of the types compatible with JSON, or inherits from them
+            json_compatible_types = [
+                DataType.STRING,
+                DataType.NUMBER,
+                DataType.BOOLEAN,
+                DataType.OBJECT,
+            ]
+            if source in json_compatible_types:
+                return True
+
+            # Check inheritance for JSON compatibility (e.g. EMAIL -> STRING -> JSON)
+            for base_type in json_compatible_types:
+                if TypeRegistry._is_subtype(source, base_type):
+                    return True
+
+        return False
+
+    @staticmethod
+    def _is_subtype(source: DataType, target: DataType) -> bool:
+        """Check if source is a subtype of target."""
+        parents = TypeRegistry._hierarchy.get(source, [])
+        if target in parents:
+            return True
+        for parent in parents:
+            if TypeRegistry._is_subtype(parent, target):
+                return True
+        return False
 
 
 class WorkflowEngine:
@@ -303,9 +360,7 @@ class WorkflowEngine:
                         )
                         if source_port:
                             # Validate type compatibility
-                            if not self._validate_type_compatibility(
-                                source_port.data_type, target_port.data_type
-                            ):
+                            if not self._validate_port_compatibility(source_port, target_port):
                                 error_msg = (
                                     f"Type mismatch in connection: {source_node.__class__.__name__}."
                                     f"{conn.source_port} ({source_port.data_type.value}) -> "
@@ -317,12 +372,25 @@ class WorkflowEngine:
 
                 node.set_input(conn.target_port, source_output)
 
-    # TODO(P2, 2h): Enhance type validation to support more complex type relationships
-    # Pseudo code for complex type relationships:
-    # - Support union types (e.g., EMAIL | EMAIL_LIST)
-    # - Handle inheritance relationships
-    # - Support generic types with constraints
-    # - Add type aliases and custom type definitions
+    def _validate_port_compatibility(
+        self, source_port: "NodePort", target_port: "NodePort"
+    ) -> bool:
+        """
+        Validate if source port is compatible with target port.
+        Supports complex type relationships including Unions and Inheritance.
+        """
+        # Source usually emits a single type, but we check against its declared type
+        source_type = source_port.data_type
+
+        # Target might accept multiple types (Union)
+        target_allowed_types = getattr(target_port, "allowed_types", [target_port.data_type])
+
+        # Check if source type is compatible with ANY of the target's allowed types
+        for allowed_type in target_allowed_types:
+            if TypeRegistry.is_compatible(source_type, allowed_type):
+                return True
+
+        return False
 
     # TODO(P2, 3h): Add support for optional input ports with default values
     # Pseudo code for optional ports:
@@ -340,24 +408,11 @@ class WorkflowEngine:
     def _validate_type_compatibility(
         self, source_type: "DataType", target_type: "DataType"
     ) -> bool:
-        """Validate if source and target types are compatible."""
-        if target_type == DataType.ANY:
-            return True
-        if source_type == target_type:
-            return True
-
-        # Check for compatible type relationships (e.g., EMAIL_LIST can go to EMAIL)
-        if target_type == DataType.EMAIL and source_type == DataType.EMAIL_LIST:
-            return True  # A list can be treated as a single item in some contexts
-        if target_type == DataType.JSON and source_type in [
-            DataType.STRING,
-            DataType.NUMBER,
-            DataType.BOOLEAN,
-        ]:
-            return True  # Primitive types can be serialized to JSON
-
-        # Add more type compatibility rules as needed
-        return False
+        """
+        Validate if source and target types are compatible.
+        Delegates to TypeRegistry for core logic.
+        """
+        return TypeRegistry.is_compatible(source_type, target_type)
 
     # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations
     # Pseudo code for expanded type compatibility:
