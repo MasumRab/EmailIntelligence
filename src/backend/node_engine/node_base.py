@@ -12,7 +12,7 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 try:
     import networkx as nx
@@ -34,7 +34,35 @@ class DataType(Enum):
     NUMBER = "number"
     STRING = "string"
     OBJECT = "object"
+    LIST = "list"
+    DICT = "dict"
     ANY = "any"  # For dynamic typing when specific type is not known
+
+
+class GenericType:
+    """Represents a generic type with type parameters (e.g., List[String])."""
+
+    def __init__(
+        self,
+        base_type: DataType,
+        type_parameters: List[Union[DataType, "GenericType"]],
+    ):
+        self.base_type = base_type
+        self.type_parameters = type_parameters
+
+    def __repr__(self):
+        params = [
+            p.value if isinstance(p, DataType) else str(p) for p in self.type_parameters
+        ]
+        return f"{self.base_type.value}[{', '.join(params)}]"
+
+    def __eq__(self, other):
+        if not isinstance(other, GenericType):
+            return False
+        return (
+            self.base_type == other.base_type
+            and self.type_parameters == other.type_parameters
+        )
 
 
 
@@ -59,7 +87,11 @@ class NodePort:
     """Defines an input or output port for a node."""
 
     def __init__(
-        self, name: str, data_type: DataType, required: bool = True, description: str = ""
+        self,
+        name: str,
+        data_type: Union[DataType, GenericType],
+        required: bool = True,
+        description: str = "",
     ):
         self.name = name
         self.data_type = data_type
