@@ -453,7 +453,6 @@ class DatabaseManager(DataSource):
 
         if message_id:
             self.emails_by_message_id[message_id] = email
-        self._search_index[email_id] = self._get_searchable_text(email)
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
@@ -744,9 +743,17 @@ class DatabaseManager(DataSource):
         search_term_lower = search_term.lower()
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}' with early exit strategy."
         )
-        for email_light in self.emails_data:
+
+        # Optimization: Iterate over sorted emails and stop once limit is reached
+        sorted_emails = self._get_sorted_emails()
+        count = 0
+
+        for email_light in sorted_emails:
+            if count >= limit:
+                break
+
             email_id = email_light[FIELD_ID]
 
             # Use search index if available for O(1) text access instead of repeated .lower()
@@ -761,6 +768,7 @@ class DatabaseManager(DataSource):
 
             if found_in_light:
                 filtered_emails.append(email_light)
+                count += 1
                 continue
 
             # Check content cache first to avoid disk I/O
@@ -769,6 +777,7 @@ class DatabaseManager(DataSource):
                 content = cached_content.get(FIELD_CONTENT, "")
                 if isinstance(content, str) and search_term_lower in content.lower():
                     filtered_emails.append(email_light)
+                    count += 1
                 continue
 
             content_path = self._get_email_content_path(email_id)
@@ -779,9 +788,13 @@ class DatabaseManager(DataSource):
                     content = heavy_data.get(FIELD_CONTENT, "")
                     if isinstance(content, str) and search_term_lower in content.lower():
                         filtered_emails.append(email_light)
+                        count += 1
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+        # Result is already sorted because we iterated over sorted_emails
+        result_emails = [self._add_category_details(email) for email in filtered_emails]
+        return result_emails
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -827,7 +840,6 @@ class DatabaseManager(DataSource):
 
         if email.get(FIELD_MESSAGE_ID):
             self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
-        self._search_index[email_id] = self._get_searchable_text(email)
         idx = next(
             (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
             -1,
