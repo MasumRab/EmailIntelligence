@@ -741,12 +741,23 @@ class DatabaseManager(DataSource):
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
+
         search_term_lower = search_term.lower()
         filtered_emails = []
+
+        # Optimization: Iterate over sorted emails and stop once we reach the limit.
+        # This avoids scanning the entire dataset and checking disk content for older emails
+        # when we already have enough recent matches.
+        source_emails = self._get_sorted_emails()
+
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'"
         )
-        for email_light in self.emails_data:
+
+        for email_light in source_emails:
+            if len(filtered_emails) >= limit:
+                break
+
             email_id = email_light[FIELD_ID]
 
             # Use search index if available for O(1) text access instead of repeated .lower()
@@ -781,7 +792,9 @@ class DatabaseManager(DataSource):
                         filtered_emails.append(email_light)
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+        # Results are already sorted because we iterated source_emails (which is sorted)
+        return [self._add_category_details(email) for email in filtered_emails]
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
