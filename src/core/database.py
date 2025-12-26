@@ -152,6 +152,7 @@ class DatabaseManager(DataSource):
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
+        self._initialization_lock = asyncio.Lock()
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
@@ -217,10 +218,13 @@ class DatabaseManager(DataSource):
 
     async def _ensure_initialized(self) -> None:
         """Ensure data is loaded and indexes are built."""
-        if not self._initialized:
-            await self._load_data()
-            self._build_indexes()
-            self._initialized = True
+        if self._initialized:
+            return
+        async with self._initialization_lock:
+            if not self._initialized:
+                await self._load_data()
+                self._build_indexes()
+                self._initialized = True
 
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
@@ -457,6 +461,7 @@ class DatabaseManager(DataSource):
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
+        await self._ensure_initialized()
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
@@ -493,6 +498,7 @@ class DatabaseManager(DataSource):
         self, email_id: int, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Get email by ID using in-memory index, with option to load heavy content."""
+        await self._ensure_initialized()
         # Check cache first
         cached_email = self.caching_manager.get_email_record(email_id)
         if cached_email is not None and not include_content:
@@ -527,6 +533,7 @@ class DatabaseManager(DataSource):
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
         """Get all categories with their counts from cache."""
+        await self._ensure_initialized()
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
@@ -534,6 +541,7 @@ class DatabaseManager(DataSource):
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
+        await self._ensure_initialized()
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
             logger.warning(
@@ -623,6 +631,7 @@ class DatabaseManager(DataSource):
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering. Optimized to use cached sorted list."""
+        await self._ensure_initialized()
         # Use cached sorted list to avoid sorting on every request
         source_emails = self._get_sorted_emails()
 
@@ -641,6 +650,7 @@ class DatabaseManager(DataSource):
         self, message_id: str, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Update email by messageId, handling separated content."""
+        await self._ensure_initialized()
         email_to_update = await self.get_email_by_message_id(message_id, include_content=True)
         if not email_to_update:
             logger.warning(f"Email with {FIELD_MESSAGE_ID} {message_id} not found for update.")
@@ -701,6 +711,7 @@ class DatabaseManager(DataSource):
         self, message_id: str, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Get email by messageId using in-memory index, with option to load heavy content."""
+        await self._ensure_initialized()
         if not message_id:
             return None
             
@@ -739,6 +750,7 @@ class DatabaseManager(DataSource):
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        await self._ensure_initialized()
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
         search_term_lower = search_term.lower()
@@ -839,6 +851,7 @@ class DatabaseManager(DataSource):
         self, email_id: int, update_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Update email by its internal ID, handling separated content."""
+        await self._ensure_initialized()
         email_to_update = await self.get_email_by_id(email_id, include_content=True)
         if not email_to_update:
             logger.warning(f"Email with {FIELD_ID} {email_id} not found for update.")
@@ -868,6 +881,7 @@ class DatabaseManager(DataSource):
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
         """Adds tags to an email."""
+        await self._ensure_initialized()
         # Convert email_id to int if it's a string
         if isinstance(email_id, str):
             try:
@@ -887,6 +901,7 @@ class DatabaseManager(DataSource):
 
     async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
         """Removes tags from an email."""
+        await self._ensure_initialized()
         # Convert email_id to int if it's a string
         if isinstance(email_id, str):
             try:
@@ -911,7 +926,7 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     This implements the dependency injection approach for proper instance management.
     """
     manager = DatabaseManager(config=config)
-    await manager._ensure_initialized()
+    # Lazy initialization: Do not force initialization here.
     return manager
 
 
@@ -937,5 +952,5 @@ async def get_db() -> DatabaseManager:
     global _db_manager_instance
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
-        await _db_manager_instance._ensure_initialized()
+        # Lazy initialization: Do not force initialization here.
     return _db_manager_instance
