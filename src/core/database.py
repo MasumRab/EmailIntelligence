@@ -626,16 +626,31 @@ class DatabaseManager(DataSource):
         # Use cached sorted list to avoid sorting on every request
         source_emails = self._get_sorted_emails()
 
-        # Apply filters on the already sorted list (preserves order)
-        if category_id is not None:
-            source_emails = [
-                e for e in source_emails if e.get(FIELD_CATEGORY_ID) == category_id
-            ]
-        if is_unread is not None:
-            source_emails = [e for e in source_emails if e.get(FIELD_IS_UNREAD) == is_unread]
+        filtered_emails = []
+        matches_found = 0
 
-        paginated_emails = source_emails[offset : offset + limit]
-        return [self._add_category_details(email) for email in paginated_emails]
+        # Optimization: Iterate over sorted emails and stop once we have enough items.
+        # This avoids creating intermediate lists and scanning the entire dataset when
+        # only the first few pages are needed.
+        for email in source_emails:
+            # Check category filter
+            if category_id is not None and email.get(FIELD_CATEGORY_ID) != category_id:
+                continue
+
+            # Check unread filter
+            if is_unread is not None and email.get(FIELD_IS_UNREAD) != is_unread:
+                continue
+
+            matches_found += 1
+
+            if matches_found <= offset:
+                continue
+
+            filtered_emails.append(email)
+            if len(filtered_emails) >= limit:
+                break
+
+        return [self._add_category_details(email) for email in filtered_emails]
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
