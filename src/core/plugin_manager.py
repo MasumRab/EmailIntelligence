@@ -16,6 +16,7 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
+from urllib.parse import urlparse
 from urllib.request import urlopen
 
 from .plugin_base import (
@@ -370,7 +371,13 @@ class PluginManager:
     async def _download_file(self, url: str, dest_path: Path):
         """Download a file from URL."""
         try:
-            with urlopen(url) as response:
+            # Validate URL scheme
+            parsed_url = urlparse(url)
+            if parsed_url.scheme not in ["http", "https"]:
+                raise SecurityError(f"Invalid URL scheme: {parsed_url.scheme}. Only http and https are allowed.")
+
+            # Set timeout to prevent indefinite hanging (30 seconds)
+            with urlopen(url, timeout=30) as response:
                 with open(dest_path, "wb") as f:
                     f.write(response.read())
         except Exception as e:
