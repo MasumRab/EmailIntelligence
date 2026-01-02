@@ -35,25 +35,39 @@ class ContextIsolator:
 
         logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
 
-    def _compile_patterns(self, patterns: List[str]) -> List[Pattern]:
-        """Compile glob patterns into regex objects.
+    def _compile_patterns(self, patterns: List[str]) -> Optional[Pattern]:
+        """Compile glob patterns into a single optimized regex object.
 
         Args:
             patterns: List of glob patterns
 
         Returns:
-            List of compiled regex objects
+            Compiled regex object or None if no valid patterns
         """
-        compiled = []
+        if not patterns:
+            return None
+
+        regex_parts = []
         for p in patterns:
             try:
                 # Use fnmatch.translate to convert glob to regex
                 # It returns a regex string that we can compile
+                # Example: '*.py' -> '(?s:.*\\.py)\\Z'
                 regex_str = fnmatch.translate(p)
-                compiled.append(re.compile(regex_str))
+                regex_parts.append(f"(?:{regex_str})")
             except Exception as e:
                 logger.error(f"Failed to compile pattern '{p}': {e}")
-        return compiled
+
+        if not regex_parts:
+            return None
+
+        try:
+            # Combine all patterns with OR operator for O(1) matching complexity
+            combined_regex = "|".join(regex_parts)
+            return re.compile(combined_regex)
+        except Exception as e:
+            logger.error(f"Failed to compile combined patterns: {e}")
+            return None
 
     def is_file_accessible(self, file_path: str) -> bool:
         """Check if a file is accessible within the current context.
@@ -163,34 +177,33 @@ class ContextIsolator:
             # Fallback to original path
             return file_path
 
-    def _matches_patterns(self, file_path: str, patterns: List[Pattern]) -> bool:
-        """Check if a file path matches any of the given compiled patterns.
+    def _matches_patterns(self, file_path: str, pattern: Optional[Pattern]) -> bool:
+        """Check if a file path matches the compiled pattern.
 
         Args:
             file_path: File path to check
-            patterns: List of compiled regex patterns
+            pattern: Compiled regex pattern (optimized)
 
         Returns:
-            True if any pattern matches, False otherwise
+            True if pattern matches, False otherwise
         """
-        # Optimize: Calculate basename once outside the loop
+        if pattern is None:
+            return False
+
         try:
-            filename = os.path.basename(file_path)
-        except Exception:
-            filename = file_path
+            if pattern.match(file_path):
+                return True
 
-        for pattern in patterns:
+            # Also try matching against just the filename
             try:
-                if pattern.match(file_path):
-                    return True
-
-                # Also try matching against just the filename
+                filename = os.path.basename(file_path)
                 if pattern.match(filename):
                     return True
-
             except Exception:
-                # Skip invalid patterns
-                continue
+                pass
+
+        except Exception:
+            return False
 
         return False
 
