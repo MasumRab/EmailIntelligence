@@ -615,14 +615,17 @@ class DatabaseManager(DataSource):
         source_emails = self._get_sorted_emails()
 
         # Apply filters on the already sorted list (preserves order)
-        if category_id is not None:
-            source_emails = [
-                e for e in source_emails if e.get(FIELD_CATEGORY_ID) == category_id
-            ]
-        if is_unread is not None:
-            source_emails = [e for e in source_emails if e.get(FIELD_IS_UNREAD) == is_unread]
+        # Optimization: Use a generator to avoid creating full intermediate lists
+        # just to take a small slice. This reduces memory usage and improves speed
+        # for early pages.
+        filtered_iter = (
+            e for e in source_emails
+            if (category_id is None or e.get(FIELD_CATEGORY_ID) == category_id)
+            and (is_unread is None or e.get(FIELD_IS_UNREAD) == is_unread)
+        )
 
-        paginated_emails = source_emails[offset : offset + limit]
+        from itertools import islice
+        paginated_emails = list(islice(filtered_iter, offset, offset + limit))
         return [self._add_category_details(email) for email in paginated_emails]
 
     async def update_email_by_message_id(
