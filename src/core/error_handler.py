@@ -9,7 +9,17 @@ from typing import Callable, Awaitable
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
-from .exceptions import BaseAppException, APIError
+from .exceptions import (
+    BaseAppException,
+    EmailNotFoundException,
+    CategoryNotFoundException,
+    ValidationError as AppValidationError,
+    DatabaseError,
+    UnauthorizedException,
+    ForbiddenException,
+    AIAnalysisError,
+    GmailServiceError
+)
 
 
 logger = logging.getLogger(__name__)

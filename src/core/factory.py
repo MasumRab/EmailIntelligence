@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 from .data_source import DataSource
 from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
-from .data.repository import DatabaseEmailRepository, EmailRepository
+from .data.repository import DatabaseEmailRepository, EmailRepository, get_email_repository
 
 # Optional import for NotmuchDataSource
 try:

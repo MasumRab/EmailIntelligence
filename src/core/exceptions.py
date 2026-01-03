@@ -1,27 +1,47 @@
 """
 Custom exceptions for the Email Intelligence Platform.
-<<<<<<< HEAD
 Standardized error handling with consistent error codes and structures.
 """
 
 from typing import Optional
 from fastapi import HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class APIError(BaseModel):
-    """Standardized API Error response model"""
-
-    success: bool = False
-    message: str
-    error_code: str
-    details: Optional[str] = None
-    request_id: Optional[str] = None  # To track specific requests
+    """Standardized API Error response model.
+    
+    Provides consistent error response structure across all API endpoints.
+    Includes request tracking for debugging and monitoring.
+    """
+    success: bool = Field(default=False, description="Indicates if the operation succeeded")
+    message: str = Field(..., description="Human-readable error message")
+    error_code: str = Field(..., description="Machine-readable error code for programmatic handling")
+    details: Optional[str] = Field(None, description="Additional error details or context")
+    request_id: Optional[str] = Field(None, description="Unique identifier for request tracking")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "success": False,
+                "message": "Email with ID 123 not found",
+                "error_code": "EMAIL_NOT_FOUND",
+                "details": "The email may have been deleted or you may not have access",
+                "request_id": "550e8400-e29b-41d4-a716-446655440000"
+            }
+        }
 
 
 class BaseAppException(HTTPException):
-    """Base application exception with standardized structure"""
-
+    """Base application exception with standardized structure.
+    
+    Extends FastAPI's HTTPException to provide:
+    - Consistent error response format via APIError model
+    - Error codes for programmatic handling
+    - Request tracking for debugging
+    - Backward compatibility with existing code
+    """
+    
     def __init__(
         self,
         status_code: int,
@@ -30,20 +50,50 @@ class BaseAppException(HTTPException):
         details: Optional[str] = None,
         request_id: Optional[str] = None,
     ):
+        """
+        Initialize the exception.
+        
+        Args:
+            status_code: HTTP status code for the error
+            message: Human-readable error message
+            error_code: Machine-readable error code (default: GENERAL_ERROR)
+            details: Additional error details or context
+            request_id: Unique identifier for request tracking
+        """
         error_response = APIError(
-            success=False, 
-            message=message, 
-            error_code=error_code, 
+            success=False,
+            message=message,
+            error_code=error_code,
             details=details,
             request_id=request_id
         )
-        super().__init__(status_code=status_code, detail=error_response.model_dump())
+        super().__init__(
+            status_code=status_code,
+            detail=error_response.model_dump()
+        )
+        
+        # Store attributes for programmatic access
+        self.error_code = error_code
+        self.request_id = request_id
 
 
 class EmailNotFoundException(BaseAppException):
-    """Raised when an email is not found"""
-
-    def __init__(self, email_id: int = None, message_id: str = None, request_id: Optional[str] = None):
+    """Raised when an email is not found."""
+    
+    def __init__(
+        self,
+        email_id: int = None,
+        message_id: str = None,
+        request_id: Optional[str] = None
+    ):
+        """
+        Initialize the exception.
+        
+        Args:
+            email_id: Internal email ID
+            message_id: Gmail message ID
+            request_id: Request tracking ID
+        """
         if email_id:
             message = f"Email with ID {email_id} not found"
             error_code = "EMAIL_NOT_FOUND"
@@ -53,18 +103,18 @@ class EmailNotFoundException(BaseAppException):
         else:
             message = "Email not found"
             error_code = "EMAIL_NOT_FOUND"
-
+        
         super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            message=message, 
+            status_code=status.HTTP_404_NOT_FOUND,
+            message=message,
             error_code=error_code,
             request_id=request_id
         )
 
 
 class CategoryNotFoundException(BaseAppException):
-    """Raised when a category is not found"""
-
+    """Raised when a category is not found."""
+    
     def __init__(self, category_id: int, request_id: Optional[str] = None):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -75,9 +125,14 @@ class CategoryNotFoundException(BaseAppException):
 
 
 class ValidationError(BaseAppException):
-    """Raised when validation fails"""
-
-    def __init__(self, message: str, details: Optional[str] = None, request_id: Optional[str] = None):
+    """Raised when validation fails."""
+    
+    def __init__(
+        self,
+        message: str,
+        details: Optional[str] = None,
+        request_id: Optional[str] = None
+    ):
         super().__init__(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             message=message,
@@ -88,9 +143,14 @@ class ValidationError(BaseAppException):
 
 
 class DatabaseError(BaseAppException):
-    """Raised when a database operation fails"""
-
-    def __init__(self, message: str, details: Optional[str] = None, request_id: Optional[str] = None):
+    """Raised when a database operation fails."""
+    
+    def __init__(
+        self,
+        message: str = "A database error occurred.",
+        details: Optional[str] = None,
+        request_id: Optional[str] = None
+    ):
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=message,
@@ -101,72 +161,59 @@ class DatabaseError(BaseAppException):
 
 
 class UnauthorizedException(BaseAppException):
-    """Raised when authentication/authorization fails"""
-
-    def __init__(self, message: str = "Unauthorized access", request_id: Optional[str] = None):
+    """Raised when authentication/authorization fails."""
+    
+    def __init__(
+        self,
+        message: str = "Unauthorized access",
+        request_id: Optional[str] = None
+    ):
         super().__init__(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            message=message, 
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            message=message,
             error_code="UNAUTHORIZED",
             request_id=request_id
         )
 
 
 class ForbiddenException(BaseAppException):
-    """Raised when access is forbidden"""
-
-    def __init__(self, message: str = "Access forbidden", request_id: Optional[str] = None):
+    """Raised when access is forbidden."""
+    
+    def __init__(
+        self,
+        message: str = "Access forbidden",
+        request_id: Optional[str] = None
+    ):
         super().__init__(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            message=message, 
+            status_code=status.HTTP_403_FORBIDDEN,
+            message=message,
             error_code="FORBIDDEN",
             request_id=request_id
         )
-=======
-"""
-
-
-class BaseAppException(Exception):
-    """Base exception class for the application."""
-
-    def __init__(self, status_code: int, detail: str):
-        self.status_code = status_code
-        self.detail = detail
-        super().__init__(detail)
-
-
-class DatabaseError(BaseAppException):
-    """Exception for database related errors."""
-
-    def __init__(self, detail: str = "A database error occurred."):
-        super().__init__(status_code=503, detail=detail)
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 
 class AIAnalysisError(BaseAppException):
-    """Exception for AI analysis related errors."""
-
-<<<<<<< HEAD
-    def __init__(self, detail: str = "An error occurred during AI analysis.", request_id: Optional[str] = None):
+    """Raised when AI analysis fails."""
+    
+    def __init__(
+        self,
+        detail: str = "An error occurred during AI analysis.",
+        request_id: Optional[str] = None
+    ):
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=detail,
             error_code="AI_ANALYSIS_ERROR",
             request_id=request_id
         )
-=======
-    def __init__(self, detail: str = "An error occurred during AI analysis."):
-        super().__init__(status_code=500, detail=detail)
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
 
 
 class GmailServiceError(BaseAppException):
-    """Exception for Gmail service related errors."""
-
+    """Raised when Gmail service operations fail."""
+    
     def __init__(
-<<<<<<< HEAD
-        self, 
-        detail: str = "An error occurred with the Gmail service.", 
+        self,
+        detail: str = "An error occurred with the Gmail service.",
         status_code: int = status.HTTP_502_BAD_GATEWAY,
         request_id: Optional[str] = None
     ):
@@ -176,32 +223,3 @@ class GmailServiceError(BaseAppException):
             error_code="GMAIL_SERVICE_ERROR",
             request_id=request_id
         )
-
-
-class WorkflowExecutionError(BaseAppException):
-    """Exception for workflow execution related errors."""
-
-    def __init__(self, detail: str = "An error occurred during workflow execution.", request_id: Optional[str] = None):
-        super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=detail,
-            error_code="WORKFLOW_EXECUTION_ERROR",
-            request_id=request_id
-        )
-
-
-class ModelLoadError(BaseAppException):
-    """Exception for model loading related errors."""
-
-    def __init__(self, detail: str = "An error occurred while loading the model.", request_id: Optional[str] = None):
-        super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            message=detail,
-            error_code="MODEL_LOAD_ERROR",
-            request_id=request_id
-        )
-=======
-        self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
-    ):
-        super().__init__(status_code=status_code, detail=detail)
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2

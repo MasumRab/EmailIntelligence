@@ -15,10 +15,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from .core.module_manager import ModuleManager
-<<<<<<< HEAD
 from .core.error_handler import add_error_handlers
-=======
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
+
 
 # Configure logging
 logging.basicConfig(
@@ -582,11 +580,7 @@ def create_app():
         response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
         return response
 
-<<<<<<< HEAD
-    # Add standardized error handlers
-    add_error_handlers(app)
-=======
-        # Add exception handlers for secure error responses
+# Add exception handlers for secure error responses
     @app.exception_handler(ValidationError)
     async def validation_exception_handler(request: Request, exc: ValidationError):
         return JSONResponse(
@@ -608,7 +602,9 @@ def create_app():
             status_code=500,
             content={"detail": "Internal server error", "message": "An unexpected error occurred"},
         )
->>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
+
+    # Add enhanced error handlers
+    add_error_handlers(app)
 
     @app.get("/")
     async def root():
