@@ -35,10 +35,5 @@
     "userId": "1234567890"
   },
   "claudeCode": {},
-  "codexCli": {},
-  "grokCli": {
-    "timeout": 120000,
-    "workingDirectory": null,
-    "defaultModel": "grok-4-latest"
-  }
+  "codexCli": {}
 }
