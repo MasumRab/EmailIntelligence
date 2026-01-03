@@ -1,10 +1,11 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
-from typing import Set, List, Optional, Dict, Any, Pattern
+from typing import Set, List, Optional, Dict, Any, Pattern, Deque
 import fnmatch
 import hashlib
 import os
 import re
+from collections import deque
 
 from .models import AgentContext, ContextProfile
 from .logging import get_context_logger
@@ -27,7 +28,8 @@ class ContextIsolator:
         """
         self.context = context
         self.config = config or get_current_config()
-        self._access_log: List[Dict[str, Any]] = []
+        # Optimization: Use deque for O(1) appends and automatic size limiting
+        self._access_log: Deque[Dict[str, Any]] = deque(maxlen=1000)
 
         # Pre-compile patterns for performance
         self._restricted_patterns = self._compile_patterns(context.restricted_files)
@@ -151,11 +153,14 @@ class ContextIsolator:
         allowed_accesses = sum(1 for log in self._access_log if log["allowed"])
         blocked_accesses = total_accesses - allowed_accesses
 
+        # Convert deque to list for slicing to get the last 100 entries
+        recent_logs = list(self._access_log)[-100:]
+
         return {
             "total_accesses": total_accesses,
             "allowed_accesses": allowed_accesses,
             "blocked_accesses": blocked_accesses,
-            "access_log": self._access_log[-100:],  # Last 100 entries
+            "access_log": recent_logs,
         }
 
     def _normalize_path(self, file_path: str) -> str:
@@ -222,14 +227,11 @@ class ContextIsolator:
             "timestamp": None,  # Would use datetime in real implementation
         }
 
+        # Optimization: deque automatically handles size limit (maxlen)
         self._access_log.append(log_entry)
 
         # Also log to context's access log
         self.context.access_log.append(log_entry)
-
-        # Keep logs bounded
-        if len(self._access_log) > 1000:
-            self._access_log = self._access_log[-500:]
 
 
 class IsolationManager:
