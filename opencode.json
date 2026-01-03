@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "task-master-ai": {
+      "type": "local",
+      "command": [
+        "npm",
+        "exec",
+        "task-master-ai"
+      ],
+      "enabled": true,
+      "environment": {
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "XAI_API_KEY": "${XAI_API_KEY}",
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+        "MISTRAL_API_KEY": "${MISTRAL_API_KEY}",
+        "OLLAMA_API_KEY": "${OLLAMA_API_KEY}",
+        "GITHUB_API_KEY": "${GITHUB_API_KEY}"
+      }
+    }
+  }
+}
