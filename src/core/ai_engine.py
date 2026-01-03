@@ -6,6 +6,28 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
+# Pre-defined constants to avoid re-allocation in frequent loops
+SENTIMENT_POSITIVE_WORDS = ["good", "great", "excellent", "happy", "love", "like", "thank"]
+SENTIMENT_NEGATIVE_WORDS = ["bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"]
+
+TOPIC_PATTERNS = {
+    "work": ["meeting", "project", "deadline", "office", "work", "business"],
+    "finance": ["payment", "invoice", "bill", "account", "money", "bank"],
+    "healthcare": ["doctor", "medical", "appointment", "health", "clinic"],
+    "personal": ["family", "friend", "party", "vacation", "holiday"],
+    "technical": ["software", "code", "bug", "server", "database", "api"],
+}
+
+INTENT_QUESTIONS = ["?", "what", "how", "when", "where", "why"]
+INTENT_REQUESTS = ["please", "can you", "would you", "help"]
+INTENT_APOLOGIES = ["sorry", "apologize", "mistake"]
+INTENT_GRATITUDE = ["thank", "appreciate", "grateful"]
+
+URGENCY_INDICATORS = ["urgent", "asap", "emergency", "immediately", "deadline", "critical"]
+
+STOP_WORDS = {
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by",
+}
 
 class AIAnalysisResult:
     """
@@ -296,12 +318,9 @@ class ModernAIEngine(BaseAIEngine):
 
     async def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
         """Simple keyword-based sentiment analysis."""
-        positive_words = ["good", "great", "excellent", "happy", "love", "like", "thank"]
-        negative_words = ["bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"]
-
         text_lower = text.lower()
-        positive_count = sum(1 for word in positive_words if word in text_lower)
-        negative_count = sum(1 for word in negative_words if word in text_lower)
+        positive_count = sum(1 for word in SENTIMENT_POSITIVE_WORDS if word in text_lower)
+        negative_count = sum(1 for word in SENTIMENT_NEGATIVE_WORDS if word in text_lower)
 
         if positive_count > negative_count:
             sentiment = "positive"
@@ -317,15 +336,7 @@ class ModernAIEngine(BaseAIEngine):
         text_lower = text.lower()
         topics = []
 
-        topic_patterns = {
-            "work": ["meeting", "project", "deadline", "office", "work", "business"],
-            "finance": ["payment", "invoice", "bill", "account", "money", "bank"],
-            "healthcare": ["doctor", "medical", "appointment", "health", "clinic"],
-            "personal": ["family", "friend", "party", "vacation", "holiday"],
-            "technical": ["software", "code", "bug", "server", "database", "api"],
-        }
-
-        for topic, keywords in topic_patterns.items():
+        for topic, keywords in TOPIC_PATTERNS.items():
             if any(keyword in text_lower for keyword in keywords):
                 topics.append(topic)
 
@@ -335,13 +346,13 @@ class ModernAIEngine(BaseAIEngine):
         """Simple intent analysis based on keywords."""
         text_lower = text.lower()
 
-        if any(word in text_lower for word in ["?", "what", "how", "when", "where", "why"]):
+        if any(word in text_lower for word in INTENT_QUESTIONS):
             intent_type = "question"
-        elif any(word in text_lower for word in ["please", "can you", "would you", "help"]):
+        elif any(word in text_lower for word in INTENT_REQUESTS):
             intent_type = "request"
-        elif any(word in text_lower for word in ["sorry", "apologize", "mistake"]):
+        elif any(word in text_lower for word in INTENT_APOLOGIES):
             intent_type = "apology"
-        elif any(word in text_lower for word in ["thank", "appreciate", "grateful"]):
+        elif any(word in text_lower for word in INTENT_GRATITUDE):
             intent_type = "gratitude"
         else:
             intent_type = "information"
@@ -351,9 +362,8 @@ class ModernAIEngine(BaseAIEngine):
     async def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
         """Simple urgency analysis."""
         text_lower = text.lower()
-        urgency_indicators = ["urgent", "asap", "emergency", "immediately", "deadline", "critical"]
 
-        has_urgency = any(indicator in text_lower for indicator in urgency_indicators)
+        has_urgency = any(indicator in text_lower for indicator in URGENCY_INDICATORS)
 
         return {
             "level": "high" if has_urgency else "low",
@@ -377,23 +387,7 @@ class ModernAIEngine(BaseAIEngine):
         # Simple keyword extraction - could be enhanced with NLP
         words = text.lower().split()
         # Filter out common stop words and short words
-        stop_words = {
-            "the",
-            "a",
-            "an",
-            "and",
-            "or",
-            "but",
-            "in",
-            "on",
-            "at",
-            "to",
-            "for",
-            "of",
-            "with",
-            "by",
-        }
-        keywords = [word for word in words if len(word) > 3 and word not in stop_words]
+        keywords = [word for word in words if len(word) > 3 and word not in STOP_WORDS]
         return list(set(keywords))[:10]  # Return unique keywords, max 10
 
     def _generate_suggested_labels(self, sentiment, topics, intent, urgency) -> List[str]:
