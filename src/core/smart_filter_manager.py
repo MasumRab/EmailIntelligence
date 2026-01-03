@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -129,8 +129,8 @@ class SmartFilterManager:
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
 
-        # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        # Caching system
+        self.caching_manager = get_cache_manager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -270,9 +270,6 @@ class SmartFilterManager:
         """Ensure all components are properly initialized."""
         if self._initialized:
             return
-
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -716,8 +713,9 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Optimization: Do NOT invalidate the active_filters_sorted cache here.
+        # Usage stats updates are frequent and do not affect filter priority/logic.
+        # Invalidating here causes massive cache thrashing (N filters * M emails = N*M cache invalidations & DB reads).
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
@@ -849,4 +847,4 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
+        # await self.caching_manager.close() # CacheManager does not support close()
