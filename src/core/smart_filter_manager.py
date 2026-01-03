@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -100,6 +100,19 @@ class FilterPerformance:
     false_negatives: int
 
 
+class EmailContext:
+    """
+    Pre-processes email data for efficient filter application.
+    Extracts domains and lowercases text fields once per email.
+    """
+    def __init__(self, email: Dict[str, Any]):
+        self.raw = email
+        self.sender = email.get("sender_email", email.get("sender", "")).lower()
+        self.domain = self.sender.split("@")[1] if "@" in self.sender else ""
+        self.subject = email.get("subject", "").lower()
+        self.content = email.get("content", email.get("body", "")).lower()
+
+
 class SmartFilterManager:
     """
     Advanced manager for the lifecycle of smart email filters.
@@ -129,8 +142,8 @@ class SmartFilterManager:
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
 
-        # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        # Use the standard CacheManager (which supports async get/set)
+        self.caching_manager = get_cache_manager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -271,9 +284,7 @@ class SmartFilterManager:
         if self._initialized:
             return
 
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
-
+        # CacheManager doesn't require explicit async initialization
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
 
@@ -281,6 +292,8 @@ class SmartFilterManager:
         """Closes the persistent database connection."""
         if self.conn:
             self.conn.close()
+        # CacheManager doesn't typically require closing unless using Redis,
+        # but the backend interface has it if needed.
 
     def _load_filter_templates(self) -> Dict[str, Dict[str, Any]]:
         """Loads a set of predefined filter templates."""
@@ -548,33 +561,32 @@ class SmartFilterManager:
 
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
-        """Applies a single filter's criteria to an email."""
+    async def _apply_filter_to_email(self, filter_obj: EmailFilter, context: EmailContext) -> bool:
+        """
+        Applies a single filter's criteria to an email.
+        Uses EmailContext for optimized access to pre-processed email data.
+        """
         criteria = filter_obj.criteria
 
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
-            if domain != criteria["sender_domain"]:
+            if context.domain != criteria["sender_domain"]:
                 return False
 
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
-            if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
+            if not any(keyword.lower() in context.subject for keyword in criteria["subject_keywords"]):
                 return False
 
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
-            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+            if not any(keyword.lower() in context.content for keyword in criteria["content_keywords"]):
                 return False
 
         # Check from patterns
         if "from_patterns" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", "")).lower()
-            if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
+            # Re-use pre-lowercased sender
+            if not any(re.search(p, context.sender, re.IGNORECASE) for p in criteria["from_patterns"]):
                 return False
 
         return True
@@ -661,9 +673,12 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
 
+        # Pre-process email context once
+        context = EmailContext(email_data)
+
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                if await self._apply_filter_to_email(filter_obj, context):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
@@ -698,7 +713,7 @@ class SmartFilterManager:
                     category=ErrorCategory.INTEGRATION,
                     context=error_context
                 )
-                self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
+                self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}"[:120])
 
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
@@ -716,8 +731,10 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION: Do not invalidate cache here.
+        # Frequent invalidation on every match kills performance.
+        # Usage stats in cache will be eventually consistent when cache expires.
+        # await self.caching_manager.delete("active_filters_sorted")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
@@ -849,4 +866,4 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
+        # await self.caching_manager.close() # CacheManager doesn't typically require closing
