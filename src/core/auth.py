@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
+import argon2
 from argon2 import PasswordHasher
 
 import jwt
