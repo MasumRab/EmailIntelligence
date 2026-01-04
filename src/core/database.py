@@ -10,6 +10,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from functools import partial
+from itertools import islice
 from typing import Any, Dict, List, Literal, Optional
 
 # NOTE: These dependencies will be moved to the core framework as well.
@@ -610,19 +611,27 @@ class DatabaseManager(DataSource):
         category_id: Optional[int] = None,
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
-        """Get emails with pagination and filtering. Optimized to use cached sorted list."""
+        """
+        Get emails with pagination and filtering.
+        Optimized to use generator expressions and islice to avoid full list iteration.
+        """
         # Use cached sorted list to avoid sorting on every request
         source_emails = self._get_sorted_emails()
 
-        # Apply filters on the already sorted list (preserves order)
-        if category_id is not None:
-            source_emails = [
-                e for e in source_emails if e.get(FIELD_CATEGORY_ID) == category_id
-            ]
-        if is_unread is not None:
-            source_emails = [e for e in source_emails if e.get(FIELD_IS_UNREAD) == is_unread]
+        # Create an iterator from the list
+        iterator = (email for email in source_emails)
 
-        paginated_emails = source_emails[offset : offset + limit]
+        # Apply filters lazily using generator expressions
+        if category_id is not None:
+            iterator = (e for e in iterator if e.get(FIELD_CATEGORY_ID) == category_id)
+
+        if is_unread is not None:
+            iterator = (e for e in iterator if e.get(FIELD_IS_UNREAD) == is_unread)
+
+        # Use islice to efficiently skip 'offset' items and take 'limit' items
+        # This stops iteration as soon as we have enough items
+        paginated_emails = list(islice(iterator, offset, offset + limit))
+
         return [self._add_category_details(email) for email in paginated_emails]
 
     async def update_email_by_message_id(
