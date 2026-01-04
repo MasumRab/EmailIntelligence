@@ -10,20 +10,24 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict
 
 # Import shared utilities
-from taskmaster_common import SecurityValidator, BackupManager, FileValidator
+from taskmaster_common import BackupManager, FileValidator, SecurityValidator
+
 
 def add_status_to_task(task: Dict[str, Any]) -> Dict[str, Any]:
     """Add status field to a task if it's missing"""
-    if 'status' not in task:
-        task['status'] = 'pending'
+    if "status" not in task:
+        task["status"] = "pending"
         print(f"  - Added 'pending' status to task {task.get('id', 'unknown')}")
-    elif task['status'] not in ['pending', 'in-progress', 'completed', 'cancelled', 'deferred']:
-        print(f"  - Invalid status '{task['status']}' for task {task.get('id', 'unknown')}, setting to 'pending'")
-        task['status'] = 'pending'
+    elif task["status"] not in ["pending", "in-progress", "completed", "cancelled", "deferred"]:
+        print(
+            f"  - Invalid status '{task['status']}' for task {task.get('id', 'unknown')}, setting to 'pending'"
+        )
+        task["status"] = "pending"
     return task
+
 
 def add_status_to_task_file(filepath: str) -> bool:
     """Add status to all tasks in a task file using shared utilities."""
@@ -41,11 +45,11 @@ def add_status_to_task_file(filepath: str) -> bool:
     try:
         data = FileValidator.load_json_secure(filepath)
 
-        if not isinstance(data, dict) or 'tasks' not in data:
+        if not isinstance(data, dict) or "tasks" not in data:
             print(f"Warning: {filepath} does not have a valid tasks structure")
             return False
 
-        tasks = data['tasks']
+        tasks = data["tasks"]
         if not isinstance(tasks, list):
             print(f"Warning: {filepath} tasks is not an array")
             return False
@@ -65,7 +69,7 @@ def add_status_to_task_file(filepath: str) -> bool:
 
         if modified:
             # Write updated file
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             print(f"  - Updated: {filepath}")
         else:
@@ -76,6 +80,7 @@ def add_status_to_task_file(filepath: str) -> bool:
     except Exception as e:
         print(f"Error loading file: {e}")
         return False
+
 
 def process_directory(directory: str, pattern: str = "**/tasks.json"):
     """Process all task files in a directory"""
@@ -102,14 +107,17 @@ def process_directory(directory: str, pattern: str = "**/tasks.json"):
 
     print(f"\nProcessed {success_count}/{len(task_files)} files successfully")
 
+
 def main():
     """Main function"""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Add status field to task files')
-    parser.add_argument('path', nargs='?', default='.', help='Path to process (file or directory)')
-    parser.add_argument('--pattern', default='**/tasks.json', help='File pattern to match (for directories)')
-    parser.add_argument('--file', help='Specific file to process (alternative to path)')
+    parser = argparse.ArgumentParser(description="Add status field to task files")
+    parser.add_argument("path", nargs="?", default=".", help="Path to process (file or directory)")
+    parser.add_argument(
+        "--pattern", default="**/tasks.json", help="File pattern to match (for directories)"
+    )
+    parser.add_argument("--file", help="Specific file to process (alternative to path)")
 
     args = parser.parse_args()
 
@@ -134,6 +142,7 @@ def main():
     else:
         print(f"Error: Path does not exist: {path_to_process}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

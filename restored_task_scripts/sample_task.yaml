@@ -1,9 +1,0 @@
-task_id: "merge-task-001"
-source_branch: "feature/new-feature"
-target_branch: "main"
-files:
-  - "src/main.py"
-  - "src/utils.py"
-  - "requirements.txt"
-description: "Merge new feature branch into main"
-author: "developer@example.com"

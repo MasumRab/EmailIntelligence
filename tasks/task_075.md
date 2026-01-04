@@ -2,13 +2,15 @@
 
 **Title:** Develop a Script to Identify and Categorize Feature Branches
 
-**Status:** pending
+**Status:** in-progress (Refactoring: Integrate I2.T4 into 75.6)
 
 **Dependencies:** None
 
 **Priority:** high
 
 **Description:** (ALIGNMENT PROCESS TASK - NOT FEATURE DEVELOPMENT) Create a Python script that identifies all active feature branches in the repository and categorizes them based on their intended primary integration target (main, scientific, or orchestration-tools) using Git history analysis and codebase similarity heuristics.
+
+**REFACTORING UPDATE (Jan 4, 2026):** Task 75 is undergoing a major refactoring to integrate I2.T4 (Feature Branch Identification - Task 007) into Task 75.6 (PipelineIntegration). This refactoring adds three execution modes (identification, clustering, hybrid) to support both fast branch identification workflows and comprehensive clustering analysis in a unified codebase. See IMPLEMENTATION_GUIDE.md for 33 detailed implementation tasks across 5 phases.
 
 **Details:**
 
@@ -231,3 +233,106 @@ Create comprehensive documentation detailing the entire methodology, including h
 **Details:**
 
 Write clear, concise documentation (e.g., in Markdown or Sphinx) in a designated `docs/` folder. Include sections on script usage, configuration options, underlying Git commands, interpretation of output, and guidelines for manual override or refinement of categorization. Provide examples.
+
+---
+
+## REFACTORING INTEGRATION: I2.T4 into 75.6 (Task 007 into Task 75.6)
+
+**Refactoring ID:** i2t4-into-756  
+**Status:** Ready for Implementation  
+**Effort:** 18-24 hours (3-4 days)  
+**Files Modified:** 3 files, ~870 lines changed  
+**Release Date:** January 4, 2026  
+
+### Overview
+
+This refactoring integrates Task 007 (I2.T4 - Feature Branch Identification) into Task 75.6 (PipelineIntegration) to create a unified branch analysis framework. The integration adds three execution modes that support:
+
+1. **Identification Mode** - Fast branch identification (I2.T4 style, <30s)
+2. **Clustering Mode** - Full branch clustering (75.6 style, <120s)
+3. **Hybrid Mode** - Combined workflows with optional clustering (<90s)
+
+### Key Architectural Changes
+
+**New Classes (Phase 2):**
+- `MigrationMetrics` dataclass - Stores backend→src migration analysis results
+- `MigrationAnalyzer` (~140 lines) - Analyzes backend→src migration patterns using git operations
+- `OutputGenerator` (~120 lines) - Generates simple/detailed/all output formats
+
+**New Methods (Phase 2):**
+- `BranchClusteringEngine._validate_mode()` - Validates execution mode parameter
+- `BranchClusteringEngine.execute()` - Main entry point routing to appropriate pipeline
+- `BranchClusteringEngine.execute_identification_pipeline()` - Fast I2.T4 style workflow
+- `BranchClusteringEngine.execute_hybrid_pipeline()` - Combined workflow with optional clustering
+
+**Updated Methods:**
+- `BranchClusteringEngine.__init__()` - Add mode, config, migration_analyzer, output_generator parameters
+- `BranchMetrics` dataclass - Add migration_metrics field
+- `IntegrationTargetAssigner._generate_tags()` - Add migration-related tags
+- `execute_full_pipeline()` - Integrate migration analysis into existing clustering
+
+**Configuration Schema (Phase 3):**
+```yaml
+execution:
+  mode: clustering  # identification | clustering | hybrid
+  enable_migration_analysis: true
+  enable_clustering_in_hybrid: true
+  output_format: detailed  # simple | detailed | all
+```
+
+### Implementation Phases
+
+**Phase 2: Implementation** (14 tasks)
+- Add MigrationMetrics dataclass (line 80)
+- Update BranchMetrics dataclass (line 72)
+- Add MigrationAnalyzer class (line 590)
+- Add Path import (line 13)
+- Update BranchClusteringEngine.__init__ (line 814)
+- Add _validate_mode method (line 821)
+- Add execute method (line 828)
+- Add execute_identification_pipeline method (line 838)
+- Add execute_hybrid_pipeline method (line 885)
+- Update execute_full_pipeline (lines 840, 842, 876)
+- Add OutputGenerator class (line 914)
+- Update _generate_tags method (line 748)
+- Test identification, clustering, and hybrid modes
+- Test OutputGenerator and output format validation
+
+**Phase 3: Configuration** (1 task)
+- Update configuration schema (task-75.6.md line 400)
+
+**Phase 4: Testing & Documentation** (2 tasks)
+- Add 10 new test cases (task-75.6.md line 350)
+- Add usage examples (QUICK_START.md)
+
+### Performance Targets
+
+| Mode | Target | Memory |
+|------|--------|--------|
+| Identification | <30s | <50MB |
+| Clustering | <120s | <100MB |
+| Hybrid | <90s | <75MB |
+
+### Success Criteria
+
+- [ ] All 33 implementation tasks complete
+- [ ] All 10 new test cases pass
+- [ ] Performance targets met for all modes
+- [ ] Code coverage >90%
+- [ ] PEP 8 compliant
+- [ ] Backward compatibility maintained (I2.T4 consumers unchanged)
+- [ ] Ready for integration with Tasks 75.7, 75.8
+
+### Documentation Files
+
+- **QUICK_REFERENCE.md** - TL;DR summary with execution modes and quick tests
+- **CHANGE_SUMMARY.md** - Complete change breakdown table with phase mapping
+- **IMPLEMENTATION_GUIDE.md** - Detailed step-by-step with code snippets and line numbers
+
+### Next Steps
+
+1. Review IMPLEMENTATION_GUIDE.md for detailed instructions
+2. Create feature branch: `refactor/i2t4-into-756`
+3. Implement Phase 2 changes following the checklist
+4. Test each phase before proceeding
+5. Update documentation during implementation

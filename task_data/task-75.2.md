@@ -37,6 +37,27 @@ class CodebaseStructureAnalyzer:
 
 ---
 
+## Quick Navigation
+
+Navigate this document using these links:
+
+- [Purpose](#purpose)
+- [Developer Quick Reference](#developer-quick-reference)
+- [Success Criteria](#success-criteria)
+- [Subtasks Overview](#subtasks-overview)
+- [Subtask Details](#subtasks)
+- [Configuration & Defaults](#configuration--defaults)
+- [Technical Reference](#technical-reference)
+- [Common Gotchas & Solutions](#common-gotchas--solutions)
+- [Development Workflow](#typical-development-workflow)
+- [Integration Handoff](#integration-handoff)
+- [Integration Checkpoint](#integration-checkpoint)
+- [Done Definition](#done-definition)
+
+**Pro tip:** Use Ctrl+F to search within sections, or click links above to jump directly
+
+---
+
 ## Success Criteria
 
 Task 75.2 is complete when:
@@ -49,16 +70,82 @@ Task 75.2 is complete when:
 - [ ] Handles all specified edge cases (empty branches, deletion-heavy branches)
 - [ ] Output matches JSON schema exactly
 
+**Performance Targets:**
+- [ ] Directory structure analysis: **< 2 seconds** (on typical 500+ file repo)
+- [ ] Memory usage: **< 50 MB** per analysis
+- [ ] Handles **1,000+ file repositories** without failure
+- [ ] Jaccard similarity computation: **O(n)** where n = number of files
+- [ ] Git command timeout: **30 seconds max** (protects against hanging)
+
 **Quality Assurance:**
-- [ ] Unit tests pass (minimum 8 test cases with >95% coverage)
-- [ ] No exceptions raised for valid inputs
-- [ ] Performance: <2 seconds per branch analysis
-- [ ] Code quality: PEP 8 compliant, comprehensive docstrings
+- [ ] Unit tests pass (minimum 8 test cases with **>95% code coverage**)
+- [ ] No exceptions raised for valid inputs (comprehensive error handling)
+- [ ] Code quality: Passes linting, follows PEP 8, includes comprehensive docstrings
 
 **Integration Readiness:**
 - [ ] Compatible with Task 75.4 (BranchClusterer) input requirements
+- [ ] Compatible with Task 75.6 (PipelineIntegration) consumption patterns
 - [ ] Configuration externalized and validated
 - [ ] Documentation complete and accurate
+
+---
+
+## Subtasks Overview
+
+### Dependency Flow Diagram
+
+```
+75.2.1 (2-3h) ────────┐
+[Structure Design]    │
+                      ├─→ 75.2.2 (3-4h) ────────┐
+                      │  [Git Tree Extraction]  │
+                      │                         ├─→ 75.2.3-75.2.6 (parallel, 3-4h each) ────┐
+                      │                         │   [Similarity, Additions, Stability, Isolation]  │
+                      └─────────────────────────┘                                          │
+                                                                                          ├─→ 75.2.7 (2-3h)
+                                                                                          │  [Aggregation]
+                                                                                          │
+                                                                                          └─→ 75.2.8 (3-4h)
+                                                                                             [Unit Tests]
+
+Critical Path: 75.2.1 → 75.2.2 → 75.2.3-75.2.6 (parallel) → 75.2.7 → 75.2.8
+Minimum Duration: 28-32 hours (with parallelization of 75.2.3-75.2.6)
+```
+
+### Parallel Opportunities
+
+**Can run in parallel (after 75.2.2):**
+- 75.2.3: Directory similarity metric
+- 75.2.4: File additions metric
+- 75.2.5: Core module stability metric
+- 75.2.6: Namespace isolation metric
+
+All four metric tasks depend only on 75.2.2 (git tree extraction) and are independent of each other. **Estimated parallel execution saves 9-12 hours.**
+
+**Must be sequential:**
+- 75.2.1 → 75.2.2 (design required before extraction)
+- 75.2.2 → 75.2.3-75.2.6 (extraction required before metric calculation)
+- 75.2.3-75.2.6 → 75.2.7 (all metrics needed before aggregation)
+- 75.2.7 → 75.2.8 (main class needed before testing)
+
+### Timeline with Parallelization
+
+**Days 1-2: Design (75.2.1)**
+- Define directory similarity logic, file addition scoring
+- Document core modules list, namespace isolation
+
+**Days 2-3: Git Tree Extraction (75.2.2)**
+- Implement git ls-tree commands
+- Create structured output format
+
+**Days 3-5: Metrics (75.2.3-75.2.6 in parallel)**
+- Day 3-4: Implement directory similarity + file additions (2 people)
+- Day 3-4: Implement core stability + namespace isolation (2 people)
+- Day 4-5: Consolidate and test
+
+**Days 5-6: Aggregation & Testing (75.2.7-75.2.8)**
+- Day 5: Implement aggregation
+- Day 6: Write comprehensive unit tests
 
 ---
 
@@ -334,14 +421,56 @@ All metrics normalized to [0, 1].
 
 ---
 
-## Configuration Parameters
+## Configuration & Defaults
 
-- `DIRECTORY_SIMILARITY_WEIGHT` = 0.30
-- `FILE_ADDITIONS_WEIGHT` = 0.25
-- `CORE_MODULE_STABILITY_WEIGHT` = 0.25
-- `NAMESPACE_ISOLATION_WEIGHT` = 0.20
-- `CORE_MODULES` = ["src/", "tests/", "config/", ...]
-- `MAX_NEW_FILES_RATIO` = 0.50
+All parameters should be externalized to configuration files (not hardcoded). Use YAML format:
+
+```yaml
+# config/codebase_structure_analyzer.yaml
+codebase_structure_analyzer:
+  # Metric Weights (sum must equal 1.0)
+  directory_similarity_weight: 0.30      # Jaccard similarity importance
+  file_additions_weight: 0.25            # New files impact
+  core_module_stability_weight: 0.25     # Core modules preservation
+  namespace_isolation_weight: 0.20       # New namespace clustering
+  
+  # Core Modules (patterns that identify critical components)
+  core_modules:
+    - "src/"
+    - "tests/"
+    - "config/"
+    - "build/"
+    - "dist/"
+    - "requirements.txt"
+    - "setup.py"
+    - "pyproject.toml"
+  
+  # Thresholds and Limits
+  max_new_files_ratio: 0.50              # Flag high additions
+  core_modification_penalty: 0.1         # Per 5 core file modifications
+  git_command_timeout_seconds: 30        # Prevent hanging on large repos
+```
+
+**How to use in code:**
+```python
+import yaml
+
+def load_config(config_path='config/codebase_structure_analyzer.yaml'):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)['codebase_structure_analyzer']
+
+config = load_config()
+DIR_WEIGHT = config['directory_similarity_weight']
+FILE_ADD_WEIGHT = config['file_additions_weight']
+CORE_MODULES = config['core_modules']
+# ... etc
+```
+
+**Why externalize?**
+- Easy to tune metrics without redeploying code
+- Different configurations for different organizational needs
+- Can adjust weights based on project priorities
+- No code recompilation needed to adjust parameters
 
 ---
 
@@ -417,6 +546,412 @@ CORE_MODULES = [
 - **No dependencies on other Task 75.x components** - can start immediately (parallel with 75.1, 75.3)
 - **Output feeds into:** Task 75.4 (BranchClusterer)
 - **External libraries:** GitPython or subprocess (git CLI)
+
+---
+
+## Typical Development Workflow
+
+Complete step-by-step git workflow for implementing this task. Copy-paste ready sequences:
+
+### Setup Your Feature Branch
+
+```bash
+# 1. Create feature branch
+git checkout -b feat/codebase-structure-analyzer
+git push -u origin feat/codebase-structure-analyzer
+
+# 2. Create initial file structure
+mkdir -p src/analyzers tests/analyzers config
+touch src/analyzers/codebase_structure_analyzer.py
+touch src/analyzers/__init__.py
+git add src/analyzers/
+git commit -m "chore: create codebase structure analyzer module"
+```
+
+### Subtask 75.2.1: Structure Design
+
+```bash
+# Document metrics design
+cat > docs/CODEBASE_STRUCTURE_DESIGN.md << 'EOF'
+# CodebaseStructureAnalyzer Design
+
+## Metrics
+1. Directory Similarity (Jaccard): |intersection| / |union|
+2. File Additions: 1 - (new_files / total_files)
+3. Core Module Stability: 1.0 if no core changes, 0.5 if deleted
+4. Namespace Isolation: Clustering coefficient for new files
+
+## Weights
+- Directory: 0.30
+- Additions: 0.25
+- Stability: 0.25
+- Isolation: 0.20
+EOF
+
+git add docs/
+git commit -m "docs: design codebase structure metrics (75.2.1)"
+```
+
+### Subtask 75.2.2: Git Tree Extraction
+
+```bash
+cat > src/analyzers/git_tree_utils.py << 'EOF'
+import subprocess
+from typing import Set
+
+def get_directory_tree(repo_path: str, branch_name: str) -> Set[str]:
+    """Extract directory tree from git branch."""
+    cmd = ['git', 'ls-tree', '-r', '--name-only', branch_name]
+    result = subprocess.run(
+        cmd,
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        encoding='utf-8'
+    )
+    
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to extract tree from {branch_name}")
+    
+    return set(result.stdout.strip().split('\n'))
+EOF
+
+git add src/analyzers/git_tree_utils.py
+git commit -m "feat: implement git tree extraction (75.2.2)"
+```
+
+### Subtasks 75.2.3-75.2.6: Metrics (Parallel)
+
+```bash
+# Create metric modules
+cat > src/analyzers/metrics_directory_similarity.py << 'EOF'
+def compute_directory_similarity(tree_main: set, tree_branch: set) -> float:
+    """Jaccard similarity of directory trees."""
+    if not tree_main and not tree_branch:
+        return 1.0
+    intersection = len(tree_main & tree_branch)
+    union = len(tree_main | tree_branch)
+    return intersection / union if union > 0 else 0.0
+EOF
+
+cat > src/analyzers/metrics_file_additions.py << 'EOF'
+def compute_file_additions(new_files: int, total_files: int) -> float:
+    """Score new files ratio (fewer = higher)."""
+    if total_files == 0:
+        return 0.5
+    ratio = new_files / total_files
+    return max(0, 1 - min(ratio, 1.0))
+EOF
+
+touch src/analyzers/metrics_core_stability.py
+touch src/analyzers/metrics_namespace_isolation.py
+
+git add src/analyzers/metrics_*.py
+git commit -m "feat: implement structure metrics (75.2.3-75.2.6)"
+```
+
+### Subtask 75.2.7: Aggregation
+
+```bash
+cat > src/analyzers/aggregator.py << 'EOF'
+def aggregate_metrics(metrics: dict, weights: dict) -> float:
+    """Combine metrics into aggregate score."""
+    total = 0.0
+    for metric_name, metric_value in metrics.items():
+        weight = weights.get(metric_name, 0)
+        total += metric_value * weight
+    return min(1.0, max(0.0, total))
+EOF
+
+git add src/analyzers/aggregator.py
+git commit -m "feat: implement metric aggregation (75.2.7)"
+```
+
+### Final: Create Configuration and Tests
+
+```bash
+# Create configuration file
+mkdir -p config
+cat > config/codebase_structure_analyzer.yaml << 'EOF'
+codebase_structure_analyzer:
+  directory_similarity_weight: 0.30
+  file_additions_weight: 0.25
+  core_module_stability_weight: 0.25
+  namespace_isolation_weight: 0.20
+  core_modules:
+    - "src/"
+    - "tests/"
+    - "config/"
+  max_new_files_ratio: 0.50
+  git_command_timeout_seconds: 30
+EOF
+
+git add config/
+git commit -m "config: codebase structure analyzer configuration"
+
+# Create unit tests
+mkdir -p tests/analyzers
+cat > tests/analyzers/test_codebase_structure_analyzer.py << 'EOF'
+import pytest
+from src.analyzers import CodebaseStructureAnalyzer
+
+@pytest.fixture
+def test_repo(tmp_path):
+    """Create test repository."""
+    pass
+
+def test_minor_feature_branch(test_repo):
+    analyzer = CodebaseStructureAnalyzer(test_repo)
+    result = analyzer.analyze("feature")
+    assert 0 <= result['aggregate_score'] <= 1.0
+    assert 'metrics' in result
+
+# ... 8+ tests total
+EOF
+
+pytest tests/analyzers/ -v --cov=src/analyzers --cov-report=html
+git add tests/
+git commit -m "test: comprehensive unit tests (95%+ coverage)"
+
+# Final push
+git push origin feat/codebase-structure-analyzer
+```
+
+---
+
+## Integration Handoff
+
+### What Gets Passed to Task 75.4 (BranchClusterer)
+
+**Task 75.4 expects input in this format:**
+
+```python
+from src.analyzers import CodebaseStructureAnalyzer
+
+analyzer = CodebaseStructureAnalyzer(repo_path)
+result = analyzer.analyze("feature/branch-name")
+
+# result is a dict like:
+# {
+#   "branch_name": "feature/auth-system",
+#   "metrics": {
+#     "directory_similarity": 0.82,
+#     "file_additions": 0.68,
+#     "core_module_stability": 0.95,
+#     "namespace_isolation": 0.71
+#   },
+#   "aggregate_score": 0.794,
+#   "directory_count": 23,
+#   "file_count": 156,
+#   "new_files": 14,
+#   "modified_files": 28,
+#   "analysis_timestamp": "2025-12-22T10:35:00Z"
+# }
+```
+
+**Task 75.4 uses these outputs by:**
+1. Extracting the structure metrics from the output
+2. Using aggregate_score as one of 3 distance metrics for clustering
+3. Combining with metrics from Task 75.1 and Task 75.3
+4. Computing pairwise distances between branches
+5. Creating dendrogram via hierarchical clustering
+
+**Validation before handoff:**
+```bash
+python -c "
+from src.analyzers import CodebaseStructureAnalyzer
+
+analyzer = CodebaseStructureAnalyzer('.')
+result = analyzer.analyze('main')
+
+# Verify required fields exist
+assert 'metrics' in result
+assert 'aggregate_score' in result
+assert 'directory_count' in result
+
+# Verify metrics are normalized
+for m in result['metrics'].values():
+    assert 0 <= m <= 1, f'Metric {m} not in [0,1]'
+
+assert 0 <= result['aggregate_score'] <= 1
+
+print('✓ Output valid and ready for Task 75.4')
+"
+```
+
+---
+
+## Common Gotchas & Solutions
+
+### Gotcha 1: Git Timeout on Large Repos ⚠️
+
+**Problem:** `subprocess.run()` hangs indefinitely on large repos  
+**Symptom:** Process stuck at analyzing, never returns  
+**Root Cause:** No timeout set, `git ls-tree` takes too long  
+
+**Solution:** Always set timeout parameter
+```python
+result = subprocess.run(
+    cmd,
+    timeout=30,  # ← CRITICAL: 30 second timeout
+    capture_output=True,
+    text=True
+)
+```
+
+**Test:** Run against repo with 10,000+ files, verify completes in <30 seconds
+
+---
+
+### Gotcha 2: Directory Sets vs. File Sets ⚠️
+
+**Problem:** Comparing directories and files as same set causes incorrect Jaccard  
+**Symptom:** Similarity scores don't match expectations  
+**Root Cause:** Not extracting directory paths properly from file paths  
+
+**Solution:** Extract directory paths explicitly
+```python
+def extract_directories(file_paths: set) -> set:
+    """Extract unique directories from file paths."""
+    dirs = set()
+    for fpath in file_paths:
+        parts = fpath.split('/')
+        for i in range(1, len(parts)):
+            dirs.add('/'.join(parts[:i]))
+    return dirs
+```
+
+**Test:** Branch with files in various directories, verify correct directory count
+
+---
+
+### Gotcha 3: Division by Zero with Empty Repos ⚠️
+
+**Problem:** Empty repo or no differences causes division by zero  
+**Symptom:** `ZeroDivisionError` when computing ratios  
+**Root Cause:** No bounds checking on file counts  
+
+**Solution:** Check for zero denominators
+```python
+if total_files == 0:
+    return 0.5  # Default neutral score
+metric = new_files / total_files
+```
+
+**Test:** Analyze branch identical to main, verify all metrics computed
+
+---
+
+### Gotcha 4: Core Module Matching Issues ⚠️
+
+**Problem:** Case-sensitivity or trailing slashes prevent matching  
+**Symptom:** Core modules detected as modified when they weren't  
+**Root Cause:** String matching doesn't normalize paths  
+
+**Solution:** Normalize paths before comparison
+```python
+def is_core_module(filepath: str, core_modules: list) -> bool:
+    """Check if filepath matches any core module pattern."""
+    normalized = filepath.lower().replace('\\', '/')
+    for pattern in core_modules:
+        if normalized.startswith(pattern.lower()):
+            return True
+    return False
+```
+
+**Test:** Branch with mixed case paths, verify core detection works
+
+---
+
+### Gotcha 5: Large File Counts Cause Memory Issues ⚠️
+
+**Problem:** Large repos with 100,000+ files exhaust memory  
+**Symptom:** Out of memory error during set operations  
+**Root Cause:** Loading entire tree into memory at once  
+
+**Solution:** Stream processing for large repos
+```python
+def get_directory_tree_streaming(repo_path: str, branch_name: str):
+    """Stream directory tree to avoid memory overload."""
+    cmd = ['git', 'ls-tree', '-r', '--name-only', branch_name]
+    result = subprocess.run(
+        cmd,
+        cwd=repo_path,
+        stdout=subprocess.PIPE,
+        timeout=30,
+        encoding='utf-8'
+    )
+    return result.stdout  # Generator-like behavior
+```
+
+**Test:** Repo with 100,000+ files, verify memory stays <50 MB
+
+---
+
+### Gotcha 6: Missing Branch Handling ⚠️
+
+**Problem:** Attempting to analyze non-existent branch causes obscure error  
+**Symptom:** `CalledProcessError` without clear message  
+**Root Cause:** No validation before attempting extraction  
+
+**Solution:** Validate branch exists first
+```python
+def branch_exists(repo_path: str, branch_name: str) -> bool:
+    """Check if branch exists."""
+    result = subprocess.run(
+        ['git', 'rev-parse', '--verify', branch_name],
+        cwd=repo_path,
+        capture_output=True
+    )
+    return result.returncode == 0
+
+if not branch_exists(repo_path, branch_name):
+    raise ValueError(f"Branch {branch_name} does not exist")
+```
+
+**Test:** Analyze non-existent branch, verify clear error message
+
+---
+
+### Gotcha 7: UTF-8 Encoding Issues ⚠️
+
+**Problem:** File paths with non-ASCII characters cause encoding errors  
+**Symptom:** `UnicodeDecodeError` during parsing  
+**Root Cause:** Default encoding not UTF-8  
+
+**Solution:** Explicitly specify UTF-8
+```python
+result = subprocess.run(
+    cmd,
+    capture_output=True,
+    text=True,
+    encoding='utf-8',  # ← Explicit UTF-8
+    errors='replace'   # ← Replace invalid chars
+)
+```
+
+**Test:** Branch with non-ASCII filenames, verify no encoding errors
+
+---
+
+### Gotcha 8: Metric Weight Validation ⚠️
+
+**Problem:** Configuration with weights not summing to 1.0 produces invalid aggregates  
+**Symptom:** Aggregate score outside [0,1] range  
+**Root Cause:** No validation of weight sums  
+
+**Solution:** Validate weights sum to 1.0
+```python
+def validate_weights(weights: dict) -> bool:
+    """Verify weights sum to 1.0."""
+    total = sum(weights.values())
+    if abs(total - 1.0) > 0.001:  # Allow small floating-point error
+        raise ValueError(f"Weights sum to {total}, must equal 1.0")
+    return True
+```
+
+**Test:** Load configuration, verify weights sum to 1.0
 
 ---
 

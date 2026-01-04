@@ -12,10 +12,15 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Any, List, Union
-from collections import defaultdict
+from typing import Any, Dict, List, Union
 
-def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all_tasks: List[Dict[str, Any]], task_index_map: Dict[Union[str, int], int] = None) -> Union[str, int, None]:
+
+def resolve_relative_dependency(
+    task_id: Union[str, int],
+    relative_ref: str,
+    all_tasks: List[Dict[str, Any]],
+    task_index_map: Dict[Union[str, int], int] = None,
+) -> Union[str, int, None]:
     """
     Resolve a relative dependency reference to an absolute task ID.
 
@@ -25,7 +30,7 @@ def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all
     - '^1', '^2', etc. (parent task levels)
     """
     if isinstance(relative_ref, str):
-        if relative_ref.startswith(('+', '-')):
+        if relative_ref.startswith(("+", "-")):
             try:
                 offset = int(relative_ref)
 
@@ -36,7 +41,7 @@ def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all
                     # Fallback to linear search if no index map provided
                     current_index = None
                     for i, task in enumerate(all_tasks):
-                        if str(task.get('id')) == str(task_id):
+                        if str(task.get("id")) == str(task_id):
                             current_index = i
                             break
 
@@ -44,15 +49,16 @@ def resolve_relative_dependency(task_id: Union[str, int], relative_ref: str, all
                     target_index = current_index + offset
                     if 0 <= target_index < len(all_tasks):
                         target_task = all_tasks[target_index]
-                        return target_task.get('id')
+                        return target_task.get("id")
             except ValueError:
                 pass  # Not a numeric offset
-        elif relative_ref.startswith('^'):
+        elif relative_ref.startswith("^"):
             # Handle parent/ancestor references (implementation depends on your hierarchy structure)
             # This is a placeholder - implement based on your specific hierarchy needs
             pass
 
     return None
+
 
 def normalize_dependency(dep: Any) -> Union[str, int]:
     """Normalize a dependency to a consistent format"""
@@ -63,12 +69,18 @@ def normalize_dependency(dep: Any) -> Union[str, int]:
         return dep
     return str(dep)
 
-def fix_dependencies_in_task(task: Dict[str, Any], all_tasks: List[Dict[str, Any]], task_id_map: Dict[Union[str, int], Dict[str, Any]], task_index_map: Dict[Union[str, int], int] = None) -> Dict[str, Any]:
+
+def fix_dependencies_in_task(
+    task: Dict[str, Any],
+    all_tasks: List[Dict[str, Any]],
+    task_id_map: Dict[Union[str, int], Dict[str, Any]],
+    task_index_map: Dict[Union[str, int], int] = None,
+) -> Dict[str, Any]:
     """Fix dependencies in a single task"""
-    if 'dependencies' not in task or not isinstance(task['dependencies'], list):
+    if "dependencies" not in task or not isinstance(task["dependencies"], list):
         return task
 
-    original_deps = task['dependencies']
+    original_deps = task["dependencies"]
     fixed_deps = []
     resolved_deps = []
 
@@ -76,90 +88,104 @@ def fix_dependencies_in_task(task: Dict[str, Any], all_tasks: List[Dict[str, Any
         normalized_dep = normalize_dependency(dep)
 
         # Check if this is a relative reference
-        if isinstance(normalized_dep, str) and (normalized_dep.startswith(('+', '-')) or normalized_dep.startswith('^')):
-            resolved = resolve_relative_dependency(task.get('id'), normalized_dep, all_tasks, task_index_map)
+        if isinstance(normalized_dep, str) and (
+            normalized_dep.startswith(("+", "-")) or normalized_dep.startswith("^")
+        ):
+            resolved = resolve_relative_dependency(
+                task.get("id"), normalized_dep, all_tasks, task_index_map
+            )
             if resolved is not None:
                 resolved_deps.append(f"{normalized_dep} -> {resolved}")
                 fixed_deps.append(resolved)
             else:
-                print(f"  - Could not resolve relative dependency '{normalized_dep}' for task {task.get('id')}")
+                print(
+                    f"  - Could not resolve relative dependency '{normalized_dep}' for task {task.get('id')}"
+                )
                 fixed_deps.append(normalized_dep)  # Keep original if can't resolve
         else:
             # Check if dependency exists
             if normalized_dep not in task_id_map:
-                print(f"  - Warning: Dependency '{normalized_dep}' not found for task {task.get('id')}")
+                print(
+                    f"  - Warning: Dependency '{normalized_dep}' not found for task {task.get('id')}"
+                )
             fixed_deps.append(normalized_dep)
 
-    task['dependencies'] = fixed_deps
+    task["dependencies"] = fixed_deps
 
     if resolved_deps:
-        print(f"  - Resolved relative dependencies for task {task.get('id')}: {', '.join(resolved_deps)}")
+        print(
+            f"  - Resolved relative dependencies for task {task.get('id')}: {', '.join(resolved_deps)}"
+        )
 
     return task
+
 
 def validate_dependency_consistency(tasks: List[Dict[str, Any]]) -> List[str]:
     """Validate dependency consistency and return warnings"""
     warnings = []
-    task_id_map = {task.get('id'): task for task in tasks if isinstance(task, dict) and 'id' in task}
-    
+    task_id_map = {
+        task.get("id"): task for task in tasks if isinstance(task, dict) and "id" in task
+    }
+
     for task in tasks:
-        if not isinstance(task, dict) or 'id' not in task or 'dependencies' not in task:
+        if not isinstance(task, dict) or "id" not in task or "dependencies" not in task:
             continue
-        
-        task_id = task['id']
-        deps = task['dependencies']
-        
+
+        task_id = task["id"]
+        deps = task["dependencies"]
+
         if not isinstance(deps, list):
             continue
-        
+
         for dep in deps:
             if dep not in task_id_map:
                 warnings.append(f"Task {task_id} depends on non-existent task {dep}")
             elif dep == task_id:
                 warnings.append(f"Task {task_id} has circular dependency on itself")
-    
+
     # Check for circular dependencies
     try:
         from collections import deque
-        
+
         for task in tasks:
-            if not isinstance(task, dict) or 'id' not in task or 'dependencies' not in task:
+            if not isinstance(task, dict) or "id" not in task or "dependencies" not in task:
                 continue
-            
-            task_id = task['id']
-            deps = task.get('dependencies', [])
-            
+
+            task_id = task["id"]
+            deps = task.get("dependencies", [])
+
             if task_id in deps:
                 warnings.append(f"Circular dependency: Task {task_id} depends on itself")
                 continue
-            
+
             # Simple cycle detection using BFS
             visited = set()
             queue = deque([task_id])
-            
+
             while queue:
                 current = queue.popleft()
                 if current in visited:
                     warnings.append(f"Circular dependency detected involving task {task_id}")
                     break
                 visited.add(current)
-                
+
                 current_task = task_id_map.get(current)
-                if current_task and 'dependencies' in current_task:
-                    for dep in current_task['dependencies']:
+                if current_task and "dependencies" in current_task:
+                    for dep in current_task["dependencies"]:
                         if dep in task_id_map and dep not in visited:
                             queue.append(dep)
     except:
         # If cycle detection fails, continue with other validations
         pass
-    
+
     return warnings
+
 
 def validate_path_security(filepath: str, base_dir: str = None) -> bool:
     """Validate that a path is safe and within allowed boundaries."""
     try:
         # Check for null bytes and other dangerous characters
-        if '\x00' in filepath:
+        if "\x00" in filepath:
             return False
 
         # Use Path.resolve() to normalize the path
@@ -168,11 +194,11 @@ def validate_path_security(filepath: str, base_dir: str = None) -> bool:
 
         # Check for URL encoding and other bypass attempts
         path_lower = normalized_path.lower()
-        if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+        if any(unsafe_pattern in path_lower for unsafe_pattern in ["%2e%2e", "%2f", "%5c"]):
             return False
 
         # Check for directory traversal using multiple methods
-        path_str = str(path_obj).replace('\\', '/')
+        path_str = str(path_obj).replace("\\", "/")
         if ".." in path_str.split("/"):
             return False
 
@@ -186,19 +212,19 @@ def validate_path_security(filepath: str, base_dir: str = None) -> bool:
 
         # Additional safety checks
         suspicious_patterns = [
-            r'\.\./',  # Path traversal
-            r'\.\.\\', # Path traversal (Windows)
-            r'\$\(',   # Command substitution
-            r'`.*`',   # Command substitution
-            r';.*;',   # Multiple commands
-            r'&&.*&&', # Multiple commands
-            r'\|\|.*\|\|', # Multiple commands
-            r'\.git',  # Git directory access
-            r'\.ssh',  # SSH directory access
-            r'/etc/',  # System config directory
-            r'/root/', # Root directory
-            r'C:\\Windows\\', # Windows system directory
-            r'\x00',   # Null byte
+            r"\.\./",  # Path traversal
+            r"\.\.\\",  # Path traversal (Windows)
+            r"\$\(",  # Command substitution
+            r"`.*`",  # Command substitution
+            r";.*;",  # Multiple commands
+            r"&&.*&&",  # Multiple commands
+            r"\|\|.*\|\|",  # Multiple commands
+            r"\.git",  # Git directory access
+            r"\.ssh",  # SSH directory access
+            r"/etc/",  # System config directory
+            r"/root/",  # Root directory
+            r"C:\\Windows\\",  # Windows system directory
+            r"\x00",  # Null byte
         ]
 
         for pattern in suspicious_patterns:
@@ -208,6 +234,7 @@ def validate_path_security(filepath: str, base_dir: str = None) -> bool:
         return True
     except Exception:
         return False
+
 
 def fix_task_file(filepath: str) -> bool:
     """Fix relative dependencies in a task file"""
@@ -221,17 +248,19 @@ def fix_task_file(filepath: str) -> bool:
         max_file_size = 50 * 1024 * 1024  # 50 MB limit
         file_size = os.path.getsize(filepath)
         if file_size > max_file_size:
-            print(f"Error: File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+            print(
+                f"Error: File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes"
+            )
             return False
 
         # Read file in chunks to prevent memory issues with very large files
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read(max_file_size)  # Limit read to max file size
 
         # Check if we read the entire file
         if len(content) == max_file_size:
             # Check if there's more content in the file
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding="utf-8") as f:
                 f.seek(max_file_size)
                 remaining = f.read(1)
                 if remaining:
@@ -239,55 +268,58 @@ def fix_task_file(filepath: str) -> bool:
                     return False
 
         data = json.loads(content)
-        
-        if not isinstance(data, dict) or 'tasks' not in data:
+
+        if not isinstance(data, dict) or "tasks" not in data:
             print(f"Warning: {filepath} does not have a valid tasks structure")
             return False
-        
-        tasks = data['tasks']
+
+        tasks = data["tasks"]
         if not isinstance(tasks, list):
             print(f"Warning: {filepath} tasks is not an array")
             return False
-        
+
         # Create task ID map for quick lookup
         task_id_map = {}
         for task in tasks:
-            if isinstance(task, dict) and 'id' in task:
-                task_id_map[task['id']] = task
-        
+            if isinstance(task, dict) and "id" in task:
+                task_id_map[task["id"]] = task
+
         modified = False
-        
+
         # Fix dependencies in each task
         for i, task in enumerate(tasks):
             if not isinstance(task, dict):
                 print(f"Warning: Task at index {i} is not an object, skipping")
                 continue
-            
+
             original_task = task.copy()
             updated_task = fix_dependencies_in_task(task, tasks, task_id_map)
-            
+
             if updated_task != original_task:
                 tasks[i] = updated_task
                 modified = True
-        
+
         # Validate dependency consistency
         warnings = validate_dependency_consistency(tasks)
         for warning in warnings:
             print(f"  - Dependency warning: {warning}")
-        
+
         if modified or warnings:
             # Create backup with UUID to avoid race conditions
             import uuid
+
             timestamp = int(time.time())
             unique_id = uuid.uuid4().hex[:8]
             backup_path = f"{filepath}.backup_{timestamp}_{unique_id}"
 
             # Copy file instead of rename to avoid race condition with mtime
             import shutil
+
             shutil.copy2(filepath, backup_path)
 
             # Verify backup was created successfully
             import os
+
             if not os.path.exists(backup_path):
                 print(f"Error: Failed to create backup {backup_path}")
                 return False
@@ -295,20 +327,21 @@ def fix_task_file(filepath: str) -> bool:
             print(f"  - Created backup: {backup_path}")
 
             # Write updated file
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             print(f"  - Updated: {filepath}")
         else:
             print(f"  - No changes needed: {filepath}")
-        
+
         return True
-        
+
     except json.JSONDecodeError as e:
         print(f"Error: Invalid JSON in {filepath}: {e}")
         return False
     except Exception as e:
         print(f"Error processing {filepath}: {e}")
         return False
+
 
 def process_directory(directory: str, pattern: str = "**/tasks.json"):
     """Process all task files in a directory"""
@@ -335,17 +368,20 @@ def process_directory(directory: str, pattern: str = "**/tasks.json"):
 
     print(f"\nProcessed {success_count}/{len(task_files)} files successfully")
 
+
 def main():
     """Main function"""
     import argparse
-    
-    parser = argparse.ArgumentParser(description='Fix relative dependencies in task files')
-    parser.add_argument('path', nargs='?', default='.', help='Path to process (file or directory)')
-    parser.add_argument('--pattern', default='**/tasks.json', help='File pattern to match (for directories)')
-    parser.add_argument('--file', help='Specific file to process (alternative to path)')
-    
+
+    parser = argparse.ArgumentParser(description="Fix relative dependencies in task files")
+    parser.add_argument("path", nargs="?", default=".", help="Path to process (file or directory)")
+    parser.add_argument(
+        "--pattern", default="**/tasks.json", help="File pattern to match (for directories)"
+    )
+    parser.add_argument("--file", help="Specific file to process (alternative to path)")
+
     args = parser.parse_args()
-    
+
     path_to_process = args.file or args.path
 
     # Validate path security before processing
@@ -367,6 +403,7 @@ def main():
     else:
         print(f"Error: Path does not exist: {path_to_process}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

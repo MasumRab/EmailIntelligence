@@ -15,23 +15,24 @@ including:
 - Flexible configuration and adaptation
 """
 
+import argparse
 import json
+import logging
 import os
-import sys
 import re
-import copy
+import sys
 from collections import defaultdict, deque
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Any, Optional, Union
-import argparse
-import logging
+from typing import Dict, List, Optional, Set, Tuple
 
 
 class TaskValidatorFixer:
     """Main class for validating and fixing tasks.json files."""
 
-    def __init__(self, tasks_file: str = "tasks/tasks.json", backup_dir: str = ".taskmaster/backups"):
+    def __init__(
+        self, tasks_file: str = "tasks/tasks.json", backup_dir: str = ".taskmaster/backups"
+    ):
         """
         Initialize the validator/fixer.
 
@@ -42,9 +43,9 @@ class TaskValidatorFixer:
         self.tasks_file = Path(tasks_file)
         self.backup_dir = Path(backup_dir)
         self.backup_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Setup logging
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
         self.logger = logging.getLogger(__name__)
 
         # Validation results
@@ -61,7 +62,7 @@ class TaskValidatorFixer:
         """Validate that a path is safe and within allowed boundaries."""
         try:
             # Check for null bytes and other dangerous characters
-            if '\x00' in filepath:
+            if "\x00" in filepath:
                 return False
 
             # Use Path.resolve() to normalize the path
@@ -70,11 +71,11 @@ class TaskValidatorFixer:
 
             # Check for URL encoding and other bypass attempts
             path_lower = normalized_path.lower()
-            if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+            if any(unsafe_pattern in path_lower for unsafe_pattern in ["%2e%2e", "%2f", "%5c"]):
                 return False
 
             # Check for directory traversal using multiple methods
-            path_str = str(path_obj).replace('\\', '/')
+            path_str = str(path_obj).replace("\\", "/")
             if ".." in path_str.split("/"):
                 return False
 
@@ -88,19 +89,19 @@ class TaskValidatorFixer:
 
             # Additional safety checks
             suspicious_patterns = [
-                r'\.\./',  # Path traversal
-                r'\.\.\\', # Path traversal (Windows)
-                r'\$\(',   # Command substitution
-                r'`.*`',   # Command substitution
-                r';.*;',   # Multiple commands
-                r'&&.*&&', # Multiple commands
-                r'\|\|.*\|\|', # Multiple commands
-                r'\.git',  # Git directory access
-                r'\.ssh',  # SSH directory access
-                r'/etc/',  # System config directory
-                r'/root/', # Root directory
-                r'C:\\Windows\\', # Windows system directory
-                r'\x00',   # Null byte
+                r"\.\./",  # Path traversal
+                r"\.\.\\",  # Path traversal (Windows)
+                r"\$\(",  # Command substitution
+                r"`.*`",  # Command substitution
+                r";.*;",  # Multiple commands
+                r"&&.*&&",  # Multiple commands
+                r"\|\|.*\|\|",  # Multiple commands
+                r"\.git",  # Git directory access
+                r"\.ssh",  # SSH directory access
+                r"/etc/",  # System config directory
+                r"/root/",  # Root directory
+                r"C:\\Windows\\",  # Windows system directory
+                r"\x00",  # Null byte
             ]
 
             for pattern in suspicious_patterns:
@@ -124,8 +125,8 @@ class TaskValidatorFixer:
         if not self.validate_path_security(str(backup_file)):
             raise ValueError(f"Invalid or unsafe backup file path: {backup_file}")
 
-        with open(self.tasks_file, 'r', encoding='utf-8') as src:
-            with open(backup_file, 'w', encoding='utf-8') as dst:
+        with open(self.tasks_file, encoding="utf-8") as src:
+            with open(backup_file, "w", encoding="utf-8") as dst:
                 dst.write(src.read())
 
         self.logger.info(f"Backup created: {backup_file}")
@@ -142,20 +143,24 @@ class TaskValidatorFixer:
             max_file_size = 50 * 1024 * 1024  # 50 MB limit
             file_size = os.path.getsize(self.tasks_file)
             if file_size > max_file_size:
-                raise ValueError(f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+                raise ValueError(
+                    f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes"
+                )
 
             # Read file in chunks to prevent memory issues with very large files
-            with open(self.tasks_file, 'r', encoding='utf-8') as f:
+            with open(self.tasks_file, encoding="utf-8") as f:
                 content = f.read(max_file_size)  # Limit read to max file size
 
             # Check if we read the entire file
             if len(content) == max_file_size:
                 # Check if there's more content in the file
-                with open(self.tasks_file, 'r', encoding='utf-8') as f:
+                with open(self.tasks_file, encoding="utf-8") as f:
                     f.seek(max_file_size)
                     remaining = f.read(1)
                     if remaining:
-                        raise ValueError(f"File size exceeds maximum allowed size of {max_file_size} bytes")
+                        raise ValueError(
+                            f"File size exceeds maximum allowed size of {max_file_size} bytes"
+                        )
 
             # Parse JSON with size validation
             data = json.loads(content)
@@ -183,7 +188,9 @@ class TaskValidatorFixer:
         max_file_size = 50 * 1024 * 1024  # 50 MB limit
         file_size = os.path.getsize(self.tasks_file)
         if file_size > max_file_size:
-            raise ValueError(f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+            raise ValueError(
+                f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes"
+            )
 
         # Additional validation could be added here if needed
         return self.load_tasks()
@@ -194,15 +201,15 @@ class TaskValidatorFixer:
         if not self.validate_path_security(str(self.tasks_file)):
             raise ValueError(f"Invalid or unsafe file path: {self.tasks_file}")
 
-        with open(self.tasks_file, 'w', encoding='utf-8') as f:
+        with open(self.tasks_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def extract_tasks(self, data: Dict) -> List[Dict]:
         """Extract tasks from the nested structure."""
-        if 'master' in data and 'tasks' in data['master']:
-            return data['master']['tasks']
+        if "master" in data and "tasks" in data["master"]:
+            return data["master"]["tasks"]
         else:
-            return data.get('tasks', [])
+            return data.get("tasks", [])
 
     def collect_all_task_ids(self, tasks: List[Dict]) -> Tuple[Set, Dict, List]:
         """Collect all task IDs and build lookup dictionary."""
@@ -211,7 +218,7 @@ class TaskValidatorFixer:
         lookup = {}
 
         for task in tasks:
-            task_id = task.get('id')
+            task_id = task.get("id")
             if task_id is not None:
                 task_id_str = str(task_id)
                 all_ids.add(task_id_str)
@@ -219,9 +226,9 @@ class TaskValidatorFixer:
                 lookup[task_id_str] = task
 
                 # Process subtasks
-                if 'subtasks' in task:
-                    for subtask in task['subtasks']:
-                        subtask_id = subtask.get('id')
+                if "subtasks" in task:
+                    for subtask in task["subtasks"]:
+                        subtask_id = subtask.get("id")
                         if subtask_id is not None:
                             full_subtask_id = f"{task_id_str}.{subtask_id}"
                             all_ids.add(full_subtask_id)
@@ -260,31 +267,40 @@ class TaskValidatorFixer:
     def validate_task_structure(self, task: Dict, task_id: str, is_subtask: bool = False) -> None:
         """Validate individual task structure."""
         prefix = "Subtask" if is_subtask else "Task"
-        
+
         # Check required fields
-        if 'id' not in task:
+        if "id" not in task:
             self.errors.append(f"{prefix} {task_id} missing 'id' field")
-        
-        if 'title' not in task:
+
+        if "title" not in task:
             self.errors.append(f"{prefix} {task_id} missing 'title' field")
-        
-        if 'status' not in task:
+
+        if "status" not in task:
             self.errors.append(f"{prefix} {task_id} missing 'status' field")
-        elif task['status'] not in ['pending', 'in-progress', 'done', 'deferred', 'cancelled', 'review']:
+        elif task["status"] not in [
+            "pending",
+            "in-progress",
+            "done",
+            "deferred",
+            "cancelled",
+            "review",
+        ]:
             self.warnings.append(f"{prefix} {task_id} has invalid status: {task['status']}")
 
-    def validate_dependencies(self, task: Dict, task_id: str, all_ids: Set[str], is_subtask: bool = False) -> None:
+    def validate_dependencies(
+        self, task: Dict, task_id: str, all_ids: Set[str], is_subtask: bool = False
+    ) -> None:
         """Validate task dependencies."""
         prefix = "Subtask" if is_subtask else "Task"
-        dependencies = task.get('dependencies', [])
-        
+        dependencies = task.get("dependencies", [])
+
         for dep in dependencies:
             dep_str = str(dep)
-            
+
             # Check if dependency exists in the task list
             if dep_str not in all_ids:
                 # Check if it's a relative dependency within the same parent
-                if '.' in dep_str and task_id and dep_str.startswith(f"{task_id}."):
+                if "." in dep_str and task_id and dep_str.startswith(f"{task_id}."):
                     continue  # This might be a valid relative dependency
                 self.errors.append(f"{prefix} {task_id} has invalid dependency: {dep_str}")
 
@@ -294,10 +310,10 @@ class TaskValidatorFixer:
         self.reverse_graph.clear()
 
         for task in tasks:
-            task_id = str(task.get('id'))
-            
+            task_id = str(task.get("id"))
+
             # Process task dependencies
-            deps = task.get('dependencies', [])
+            deps = task.get("dependencies", [])
             for dep in deps:
                 dep_str = str(dep)
                 if dep_str in all_ids:
@@ -305,13 +321,13 @@ class TaskValidatorFixer:
                     self.reverse_graph[dep_str].append(task_id)
 
             # Process subtask dependencies
-            if 'subtasks' in task:
-                for subtask in task['subtasks']:
-                    subtask_id = subtask.get('id')
+            if "subtasks" in task:
+                for subtask in task["subtasks"]:
+                    subtask_id = subtask.get("id")
                     if subtask_id is not None:
                         full_subtask_id = f"{task_id}.{subtask_id}"
-                        
-                        subtask_deps = subtask.get('dependencies', [])
+
+                        subtask_deps = subtask.get("dependencies", [])
                         for dep in subtask_deps:
                             dep_str = str(dep)
                             if dep_str in all_ids:
@@ -352,10 +368,10 @@ class TaskValidatorFixer:
     def validate_orphaned_subtasks(self, tasks: List[Dict]) -> None:
         """Detect orphaned subtasks (subtasks without proper parent task)."""
         for task in tasks:
-            task_id = str(task.get('id'))
-            if 'subtasks' in task:
-                for subtask in task['subtasks']:
-                    subtask_id = subtask.get('id')
+            task_id = str(task.get("id"))
+            if "subtasks" in task:
+                for subtask in task["subtasks"]:
+                    subtask_id = subtask.get("id")
                     if subtask_id is not None:
                         full_subtask_id = f"{task_id}.{subtask_id}"
                         # Verify the subtask exists in our lookup
@@ -365,26 +381,26 @@ class TaskValidatorFixer:
     def validate_priority_consistency(self, tasks: List[Dict]) -> None:
         """Validate priority field consistency."""
         for task in tasks:
-            if 'priority' in task:
-                priority = task['priority']
-                if priority not in ['low', 'medium', 'high']:
+            if "priority" in task:
+                priority = task["priority"]
+                if priority not in ["low", "medium", "high"]:
                     self.warnings.append(f"Task {task.get('id')} has invalid priority: {priority}")
 
     def fix_duplicate_ids(self, data: Dict) -> int:
         """Fix duplicate IDs by adding suffixes."""
         tasks = self.extract_tasks(data)
-        id_counter = defaultdict(int)
+        defaultdict(int)
         fixed_count = 0
 
         # First pass: identify duplicates
         all_ids = []
         for task in tasks:
-            task_id = str(task.get('id'))
+            task_id = str(task.get("id"))
             all_ids.append((task, task_id, False))  # (task_obj, id, is_subtask)
-            
-            if 'subtasks' in task:
-                for subtask in task['subtasks']:
-                    subtask_id = str(subtask.get('id'))
+
+            if "subtasks" in task:
+                for subtask in task["subtasks"]:
+                    subtask_id = str(subtask.get("id"))
                     all_ids.append((subtask, f"{task_id}.{subtask_id}", True))
 
         # Second pass: fix duplicates
@@ -392,11 +408,11 @@ class TaskValidatorFixer:
         for task_obj, original_id, is_subtask in all_ids:
             current_id = original_id
             counter = 1
-            
+
             while current_id in used_ids:
                 if is_subtask:
                     # For subtasks, modify the subtask ID part
-                    parts = original_id.split('.')
+                    parts = original_id.split(".")
                     if len(parts) == 2:
                         base_task_id, subtask_part = parts
                         current_id = f"{base_task_id}.{subtask_part}_{counter}"
@@ -407,10 +423,10 @@ class TaskValidatorFixer:
                     counter += 1
 
             if current_id != original_id:
-                task_obj['id'] = current_id.split('.')[-1] if is_subtask else current_id
+                task_obj["id"] = current_id.split(".")[-1] if is_subtask else current_id
                 self.fixes_applied.append(f"Fixed duplicate ID: {original_id} -> {current_id}")
                 fixed_count += 1
-            
+
             used_ids.add(current_id)
 
         return fixed_count
@@ -421,47 +437,51 @@ class TaskValidatorFixer:
         fixed_count = 0
 
         for task in tasks:
-            task_id = str(task.get('id'))
-            
+            task_id = str(task.get("id"))
+
             # Fix task dependencies
-            if 'dependencies' in task:
-                original_deps = task['dependencies'][:]
+            if "dependencies" in task:
+                original_deps = task["dependencies"][:]
                 new_deps = []
-                
+
                 for dep in original_deps:
                     dep_str = str(dep)
                     if dep_str in self.all_task_ids:
                         new_deps.append(dep)
                     else:
-                        self.fixes_applied.append(f"Removed invalid dependency {dep} from task {task_id}")
+                        self.fixes_applied.append(
+                            f"Removed invalid dependency {dep} from task {task_id}"
+                        )
                         fixed_count += 1
-                
+
                 if new_deps != original_deps:
-                    task['dependencies'] = new_deps
+                    task["dependencies"] = new_deps
 
             # Fix subtask dependencies
-            if 'subtasks' in task:
-                for subtask in task['subtasks']:
-                    subtask_id = str(subtask.get('id'))
+            if "subtasks" in task:
+                for subtask in task["subtasks"]:
+                    subtask_id = str(subtask.get("id"))
                     full_subtask_id = f"{task_id}.{subtask_id}"
-                    
-                    if 'dependencies' in subtask:
-                        original_deps = subtask['dependencies'][:]
+
+                    if "dependencies" in subtask:
+                        original_deps = subtask["dependencies"][:]
                         new_deps = []
-                        
+
                         for dep in original_deps:
                             dep_str = str(dep)
                             if dep_str in self.all_task_ids:
                                 new_deps.append(dep)
-                            elif '.' in dep_str and dep_str.startswith(f"{task_id}."):
+                            elif "." in dep_str and dep_str.startswith(f"{task_id}."):
                                 # This might be a valid relative dependency
                                 new_deps.append(dep)
                             else:
-                                self.fixes_applied.append(f"Removed invalid dependency {dep} from subtask {full_subtask_id}")
+                                self.fixes_applied.append(
+                                    f"Removed invalid dependency {dep} from subtask {full_subtask_id}"
+                                )
                                 fixed_count += 1
-                        
+
                         if new_deps != original_deps:
-                            subtask['dependencies'] = new_deps
+                            subtask["dependencies"] = new_deps
 
         return fixed_count
 
@@ -471,54 +491,62 @@ class TaskValidatorFixer:
         fixed_count = 0
 
         for task in tasks:
-            task_id = str(task.get('id'))
+            task_id = str(task.get("id"))
 
             # Add missing id
-            if 'id' not in task:
+            if "id" not in task:
                 # Find next available ID that doesn't conflict
-                existing_ids = {str(t.get('id')) for t in tasks if 'id' in t}
+                existing_ids = {str(t.get("id")) for t in tasks if "id" in t}
                 new_id = 1
                 while str(new_id) in existing_ids:
                     new_id += 1
-                task['id'] = new_id
+                task["id"] = new_id
                 self.fixes_applied.append(f"Added missing ID to task: {task['id']}")
                 fixed_count += 1
-            
+
             # Add missing title
-            if 'title' not in task:
-                task['title'] = f"Untitled Task {task.get('id')}"
+            if "title" not in task:
+                task["title"] = f"Untitled Task {task.get('id')}"
                 self.fixes_applied.append(f"Added missing title to task {task.get('id')}")
                 fixed_count += 1
-            
-            # Add missing status
-            if 'status' not in task:
-                task['status'] = 'pending'
-                self.fixes_applied.append(f"Added default status 'pending' to task {task.get('id')}")
-                fixed_count += 1
-            
-            # Process subtasks
-            if 'subtasks' in task:
-                for subtask in task['subtasks']:
-                    subtask_id = str(subtask.get('id'))
 
-                    if 'id' not in subtask:
+            # Add missing status
+            if "status" not in task:
+                task["status"] = "pending"
+                self.fixes_applied.append(
+                    f"Added default status 'pending' to task {task.get('id')}"
+                )
+                fixed_count += 1
+
+            # Process subtasks
+            if "subtasks" in task:
+                for subtask in task["subtasks"]:
+                    str(subtask.get("id"))
+
+                    if "id" not in subtask:
                         # Find next available subtask ID that doesn't conflict
-                        existing_subtask_ids = {str(st.get('id')) for st in task['subtasks'] if 'id' in st}
+                        existing_subtask_ids = {
+                            str(st.get("id")) for st in task["subtasks"] if "id" in st
+                        }
                         new_subtask_id = 1
                         while str(new_subtask_id) in existing_subtask_ids:
                             new_subtask_id += 1
-                        subtask['id'] = new_subtask_id
+                        subtask["id"] = new_subtask_id
                         self.fixes_applied.append(f"Added missing ID to subtask in task {task_id}")
                         fixed_count += 1
-                    
-                    if 'title' not in subtask:
-                        subtask['title'] = f"Untitled Subtask {subtask.get('id')} in task {task_id}"
-                        self.fixes_applied.append(f"Added missing title to subtask {subtask.get('id')} in task {task_id}")
+
+                    if "title" not in subtask:
+                        subtask["title"] = f"Untitled Subtask {subtask.get('id')} in task {task_id}"
+                        self.fixes_applied.append(
+                            f"Added missing title to subtask {subtask.get('id')} in task {task_id}"
+                        )
                         fixed_count += 1
-                    
-                    if 'status' not in subtask:
-                        subtask['status'] = 'pending'
-                        self.fixes_applied.append(f"Added default status 'pending' to subtask {subtask.get('id')} in task {task_id}")
+
+                    if "status" not in subtask:
+                        subtask["status"] = "pending"
+                        self.fixes_applied.append(
+                            f"Added default status 'pending' to subtask {subtask.get('id')} in task {task_id}"
+                        )
                         fixed_count += 1
 
         return fixed_count
@@ -529,17 +557,23 @@ class TaskValidatorFixer:
         fixed_count = 0
 
         for task in tasks:
-            if 'priority' not in task or task['priority'] not in ['low', 'medium', 'high']:
-                task['priority'] = 'medium'  # Default priority
+            if "priority" not in task or task["priority"] not in ["low", "medium", "high"]:
+                task["priority"] = "medium"  # Default priority
                 self.fixes_applied.append(f"Set default priority 'medium' to task {task.get('id')}")
                 fixed_count += 1
-            
+
             # Process subtasks
-            if 'subtasks' in task:
-                for subtask in task['subtasks']:
-                    if 'priority' not in subtask or subtask['priority'] not in ['low', 'medium', 'high']:
-                        subtask['priority'] = 'medium'  # Default priority
-                        self.fixes_applied.append(f"Set default priority 'medium' to subtask {subtask.get('id')}")
+            if "subtasks" in task:
+                for subtask in task["subtasks"]:
+                    if "priority" not in subtask or subtask["priority"] not in [
+                        "low",
+                        "medium",
+                        "high",
+                    ]:
+                        subtask["priority"] = "medium"  # Default priority
+                        self.fixes_applied.append(
+                            f"Set default priority 'medium' to subtask {subtask.get('id')}"
+                        )
                         fixed_count += 1
 
         return fixed_count
@@ -562,20 +596,18 @@ class TaskValidatorFixer:
         try:
             # Load the tasks file
             data = self.load_tasks()
-            
+
             # Create backup if requested
-            backup_file = None
             if fix_issues and create_backup:
-                backup_file = self.backup_tasks()
+                self.backup_tasks()
 
             # Extract tasks
             tasks = self.extract_tasks(data)
 
             # Validate JSON structure
-            if not self.validate_json_structure(data):
-                if fix_issues:
-                    self.logger.error("Cannot fix invalid JSON structure. Please correct manually.")
-                    return False
+            if not self.validate_json_structure(data) and fix_issues:
+                self.logger.error("Cannot fix invalid JSON structure. Please correct manually.")
+                return False
 
             # Collect all task IDs
             self.all_task_ids, self.task_lookup, all_ids_list = self.collect_all_task_ids(tasks)
@@ -588,22 +620,26 @@ class TaskValidatorFixer:
 
             # Validate each task and subtask
             for task in tasks:
-                task_id = str(task.get('id'))
-                
+                task_id = str(task.get("id"))
+
                 # Validate task structure
                 self.validate_task_structure(task, task_id)
-                
+
                 # Validate dependencies
                 self.validate_dependencies(task, task_id, self.all_task_ids)
-                
+
                 # Validate subtasks
-                if 'subtasks' in task:
-                    for subtask in task['subtasks']:
-                        subtask_id = subtask.get('id')
-                        full_subtask_id = f"{task_id}.{subtask_id}" if subtask_id is not None else task_id
-                        
+                if "subtasks" in task:
+                    for subtask in task["subtasks"]:
+                        subtask_id = subtask.get("id")
+                        full_subtask_id = (
+                            f"{task_id}.{subtask_id}" if subtask_id is not None else task_id
+                        )
+
                         self.validate_task_structure(subtask, full_subtask_id, is_subtask=True)
-                        self.validate_dependencies(subtask, full_subtask_id, self.all_task_ids, is_subtask=True)
+                        self.validate_dependencies(
+                            subtask, full_subtask_id, self.all_task_ids, is_subtask=True
+                        )
 
             # Detect circular dependencies
             self.detect_circular_dependencies()
@@ -628,7 +664,9 @@ class TaskValidatorFixer:
                 if any("Duplicate" in error for error in self.errors):
                     fixed_duplicate_ids = self.fix_duplicate_ids(data)
                     # Recalculate IDs after fixing duplicates
-                    self.all_task_ids, self.task_lookup, _ = self.collect_all_task_ids(self.extract_tasks(data))
+                    self.all_task_ids, self.task_lookup, _ = self.collect_all_task_ids(
+                        self.extract_tasks(data)
+                    )
 
                 if any("invalid dependency" in error for error in self.errors):
                     fixed_invalid_deps = self.fix_invalid_dependencies(data)
@@ -636,7 +674,9 @@ class TaskValidatorFixer:
                 if any("missing" in error for error in self.errors):
                     fixed_missing_fields = self.fix_missing_fields(data)
                     # Recalculate IDs after adding missing IDs
-                    self.all_task_ids, self.task_lookup, _ = self.collect_all_task_ids(self.extract_tasks(data))
+                    self.all_task_ids, self.task_lookup, _ = self.collect_all_task_ids(
+                        self.extract_tasks(data)
+                    )
 
                 if any("priority" in warning for warning in self.warnings):
                     fixed_priority = self.fix_priority_weaknesses(data)
@@ -645,7 +685,9 @@ class TaskValidatorFixer:
                 self.save_tasks(data)
 
                 # Log fixes applied
-                total_fixed = fixed_duplicate_ids + fixed_invalid_deps + fixed_missing_fields + fixed_priority
+                total_fixed = (
+                    fixed_duplicate_ids + fixed_invalid_deps + fixed_missing_fields + fixed_priority
+                )
                 if total_fixed > 0:
                     self.logger.info(f"Applied {total_fixed} fixes:")
                     for fix in self.fixes_applied[-10:]:  # Show last 10 fixes
@@ -657,7 +699,9 @@ class TaskValidatorFixer:
                 # Reload the fixed data for validation
                 data_after_fix = self.load_tasks()
                 tasks_after_fix = self.extract_tasks(data_after_fix)
-                all_ids_after_fix, lookup_after_fix, all_ids_list_after_fix = self.collect_all_task_ids(tasks_after_fix)
+                all_ids_after_fix, lookup_after_fix, all_ids_list_after_fix = (
+                    self.collect_all_task_ids(tasks_after_fix)
+                )
 
                 # Re-initialize for validation
                 self.errors = []
@@ -668,16 +712,20 @@ class TaskValidatorFixer:
                 self.build_dependency_graph(tasks_after_fix, all_ids_after_fix)
 
                 for task in tasks_after_fix:
-                    task_id = str(task.get('id'))
+                    task_id = str(task.get("id"))
                     self.validate_task_structure(task, task_id)
                     self.validate_dependencies(task, task_id, all_ids_after_fix)
 
-                    if 'subtasks' in task:
-                        for subtask in task['subtasks']:
-                            subtask_id = subtask.get('id')
-                            full_subtask_id = f"{task_id}.{subtask_id}" if subtask_id is not None else task_id
+                    if "subtasks" in task:
+                        for subtask in task["subtasks"]:
+                            subtask_id = subtask.get("id")
+                            full_subtask_id = (
+                                f"{task_id}.{subtask_id}" if subtask_id is not None else task_id
+                            )
                             self.validate_task_structure(subtask, full_subtask_id, is_subtask=True)
-                            self.validate_dependencies(subtask, full_subtask_id, all_ids_after_fix, is_subtask=True)
+                            self.validate_dependencies(
+                                subtask, full_subtask_id, all_ids_after_fix, is_subtask=True
+                            )
 
                 self.detect_circular_dependencies()
                 self.validate_orphaned_subtasks(tasks_after_fix)
@@ -699,7 +747,7 @@ class TaskValidatorFixer:
 
     def print_results(self) -> None:
         """Print validation results."""
-        print(f"\nValidation Results:")
+        print("\nValidation Results:")
         print(f"  Errors: {len(self.errors)}")
         print(f"  Warnings: {len(self.warnings)}")
         print(f"  Fixes Applied: {len(self.fixes_applied)}")
@@ -715,7 +763,7 @@ class TaskValidatorFixer:
                 print(f"  {i}. {warning}")
 
         if self.fixes_applied:
-            print(f"\n🔧 Fixes applied:")
+            print("\n🔧 Fixes applied:")
             for i, fix in enumerate(self.fixes_applied, 1):
                 print(f"  {i}. {fix}")
 
@@ -731,10 +779,10 @@ class TaskValidatorFixer:
         """
         backup_files = list(self.backup_dir.glob("tasks_backup_*.json"))
         backup_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
-        
+
         files_to_delete = backup_files[keep_last_n:]
         deleted_count = 0
-        
+
         for file in files_to_delete:
             try:
                 file.unlink()
@@ -742,50 +790,50 @@ class TaskValidatorFixer:
                 self.logger.info(f"Deleted old backup: {file}")
             except Exception as e:
                 self.logger.error(f"Failed to delete backup {file}: {e}")
-        
+
         if deleted_count > 0:
             self.logger.info(f"Cleaned up {deleted_count} old backup files")
-        
+
         return deleted_count
 
     def get_statistics(self, data: Optional[Dict] = None) -> Dict:
         """Get statistics about the tasks file."""
         if data is None:
             data = self.load_tasks()
-        
+
         tasks = self.extract_tasks(data)
-        
+
         stats = {
-            'total_tasks': len(tasks),
-            'total_subtasks': 0,
-            'statuses': defaultdict(int),
-            'priorities': defaultdict(int),
-            'dependencies_count': 0,
-            'tasks_with_subtasks': 0
+            "total_tasks": len(tasks),
+            "total_subtasks": 0,
+            "statuses": defaultdict(int),
+            "priorities": defaultdict(int),
+            "dependencies_count": 0,
+            "tasks_with_subtasks": 0,
         }
-        
+
         for task in tasks:
             # Count subtasks
-            if 'subtasks' in task:
-                stats['total_subtasks'] += len(task['subtasks'])
-                stats['tasks_with_subtasks'] += 1
-                
-                for subtask in task['subtasks']:
-                    if 'status' in subtask:
-                        stats['statuses'][subtask['status']] += 1
-                    if 'priority' in subtask:
-                        stats['priorities'][subtask['priority']] += 1
-                    if 'dependencies' in subtask:
-                        stats['dependencies_count'] += len(subtask['dependencies'])
-            
+            if "subtasks" in task:
+                stats["total_subtasks"] += len(task["subtasks"])
+                stats["tasks_with_subtasks"] += 1
+
+                for subtask in task["subtasks"]:
+                    if "status" in subtask:
+                        stats["statuses"][subtask["status"]] += 1
+                    if "priority" in subtask:
+                        stats["priorities"][subtask["priority"]] += 1
+                    if "dependencies" in subtask:
+                        stats["dependencies_count"] += len(subtask["dependencies"])
+
             # Count main task stats
-            if 'status' in task:
-                stats['statuses'][task['status']] += 1
-            if 'priority' in task:
-                stats['priorities'][task['priority']] += 1
-            if 'dependencies' in task:
-                stats['dependencies_count'] += len(task['dependencies'])
-        
+            if "status" in task:
+                stats["statuses"][task["status"]] += 1
+            if "priority" in task:
+                stats["priorities"][task["priority"]] += 1
+            if "dependencies" in task:
+                stats["dependencies_count"] += len(task["dependencies"])
+
         return dict(stats)
 
 
@@ -799,8 +847,10 @@ def main():
     parser.add_argument("--no-backup", action="store_true", help="Skip backup creation")
     parser.add_argument("--cleanup", "-c", action="store_true", help="Clean up old backup files")
     parser.add_argument("--stats", "-s", action="store_true", help="Show statistics only")
-    parser.add_argument("--keep-backups", type=int, default=5, help="Number of backup files to keep (for cleanup)")
-    
+    parser.add_argument(
+        "--keep-backups", type=int, default=5, help="Number of backup files to keep (for cleanup)"
+    )
+
     args = parser.parse_args()
 
     # Validate path security before creating validator
@@ -829,7 +879,7 @@ def main():
 
     # Determine backup behavior
     create_backup = args.backup or (not args.no_backup and args.fix)
-    
+
     if args.validate:
         success = validator.validate_and_fix(fix_issues=False, create_backup=False)
         sys.exit(0 if success else 1)

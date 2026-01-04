@@ -10,6 +10,27 @@ Orchestrate all Stage One and Stage Two components into a production pipeline. T
 
 ---
 
+## Quick Navigation
+
+Navigate this document using these links:
+
+- [Purpose](#purpose)
+- [Success Criteria](#success-criteria)
+- [Output Files](#output-files)
+- [Subtasks Overview](#subtasks-overview)
+- [Subtask Details](#subtasks)
+- [Configuration & Defaults](#configuration--defaults)
+- [Technical Reference](#technical-reference)
+- [Common Gotchas & Solutions](#common-gotchas--solutions)
+- [Development Workflow](#typical-development-workflow)
+- [Integration Handoff](#integration-handoff)
+- [Integration Checkpoint](#integration-checkpoint)
+- [Done Definition](#done-definition)
+
+**Pro tip:** Use Ctrl+F to search within sections, or click links above to jump directly
+
+---
+
 ## Success Criteria
 
 Task 75.6 is complete when:
@@ -23,8 +44,17 @@ Task 75.6 is complete when:
 - [ ] Implements caching for performance optimization
 - [ ] Output JSON files match schema exactly
 
+**Performance Targets:**
+- [ ] End-to-end pipeline: **< 120 seconds** for 13+ branches
+- [ ] Analyzer execution (parallel): **< 30 seconds** each
+- [ ] Clustering: **< 10 seconds**
+- [ ] Assignment: **< 5 seconds**
+- [ ] Output generation: **< 5 seconds**
+- [ ] Cache hit rate: **> 70%** on second run
+- [ ] Memory: **< 100 MB** peak usage
+
 **Quality Assurance:**
-- [ ] Unit tests pass (minimum 6 test cases with >90% coverage)
+- [ ] Unit tests pass (minimum 6 test cases with **>90% code coverage**) 
 - [ ] No exceptions raised for valid inputs
 - [ ] Performance: <2 minutes for 13+ branches
 - [ ] Code quality: PEP 8 compliant, comprehensive docstrings
@@ -115,6 +145,68 @@ Special handling for orchestration-tools branches
 
 ---
 
+## Subtasks Overview
+
+### Dependency Flow Diagram
+
+```
+75.6.1 (2-3h)         75.6.3 (3-4h)    75.6.5 (3-4h)
+[Design]              [Caching]        [Performance]
+    │                     │                 │
+    ├─→ 75.6.2 (4-5h) ───┼─────┬───────────┘
+    │   [Orchestration]   │     │
+    │                     ├─→ 75.6.6 (2-3h) ──┐
+    ├─→ 75.6.4 (3-4h) ───┤     │              ├─→ 75.6.8 (3-4h)
+    │   [Output Gen]      │     │ [Error]      │  [Tests & Final]
+    │                     │     │              │
+    │                     ├─→ 75.6.7 (2-3h) ──┘
+    │                     │     [Config]
+    │                     │
+    └─────────────────────┘
+
+Critical Path: 75.6.1 → 75.6.2 → (75.6.4 + 75.6.3/5) → 75.6.6 → 75.6.8
+Minimum Duration: 20-28 hours (with parallelization)
+```
+
+### Parallel Opportunities
+
+**Can run in parallel (after 75.6.2):**
+- 75.6.3: Caching strategy (3-4 hours)
+- 75.6.5: Performance optimization (3-4 hours)
+
+Both depend on orchestration core (75.6.2) but are independent. **Estimated parallel execution saves 3-4 hours.**
+
+**Must be sequential:**
+- 75.6.1 → 75.6.2 (design prerequisites)
+- 75.6.2 → 75.6.4 (need orchestration for output)
+- 75.6.2 → 75.6.3/5 (parallelizable optimization)
+- 75.6.3/5 → 75.6.6 (caching/perf before error handling)
+- 75.6.6 → 75.6.8 (need all components for testing)
+
+### Timeline with Parallelization
+
+**Days 1: Design (75.6.1)**
+- Document end-to-end pipeline flow
+- Design parallelization strategy
+- Plan output specifications
+
+**Days 1-2: Pipeline Orchestration (75.6.2)**
+- Implement BranchClusteringEngine
+- Execute analyzers, clustering, assignment
+- Add progress tracking and logging
+
+**Days 2-4: Parallel Implementation (75.6.3, 75.6.5)**
+- **75.6.3 (Person A, Days 2-3):** File-based caching, invalidation, stats
+- **75.6.5 (Person B, Days 2-4):** Profiling, parallelization, optimization
+- Merge results at end of Day 3
+
+**Days 3-5: Output & Integration (75.6.4, 75.6.6, 75.6.7)**
+- Day 3: Generate three JSON output files
+- Day 4: Comprehensive error handling and recovery
+- Day 4: Configuration management (YAML)
+- Day 5: Integration tests, coverage report
+
+---
 ## Subtasks
 
 ### 75.6.1: Design Pipeline Architecture
@@ -349,23 +441,399 @@ Special handling for orchestration-tools branches
    - Expected: Completes without error, within time limits
 
 8. **test_json_schema_validation**: All JSON outputs conform to schema
-   - Expected: Each JSON file validates successfully
+    - Expected: Each JSON file validates successfully
+
+### Test Cases: Execution Modes (Task 75.6 Enhancement)
+
+9. **test_identification_mode_execution**: Identification mode with migration analysis
+    - Setup: 5 branches with mixed backend/src imports
+    - Execute: `engine = BranchClusteringEngine(mode="identification"); results = engine.execute(branches)`
+    - Expected: Simple JSON output in <30s, includes migration tags, I2.T4 compatible format
+    - Validation: Check output has branch, target, confidence, tags fields
+
+10. **test_clustering_mode_execution**: Full clustering mode
+    - Setup: 13 branches with varying similarities
+    - Execute: `engine = BranchClusteringEngine(mode="clustering"); results = engine.execute(branches)`
+    - Expected: Detailed JSON output with clusters and quality metrics, <120s
+    - Validation: Verify clusters array, quality_metrics present
+
+11. **test_hybrid_mode_with_clustering**: Hybrid mode includes clustering
+    - Setup: 10 branches
+    - Execute: `engine = BranchClusteringEngine(mode="hybrid", config={"enable_clustering_in_hybrid": true})`
+    - Expected: Both simple and detailed outputs, <90s
+    - Validation: Verify both output formats present
+
+12. **test_hybrid_mode_without_clustering**: Hybrid mode identification only
+    - Setup: 10 branches
+    - Execute: `engine = BranchClusteringEngine(mode="hybrid", config={"enable_clustering_in_hybrid": false})`
+    - Expected: Only simple identification output, <30s
+    - Validation: Verify simple output only, no clustering data
+
+13. **test_migration_analysis_detection**: Migration status detection
+    - Setup: Branches with backend imports, src imports, both, or neither
+    - Expected: Correct migration status tags assigned (tag:migration_required, tag:migration_in_progress, tag:migration_complete)
+    - Validation: Verify status matches branch code structure
+
+14. **test_simple_output_format**: Simple format (I2.T4 compatible)
+    - Setup: Any branches
+    - Execute: `OutputGenerator().generate_output(results, "simple")`
+    - Expected: List of objects with branch, target, confidence, reasoning, tags
+    - Validation: Each object has all required fields, valid types
+
+15. **test_detailed_output_format**: Detailed format with metrics
+    - Setup: Any branches  
+    - Execute: `OutputGenerator().generate_output(results, "detailed")`
+    - Expected: Dict with clusters, quality_metrics, branch_analysis
+    - Validation: All metric fields present and numeric
+
+16. **test_all_output_format**: Combined output format
+    - Setup: Any branches
+    - Execute: `OutputGenerator().generate_output(results, "all")`
+    - Expected: Dict containing both "simple" and "detailed" keys
+    - Validation: Both formats present and valid
+
+17. **test_mode_validation_invalid**: Invalid mode rejected
+    - Execute: `BranchClusteringEngine(mode="invalid")`
+    - Expected: Raises ValueError with clear message
+    - Validation: Error message mentions valid modes
+
+18. **test_backward_compatibility_i2t4**: Identification mode matches I2.T4
+    - Setup: Branches previously analyzed with I2.T4
+    - Execute: Compare identification mode output with I2.T4 output
+    - Expected: Simple JSON structure identical to I2.T4 format
+    - Validation: No breaking changes to existing consumers
 
 ---
 
-## Configuration Parameters
+## Configuration & Defaults
 
-- `ENABLE_PARALLELIZATION` = true
-- `NUM_PARALLEL_WORKERS` = 3
-- `ENABLE_CACHING` = true
-- `CACHE_DIR` = "./cache"
-- `CACHE_MAX_SIZE_MB` = 500
-- `EXECUTION_TIMEOUT_SECONDS` = 300
-- `OUTPUT_DIR` = "./output"
-- `PRETTY_PRINT_JSON` = true
+All parameters should be externalized to configuration files (not hardcoded). Use YAML format:
+
+```yaml
+# config/branch_clustering_engine.yaml
+branch_clustering_engine:
+  # Parallelization
+  enable_parallelization: true  # Run analyzers in parallel
+  num_parallel_workers: 3  # Number of threads
+  execution_timeout_seconds: 300  # 5 minutes max
+  
+  # Caching
+  enable_caching: true  # Cache analyzer outputs
+  cache_dir: "./cache"  # Cache location
+  cache_max_size_mb: 500  # Maximum cache size
+  cache_invalidation_hours: 24  # Refresh cache daily
+  
+  # Output
+  output_dir: "./output"  # Output JSON directory
+  pretty_print_json: true  # Formatted output
+  
+  # Components (nested configs)
+  commit_history_analyzer:
+    lookback_days: 30
+    max_commits: 1000
+  
+  codebase_structure_analyzer:
+    include_extensions: [.py, .js, .ts, .java]
+    exclude_patterns: ["__pycache__", "node_modules"]
+  
+  branch_clusterer:
+    linkage_method: "ward"
+    clustering_threshold: 0.5
+  
+  integration_target_assigner:
+    level1_merge_readiness_threshold: 0.9
+    level2_affinity_threshold: 0.70
+```
+
+**How to use in code:**
+```python
+import yaml
+
+def load_config(config_path='config/branch_clustering_engine.yaml'):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)['branch_clustering_engine']
+
+config = load_config()
+ENABLE_PARALLELIZATION = config['enable_parallelization']
+NUM_WORKERS = config['num_parallel_workers']
+CACHE_DIR = config['cache_dir']
+# ... etc
+```
+
+**Why externalize?**
+- Tune performance without recompiling
+- Different configs for dev/test/prod environments
+- Enable/disable features on-the-fly
+- Adjust timeouts based on infrastructure
+- Easy switching between caching strategies
 
 ---
 
+## Configuration: Execution Modes (Task 75.6 Enhancement)
+
+Three execution modes are supported for different analysis workflows:
+
+```yaml
+# Add to config/branch_clustering_engine.yaml
+execution:
+  mode: clustering                      # identification | clustering | hybrid
+  enable_migration_analysis: true
+  enable_clustering_in_hybrid: true
+  output_format: detailed               # simple | detailed | all
+```
+
+### Mode: identification
+- **Purpose:** Simple, fast branch categorization (I2.T4 compatible)
+- **Performance:** <30 seconds for 13 branches
+- **Memory:** <50MB
+- **Output:** Simple JSON with branch, target, confidence, tags
+- **Use case:** Quick categorization when detailed analysis not needed
+
+**Configuration:**
+```yaml
+execution:
+  mode: identification
+  enable_migration_analysis: true
+  output_format: simple
+```
+
+**Usage:**
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+
+engine = BranchClusteringEngine(mode="identification")
+results = engine.execute(branches)
+# Returns: [{"branch": "...", "target": "...", "confidence": 0.95, ...}]
+```
+
+### Mode: clustering
+- **Purpose:** Full analysis with hierarchical agglomerative clustering
+- **Performance:** <120 seconds for 13 branches
+- **Memory:** <100MB
+- **Output:** Detailed JSON with clustering metrics and quality scores
+- **Use case:** Deep similarity analysis, cluster understanding
+
+**Configuration:**
+```yaml
+execution:
+  mode: clustering
+  enable_migration_analysis: true
+  output_format: detailed
+```
+
+**Usage:**
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+
+engine = BranchClusteringEngine(mode="clustering")
+results = engine.execute(branches)
+# Returns: {"clusters": [...], "quality_metrics": {...}}
+```
+
+### Mode: hybrid
+- **Purpose:** Combined simple + clustering analysis
+- **Performance:** <90 seconds for 13 branches
+- **Memory:** <75MB
+- **Output:** Both simple and detailed JSON formats
+- **Use case:** Comprehensive analysis when all perspectives needed
+
+**Configuration:**
+```yaml
+execution:
+  mode: hybrid
+  enable_migration_analysis: true
+  enable_clustering_in_hybrid: true
+  output_format: all
+```
+
+**Usage:**
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+
+engine = BranchClusteringEngine(mode="hybrid")
+results = engine.execute(branches)
+# Returns: {"simple": [...], "detailed": {...}}
+```
+
+### Migration Analysis (All Modes)
+
+Migration analysis detects backend → src migration patterns automatically in all modes:
+
+- `tag:migration_required` - Has backend imports only
+- `tag:migration_in_progress` - Has both backend and src imports
+- `tag:migration_complete` - Has src imports only
+
+Disable with:
+```yaml
+execution:
+  enable_migration_analysis: false
+```
+
+### Clustering in Hybrid Mode
+
+Control whether hybrid mode includes clustering:
+
+```yaml
+execution:
+  mode: hybrid
+  enable_clustering_in_hybrid: true   # Include full clustering
+  # OR
+  enable_clustering_in_hybrid: false  # Identification only
+```
+
+---
+
+## Typical Development Workflow
+
+Complete git workflow for implementing Task 75.6:
+
+```bash
+# Setup
+git checkout -b feat/branch-clustering-engine
+mkdir -p src/engine tests/engine
+
+# Main orchestrator (all major subtasks integrated)
+cat > src/engine/engine.py << 'EOF'
+from concurrent.futures import ThreadPoolExecutor
+from src.analyzers.commit import CommitHistoryAnalyzer
+from src.clustering.clusterer import BranchClusterer
+from src.assignment.assigner import IntegrationTargetAssigner
+import json
+
+class BranchClusteringEngine:
+    def __init__(self, repo_path, config):
+        self.repo_path = repo_path
+        self.config = config
+    
+    def run(self, branches):
+        """Execute full pipeline with parallelization."""
+        # Parallel analyzer execution (75.6.2)
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            commit_f = executor.submit(CommitHistoryAnalyzer(...).analyze)
+            structure_f = executor.submit(CodebaseStructureAnalyzer(...).analyze)
+            diff_f = executor.submit(DiffDistanceCalculator(...).analyze)
+            
+            outputs = {
+                'commit': commit_f.result(timeout=300),
+                'structure': structure_f.result(timeout=300),
+                'diff': diff_f.result(timeout=300)
+            }
+        
+        # Clustering (75.6.3 via 75.4)
+        clusterer = BranchClusterer(self.config)
+        clusters = clusterer.cluster(outputs)
+        
+        # Assignment (75.6.4 via 75.5)
+        assigner = IntegrationTargetAssigner(self.config)
+        assignments = assigner.assign(clusters)
+        
+        # Generate outputs (75.6.5)
+        self._generate_json_outputs(clusters, assignments)
+        return assignments
+
+git add src/engine/engine.py
+git commit -m "feat: implement BranchClusteringEngine orchestrator (75.6)"
+git push origin feat/branch-clustering-engine
+```
+
+---
+
+## Integration Handoff
+
+**Task 75.6 Outputs (3 JSON files):**
+
+```
+categorized_branches.json  <- contains branch assignments & tags
+clustered_branches.json    <- contains cluster analysis & metrics
+enhanced_orchestration_branches.json <- special orchestration handling
+```
+
+**Task 75.7 (Visualization) consumes:** All 3 JSON files for dashboard
+**Task 75.8 (Testing) consumes:** All 3 JSON files for test validation
+
+Validation:
+```bash
+python -c "
+import json
+files = ['categorized_branches.json', 'clustered_branches.json', 'enhanced_orchestration_branches.json']
+for f in files:
+    data = json.load(open(f))
+    assert 'clusters' in data or 'branches' in data
+    print(f'✓ {f} valid')
+"
+```
+
+---
+
+## Common Gotchas & Solutions
+
+### Gotcha 1: Parallelization Causes Race Conditions ⚠️
+
+**Problem:** ThreadPoolExecutor results arrive out of order
+**Symptom:** Output dependencies violated
+**Solution:** Use futures with explicit ordering
+
+```python
+results = {
+    'commit': commit_future.result(timeout=300),
+    'structure': structure_future.result(timeout=300),
+    'diff': diff_future.result(timeout=300)
+}
+```
+
+### Gotcha 2: Cache Invalidation Failure ⚠️
+
+**Problem:** Stale cache causes incorrect analysis
+**Symptom:** Second run produces same results despite branch changes
+**Solution:** Hash-based cache keys
+
+```python
+import hashlib
+key = hashlib.sha256(f"{branch_name}:{hash(metrics)}".encode()).hexdigest()
+```
+
+### Gotcha 3: Output JSON Schema Mismatch ⚠️
+
+**Problem:** Generated JSON doesn't validate against schema
+**Symptom:** Downstream tasks fail to parse output
+**Solution:** Validate before writing
+
+```python
+import jsonschema
+jsonschema.validate(output_dict, SCHEMA)
+with open('output.json', 'w') as f:
+    json.dump(output_dict, f)
+```
+
+### Gotcha 4: Memory Explosion with Caching ⚠️
+
+**Problem:** Cache grows unbounded
+**Symptom:** Out of memory after 100+ branches
+**Solution:** Implement LRU eviction
+
+```python
+from functools import lru_cache
+@lru_cache(maxsize=500)
+def cached_analyze(branch_name):
+    return expensive_analysis(branch_name)
+```
+
+### Gotcha 5: Analyzer Timeout Cascades ⚠️
+
+**Problem:** One slow analyzer blocks entire pipeline
+**Symptom:** Pipeline timeout even though one analyzer is fast
+**Solution:** Independent timeout per analyzer
+
+```python
+for name, future in futures.items():
+    try:
+        result = future.result(timeout=30)
+    except TimeoutError:
+        logger.error(f"{name} timeout - using cached")
+        result = fallback_cache.get(name)
+```
+
+---
 
 ## Technical Reference (From HANDOFF)
 
@@ -459,3 +927,193 @@ Task 75.6 is done when:
 4. All output files generated correctly
 5. Performance targets met
 6. Ready for visualization (75.7) and testing (75.8)
+
+---
+
+## Quick Usage Examples (Task 75.6 Enhancement)
+
+### Example 1: Identification Mode (Quick Analysis)
+
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+
+# Create engine in identification mode
+engine = BranchClusteringEngine(mode="identification")
+
+# Analyze branches
+branches = ["feature-auth", "feature-db-refactor", "feature-api-docs"]
+results = engine.execute(branches)
+
+# Results: List of simple assignments
+for result in results:
+    print(f"{result['branch']} → {result['target']} (confidence: {result['confidence']:.2f})")
+    print(f"  Tags: {', '.join(result['tags'][:3])}...")
+
+# Output:
+# feature-auth → main (confidence: 0.95)
+#   Tags: tag:core_changes, tag:sequential_required, tag:migration_complete...
+# feature-db-refactor → scientific (confidence: 0.88)
+#   Tags: tag:data_changes, tag:migration_in_progress, tag:complex...
+# feature-api-docs → main (confidence: 0.92)
+#   Tags: tag:documentation, tag:low_risk, tag:simple...
+```
+
+### Example 2: Clustering Mode (Deep Analysis)
+
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+import json
+
+# Create engine in clustering mode
+engine = BranchClusteringEngine(mode="clustering")
+
+# Analyze branches
+branches = [
+    "feature-auth", "feature-auth-v2", "feature-db-refactor",
+    "feature-api-v1", "feature-api-v2", "bugfix-security"
+]
+results = engine.execute(branches)
+
+# Results: Dict with clusters and quality metrics
+print(f"Clusters found: {len(results['clusters'])}")
+for cluster in results['clusters']:
+    print(f"\nCluster {cluster['cluster_id']}:")
+    print(f"  Members: {', '.join(cluster['member_branches'][:3])}")
+    print(f"  Silhouette score: {cluster['quality_metrics']['silhouette_score']:.3f}")
+
+# Output:
+# Clusters found: 2
+# Cluster 0:
+#   Members: feature-auth, feature-auth-v2, bugfix-security
+#   Silhouette score: 0.742
+# Cluster 1:
+#   Members: feature-db-refactor, feature-api-v1, feature-api-v2
+#   Silhouette score: 0.638
+```
+
+### Example 3: Hybrid Mode (Complete Analysis)
+
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+
+# Create engine in hybrid mode
+engine = BranchClusteringEngine(
+    mode="hybrid",
+    config={
+        "enable_clustering_in_hybrid": True,
+        "enable_migration_analysis": True
+    }
+)
+
+# Analyze branches
+branches = ["feature-auth", "feature-db", "feature-api"]
+results = engine.execute(branches)
+
+# Results: Both simple and detailed outputs
+print("Simple assignments:")
+for branch_result in results['simple']:
+    print(f"  {branch_result['branch']} → {branch_result['target']}")
+
+print("\nCluster analysis:")
+print(f"  Found {len(results['detailed']['clusters'])} cluster(s)")
+print(f"  Overall silhouette: {results['detailed']['overall_quality']['silhouette_score']:.3f}")
+
+# Output:
+# Simple assignments:
+#   feature-auth → main
+#   feature-db → scientific
+#   feature-api → main
+# 
+# Cluster analysis:
+#   Found 2 cluster(s)
+#   Overall silhouette: 0.65
+```
+
+### Example 4: Migration Analysis
+
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+
+# Create engine with migration analysis enabled
+engine = BranchClusteringEngine(
+    mode="identification",
+    config={"enable_migration_analysis": True}
+)
+
+# Analyze branches that have backend→src migration
+branches = [
+    "feature-backend-to-src",  # Has both backend and src imports
+    "feature-src-only",         # Has only src imports
+    "feature-backend-only"      # Has only backend imports
+]
+results = engine.execute(branches)
+
+# Check migration tags
+for result in results:
+    migration_tags = [tag for tag in result['tags'] if 'migration' in tag]
+    print(f"{result['branch']}: {migration_tags}")
+
+# Output:
+# feature-backend-to-src: ['tag:migration_in_progress']
+# feature-src-only: ['tag:migration_complete']
+# feature-backend-only: ['tag:migration_required']
+```
+
+### Example 5: Custom Configuration
+
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+import yaml
+
+# Load custom configuration
+with open('config/branch_clustering_engine.yaml', 'r') as f:
+    config = yaml.safe_load(f)['branch_clustering_engine']
+
+# Create engine with custom config
+engine = BranchClusteringEngine(
+    repo_path="/path/to/repo",
+    mode="clustering",
+    config=config
+)
+
+# Use custom parallelization settings
+branches = list(range(50))  # 50 branches
+results = engine.execute(branches, primary_branch="origin/main")
+
+print(f"Analysis completed: {len(results)} branches processed")
+print(f"Cache hit rate: {cache_stats['hit_rate']:.1%}")
+```
+
+### Example 6: Integration with Downstream Tasks
+
+```python
+from task_data.branch_clustering_implementation import BranchClusteringEngine
+import json
+
+# Run full pipeline
+engine = BranchClusteringEngine(mode="clustering")
+results = engine.execute(branches)
+
+# Task 75.7 (Visualization) consumes outputs
+with open('output/categorized_branches.json', 'w') as f:
+    json.dump({
+        'branches': results['categorized'],
+        'summary': results['summary']
+    }, f)
+
+# Task 75.8 (Testing) consumes outputs
+with open('output/clustered_branches.json', 'w') as f:
+    json.dump({
+        'clusters': results['clusters'],
+        'overall_quality': results['overall_quality']
+    }, f)
+
+# Task 75.9 (Framework Integration) uses outputs
+with open('output/enhanced_orchestration_branches.json', 'w') as f:
+    json.dump({
+        'orchestration_branches': results['orchestration_branches'],
+        'summary': results['orchestration_summary']
+    }, f)
+
+print("✓ Output files generated for downstream tasks")
+```

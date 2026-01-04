@@ -11,6 +11,7 @@ This script provides a comprehensive solution for fixing common issues in task f
 - Atomic operations
 """
 
+import copy
 import json
 import os
 import re
@@ -19,26 +20,29 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Tuple, Union
-import hashlib
-import copy
-from datetime import datetime
+from typing import Any, Dict, List, Tuple
+
 
 class ComprehensiveTaskFixer:
     """Comprehensive task file fixer addressing multiple common issues"""
-    
+
     def __init__(self):
         self.backup_dir = Path(tempfile.gettempdir()) / "task_fixer_backups"
         self.backup_dir.mkdir(exist_ok=True)
         self.security_patterns = [
-            r'\.\./', r'\.\.\\', r'/etc/', r'/root/', r'C:\\Windows\\', r'~/.ssh/'
+            r"\.\./",
+            r"\.\.\\",
+            r"/etc/",
+            r"/root/",
+            r"C:\\Windows\\",
+            r"~/.ssh/",
         ]
 
     def validate_path_security(self, filepath: str, base_dir: str = None) -> bool:
         """Validate that a path is safe and within allowed boundaries."""
         try:
             # Check for null bytes and other dangerous characters
-            if '\x00' in filepath:
+            if "\x00" in filepath:
                 return False
 
             # Use Path.resolve() to normalize the path
@@ -47,11 +51,11 @@ class ComprehensiveTaskFixer:
 
             # Check for URL encoding and other bypass attempts
             path_lower = normalized_path.lower()
-            if any(unsafe_pattern in path_lower for unsafe_pattern in ['%2e%2e', '%2f', '%5c']):
+            if any(unsafe_pattern in path_lower for unsafe_pattern in ["%2e%2e", "%2f", "%5c"]):
                 return False
 
             # Check for directory traversal using multiple methods
-            path_str = str(path_obj).replace('\\', '/')
+            path_str = str(path_obj).replace("\\", "/")
             if ".." in path_str.split("/"):
                 return False
 
@@ -65,19 +69,19 @@ class ComprehensiveTaskFixer:
 
             # Additional safety checks
             suspicious_patterns = [
-                r'\.\./',  # Path traversal
-                r'\.\.\\', # Path traversal (Windows)
-                r'\$\(',   # Command substitution
-                r'`.*`',   # Command substitution
-                r';.*;',   # Multiple commands
-                r'&&.*&&', # Multiple commands
-                r'\|\|.*\|\|', # Multiple commands
-                r'\.git',  # Git directory access
-                r'\.ssh',  # SSH directory access
-                r'/etc/',  # System config directory
-                r'/root/', # Root directory
-                r'C:\\Windows\\', # Windows system directory
-                r'\x00',   # Null byte
+                r"\.\./",  # Path traversal
+                r"\.\.\\",  # Path traversal (Windows)
+                r"\$\(",  # Command substitution
+                r"`.*`",  # Command substitution
+                r";.*;",  # Multiple commands
+                r"&&.*&&",  # Multiple commands
+                r"\|\|.*\|\|",  # Multiple commands
+                r"\.git",  # Git directory access
+                r"\.ssh",  # SSH directory access
+                r"/etc/",  # System config directory
+                r"/root/",  # Root directory
+                r"C:\\Windows\\",  # Windows system directory
+                r"\x00",  # Null byte
             ]
 
             for pattern in suspicious_patterns:
@@ -87,17 +91,20 @@ class ComprehensiveTaskFixer:
             return True
         except Exception:
             return False
-    
+
     def create_backup(self, filepath: str) -> str:
         """Create a backup of the original file"""
         # Check file size before creating backup
         max_file_size = 50 * 1024 * 1024  # 50 MB limit
         file_size = os.path.getsize(filepath)
         if file_size > max_file_size:
-            raise ValueError(f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+            raise ValueError(
+                f"File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes"
+            )
 
         # Use UUID to avoid race conditions
         import uuid
+
         timestamp = int(time.time())
         unique_id = uuid.uuid4().hex[:8]
         original_path = Path(filepath)
@@ -117,7 +124,7 @@ class ComprehensiveTaskFixer:
 
         print(f"  - Created verified backup: {backup_path}")
         return str(backup_path)
-    
+
     def validate_path_security(self, filepath: str) -> bool:
         """Validate file path security"""
         normalized_path = os.path.normpath(filepath)
@@ -126,123 +133,135 @@ class ComprehensiveTaskFixer:
                 print(f"  - Security violation: {filepath}")
                 return False
         return True
-    
+
     def check_merge_conflicts(self, filepath: str) -> bool:
         """Check for Git merge conflict markers"""
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
-        
-        conflict_markers = ['<<<<<<<', '=======', '>>>>>>>']
+
+        conflict_markers = ["<<<<<<<", "=======", ">>>>>>>"]
         has_conflicts = any(marker in content for marker in conflict_markers)
-        
+
         if has_conflicts:
             print(f"  - Merge conflicts detected in: {filepath}")
-        
+
         return has_conflicts
-    
+
     def fix_missing_status(self, data: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
         """Fix missing status fields in tasks"""
         fixed_data = copy.deepcopy(data)
         fixes = []
-        
-        if 'tasks' in fixed_data and isinstance(fixed_data['tasks'], list):
-            for i, task in enumerate(fixed_data['tasks']):
+
+        if "tasks" in fixed_data and isinstance(fixed_data["tasks"], list):
+            for i, task in enumerate(fixed_data["tasks"]):
                 if isinstance(task, dict):
-                    if 'status' not in task:
-                        task['status'] = 'pending'
+                    if "status" not in task:
+                        task["status"] = "pending"
                         fixes.append(f"Added 'pending' status to task {task.get('id', i)}")
-                    elif task['status'] not in ['pending', 'in-progress', 'completed', 'cancelled', 'deferred']:
-                        original_status = task['status']
-                        task['status'] = 'pending'
-                        fixes.append(f"Fixed invalid status '{original_status}' to 'pending' for task {task.get('id', i)}")
-        
+                    elif task["status"] not in [
+                        "pending",
+                        "in-progress",
+                        "completed",
+                        "cancelled",
+                        "deferred",
+                    ]:
+                        original_status = task["status"]
+                        task["status"] = "pending"
+                        fixes.append(
+                            f"Fixed invalid status '{original_status}' to 'pending' for task {task.get('id', i)}"
+                        )
+
         return fixed_data, fixes
-    
+
     def fix_relative_dependencies(self, data: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
         """Fix relative dependency references"""
         fixed_data = copy.deepcopy(data)
         fixes = []
-        
-        if 'tasks' in fixed_data and isinstance(fixed_data['tasks'], list):
+
+        if "tasks" in fixed_data and isinstance(fixed_data["tasks"], list):
             # Create task ID mapping
             task_map = {}
-            for task in fixed_data['tasks']:
-                if isinstance(task, dict) and 'id' in task:
-                    task_map[task['id']] = task
-            
-            for task in fixed_data['tasks']:
-                if isinstance(task, dict) and 'dependencies' in task and isinstance(task['dependencies'], list):
-                    original_deps = task['dependencies']
+            for task in fixed_data["tasks"]:
+                if isinstance(task, dict) and "id" in task:
+                    task_map[task["id"]] = task
+
+            for task in fixed_data["tasks"]:
+                if (
+                    isinstance(task, dict)
+                    and "dependencies" in task
+                    and isinstance(task["dependencies"], list)
+                ):
+                    original_deps = task["dependencies"]
                     fixed_deps = []
-                    
+
                     for dep in original_deps:
-                        if isinstance(dep, str) and dep.startswith(('+', '-')):
+                        if isinstance(dep, str) and dep.startswith(("+", "-")):
                             # Handle relative dependencies
                             try:
                                 offset = int(dep)
                                 current_index = None
                                 # Find current task index
-                                for i, t in enumerate(fixed_data['tasks']):
-                                    if t.get('id') == task.get('id'):
+                                for i, t in enumerate(fixed_data["tasks"]):
+                                    if t.get("id") == task.get("id"):
                                         current_index = i
                                         break
-                                
+
                                 if current_index is not None:
                                     target_index = current_index + offset
-                                    if 0 <= target_index < len(fixed_data['tasks']):
-                                        target_task = fixed_data['tasks'][target_index]
-                                        target_id = target_task.get('id')
+                                    if 0 <= target_index < len(fixed_data["tasks"]):
+                                        target_task = fixed_data["tasks"][target_index]
+                                        target_id = target_task.get("id")
                                         fixed_deps.append(target_id)
-                                        fixes.append(f"Resolved relative dependency '{dep}' to task {target_id} for task {task.get('id')}")
+                                        fixes.append(
+                                            f"Resolved relative dependency '{dep}' to task {target_id} for task {task.get('id')}"
+                                        )
                                     else:
                                         fixed_deps.append(dep)  # Keep original if can't resolve
                                 else:
-                                    fixed_deps.append(dep)  # Keep original if can't find current task
+                                    fixed_deps.append(
+                                        dep
+                                    )  # Keep original if can't find current task
                             except ValueError:
                                 fixed_deps.append(dep)  # Keep original if not a valid number
                         else:
                             fixed_deps.append(dep)
-                    
-                    task['dependencies'] = fixed_deps
-        
+
+                    task["dependencies"] = fixed_deps
+
         return fixed_data, fixes
-    
+
     def fix_invalid_structure(self, data: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
         """Fix common structural issues"""
         fixed_data = copy.deepcopy(data)
         fixes = []
-        
+
         # Ensure 'tasks' exists and is a list
-        if 'tasks' not in fixed_data:
-            fixed_data['tasks'] = []
+        if "tasks" not in fixed_data:
+            fixed_data["tasks"] = []
             fixes.append("Added missing 'tasks' array")
-        elif not isinstance(fixed_data['tasks'], list):
-            fixed_data['tasks'] = []
+        elif not isinstance(fixed_data["tasks"], list):
+            fixed_data["tasks"] = []
             fixes.append("Fixed 'tasks' to be an array")
-        
+
         # Fix individual tasks
-        for i, task in enumerate(fixed_data['tasks']):
+        for i, task in enumerate(fixed_data["tasks"]):
             if not isinstance(task, dict):
                 # Replace non-object with a valid task structure
-                fixed_task = {
-                    'id': i,
-                    'title': f'Fixed Task {i}',
-                    'status': 'pending'
-                }
-                fixed_data['tasks'][i] = fixed_task
+                fixed_task = {"id": i, "title": f"Fixed Task {i}", "status": "pending"}
+                fixed_data["tasks"][i] = fixed_task
                 fixes.append(f"Fixed invalid task object at index {i}")
             else:
                 # Ensure required fields exist
-                if 'id' not in task:
-                    task['id'] = i
+                if "id" not in task:
+                    task["id"] = i
                     fixes.append(f"Added missing 'id' to task at index {i}")
-                
-                if 'title' not in task:
-                    task['title'] = f'Untitled Task {task.get("id", i)}'
+
+                if "title" not in task:
+                    task["title"] = f'Untitled Task {task.get("id", i)}'
                     fixes.append(f"Added missing 'title' to task {task.get('id')}")
-        
+
         return fixed_data, fixes
-    
+
     def fix_file(self, filepath: str) -> bool:
         """Comprehensive fix of a task file"""
         print(f"Processing: {filepath}")
@@ -262,51 +281,55 @@ class ComprehensiveTaskFixer:
             max_file_size = 50 * 1024 * 1024  # 50 MB limit
             file_size = os.path.getsize(filepath)
             if file_size > max_file_size:
-                print(f"  - File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes")
+                print(
+                    f"  - File size {file_size} bytes exceeds maximum allowed size of {max_file_size} bytes"
+                )
                 return False
 
             # Read file in chunks to prevent memory issues with very large files
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read(max_file_size)  # Limit read to max file size
 
             # Check if we read the entire file
             if len(content) == max_file_size:
                 # Check if there's more content in the file
-                with open(filepath, 'r', encoding='utf-8') as f:
+                with open(filepath, encoding="utf-8") as f:
                     f.seek(max_file_size)
                     remaining = f.read(1)
                     if remaining:
-                        print(f"  - File size exceeds maximum allowed size of {max_file_size} bytes")
+                        print(
+                            f"  - File size exceeds maximum allowed size of {max_file_size} bytes"
+                        )
                         return False
 
             data = json.loads(content)
-            
+
             original_data = copy.deepcopy(data)
-            
+
             # Apply all fixes
             fixes_applied = []
-            
+
             # Fix 1: Missing status fields
             data, status_fixes = self.fix_missing_status(data)
             fixes_applied.extend(status_fixes)
-            
+
             # Fix 2: Relative dependencies
             data, dep_fixes = self.fix_relative_dependencies(data)
             fixes_applied.extend(dep_fixes)
-            
+
             # Fix 3: Invalid structure
             data, struct_fixes = self.fix_invalid_structure(data)
             fixes_applied.extend(struct_fixes)
-            
+
             # Only write if changes were made
             if data != original_data:
                 # Create backup
-                backup_path = self.create_backup(filepath)
-                
+                self.create_backup(filepath)
+
                 # Write fixed data
-                with open(filepath, 'w', encoding='utf-8') as f:
+                with open(filepath, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
-                
+
                 print(f"  - Applied {len(fixes_applied)} fixes to: {filepath}")
                 for fix in fixes_applied[:5]:  # Show first 5 fixes
                     print(f"    • {fix}")
@@ -314,16 +337,16 @@ class ComprehensiveTaskFixer:
                     print(f"    ... and {len(fixes_applied) - 5} more fixes")
             else:
                 print(f"  - No changes needed: {filepath}")
-            
+
             return True
-            
+
         except json.JSONDecodeError as e:
             print(f"  - JSON decode error in {filepath}: {e}")
             return False
         except Exception as e:
             print(f"  - Error processing {filepath}: {e}")
             return False
-    
+
     def process_directory(self, directory: str, pattern: str = "**/tasks.json") -> Tuple[int, int]:
         """Process all task files in a directory"""
         # Validate directory path security
@@ -348,19 +371,22 @@ class ComprehensiveTaskFixer:
 
         return success_count, len(task_files)
 
+
 def main():
     """Main function"""
     import argparse
-    
-    parser = argparse.ArgumentParser(description='Comprehensive Task File Fixer')
-    parser.add_argument('path', nargs='?', default='.', help='Path to process (file or directory)')
-    parser.add_argument('--pattern', default='**/tasks.json', help='File pattern to match (for directories)')
-    parser.add_argument('--file', help='Specific file to process (alternative to path)')
-    
+
+    parser = argparse.ArgumentParser(description="Comprehensive Task File Fixer")
+    parser.add_argument("path", nargs="?", default=".", help="Path to process (file or directory)")
+    parser.add_argument(
+        "--pattern", default="**/tasks.json", help="File pattern to match (for directories)"
+    )
+    parser.add_argument("--file", help="Specific file to process (alternative to path)")
+
     args = parser.parse_args()
-    
+
     fixer = ComprehensiveTaskFixer()
-    
+
     path_to_process = args.file or args.path
 
     # Validate path security before processing
@@ -383,6 +409,7 @@ def main():
     else:
         print(f"Error: Path does not exist: {path_to_process}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

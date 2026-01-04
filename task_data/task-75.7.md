@@ -6,7 +6,32 @@ Generate interactive dashboards and reports from the clustering results. This St
 **Scope:** Dashboard generation and reporting system  
 **Effort:** 20-28 hours | **Complexity:** 6/10  
 **Status:** Ready when 75.6 complete  
-**Blocks:** Task 75.9
+**Blocks:**
+
+---
+
+## Quick Navigation
+
+Navigate this document using these links:
+
+- [Purpose](#purpose)
+- [Success Criteria](#success-criteria)
+- [Output Files](#output-files)
+- [Subtasks Overview](#subtasks-overview)
+- [Subtask Details](#subtasks)
+- [Configuration](#configuration--defaults)
+- [Technical Reference](#technical-reference)
+- [Gotchas](#common-gotchas--solutions)
+- [Workflow](#typical-development-workflow)
+- [Integration Handoff](#integration-handoff)
+- [Checkpoint](#integration-checkpoint)
+- [Done Definition](#done-definition)
+
+**Pro tip:** Use Ctrl+F to search within sections, or click links above to jump directly
+
+---
+
+--- Task 75.9
 **Dependencies:** Task 75.6
 
 ---
@@ -32,8 +57,17 @@ Task 75.7 is complete when:
 - [ ] Responsive design for desktop and tablet viewing
 - [ ] Dark mode support
 
+**Performance Targets:**
+- [ ] Dashboard load time: **< 3 seconds** (with all charts)
+- [ ] Chart rendering: **60 FPS smooth** (no jank)
+- [ ] PDF generation: **< 10 seconds** per report
+- [ ] CSV export: **< 2 seconds**
+- [ ] Network graph: **< 2 seconds** for 13 branches
+- [ ] Memory: **< 50 MB** for dashboard + charts
+- [ ] All interactive features: **< 100ms** response
+
 **Quality Assurance:**
-- [ ] Unit tests pass (minimum 4 test cases with >85% coverage)
+- [ ] Unit tests pass (minimum 4 test cases with **>85% code coverage**)
 - [ ] Dashboard loads in <3 seconds
 - [ ] All visualizations render correctly
 - [ ] PDF generation reliable (all formats)
@@ -116,6 +150,61 @@ Complete branch data for external use
   ]
 }
 ```
+
+---
+
+## Subtasks Overview
+
+### Dependency Flow Diagram
+
+```
+75.7.1 (2-3h)          75.7.3 (3-4h)
+[Design]               [Metrics Viz]
+    │                      │
+    ├─→ 75.7.2 (4-5h) ─────┤
+    │   [Cluster Viz]       ├─→ 75.7.4 (3-4h) ──┐
+    │                       │   [UI Controls]    │
+    │                       │                    ├─→ 75.7.6 (2-3h) ──┐
+    ├─→ 75.7.5 (3-4h) ─────┤                    │   [CSV/JSON]       │
+    │   [Reports]           │   [Styling]       │                    ├─→ 75.7.8 (3-4h)
+    │                       │                    │   [Tests]          │
+    │                       ├─→ 75.7.7 (2-3h) ──┘                    │
+    │                       │   [Responsive]                         │
+    │                       │                                        │
+    └───────────────────────┘
+
+Critical Path: 75.7.1 → 75.7.2 → 75.7.4/5 → 75.7.6 → 75.7.8
+Minimum Duration: 20-28 hours (with parallelization)
+```
+
+### Parallel Opportunities
+
+**Can run in parallel (after 75.7.2):**
+- 75.7.3: Metrics visualizations (3-4 hours)
+- 75.7.5: Report generation (3-4 hours)
+
+Both depend on cluster visualization (75.7.2) but are independent. **Estimated parallel execution saves 3-4 hours.**
+
+### Timeline with Parallelization
+
+**Days 1: Design (75.7.1)**
+- Design dashboard layout, wireframes
+- Select visualization libraries (Plotly, D3.js)
+- Plan responsive breakpoints
+
+**Days 1-2: Cluster Visualization (75.7.2)**
+- Implement network graph rendering
+- Add interactivity (hover, click, drag)
+- Implement zoom/pan controls
+
+**Days 2-4: Parallel Visualization (75.7.3, 75.7.5)**
+- **75.7.3 (Person A, Days 2-3):** Silhouette, Davies-Bouldin, Calinski-Harabasz charts
+- **75.7.5 (Person B, Days 2-3):** HTML reports, PDF conversion
+- **75.7.6 (Person C, Days 3-4):** CSV/JSON export functions
+
+**Days 4-5: UI & Final (75.7.7, 75.7.8)**
+- Day 4: CSS styling, responsive design, dark mode
+- Day 5: Unit tests, documentation
 
 ---
 
@@ -357,16 +446,158 @@ Complete branch data for external use
 
 ---
 
-## Configuration Parameters
+## Configuration & Defaults
 
-- `DASHBOARD_TITLE` = "Branch Clustering Dashboard"
-- `ENABLE_DARK_MODE` = true
-- `CHART_ANIMATION_DURATION_MS` = 300
-- `NETWORK_GRAPH_PHYSICS_ENABLED` = true
-- `EXPORT_FORMAT_PRECISION` = 2
-- `PDF_PAGE_SIZE` = "A4"
-- `RESPONSIVE_BREAKPOINT_MOBILE` = 768
-- `RESPONSIVE_BREAKPOINT_TABLET` = 1024
+All parameters should be externalized to configuration files (not hardcoded). Use YAML format:
+
+```yaml
+# config/visualization_dashboard.yaml
+visualization_dashboard:
+  # Dashboard Settings
+  title: "Branch Clustering Dashboard"
+  enable_dark_mode: true
+  theme_color: "#2563eb"  # blue-600
+  
+  # Chart Configuration
+  chart_animation_duration_ms: 300
+  chart_height_px: 400
+  network_graph_physics_enabled: true
+  network_graph_charge_strength: -300
+  
+  # Export Settings
+  export_format_precision: 2  # Decimal places
+  pdf_page_size: "A4"
+  pdf_margins_mm: 20
+  
+  # Responsive Design
+  responsive_breakpoint_mobile: 768
+  responsive_breakpoint_tablet: 1024
+  responsive_breakpoint_desktop: 1920
+  
+  # Performance
+  max_branches_without_pagination: 100
+  pagination_size: 50
+  chart_debounce_ms: 300
+```
+
+**How to use in code:**
+```python
+import yaml
+
+def load_config(config_path='config/visualization_dashboard.yaml'):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)['visualization_dashboard']
+
+config = load_config()
+DASHBOARD_TITLE = config['title']
+DARK_MODE = config['enable_dark_mode']
+ANIMATION_MS = config['chart_animation_duration_ms']
+```
+
+**Why externalize?**
+- Tune colors, animations without code changes
+- Different configs for different teams
+- Adjust breakpoints for different devices
+- Enable/disable heavy features (physics simulation)
+- Easy theming and white-labeling
+
+---
+
+## Typical Development Workflow
+
+```bash
+git checkout -b feat/visualization-dashboard
+mkdir -p src/dashboard tests/dashboard
+
+# Create dashboard main component
+cat > src/dashboard/dashboard.py << 'EOF'
+import plotly.graph_objects as go
+from jinja2 import Template
+
+class DashboardGenerator:
+    def generate_html(self, clustered_branches, assignments):
+        """Generate interactive HTML dashboard."""
+        # Network graph
+        network_fig = self._create_network_graph(clustered_branches)
+        
+        # Quality metrics
+        quality_fig = self._create_metrics_visualization(clustered_branches)
+        
+        # Combine into HTML
+        html = self._combine_figures_to_html(network_fig, quality_fig)
+        return html
+    
+    def generate_report(self, clustered_branches):
+        """Generate PDF report."""
+        pass
+    
+    def export_csv(self, assignments):
+        """Export to CSV."""
+        pass
+
+git add src/dashboard/dashboard.py
+git commit -m "feat: implement dashboard generation and export (75.7.2-75.7.6)"
+```
+
+---
+
+## Integration Handoff
+
+**Task 75.6 Outputs → Task 75.7:**
+- clustered_branches.json
+- categorized_branches.json
+
+**Task 75.7 Outputs → Task 75.8:**
+- clustering_dashboard.html (interactive)
+- branch_analysis_report.html (static)
+- cluster_metrics_export.csv
+- branch_export.json
+
+Task 75.8 validates these outputs.
+
+---
+
+## Common Gotchas & Solutions
+
+### Gotcha 1: Chart Rendering Performance ⚠️
+**Problem:** Network graph hangs with 100+ branches
+**Solution:** Use condensed data, implement pagination
+```python
+if len(branches) > 100:
+    visible_branches = branches[:50]  # Show first page
+```
+
+### Gotcha 2: PDF Generation Failures ⚠️
+**Problem:** weasyprint crashes on complex CSS
+**Solution:** Use simpler CSS, test fonts
+```python
+# Use system fonts, avoid custom fonts in PDF
+css = "body { font-family: sans-serif; }"
+```
+
+### Gotcha 3: Dark Mode CSS Issues ⚠️
+**Problem:** Text unreadable with dark background
+**Solution:** Define CSS variables for colors
+```css
+:root { --text-color: #1f2937; --bg-color: #ffffff; }
+@media (prefers-color-scheme: dark) {
+  :root { --text-color: #f3f4f6; --bg-color: #1f2937; }
+}
+```
+
+### Gotcha 4: Responsive Design Not Working ⚠️
+**Problem:** Mobile layout broken below 768px
+**Solution:** Use viewport meta tag, test breakpoints
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+
+### Gotcha 5: Export Format Mismatches ⚠️
+**Problem:** CSV opens incorrectly in Excel
+**Solution:** Use UTF-8 BOM, escape special chars
+```python
+output.write('\ufeff')  # UTF-8 BOM for Excel
+```
 
 ---
 

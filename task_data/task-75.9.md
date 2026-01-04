@@ -11,6 +11,29 @@ Finalize the Branch Clustering System and integrate it into the main framework. 
 
 ---
 
+## Quick Navigation
+
+Navigate this document using these links:
+
+- [Purpose](#purpose)
+- [Success Criteria](#success-criteria)
+- [Core Deliverables](#core-deliverables)
+- [Subtasks Overview](#subtasks-overview)
+- [Subtask Details](#subtasks)
+- [Integration Points](#integration-points)
+- [Configuration & Defaults](#configuration-parameters)
+- [Technical Reference](#technical-reference)
+- [Common Gotchas & Solutions](#common-gotchas--solutions)
+- [Development Workflow](#typical-development-workflow)
+- [Integration Handoff](#integration-handoff)
+- [Integration Checkpoint](#integration-checkpoint)
+- [Performance Targets](#performance-targets)
+- [Done Definition](#done-definition)
+
+**Pro tip:** Use Ctrl+F to search within sections, or click links above to jump directly
+
+---
+
 ## Success Criteria
 
 Task 75.9 is complete when:
@@ -225,6 +248,72 @@ black>=21.0
 flake8>=3.9.0
 mypy>=0.900
 ```
+
+---
+
+## Subtasks Overview
+
+### Dependency Flow Diagram
+
+```
+75.9.1 (2-3h)
+[Design Integration]
+    │
+    ├─→ 75.9.2 (3-4h) ────────┐
+    │   [Consolidate Code]     │
+    │                          ├─→ 75.9.3 (3-4h) ─────────┐
+    ├─→ 75.9.4 (3-4h) ────────┤  [API Design]             │
+    │   [Error Handling]       │                          ├─→ 75.9.6 (2-3h) ──┐
+    │                          ├─→ 75.9.5 (4-5h) ────────┤  [Integration]      │
+    ├─→ 75.9.7 (4-5h) ────────┤  [Documentation]         │                    ├─→ 75.9.8 (3-4h)
+    │   [Downstream Bridges]   │                          │  [Deployment]      │
+    │                          │                          │                    │
+    │                          └──────────────────────────┘                    │
+    │                                                                          │
+    └──────────────────────────────────────────────────────────────────────────┘
+
+Critical Path: 75.9.1 → 75.9.2 → 75.9.3-75.9.7 (partial parallel) → 75.9.6 → 75.9.8
+Minimum Duration: 16-24 hours (with parallelization)
+```
+
+### Parallel Opportunities
+
+**Can run in parallel (after 75.9.2):**
+- 75.9.3: API design (3-4 hours)
+- 75.9.4: Error handling (3-4 hours)
+- 75.9.5: Documentation (4-5 hours)
+- 75.9.7: Downstream bridges (4-5 hours)
+
+These tasks depend on consolidated code (75.9.2) and are independent of each other. **Estimated parallel execution saves 8-12 hours.**
+
+**Must be sequential:**
+- 75.9.1 → 75.9.2 (design before consolidation)
+- 75.9.2 → 75.9.3-75.9.7 (need code first)
+- 75.9.3-75.9.7 → 75.9.6 (need API + docs + bridges)
+- 75.9.6 → 75.9.8 (need integration before deployment)
+
+### Timeline with Parallelization
+
+**Days 1: Design (75.9.1)**
+- Review framework architecture
+- Document integration strategy
+- Plan deployment process
+
+**Days 1-2: Code Consolidation (75.9.2)**
+- Merge all 75.1-75.6 modules
+- Unified configuration management
+- Remove duplicate code
+
+**Days 2-4: Parallel Implementation (75.9.3-75.9.7)**
+- **75.9.3 (Person A, Days 2-3):** API design & type hints
+- **75.9.4 (Person B, Days 2-3):** Comprehensive error handling
+- **75.9.5 (Person C, Days 2-4):** Complete documentation
+- **75.9.7 (Person D, Days 3-4):** Downstream bridges
+- Merge results end of Day 3
+
+**Days 4-5: Integration & Deployment (75.9.6-75.9.8)**
+- Day 4: Package and validate framework
+- Day 5: Create deployment guide, version release
 
 ---
 
@@ -588,6 +677,470 @@ Enhanced orchestration data from 75.6 → get_orchestration_strategy() → Orche
 - Consolidates: Tasks 75.1-75.6
 - Enables: Tasks 75.7-75.9 and downstream Tasks 79, 80, 83, 101
 - External: scipy, scikit-learn, pandas, gitpython
+
+---
+
+## Typical Development Workflow
+
+```bash
+git checkout -b feat/framework-integration
+mkdir -p src/framework docs/api
+
+# Step 1: Design integration (75.9.1)
+cat > FRAMEWORK_INTEGRATION_PLAN.md << 'EOF'
+# Integration Architecture
+- Consolidate Tasks 75.1-75.6
+- Clean API with 4 entry points
+- Downstream bridges (79, 80, 83, 101)
+- Production-ready packaging
+EOF
+
+# Step 2: Consolidate modules (75.9.2)
+cat > src/framework/branch_clustering_framework.py << 'EOF'
+from src.analyzers import CommitHistoryAnalyzer
+from src.analyzers import CodebaseStructureAnalyzer
+from src.analyzers import DiffDistanceCalculator
+from src.clustering import BranchClusterer
+from src.assignment import IntegrationTargetAssigner
+from src.engine import BranchClusteringEngine
+
+class BranchClusteringFramework:
+    """Production-ready consolidated framework."""
+    def __init__(self, repo_path: str, config_path: str = None):
+        self.engine = BranchClusteringEngine(repo_path, config_path)
+    
+    def analyze_branches(self, branch_names: List[str]) -> dict:
+        """Main analysis pipeline."""
+        return self.engine.execute(branch_names)
+    
+    def get_execution_context(self, branch: str) -> dict:
+        """Bridge to Task 79."""
+        results = self.engine.get_results(branch)
+        return self._convert_to_execution_context(results)
+    
+    def get_validation_intensity(self, branch: str) -> dict:
+        """Bridge to Task 80."""
+        pass
+    
+    def get_test_suite_selection(self, branch: str) -> dict:
+        """Bridge to Task 83."""
+        pass
+    
+    def get_orchestration_strategy(self, branch: str) -> dict:
+        """Bridge to Task 101."""
+        pass
+
+git add src/framework/branch_clustering_framework.py
+git commit -m "feat: consolidate Tasks 75.1-75.6 (75.9.2)"
+```
+
+# Step 3: API design (75.9.3)
+```bash
+cat > docs/api/API_REFERENCE.md << 'EOF'
+# Branch Clustering Framework API
+
+## Primary Classes
+
+### BranchClusteringFramework
+Main entry point for all clustering operations.
+
+**Methods:**
+- `analyze_branches(branch_names: List[str]) -> dict`
+- `get_execution_context(branch: str) -> ExecutionContext`
+- `get_validation_intensity(branch: str) -> ValidationIntensity`
+- `get_test_suite_selection(branch: str) -> TestSuiteSelection`
+- `get_orchestration_strategy(branch: str) -> OrchestrationStrategy`
+
+**Configuration:** externalized in framework_configuration.yaml
+EOF
+
+git add docs/api/
+git commit -m "docs: API reference and type hints (75.9.3)"
+```
+
+# Step 4: Error handling (75.9.4)
+```bash
+# Add comprehensive error handling with logging
+git add src/framework/error_handling.py
+git commit -m "feat: comprehensive error handling (75.9.4)"
+```
+
+# Step 5: Complete documentation (75.9.5)
+```bash
+cat > DEPLOYMENT_GUIDE.md << 'EOF'
+# Deployment Guide
+
+## Installation
+1. Extract framework files
+2. Install dependencies: `pip install -r requirements.txt`
+3. Configure framework_configuration.yaml
+4. Run tests: `pytest tests/ -v`
+
+## Usage
+See API_REFERENCE.md for complete API documentation.
+EOF
+
+git add docs/ DEPLOYMENT_GUIDE.md
+git commit -m "docs: complete deployment guide (75.9.5)"
+```
+
+# Step 6: Downstream bridges (75.9.7)
+```bash
+cat > src/framework/bridges.py << 'EOF'
+# Task 79, 80, 83, 101 bridges
+class ExecutionContextBridge:
+    def convert(self, framework_output): pass
+
+class ValidationIntensityBridge:
+    def convert(self, framework_output): pass
+
+# ... more bridges
+EOF
+
+git add src/framework/bridges.py tests/test_bridges.py
+git commit -m "feat: downstream task bridges (75.9.7)"
+```
+
+# Step 7: Package framework (75.9.6)
+```bash
+cat > setup.py << 'EOF'
+from setuptools import setup, find_packages
+
+setup(
+    name='branch-clustering-framework',
+    version='1.0.0',
+    packages=find_packages(),
+    install_requires=[...],
+    python_requires='>=3.8',
+)
+EOF
+
+git add setup.py requirements.txt
+git commit -m "feat: framework packaging and versioning (75.9.6)"
+
+# Run final tests
+pytest tests/ -v --cov=src --cov-report=html
+git add tests/
+git commit -m "test: comprehensive test suite (75.9.8)"
+
+# Create release
+git tag v1.0.0
+git push origin feat/framework-integration --tags
+```
+
+---
+
+## Integration Handoff
+
+**Task 75.8 Outputs → Task 75.9:**
+- All passing unit tests from 75.8
+- Test coverage reports (>90%)
+- Test data fixtures
+
+**Task 75.9 Outputs → Task 100 (Framework Deployment):**
+- branch_clustering_framework.py (consolidated module)
+- framework_configuration.yaml (configuration)
+- API_REFERENCE.md (API documentation)
+- INTEGRATION_GUIDE.md (integration with downstream tasks)
+- DEPLOYMENT_GUIDE.md (deployment instructions)
+- setup.py (packaging metadata)
+- requirements.txt (dependencies)
+- Bridge implementations (Tasks 79, 80, 83, 101)
+
+**Task 75.9 Outputs → Downstream Tasks (79, 80, 83, 101):**
+- Clean public API methods
+- Data contracts and schemas
+- Integration examples
+- Bridge adapters
+
+---
+
+## Common Gotchas & Solutions
+
+### Gotcha 1: Circular Imports When Consolidating Modules ⚠️
+
+**Problem:** Importing all Task 75.1-75.6 modules creates circular import chains
+**Symptom:** `ImportError: cannot import name...` or `ModuleNotFoundError`
+**Root Cause:** Tasks have interdependencies; consolidation creates cycles
+
+**Solution:**
+```python
+# Use lazy imports and module-level imports
+class BranchClusteringFramework:
+    def __init__(self, repo_path: str):
+        # Import only when needed, not at module level
+        from src.analyzers import CommitHistoryAnalyzer
+        from src.clustering import BranchClusterer
+        self.analyzer = CommitHistoryAnalyzer(repo_path)
+        self.clusterer = BranchClusterer(repo_path)
+```
+
+**Test:**
+```bash
+python -c "from src.framework import BranchClusteringFramework; print('OK')"
+```
+
+---
+
+### Gotcha 2: Configuration Not Cascading to Sub-Components ⚠️
+
+**Problem:** Framework config not passed to Task 75.1-75.6 components
+**Symptom:** Components use hardcoded defaults instead of config
+**Root Cause:** Not propagating config through initialization chain
+
+**Solution:**
+```python
+class BranchClusteringFramework:
+    def __init__(self, repo_path: str, config_path: str):
+        self.config = load_config(config_path)
+        
+        # Pass config to each component
+        self.commit_analyzer = CommitHistoryAnalyzer(
+            repo_path,
+            config=self.config.get('commit_history')
+        )
+        self.structure_analyzer = CodebaseStructureAnalyzer(
+            repo_path,
+            config=self.config.get('codebase_structure')
+        )
+```
+
+**Test:**
+```python
+def test_config_propagation():
+    config_path = 'config/test.yaml'
+    framework = BranchClusteringFramework('.', config_path)
+    
+    # Verify each component got config
+    assert framework.commit_analyzer.config == expected_config
+```
+
+---
+
+### Gotcha 3: Type Hints Missing or Inconsistent ⚠️
+
+**Problem:** Code without type hints fails type checking and doc generation
+**Symptom:** mypy errors, IDE warnings, documentation incomplete
+**Root Cause:** Consolidated modules have different type hint styles
+
+**Solution:**
+```python
+from typing import Dict, List, Optional, Tuple
+
+class BranchClusteringFramework:
+    def __init__(
+        self, 
+        repo_path: str, 
+        config_path: Optional[str] = None
+    ) -> None:
+        """Initialize framework."""
+        pass
+    
+    def analyze_branches(self, branches: List[str]) -> Dict[str, any]:
+        """Analyze branches and return clustering results."""
+        pass
+```
+
+**Test:**
+```bash
+mypy src/framework/ --strict
+```
+
+---
+
+### Gotcha 4: Downstream Bridges Incomplete or Wrong Schema ⚠️
+
+**Problem:** Bridge methods return wrong data structure for Task 79/80/83/101
+**Symptom:** Downstream tasks fail to parse framework output
+**Root Cause:** Bridge conversion logic doesn't match downstream input schema
+
+**Solution:**
+```python
+def get_execution_context(self, branch: str) -> ExecutionContext:
+    """Convert framework output to Task 79 schema."""
+    framework_result = self.engine.get_results(branch)
+    
+    # Validate framework result has required fields
+    assert 'cluster_id' in framework_result
+    assert 'target_assignment' in framework_result
+    
+    # Map to ExecutionContext schema
+    execution_context = {
+        'branch': branch,
+        'cluster_id': framework_result['cluster_id'],
+        'target': framework_result['target_assignment'],
+        'confidence': framework_result['confidence_score'],
+        # ... other required fields
+    }
+    
+    # Validate against schema
+    assert validate_execution_context_schema(execution_context)
+    return execution_context
+```
+
+**Test:**
+```python
+def test_bridge_to_task_79():
+    framework = BranchClusteringFramework('.')
+    exec_context = framework.get_execution_context('feature/test')
+    
+    # Verify schema
+    assert 'cluster_id' in exec_context
+    assert 'target' in exec_context
+    assert 0 <= exec_context['confidence'] <= 1
+```
+
+---
+
+### Gotcha 5: Documentation Examples Don't Work ⚠️
+
+**Problem:** Code examples in API_REFERENCE.md have syntax errors
+**Symptom:** Copy-pasting examples fails with `ImportError` or `AttributeError`
+**Root Cause:** Examples not tested against actual code
+
+**Solution:**
+```python
+# Test all examples from documentation
+def test_api_example_basic_usage():
+    """Test example from API_REFERENCE.md"""
+    from src.framework import BranchClusteringFramework
+    
+    framework = BranchClusteringFramework('.')
+    results = framework.analyze_branches(['feature/test'])
+    
+    assert 'clusters' in results
+    assert 'assignments' in results
+
+def test_api_example_get_execution_context():
+    """Test bridge example from INTEGRATION_GUIDE.md"""
+    from src.framework import BranchClusteringFramework
+    
+    framework = BranchClusteringFramework('.')
+    exec_context = framework.get_execution_context('feature/test')
+    
+    assert 'branch' in exec_context
+    assert 'target' in exec_context
+```
+
+---
+
+### Gotcha 6: Performance Degradation After Consolidation ⚠️
+
+**Problem:** Consolidated framework is slower than individual components
+**Symptom:** Analysis time exceeds targets (<120 seconds for 13 branches)
+**Root Cause:** Additional overhead from framework layers, or redundant computation
+
+**Solution:**
+```python
+class BranchClusteringFramework:
+    def __init__(self, repo_path: str, config_path: str = None):
+        self.config = load_config(config_path)
+        
+        # Enable caching to avoid redundant computation
+        self.cache_enabled = self.config.get('cache_enabled', True)
+        self._results_cache = {} if self.cache_enabled else None
+    
+    def analyze_branches(self, branches: List[str]) -> Dict:
+        """Analyze with caching."""
+        cache_key = tuple(sorted(branches))
+        
+        if cache_key in self._results_cache:
+            return self._results_cache[cache_key]
+        
+        results = self.engine.execute(branches)
+        
+        if self.cache_enabled:
+            self._results_cache[cache_key] = results
+        
+        return results
+```
+
+**Benchmark:**
+```bash
+python -m pytest tests/test_performance.py -v
+# Verify: analysis time < 120 seconds for 13 branches
+```
+
+---
+
+### Gotcha 7: Dependency Conflicts or Version Incompatibilities ⚠️
+
+**Problem:** requirements.txt has conflicting versions or incompatible packages
+**Symptom:** `pip install` fails or runtime `ImportError`
+**Root Cause:** Tasks 75.1-75.6 have different dependency versions
+
+**Solution:**
+```python
+# requirements.txt - use compatible versions
+numpy>=1.20.0,<2.0.0
+scipy>=1.6.0,<2.0.0
+scikit-learn>=0.24.0,<1.5.0
+pandas>=1.2.0,<2.0.0
+gitpython>=3.1.0
+
+# Optional visualization
+plotly>=5.0.0
+matplotlib>=3.3.0
+```
+
+**Test:**
+```bash
+# Test installation in clean environment
+python -m venv test_env
+source test_env/bin/activate
+pip install -r requirements.txt
+python -c "import src.framework; print('OK')"
+```
+
+---
+
+### Gotcha 8: Missing Bridge Implementation for Downstream Task ⚠️
+
+**Problem:** Bridge method for Task 79/80/83/101 not implemented (just `pass`)
+**Symptom:** Downstream task receives `None` instead of expected data
+**Root Cause:** Bridge stubbed out but not completed
+
+**Solution:**
+```python
+def get_test_suite_selection(self, branch: str) -> Dict:
+    """Bridge to Task 83 - TestSuiteSelection."""
+    # MUST be implemented, not just `pass`
+    framework_result = self.engine.get_results(branch)
+    
+    # Extract relevant metrics for test suite selection
+    complexity = framework_result['metrics'].get('diff_complexity', 0.5)
+    test_changes = 'tag:test_changes' in framework_result.get('tags', [])
+    
+    # Map to TestSuiteSelection schema
+    test_selection = {
+        'branch': branch,
+        'requires_e2e': complexity > 0.7 or test_changes,
+        'requires_unit': True,
+        'requires_integration': complexity > 0.5,
+        'requires_performance': 'tag:performance_critical' in framework_result.get('tags', []),
+    }
+    
+    return test_selection
+```
+
+**Verification:**
+```python
+def test_all_bridges_implemented():
+    framework = BranchClusteringFramework('.')
+    
+    # Verify all bridge methods return non-None
+    exec_ctx = framework.get_execution_context('feature/test')
+    assert exec_ctx is not None
+    
+    val_intensity = framework.get_validation_intensity('feature/test')
+    assert val_intensity is not None
+    
+    test_suite = framework.get_test_suite_selection('feature/test')
+    assert test_suite is not None
+    
+    orch_strategy = framework.get_orchestration_strategy('feature/test')
+    assert orch_strategy is not None
+```
 
 ---
 

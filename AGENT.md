@@ -7,7 +7,7 @@
 ```bash
 # Project Setup
 task-master init                                    # Initialize Task Master in current project
-task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
+task-master parse-prd .taskmaster/docs/prd.md       # Generate tasks from PRD document
 task-master models --setup                        # Configure AI models interactively
 
 # Daily Development Workflow
@@ -41,9 +41,14 @@ task-master generate                                         # Update task markd
 
 - `.taskmaster/tasks/tasks.json` - Main task data file (auto-managed)
 - `.taskmaster/config.json` - AI model configuration (use `task-master models` to modify)
-- `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
+- `.taskmaster/docs/prd.md` - Product Requirements Document for parsing (`.md` extension recommended for better editor support)
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
+
+**PRD File Format:** While both `.txt` and `.md` extensions work, **`.md` is recommended** because:
+- Markdown syntax highlighting in editors improves readability
+- Proper rendering when previewing in VS Code, GitHub, or other tools
+- Better collaboration through formatted documentation
 
 ### Claude Code Integration Files
 
@@ -62,11 +67,11 @@ project/
 │   │   ├── task-1.md      # Individual task files
 │   │   └── task-2.md
 │   ├── docs/              # Documentation directory
-│   │   ├── prd.txt        # Product requirements
+│   │   ├── prd.md         # Product requirements (.md recommended)
 │   ├── reports/           # Analysis reports directory
 │   │   └── task-complexity-report.json
 │   ├── templates/         # Template files
-│   │   └── example_prd.txt  # Example PRD template
+│   │   └── example_prd.md  # Example PRD template (.md recommended)
 │   └── config.json        # AI models & settings
 ├── .claude/
 │   ├── settings.json      # Claude Code configuration
@@ -87,6 +92,7 @@ Task Master provides an MCP server that Claude Code can connect to. Configure in
       "command": "npx",
       "args": ["-y", "task-master-ai"],
       "env": {
+        "TASK_MASTER_TOOLS": "core",
         "ANTHROPIC_API_KEY": "your_key_here",
         "PERPLEXITY_API_KEY": "your_key_here",
         "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
@@ -101,6 +107,18 @@ Task Master provides an MCP server that Claude Code can connect to. Configure in
   }
 }
 ```
+
+### MCP Tool Tiers
+
+Default: `core` (7 tools). Set via `TASK_MASTER_TOOLS` env var.
+
+| Tier | Count | Tools |
+|------|-------|-------|
+| `core` | 7 | `get_tasks`, `next_task`, `get_task`, `set_task_status`, `update_subtask`, `parse_prd`, `expand_task` |
+| `standard` | 14 | core + `initialize_project`, `analyze_project_complexity`, `expand_all`, `add_subtask`, `remove_task`, `add_task`, `complexity_report` |
+| `all` | 44+ | standard + dependencies, tags, research, autopilot, scoping, models, rules |
+
+**Upgrade when tool unavailable:** Edit MCP config, change `TASK_MASTER_TOOLS` from `"core"` to `"standard"` or `"all"`, restart MCP.
 
 ### Essential MCP Tools
 
@@ -128,6 +146,150 @@ analyze_project_complexity; // = task-master analyze-complexity
 complexity_report; // = task-master complexity-report
 ```
 
+## Script Integration
+
+The `.taskmaster/scripts/` directory provides automation utilities that agents can use for task management, Git operations, and orchestration workflows.
+
+### Task Management Scripts
+
+**Core Operations:**
+```bash
+# List tasks with filtering
+python scripts/list_tasks.py --status pending --priority high
+python scripts/list_tasks.py --show-subtasks
+
+# Show task details
+python scripts/show_task.py 7
+python scripts/show_task.py 1 --invalid
+
+# Find next task
+python scripts/next_task.py
+
+# Search tasks
+python scripts/search_tasks.py "security" --show-context
+python scripts/search_tasks.py "validation" --case-sensitive
+
+# Generate summary
+python scripts/task_summary.py
+
+# Compare task files
+python scripts/compare_task_files.py
+
+# List invalid tasks
+python scripts/list_invalid_tasks.py --status done
+```
+
+**Task Generation & Enhancement:**
+```bash
+# Generate clean sequential task files
+python scripts/generate_clean_tasks.py
+
+# Enhance tasks from archive
+python scripts/enhance_tasks_from_archive.py
+
+# Split enhanced plan into task files
+python scripts/split_enhanced_plan.py --dry-run
+python scripts/split_enhanced_plan.py
+
+# Regenerate tasks.json from plan
+python scripts/regenerate_tasks_from_plan.py --validate
+python scripts/regenerate_tasks_from_plan.py
+```
+
+**Task Recovery:**
+```bash
+# Find lost tasks in git history
+python scripts/find_lost_tasks.py --commits 50
+python scripts/find_lost_tasks.py --output lost_tasks.json --verbose
+```
+
+### Orchestration Scripts
+
+**Git Hooks Management:**
+```bash
+# Disable hooks for independent development
+./scripts/disable-hooks.sh
+
+# Bypass hooks on single operations
+DISABLE_ORCHESTRATION_CHECKS=1 git checkout <branch>
+DISABLE_ORCHESTRATION_CHECKS=1 git merge <branch>
+```
+
+**Worktree Synchronization:**
+```bash
+# Sync setup files between worktrees
+./scripts/sync_setup_worktrees.sh --dry-run
+./scripts/sync_setup_worktrees.sh --verbose
+```
+
+**Orchestration Branch Management:**
+```bash
+# Reverse sync approved changes to orchestration-tools
+./scripts/reverse_sync_orchestration.sh feature/fix abc123 --dry-run
+./scripts/reverse_sync_orchestration.sh feature/fix abc123
+
+# Update configuration
+./scripts/update_flake8_orchestration.sh --yes
+```
+
+### Script Security
+
+All Python scripts implement security validation:
+- **Path Security**: Prevents directory traversal and URL encoding attacks
+- **File Size Limits**: 50MB maximum to prevent memory exhaustion
+- **Secure JSON Loading**: Validates content before parsing
+- **Backup Mechanisms**: Creates backups before destructive operations
+
+### Agent Usage Guidelines
+
+**When to Use Scripts:**
+- Task Master CLI is unavailable or not working
+- Need to search or filter tasks by specific criteria
+- Generating task summaries or comparisons
+- Recovering lost tasks from git history
+- Performing orchestration workflow operations
+- Managing Git hooks and worktree synchronization
+
+**Best Practices:**
+1. Use `--dry-run` flag for generation and sync scripts to preview changes
+2. Use `--verbose` flag for debugging and monitoring
+3. Validate file paths before operations (scripts do this automatically)
+4. Check script-specific help messages: `python scripts/<script>.py --help`
+5. Review script output before applying destructive operations
+
+**Integration with MCP Tools:**
+Scripts complement MCP tools by providing:
+- Advanced filtering and search capabilities
+- Task file comparison and validation
+- Git history recovery
+- Orchestration workflow automation
+- Backup and recovery operations
+
+**Example Agent Workflow:**
+```bash
+# 1. Use MCP to get next task
+next_task
+
+# 2. Use script to view detailed information
+python scripts/show_task.py <task_id>
+
+# 3. Use script to search related tasks
+python scripts/search_tasks.py "related_keyword" --show-context
+
+# 4. Work on task...
+
+# 5. Use script to generate summary
+python scripts/task_summary.py
+
+# 6. Use MCP to update status
+set_task_status --id=<task_id> --status=done
+```
+
+**Documentation:**
+- Complete usage guide: `scripts/README.md`
+- Legacy documentation: `scripts/README_TASK_SCRIPTS.md`
+- Shared utilities: `task_scripts/taskmaster_common.py`
+
 ## Claude Code Workflow Integration
 
 ### Standard Development Workflow
@@ -138,8 +300,8 @@ complexity_report; // = task-master complexity-report
 # Initialize Task Master
 task-master init
 
-# Create or obtain PRD, then parse it
-task-master parse-prd .taskmaster/docs/prd.txt
+# Create or obtain PRD, then parse it (use .md extension for better editor support)
+task-master parse-prd .taskmaster/docs/prd.md
 
 # Analyze complexity and expand tasks
 task-master analyze-complexity --research
@@ -415,7 +577,3 @@ These commands make AI calls and may take up to a minute:
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
-
-## Task Master AI Instructions
-**Import Task Master's development workflow commands and guidelines, treat as if import is in the main AGENT.md file.**
-@./.taskmaster/AGENT.md

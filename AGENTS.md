@@ -128,6 +128,182 @@ analyze_project_complexity; // = task-master analyze-complexity
 complexity_report; // = task-master complexity-report
 ```
 
+## Script Integration
+
+The `.taskmaster/scripts/` directory provides automation utilities that multi-agent systems can use for task management, Git operations, and orchestration workflows.
+
+### Task Management Scripts
+
+**Core Operations:**
+```bash
+# List tasks with filtering
+python scripts/list_tasks.py --status pending --priority high
+python scripts/list_tasks.py --show-subtasks
+
+# Show task details
+python scripts/show_task.py 7
+python scripts/show_task.py 1 --invalid
+
+# Find next task
+python scripts/next_task.py
+
+# Search tasks
+python scripts/search_tasks.py "security" --show-context
+python scripts/search_tasks.py "validation" --case-sensitive
+
+# Generate summary
+python scripts/task_summary.py
+
+# Compare task files
+python scripts/compare_task_files.py
+
+# List invalid tasks
+python scripts/list_invalid_tasks.py --status done
+```
+
+**Task Generation & Enhancement:**
+```bash
+# Generate clean sequential task files
+python scripts/generate_clean_tasks.py
+
+# Enhance tasks from archive
+python scripts/enhance_tasks_from_archive.py
+
+# Split enhanced plan into task files
+python scripts/split_enhanced_plan.py --dry-run
+python scripts/split_enhanced_plan.py
+
+# Regenerate tasks.json from plan
+python scripts/regenerate_tasks_from_plan.py --validate
+python scripts/regenerate_tasks_from_plan.py
+```
+
+**Task Recovery:**
+```bash
+# Find lost tasks in git history
+python scripts/find_lost_tasks.py --commits 50
+python scripts/find_lost_tasks.py --output lost_tasks.json --verbose
+```
+
+### Orchestration Scripts
+
+**Git Hooks Management:**
+```bash
+# Disable hooks for independent development
+./scripts/disable-hooks.sh
+
+# Bypass hooks on single operations
+DISABLE_ORCHESTRATION_CHECKS=1 git checkout <branch>
+DISABLE_ORCHESTRATION_CHECKS=1 git merge <branch>
+```
+
+**Worktree Synchronization:**
+```bash
+# Sync setup files between worktrees
+./scripts/sync_setup_worktrees.sh --dry-run
+./scripts/sync_setup_worktrees.sh --verbose
+```
+
+**Orchestration Branch Management:**
+```bash
+# Reverse sync approved changes to orchestration-tools
+./scripts/reverse_sync_orchestration.sh feature/fix abc123 --dry-run
+./scripts/reverse_sync_orchestration.sh feature/fix abc123
+
+# Update configuration
+./scripts/update_flake8_orchestration.sh --yes
+```
+
+### Multi-Agent Coordination Use Cases
+
+**Agent Handoff Coordination:**
+```bash
+# Agent 1: Discovery Agent - Find tasks
+python scripts/search_tasks.py "branch alignment" --show-context
+
+# Agent 2: Integration Agent - Get task details
+python scripts/show_task.py 75
+
+# Agent 3: Validation Agent - Check related tasks
+python scripts/list_tasks.py --status pending --priority high
+
+# Agent 4: Documentation Agent - Generate summary
+python scripts/task_summary.py
+```
+
+**Parallel Task Execution:**
+```bash
+# Agent Group 1: Task Discovery
+python scripts/list_tasks.py --status pending
+python scripts/search_tasks.py "validation"
+
+# Agent Group 2: Task Analysis
+python scripts/compare_task_files.py
+python scripts/find_lost_tasks.py --commits 100
+
+# Agent Group 3: Task Processing
+python scripts/generate_clean_tasks.py
+python scripts/enhance_tasks_from_archive.py
+```
+
+**Orchestration Workflow:**
+```bash
+# Step 1: Sync setup files
+./scripts/sync_setup_worktrees.sh --dry-run
+./scripts/sync_setup_worktrees.sh
+
+# Step 2: Disable hooks for independent work
+./scripts/disable-hooks.sh
+
+# Step 3: Agents work on tasks...
+
+# Step 4: Update orchestration-tools
+./scripts/reverse_sync_orchestration.sh feature/fix abc123 --dry-run
+./scripts/reverse_sync_orchestration.sh feature/fix abc123
+
+# Step 5: Generate summary
+python scripts/task_summary.py
+```
+
+### Script Security
+
+All Python scripts implement security validation:
+- **Path Security**: Prevents directory traversal and URL encoding attacks
+- **File Size Limits**: 50MB maximum to prevent memory exhaustion
+- **Secure JSON Loading**: Validates content before parsing
+- **Backup Mechanisms**: Creates backups before destructive operations
+
+### Agent Usage Guidelines
+
+**When to Use Scripts:**
+- Task Master CLI is unavailable or not working
+- Need advanced filtering and search capabilities
+- Generating task summaries or comparisons
+- Recovering lost tasks from git history
+- Performing orchestration workflow operations
+- Coordinating multi-agent task execution
+
+**Best Practices:**
+1. Use `--dry-run` flag for generation and sync scripts to preview changes
+2. Use `--verbose` flag for debugging and monitoring
+3. Validate file paths before operations (scripts do this automatically)
+4. Check script-specific help messages: `python scripts/<script>.py --help`
+5. Review script output before applying destructive operations
+6. Coordinate script usage between agents to avoid conflicts
+
+**Integration with Agent Types:**
+- **architect-reviewer**: Use task search and comparison scripts
+- **code-reviewer**: Use task summary and validation scripts
+- **python-pro**: Use Python task management scripts
+- **context-manager**: Use scripts for state management
+- **docs-architect**: Use task generation and enhancement scripts
+- **devops-troubleshooter**: Use orchestration and Git scripts
+
+**Documentation:**
+- Complete usage guide: `scripts/README.md`
+- Legacy documentation: `scripts/README_TASK_SCRIPTS.md`
+- Shared utilities: `task_scripts/taskmaster_common.py`
+
 ## Claude Code Workflow Integration
 
 ### Standard Development Workflow

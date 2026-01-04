@@ -10,6 +10,45 @@ Create a reusable Python class that computes code distance metrics between branc
 
 ---
 
+## Quick Navigation
+
+Navigate this document using these links:
+
+- [Purpose](#purpose)
+- [Developer Quick Reference](#developer-quick-reference)
+- [Success Criteria](#success-criteria)
+- [Metrics to Compute](#metrics-to-compute)
+- [Subtasks Overview](#subtasks-overview)
+- [Subtask Details](#subtasks)
+- [Configuration & Defaults](#configuration--defaults)
+- [Technical Reference](#technical-reference)
+- [Common Gotchas & Solutions](#common-gotchas--solutions)
+- [Development Workflow](#typical-development-workflow)
+- [Integration Handoff](#integration-handoff)
+- [Integration Checkpoint](#integration-checkpoint)
+- [Done Definition](#done-definition)
+
+**Pro tip:** Use Ctrl+F to search within sections, or click links above to jump directly
+
+---
+
+## Developer Quick Reference
+
+### What to Build
+A Python class `DiffDistanceCalculator` that:
+1. Analyzes code diffs between target branch and main
+2. Computes 4 normalized metrics (0-1 scale)
+3. Returns aggregated diff distance score
+
+### Class Signature
+```python
+class DiffDistanceCalculator:
+    def __init__(self, repo_path: str, main_branch: str = "main")
+    def analyze(self, branch_name: str) -> dict
+```
+
+---
+
 ## Success Criteria
 
 Task 75.3 is complete when:
@@ -22,16 +61,82 @@ Task 75.3 is complete when:
 - [ ] Handles all specified edge cases (binary files, large diffs, no changes)
 - [ ] Output matches JSON schema exactly
 
+**Performance Targets:**
+- [ ] Diff calculation: **< 3 seconds** (on typical 500-commit repo with 100+ file diffs)
+- [ ] Memory usage: **< 100 MB** per analysis
+- [ ] Handles **10,000+ line diffs** without failure
+- [ ] Distance computation: **O(n)** complexity where n = lines changed
+- [ ] Git command timeout: **30 seconds max** (protects against hanging)
+
 **Quality Assurance:**
-- [ ] Unit tests pass (minimum 8 test cases with >95% coverage)
-- [ ] No exceptions raised for valid inputs
-- [ ] Performance: <3 seconds per branch analysis
-- [ ] Code quality: PEP 8 compliant, comprehensive docstrings
+- [ ] Unit tests pass (minimum 8 test cases with **>95% code coverage**)
+- [ ] No exceptions raised for valid inputs (comprehensive error handling)
+- [ ] Code quality: Passes linting, follows PEP 8, includes comprehensive docstrings
 
 **Integration Readiness:**
 - [ ] Compatible with Task 75.4 (BranchClusterer) input requirements
+- [ ] Compatible with Task 75.6 (PipelineIntegration) consumption patterns
 - [ ] Configuration externalized and validated
 - [ ] Documentation complete and accurate
+
+---
+
+## Subtasks Overview
+
+### Dependency Flow Diagram
+
+```
+75.3.1 (3-4h) ────────┐
+[Diff Design]         │
+                      ├─→ 75.3.2 (4-5h) ────────┐
+                      │  [Diff Extraction]      │
+                      │                         ├─→ 75.3.3-75.3.6 (parallel, 3-5h each) ────┐
+                      │                         │   [Churn, Concentration, Complexity, Risk]  │
+                      └─────────────────────────┘                                           │
+                                                                                           ├─→ 75.3.7 (2-3h)
+                                                                                           │  [Aggregation]
+                                                                                           │
+                                                                                           └─→ 75.3.8 (4-5h)
+                                                                                              [Unit Tests]
+
+Critical Path: 75.3.1 → 75.3.2 → 75.3.3-75.3.6 (parallel) → 75.3.7 → 75.3.8
+Minimum Duration: 32-36 hours (with parallelization of 75.3.3-75.3.6)
+```
+
+### Parallel Opportunities
+
+**Can run in parallel (after 75.3.2):**
+- 75.3.3: Code churn metric
+- 75.3.4: Change concentration metric
+- 75.3.5: Diff complexity metric
+- 75.3.6: Integration risk metric
+
+All four metric tasks depend only on 75.3.2 (diff extraction) and are independent of each other. **Estimated parallel execution saves 12-16 hours.**
+
+**Must be sequential:**
+- 75.3.1 → 75.3.2 (design required before extraction)
+- 75.3.2 → 75.3.3-75.3.6 (extraction required before metric calculation)
+- 75.3.3-75.3.6 → 75.3.7 (all metrics needed before aggregation)
+- 75.3.7 → 75.3.8 (main class needed before testing)
+
+### Timeline with Parallelization
+
+**Days 1-2: Design (75.3.1)**
+- Define code churn, concentration, complexity metrics
+- Document risk categories and patterns
+
+**Days 2-3: Diff Extraction (75.3.2)**
+- Implement git diff --numstat parsing
+- Create structured output format
+
+**Days 3-5: Metrics (75.3.3-75.3.6 in parallel)**
+- Day 3-4: Implement code churn + concentration (2 people)
+- Day 3-4: Implement complexity + risk scoring (2 people)
+- Day 4-5: Consolidate and test
+
+**Days 5-6: Aggregation & Testing (75.3.7-75.3.8)**
+- Day 5: Implement aggregation
+- Day 6: Write comprehensive unit tests
 
 ---
 
@@ -320,15 +425,70 @@ RISKY_FILE_PATTERNS = {
 
 ---
 
-## Configuration Parameters
+## Configuration & Defaults
 
-- `CODE_CHURN_WEIGHT` = 0.30
-- `CHANGE_CONCENTRATION_WEIGHT` = 0.25
-- `DIFF_COMPLEXITY_WEIGHT` = 0.25
-- `INTEGRATION_RISK_WEIGHT` = 0.20
-- `ESTIMATED_CODEBASE_SIZE` = 5000
-- `MAX_EXPECTED_FILES` = 50
-- `RISK_CATEGORY_FILES` = {...}
+All parameters should be externalized to configuration files (not hardcoded). Use YAML format:
+
+```yaml
+# config/diff_distance_calculator.yaml
+diff_distance_calculator:
+  # Metric Weights (sum must equal 1.0)
+  code_churn_weight: 0.30                # Lines changed impact
+  change_concentration_weight: 0.25      # Files affected impact
+  diff_complexity_weight: 0.25           # Concentration of changes
+  integration_risk_weight: 0.20          # Risk pattern scoring
+  
+  # Baselines and Thresholds
+  estimated_codebase_size: 5000          # Baseline for churn calculation
+  max_expected_files: 50                 # Baseline for file concentration
+  git_command_timeout_seconds: 30        # Prevent hanging
+  
+  # Risk Category Patterns
+  risk_categories:
+    critical:
+      - "config/"
+      - "settings/"
+      - ".env"
+      - "secrets"
+      - "core/"
+      - "main.py"
+      - "__init__.py"
+    high:
+      - "tests/"
+      - "test_*.py"
+      - "*_test.py"
+      - "setup.py"
+      - "requirements.txt"
+      - "pyproject.toml"
+    medium:
+      - "src/"
+      - "lib/"
+      - "utils/"
+    low:
+      - "docs/"
+      - "README"
+      - "examples/"
+```
+
+**How to use in code:**
+```python
+import yaml
+
+def load_config(config_path='config/diff_distance_calculator.yaml'):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)['diff_distance_calculator']
+
+config = load_config()
+CHURN_WEIGHT = config['code_churn_weight']
+RISK_CATEGORIES = config['risk_categories']
+# ... etc
+```
+
+**Why externalize?**
+- Easy to adjust metrics without redeploying code
+- Different organizations may weight risk differently
+- Can adapt to project-specific file patterns
+- No code recompilation needed
 
 ---
 
@@ -411,6 +571,321 @@ RISKY_FILE_PATTERNS = {
 - **No dependencies on other Task 75.x components** - can start immediately (parallel with 75.1, 75.2)
 - **Output feeds into:** Task 75.4 (BranchClusterer)
 - **External libraries:** GitPython or subprocess (git CLI), re (regex)
+
+---
+
+## Typical Development Workflow
+
+Complete step-by-step git workflow for implementing this task. Copy-paste ready sequences:
+
+### Setup Your Feature Branch
+
+```bash
+# 1. Create feature branch
+git checkout -b feat/diff-distance-calculator
+git push -u origin feat/diff-distance-calculator
+
+# 2. Create initial file structure
+mkdir -p src/analyzers tests/analyzers config
+touch src/analyzers/diff_distance_calculator.py
+touch src/analyzers/__init__.py
+git add src/analyzers/
+git commit -m "chore: create diff distance calculator module"
+```
+
+### Subtask 75.3.1: Diff Design
+
+```bash
+# Document diff analysis design
+cat > docs/DIFF_DISTANCE_DESIGN.md << 'EOF'
+# DiffDistanceCalculator Design
+
+## Metrics
+1. Code Churn: Lines changed / estimated codebase
+2. Change Concentration: Files affected (fewer = higher)
+3. Diff Complexity: Concentration of changes in files
+4. Integration Risk: Pattern-based file risk scoring
+
+## Weights: 0.30 + 0.25 + 0.25 + 0.20 = 1.0
+
+## Risk Categories: critical, high, medium, low
+EOF
+
+git add docs/
+git commit -m "docs: design diff distance metrics (75.3.1)"
+```
+
+### Subtask 75.3.2: Diff Extraction
+
+```bash
+cat > src/analyzers/git_diff_utils.py << 'EOF'
+import subprocess
+from typing import Dict, Tuple
+
+def get_diff_stats(repo_path: str, branch_name: str) -> Dict:
+    """Extract diff statistics from git."""
+    cmd = ['git', 'diff', f'main...{branch_name}', '--numstat']
+    result = subprocess.run(
+        cmd,
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        encoding='utf-8'
+    )
+    
+    stats = {'added': 0, 'deleted': 0, 'files': []}
+    for line in result.stdout.strip().split('\n'):
+        if not line:
+            continue
+        parts = line.split('\t')
+        if len(parts) >= 3:
+            added, deleted, filepath = parts[0], parts[1], parts[2]
+            if added != '-' and deleted != '-':  # Skip binary files
+                stats['added'] += int(added)
+                stats['deleted'] += int(deleted)
+                stats['files'].append(filepath)
+    
+    return stats
+EOF
+
+git add src/analyzers/git_diff_utils.py
+git commit -m "feat: implement diff extraction (75.3.2)"
+```
+
+### Subtasks 75.3.3-75.3.6: Metrics (Parallel)
+
+```bash
+# Create metric modules
+cat > src/analyzers/metrics_code_churn.py << 'EOF'
+def compute_code_churn(total_changes: int, estimated_size: int = 5000) -> float:
+    """Score lines changed ratio (lower = higher)."""
+    ratio = total_changes / estimated_size
+    return max(0, 1 - min(ratio, 1.0))
+EOF
+
+touch src/analyzers/metrics_concentration.py
+touch src/analyzers/metrics_complexity.py
+touch src/analyzers/metrics_integration_risk.py
+
+git add src/analyzers/metrics_*.py
+git commit -m "feat: implement diff metrics (75.3.3-75.3.6)"
+```
+
+### Final Steps
+
+```bash
+# Create configuration
+mkdir -p config
+cat > config/diff_distance_calculator.yaml << 'EOF'
+diff_distance_calculator:
+  code_churn_weight: 0.30
+  change_concentration_weight: 0.25
+  diff_complexity_weight: 0.25
+  integration_risk_weight: 0.20
+  estimated_codebase_size: 5000
+  max_expected_files: 50
+  git_command_timeout_seconds: 30
+EOF
+
+git add config/
+git commit -m "config: diff distance calculator configuration"
+
+# Create tests and push
+pytest tests/analyzers/ -v --cov=src/analyzers --cov-report=html
+git add tests/
+git commit -m "test: comprehensive unit tests (95%+ coverage)"
+git push origin feat/diff-distance-calculator
+```
+
+---
+
+## Integration Handoff
+
+### What Gets Passed to Task 75.4 (BranchClusterer)
+
+**Task 75.4 expects input in this format:**
+
+```python
+from src.analyzers import DiffDistanceCalculator
+
+calculator = DiffDistanceCalculator(repo_path)
+result = calculator.analyze("feature/branch-name")
+
+# result is a dict like:
+# {
+#   "branch_name": "feature/auth-system",
+#   "metrics": {
+#     "code_churn": 0.72,
+#     "change_concentration": 0.81,
+#     "diff_complexity": 0.68,
+#     "integration_risk": 0.79
+#   },
+#   "aggregate_score": 0.750,
+#   "total_lines_added": 342,
+#   "total_lines_deleted": 87,
+#   "total_lines_changed": 429,
+#   "files_affected": 12,
+#   "largest_file_change": 156,
+#   "analysis_timestamp": "2025-12-22T10:40:00Z"
+# }
+```
+
+**Task 75.4 uses these outputs by:**
+1. Extracting the diff metrics as one of 3 distance components
+2. Combining with commit history and structure metrics
+3. Computing pairwise distances between branches
+4. Using distances for hierarchical clustering
+
+**Validation before handoff:**
+```bash
+python -c "
+from src.analyzers import DiffDistanceCalculator
+
+calc = DiffDistanceCalculator('.')
+result = calc.analyze('main')
+
+# Verify required fields
+assert 'metrics' in result
+assert 'aggregate_score' in result
+
+# Verify metrics normalized
+for m in result['metrics'].values():
+    assert 0 <= m <= 1
+
+print('✓ Output ready for Task 75.4')
+"
+```
+
+---
+
+## Common Gotchas & Solutions
+
+### Gotcha 1: Binary Files Cause Line Count Errors ⚠️
+
+**Problem:** Git diff shows binary files as "-" instead of line counts  
+**Symptom:** `ValueError` when parsing "-" as integer  
+**Root Cause:** Not handling binary file markers  
+
+**Solution:** Skip lines with binary file markers
+```python
+if added == '-' or deleted == '-':  # Skip binary files
+    continue
+```
+
+**Test:** Branch with only binary changes, verify no error
+
+---
+
+### Gotcha 2: Large Diffs Exhaust Memory ⚠️
+
+**Problem:** Repos with 100,000+ line changes cause memory overflow  
+**Symptom:** Out of memory error  
+**Root Cause:** Loading entire diff into memory  
+
+**Solution:** Process diffs in streaming fashion
+```python
+result = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, timeout=30)
+# Process line-by-line instead of loading all at once
+```
+
+**Test:** Branch with 100,000+ lines changed, verify <100 MB memory
+
+---
+
+### Gotcha 3: Empty Diff Handling ⚠️
+
+**Problem:** Branch identical to main causes division by zero  
+**Symptom:** ZeroDivisionError or invalid metrics  
+**Root Cause:** No bounds checking  
+
+**Solution:** Check for empty diffs
+```python
+if total_changes == 0:
+    return 0.5  # Neutral score for identical branches
+```
+
+**Test:** Analyze branch identical to main, verify metrics computed
+
+---
+
+### Gotcha 4: Risk Category Matching Issues ⚠️
+
+**Problem:** Case sensitivity prevents pattern matching  
+**Symptom:** Risk detection doesn't work reliably  
+**Root Cause:** String comparisons not normalized  
+
+**Solution:** Normalize paths before matching
+```python
+def matches_risk_pattern(filepath: str, pattern: str) -> bool:
+    normalized = filepath.lower().replace('\\', '/')
+    return normalized.startswith(pattern.lower())
+```
+
+**Test:** Branch with mixed case paths, verify risk detection works
+
+---
+
+### Gotcha 5: Git Timeout on Large Repos ⚠️
+
+**Problem:** Large repos take >30 seconds to diff  
+**Symptom:** Process hangs and gets terminated  
+**Root Cause:** No timeout protection  
+
+**Solution:** Always set timeout
+```python
+result = subprocess.run(cmd, timeout=30, ...)
+```
+
+**Test:** Very large branch, verify completes or raises clear timeout error
+
+---
+
+### Gotcha 6: Merge Commit Diff Issues ⚠️
+
+**Problem:** Three-dot syntax (`main...branch`) may not work with merge commits  
+**Symptom:** Unexpected diff results  
+**Root Cause:** Not accounting for merge commit history  
+
+**Solution:** Use three-dot syntax correctly
+```python
+# Three-dot shows changes on branch NOT on main
+cmd = ['git', 'diff', f'main...{branch_name}', '--numstat']
+```
+
+**Test:** Branch with merge commits, verify correct diff
+
+---
+
+### Gotcha 7: Concentration Ratio Edge Cases ⚠️
+
+**Problem:** Single file with huge changes causes invalid concentration  
+**Symptom:** Division by zero or invalid ratios  
+**Root Cause:** Not handling single-file branches  
+
+**Solution:** Cap concentration ratios
+```python
+ratio = largest_change / avg_change if avg_change > 0 else 0
+metric = min(ratio / 3, 1.0)  # Cap at 1.0
+```
+
+**Test:** Single-file branch with 1000+ line change, verify valid metric
+
+---
+
+### Gotcha 8: Weight Sum Validation ⚠️
+
+**Problem:** Configuration with weights not summing to 1.0 breaks aggregation  
+**Symptom:** Aggregate score outside [0,1]  
+**Root Cause:** No validation on config load  
+
+**Solution:** Validate weights
+```python
+total = sum(config['weights'].values())
+assert abs(total - 1.0) < 0.001, f"Weights sum to {total}, must be 1.0"
+```
+
+**Test:** Load config, verify weights validation
 
 ---
 

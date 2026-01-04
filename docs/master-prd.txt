@@ -1,0 +1,11 @@
+# Master Product Requirements Document
+
+## Overview
+This document serves as the central hub for all major product and engineering initiatives. It provides a high-level overview of each workstream and links to the detailed Product Requirements Document (PRD) for each one.
+
+## Major Initiatives
+
+### 1. Branch Alignment Framework
+This framework provides a systematic and flexible approach to aligning multiple feature branches with their primary integration targets (main, scientific, or orchestration-tools). It is designed to ensure code consistency, reduce merge conflicts, and streamline the development process for a single developer.
+
+- **Detailed PRD:** [Branch Alignment Framework](./branch-alignment-framework-prd.txt)
