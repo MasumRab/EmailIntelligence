@@ -28,7 +28,6 @@ class ResourceLimits:
     max_concurrent_nodes: int = 10
 
 
-from .node_base import SecurityLevel  # Import after ResourceLimits is defined
 
 
 class SecurityManager:

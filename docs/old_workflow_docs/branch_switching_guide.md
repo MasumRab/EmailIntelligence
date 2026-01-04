@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 <<<<<<< HEAD:docs/branch_switching_guide.md
 =======
+=======
+<<<<<<<< HEAD:docs/branch_switching_guide.md
+========
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 # Branch Switching Guide for EmailIntelligence
 
 This guide provides instructions for switching between the `scientific` branch (JSON backend) and `sqlite` branch (SQLite backend) in the EmailIntelligence project.
@@ -255,4 +260,8 @@ Be aware that some files may not exist when switching between branches.
 - **SQLite branch**: Database queries are generally faster for complex operations
 
 Choose the appropriate branch based on your needs and dataset size.
+<<<<<<< HEAD
 >>>>>>> 61a41ae340efd5cf9fff01717c04000fdf7e4da5:docs/old_workflow_docs/branch_switching_guide.md
+=======
+>>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613:docs/old_workflow_docs/branch_switching_guide.md
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613

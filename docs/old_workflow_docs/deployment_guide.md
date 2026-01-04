@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 <<<<<<< HEAD:docs/deployment_guide.md
 =======
+=======
+<<<<<<<< HEAD:docs/deployment_guide.md
+========
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 # EmailIntelligence Deployment Guide
 
 This guide covers deployment and development setup for the EmailIntelligence project. The application uses a unified launcher script for development and deployment.
@@ -186,4 +191,8 @@ The following environment variables are used by the application:
 If you encounter issues, check the application logs in the terminal where you ran `python launch.py`.
 
 For database issues, ensure your DATABASE_URL is correctly set and the PostgreSQL service is running.
+<<<<<<< HEAD
 >>>>>>> 61a41ae340efd5cf9fff01717c04000fdf7e4da5:docs/old_workflow_docs/deployment_guide.md
+=======
+>>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613:docs/old_workflow_docs/deployment_guide.md
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
