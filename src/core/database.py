@@ -664,34 +664,60 @@ class DatabaseManager(DataSource):
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """
+        Search emails with limit parameter.
+        Optimized to search newest emails first and stop early when limit is reached.
+        """
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
+
         search_term_lower = search_term.lower()
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting optimized email search for term: '{search_term_lower}'"
         )
-        for email_light in self.emails_data:
+
+        # Sort emails by time (newest first) before searching
+        # This allows us to exit early once we find enough matches
+        sorted_emails = sorted(
+            self.emails_data,
+            key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+            reverse=True
+        )
+
+        for email_light in sorted_emails:
+            # Check in-memory fields first (fast)
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
+
+            is_match = False
             if found_in_light:
+                is_match = True
+            else:
+                # Fallback to disk content search (slow)
+                # Only performed if not found in metadata
+                email_id = email_light.get(FIELD_ID)
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    try:
+                        with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                            heavy_data = json.load(f)
+                            content = heavy_data.get(FIELD_CONTENT, "")
+                            if isinstance(content, str) and search_term_lower in content.lower():
+                                is_match = True
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not search content for email {email_id}: {e}")
+
+            if is_match:
                 filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+                # Optimization: Stop once we hit the limit
+                if len(filtered_emails) >= limit:
+                    break
+
+        # Reuse standard pagination method for consistency
         return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
