@@ -228,3 +228,25 @@ class EnhancedCachingManager:
             "email_content_cache": self.email_content_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
+
+    # Compatibility methods for SmartFilterManager (Async Interface)
+
+    async def _ensure_initialized(self):
+        """No-op for async initialization compatibility."""
+        pass
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Async wrapper for get_query_result."""
+        return self.get_query_result(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Async wrapper for put_query_result."""
+        self.put_query_result(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Async wrapper for invalidate_query_result."""
+        self.invalidate_query_result(key)
+
+    async def close(self) -> None:
+        """Async wrapper for cleanup."""
+        self.clear_all_caches()
