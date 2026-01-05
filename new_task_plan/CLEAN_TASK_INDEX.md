@@ -1,8 +1,33 @@
 # Clean Sequential Task Numbering System
 
-**Generated:** 2026-01-04
-**Total Tasks:** 20
-**Total Subtasks:** 112
+**Generated:** 2026-01-04  
+**Updated:** 2026-01-04 (WS2 renumbering, Task 021→002)  
+**Total Tasks:** 26 (001-020 main, 002-Clustering separate, 022-026 execution/maintenance)  
+**Total Subtasks:** 121
+
+## ⚠️ Important: Task 002 Dual Reference (Post-WS2)
+
+**Critical clarification after Task 021→002 renumbering:**
+
+This project uses **"Task 002"** for **TWO DIFFERENT INITIATIVES**:
+
+1. **Task 002 (Merge Validation Framework)** - Initiative 1 task
+   - File: task-002.md (in main sequence, 001-020)
+   - Purpose: Create comprehensive merge validation framework
+   - Depends on: Task 001
+   - Part of foundation phase
+
+2. **Task 002-Clustering (Branch Clustering System)** - Initiative 3 task
+   - Old ID: Task 75 (renamed via WS2)
+   - File: task-002-clustering.md (or task-021.md for old references)
+   - Purpose: Advanced intelligent branch clustering
+   - **Runs PARALLEL with Task 001** (not sequential)
+   - Feeds data back to Task 001 for validation
+
+**To avoid confusion:**
+- Always use full names: "Task 002 (Merge Validation)" vs "Task 002-Clustering"
+- Refer to Initiative when unclear: "Initiative 1 Task 002" vs "Initiative 3 Task 002"
+- Check task_mapping.md for old→new ID conversions
 
 ---
 
@@ -146,20 +171,22 @@ Build the alignment tools:
 6. Testing → 014
 7. Documentation → 015
 
-### Phase 3: Analysis & Clustering (021)
-Advanced branch analysis:
-1. Clustering system → 002 (parallel with Phase 2, enables Phases 4-5)
+### Phase 3: Analysis & Clustering (Task 002-Clustering, Initiative 3)
+Advanced branch analysis (runs PARALLEL with Phase 2):
+1. Branch Clustering System → Task 002-Clustering (9 subtasks, 212-288h)
+   - Runs parallel with Task 001, provides metrics for validation
+   - Enables Phase 4 execution work
 
-### Phase 4: Execution (022-023)
-Use the framework:
-1. Scientific branch recovery → 022
-2. Orchestration tools alignment → 023
+### Phase 4: Execution (Task 022-023, Initiative 4)
+Use the framework (after Task 001 & Task 002-Clustering complete):
+1. Scientific branch recovery → Task 022 (40-56h)
+2. Orchestration tools alignment → Task 023 (36-48h)
 
-### Phase 5: Maintenance (024-026)
-Ongoing stability:
-1. Regression prevention → 024
-2. Conflict resolution → 025
-3. Dependency refinement → 026
+### Phase 5: Maintenance (Task 024-026, Initiative 5)
+Ongoing stability (can run in parallel):
+1. Regression prevention → Task 024 (28-40h)
+2. Conflict resolution → Task 025 (20-28h)
+3. Dependency refinement → Task 026 (28-40h)
 
 ---
 

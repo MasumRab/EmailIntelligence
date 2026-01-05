@@ -44,7 +44,7 @@ class FindingsQuery:
 
     def query_by_phase(self, phase):
         """Query findings by phase."""
-        return [f for f in self.findings if f.get("phase") == phase]
+        return [f for f in self.findings if phase in str(f.get("subtaskId", ""))]
 
     def query_by_task(self, task_id):
         """Query findings by task ID."""

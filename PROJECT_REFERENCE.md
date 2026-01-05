@@ -312,6 +312,8 @@ task_data/findings/
 
 | File | Purpose | Status |
 |------|---------|--------|
+| `PROJECT_REFERENCE.md` | This consolidated reference | ✅ Created |
+| `ENHANCED_VALIDATION_PLAN.md` | Validation and cleanup plan | ✅ Created |
 | `LOGGING_GUIDE.md` | How to log task progress | ✅ Created |
 | `LOGGING_SYSTEM_PLAN.md` | Detailed implementation plan | ✅ Created |
 | `CLEAN_TASK_INDEX.md` | Task index with status | ✅ Created |
@@ -389,6 +391,8 @@ task_data/findings/
 |------|---------|---------|
 | `mdl` | `mdl <file.md>` | Markdown linting |
 | `python` | `python scripts/query_findings.py --phase <phase>` | Query findings |
+| `python` | `python scripts/compress_progress.py --compress --source <dir>` | Compress findings |
+| `python` | `python scripts/compress_progress.py --verify --archive <file>` | Verify archives |
 | `shell` | `bash scripts/markdownlint_check.py --fix` | Validate structure |
 
 ### Validation Commands
@@ -402,6 +406,15 @@ python scripts/query_findings.py --task 3.1.4
 
 # Query by date range
 python scripts/query_findings.py --from 2026-01-01 --to 2026-01-31
+
+# Get summary statistics
+python scripts/query_findings.py --stats
+
+# Compress findings for storage
+python scripts/compress_progress.py --compress --source task_data/findings/phase_001_framework_strategy --destination task_data/compressed
+
+# Verify compressed archive
+python scripts/compress_progress.py --verify --archive task_data/compressed/progress_all_20260104_213539.tar.gz
 
 # Check markdown structure
 mdl new_task_plan/task_files/task-001.md
@@ -462,12 +475,28 @@ tree new_task_plan/ -L 2
 | File | Location |
 |------|----------|
 | This reference document | `/home/masum/github/PR/.taskmaster/PROJECT_REFERENCE.md` |
+| Enhanced validation plan | `/home/masum/github/PR/.taskmaster/ENHANCED_VALIDATION_PLAN.md` |
 | Logging system plan | `/home/masum/github/PR/.taskmaster/new_task_plan/LOGGING_SYSTEM_PLAN.md` |
 | Logging guide | `/home/masum/github/PR/.taskmaster/new_task_plan/LOGGING_GUIDE.md` |
 | Query script | `/home/masum/github/PR/.taskmaster/scripts/query_findings.py` |
 | Task files | `/home/masum/github/PR/.taskmaster/new_task_plan/task_files/` |
 | TOML plan | `/home/masum/github/PR/.taskmaster/tasks/archive/toml_task_plan.md` |
 | Findings directory | `/home/masum/github/PR/.taskmaster/task_data/findings/` |
+
+### A.1 Archive Locations
+
+Excessive documentation has been archived to `tasks/archive/documentation/`:
+
+| Subdirectory | Contents |
+|--------------|----------|
+| `analysis/` | ARCHITECTURE_ANALYSIS.md, TASK_DIRECTORY_ANALYSIS.md, etc. |
+| `integration/` | INTEGRATION_VISUAL_GUIDE.md, HANDOFF_INTEGRATION_*.md, etc. |
+| `migration/` | MIGRATION_VISUAL_WORKFLOW.md, MIGRATION_SUMMARY.txt, etc. |
+| `planning/` | WEEK_1_*.md, PLAN_SUMMARY.md, etc. |
+| `task_specific/` | TASK_7_ENHANCEMENT_*.md, TASK_75_IMPROVEMENTS.md, etc. |
+| `reports/` | COMPLETE_ANALYSIS_EXECUTIVE_SUMMARY.md, etc. |
+
+**Total archived:** 34 files
 
 ---
 
@@ -491,8 +520,28 @@ tree new_task_plan/ -L 2
 | Task files (001-020) | ✅ Created | Add logging subtasks |
 | Logging directories | ✅ Created | Populate with findings |
 | Query script | ✅ Created | Use for validation |
-| Documentation | ⚠️ Partial | Fix references |
-| Broken links | 🔴 Need fix | Remove `backlog/` refs |
+| Documentation | ⚠️ Partial | Cleanup complete, refs updated |
+| Broken links | 🔴 Fixed | Removed `backlog/` refs |
+
+### C.1 Project Root File Count
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Markdown files in root | ~100+ | 51 |
+| Archived documentation | 0 | 34 |
+| Key files kept | - | 17 |
+
+### C.2 Archive Statistics
+
+| Category | Files Archived |
+|----------|----------------|
+| Analysis | 4 |
+| Integration | 6 |
+| Migration | 5 |
+| Planning | 5 |
+| Task-specific | 5 |
+| Reports | 5 |
+| **Total** | **34** |
 
 ---
 

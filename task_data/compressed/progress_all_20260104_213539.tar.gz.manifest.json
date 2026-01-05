@@ -1,0 +1,23 @@
+{
+  "created": "2026-01-04T21:35:39.449731",
+  "source": "/home/masum/github/PR/.taskmaster/task_data/findings/phase_001_framework_strategy",
+  "files": {
+    "phase_001_framework_strategy/001_4_safety_verification.json": {
+      "path": "phase_001_framework_strategy/001_4_safety_verification.json",
+      "size": 988,
+      "mtime": "2026-01-04T21:30:42.095056",
+      "ctime": "2026-01-04T21:30:42.095056",
+      "permissions": "644",
+      "sha256": "51563219e21530f6acdd37ae3628f2f837f74187ed2f5f2a7719445983df8476",
+      "extension": ".json"
+    }
+  },
+  "totals": {
+    "file_count": 1,
+    "original_size": 988,
+    "compressed_size": 1005
+  },
+  "archive_name": "progress_all_20260104_213539.tar.gz",
+  "compression_format": "gz",
+  "compression_ratio": -1.7206477732793601
+}

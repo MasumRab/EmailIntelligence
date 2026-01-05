@@ -1,279 +1,403 @@
 # Task 001: Framework Strategy Definition - Integration Guide
 
-**Clean ID:** 001  
-**Original ID:** Task 7  
-**Status:** Ready for Integration  
-**Timeline:** 1-1.5 weeks (36-54 hours)  
-**Priority:** High  
+**Task ID:** 001  
+**Original:** Old Task 7 (Align and Architecturally Integrate Feature Branches)  
+**Duration:** 1-1.5 weeks (36-54 hours)  
+**Status:** Ready for implementation  
 
 ---
 
-## 5-Minute Overview
+## Purpose
 
-Task 001 is a FRAMEWORK DEFINITION task, not an implementation task. You're defining HOW branches should be aligned, not actually aligning them. Think of it as writing a playbook for Tasks 77, 79, and 81 to follow.
+Define the strategic framework and decision criteria for aligning feature branches with optimal integration targets (main, scientific, orchestration-tools). This framework will:
 
-**Core Deliverable:** A comprehensive framework document (3-5 pages) that specifies:
-1. How to select target branches (decision matrix with scoring)
-2. When to merge vs. rebase (decision tree)
-3. Architecture rules (module boundaries, imports, structure)
-4. Conflict resolution procedures (step-by-step)
-5. Verification checklist (7+ items)
-6. Documentation format (examples)
+1. Establish criteria for determining optimal target branch
+2. Define alignment strategy (merge vs. rebase approaches)
+3. Document decision-making process
+4. Create safety verification procedures
 
-**Key Insight:** This task runs PARALLEL with Task 002 (Branch Clustering). You'll receive clustering data from Task 002 each week (starting Week 2) to refine your criteria with real data. This bidirectional feedback makes your framework data-validated, not theoretical.
+**Key Point:** This task defines HOW branches should be aligned, not the implementation of alignment itself.
 
 ---
 
-## What You'll Work From
+## Stage Breakdown
 
-**Primary File:** `task_files/task-001-FRAMEWORK-STRATEGY.md` (will be created Week 2, ~2000+ lines)  
-**Source:** Copy of enhanced task-7.md with all 7 improvements applied  
-**Structure:** Quick Navigation, Developer Quick Reference, Success Criteria, Configuration Defaults, Typical Workflow, Integration Handoff, Common Gotchas
+### Week 1: Framework Definition (24-32 hours)
 
----
+#### Day 1-2: Criteria Development
+- Define what makes a branch a good fit for `main` vs `scientific` vs `orchestration-tools`
+- Analyze existing branches to understand patterns
+- Document initial criteria in markdown
 
-## Success Criteria Checklist
+**Deliverable:** `FRAMEWORK_TARGET_CRITERIA.md`
+```markdown
+# Target Selection Criteria
 
-Framework is complete when ALL of these are done:
+## Branch → Main Characteristics
+- Fixes critical production bugs
+- Minimal architectural changes
+- Safe to release immediately
+- Examples: fix/import-error-corrections
 
-**Core Deliverables:**
-- [ ] **Target selection criteria** defined (5+ factors, weights sum to 1.0)
-- [ ] **Merge vs. rebase decision tree** created (clear conditional logic)
-- [ ] **Architecture alignment rules** documented (10+ rules with examples)
-- [ ] **Conflict resolution procedures** specified (step-by-step process)
-- [ ] **Branch verification checklist** created (5+ items with validation method)
-- [ ] **Framework documentation** complete (3-5 pages with real examples)
+## Branch → Scientific Characteristics
+- Experimental features
+- Architectural explorations
+- Needs further testing
+- Examples: feature/search-in-category, feature/merge-clean
 
-**Framework Quality:**
-- [ ] All criteria have explicit scoring/evaluation method
-- [ ] All procedures are repeatable and unambiguous
-- [ ] All examples are realistic (tested or based on actual branches)
-- [ ] Framework handles edge cases (orphaned, stale, large divergence)
-- [ ] Framework is technology-agnostic (git workflow independent)
+## Branch → Orchestration-Tools Characteristics
+- CI/CD workflow changes
+- Framework infrastructure updates
+- Orchestration-specific features
+- Examples: 24 branches in orchestration-tools
+```
 
-**Integration Readiness:**
-- [ ] Compatible with Task 002 data (accepts clustering metrics)
-- [ ] Compatible with Task 77 (Feature/X branches)
-- [ ] Compatible with Task 79 (Execution with validation)
-- [ ] Compatible with Task 81 (Scientific branch alignment)
-- [ ] Clear input/output specifications for downstream tasks
+#### Day 3-4: Strategy Framework
+- Define merge vs. rebase decision tree
+- Document conflict resolution approach
+- Create safety checks for each strategy
 
----
+**Deliverable:** `ALIGNMENT_STRATEGY.md`
+```markdown
+# Alignment Strategy Framework
 
-## 7-Subtask Breakdown
+## Merge vs. Rebase Decision
+- Use merge when: Large shared history
+- Use rebase when: Linear history preferred
+- Use interactive rebase when: Commits need cleaning
 
-### 001.1: Analyze Current Branch State (4-6h)
-Review the actual branches in the repository and understand their characteristics.
+## Conflict Resolution
+- Visual merge tool requirements
+- Documentation of complex resolutions
+- Rollback procedures
+```
 
-**Deliverable:** Branch analysis document
-**Key Output:** List of branches with basic metadata (name, merge status, last commit date)
+#### Day 5: Documentation & Validation Procedure
+- Create step-by-step alignment checklist
+- Define pre-alignment validation
+- Define post-alignment validation
 
-### 001.2: Define Target Selection Criteria (6-8h)
-Establish the decision matrix for determining optimal target branches.
+**Deliverable:** `ALIGNMENT_CHECKLIST_TEMPLATE.md`
 
-**Deliverable:** Target selection criteria document
-**Key Output:** JSON schema with scoring weights, evaluation method for each factor
+### Week 2: Refinement & Testing (12-22 hours)
 
-### 001.3: Develop Merge vs. Rebase Strategy (4-6h)
-Create decision tree for when to use each approach.
+#### Day 1-2: Parallel Feedback from Task 002
+- Receive preliminary clustering metrics from Task 002.1-3
+- Refine criteria based on actual branch analysis
+- Update framework with data-driven insights
 
-**Deliverable:** Strategy decision tree
-**Key Output:** Clear conditional rules (if X then merge, if Y then rebase)
+**Refinement:** Criteria become more specific and actionable
 
-### 001.4: Establish Architecture Alignment Rules (6-8h)
-Document architectural requirements and module boundaries.
+#### Day 3-4: Documentation Completion
+- Create implementation guide for alignment teams
+- Document edge cases and special scenarios
+- Create FAQ for common questions
 
-**Deliverable:** Architecture rules document
-**Key Output:** 10+ rules with examples and exceptions
+**Deliverable:** `ALIGNMENT_IMPLEMENTATION_GUIDE.md`
 
-### 001.5: Create Conflict Resolution Framework (6-8h)
-Define procedures for handling merge conflicts and resolution strategies.
+#### Day 5: Final Validation
+- Walk through framework with example branches
+- Verify criteria work in practice
+- Get sign-off from team leads
 
-**Deliverable:** Conflict resolution procedures
-**Key Output:** Step-by-step guide with common scenarios
-
-### 001.6: Build Branch Assessment Checklist (4-6h)
-Create template for evaluating branches before alignment.
-
-**Deliverable:** Assessment checklist template
-**Key Output:** 5+ items with validation criteria
-
-### 001.7: Finalize Framework Documentation (6-8h)
-Write complete guide with examples and edge case handling.
-
-**Deliverable:** Framework guide (3-5 pages)
-**Key Output:** Professional documentation with real examples
-
----
-
-## Day-by-Day Implementation Schedule
-
-### Day 1 (Monday)
-**Subtask 001.1: Analyze Current Branch State**
-- Review git branches and metadata
-- Document characteristics
-- Create branch inventory
-- **Output:** Branch analysis document
-
-### Day 2 (Tuesday)
-**Subtask 001.2: Define Target Selection Criteria**
-- Research similar frameworks (GitHub, GitLab guidance)
-- Define factors (similarity, history, architecture, priority, age)
-- Establish scoring weights (must sum to 1.0)
-- Create evaluation matrix
-- **Output:** Criteria document with JSON schema
-
-### Day 3 (Wednesday)
-**Subtask 001.3 & 001.4: Merge/Rebase Strategy + Architecture Rules**
-- Create merge vs. rebase decision tree
-- Document module boundaries and import rules
-- Define required directories and configurations
-- **Output:** Strategy tree + architecture rules
-
-### Day 4 (Thursday)
-**Subtask 001.5 & 001.6: Conflict Resolution + Assessment Checklist**
-- Define conflict resolution procedures
-- Create step-by-step guides
-- Build branch assessment template
-- **Output:** Procedures + checklist template
-
-### Day 5 (Friday)
-**Subtask 001.7: Finalize Documentation**
-- Write comprehensive framework guide
-- Add real examples
-- Document edge cases
-- Create executive summary
-- **Output:** Complete 3-5 page guide
+**Deliverable:** Framework validated and ready for Phase 4 (Execution)
 
 ---
 
-## Daily Quality Gates
+## Subtasks (Detailed)
 
-### Monday End-of-Day
-- [ ] Branch analysis document complete
-- [ ] All branches identified and characterized
-- [ ] Ready for criteria definition
+### 001.1: Define Target Selection Criteria
 
-### Tuesday End-of-Day
-- [ ] Criteria document with 5+ factors
-- [ ] Weights sum to 1.0
-- [ ] Evaluation method clear
-- [ ] Ready for strategy definition
+**Purpose:** Establish rules for determining optimal target branch
 
-### Wednesday End-of-Day
-- [ ] Merge vs. rebase decision tree complete
-- [ ] Architecture rules (10+ rules)
-- [ ] Ready for conflict resolution
+**Steps:**
+1. Analyze current branches and their characteristics
+2. Identify patterns that distinguish main/scientific/orchestration branches
+3. Define quantitative criteria (e.g., "X% of changes in directory Y" → scientific)
+4. Create decision tree for target selection
+5. Document with concrete examples
+6. Review with team and refine
 
-### Thursday End-of-Day
-- [ ] Conflict resolution procedures documented
-- [ ] Assessment checklist created (5+ items)
-- [ ] Ready for final documentation
+**Success Criteria:**
+- ✅ Criteria documented in clear, unambiguous language
+- ✅ Criteria cover >95% of existing branches
+- ✅ Team agrees on target classifications
+- ✅ Examples provided for each target type
 
-### Friday End-of-Day
-- [ ] Framework documentation complete (3-5 pages)
-- [ ] All success criteria checked
-- [ ] Ready for sign-off
+**Deliverable:** `FRAMEWORK_TARGET_CRITERIA.md` (3-5 KB)
 
----
+**Effort:** 8-12 hours
 
-## Validation Before Sign-Off
-
-**Self-Review Checklist:**
-- [ ] Can a developer use your framework without asking questions?
-- [ ] Does your framework work for branches with 0-10,000 commits?
-- [ ] Does it handle orphaned branches (no history)?
-- [ ] Does it handle stale branches (6+ months old)?
-- [ ] Does it handle huge divergence (500+ commits ahead)?
-- [ ] Can a new team member understand your criteria?
-- [ ] Are your examples specific to actual project branches?
-
-**Peer Review Checklist:**
-- [ ] Framework reviewer can evaluate it without deep project knowledge
-- [ ] All criteria are measurable
-- [ ] All procedures are repeatable
-- [ ] Edge cases are documented
-- [ ] Examples are realistic
+**Integration with Task 002:**
+- Task 002 will provide actual metrics (shared history, code similarity)
+- Use these metrics to refine initial criteria
 
 ---
 
-## Information Flow: Parallel Execution with Task 002
+### 001.2: Define Alignment Strategy Framework
 
-### Week 1 (Initial Criteria)
-- **You:** Define hypothesis-based target selection criteria (Task 001.2)
-- **Task 002:** Stage One analyzers run (commits, structure, diffs)
-- **Action:** Focus on framework definition, not data validation
+**Purpose:** Establish HOW to perform alignment (merge vs. rebase, conflict handling)
 
-### Week 2 (Data Refinement)
-- **You:** Receive clustering metrics from Task 002
-- **Task 002:** Produces initial clustering and target suggestions
-- **You:** REFINE criteria based on actual branch data
-  - Do branches cluster as expected?
-  - Are your weights correct?
-  - Do metrics match your assumptions?
-- **Action:** Update your criteria based on real data
+**Steps:**
+1. Evaluate merge vs. rebase pros/cons
+2. Define decision criteria for choosing strategy
+3. Document handling of large shared history branches
+4. Create conflict resolution approach
+5. Define architectural compatibility checks
+6. Document rollback procedures
 
-### Week 3 (Validation)
-- **You:** Framework with data-validated criteria (COMPLETE)
-- **Task 002:** Continues with Stage Two (BranchClusterer, Target Assignment)
-- **Action:** Framework ready to guide Tasks 77, 79, 81
+**Success Criteria:**
+- ✅ Clear decision tree for merge vs. rebase
+- ✅ Conflict resolution documented
+- ✅ Rollback procedure defined
+- ✅ Team trained on approach
 
-**Key Point:** Your criteria will be BETTER because Task 002 gives you real branch data to validate against. This is not a delay—it's quality improvement.
+**Deliverable:** `ALIGNMENT_STRATEGY.md` (4-6 KB)
 
----
-
-## Getting Help If Stuck
-
-**Stuck on criteria definition?**
-→ Look at [HANDOFF_INDEX.md](../task_data/HANDOFF_INDEX.md) to see what clustering metrics will be available
-
-**Stuck on examples?**
-→ Use your branch analysis (001.1) as real examples
-
-**Stuck on architecture rules?**
-→ Review your project's actual directory structure and import patterns
-
-**Stuck on edge cases?**
-→ Check Git documentation for: orphaned branches, detached HEAD, merge strategies
+**Effort:** 10-14 hours
 
 ---
 
-## Key Files
+### 001.3: Create Documentation Foundation
 
-- **task_files/task-001-FRAMEWORK-STRATEGY.md** - Main task file (will exist Week 2)
-- **../task_data/task-7.md** - Original enhanced version for reference
-- **../HANDOFF_INDEX.md** - Task 002 architecture for understanding clustering
-- **../OPTIMIZED_TASK_SEQUENCE_WITH_EARLY_CLUSTERING.md** - Parallel execution context
+**Purpose:** Document framework in clear, actionable language
+
+**Steps:**
+1. Create alignment checklist template
+2. Document pre-alignment validation checks
+3. Document post-alignment validation checks
+4. Create master alignment plan template
+5. Document decision logging format
+6. Create FAQ for common questions
+
+**Success Criteria:**
+- ✅ Checklists are step-by-step, not abstract
+- ✅ Templates can be filled by non-experts
+- ✅ Clear success/failure criteria for each step
+- ✅ Examples provided
+
+**Deliverable:** `ALIGNMENT_CHECKLIST_TEMPLATE.md` (3-4 KB)
+
+**Effort:** 8-12 hours
+
+---
+
+### 001.4: Define Safety and Verification Procedures
+
+**Purpose:** Ensure alignment doesn't break anything
+
+**Steps:**
+1. Define pre-alignment testing requirements
+2. Define post-alignment testing requirements
+3. Create CI/CD integration plan
+4. Document architectural validation checks
+5. Create performance baseline procedures
+6. Define rollback decision criteria
+
+**Success Criteria:**
+- ✅ All safety checks documented
+- ✅ Clear pass/fail criteria
+- ✅ Testing requirements realistic (not excessive)
+- ✅ Rollback decision tree clear
+
+**Deliverable:** `SAFETY_VERIFICATION_PROCEDURES.md` (3-4 KB)
+
+**Effort:** 10-12 hours
+
+---
+
+### 001.5: Integrate with Task 002 Metrics
+
+**Purpose:** Refine framework based on actual branch analysis
+
+**Timing:** Week 2 (after Task 002.1-3 complete)
+
+**Steps:**
+1. Receive clustering metrics from Task 002
+2. Analyze actual branches against framework criteria
+3. Identify gaps or mismatches
+4. Refine criteria based on findings
+5. Update decision tree with data-driven insights
+6. Document findings and updates
+
+**Success Criteria:**
+- ✅ Framework refined based on real data
+- ✅ Criteria now more accurate and actionable
+- ✅ Examples updated with actual branches
+- ✅ Team confidence increased
+
+**Deliverable:** `FRAMEWORK_REFINEMENTS.md` (2-3 KB)
+
+**Effort:** 8-10 hours
+
+---
+
+### 001.6: Create Implementation Guide for Alignment Teams
+
+**Purpose:** Make framework usable by implementation teams
+
+**Steps:**
+1. Walk through framework with fictional branch example
+2. Document decision points and what to do at each
+3. Create quick-reference cards
+4. Create troubleshooting guide
+5. Document escalation procedures
+6. Create sign-off template for completed alignments
+
+**Success Criteria:**
+- ✅ Team can use guide without asking questions
+- ✅ Common scenarios covered
+- ✅ Clear when to escalate
+- ✅ Sign-off process prevents missed steps
+
+**Deliverable:** `ALIGNMENT_IMPLEMENTATION_GUIDE.md` (6-8 KB)
+
+**Effort:** 12-16 hours
+
+---
+
+### 001.7: Final Validation & Approval
+
+**Purpose:** Ensure framework is complete and ready
+
+**Steps:**
+1. Review all framework documents with team leads
+2. Walk through framework with 2-3 actual branches
+3. Identify any gaps or unclear areas
+4. Make final refinements
+5. Get formal approval from stakeholders
+6. Create summary document
+
+**Success Criteria:**
+- ✅ Team leads sign off
+- ✅ No unresolved questions
+- ✅ Framework tested with real branches
+- ✅ Ready for Phase 4 (Execution)
+
+**Deliverable:** `FRAMEWORK_VALIDATION_SUMMARY.md` + approval sign-off
+
+**Effort:** 6-8 hours
+
+---
+
+## Daily Schedule (Week 1)
+
+| Day | Task | Hours | Deliverable |
+|-----|------|-------|-------------|
+| 1 | Analyze existing branches, define main criteria | 6 | Draft criteria |
+| 2 | Complete criteria, create decision tree | 6 | FRAMEWORK_TARGET_CRITERIA.md |
+| 3 | Define merge/rebase strategy | 6 | Draft ALIGNMENT_STRATEGY.md |
+| 4 | Complete strategy, define conflict handling | 6 | ALIGNMENT_STRATEGY.md |
+| 5 | Create checklist and templates | 6 | ALIGNMENT_CHECKLIST_TEMPLATE.md |
+
+**Week 1 Total:** 30 hours
+
+---
+
+## Daily Schedule (Week 2)
+
+| Day | Task | Hours | Deliverable |
+|-----|------|-------|-------------|
+| 1 | Receive Task 002 metrics, analyze | 4 | Analysis notes |
+| 2 | Refine criteria, update examples | 4 | FRAMEWORK_REFINEMENTS.md |
+| 3 | Create implementation guide (part 1) | 6 | Draft guide |
+| 4 | Complete implementation guide (part 2) | 6 | ALIGNMENT_IMPLEMENTATION_GUIDE.md |
+| 5 | Final validation with team, get approval | 6 | FRAMEWORK_VALIDATION_SUMMARY.md |
+
+**Week 2 Total:** 26 hours
+
+---
+
+## Parallel Work with Task 002
+
+### Week 1 Coordination
+- Task 001: Defining initial framework (hypothesis-based)
+- Task 002.1-3: Running parallel analyzers
+- Sync: Not yet (Task 002 still collecting data)
+
+### Week 2 Coordination
+- Task 001: Refining framework with Task 002 data
+- Task 002.4+: Starting clustering based on analyzer outputs
+- Sync: **Weekly sync meeting** (Day 1 of Week 2)
+  - Task 002 presents: Clustering metrics and branch similarity patterns
+  - Task 001 refines: Target criteria based on metrics
+  - Both teams update: Implementation guides with findings
+
+### Expected Outcome
+- Task 001: Data-driven framework ready for Phase 4
+- Task 002: Validated clustering system compatible with Task 001
+
+---
+
+## Deliverables Summary
+
+| Deliverable | Size | Purpose |
+|-------------|------|---------|
+| FRAMEWORK_TARGET_CRITERIA.md | 3-5 KB | Target selection rules |
+| ALIGNMENT_STRATEGY.md | 4-6 KB | Merge/rebase strategy |
+| ALIGNMENT_CHECKLIST_TEMPLATE.md | 3-4 KB | Step-by-step checklist |
+| SAFETY_VERIFICATION_PROCEDURES.md | 3-4 KB | Testing requirements |
+| FRAMEWORK_REFINEMENTS.md | 2-3 KB | Data-driven updates |
+| ALIGNMENT_IMPLEMENTATION_GUIDE.md | 6-8 KB | User guide for teams |
+| FRAMEWORK_VALIDATION_SUMMARY.md | 2-3 KB | Approval sign-off |
+
+**Total:** ~26-33 KB of documentation
+
+---
+
+## Success Criteria
+
+### For Framework Definition
+- ✅ Clear criteria for each target branch (main/scientific/orchestration)
+- ✅ Merge vs. rebase decision tree documented
+- ✅ Conflict resolution approach defined
+- ✅ Safety verification procedures in place
+
+### For Documentation
+- ✅ All framework documents complete (7 files)
+- ✅ No ambiguous or unclear sections
+- ✅ Examples provided for common scenarios
+- ✅ Team can use documents independently
+
+### For Integration
+- ✅ Weekly sync with Task 002 team completed
+- ✅ Framework refined based on real branch metrics
+- ✅ Both tasks validated against each other
+- ✅ Ready for Phase 4 (Execution)
+
+### For Approval
+- ✅ Team leads sign off on framework
+- ✅ No unresolved questions
+- ✅ Framework tested with real branches
+- ✅ Team confident in approach
 
 ---
 
 ## Next Steps
 
-1. **Week 1:** This integration guide is created
-2. **Week 2 Monday:** task-001-FRAMEWORK-STRATEGY.md file created and ready
-3. **Week 2 Monday:** Begin implementation using day-by-day schedule above
-4. **Week 2 Friday:** Subtasks 001.1-001.7 complete
-5. **Week 3 Monday:** Start receiving Task 002 clustering data
-6. **Week 3 Friday:** Framework refined and validated with real data
-7. **Week 4:** Framework ready to guide Tasks 77, 79, 81
+1. **Day 1:** Start with subtask 001.1 (target criteria)
+2. **Day 5:** Complete week 1 deliverables
+3. **Week 2:** Integrate Task 002 feedback and refine
+4. **Day 10:** Submit for team approval
+5. **After approval:** Phase 4 can proceed (branch alignment execution)
 
 ---
 
-## Quick Reference
+## Key Metrics
 
-| Item | Deliverable | Effort | Status |
-|------|-------------|--------|--------|
-| **001.1** | Branch analysis | 4-6h | Pending |
-| **001.2** | Target criteria | 6-8h | Pending |
-| **001.3** | Merge/rebase strategy | 4-6h | Pending |
-| **001.4** | Architecture rules | 6-8h | Pending |
-| **001.5** | Conflict resolution | 6-8h | Pending |
-| **001.6** | Assessment checklist | 4-6h | Pending |
-| **001.7** | Framework documentation | 6-8h | Pending |
-| **TOTAL** | Framework guide | 36-54h | Pending |
+| Metric | Target |
+|--------|--------|
+| Duration | 1-1.5 weeks |
+| Effort | 36-54 hours |
+| Deliverables | 7 documents |
+| Team size | 1-2 people |
+| Dependencies | None (can start immediately) |
+| Parallel with | Task 002 Stage One |
+| Feeds into | Phase 4 (Branch Alignment Execution) |
 
 ---
 
-**Status:** Ready for Week 2 Implementation  
-**Created:** January 4, 2026  
-**Next Phase:** Extract task-001-FRAMEWORK-STRATEGY.md from task-7.md
+**Status:** Ready for implementation  
+**Start Date:** Week 1  
+**Completion Target:** Week 2, Day 5  
+**Next Task:** Phase 4 (Tasks 022-023) after Task 001 & 002 complete
