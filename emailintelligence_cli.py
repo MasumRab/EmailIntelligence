@@ -7,14 +7,22 @@ using constitutional/specification-driven analysis and spec-kit strategies.
 """
 
 import argparse
+import asyncio
 import hashlib
 import json
 import subprocess
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, NoReturn
+
+# Constitutional Engine integration
+from src.resolution import ConstitutionalEngine
+
+# Git Operations integration
+from src.git.conflict_detector import GitConflictDetector
+from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
+from src.analysis.conflict_analyzer import ConflictAnalyzer
 
 try:
     import yaml
@@ -32,15 +40,110 @@ class EmailIntelligenceCLI:
         self.config_file = self.repo_root / ".emailintelligence" / "config.yaml"
         self.constitutions_dir = self.repo_root / ".emailintelligence" / "constitutions"
         self.strategies_dir = self.repo_root / ".emailintelligence" / "strategies"
-        
+
         # Create necessary directories
         self._ensure_directories()
-        
+
         # Load configuration
         self.config = self._load_config()
-        
+
+        # Initialize Constitutional Engine
+        self.constitutional_engine = ConstitutionalEngine(
+            constitution_file=self.config.get('constitutional_framework', {}).get('default_constitution_file')
+        )
+        # Lazy initialization flag
+        self._constitutional_engine_initialized = False
+
+        # Initialize Git Conflict Detector
+        self.conflict_detector = GitConflictDetector(str(self.repo_root))
+
+        # Initialize Conflict Analyzer
+        self.conflict_analyzer = ConflictAnalyzer()
+
         # Initialize git repository check
         self._check_git_repository()
+
+    async def _ensure_constitutional_engine_initialized(self):
+        """Ensure the constitutional engine is initialized."""
+        if not self._constitutional_engine_initialized:
+            await self.constitutional_engine.initialize()
+            self._constitutional_engine_initialized = True
+
+    def _conflict_to_template(self, conflict: Dict[str, Any], metadata: Dict[str, Any]) -> str:
+        """Convert conflict data to specification template format"""
+        template_lines = [
+            f"Conflict Analysis Report",
+            f"PR: {metadata.get('pr_number', 'Unknown')}",
+            f"Source Branch: {metadata.get('source_branch', 'Unknown')}",
+            f"Target Branch: {metadata.get('target_branch', 'Unknown')}",
+            f"File: {conflict.get('file', 'Unknown')}",
+            f"Conflict Type: {conflict.get('conflict_type', 'Unknown')}",
+            "",
+            "Conflict Details:",
+        ]
+
+        # Add conflict blocks if available
+        conflict_blocks = conflict.get('conflicts', [])
+        for i, block in enumerate(conflict_blocks):
+            template_lines.extend([
+                f"Block {i+1}:",
+                f"  Start: {block.get('start_line', 'Unknown')}",
+                f"  End: {block.get('end_line', 'Unknown')}",
+                f"  Type: {block.get('conflict_type', 'Unknown')}",
+                ""
+            ])
+
+        return "\n".join(template_lines)
+
+    def _display_compliance_result(self, result, filename: str):
+        """Display compliance result for a file"""
+        status_emoji = "✅" if result.compliance_level.value in ['compliant', 'excellent'] else "⚠️"
+        print(f"  {status_emoji} {filename}: {result.overall_score:.1%} ({result.compliance_level.value})")
+
+    def _display_overall_summary(self, all_results: List[Dict[str, Any]]):
+        """Display overall analysis summary"""
+        if not all_results:
+            print("No results to display")
+            return
+
+        total_score = sum(r['result'].overall_score for r in all_results)
+        avg_score = total_score / len(all_results)
+
+        compliant_count = sum(1 for r in all_results
+                            if r['result'].compliance_level.value in ['compliant', 'excellent'])
+
+        print(f"\nOverall Summary:")
+        print(f"  Files analyzed: {len(all_results)}")
+        print(f"  Compliant files: {compliant_count}/{len(all_results)}")
+        print(f"  Average compliance: {avg_score:.1%}")
+
+    def _save_constitutional_results(self, pr_number: int, results: List[Dict[str, Any]],
+                                   metadata_file: Path):
+        """Save constitutional analysis results to metadata"""
+        import json
+        # Load existing metadata
+        with open(metadata_file, 'r', encoding='utf-8') as f:
+            metadata = json.load(f)
+
+        # Add constitutional results
+        constitutional_results = []
+        for result in results:
+            constitutional_results.append({
+                'file': result['file'],
+                'overall_score': result['result'].overall_score,
+                'compliance_level': result['result'].compliance_level.value,
+                'summary': result['result'].summary
+            })
+
+        metadata['constitutional_analysis'] = {
+            'timestamp': datetime.now().isoformat(),
+            'results': constitutional_results,
+            'overall_score': sum(r['result'].overall_score for r in results) / len(results) if results else 0.0
+        }
+
+        # Save updated metadata
+        with open(metadata_file, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, indent=2)
     
     def _ensure_directories(self):
         """Create necessary directories for the tool"""
@@ -263,54 +366,114 @@ class EmailIntelligenceCLI:
     ) -> Dict[str, Any]:
         """
         Analyze conflicts against loaded constitution
-        
+
         Args:
             pr_number: Pull request number
             constitution_files: List of constitution files to analyze against
             interactive: Enable interactive analysis mode
         """
-        metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
-        
-        if not metadata_file.exists():
-            self._error_exit(
-                f"No resolution workspace found for PR #{pr_number}. "
-                "Run 'eai setup-resolution' first."
-            )
-        
-        # Load resolution metadata
-        with open(metadata_file) as f:
-            metadata = json.load(f)
-        
-        self._info(f"Analyzing conflicts against constitution for PR #{pr_number}...")
-        
-        # Load constitutions
-        constitutions = self._load_constitutions(
-            constitution_files or metadata.get('constitution_files', [])
+        # Call the async version using asyncio.run for compatibility
+        import asyncio
+        return asyncio.run(
+            self._analyze_constitutional_async(pr_number, constitution_files, interactive)
         )
-        
-        # Analyze conflicts
-        analysis_results = self._perform_constitutional_analysis(metadata, constitutions)
-        
-        # Update metadata
-        metadata['analysis_results'] = analysis_results
-        metadata['status'] = 'constitution_analyzed'
-        metadata['analyzed_at'] = datetime.now().isoformat()
-        
-        with open(metadata_file, 'w') as f:
-            json.dump(metadata, f, indent=2)
-        
-        # Generate and display report
-        report = self._generate_analysis_report(pr_number, metadata, analysis_results)
-        
-        if interactive:
-            self._display_interactive_analysis(report)
-        
+
+    async def _analyze_constitutional_async(
+        self,
+        pr_number: int,
+        constitution_files: Optional[List[str]] = None,
+        interactive: bool = False,
+    ) -> Dict[str, Any]:
+        """Async implementation of constitutional analysis"""
+
+        # Ensure engine is initialized
+        await self._ensure_constitutional_engine_initialized()
+
+        metadata_file = self.resolution_branches_dir / f"pr-{pr_number}" / "metadata.json"
+
+        # Fallback to old path if new one doesn't exist (backward compatibility)
+        if not metadata_file.exists():
+            old_metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
+            if old_metadata_file.exists():
+                metadata_file = old_metadata_file
+            else:
+                self._error_exit(
+                    f"No metadata found for PR #{pr_number}. Run 'setup-resolution' first."
+                )
+
+        # Load metadata
+        with open(metadata_file, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+
+        conflicts_data = metadata.get("conflicts", [])
+        if not conflicts_data:
+            self._warn("No conflicts found in metadata")
+            return {}
+
+        print(f"\n{'='*80}")
+        print(f"CONSTITUTIONAL ANALYSIS - PR #{pr_number}")
+        print(f"{'='*80}\n")
+
+        print(f"Analyzing {len(conflicts_data)} conflicts against constitutional rules...")
+
+        # Analyze each conflict
+        all_results = []
+        for i, conflict in enumerate(conflicts_data, 1):
+            file_path = conflict.get("file", "unknown")
+            print(f"\n[{i}/{len(conflicts_data)}] Analyzing {file_path}...")
+
+            # Create specification template content from conflict
+            template_content = self._conflict_to_template(conflict, metadata)
+
+            # REAL constitutional validation!
+            result = await self.constitutional_engine.validate_specification_template(
+                template_content=template_content,
+                template_type="conflict_analysis",
+                context={
+                    "pr_number": pr_number,
+                    "source_branch": metadata.get("source_branch"),
+                    "target_branch": metadata.get("target_branch"),
+                    "file_path": file_path,
+                },
+            )
+
+            all_results.append({"file": file_path, "result": result})
+
+            # Display result
+            self._display_compliance_result(result, file_path)
+
+        # Overall summary
+        self._display_overall_summary(all_results)
+
+        # Save results to metadata
+        self._save_constitutional_results(pr_number, all_results, metadata_file)
+
+        print(f"\n{'='*80}\n")
+
+        # Return summary structure for CLI compatibility
+        avg_score = (
+            sum(r["result"].overall_score for r in all_results) / len(all_results)
+            if all_results
+            else 0.0
+        )
+
         return {
-            'pr_number': pr_number,
-            'analysis_results': analysis_results,
-            'compliance_score': analysis_results.get('overall_compliance', 0.0),
-            'critical_issues': analysis_results.get('critical_issues', []),
-            'recommendations': analysis_results.get('recommendations', [])
+            "pr_number": pr_number,
+            "analysis_results": {
+                "overall_compliance": avg_score,
+                "files_analyzed": len(all_results),
+                "results": [
+                    {
+                        "file": r["file"],
+                        "score": r["result"].overall_score,
+                        "compliance": r["result"].compliance_level.value,
+                    }
+                    for r in all_results
+                ],
+            },
+            "compliance_score": avg_score,
+            "critical_issues": [],  # Populated from results if needed
+            "recommendations": [],
         }
     
     def _load_constitutions(self, constitution_files: List[str]) -> List[Dict[str, Any]]:
