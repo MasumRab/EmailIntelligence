@@ -3,7 +3,6 @@ Tests for Git hook functionality in orchestration-tools.
 """
 
 import os
-import pytest
 from pathlib import Path
 
 
@@ -18,7 +17,13 @@ class TestGitHooks:
 
     def test_required_hooks_exist(self):
         """Test that required hooks are installed."""
-        required_hooks = ["pre-commit", "post-commit", "post-merge", "post-checkout", "post-push"]
+        required_hooks = [
+            "pre-commit",
+            "post-commit",
+            "post-merge",
+            "post-checkout",
+            "post-push",
+        ]
         hooks_dir = Path(".git/hooks")
 
         for hook in required_hooks:
@@ -40,7 +45,9 @@ class TestGitHooks:
         post_merge_hook = hooks_dir / "post-merge"
         if post_merge_hook.exists():
             content = post_merge_hook.read_text()
-            assert "orchestration-tools" in content, "post-merge should reference orchestration-tools branch"
+            assert (
+                "orchestration-tools" in content
+            ), "post-merge should reference orchestration-tools branch"
 
     def test_hook_orchestration_commit_tracking(self):
         """Test that hook orchestration commit tracking works."""
@@ -60,6 +67,7 @@ class TestHookValidation:
     def test_hook_syntax_validation(self):
         """Test that installed hooks have valid bash syntax."""
         import subprocess
+
         hooks_dir = Path(".git/hooks")
 
         for hook_file in hooks_dir.glob("*"):
@@ -69,18 +77,32 @@ class TestHookValidation:
                     continue
 
                 # Test bash syntax
-                result = subprocess.run(["bash", "-n", str(hook_file)],
-                                      capture_output=True, text=True)
-                assert result.returncode == 0, f"Hook {hook_file.name} has syntax errors: {result.stderr}"
+                result = subprocess.run(
+                    ["bash", "-n", str(hook_file)], capture_output=True, text=True
+                )
+                assert (
+                    result.returncode == 0
+                ), f"Hook {hook_file.name} has syntax errors: {result.stderr}"
 
     def test_hook_permissions(self):
         """Test that hooks have correct permissions."""
         hooks_dir = Path(".git/hooks")
 
         for hook_file in hooks_dir.glob("*"):
-            if (hook_file.is_file() and
-            not hook_file.name.endswith(".sample") and
-            not hook_file.name.startswith(".") and  # Exclude data files like .orchestration_commit_id
-                hook_file.name in ["pre-commit", "post-commit", "post-merge", "post-checkout", "post-push"]):
+            if (
+                hook_file.is_file()
+                and not hook_file.name.endswith(".sample")
+                and not hook_file.name.startswith(
+                    "."
+                )  # Exclude data files like .orchestration_commit_id
+                and hook_file.name
+                in [
+                    "pre-commit",
+                    "post-commit",
+                    "post-merge",
+                    "post-checkout",
+                    "post-push",
+                ]
+            ):
                 # Should be executable
                 assert os.access(hook_file, os.X_OK), f"Hook {hook_file.name} should be executable"

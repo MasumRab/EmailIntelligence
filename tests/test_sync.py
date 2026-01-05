@@ -3,7 +3,6 @@ Tests for orchestration sync scripts.
 """
 
 import os
-import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
@@ -43,26 +42,36 @@ class TestSyncScripts:
 class TestSyncScriptExecution:
     """Test that sync scripts can execute without critical errors."""
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_sync_setup_worktrees_dry_run(self, mock_run):
         """Test sync_setup_worktrees.sh dry run."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         import subprocess
-        result = subprocess.run(["bash", "scripts/sync_setup_worktrees.sh", "--dry-run"],
-                              capture_output=True, text=True, cwd=".")
+
+        result = subprocess.run(
+            ["bash", "scripts/sync_setup_worktrees.sh", "--dry-run"],
+            capture_output=True,
+            text=True,
+            cwd=".",
+        )
 
         # Should not crash
         assert result.returncode == 0 or result.returncode == 1  # Allow controlled failures
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_reverse_sync_dry_run(self, mock_run):
         """Test reverse_sync_orchestration.sh with help."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
         import subprocess
-        result = subprocess.run(["bash", "scripts/reverse_sync_orchestration.sh", "--help"],
-                              capture_output=True, text=True, cwd=".")
+
+        result = subprocess.run(
+            ["bash", "scripts/reverse_sync_orchestration.sh", "--help"],
+            capture_output=True,
+            text=True,
+            cwd=".",
+        )
 
         # Should not crash
         assert result.returncode == 0 or result.returncode == 1
@@ -83,12 +92,7 @@ class TestSyncConfiguration:
         script_path = Path("scripts/reverse_sync_orchestration.sh")
         content = script_path.read_text()
 
-        essential_files = [
-            "setup/launch.py",
-            ".flake8",
-            ".gitignore",
-            "pytest.ini"
-        ]
+        essential_files = ["setup/launch.py", ".flake8", ".gitignore", "pytest.ini"]
 
         for essential_file in essential_files:
             assert essential_file in content, f"Should include {essential_file} in managed files"
@@ -116,8 +120,13 @@ class TestOrchestrationWorkflow:
     def test_orchestration_tools_branch(self):
         """Test that we're on orchestration-tools branch."""
         import subprocess
-        result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                              capture_output=True, text=True, cwd=".")
+
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            cwd=".",
+        )
 
         assert result.returncode == 0
         current_branch = result.stdout.strip()
@@ -135,6 +144,7 @@ class TestOrchestrationWorkflow:
                 assert len(content) >= 7
                 # Should only contain hex characters
                 import string
+
                 assert all(c in string.hexdigits for c in content)
 
     def test_worktree_sync_capability(self):
@@ -143,5 +153,7 @@ class TestOrchestrationWorkflow:
         content = script_path.read_text()
 
         # Should have basic validation
-        assert "git show-ref --verify --quiet refs/heads/orchestration-tools" in content, "Should check orchestration-tools branch exists"
+        assert (
+            "git show-ref --verify --quiet refs/heads/orchestration-tools" in content
+        ), "Should check orchestration-tools branch exists"
         assert "orchestration-tools" in content, "Should reference orchestration-tools branch"

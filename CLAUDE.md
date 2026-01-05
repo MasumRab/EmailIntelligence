@@ -64,6 +64,7 @@ Steps:
 ### Parallel Development with Git Worktrees
 
 ```bash
+
 # Create worktrees for parallel task development
 git worktree add ../project-auth feature/auth-system
 git worktree add ../project-api feature/api-refactor
@@ -89,6 +90,7 @@ Use `/clear` for context isolation between tasks. Multiple Claude Code windows c
 For Claude users:
 
 ```bash
+
 # Set Claude as primary model
 task-master models --set-main claude-3-5-sonnet-20241022
 task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online

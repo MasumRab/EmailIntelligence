@@ -18,6 +18,7 @@ All `.github/instructions` documentation has been successfully:
 **Impact:** Links would not resolve in standard Markdown viewers  
 **Fix:** Changed to standard relative path syntax
 ```markdown
+
 # Before
 [filename](mdc:path/to/file)
 
@@ -30,6 +31,7 @@ All `.github/instructions` documentation has been successfully:
 **Impact:** Guidance example would confuse users  
 **Fix:** Made guidance generic instead of file-specific
 ```markdown
+
 # Before
 Consider adding to [prisma.instructions.md](.github/instructions/prisma.instructions.md):
 
@@ -133,6 +135,7 @@ Files:
 
 ### For CLI Tools
 ```bash
+
 # Reference documentation
 source .github/instructions/taskmaster.instructions.md
 source .github/instructions/dev_workflow.instructions.md
@@ -150,6 +153,7 @@ Refer to:
 
 ### For Repository Maintainers
 ```bash
+
 # 1. Verify commits (already done locally)
 git log --oneline -3 orchestration-tools main scientific
 
@@ -157,6 +161,7 @@ git log --oneline -3 orchestration-tools main scientific
 git push origin orchestration-tools main scientific
 
 # 3. Monitor CI/CD
+
 # Watch for any validation failures
 ```
 

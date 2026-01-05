@@ -47,6 +47,7 @@
 ### Core Workflow Commands
 
 ```bash
+
 # Project Setup
 task-master init                                    # Initialize Task Master in current project
 task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
@@ -86,6 +87,8 @@ task-master generate                                         # Update task markd
 - `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
+
+**Note:** The `.taskmaster/` directory should remain untracked by git to avoid committing local task management data. It is intentionally excluded from version control.
 
 ### Linting & Code Quality Configuration
 
@@ -185,6 +188,7 @@ complexity_report; // = task-master complexity-report
 #### 1. Project Initialization
 
 ```bash
+
 # Initialize Task Master
 task-master init
 
@@ -201,6 +205,7 @@ If tasks already exist, another PRD can be parsed (with new information only!) u
 #### 2. Daily Development Loop
 
 ```bash
+
 # Start each session
 task-master next                           # Find next available task
 task-master show <id>                     # Review task details
@@ -217,6 +222,7 @@ task-master set-status --id=<id> --status=done
 For complex projects, use multiple Claude Code sessions:
 
 ```bash
+
 # Terminal 1: Main implementation
 cd project && claude
 
@@ -292,6 +298,7 @@ An API key is required for any provider used across any of the 3 roles defined i
 ### Model Configuration
 
 ```bash
+
 # Interactive setup (recommended)
 task-master models --setup
 
@@ -367,6 +374,7 @@ For large migrations or multi-step processes:
 Task Master works well with `gh` CLI:
 
 ```bash
+
 # Create PR for completed task
 gh pr create --title "Complete task 1.2: User authentication" --body "Implements JWT auth system as specified in task 1.2"
 
@@ -377,6 +385,7 @@ git commit -m "feat: implement JWT auth (task 1.2)"
 ### Parallel Development with Git Worktrees
 
 ```bash
+
 # Create worktrees for parallel task development
 git worktree add ../project-auth feature/auth-system
 git worktree add ../project-api feature/api-refactor
@@ -391,6 +400,7 @@ cd ../project-api && claude     # Terminal 2: API work
 ### AI Commands Failing
 
 ```bash
+
 # Check API keys are configured
 cat .env                           # For CLI usage
 
@@ -411,6 +421,7 @@ task-master models --set-fallback gpt-4o-mini
 ### Task File Sync Issues
 
 ```bash
+
 # Regenerate task files from tasks.json
 task-master generate
 

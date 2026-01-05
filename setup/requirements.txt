@@ -28,6 +28,7 @@ scikit-learn>=1.5.0
 joblib>=1.5.1
 RestrictedPython>=8.0
 aiosqlite>=0.20.0
+aiofiles>=23.0.0
 redis>=5.0.0
 
 # Google APIs
@@ -48,3 +49,4 @@ python-dotenv>=1.1.0
 psutil>=6.0.0
 pyotp>=2.9.0
 qrcode>=7.4.2
+structlog>=24.1.0

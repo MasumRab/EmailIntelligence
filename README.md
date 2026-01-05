@@ -1,138 +1,445 @@
-# Orchestration Tools Branch
+# EmailIntelligence CLI
 
-This branch (`orchestration-tools`) serves as the **central source of truth** for development environment tooling, configuration management, scripts, and Git hooks that ensure consistency across all project branches.
+**AI-powered git worktree-based conflict resolution tool**
 
-## Purpose
+EmailIntelligence CLI implements a structured workflow for intelligent branch merge conflict resolution using constitutional/specification-driven analysis and spec-kit strategies.
 
-The primary goal is to keep the core email intelligence codebase clean by separating orchestration concerns from application code. This branch will **NOT** be merged with other branches, but instead provides essential tools and configurations that are synchronized to other branches via Git hooks.
+## 🚀 Quick Start
 
-## Files to KEEP (Essential for Orchestration)
-
-### Orchestration Scripts & Tools
-- `scripts/` - All orchestration scripts and utilities
-  - `install-hooks.sh` - Installs Git hooks for automated environment management
-  - `cleanup_orchestration.sh` - Removes orchestration-specific files when not on orchestration-tools
-  - `sync_setup_worktrees.sh` - Synchronizes worktrees for different branches
-  - `reverse_sync_orchestration.sh` - Reverse synchronization for orchestration updates
-  - `cleanup.sh` - Cleanup utilities
-  - `lib/` - Shared utility libraries (common.sh, error_handling.sh, git_utils.sh, logging.sh, validation.sh)
-  - `hooks/` - Git hook source files (pre-commit, post-checkout, post-commit, post-merge, post-push)
-
-### Setup & Environment Management
-- `setup/` - Launch scripts and environment setup
-  - `launch.py` - Main launcher with environment setup functionality
-  - `pyproject.toml` - Python project configuration
-  - `requirements.txt` - Runtime dependencies
-  - `requirements-dev.txt` - Development dependencies
-  - `setup_environment_*.sh` - Environment setup scripts
-  - `launch.*` - Cross-platform launch scripts
-
-### Configuration Files
-- `.flake8`, `.pylintrc` - Python linting configuration
-- `.gitignore`, `.gitattributes` - Git configuration
-- `launch.py` (root wrapper) - Forwards to setup/launch.py (backward compatibility)
-
-### Orchestration Documentation
-- `docs/orchestration_summary.md` - Summary of orchestration workflow
-- `docs/orchestration_validation_tests.md` - Validation tests for orchestration
-- `docs/env_management.md` - Environment management documentation
-- `docs/git_workflow_plan.md` - Git workflow planning
-- `docs/current_orchestration_docs/` - All orchestration-specific documentation
-- `docs/guides/` - Orchestration guides
-
-## Files to REMOVE (Application-Specific)
-
-The following files are NOT needed in this orchestration-focused branch and can be safely removed:
-
-### Application Source Code
-- `src/` - Application source code
-- `modules/` - Application modules
-- `backend/` - Backend implementation
-- `client/` - Frontend implementation
-- `tests/` - Application tests
-
-### Application Data & Dependencies
-- `data/` - Application data
-- `node_modules/` - Node.js dependencies
-- `performance_metrics_log.jsonl` - Runtime logs
-
-### Application-Specific Configurations
-- `.env.example` - Application environment example
-- `.mcp.json` - MCP-specific configuration (if application-specific)
-- `.rules` - Application-specific rules
-- Any documentation files in `docs/` that are not orchestration-related
-
-## Git Hook Behavior
-
-### `pre-commit` Hook
-- **Purpose**: Prevent accidental changes to orchestration-managed files
-- **Behavior**: Allows all changes on orchestration-tools; warns on orchestration-managed file changes on other branches
-
-### `post-checkout` Hook
-- **Purpose**: Sync essential files when switching branches
-- **Behavior**: Syncs setup/ directory, shared configs, and installs hooks when switching FROM orchestration-tools; skips sync when switching TO orchestration-tools
-
-### `post-merge` Hook
-- **Purpose**: Ensure environment consistency after merges
-- **Behavior**: Syncs setup/ directory, installs/updates Git hooks, cleans up temporary worktrees
-
-### `post-push` Hook
-- **Purpose**: Detect orchestration changes and create PRs
-- **Behavior**: Creates automatic draft PRs when orchestration-managed files are changed on non-orchestration branches
-
-## Development Workflow
-
-1. **For orchestration development**: Work directly in `orchestration-tools` branch
-2. **For environment setup**: The `setup/` directory contains all necessary tools
-3. **For configuration changes**: Make changes in orchestration-tools, they propagate automatically
-4. **For Git hook management**: Use `install-hooks.sh` to install consistent hook versions
-
-## Branch Policy
-
-- **This branch will NOT be merged with other branches**
-- **Focus only on orchestration tools, scripts, and configurations**
-- **Remove application-specific files to keep the branch clean**
-- **Maintain backward compatibility for the launch system**
-- **Ensure all hooks and automation scripts work correctly**
-
-## Hook Management and Updates
-
-When making changes to orchestration files, follow these important steps:
-
-1. **Always work in the orchestration-tools branch**
-2. **Test your changes thoroughly**
-3. **After pushing changes, other developers will receive updates automatically when switching branches**
-4. **For immediate updates, run**: `scripts/install-hooks.sh --force`
-5. **Refer to**: `docs/orchestration_hook_management.md` for detailed procedures
-
-## Cleanup Strategy
-
-To clean this branch for orchestration-only purposes:
+### Installation
 
 ```bash
-# Remove application-specific directories
-rm -rf src/
-rm -rf modules/
-rm -rf tests/
-rm -rf data/
-rm -rf backend/
-rm -rf client/
-rm -rf node_modules/
+# Make the CLI executable
+chmod +x emailintelligence_cli.py
 
-# Remove application-specific files
-rm -f .env.example
-rm -f .mcp.json
-rm -f .rules
-rm -f performance_metrics_log.jsonl
-
-# Review docs/ and remove non-orchestration documentation
-# (Keep orchestration_summary.md, orchestration_validation_tests.md, env_management.md, git_workflow_plan.md, and directories)
+# Optional: Create a symbolic link for easy access
+ln -s $(pwd)/emailintelligence_cli.py /usr/local/bin/eai
 ```
 
-## Important Notes
+### Basic Usage
 
-- The root `launch.py` wrapper is essential and should be kept for backward compatibility
-- The `setup/` directory is critical for environment setup and should be maintained
-- All Git hooks in `scripts/hooks/` are essential for the orchestration workflow
-- This branch serves as the single source of truth for all environment and tooling configurations
-- Changes to orchestration-managed files require PRs through the automated system
+```bash
+# Setup resolution workspace for PR #123
+eai setup-resolution --pr 123 --source-branch feature/auth --target-branch main
+
+# Analyze constitutional compliance
+eai analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml
+
+# Develop spec-kit resolution strategy
+eai develop-spec-kit-strategy --pr 123 --worktrees --interactive
+
+# Execute content alignment
+eai align-content --pr 123 --interactive --checkpoint-each-step
+
+# Validate resolution
+eai validate-resolution --pr 123 --comprehensive
+```
+
+## 📋 Overview
+
+EmailIntelligence CLI transforms complex git merge conflicts into structured, analyzable problems through:
+
+- **Git Worktree Management**: Isolated analysis environments for clean conflict detection
+- **Constitutional Analysis**: Rule-based compliance checking against organizational standards
+- **Spec-Kit Strategy Development**: Intelligent resolution planning with enhancement preservation
+- **Interactive Workflows**: Step-by-step guidance with human-in-the-loop decision making
+
+## 🏗️ Architecture
+
+### Core Components
+
+1. **Resolution Workspace**: Isolated git worktree environment for conflict analysis
+2. **Constitutional Framework**: YAML/JSON-based rule sets for compliance validation
+3. **Spec-Kit Engine**: Strategy generation and execution framework
+4. **Validation System**: Multi-level testing and quality assurance
+
+### Directory Structure
+
+```
+/
+├── .git/
+│   └── worktrees/              # Isolated worktree directories
+├── resolution-workspace/       # Resolution metadata and progress
+├── .emailintelligence/
+│   ├── config.yaml             # Tool configuration
+│   ├── constitutions/          # Constitutional rule files
+│   └── strategies/            # Generated resolution strategies
+└── emailintelligence_cli.py    # Main CLI tool
+```
+
+## 🎯 Commands
+
+### setup-resolution
+
+Initialize a resolution workspace for a specific PR.
+
+```bash
+eai setup-resolution --pr 123 --source-branch feature/auth --target-branch main [options]
+```
+
+**Arguments:**
+- `--pr`: Pull request number (required)
+- `--source-branch`: Source branch with conflicts (required)
+- `--target-branch`: Target branch for merging (required)
+
+**Options:**
+- `--constitution`: Constitution file(s) to load (repeatable)
+- `--spec`: Specification file(s) (repeatable)
+- `--dry-run`: Preview setup without creating worktrees
+
+**Output:**
+- Resolution workspace metadata
+- Conflict detection results
+- Next steps recommendations
+
+### analyze-constitutional
+
+Analyze conflicts against loaded constitutional rules.
+
+```bash
+eai analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml [options]
+```
+
+**Arguments:**
+- `--pr`: Pull request number (required)
+
+**Options:**
+- `--constitution`: Constitution file(s) to analyze against (repeatable)
+- `--interactive`: Enable interactive analysis mode
+
+**Output:**
+- Constitutional compliance scores
+- Critical issues identification
+- Resolution recommendations
+
+### develop-spec-kit-strategy
+
+Generate intelligent resolution strategy based on conflict analysis.
+
+```bash
+eai develop-spec-kit-strategy --pr 123 --worktrees --interactive [options]
+```
+
+**Arguments:**
+- `--pr`: Pull request number (required)
+
+**Options:**
+- `--worktrees`: Use worktree-based analysis
+- `--alignment-rules`: Path to alignment rules file
+- `--interactive`: Enable interactive strategy development
+- `--review-required`: Require team review
+
+**Output:**
+- Multi-phase resolution strategy
+- Enhancement preservation plans
+- Risk assessment and mitigation
+
+### align-content
+
+Execute content alignment based on developed strategy.
+
+```bash
+eai align-content --pr 123 --interactive --checkpoint-each-step [options]
+```
+
+**Arguments:**
+- `--pr`: Pull request number (required)
+
+**Options:**
+- `--strategy`: Path to strategy JSON file
+- `--dry-run`: Preview alignment without applying changes
+- `--preview-changes`: Show preview of changes
+- `--interactive`: Interactive alignment with step-by-step confirmation
+- `--checkpoint-each-step`: Checkpoint after each step
+
+**Output:**
+- Phase-by-phase execution results
+- Alignment scores and metrics
+- Conflict resolution status
+
+### validate-resolution
+
+Validate completed content alignment.
+
+```bash
+eai validate-resolution --pr 123 --comprehensive [options]
+```
+
+**Arguments:**
+- `--pr`: Pull request number (required)
+
+**Options:**
+- `--comprehensive`: Run comprehensive validation
+- `--quick`: Run quick validation check
+- `--tests`: Specific test suites to run (comma-separated)
+
+**Output:**
+- Validation test results
+- Constitutional compliance status
+- Overall resolution quality score
+
+### version
+
+Show version information.
+
+```bash
+eai version
+```
+
+## ⚙️ Configuration
+
+### Configuration File
+
+The tool creates `~/.emailintelligence/config.yaml` with default settings:
+
+```yaml
+constitutional_framework:
+  default_constitutions: []
+  compliance_threshold: 0.8
+
+worktree_settings:
+  cleanup_on_completion: true
+  max_worktrees: 10
+
+analysis_settings:
+  enable_ai_analysis: false
+  detailed_reporting: true
+```
+
+### Constitutional Files
+
+Constitutional rules define organizational standards and requirements.
+
+**Example Constitution (auth.yaml):**
+```yaml
+name: "Authentication Security Constitution"
+version: "1.0"
+requirements:
+  - name: "Secure password hashing"
+    type: "MUST"
+    validation: "bcrypt minimum cost factor 12"
+    
+  - name: "JWT token validation"
+    type: "MUST"
+    validation: "Signature and expiration validation"
+    
+  - name: "Session timeout"
+    type: "SHOULD"
+    validation: "Configurable timeout within 30 minutes"
+    
+  - name: "Rate limiting"
+    type: "SHOULD"
+    validation: "Per-user and per-IP rate limits"
+```
+
+**Requirement Types:**
+- `MUST`: Critical requirements that must be satisfied
+- `REQUIRED`: Important requirements with some flexibility
+- `SHOULD`: Recommended standards for best practices
+- `SHOULD_NOT`: Practices to avoid
+
+## 📊 Workflow
+
+### 1. Setup Phase
+- Create isolated resolution workspace
+- Initialize dual worktree environment
+- Detect and catalog conflicts
+- Load constitutional frameworks
+
+### 2. Analysis Phase
+- Analyze conflicts against constitutional rules
+- Generate compliance assessment
+- Identify critical issues and recommendations
+- Create interactive analysis reports
+
+### 3. Strategy Development Phase
+- Develop multi-phase resolution strategy
+- Plan enhancement preservation
+- Assess risks and mitigation approaches
+- Generate interactive strategy approval process
+
+### 4. Execution Phase
+- Execute content alignment phases
+- Apply constitutional validation
+- Track alignment scores and progress
+- Handle interactive confirmations and checkpoints
+
+### 5. Validation Phase
+- Run comprehensive validation tests
+- Verify constitutional compliance
+- Assess overall resolution quality
+- Generate validation reports
+
+## 🔍 Examples
+
+### Basic Resolution Workflow
+
+```bash
+# 1. Setup resolution environment
+eai setup-resolution \
+  --pr 142 \
+  --source-branch feature/user-auth \
+  --target-branch main \
+  --constitution ./constitutions/security.yaml
+
+# 2. Analyze compliance
+eai analyze-constitutional \
+  --pr 142 \
+  --constitution ./constitutions/security.yaml \
+  --interactive
+
+# 3. Develop strategy
+eai develop-spec-kit-strategy \
+  --pr 142 \
+  --worktrees \
+  --interactive
+
+# 4. Execute alignment
+eai align-content \
+  --pr 142 \
+  --interactive \
+  --checkpoint-each-step
+
+# 5. Validate results
+eai validate-resolution \
+  --pr 142 \
+  --comprehensive
+```
+
+### Advanced Configuration
+
+```bash
+# Use multiple constitutions
+eai analyze-constitutional \
+  --pr 142 \
+  --constitution ./constitutions/security.yaml \
+  --constitution ./constitutions/api.yaml \
+  --constitution ./constitutions/database.yaml
+
+# Custom alignment rules
+eai develop-spec-kit-strategy \
+  --pr 142 \
+  --alignment-rules ./alignment-rules/custom.yaml \
+  --interactive \
+  --review-required
+
+# Dry-run preview
+eai setup-resolution \
+  --pr 142 \
+  --source-branch feature/auth \
+  --target-branch main \
+  --dry-run
+```
+
+## 🛠️ Development
+
+### Requirements
+
+- Python 3.7+
+- Git (with worktree support)
+- Optional: PyYAML for YAML configuration
+
+### Dependencies
+
+```bash
+# Optional YAML support
+pip install PyYAML
+```
+
+### Testing
+
+```bash
+# Make executable
+chmod +x emailintelligence_cli.py
+
+# Run basic functionality test
+eai version
+
+# Test in a git repository
+cd /path/to/git/repo
+eai setup-resolution --pr 1 --source-branch test --target-branch main --dry-run
+```
+
+### Customization
+
+The tool is designed for extensibility:
+
+1. **Custom Constitutions**: Add organization-specific rule sets
+2. **Alignment Rules**: Define custom resolution strategies
+3. **Validation Suites**: Extend validation testing frameworks
+4. **Integration Hooks**: Connect with CI/CD pipelines
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**"Not in a git repository"**
+- Ensure you're running from a git repository root
+- Check that `.git` directory exists
+
+**"No resolution workspace found"**
+- Run `setup-resolution` first
+- Check that resolution metadata exists in `resolution-workspace/`
+
+**"Constitution file not found"**
+- Verify file path exists
+- Check permissions and file format
+- Ensure YAML/JSON syntax is valid
+
+**"Worktree creation failed"**
+- Ensure sufficient disk space
+- Check git version supports worktrees (git 2.5+)
+- Verify write permissions to `.git/worktrees/`
+
+### Debug Mode
+
+```bash
+# Use dry-run to preview operations
+eai setup-resolution --pr 123 --source-branch feature --target-branch main --dry-run
+
+# Check metadata manually
+cat resolution-workspace/pr-123-metadata.json
+```
+
+### Log Files
+
+Resolution operations generate metadata in `resolution-workspace/`:
+- `pr-{number}-metadata.json`: Complete resolution metadata
+- Strategy files and analysis results
+- Validation reports and test results
+
+## 🤝 Contributing
+
+### Code Style
+- Follow PEP 8 guidelines
+- Use type hints for all function parameters
+- Include comprehensive docstrings
+- Maintain test coverage for new features
+
+### Adding Features
+1. Extend base classes for new functionality
+2. Maintain backward compatibility
+3. Add comprehensive error handling
+4. Include integration tests
+
+### Constitutional Framework
+- Create organization-specific constitutions
+- Test compliance scoring logic
+- Validate requirement categorization
+- Document validation criteria
+
+## 📝 License
+
+This tool is provided as-is for conflict resolution automation. Modify and adapt according to your organization's needs.
+
+## 🆘 Support
+
+For issues and feature requests:
+1. Check troubleshooting section
+2. Review metadata files in `resolution-workspace/`
+3. Use `--dry-run` for safe testing
+4. Validate git repository and permissions
+
+---
+
+**EmailIntelligence CLI v1.0.0** - Transforming git conflicts into structured solutions

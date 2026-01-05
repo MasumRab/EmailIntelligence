@@ -177,42 +177,52 @@ Display help message with all options.
 ### Phase 1: Validation (5 minutes)
 
 ```bash
+
 # Step 1: Verify no changes in working tree
 git status
+
 # Should show: "nothing to commit, working tree clean"
 
 # Step 2: Dry run to see what would happen
 ./scripts/update-all-branches.sh --dry-run
 
 # Step 3: Review the output
+
 # Verify all branches are listed correctly
+
 # Verify scripts match expected list
 ```
 
 ### Phase 2: Update Critical Branches (10 minutes)
 
 ```bash
+
 # Step 1: Update main and orchestration-tools first
 ./scripts/update-all-branches.sh --branches main,orchestration-tools --no-interactive
 
 # Step 2: Verify updates
 git checkout main
 git log --oneline -2
+
 # Should show latest commit: "chore: sync infrastructure scripts..."
 
 # Step 3: Verify scripts are present
 ls -la scripts/install-hooks.sh scripts/validate-*.sh
+
 # All should be present with correct timestamps
 ```
 
 ### Phase 3: Update Feature Branches (15 minutes)
 
 ```bash
+
 # Step 1: Update all remaining branches
 ./scripts/update-all-branches.sh --no-interactive
 
 # Step 2: Monitor for failures
+
 # Watch for ✗ entries in output
+
 # Note any branches that failed
 
 # Step 3: Return to main
@@ -222,6 +232,7 @@ git checkout main
 ### Phase 4: Verification (5 minutes)
 
 ```bash
+
 # Step 1: Verify update across branches
 for branch in main scientific orchestration-tools; do
   git show $branch:scripts/install-hooks.sh > /dev/null && \
@@ -250,6 +261,7 @@ diff /tmp/src.sh /tmp/main.sh && echo "✓ Scripts match" || echo "✗ Scripts d
 
 **Commands:**
 ```bash
+
 # Clean up any uncommitted changes
 git status  # Check for uncommitted changes
 git stash   # If changes present
@@ -306,9 +318,13 @@ Updating branch: scientific
 **Verification Steps:**
 
 ```bash
+
 # Step 1: Check summary output
+
 # Should show:
+
 # - Updated branches: X (all expected branches)
+
 # - Failed branches: 0 (or list specific failures)
 
 # Step 2: Verify script presence on main
@@ -324,6 +340,7 @@ git log main --oneline | grep "chore: sync infrastructure"
 
 # Step 5: Compare with source
 git diff orchestration-tools:scripts/validate-branch-propagation.sh main:scripts/validate-branch-propagation.sh
+
 # Should show no differences
 ```
 
@@ -337,6 +354,7 @@ git diff orchestration-tools:scripts/validate-branch-propagation.sh main:scripts
 
 **Solution:**
 ```bash
+
 # Skip that branch
 ./scripts/update-all-branches.sh --skip local-only-branch
 
@@ -355,6 +373,7 @@ git push origin --delete local-only-branch
 
 **Solution:**
 ```bash
+
 # Check what failed
 git log <branch>..origin/<branch>
 
@@ -367,6 +386,7 @@ git merge orchestration-tools  # Merge latest from source
 ./scripts/update-all-branches.sh --skip protected-branch
 
 # Option 3: Update branch protection rules to allow updates
+
 # (In GitHub: Settings → Branches → Branch protection rules)
 ```
 
@@ -382,12 +402,14 @@ git merge orchestration-tools  # Merge latest from source
 
 **Solution:**
 ```bash
+
 # Check differences
 git show orchestration-tools:scripts/install-hooks.sh > /tmp/orch.sh
 cat scripts/install-hooks.sh > /tmp/current.sh
 diff /tmp/orch.sh /tmp/current.sh
 
 # Option 1: Accept target version (if intentional)
+
 # Do nothing - keep branch-specific version
 
 # Option 2: Force source version
@@ -404,6 +426,7 @@ git push origin <branch>
 ### Update with Custom Filters
 
 ```bash
+
 # Update only main branch branches
 ./scripts/update-all-branches.sh --branches main
 
@@ -411,6 +434,7 @@ git push origin <branch>
 ./scripts/update-all-branches.sh --skip "feature/experimental,wip,test-*"
 
 # Update only branches starting with "feature/"
+
 # (Manually list them)
 ./scripts/update-all-branches.sh --branches "feature/auth,feature/api,feature/db"
 ```
@@ -418,6 +442,7 @@ git push origin <branch>
 ### Verify All Branches Have Latest Scripts
 
 ```bash
+
 # Create verification script
 for branch in $(git branch -r | grep -v HEAD | sed 's|origin/||'); do
   HASH=$(git show $branch:scripts/install-hooks.sh 2>/dev/null | sha256sum | cut -d' ' -f1)
@@ -433,6 +458,7 @@ done
 ### Rollback Updates
 
 ```bash
+
 # If something goes wrong, revert the update commits
 
 # Option 1: Revert specific branch
@@ -454,6 +480,7 @@ git push origin <affected-branch> --force-with-lease
 ### Scenario 1: Regular Maintenance (Monthly)
 
 ```bash
+
 # Update all branches with latest scripts
 ./scripts/update-all-branches.sh --no-interactive --verbose
 
@@ -467,6 +494,7 @@ cp /tmp/branch-update-report.txt ~/backups/branch-update-$(date +%Y-%m-%d).txt
 ### Scenario 2: Emergency Update (Critical Fix)
 
 ```bash
+
 # Update only critical branches first
 ./scripts/update-all-branches.sh \
   --branches main,orchestration-tools,scientific \
@@ -482,7 +510,9 @@ git show main:scripts/validate-orchestration-context.sh | head -20
 ### Scenario 3: CI/CD Integration
 
 ```bash
+
 # In CI pipeline, run automated update
+
 #!/bin/bash
 set -e
 
@@ -498,6 +528,7 @@ echo "Branch update complete"
 ### Scenario 4: Testing on Subset
 
 ```bash
+
 # Test update procedure on subset
 ./scripts/update-all-branches.sh \
   --dry-run \
@@ -531,21 +562,25 @@ done
 ✅ **Scripts Are Executable**
 ```bash
 stat -c '%a' scripts/install-hooks.sh
+
 # Should be: 755
 ```
 
 ✅ **Scripts Match Source**
 ```bash
 git diff orchestration-tools:scripts/install-hooks.sh main:scripts/install-hooks.sh
+
 # Should be empty (no differences)
 ```
 
 ✅ **All Branches Synced**
 ```bash
 git branch -r | wc -l  # Count of branches
+
 # Verify all important branches in list
 
 git log main --grep="chore: sync infrastructure" --oneline | head -1
+
 # Should show recent update commit
 ```
 
@@ -579,7 +614,9 @@ The update script includes:
 ### Monitoring
 
 ```bash
+
 # Create cron job for automated updates
+
 # Edit crontab: crontab -e
 
 # Update all branches first day of month
