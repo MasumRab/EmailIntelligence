@@ -24,6 +24,14 @@ from src.git.conflict_detector import GitConflictDetector
 from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
 from src.analysis.conflict_analyzer import ConflictAnalyzer
 
+# Additional imports for interface-based architecture
+from src.analysis.constitutional.analyzer import ConstitutionalAnalyzer
+from src.resolution.auto_resolver import AutoResolver
+from src.resolution.semantic_merger import SemanticMerger
+from src.strategy.generator import StrategyGenerator
+from src.strategy.risk_assessor import RiskAssessor
+from src.validation.validator import Validator
+
 try:
     import yaml
 except ImportError:
@@ -55,10 +63,18 @@ class EmailIntelligenceCLI:
         self._constitutional_engine_initialized = False
 
         # Initialize Git Conflict Detector
-        self.conflict_detector = GitConflictDetector(str(self.repo_root))
+        self.conflict_detector = GitConflictDetector(self.repo_path)
 
         # Initialize Conflict Analyzer
         self.conflict_analyzer = ConflictAnalyzer()
+
+        # Initialize additional components for interface-based architecture
+        self.constitutional_analyzer = ConstitutionalAnalyzer()
+        self.auto_resolver = AutoResolver()
+        self.semantic_merger = SemanticMerger()
+        self.strategy_generator = StrategyGenerator()
+        self.risk_assessor = RiskAssessor()
+        self.validator = Validator()
 
         # Initialize git repository check
         self._check_git_repository()
@@ -271,8 +287,8 @@ class EmailIntelligenceCLI:
             for spec in specifications:
                 self._info(f"   └─ Specification: {spec}")
 
-            # Step 4: Detect conflicts
-            conflicts = self._detect_conflicts(worktree_a_path, worktree_b_path)
+            # Step 4: Detect conflicts using the new interface-based detector
+            conflicts = self._detect_conflicts_interface_based(worktree_a_path, worktree_b_path)
 
             # Step 5: Create resolution metadata
             resolution_metadata = {
@@ -360,6 +376,35 @@ class EmailIntelligenceCLI:
         except subprocess.CalledProcessError:
             return []
 
+    def _detect_conflicts_interface_based(self, worktree_a_path: Path, worktree_b_path: Path) -> List[Dict[str, Any]]:
+        """Detect conflicts between worktrees using the new interface-based detector"""
+        try:
+            # Use the new GitConflictDetector that implements IConflictDetector interface
+            detector = GitConflictDetector(self.repo_root)
+            conflicts = detector.detect_conflicts_in_repo()
+
+            # Convert to the format expected by the rest of the system
+            conflict_list = []
+            for conflict in conflicts:
+                conflict_info = {
+                    'file': conflict.file_path,
+                    'path_a': str(worktree_a_path / conflict.file_path),
+                    'path_b': str(worktree_b_path / conflict.file_path),
+                    'detected_at': datetime.now().isoformat(),
+                    'conflict_type': conflict.conflict_type.value,
+                    'severity': conflict.severity.value,
+                    'description': conflict.description
+                }
+                conflict_list.append(conflict_info)
+
+            self._info(f"🔍 Detected {len(conflict_list)} potential conflicts using new detector")
+            return conflict_list
+
+        except Exception as e:
+            self._error(f"Error detecting conflicts: {str(e)}")
+            # Fallback to the original method
+            return self._detect_conflicts(worktree_a_path, worktree_b_path)
+
     def analyze_constitutional(
         self, pr_number: int, constitution_files: List[str] = None,
         interactive: bool = False
@@ -416,7 +461,7 @@ class EmailIntelligenceCLI:
 
         print(f"Analyzing {len(conflicts_data)} conflicts against constitutional rules...")
 
-        # Analyze each conflict
+        # Analyze each conflict using the new constitutional analyzer
         all_results = []
         for i, conflict in enumerate(conflicts_data, 1):
             file_path = conflict.get("file", "unknown")
@@ -425,25 +470,25 @@ class EmailIntelligenceCLI:
             # Create specification template content from conflict
             template_content = self._conflict_to_template(conflict, metadata)
 
-            # REAL constitutional validation!
-            result = await self.constitutional_engine.validate_specification_template(
-                template_content=template_content,
-                template_type="conflict_analysis",
+            # Use the new constitutional analyzer
+            result = await self.constitutional_analyzer.analyze_constitutional_compliance(
+                code=template_content,
                 context={
                     "pr_number": pr_number,
                     "source_branch": metadata.get("source_branch"),
                     "target_branch": metadata.get("target_branch"),
                     "file_path": file_path,
-                },
+                    "conflict_data": conflict
+                }
             )
 
             all_results.append({"file": file_path, "result": result})
 
             # Display result
-            self._display_compliance_result(result, file_path)
+            self._display_constitutional_analysis_result(result, file_path)
 
         # Overall summary
-        self._display_overall_summary(all_results)
+        self._display_constitutional_overall_summary(all_results)
 
         # Save results to metadata
         self._save_constitutional_results(pr_number, all_results, metadata_file)
@@ -451,11 +496,10 @@ class EmailIntelligenceCLI:
         print(f"\n{'='*80}\n")
 
         # Return summary structure for CLI compatibility
-        avg_score = (
-            sum(r["result"].overall_score for r in all_results) / len(all_results)
-            if all_results
-            else 0.0
-        )
+        if all_results:
+            avg_score = sum(r["result"].compliance_score for r in all_results) / len(all_results)
+        else:
+            avg_score = 0.0
 
         return {
             "pr_number": pr_number,
@@ -465,16 +509,41 @@ class EmailIntelligenceCLI:
                 "results": [
                     {
                         "file": r["file"],
-                        "score": r["result"].overall_score,
-                        "compliance": r["result"].compliance_level.value,
+                        "score": r["result"].compliance_score,
+                        "compliance": "compliant" if r["result"].compliance_score > 0.8 else "non_compliant",
+                        "violations": len(r["result"].violations),
+                        "recommendations": len(r["result"].recommendations)
                     }
                     for r in all_results
                 ],
             },
             "compliance_score": avg_score,
-            "critical_issues": [],  # Populated from results if needed
-            "recommendations": [],
+            "critical_issues": [v for r in all_results for v in r["result"].violations if "critical" in v.lower()],
+            "recommendations": [r for r in all_results for r in r["result"].recommendations],
         }
+
+    def _display_constitutional_analysis_result(self, result, filename: str):
+        """Display constitutional analysis result for a file"""
+        status_emoji = "✅" if result.compliance_score > 0.8 else "⚠️" if result.compliance_score > 0.5 else "❌"
+        print(f"  {status_emoji} {filename}: {result.compliance_score:.1%} ({len(result.violations)} violations)")
+
+    def _display_constitutional_overall_summary(self, all_results: List[Dict[str, Any]]):
+        """Display overall constitutional analysis summary"""
+        if not all_results:
+            print("No results to display")
+            return
+
+        total_score = sum(r['result'].compliance_score for r in all_results)
+        avg_score = total_score / len(all_results) if all_results else 0.0
+
+        total_violations = sum(len(r['result'].violations) for r in all_results)
+        total_recommendations = sum(len(r['result'].recommendations) for r in all_results)
+
+        print(f"\nOverall Constitutional Analysis Summary:")
+        print(f"  Files analyzed: {len(all_results)}")
+        print(f"  Total violations: {total_violations}")
+        print(f"  Total recommendations: {total_recommendations}")
+        print(f"  Average compliance: {avg_score:.1%}")
 
     def _load_constitutions(self, constitution_files: List[str]) -> List[Dict[str, Any]]:
         """Load constitution files"""
@@ -731,6 +800,8 @@ class EmailIntelligenceCLI:
             alignment_rules: Path to alignment rules file
             interactive: Enable interactive strategy development
         """
+        import asyncio
+
         metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
 
         if not metadata_file.exists():
@@ -1418,6 +1489,94 @@ class EmailIntelligenceCLI:
         else:
             self._error("❌ Resolution validation failed - manual intervention required")
 
+    async def auto_resolve_conflicts(
+        self, pr_number: int, strategy_file: str = None
+    ) -> Dict[str, Any]:
+        """
+        Automatically resolve conflicts using AI-driven resolution strategies
+
+        Args:
+            pr_number: Pull request number
+            strategy_file: Path to strategy file (optional)
+
+        Returns:
+            Resolution results
+        """
+        metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
+
+        if not metadata_file.exists():
+            self._error_exit(f"No resolution workspace found for PR #{pr_number}")
+
+        # Load metadata
+        with open(metadata_file) as f:
+            metadata = json.load(f)
+
+        # Convert metadata conflicts to Conflict objects
+        conflicts = self._convert_metadata_to_conflicts(metadata.get('conflicts', []))
+
+        # Generate or load strategy
+        if strategy_file and Path(strategy_file).exists():
+            with open(strategy_file) as f:
+                strategy_data = json.load(f)
+        else:
+            # Generate strategy using the strategy generator
+            strategy = await self.strategy_generator.generate_resolution_strategy(conflicts)
+            strategy_data = {
+                'strategy_type': strategy.strategy_type,
+                'steps': strategy.steps,
+                'estimated_time': strategy.estimated_time,
+                'risk_assessment': strategy.risk_assessment
+            }
+
+        # Create resolution plan
+        from src.core.conflict_models import ResolutionPlan, ValidationResult
+        validation_result = ValidationResult(
+            is_valid=True,
+            errors=[],
+            warnings=[],
+            details={}
+        )
+
+        resolution_plan = ResolutionPlan(
+            conflicts=conflicts,
+            strategy=strategy_data,
+            validation_result=validation_result,
+            execution_context=metadata
+        )
+
+        # Execute auto-resolution
+        resolution_results = await self.auto_resolver.execute_resolution(resolution_plan)
+
+        # Update metadata with results
+        metadata['auto_resolution_results'] = resolution_results
+        metadata['status'] = 'auto_resolved' if resolution_results['success'] else 'partial_resolution'
+        metadata['resolved_at'] = datetime.now().isoformat()
+
+        with open(metadata_file, 'w') as f:
+            json.dump(metadata, f, indent=2)
+
+        return resolution_results
+
+    def _convert_metadata_to_conflicts(self, metadata_conflicts: List[Dict[str, Any]]) -> List[Conflict]:
+        """Convert metadata conflict format to Conflict objects"""
+        from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
+
+        conflicts = []
+        for meta_conflict in metadata_conflicts:
+            # Create a basic Conflict object
+            conflict = Conflict(
+                file_path=meta_conflict.get('file', 'unknown'),
+                conflict_blocks=[],  # We may need to populate this based on actual conflict data
+                conflict_type=ConflictTypeExtended.CONTENT,
+                severity=RiskLevel.MEDIUM,
+                description=meta_conflict.get('description', ''),
+                resolution_strategy=meta_conflict.get('resolution_strategy', 'standard_merge'),
+                estimated_resolution_time=meta_conflict.get('estimated_resolution_time', 30)
+            )
+            conflicts.append(conflict)
+
+        return conflicts
+
     # Utility methods for output formatting
     def _info(self, message: str):
         """Display info message"""
@@ -1506,6 +1665,11 @@ Examples:
     validate_parser.add_argument('--quick', action='store_true', help='Run quick validation check')
     validate_parser.add_argument('--tests', help='Specific test suites to run (comma-separated)')
 
+    # Auto-resolve command
+    auto_resolve_parser = subparsers.add_parser('auto-resolve', help='Automatically resolve conflicts')
+    auto_resolve_parser.add_argument('--pr', type=int, required=True, help='Pull request number')
+    auto_resolve_parser.add_argument('--strategy', help='Path to strategy file')
+
     # Add version command
     subparsers.add_parser('version', help='Show version information')
 
@@ -1563,6 +1727,16 @@ Examples:
                 comprehensive=args.comprehensive,
                 quick=args.quick,
                 test_suites=args.tests
+            )
+            print(json.dumps(result, indent=2))
+
+        elif args.command == 'auto-resolve':
+            import asyncio
+            result = asyncio.run(
+                cli.auto_resolve_conflicts(
+                    pr_number=args.pr,
+                    strategy_file=args.strategy
+                )
             )
             print(json.dumps(result, indent=2))
 

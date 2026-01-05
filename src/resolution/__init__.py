@@ -56,7 +56,7 @@ class ConstitutionalRequirement:
 
 class ConstitutionalEngine:
     """Engine for constitutional analysis and compliance checking"""
-    
+
     def __init__(self, constitution_file: Optional[str] = None):
         self.requirements: List[ConstitutionalRequirement] = []
         self.load_constitution(constitution_file)
