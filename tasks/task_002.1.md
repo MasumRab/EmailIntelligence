@@ -716,6 +716,74 @@ if not line or line.startswith('Binary'):
 
 ---
 
+## Helper Tools (Optional)
+
+The following tools are available to accelerate work or provide validation. **None are required** - every task is completable using only the steps in this file.
+
+### Progress Logging
+
+After completing each sub-subtask, optionally log progress for multi-session continuity:
+
+```python
+from memory_api import AgentMemory
+
+memory = AgentMemory()
+memory.load_session()
+
+# After completing sub-subtask 002.1.3
+memory.add_work_log(
+    action="Completed Task 002.1.3: Commit Recency Metric",
+    details="Exponential decay function implemented, bounds checking added, test coverage 100%"
+)
+memory.update_todo("task_002_1_3", "completed")
+memory.save_session()
+```
+
+**What this does:** Maintains session state across work sessions, enables agent handoffs, documents progress.  
+**Required?** No - git commits are sufficient.  
+**See:** MEMORY_API_FOR_TASKS.md for full usage patterns and examples.
+
+### Output Validation
+
+After completing sub-subtask 002.1.8 (Unit Testing), optionally validate output format:
+
+```bash
+python scripts/compare_task_files.py \
+  --validate src/analyzers/commit_history.py \
+  --schema specification.json
+```
+
+**What this does:** Checks your analyzer output JSON matches the schema in the Specification section above.  
+**Expected output:** `✓ Valid schema` (means you're ready to move to Task 002.4)  
+**Required?** No - manual verification against Specification section is sufficient.  
+**See:** SCRIPTS_IN_TASK_WORKFLOW.md § compare_task_files.py for troubleshooting.
+
+### Check Next Task
+
+After completing Task 002.1, see what's next:
+
+```bash
+python scripts/next_task.py
+
+# Output shows: Task 002.4 (BranchClusterer) ready
+```
+
+**See:** SCRIPTS_IN_TASK_WORKFLOW.md § next_task.py for details.
+
+---
+
+## Tools Reference
+
+| Tool | Purpose | When to Use | Required? |
+|------|---------|-----------|----------|
+| Memory API | Progress logging | After each sub-subtask | No |
+| compare_task_files.py | Output validation | After 002.1.8 | No |
+| next_task.py | Find next task | After completion | No |
+
+**For detailed usage and troubleshooting:** See SCRIPTS_IN_TASK_WORKFLOW.md (all optional tools documented there)
+
+---
+
 ## Integration Checkpoint
 
 **When to move to Task 002.4 (BranchClusterer):**

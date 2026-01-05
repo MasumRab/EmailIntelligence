@@ -429,6 +429,74 @@ if len(unique_clusters) < 2:
 
 ---
 
+## Helper Tools (Optional)
+
+The following tools are available to accelerate work or provide validation. **None are required** - every task is completable using only the steps in this file.
+
+### Progress Logging
+
+After completing each sub-subtask, optionally log progress for multi-session continuity:
+
+```python
+from memory_api import AgentMemory
+
+memory = AgentMemory()
+memory.load_session()
+
+# After completing sub-subtask 002.4.5
+memory.add_work_log(
+    action="Completed Task 002.4.5: Compute Cluster Quality Metrics",
+    details="Silhouette, Davies-Bouldin, Calinski-Harabasz scores computed, no NaN values"
+)
+memory.update_todo("task_002_4_5", "completed")
+memory.save_session()
+```
+
+**What this does:** Maintains session state across work sessions, enables agent handoffs, documents progress.  
+**Required?** No - git commits are sufficient.  
+**See:** MEMORY_API_FOR_TASKS.md for full usage patterns and examples.
+
+### Output Validation
+
+After completing sub-subtask 002.4.8 (Unit Testing), optionally validate output format:
+
+```bash
+python scripts/compare_task_files.py \
+  --validate src/clustering/branch_clusterer.py \
+  --schema specification.json
+```
+
+**What this does:** Checks your clusterer output JSON matches the schema in the Specification section above.  
+**Expected output:** `✓ Valid schema` (means you're ready to move to Task 002.5)  
+**Required?** No - manual verification against Specification section is sufficient.  
+**See:** SCRIPTS_IN_TASK_WORKFLOW.md § compare_task_files.py for troubleshooting.
+
+### Check Next Task
+
+After completing Task 002.4, see what's next:
+
+```bash
+python scripts/next_task.py
+
+# Output shows: Task 002.5 (IntegrationTargetAssigner) ready
+```
+
+**See:** SCRIPTS_IN_TASK_WORKFLOW.md § next_task.py for details.
+
+---
+
+## Tools Reference
+
+| Tool | Purpose | When to Use | Required? |
+|------|---------|-----------|----------|
+| Memory API | Progress logging | After each sub-subtask | No |
+| compare_task_files.py | Output validation | After 002.4.8 | No |
+| next_task.py | Find next task | After completion | No |
+
+**For detailed usage and troubleshooting:** See SCRIPTS_IN_TASK_WORKFLOW.md (all optional tools documented there)
+
+---
+
 ## Integration Checkpoint
 
 - [ ] All 8 sub-subtasks complete
