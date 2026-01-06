@@ -1,0 +1,77 @@
+{
+  "checkpoint_id": "checkpoint_1765859887",
+  "name": "Before Branch Cleanup",
+  "description": "Systematic cleanup of old branches",
+  "created_at": "2025-12-16T15:38:07.213452",
+  "branches_backup": {
+    "000-integrated-specs": "d4678be91b580c9f3c41ceae1938b795d1edfe38",
+    "001-agent-context-control": "0d2f6d9322a1a449f7171208e90cf7940412dab9",
+    "001-rebase-analysis-specs": "148b1410ed3e25423690a94dc4498dc6c38b0403",
+    "001-toolset-additive-analysis": "ea1a27f7238f3e55d45ad73ce98ec59fc6148281",
+    "003-unified-git-analysis": "167af7f8fcfb85db0b7f6d50656270e146f45c83",
+    "align-feature-notmuch-tagging-1-v2": "e586b2abf8752043e1bc7630ef6a80063a2c1745",
+    "backup/scientific-20251129-132118": "38ff3fc81a318785715064b117538d24b134a920",
+    "backup/scientific-post-rebase-20251130": "a21dd2e0965489dada7e691511cd36356cb17a90",
+    "cleanup-orchestration-tools": "2b0b9f2b33b17a5dbf1390be699516969ddfcec6",
+    "feature-notmuch-tagging-1": "b3d36d9ad1621205c564bfa5d30d11efe47fd735",
+    "kilo-1763564948984": "4b0ae4ec83b46bb7920a8dfa9ed0137f90c1d5dd",
+    "main": "5c063c134a85606d3d4109a3d552e376aa0719b1",
+    "master": "6622db61a96ca89f452bef15424c3ca32bd4bdfb",
+    "orchestration-tools": "3aeee7212e11f0fb697df188afd08de4a762337f",
+    "orchestration-tools-changes": "40cdb6e740102390879e1dc45c1e538c2d2afed9",
+    "orchestration-tools-clean": "807f3344cb0c77244e57b4bbe6c1845fddd5cafb",
+    "orchestration-tools-stashed-changes": "f981440b9399287aed176b5de7511ad88dd27dc0",
+    "recover-lost-commit": "f2acf8ef7695568f42f01752815bec3ec1876b71",
+    "scientific": "2b422cfef48a51b8b1870394f1cbfc9b4250322f",
+    "scientific-backup-20251202-131056": "0c055a8350f89baebd485a0742bcdef01806fc83",
+    "scientific-rebased": "0c055a8350f89baebd485a0742bcdef01806fc83",
+    "taskmaster": "48b663b688105806ab29fff71954f0e2da4d9efc",
+    "temp-for-orchestration-changes": "0d64771b092f48d3ab7d3f94b4a199e43e264920"
+  },
+  "tags_backup": [
+    "archive/launch-setup-fixes-final",
+    "archive/targeted-launch-fixes-final",
+    "gemini"
+  ],
+  "worktrees_backup": [
+    {
+      "path": "/home/masum/github/EmailIntelligenceGem",
+      "head": "2b422cfef48a51b8b1870394f1cbfc9b4250322f",
+      "branch": "refs/heads/scientific"
+    }
+  ],
+  "stash_backup": [
+    "stash@{0}: On scientific: Phase 1 rebase preparation - modified patches",
+    "stash@{1}: WIP on (no branch): 718319b9 Add enhanced pre-commit validation for orchestration files",
+    "stash@{2}: WIP on (no branch): 718319b9 Add enhanced pre-commit validation for orchestration files"
+  ],
+  "metadata": {
+    "git_status": "?? .trunk/\n?? COMPREHENSIVE_ARCHITECTURE_ANALYSIS.md\n?? GIT_BRANCH_COMPREHENSIVE_ANALYSIS.md\n?? STRATEGIC_REFACTORING_GUIDE.md\n?? backups/\n?? run_cleanup.py\n?? scripts/branch_cleanup/\n?? setup/setup_backup_20251216_152049/\n",
+    "current_branch": "scientific",
+    "remote_status": {
+      "000-integrated-specs": ".gitignore",
+      "001-agent-context-control": "origin/001-agent-context-control",
+      "001-rebase-analysis-specs": "feat(specs):",
+      "001-toolset-additive-analysis": "origin/001-toolset-additive-analysis",
+      "003-unified-git-analysis": "origin/003-unified-git-analysis:",
+      "align-feature-notmuch-tagging-1-v2": "Remove",
+      "backup/scientific-20251129-132118": "Complete",
+      "backup/scientific-post-rebase-20251130": "amp",
+      "cleanup-orchestration-tools": "feat:",
+      "feature-notmuch-tagging-1": "docs:",
+      "kilo-1763564948984": "Improve",
+      "main": "feat:",
+      "master": "Remove",
+      "orchestration-tools": "origin/orchestration-tools",
+      "orchestration-tools-changes": "Re-commit",
+      "orchestration-tools-clean": "origin/orchestration-tools-clean",
+      "orchestration-tools-stashed-changes": "Resolve",
+      "recover-lost-commit": "WIP",
+      "": "2b422cfe",
+      "scientific-backup-20251202-131056": "feat:",
+      "scientific-rebased": "feat:",
+      "taskmaster": "origin/taskmaster",
+      "temp-for-orchestration-changes": "feat:"
+    }
+  }
+}
