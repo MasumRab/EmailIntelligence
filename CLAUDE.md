@@ -1,3 +1,29 @@
+# ⚠️ CRITICAL: Task Numbering System - READ FIRST
+
+## IMPORTANT: Old Task Numbering (task-001 through task-020) is DEPRECATED
+
+**As of January 6, 2026, the old task numbering system is no longer in use.**
+
+### ✅ Current Active Tasks (Phase 3):
+- **task_007.md** - Branch Alignment Strategy Framework
+- **task_075.1.md through task_075.5.md** - Alignment Analyzers
+- **task_079.md** - Orchestration Framework
+- **task_080.md** - Validation Integration
+- **task_083.md** - E2E Testing & Reporting
+
+### ❌ DO NOT USE:
+- task-001 through task-020 (old system, removed)
+- new_task_plan/task_files/ (deprecated folder)
+- OLD task structure format
+
+### Reference Documents:
+- **Current Status:** PROJECT_STATE_PHASE_3_READY.md
+- **Why Changed:** OLD_TASK_NUMBERING_DEPRECATED.md
+- **Quick Ref:** TASK_ID_MIGRATION_QUICK_REFERENCE.md
+- **Full Details:** TASK_NUMBERING_DEPRECATION_PLAN.md
+
+---
+
 # Task Master AI - Agent Integration Guide
 
 ## Essential Commands

@@ -1,0 +1,271 @@
+# Detailed Task Plan for Branch Alignment (Renumbered)
+
+This document provides a detailed, reorganized, and consolidated set of tasks and subtasks for the branch alignment project. It is intended to be the basis for a new, cleaned-up `tasks.json`.
+
+---
+
+## **Initiative 1: Foundational CI/CD & Validation Framework**
+**Description:** These tasks are critical prerequisites for the main alignment framework. They must be completed before the core alignment tools can be built or effectively used.
+**Priority:** Highest
+
+---
+
+### **I1.T1: Create Comprehensive Merge Validation Framework**
+- **ID:** I1.T1
+- **Status:** pending
+- **Priority:** high
+- **Description:** Create a comprehensive validation framework to ensure all architectural updates have been properly implemented before merging the `scientific` branch to `main`. This framework will leverage CI/CD practices to validate consistency, functionality, performance, and security.
+- **Subtasks:**
+    - **I1.T1.1:** Define Validation Scope and Tooling.
+    - **I1.T1.2:** Configure GitHub Actions Workflow and Triggers.
+    - **I1.T1.3:** Implement Architectural Enforcement Checks.
+    - **I1.T1.4:** Integrate Existing Unit and Integration Tests.
+    - **I1.T1.5:** Develop and Implement End-to-End Smoke Tests.
+    - **I1.T1.6:** Implement Performance Benchmarking for Critical Endpoints.
+    - **I1.T1.7:** Integrate Security Scans (SAST and Dependency).
+    - **I1.T1.8:** Consolidate Validation Results and Reporting.
+    - **I1.T1.9:** Configure GitHub Branch Protection Rules.
+    - *(Note: Subtasks I1.T1.10-I1.T1.19 appear to be detailed duplicates of I1.T1.3-I1.T1.9 and should be consolidated during implementation.)*
+
+---
+
+### **I1.T2: Develop and Integrate Pre-merge Validation Scripts**
+- **ID:** I1.T2
+- **Status:** blocked (Dependency on cancelled Task 11 should be removed)
+- **Priority:** high
+- **Description:** Create validation scripts to check for the existence and integrity of critical files before merges to prevent data loss or regressions.
+- **Subtasks:**
+    - **I1.T2.1:** Define critical files and validation criteria.
+    - **I1.T2.2:** Develop core file existence and integrity validation script.
+    - **I1.T2.3:** Develop unit and integration tests for validation script.
+    - **I1.T2.4:** Integrate validation script into CI/CD pipeline.
+    - **I1.T2.5:** Document and communicate pre-merge validation process.
+
+---
+
+## **Initiative 2: Build Core Alignment Framework**
+**Description:** This initiative covers the primary work of building the tools and processes for branch alignment. It merges the redundant `5x/6x` and `7x/8x` task series.
+**Priority:** High (after Initiative 1)
+
+---
+
+### **I2.T1: Establish Core Branch Alignment Framework (merged from 74)**
+- **ID:** I2.T1
+- **Status:** pending
+- **Priority:** high
+- **Description:** Configure and integrate foundational elements for branch management, including both repository-level branch protection rules and local Git hooks, to ensure a safe and consistent alignment workflow for a single developer.
+- **Subtasks:**
+    - **I2.T1.1:** Review Existing Branch Protections.
+    - **I2.T1.2:** Configure Required Reviewers for Critical Branches.
+    - **I2.T1.3:** Enforce Passing Status Checks for Merges.
+    - **I2.T1.4:** Enforce Merge Strategies and Linear History.
+    - **I2.T1.5:** Design Local Git Hook Integration for local rule enforcement.
+    - **I2.T1.6:** Integrate Existing Pre-Merge Scripts into local hooks.
+    - **I2.T1.7:** Develop Centralized Local Alignment Orchestration Script to manage local checks.
+
+---
+
+### **I2.T2: Develop Automated Error Detection Scripts for Merges (merged from 76)**
+- **ID:** I2.T2
+- **Status:** pending
+- **Priority:** high
+- **Description:** Implement scripts to automatically detect common merge-related errors such as merge artifacts, garbled text, missing imports, and accidentally deleted modules.
+- **Subtasks:**
+    - **I2.T2.1:** Develop Merge Conflict Marker Detector.
+    - **I2.T2.2:** Implement Garbled Text and Encoding Error Detector.
+    - **I2.T2.3:** Implement Python Missing Imports Validator using the `ast` module.
+    - **I2.T2.4:** Develop Deleted Module Detection logic.
+
+---
+
+### **I2.T3: Implement Robust Branch Backup and Restore Mechanism**
+- **ID:** I2.T3
+- **Status:** pending
+- **Priority:** high
+- **Description:** Develop and integrate procedures for creating temporary local backups of branches before any significant alignment operations, and a mechanism to restore from them.
+- **Subtasks:**
+    - **I2.T3.1:** Develop temporary local branch backup and restore for feature branches.
+    - **I2.T3.2:** Enhance backup for primary/complex branches (e.g., using `git clone --mirror`) and implement backup integrity verification.
+    - **I2.T3.3:** Integrate backup/restore into an automated workflow with cleanup and error handling.
+
+---
+
+### **I2.T4: Develop Feature Branch Identification and Categorization Tool (merged from 75)**
+- **ID:** I2.T4
+- **Status:** pending
+- **Priority:** medium
+- **Description:** Create a Python tool to automatically identify active feature branches, analyze their Git history, and suggest the optimal primary branch target based on codebase similarity and shared history.
+- **Subtasks:**
+    - **I2.T4.1:** Implement logic to identify all active feature branches.
+    - **I2.T4.2:** Implement Git history analysis to identify shared history between branches.
+    - **I2.T4.3:** Implement similarity analysis between branches to identify potential conflicts.
+    - **I2.T4.4:** Create branch age analysis to identify long-running branches.
+    - **I2.T4.5:** Integrate Backend-to-Src Migration Status Analysis into the tool.
+    - **I2.T4.6:** Create a structured output (e.g., JSON) for the categorized branches.
+
+---
+
+### **I2.T5: Develop Core Primary-to-Feature Branch Alignment Logic (merged from 77)**
+- **ID:** I2.T5
+- **Status:** pending
+- **Priority:** high
+- **Description:** Implement the core logic for integrating changes from a primary branch into a feature branch using `git rebase` for a clean history, with robust error handling and user guidance.
+- **Subtasks:**
+    - **I2.T5.1:** Implement Robust Pre-Alignment Safety Checks (clean directory, no stashes).
+    - **I2.T5.2:** Develop Automated Pre-Alignment Branch Backup.
+    - **I2.T5.3:** Implement the Core Rebase operation.
+    - **I2.T5.4:** Develop Advanced Conflict Detection and interactive Resolution Flow.
+    - **I2.T5.5:** Implement Intelligent Rollback Mechanisms on failure or abort.
+    - **I2.T5.6:** Design Graceful Error Handling for failed alignments.
+
+---
+
+### **I2.T6: Implement Focused Strategies for Complex Branches (merged from 81)**
+- **ID:** I2.T6
+- **Status:** pending
+- **Priority:** medium
+- **Description:** Extend the core alignment logic to provide specialized handling for complex feature branches, focusing on iterative rebase and the integration branch strategy.
+- **Subtasks:**
+    - **I2.T6.1:** Implement Complex Branch Identification Logic based on metrics.
+    - **I2.T6.2:** Develop Iterative Rebase Procedure for rebasing in small, manageable chunks.
+    - **I2.T6.3:** Implement the Integration Branch Strategy to isolate conflict resolution.
+    - **I2.T6.4:** Develop Enhanced Conflict Resolution Workflow with visual tools.
+    - **I2.T6.5:** Implement Targeted Testing for complex branch integrations.
+
+---
+
+### **I2.T7: Integrate Validation Framework into Alignment Workflow (merged from 80)**
+- **ID:** I2.T7
+- **Status:** pending
+- **Priority:** high
+- **Description:** Embed the execution of pre-merge validation scripts, comprehensive merge validation, and automated error detection into the branch alignment process to ensure quality at each step.
+- **Subtasks:**
+    - **I2.T7.1:** Define Validation Integration Points in the alignment scripts.
+    - **I2.T7.2:** Integrate Automated Error Detection Scripts (from Task 55) post-merge.
+    - **I2.T7.3:** Implement Post-Alignment Validation Trigger for Pre-merge (Task 19) and Comprehensive (Task 9) scripts.
+    - **I2.T7.4:** Implement Alignment Rollback on Critical Validation Failure.
+    - **I2.T7.5:** Develop a unified Validation Result Reporting module.
+
+---
+
+### **I2.T8: Orchestrate Branch Alignment Workflow (merged from 79)**
+- **ID:** I2.T8
+- **Status:** pending
+- **Priority:** high
+- **Description:** Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification to final documentation, allowing for flexible (sequential or parallel) execution.
+- **Subtasks:**
+    - **I2.T8.1:** Integrate Feature Branch Identification & Categorization Tool (Task 57).
+    - **I2.T8.2:** Develop Interactive Branch Selection & Prioritization UI.
+    - **I2.T8.3:** Integrate Branch Alignment Logic (Tasks 59 & 60).
+    - **I2.T8.4:** Integrate Validation Framework (Task 61).
+    - **I2.T8.5:** Integrate Documentation Generation (Task 58).
+    - **I2.T8.6:** Develop Workflow State Persistence & Recovery Mechanisms for pausing and resuming.
+    - **I2.T8.7:** Create a Comprehensive Progress Reporting & Status Output Module.
+
+---
+
+### **I2.T9: Establish End-to-End Testing for Alignment Framework**
+- **ID:** I2.T9
+- **Status:** pending
+- **Priority:** medium
+- **Description:** Implement an end-to-end testing process for the entire branch alignment framework to ensure its reliability.
+- **Subtasks:**
+    - **I2.T9.1:** Design comprehensive end-to-end test scenarios.
+    - **I2.T9.2:** Implement automated test environment provisioning (e.g., temporary Git repos).
+    - **I2.T9.3:** Integrate and orchestrate the full alignment workflow within the test runner.
+    - **I2.T9.4:** Develop post-alignment verification procedures to assert the correctness of the final state.
+    - **I2.T9.5:** Implement an automated reporting system for the E2E test results.
+
+---
+
+### **I2.T10: Finalize and Publish Comprehensive Alignment Documentation (merged from 82)**
+- **ID:** I2.T10
+- **Status:** pending
+- **Priority:** low
+- **Description:** Consolidate all process documents (merge best practices, conflict resolution, tool usage guides) into a single, comprehensive, and accessible guide for the developer.
+- **Subtasks:**
+    - **I2.T10.1:** Document Branching Strategy and Core Merge Best Practices.
+    - **I2.T10.2:** Detail Common Conflict Resolution Procedures.
+    - **I2.T10.3:** Draft Orchestration Script (Task 62) Usage Guide.
+    - **I2.T10.4:** Verify all documentation for consistency and accuracy.
+    - **I2.T10.5:** Publish the final documentation and archive old versions.
+
+---
+
+## **Initiative 3: Alignment Execution**
+**Description:** These are specific, large-scale instances of alignment work that will *use* the completed framework from Initiative 2.
+**Priority:** Medium (after Initiative 2)
+
+---
+
+### **I3.T1: Execute Scientific Branch Recovery and Feature Integration**
+- **ID:** I3.T1
+- **Status:** pending
+- **Priority:** medium
+- **Description:** Perform comprehensive recovery and integration of scientific branches.
+- **Subtasks:** This task has 14 subtasks focused on the specific recovery and integration of the scientific branch, from difference analysis to merge execution and validation.
+
+---
+
+### **I3.T2: Align All Orchestration-Tools Named Branches**
+- **ID:** I3.T2
+- **Status:** deferred
+- **Priority:** high
+- **Description:** Systematically align all 24 "orchestration-tools" branches using a local implementation of the core alignment framework.
+- **Subtasks:** This task has 10 subtasks that mirror the main framework tasks but are scoped only to the orchestration branches.
+
+---
+
+## **Initiative 4: Codebase Stability & Maintenance**
+**Description:** A separate group for important but non-blocking maintenance tasks.
+**Priority:** Independent
+
+---
+
+### **I4.T1: Implement Comprehensive Merge Regression Prevention Safeguards**
+- **ID:** I4.T1
+- **Status:** blocked
+- **Priority:** medium
+- **Description:** Establish a robust system of pre- and post-merge validations, selective revert policies, and asset preservation to prevent future regressions.
+- **Subtasks:** This task has 12 subtasks focused on designing and implementing specific safeguards like deletion validation, revert policies, and asset protection.
+
+---
+
+### **I4.T2: Scan and Resolve Unresolved Merge Conflicts**
+- **ID:** I4.T2
+- **Status:** deferred
+- **Priority:** medium
+- **Description:** Scan all remote branches to identify and resolve any lingering merge conflict markers.
+- **Subtasks:** This task has 5 subtasks covering the script-based detection, manual resolution, and verification of resolved conflicts across all branches.
+
+---
+
+### **I4.T3: Refine launch.py Dependencies**
+- **ID:** I4.T3
+- **Status:** blocked
+- **Priority:** medium
+- **Description:** Analyze and refine `src/launch.py`'s dependencies to ensure robust merge stability.
+- **Subtasks:** This task has 12 subtasks for performing a deep dependency scan, synchronizing with `requirements.txt`, refactoring unused imports, and enhancing CI/CD checks for `launch.py`.
+
+---
+
+## **Initiative 5: Post-Alignment Cleanup**
+**Description:** Tasks to be performed after the main alignment work is complete.
+**Priority:** Low
+
+---
+
+### **I5.T1: Create Ordered File Resolution List for Post-Alignment Merge Issues**
+- **ID:** I5.T1
+- **Status:** pending
+- **Priority:** high (should be lowered)
+- **Description:** Develop a prioritized list of files to be addressed to resolve complex merge issues that emerge *after* the main alignment process.
+- **Subtasks:** This task has 5 subtasks for identifying, classifying, analyzing dependencies of, and generating a resolution order for post-alignment problem files.
+
+---
+
+## **Archived / To Be Cancelled**
+
+- **Task 7:** (Align and Architecturally Integrate...) - **Recommendation:** Archive. Superseded by the detailed framework tasks.
+- **Task 11:** (Align import-error-corrections...) - **Recommendation:** Delete. Already cancelled.
+- **Tasks 74-82:** - **Recommendation:** Cancel and delete. Merged into their 54-63 counterparts.
