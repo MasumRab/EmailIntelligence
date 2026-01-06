@@ -274,13 +274,10 @@ class MergeConflict(BaseModel):
                 "pr2_id": "pr_2",
                 "file_path": "src/main.py",
                 "conflict_region": (
-                    "<<<<<<< HEAD\\n"
-                    "def new_function():\\n"
-                    "    return 'version1'\\n"
-                    "=======\\n"
+                    "\\n"
                     "def new_function():\\n"
                     "    return 'version2'\\n"
-                    ">>>>>>> feature-branch"
+                    "
                 ),
                 "base_content": "def old_function():\n    return 'original'",
                 "content1": "def new_function():\n    return 'version1'",
