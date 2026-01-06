@@ -435,6 +435,249 @@ Define backup, validation, and rollback procedures for safe alignment operations
 
 ---
 
+## Architecture Alignment Guidance Integration
+
+This section incorporates proven architecture alignment strategies and best practices from the guidance/ directory, based on successful integration of branches with different architectural approaches.
+
+### Key Principles for Architecture Alignment
+
+#### 1. Preserve Functionality
+- **Always preserve functionality from both branches**
+- Create adapter layers rather than removing features
+- Ensure no feature is lost during alignment
+
+#### 2. Maintain Compatibility
+- **Ensure service startup patterns work with both architectures**
+- Use factory patterns for flexible application creation
+- Support both architectural approaches during transition
+
+#### 3. Handle Import Paths
+- **Standardize import paths across the codebase**
+- Use consistent directory structures (e.g., `src/`)
+- Update all imports systematically
+
+#### 4. Interface-Based Architecture
+- **Implement proper abstractions with interfaces and contracts**
+- Create modular, testable components
+- Follow dependency inversion principles
+
+#### 5. Test Thoroughly
+- **Validate functionality after each merge step**
+- Ensure no regressions are introduced
+- Test core functionality at each step
+
+### Factory Pattern Implementation Strategy
+
+#### When to Use Factory Pattern
+- When branches have different service startup patterns
+- When remote branch expects `uvicorn src.main:create_app --factory`
+- When local branch uses direct instantiation
+
+#### Factory Pattern Template
+```python
+# src/main.py
+from fastapi import FastAPI
+
+def create_app() -> FastAPI:
+    """
+    Factory function compatible with both architectural approaches.
+    Bridges remote branch service startup expectations with local functionality.
+    """
+    app = FastAPI()
+    
+    # Register routes and configure services
+    # Add middleware, error handlers, etc.
+    
+    return app
+```
+
+#### Benefits
+- **Service Startup Compatibility**: Works with both `--factory` and direct instantiation
+- **Flexibility**: Allows gradual migration between architectures
+- **Preservation**: Maintains all existing functionality
+
+### Merge Strategies for Different Scenarios
+
+#### Strategy 1: Factory Pattern Implementation
+**Use When:** Branches have different service startup patterns
+**Approach:**
+1. Create `create_app()` factory function
+2. Integrate existing functionality with factory pattern
+3. Test service startup with both approaches
+4. Validate functionality preservation
+
+#### Strategy 2: Interface-Based Architecture
+**Use When:** Need to abstract different implementations
+**Approach:**
+1. Define interfaces for core components
+2. Create implementations for each architecture
+3. Use dependency injection
+4. Enable runtime selection of implementations
+
+#### Strategy 3: Hybrid Architecture
+**Use When:** Need to combine best features from both branches
+**Approach:**
+1. Identify core functionality from each branch
+2. Create compatibility layers
+3. Integrate context control patterns
+4. Preserve performance optimizations
+
+### Import Path Standardization
+
+#### Standard Structure
+```
+src/
+├── main.py              # Factory pattern entry point
+├── backend/             # Core backend functionality
+├── analysis/            # Analysis modules
+├── core/                # Core models and interfaces
+├── git/                 # Git operations
+├── resolution/          # Resolution logic
+└── strategy/            # Strategy implementations
+```
+
+#### Migration Process
+1. **Analyze existing import paths** across all modules
+2. **Plan new structure** based on project needs
+3. **Update imports systematically** using find-and-replace
+4. **Test each module** after updates
+5. **Validate no broken imports** remain
+
+### Context Control Integration
+
+#### What is Context Control?
+- Remote branch pattern for managing execution context
+- Includes isolation, performance optimization, and error handling
+- Critical for maintaining system stability
+
+#### Integration Strategy
+1. **Understand remote branch patterns** (from documentation)
+2. **Identify equivalent functionality** in local branch
+3. **Create compatibility layer** if needed
+4. **Test context control integration** thoroughly
+5. **Document any differences** between branches
+
+### Pre-Merge Assessment Checklist
+
+- [ ] Analyze architectural differences between branches
+- [ ] Identify core functionality that must be preserved
+- [ ] Map import path dependencies
+- [ ] Plan compatibility layer implementation
+- [ ] Create backup of both branches before starting
+- [ ] Define rollback procedures
+- [ ] Identify potential conflicts
+- [ ] Plan conflict resolution strategy
+- [ ] Set up testing environment
+- [ ] Document baseline test results
+
+### Implementation Strategy
+
+1. **Implement factory pattern for service compatibility**
+2. **Create adapter layers for different architectural components**
+3. **Standardize import paths consistently**
+4. **Use lazy initialization to avoid import-time issues**
+5. **Test core functionality at each step**
+6. **Validate no regressions introduced**
+7. **Document all architectural decisions**
+8. **Update CI/CD pipelines if needed**
+
+### Common Scenarios and Solutions
+
+#### Scenario 1: Different Directory Structures
+**Problem:** Branches use different directory layouts
+**Solution:**
+- Use factory pattern to abstract differences
+- Create symbolic links or import aliases
+- Standardize on one structure over time
+
+#### Scenario 2: Conflicting Service Startup
+**Problem:** Branches expect different startup patterns
+**Solution:**
+- Implement `create_app()` factory function
+- Support both patterns during transition
+- Gradually migrate to single pattern
+
+#### Scenario 3: Import Path Conflicts
+**Problem:** Different import paths for same functionality
+**Solution:**
+- Standardize on consistent structure
+- Update all imports systematically
+- Use absolute imports where possible
+
+#### Scenario 4: Context Control Differences
+**Problem:** Branches have different context management approaches
+**Solution:**
+- Understand both approaches
+- Create compatibility layer
+- Integrate best features from both
+
+### Validation and Testing
+
+#### Pre-Alignment Validation
+- Run existing test suite to establish baseline
+- Verify all critical functionality works
+- Document any known issues
+
+#### Post-Alignment Validation
+- Run full test suite
+- Verify all tests pass
+- Check for regressions
+- Validate service startup patterns
+- Test context control integration
+
+#### Regression Testing
+1. **Compare test results** before and after alignment
+2. **Check performance metrics** for degradation
+3. **Validate error handling** still works
+4. **Test edge cases** thoroughly
+5. **Monitor production** after deployment
+
+### Rollback Procedures
+
+#### When to Rollback
+- Critical functionality broken
+- Unexpected performance degradation
+- Security vulnerabilities introduced
+- Data loss or corruption
+
+#### Rollback Process
+1. **Stop deployment** if in progress
+2. **Restore backup** of pre-alignment state
+3. **Verify functionality** restored
+4. **Document rollback** and reasons
+5. **Plan re-attempt** with different approach
+
+### Best Practices Summary
+
+1. **Always backup branches** before attempting major merges
+2. **Test functionality**, not just syntax, after merges
+3. **Validate service startup** works with merged code
+4. **Check for mixed import paths** that could cause runtime errors
+5. **Verify all related components** were migrated together
+6. **Run comprehensive tests** to ensure no functionality is broken
+7. **Document the merge process** for future reference
+8. **Use interface-based architecture** for better modularity
+9. **Implement modular integration frameworks** for safe feature adoption
+10. **Follow non-interference policies** to preserve existing functionality
+
+### Lessons Learned from Successful Alignments
+
+#### Successful Strategies
+1. **Factory Pattern Implementation**: Creating `create_app()` function bridging both approaches
+2. **Hybrid Architecture**: Preserving functionality while adopting compatible patterns
+3. **Systematic Import Path Updates**: Updating all imports consistently
+4. **Context Control Integration**: Incorporating remote patterns with local functionality
+5. **Incremental Validation**: Testing functionality at each step
+
+#### Failed Approaches to Avoid
+1. **Direct Rebase of Divergent Architectures**: Causes extensive conflicts
+2. **Attempting to Resolve Every Individual Conflict**: Inefficient and error-prone
+3. **Ignoring Import-Time vs Runtime Initialization**: Leads to unexpected failures
+4. **Skipping Validation Steps**: Results in undetected regressions
+5. **Not Creating Backups**: Makes rollback impossible
+
+---
+
 ## DEPENDENCY GRAPH
 
 ```

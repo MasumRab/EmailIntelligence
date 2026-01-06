@@ -529,6 +529,708 @@ if failure_count >= 5 and failure_rate >= 0.50:
 
 ---
 
+## CLI Integration and Factory Pattern Guidance
+
+This section incorporates proven CLI integration and factory pattern strategies from the guidance/ directory, based on successful implementation of modular frameworks for safe feature adoption.
+
+### Factory Pattern for Service Compatibility
+
+#### Why Factory Pattern is Critical for Orchestration
+
+The factory pattern enables the orchestrator to work with branches that have different service startup patterns:
+
+**Benefits for Orchestration:**
+1. **Service Startup Compatibility**: Works with both `uvicorn src.main:create_app --factory` and direct instantiation
+2. **Flexibility**: Allows gradual migration between architectures
+3. **Preservation**: Maintains all existing functionality during alignment
+4. **Testing**: Enables testing of both startup patterns
+
+#### Factory Pattern Implementation Template
+
+```python
+# src/main.py
+from fastapi import FastAPI
+from typing import Optional
+
+def create_app(
+    config: Optional[dict] = None,
+    enable_context_control: bool = True
+) -> FastAPI:
+    """
+    Factory function compatible with both architectural approaches.
+    
+    This function bridges different service startup patterns:
+    - Remote branch expects: uvicorn src.main:create_app --factory
+    - Local branch uses: uvicorn src.main:app (direct instantiation)
+    
+    Args:
+        config: Optional configuration dictionary
+        enable_context_control: Whether to enable context control patterns
+        
+    Returns:
+        Configured FastAPI application instance
+    """
+    app = FastAPI(
+        title="EmailIntelligence CLI",
+        description="Advanced CLI with constitutional analysis and conflict resolution",
+        version="1.0.0"
+    )
+    
+    # Register routes
+    register_routes(app)
+    
+    # Configure middleware
+    configure_middleware(app)
+    
+    # Enable context control if requested
+    if enable_context_control:
+        enable_context_control_patterns(app)
+    
+    # Configure error handlers
+    configure_error_handlers(app)
+    
+    return app
+
+def register_routes(app: FastAPI) -> None:
+    """Register all application routes"""
+    from src.api.routes import (
+        conflict_routes,
+        analysis_routes,
+        resolution_routes
+    )
+    
+    app.include_router(conflict_routes.router, prefix="/api/conflicts")
+    app.include_router(analysis_routes.router, prefix="/api/analysis")
+    app.include_router(resolution_routes.router, prefix="/api/resolution")
+
+def configure_middleware(app: FastAPI) -> None:
+    """Configure application middleware"""
+    from fastapi.middleware.cors import CORSMiddleware
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"]
+    )
+
+def enable_context_control_patterns(app: FastAPI) -> None:
+    """Enable context control patterns from remote branch"""
+    from src.context.control import ContextManager
+    
+    context_manager = ContextManager()
+    app.state.context_manager = context_manager
+    
+    @app.on_event("startup")
+    async def startup_context():
+        await context_manager.initialize()
+
+def configure_error_handlers(app: FastAPI) -> None:
+    """Configure error handlers"""
+    from src.core.exceptions import (
+        ConflictDetectionError,
+        AnalysisError,
+        ResolutionError
+    )
+    
+    @app.exception_handler(ConflictDetectionError)
+    async def conflict_detection_handler(request, exc):
+        return {"error": "Conflict detection failed", "details": str(exc)}
+
+    @app.exception_handler(AnalysisError)
+    async def analysis_error_handler(request, exc):
+        return {"error": "Analysis failed", "details": str(exc)}
+
+    @app.exception_handler(ResolutionError)
+    async def resolution_error_handler(request, exc):
+        return {"error": "Resolution failed", "details": str(exc)}
+```
+
+#### Integration with Orchestrator
+
+When the orchestrator processes branches with different architectures:
+
+```python
+# In orchestrator.py
+def run_alignment_for_branch(branch_name: str, target_branch: str):
+    """
+    Execute alignment for a branch with factory pattern support.
+    """
+    # Check if branch uses factory pattern
+    uses_factory = check_factory_pattern_support(branch_name)
+    
+    if uses_factory:
+        # Use factory pattern for service startup
+        startup_cmd = ["uvicorn", "src.main:create_app", "--factory"]
+    else:
+        # Use direct instantiation
+        startup_cmd = ["uvicorn", "src.main:app"]
+    
+    # Execute alignment with appropriate startup pattern
+    result = execute_alignment(
+        branch_name=branch_name,
+        target_branch=target_branch,
+        startup_cmd=startup_cmd
+    )
+    
+    return result
+
+def check_factory_pattern_support(branch_name: str) -> bool:
+    """
+    Check if branch supports factory pattern.
+    
+    Returns True if src/main.py contains create_app() function.
+    """
+    import subprocess
+    
+    try:
+        # Check for create_app function in src/main.py
+        result = subprocess.run(
+            ["git", "show", f"{branch_name}:src/main.py"],
+            capture_output=True,
+            text=True
+        )
+        
+        return "def create_app" in result.stdout
+    except subprocess.CalledProcessError:
+        return False
+```
+
+### CLI Integration Framework
+
+#### Framework Components
+
+The CLI integration framework provides modular, non-interfering feature adoption:
+
+```
+.cli_framework/
+├── install.sh              # Installation script with multiple modes
+├── merge_to_branch.sh      # Safe merge script for other branches
+├── config.json             # Framework configuration
+└── modules/
+    ├── conflict_detector.py
+    ├── constitutional_analyzer.py
+    └── resolution_engine.py
+```
+
+#### Installation Modes
+
+**1. Minimal Mode**
+```bash
+./install.sh --mode minimal
+```
+- Core CLI functionality only
+- Essential conflict detection
+- Basic resolution capabilities
+
+**2. Full Mode**
+```bash
+./install.sh --mode full
+```
+- All CLI features with dependencies
+- Advanced constitutional analysis
+- Complete resolution engine
+- Performance optimizations
+
+**3. Custom Mode**
+```bash
+./install.sh --mode custom --modules conflict_detector,constitutional_analyzer
+```
+- Selected components only
+- Flexible dependency management
+- Modular installation approach
+
+#### Non-Interference Policy
+
+The framework follows strict non-interference policies:
+
+1. **Preserve Existing Files**
+   - Never overwrite existing files without backup
+   - Create automatic backups before modifications
+   - Use versioned file names for new files
+
+2. **Modular Installation**
+   - Each component is independent
+   - Can install/uninstall modules individually
+   - No tight coupling between modules
+
+3. **Rollback Capability**
+   - Every installation creates rollback script
+   - Can revert to previous state
+   - No permanent changes without confirmation
+
+#### Integration with Orchestrator
+
+```python
+# In orchestrator.py
+class BranchAlignmentOrchestrator:
+    def __init__(self, config: dict):
+        self.config = config
+        self.cli_framework = None
+        
+    def initialize_cli_framework(self, mode: str = "minimal"):
+        """
+        Initialize CLI integration framework.
+        
+        Args:
+            mode: Installation mode (minimal, full, custom)
+        """
+        from cli_framework.installer import CLIInstaller
+        
+        installer = CLIInstaller(mode=mode)
+        self.cli_framework = installer.install()
+        
+        # Validate installation
+        self._validate_cli_installation()
+    
+    def _validate_cli_installation(self):
+        """Validate CLI framework installation"""
+        required_modules = [
+            "conflict_detector",
+            "constitutional_analyzer",
+            "resolution_engine"
+        ]
+        
+        for module in required_modules:
+            if not self.cli_framework.has_module(module):
+                raise RuntimeError(
+                    f"Required module {module} not installed"
+                )
+```
+
+### Interface-Based Architecture
+
+#### Core Interfaces
+
+Define interfaces for key components to enable flexibility:
+
+```python
+# src/core/interfaces.py
+from abc import ABC, abstractmethod
+from typing import List, Dict, Any
+from src.core.conflict_models import Conflict
+
+class IConflictDetector(ABC):
+    """Interface for conflict detection"""
+    
+    @abstractmethod
+    async def detect_conflicts(
+        self,
+        pr_id: str,
+        target_branch: str
+    ) -> List[Conflict]:
+        """Detect conflicts in a pull request"""
+        pass
+    
+    @abstractmethod
+    def get_conflict_summary(self, conflicts: List[Conflict]) -> Dict[str, Any]:
+        """Generate summary of detected conflicts"""
+        pass
+
+class IConstitutionalAnalyzer(ABC):
+    """Interface for constitutional analysis"""
+    
+    @abstractmethod
+    async def analyze_constitutional_compliance(
+        self,
+        pr_id: str,
+        target_branch: str
+    ) -> Dict[str, Any]:
+        """Analyze constitutional compliance"""
+        pass
+    
+    @abstractmethod
+    def get_compliance_report(self, analysis: Dict[str, Any]) -> str:
+        """Generate compliance report"""
+        pass
+
+class IResolver(ABC):
+    """Interface for conflict resolution"""
+    
+    @abstractmethod
+    async def resolve_conflict(
+        self,
+        conflict: Conflict,
+        strategy: str
+    ) -> bool:
+        """Resolve a specific conflict"""
+        pass
+    
+    @abstractmethod
+    def get_resolution_summary(self) -> Dict[str, Any]:
+        """Get summary of resolutions performed"""
+        pass
+```
+
+#### Implementation Example
+
+```python
+# src/analysis/conflict_analyzer.py
+from src.core.interfaces import IConflictDetector
+from src.core.conflict_models import Conflict
+from src.git.repository import RepositoryOperations
+
+class ConflictDetector(IConflictDetector):
+    """Implementation of conflict detection interface"""
+    
+    def __init__(self, repo_path: str):
+        self.repo_ops = RepositoryOperations(repo_path)
+    
+    async def detect_conflicts(
+        self,
+        pr_id: str,
+        target_branch: str
+    ) -> List[Conflict]:
+        """Detect conflicts in a pull request"""
+        # Fetch PR information
+        pr_info = await self._get_pr_info(pr_id)
+        
+        # Analyze conflicts
+        conflicts = []
+        for file_path in pr_info['changed_files']:
+            file_conflicts = await self._analyze_file_conflicts(
+                file_path,
+                target_branch
+            )
+            conflicts.extend(file_conflicts)
+        
+        return conflicts
+    
+    async def get_conflict_summary(self, conflicts: List[Conflict]) -> Dict[str, Any]:
+        """Generate summary of detected conflicts"""
+        return {
+            'total_conflicts': len(conflicts),
+            'by_severity': self._group_by_severity(conflicts),
+            'by_type': self._group_by_type(conflicts),
+            'files_affected': len(set(c.file_path for c in conflicts))
+        }
+```
+
+### Repository Operations for Orchestration
+
+#### Git Operations Module
+
+```python
+# src/git/repository.py
+from pathlib import Path
+from typing import List, Tuple, Optional
+import subprocess
+
+class RepositoryOperations:
+    """Git repository operations for orchestration"""
+    
+    def __init__(self, repo_path: str):
+        self.repo_path = Path(repo_path)
+    
+    async def run_command(
+        self,
+        cmd: List[str],
+        cwd: Optional[str] = None
+    ) -> Tuple[str, str, int]:
+        """
+        Execute git command with error handling.
+        
+        Returns:
+            Tuple of (stdout, stderr, exit_code)
+        """
+        working_dir = cwd or str(self.repo_path)
+        
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=working_dir,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minute timeout
+            )
+            
+            return result.stdout, result.stderr, result.returncode
+            
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"Command timed out: {' '.join(cmd)}")
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                f"Command failed: {' '.join(cmd)}\n"
+                f"Error: {e.stderr}"
+            )
+    
+    async def create_backup_branch(
+        self,
+        source_branch: str,
+        backup_name: str
+    ) -> bool:
+        """Create backup branch before alignment"""
+        try:
+            # Checkout source branch
+            await self.run_command(
+                ['git', 'checkout', source_branch]
+            )
+            
+            # Create backup branch
+            await self.run_command(
+                ['git', 'checkout', '-b', backup_name]
+            )
+            
+            return True
+            
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to create backup branch: {str(e)}"
+            )
+    
+    async def rollback_to_backup(
+        self,
+        backup_branch: str,
+        target_branch: str
+    ) -> bool:
+        """Rollback to backup branch"""
+        try:
+            # Checkout backup branch
+            await self.run_command(
+                ['git', 'checkout', backup_branch]
+            )
+            
+            # Force reset target branch
+            await self.run_command(
+                ['git', 'checkout', target_branch]
+            )
+            await self.run_command(
+                ['git', 'reset', '--hard', backup_branch]
+            )
+            
+            return True
+            
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to rollback: {str(e)}"
+            )
+```
+
+### Context Control Integration
+
+#### What is Context Control?
+
+Context control is a pattern from the remote branch for managing execution context:
+
+- **Isolation**: Separate execution contexts for different operations
+- **Performance Optimization**: Efficient resource management
+- **Error Handling**: Comprehensive error detection and recovery
+
+#### Integration Strategy
+
+```python
+# src/context/control.py
+from typing import Dict, Any, Optional
+
+class ContextManager:
+    """Manages execution context for operations"""
+    
+    def __init__(self):
+        self.contexts: Dict[str, Dict[str, Any]] = {}
+        self.active_context: Optional[str] = None
+    
+    async def initialize(self):
+        """Initialize context manager"""
+        # Load configuration
+        self.config = await self._load_config()
+        
+        # Initialize default context
+        await self.create_context("default")
+    
+    async def create_context(
+        self,
+        name: str,
+        config: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Create a new execution context"""
+        context = {
+            'name': name,
+            'config': config or {},
+            'state': {},
+            'isolation_level': 'process',
+            'performance_mode': 'balanced'
+        }
+        
+        self.contexts[name] = context
+        return context
+    
+    async def activate_context(self, name: str):
+        """Activate a specific context"""
+        if name not in self.contexts:
+            raise ValueError(f"Context {name} not found")
+        
+        self.active_context = name
+    
+    async def get_active_context(self) -> Dict[str, Any]:
+        """Get currently active context"""
+        if not self.active_context:
+            raise ValueError("No active context")
+        
+        return self.contexts[self.active_context]
+```
+
+#### Integration with Orchestrator
+
+```python
+# In orchestrator.py
+class BranchAlignmentOrchestrator:
+    def __init__(self, config: dict):
+        self.config = config
+        self.context_manager = None
+        
+    async def initialize_context_control(self):
+        """Initialize context control for orchestration"""
+        from src.context.control import ContextManager
+        
+        self.context_manager = ContextManager()
+        await self.context_manager.initialize()
+        
+        # Create context for each target group
+        for target in ['main', 'scientific', 'orchestration-tools']:
+            await self.context_manager.create_context(
+                name=f"target_{target}",
+                config={
+                    'isolation_level': 'process',
+                    'performance_mode': 'optimized'
+                }
+            )
+    
+    async def execute_with_context(
+        self,
+        branch_name: str,
+        target_branch: str,
+        operation: callable
+    ):
+        """Execute operation with appropriate context"""
+        context_name = f"target_{target_branch}"
+        
+        # Activate target-specific context
+        await self.context_manager.activate_context(context_name)
+        
+        # Execute operation
+        try:
+            result = await operation(branch_name, target_branch)
+            return result
+        finally:
+            # Cleanup context
+            await self.context_manager.cleanup_context(context_name)
+```
+
+### Best Practices for Orchestration
+
+#### 1. Always Use Factory Pattern for Service Compatibility
+
+**When to Use:**
+- Branches have different service startup patterns
+- Need to support multiple architectures
+- Want flexibility in deployment
+
+**Implementation:**
+```python
+# Always check for factory pattern support
+if has_factory_pattern(branch):
+    startup_cmd = ["uvicorn", "src.main:create_app", "--factory"]
+else:
+    startup_cmd = ["uvicorn", "src.main:app"]
+```
+
+#### 2. Use Interface-Based Architecture
+
+**Benefits:**
+- Enables testing with mocks
+- Facilitates multiple implementations
+- Supports dependency injection
+- Improves code maintainability
+
+**Example:**
+```python
+# Define interface
+class IConflictDetector(ABC):
+    @abstractmethod
+    async def detect_conflicts(self, pr_id: str) -> List[Conflict]:
+        pass
+
+# Implement interface
+class ConflictDetector(IConflictDetector):
+    async def detect_conflicts(self, pr_id: str) -> List[Conflict]:
+        # Implementation
+        pass
+
+# Use interface in orchestrator
+detector: IConflictDetector = ConflictDetector()
+conflicts = await detector.detect_conflicts(pr_id)
+```
+
+#### 3. Implement Comprehensive Error Handling
+
+**Pattern:**
+```python
+try:
+    result = await operation()
+except SpecificException as e:
+    # Handle specific error
+    logger.error(f"Specific error: {str(e)}")
+    await rollback()
+    raise
+except Exception as e:
+    # Handle unexpected error
+    logger.error(f"Unexpected error: {str(e)}")
+    await rollback()
+    raise
+finally:
+    # Cleanup
+    await cleanup()
+```
+
+#### 4. Use Non-Interference Policies
+
+**Principles:**
+- Never overwrite without backup
+- Create automatic backups
+- Use versioned file names
+- Enable rollback capability
+
+**Implementation:**
+```python
+def safe_modify_file(file_path: str, modifications: callable):
+    """Safely modify file with backup"""
+    # Create backup
+    backup_path = f"{file_path}.backup"
+    shutil.copy2(file_path, backup_path)
+    
+    try:
+        # Apply modifications
+        modifications(file_path)
+    except Exception as e:
+        # Restore from backup
+        shutil.copy2(backup_path, file_path)
+        raise
+```
+
+#### 5. Validate After Each Step
+
+**Checklist:**
+```python
+async def validate_after_step(step_name: str):
+    """Validate after each orchestration step"""
+    checks = [
+        check_service_startup,
+        check_import_paths,
+        check_functionality,
+        check_performance
+    ]
+    
+    for check in checks:
+        result = await check()
+        if not result['passed']:
+            raise ValidationError(
+                f"{step_name} validation failed: {result['message']}"
+            )
+```
+
+---
+
 ## Helper Tools (Optional)
 
 The following tools are available to accelerate work or provide validation. **None are required** - every task is completable using only the steps in this file.
