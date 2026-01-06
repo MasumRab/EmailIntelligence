@@ -18,19 +18,10 @@ setup_launch_path = os.path.join(script_dir, 'setup', 'launch.py')
 
 if __name__ == "__main__":
     # Forward all arguments to the actual launch.py in the setup directory
-<<<<<<< HEAD
-    cmd = [sys.executable, setup_launch_path] + sys.argv[1:]
-    result = subprocess.run(cmd)
-=======
-    # Add the script directory to Python path so imports work
-    env = os.environ.copy()
-    python_path = env.get('PYTHONPATH', '')
-    if python_path:
-        env['PYTHONPATH'] = f"{script_dir}:{python_path}"
+    if os.path.exists(setup_launch_path):
+        # Execute the actual launch.py with all command line arguments
+        result = subprocess.run([sys.executable, setup_launch_path] + sys.argv[1:])
+        sys.exit(result.returncode)
     else:
-        env['PYTHONPATH'] = script_dir
-
-    cmd = [sys.executable, setup_launch_path] + sys.argv[1:]
-    result = subprocess.run(cmd, env=env)
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-    sys.exit(result.returncode)
+        print(f"Error: setup/launch.py not found at {setup_launch_path}")
+        sys.exit(1)
