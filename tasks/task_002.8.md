@@ -383,6 +383,46 @@ def test_success_normal_case():
 
 ---
 
+
+
+---
+
+## Helper Tools (Optional)
+
+The following tools are available to accelerate work or provide validation. **None are required** - every task is completable using only the steps in this file.
+
+### Progress Logging
+
+After completing each sub-subtask, optionally log progress for multi-session continuity:
+
+```python
+from memory_api import AgentMemory
+
+memory = AgentMemory()
+memory.load_session()
+
+memory.add_work_log(
+    action="Completed Task sub-subtask",
+    details="Implementation progress"
+)
+memory.update_todo("task_id", "completed")
+memory.save_session()
+```
+
+**What this does:** Maintains session state across work sessions, enables agent handoffs, documents progress.  
+**Required?** No - git commits are sufficient.  
+**See:** MEMORY_API_FOR_TASKS.md for full usage patterns.
+
+---
+
+## Tools Reference
+
+| Tool | Purpose | When to Use | Required? |
+|------|---------|-----------|----------|
+| Memory API | Progress logging | After each sub-subtask | No |
+
+**For detailed usage and troubleshooting:** See SCRIPTS_IN_TASK_WORKFLOW.md
+
 ## Done Definition
 
 Task 002.8 is done when:
