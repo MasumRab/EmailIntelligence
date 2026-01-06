@@ -33,6 +33,18 @@ logger = logging.getLogger(__name__)
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
+# Pre-compiled regex for keyword extraction
+KEYWORD_PATTERN = re.compile(r"\b[a-zA-Z]{3,}\b")
+
+
+@dataclass
+class _EmailContext:
+    """Internal context object to cache pre-processed email data during filter application."""
+    sender_domain: str
+    lower_subject: str
+    lower_content: str
+    lower_sender: str
+
 
 @dataclass
 class EmailFilter:
@@ -373,7 +385,7 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        return [word for word in KEYWORD_PATTERN.findall(text.lower()) if len(word) > 3]
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
@@ -548,33 +560,50 @@ class SmartFilterManager:
         
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
-        """Applies a single filter's criteria to an email."""
+    async def _apply_filter_to_email(
+        self,
+        filter_obj: EmailFilter,
+        email: Dict[str, Any],
+        context: Optional[_EmailContext] = None,
+    ) -> bool:
+        """
+        Applies a single filter's criteria to an email.
+
+        Args:
+            filter_obj: The filter to apply.
+            email: The email data dictionary.
+            context: Optional pre-processed email context for performance.
+        """
         criteria = filter_obj.criteria
         
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
+            if context:
+                domain = context.sender_domain
+            else:
+                sender_email = email.get("sender_email", email.get("sender", ""))
+                domain = self._extract_domain(sender_email)
+
             if domain != criteria["sender_domain"]:
                 return False
         
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
-            if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
+            subject_lower = context.lower_subject if context else email.get("subject", "").lower()
+            if not any(keyword.lower() in subject_lower for keyword in criteria["subject_keywords"]):
                 return False
         
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
-            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+            content_lower = context.lower_content if context else email.get("content", email.get("body", "")).lower()
+            if not any(keyword.lower() in content_lower for keyword in criteria["content_keywords"]):
                 return False
         
         # Check from patterns
         if "from_patterns" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", "")).lower()
-            if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
+            sender_lower = context.lower_sender if context else email.get("sender_email", email.get("sender", "")).lower()
+            # Note: We still use re.search here as patterns are regexes
+            if not any(re.search(p, sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
                 return False
         
         return True
@@ -658,12 +687,22 @@ class SmartFilterManager:
         
         summary = {"filters_matched": [], "actions_taken": [], "categories": []}
         
+        # Pre-process email context once for all filters
+        # This prevents repeated string lowercasing and domain extraction in the loop
+        sender_email = email_data.get("sender_email", email_data.get("sender", ""))
+        context = _EmailContext(
+            sender_domain=self._extract_domain(sender_email),
+            lower_subject=email_data.get("subject", "").lower(),
+            lower_content=email_data.get("content", email_data.get("body", "")).lower(),
+            lower_sender=sender_email.lower()
+        )
+
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
         
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                if await self._apply_filter_to_email(filter_obj, email_data, context):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
