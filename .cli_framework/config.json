@@ -1,0 +1,66 @@
+# CLI Integration Framework Configuration
+# This file defines how CLI features can be integrated into other branches
+# without interfering with existing non-CLI files
+
+{
+  "framework": {
+    "name": "EmailIntelligence CLI Framework",
+    "version": "2.0.0",
+    "description": "Modular CLI framework for conflict resolution and analysis"
+  },
+  "components": {
+    "emailintelligence_cli": {
+      "file": "emailintelligence_cli.py",
+      "dependencies": [
+        "src/resolution/__init__.py",
+        "src/git/conflict_detector.py",
+        "src/analysis/conflict_analyzer.py",
+        "src/core/conflict_models.py"
+      ],
+      "optional_dependencies": [
+        "src/analysis/constitutional/analyzer.py",
+        "src/core/interfaces.py",
+        "src/core/exceptions.py",
+        "src/git/repository.py",
+        "src/resolution/auto_resolver.py",
+        "src/resolution/semantic_merger.py",
+        "src/strategy/generator.py",
+        "src/strategy/risk_assessor.py",
+        "src/validation/validator.py",
+        "src/utils/logger.py"
+      ]
+    }
+  },
+  "integration_points": {
+    "main_entry_points": [
+      "src/main.py"
+    ],
+    "api_endpoints": [
+      "src/api/main.py"
+    ],
+    "configuration": [
+      ".env.example",
+      "pyproject.toml"
+    ]
+  },
+  "non_interference_policy": {
+    "preserve_existing_files": true,
+    "backup_modified_files": true,
+    "modular_installation": true,
+    "rollback_capability": true
+  },
+  "installation_modes": {
+    "full": {
+      "description": "Install all CLI features with dependencies",
+      "components": ["all"]
+    },
+    "minimal": {
+      "description": "Install only core CLI functionality",
+      "components": ["emailintelligence_cli"]
+    },
+    "custom": {
+      "description": "Install selected components",
+      "components": []
+    }
+  }
+}
