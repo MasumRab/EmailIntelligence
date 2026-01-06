@@ -95,11 +95,7 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-<<<<<<< HEAD
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
-=======
 ### Tests for User Story 1 ⚠️
->>>>>>> a7eb3e282186e72e9d5577d659dbdcdb96a6e3f8
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
