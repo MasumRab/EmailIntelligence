@@ -1,109 +1,144 @@
-# Architecture Alignment: Quick Reference Guide
+# EmailIntelligence CLI Integration & Architecture Alignment - Quick Reference
 
 ## Overview
-This guide provides a quick reference for implementing architecture alignment between branches with different architectural approaches.
+Quick reference guide for integrating advanced CLI features with interface-based architecture and merging branches with different architectural approaches.
 
-## Key Steps
+## CLI Integration Framework Commands
 
-### 1. Assessment Phase
-- Analyze architectural differences between branches
-- Identify core functionality to preserve
-- Map import path dependencies
-- Plan compatibility layer implementation
+### Installation
+```bash
+# Install CLI features in minimal mode (core functionality only)
+./.cli_framework/install.sh minimal
 
-### 2. Implementation Phase
-- Create factory pattern (e.g., `create_app()` in `src/main.py`)
-- Standardize import paths to use consistent structure
-- Integrate patterns from both architectures
-- Preserve all functionality from both branches
-
-### 3. Validation Phase
-- Test service startup with both architectural patterns
-- Verify all functionality preserved
-- Run comprehensive tests
-- Validate performance and security
-
-## Critical Files to Create/Modify
-
-### Factory Pattern Implementation
-```python
-# src/main.py
-def create_app():
-    """Factory function compatible with remote branch service startup."""
-    # Create app from local implementation
-    from src.backend.python_backend.main import create_app as create_local_backend
-    app = create_local_backend()
-    
-    # Add remote branch patterns if available
-    if CONTEXT_CONTROL_AVAILABLE:
-        from .context_control.middleware import ContextControlMiddleware
-        app.add_middleware(ContextControlMiddleware)
-    
-    return app
+# Install CLI features in full mode (all features with dependencies)
+./.cli_framework/install.sh full
 ```
 
-### Import Path Standardization
-- Change `from backend.module` to `from src.backend.module`
-- Update all internal imports to use new structure
-- Maintain backward compatibility with deprecation warnings
+### Safe Branch Merging
+```bash
+# Merge CLI features to another branch with backup creation
+./.cli_framework/merge_to_branch.sh --target <branch_name> --mode <minimal|full>
+
+# Examples:
+./.cli_framework/merge_to_branch.sh --target main --mode minimal
+./.cli_framework/merge_to_branch.sh --target scientific --mode full
+```
+
+## Key Architecture Components
+
+### Interface-Based Design
+- `src/core/interfaces.py` - Core interfaces (IConflictDetector, IConstitutionalAnalyzer, etc.)
+- `src/core/exceptions.py` - Custom exception hierarchy
+- `src/git/repository.py` - Repository operations wrapper
+
+### CLI Enhancement Modules
+- `emailintelligence_cli.py` - Enhanced CLI with constitutional analysis
+- `src/resolution/auto_resolver.py` - Automatic conflict resolution
+- `src/resolution/semantic_merger.py` - Semantic merging capabilities
+- `src/analysis/constitutional/analyzer.py` - Constitutional analysis engine
+- `src/strategy/generator.py` - Strategy generation
+- `src/strategy/risk_assessor.py` - Risk assessment
+
+## Merge Process Checklist
+
+### Before Merging
+- [ ] Create backup of target branch: `git branch backup-<branch_name>-$(date +%Y%m%d)`
+- [ ] Analyze architectural differences between branches
+- [ ] Identify core functionality that must be preserved
+- [ ] Map import path dependencies
+- [ ] Plan compatibility layer implementation
+
+### During Merge
+- [ ] Implement factory pattern for service compatibility
+- [ ] Create adapter layers for different architectural components
+- [ ] Standardize import paths consistently
+- [ ] Use lazy initialization to avoid import-time issues
+- [ ] Test core functionality at each step
+
+### After Merge
+- [ ] Verify service startup works with both architectural patterns
+- [ ] Test all critical functionality is preserved
+- [ ] Ensure performance optimizations from both branches are maintained
+- [ ] Validate security measures are not compromised
+- [ ] Run comprehensive test suites
 
 ## Common Issues and Solutions
 
-### Issue: Service startup expects different patterns
-**Solution**: Implement factory pattern that satisfies remote branch expectations while preserving local functionality
+### Import Path Conflicts
+**Issue**: Import errors after merging
+**Solution**: Standardize import paths using consistent `src/` structure
 
-### Issue: Import paths don't match new structure
-**Solution**: Update all imports systematically and test functionality after each change
+### Service Startup Failures
+**Issue**: Application fails to start after merge
+**Solution**: Verify factory pattern implementation and service configuration
 
-### Issue: Missing files expected by remote branch
-**Solution**: Either restore files or create compatibility adapters
+### Missing Dependencies
+**Issue**: Runtime errors due to missing modules
+**Solution**: Ensure all related components are migrated together
 
-### Issue: Runtime vs import-time initialization conflicts
-**Solution**: Use lazy initialization patterns to defer resource-intensive operations
+### Interface Implementation Mismatches
+**Issue**: Abstract method errors
+**Solution**: Verify all interface methods are properly implemented
 
-## Validation Commands
+## Key Commands
 
+### Git Operations
 ```bash
-# Test factory pattern
-SECRET_KEY=test_key python -c "from src.main import create_app; app = create_app(); print(f'App created with {len(app.routes)} routes')"
+# Create backup branch
+git branch backup-branch-name-$(date +%Y%m%d)
 
-# Test service startup compatibility
-uvicorn src.main:create_app --factory
+# Switch to target branch
+git checkout target-branch
 
-# Run comprehensive validation
-python validate_architecture_alignment.py
+# Copy files from source branch
+git checkout source-branch -- path/to/files
+
+# Commit changes
+git add .
+git commit -m "feat: Integrate advanced CLI features"
+
+# Push changes
+git push origin target-branch
 ```
 
-## Rollback Plan
+### Architecture Validation
+```bash
+# Verify factory pattern implementation
+python -c "from src.main import create_app; app = create_app(); print('Factory pattern working')"
 
-If merge causes critical issues:
-1. Revert to backup branches immediately
-2. Document specific issues that occurred
-3. Analyze root cause of problems
-4. Implement fixes in isolated environment
-5. Re-attempt merge with corrections
+# Test CLI functionality
+python emailintelligence_cli.py --help
+```
 
-## Success Indicators
+## Success Metrics
 
-- ✅ Factory function works with remote branch service startup
-- ✅ All local functionality preserved
-- ✅ Remote branch patterns integrated
+A successful integration should achieve:
+- ✅ Remote branch service startup patterns work
+- ✅ All local branch functionality preserved
+- ✅ Advanced CLI features with constitutional analysis operational
+- ✅ Interface-based architecture properly implemented
+- ✅ Performance optimizations maintained
+- ✅ Security measures intact
+- ✅ Test suites pass
 - ✅ No runtime errors in core functionality
-- ✅ Tests pass for both architectures
-- ✅ Performance maintained or improved
+
+## Rollback Procedure
+
+If issues occur:
+1. Switch to backup branch: `git checkout backup-branch-name-date`
+2. Verify functionality works on backup
+3. Document specific issues that occurred
+4. Analyze root cause of problems
+5. Implement fixes in isolated environment
+6. Re-attempt merge with corrections
 
 ## Red Flags
 
-- Direct rebasing of branches with different architectures
-- Attempting to resolve every individual conflict manually
-- Ignoring import-time vs runtime initialization differences
-- Not testing functionality after merge steps
-- Missing critical components from either branch
-
-## Best Practices
-
-- Always preserve functionality over resolving conflicts
-- Create adapter layers rather than removing features
-- Test service startup patterns work with merged code
-- Validate that all related components were migrated together
-- Document the merge process for future reference
+Watch for these warning signs:
+- Service configurations pointing to non-existent files
+- Expected factory functions that don't exist
+- Missing architectural components that other components depend on
+- Import-time initialization of resources
+- Conflicts in core application entry points
+- Mixed import paths (old and new structures in same branch)
+- Components that work in isolation but break when combined

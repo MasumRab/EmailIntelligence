@@ -1,10 +1,11 @@
-# Architecture Alignment Guidance
+# EmailIntelligence Architecture Alignment & CLI Integration Guidance
 
-This directory contains comprehensive guidance and tools for merging branches with different architectural approaches, based on the Email Intelligence project experience.
+This directory contains comprehensive guidance and tools for merging branches with different architectural approaches and integrating advanced CLI features, based on the Email Intelligence project experience.
 
 ## Files Overview
 
 ### Documentation Files
+- `COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md` - Complete guide covering CLI integration and architecture alignment
 - `MERGE_GUIDANCE_DOCUMENTATION.md` - Complete guide on merging branches with different architectural approaches
 - `ARCHITECTURE_ALIGNMENT_COMPLETE_AND_RECOMMENDATIONS.md` - Detailed documentation of the hybrid architecture approach
 - `HANDLING_INCOMPLETE_MIGRATIONS.md` - Guidance for dealing with branches that have partial architectural changes
@@ -18,16 +19,18 @@ This directory contains comprehensive guidance and tools for merging branches wi
 ## Usage Instructions
 
 ### For New Projects
-1. Copy the documentation files to establish merge guidance practices
-2. Use the factory pattern approach in `src/main.py` as a template for service compatibility
-3. Implement the validation script to verify architecture alignment
-4. Follow the merge strategy outlined in the guidance documents
+1. Start with `COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md` for a complete overview
+2. Copy the documentation files to establish merge guidance practices
+3. Use the factory pattern approach in `src/main.py` as a template for service compatibility
+4. Implement the validation script to verify architecture alignment
+5. Follow the merge strategy outlined in the guidance documents
 
 ### For Existing Projects
 1. Adapt the merge guidance to your specific architectural differences
 2. Modify the factory pattern to match your service startup expectations
 3. Customize the validation script for your specific functionality
 4. Apply the hybrid approach principles to your own merge scenarios
+5. Use the CLI integration framework for advanced features
 
 ## Key Principles
 
@@ -43,7 +46,12 @@ This directory contains comprehensive guidance and tools for merging branches wi
 - Standardize import paths across the codebase
 - Use consistent directory structures
 
-### 4. Test Thoroughly
+### 4. Interface-Based Architecture
+- Implement proper abstractions with interfaces and contracts
+- Create modular, testable components
+- Follow dependency inversion principles
+
+### 5. Test Thoroughly
 - Validate functionality after each merge step
 - Ensure no regressions are introduced
 
@@ -57,6 +65,9 @@ This directory contains comprehensive guidance and tools for merging branches wi
 - Managing context control systems
 - Dealing with performance optimizations
 - Resolving module dependency issues
+- Integrating advanced CLI features with constitutional analysis
+- Creating modular integration frameworks
+- Implementing non-interference merge policies
 
 ## Best Practices
 
@@ -67,3 +78,6 @@ This directory contains comprehensive guidance and tools for merging branches wi
 5. Verify that all related components were migrated together
 6. Run comprehensive tests to ensure no functionality is broken
 7. Document the merge process for future reference
+8. Use interface-based architecture for better modularity
+9. Implement modular integration frameworks for safe feature adoption
+10. Follow non-interference policies to preserve existing functionality
