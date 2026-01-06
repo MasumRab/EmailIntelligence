@@ -28,169 +28,87 @@ class IConflictDetector(ABC):
         Detect conflicts between a PR and a target branch.
 
         Args:
-            pr_id: ID of the Pull Request
-            target_branch: Name of the target branch (e.g., 'main')
+            pr_id: The pull request ID to analyze
+            target_branch: The target branch to compare against
 
         Returns:
-            List of detected Conflict objects
+            List of detected conflicts
         """
-        pass
-
-    @abstractmethod
-    async def detect_conflicts_between_branches(
-        self, source_branch: str, target_branch: str
-    ) -> List[Conflict]:
-        """
-        Detect conflicts between two specific branches.
-
-        Args:
-            source_branch: Name of the source branch
-            target_branch: Name of the target branch
-
-        Returns:
-            List of detected Conflict objects
-        """
-        pass
 
 
 class IConstitutionalAnalyzer(ABC):
     """
     Interface for constitutional analysis components.
-    Responsible for checking code against constitutional rules and requirements.
+    Responsible for checking code against constitutional rules.
     """
 
     @abstractmethod
-    async def analyze(self, conflict: Conflict, context: Dict[str, Any] = None) -> AnalysisResult:
+    async def analyze_constitutional_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
         """
-        Analyze a conflict against constitutional rules.
+        Analyze code for constitutional compliance.
 
         Args:
-            conflict: The conflict to analyze
-            context: Optional additional context
+            code: The code to analyze
+            context: Additional context for the analysis
 
         Returns:
-            AnalysisResult containing findings and metrics
+            Analysis result with compliance information
         """
-        pass
-
-    @abstractmethod
-    async def validate_code_change(self, code: str, rules: List[str] = None) -> Dict[str, Any]:
-        """
-        Validate a specific code snippet against rules.
-
-        Args:
-            code: The code content to validate
-            rules: Optional list of specific rules to check
-
-        Returns:
-            Dictionary of validation results
-        """
-        pass
 
 
-class IStrategyGenerator(ABC):
+class IResolutionStrategy(ABC):
     """
-    Interface for strategy generation components.
-    Responsible for generating resolution strategies for conflicts.
+    Interface for resolution strategy components.
+    Responsible for determining how to resolve conflicts.
     """
 
     @abstractmethod
-    async def generate_strategies(
-        self,
-        conflict: Conflict,
-        analysis: AnalysisResult,
-        context: Dict[str, Any] = None,
-    ) -> List[ResolutionStrategy]:
+    async def generate_resolution_strategy(self, conflicts: List[Conflict]) -> ResolutionStrategy:
         """
-        Generate potential resolution strategies for a conflict.
+        Generate a resolution strategy for the given conflicts.
 
         Args:
-            conflict: The conflict to resolve
-            analysis: The analysis result for the conflict
-            context: Optional additional context
+            conflicts: List of conflicts to resolve
 
         Returns:
-            List of proposed ResolutionStrategy objects
+            Resolution strategy
         """
-        pass
-
-
-class IConflictResolver(ABC):
-    """
-    Interface for conflict resolution components.
-    Responsible for executing resolution strategies.
-    """
-
-    @abstractmethod
-    async def resolve(self, conflict: Conflict, strategy: ResolutionStrategy) -> ResolutionPlan:
-        """
-        Create a resolution plan based on a strategy.
-
-        Args:
-            conflict: The conflict to resolve
-            strategy: The selected resolution strategy
-
-        Returns:
-            ResolutionPlan containing specific steps and code changes
-        """
-        pass
-
-    @abstractmethod
-    async def execute_plan(self, plan: ResolutionPlan) -> bool:
-        """
-        Execute a resolution plan.
-
-        Args:
-            plan: The plan to execute
-
-        Returns:
-            True if execution was successful, False otherwise
-        """
-        pass
 
 
 class IValidator(ABC):
     """
     Interface for validation components.
-    Responsible for validating resolutions (tests, linting, security).
+    Responsible for validating code and configurations.
     """
 
     @abstractmethod
-    async def validate(self, context: Dict[str, Any]) -> ValidationResult:
+    async def validate(self, target: Any, context: Dict[str, Any] = None) -> ValidationResult:
         """
-        Perform validation on the current state.
+        Validate the target object.
 
         Args:
-            context: Context containing paths, IDs, etc.
+            target: The object to validate
+            context: Additional context for validation
 
         Returns:
-            ValidationResult containing status and details
+            Validation result
         """
-        pass
 
 
-class IMetadataStore(ABC):
+class IResolutionEngine(ABC):
     """
-    Interface for metadata storage components.
-    Responsible for persisting analysis and resolution data.
+    Interface for resolution engine components.
+    Orchestrates the entire conflict resolution process.
     """
 
     @abstractmethod
-    async def save_conflict(self, conflict: Conflict) -> str:
-        """Save conflict metadata"""
-        pass
+    async def execute_resolution(self, plan: ResolutionPlan) -> Dict[str, Any]:
+        """
+        Execute a resolution plan.
 
-    @abstractmethod
-    async def get_conflict(self, conflict_id: str) -> Optional[Conflict]:
-        """Retrieve conflict metadata"""
-        pass
+        Args:
+            plan: The resolution plan to execute
 
-    @abstractmethod
-    async def save_analysis(self, analysis: AnalysisResult) -> str:
-        """Save analysis result"""
-        pass
-
-    @abstractmethod
-    async def get_analysis(self, conflict_id: str) -> Optional[AnalysisResult]:
-        """Retrieve analysis result"""
-        pass
+        Returns:
+            Execution results
+        """

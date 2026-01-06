@@ -6,9 +6,9 @@ Orchestrates the checking of code against constitutional rules.
 from pathlib import Path
 from typing import List, Dict, Any
 
-from ...core.interfaces import IConstitutionalAnalyzer
-from ...core.conflict_models import Conflict, AnalysisResult, RiskLevel
-from ...utils.logger import get_logger
+from ..core.interfaces import IConstitutionalAnalyzer
+from ..core.conflict_models import Conflict, AnalysisResult, RiskLevel
+from ..utils.logger import get_logger
 from .requirement_checker import (
     ErrorHandlingChecker,
     TypeHintChecker,
@@ -17,16 +17,17 @@ from .requirement_checker import (
     RequirementViolation,
 )
 
+
 logger = get_logger(__name__)
 
 
 class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
     """
-    Analyzes code compliance with constitutional rules.
+    Analyzes code against constitutional rules and requirements.
     """
 
-    def __init__(self, rules_path: Path = None):
-        self.rules_path = rules_path or Path("constitutions")
+    def __init__(self, constitution_file: str = None):
+        self.constitution_file = constitution_file
         self.checkers = [
             ErrorHandlingChecker(),
             TypeHintChecker(),
@@ -34,81 +35,61 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
             SecurityChecker(),
         ]
 
-    async def analyze(self, conflict: Conflict, context: Dict[str, Any] = None) -> AnalysisResult:
+    async def analyze_constitutional_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
         """
-        Analyze a conflict against constitutional rules.
-        """
-        logger.info("Starting constitutional analysis", conflict_id=conflict.id)
+        Analyze code for constitutional compliance.
 
+        Args:
+            code: The code to analyze
+            context: Additional context for the analysis
+
+        Returns:
+            Analysis result with compliance information
+        """
+        logger.info(f"Starting constitutional analysis for code of length {len(code)}")
+        
         violations = []
-
-        # Analyze each file in the conflict
-        for block in conflict.blocks:
-            # Analyze incoming content (the proposed change)
-            file_violations = self._analyze_code(block.incoming_content, block.file_path)
-            violations.extend(file_violations)
-
-        # Calculate scores and risk
-        complexity_score = self._calculate_complexity(conflict)
-        risk_level = self._assess_risk(violations, complexity_score)
-
-        return AnalysisResult(
-            conflict_id=conflict.id,
-            complexity_score=complexity_score,
-            risk_level=risk_level,
-            estimated_resolution_time_minutes=self._estimate_time(
-                complexity_score, len(violations)
-            ),
-            is_auto_resolvable=len(violations) == 0 and complexity_score < 50,
-            recommended_strategy_type="automated" if len(violations) == 0 else "manual",
-            root_cause="Constitutional Analysis",
-            constitutional_violations=[v.description for v in violations],
-            confidence_score=0.9,
-        )
-
-    async def validate_code_change(self, code: str, rules: List[str] = None) -> Dict[str, Any]:
-        """
-        Validate a specific code snippet against rules.
-        """
-        violations = self._analyze_code(code, "snippet")
-
-        if rules:
-            violations = [v for v in violations if v.rule_id in rules]
-
-        return {
-            "valid": len(violations) == 0,
-            "violations": [v.__dict__ for v in violations],
-        }
-
-    def _analyze_code(self, code: str, file_path: str) -> List[RequirementViolation]:
-        """Run all checkers on the code."""
-        violations = []
+        recommendations = []
+        details = {}
+        
+        # Run all checkers
         for checker in self.checkers:
-            try:
-                checker_violations = checker.check(code, file_path)
-                violations.extend(checker_violations)
-            except Exception as e:
-                logger.error("Checker failed", checker=checker.__class__.__name__, error=str(e))
-        return violations
+            checker_violations = checker.check(code)
+            violations.extend(checker_violations)
+            
+            # Generate recommendations based on violations
+            for violation in checker_violations:
+                recommendations.append(f"Fix: {violation.description}")
+        
+        # Calculate compliance score
+        total_checks = len(self.checkers) * 10  # Assuming each checker runs 10 checks
+        failed_checks = len(violations)
+        
+        compliance_score = 1.0 - (failed_checks / total_checks) if total_checks > 0 else 1.0
+        # Ensure score is between 0 and 1
+        compliance_score = max(0.0, min(1.0, compliance_score))
+        
+        analysis_result = AnalysisResult(
+            compliance_score=compliance_score,
+            violations=[v.description for v in violations],
+            recommendations=recommendations,
+            details=details
+        )
+        
+        logger.info(f"Constitutional analysis completed with score: {compliance_score:.2f}")
+        return analysis_result
 
-    def _calculate_complexity(self, conflict: Conflict) -> float:
-        """Calculate complexity score (0-100)."""
-        # specialized logic would go here (e.g. cyclomatic complexity)
-        # for now, simple heuristic based on lines of code
-        total_lines = sum(len(b.incoming_content.splitlines()) for b in conflict.blocks)
-        return min(total_lines * 1.5, 100.0)
 
-    def _assess_risk(self, violations: List[RequirementViolation], complexity: float) -> RiskLevel:
-        """Assess risk level based on violations and complexity."""
-        if any(v.severity == "critical" for v in violations):
-            return RiskLevel.CRITICAL
-        if complexity > 80 or any(v.severity == "major" for v in violations):
-            return RiskLevel.HIGH
-        if complexity > 40:
-            return RiskLevel.MEDIUM
-        return RiskLevel.LOW
+class RequirementViolation:
+    """
+    Represents a violation of a constitutional requirement.
+    """
+    
+    def __init__(self, rule_id: str, description: str, severity: RiskLevel, location: str = None):
+        self.rule_id = rule_id
+        self.description = description
+        self.severity = severity
+        self.location = location
 
-    def _estimate_time(self, complexity: float, violation_count: int) -> int:
-        """Estimate resolution time in minutes."""
-        base_time = 5  # minutes
-        return int(base_time + (complexity * 0.5) + (violation_count * 10))
+    def __str__(self):
+        return f"[{self.severity.value}] {self.rule_id}: {self.description}"

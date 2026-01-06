@@ -1,147 +1,50 @@
 """
-Custom exceptions for EmailIntelligence CLI
+Core exceptions for EmailIntelligence CLI
 
-This module defines a hierarchy of exceptions used throughout the EmailIntelligence
-system for better error handling and debugging.
+This module defines custom exceptions used throughout the system.
 """
 
 
-class EmailIntelligenceError(Exception):
-    """
-    Base exception for all EmailIntelligence errors.
-
-    All custom exceptions in the system should inherit from this class.
-    """
-
+class EmailIntelligenceException(Exception):
+    """Base exception for all EmailIntelligence CLI exceptions."""
     pass
 
 
-class ConflictDetectionError(EmailIntelligenceError):
-    """
-    Raised when conflict detection fails.
-
-    Examples:
-        - Git merge-tree command fails
-        - Unable to parse conflict markers
-        - Invalid PR references
-    """
-
+class ConflictDetectionError(EmailIntelligenceException):
+    """Raised when conflict detection fails."""
     pass
 
 
-class AnalysisError(EmailIntelligenceError):
-    """
-    Raised when code analysis fails.
-
-    Examples:
-        - AST parsing errors
-        - Constitutional rule evaluation failures
-        - Complexity calculation errors
-    """
-
+class ConstitutionalAnalysisError(EmailIntelligenceException):
+    """Raised when constitutional analysis fails."""
     pass
 
 
-class StrategyGenerationError(EmailIntelligenceError):
-    """
-    Raised when strategy generation fails.
-
-    Examples:
-        - AI API failures
-        - Invalid strategy parameters
-        - Strategy validation failures
-    """
-
+class ResolutionStrategyError(EmailIntelligenceException):
+    """Raised when resolution strategy generation fails."""
     pass
 
 
-class ResolutionError(EmailIntelligenceError):
-    """
-    Raised when conflict resolution fails.
-
-    Examples:
-        - Resolution execution errors
-        - Merge operation failures
-        - Validation failures after resolution
-    """
-
+class ValidationError(EmailIntelligenceException):
+    """Raised when validation fails."""
     pass
 
 
-class ValidationError(EmailIntelligenceError):
-    """
-    Raised when validation fails.
-
-    Examples:
-        - Test execution failures
-        - Quality check failures
-        - Security scan issues
-    """
-
+class ConfigurationError(EmailIntelligenceException):
+    """Raised when configuration is invalid."""
     pass
 
 
-class DatabaseError(EmailIntelligenceError):
-    """
-    Raised when database operations fail.
-
-    Examples:
-        - Neo4j connection failures
-        - Query execution errors
-        - Transaction failures
-    """
-
+class GitOperationError(EmailIntelligenceException):
+    """Raised when git operations fail."""
     pass
 
 
-class GitOperationError(EmailIntelligenceError):
-    """
-    Raised when git operations fail.
-
-    Examples:
-        - Worktree creation failures
-        - Branch checkout errors
-        - Merge failures
-        - Repository access issues
-    """
-
+class ResourceNotFoundError(EmailIntelligenceException):
+    """Raised when a required resource is not found."""
     pass
 
 
-class ConfigurationError(EmailIntelligenceError):
-    """
-    Raised when configuration is invalid or missing.
-
-    Examples:
-        - Missing required configuration
-        - Invalid configuration values
-        - Environment variable errors
-    """
-
-    pass
-
-
-class StorageError(EmailIntelligenceError):
-    """
-    Raised when storage operations fail.
-
-    Examples:
-        - File I/O errors
-        - Metadata save/load failures
-        - Permission errors
-    """
-
-    pass
-
-
-class InterfaceError(EmailIntelligenceError):
-    """
-    Raised when interface contract violations occur.
-
-    Examples:
-        - Missing required methods
-        - Invalid return types
-        - Protocol violations
-    """
-
+class PermissionError(EmailIntelligenceException):
+    """Raised when an operation lacks required permissions."""
     pass

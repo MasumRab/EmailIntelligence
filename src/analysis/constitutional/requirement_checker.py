@@ -1,159 +1,180 @@
 """
-Requirement checking module for Constitutional Analysis.
+Requirement checker module for constitutional analysis.
+
+Implements various checkers for different aspects of code quality.
 """
 
-from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
-
-from ..code.ast_analyzer import ASTAnalyzer
+from typing import List
+from ..core.conflict_models import RiskLevel
+from .analyzer import RequirementViolation
 
 
-@dataclass
-class RequirementViolation:
-    """Represents a violation of a constitutional requirement."""
-
-    rule_id: str
-    description: str
-    severity: str
-    file_path: str
-    line_number: Optional[int] = None
-
-
-class BaseChecker(ABC):
-    """Abstract base class for requirement checkers."""
-
-    def __init__(self):
-        self.ast_analyzer = ASTAnalyzer()
-
-    @abstractmethod
-    def check(
-        self, code: str, file_path: str, context: Dict[str, Any] = None
-    ) -> List[RequirementViolation]:
-        """Check code against requirements."""
-        pass
+class BaseChecker:
+    """
+    Base class for all requirement checkers.
+    """
+    
+    def check(self, code: str) -> List[RequirementViolation]:
+        """
+        Check the code for violations.
+        
+        Args:
+            code: The code to check
+            
+        Returns:
+            List of violations found
+        """
+        raise NotImplementedError("Subclasses must implement the check method")
 
 
 class ErrorHandlingChecker(BaseChecker):
     """
-    Checks for proper error handling (try/except blocks).
-    Corresponds to 'error_recovery_procedures' rule.
+    Checks for proper error handling in code.
     """
-
-    def check(
-        self, code: str, file_path: str, context: Dict[str, Any] = None
-    ) -> List[RequirementViolation]:
+    
+    def check(self, code: str) -> List[RequirementViolation]:
         violations = []
-        structure = self.ast_analyzer.analyze_structure(code)
-
-        # Check per-function error handling
-        for func_name, func_meta in structure.function_metadata.items():
-            if not func_meta.has_error_handling:
-                violations.append(
-                    RequirementViolation(
-                        rule_id="error_recovery_procedures",
-                        description=f"Function '{func_name}' in {file_path} has no error handling (try/except).",
-                        severity="major",
-                        file_path=file_path,
-                    )
-                )
-
+        
+        # Check for try/except blocks
+        if "try:" in code and "except" not in code:
+            violations.append(RequirementViolation(
+                rule_id="error-handling-001",
+                description="Try block without corresponding except block",
+                severity=RiskLevel.HIGH
+            ))
+        
+        # Check for bare except statements
+        if "except:" in code:
+            violations.append(RequirementViolation(
+                rule_id="error-handling-002",
+                description="Bare except statement found (except: without exception type)",
+                severity=RiskLevel.MEDIUM
+            ))
+        
+        # Check for pass in except blocks
+        if "except" in code and "pass" in code:
+            lines = code.split('\n')
+            in_except_block = False
+            for i, line in enumerate(lines):
+                if 'except' in line and ':' in line:
+                    in_except_block = True
+                elif in_except_block and line.strip() == 'pass':
+                    violations.append(RequirementViolation(
+                        rule_id="error-handling-003",
+                        description="Empty except block with 'pass' statement",
+                        severity=RiskLevel.MEDIUM
+                    ))
+                    in_except_block = False
+                elif line.strip() and not line.strip().startswith('#') and in_except_block:
+                    in_except_block = False  # End of except block
+        
         return violations
 
 
 class TypeHintChecker(BaseChecker):
     """
-    Checks for type hints in function definitions.
-    Corresponds to 'quality_gates_integration' (implied code quality).
+    Checks for proper type hints in code.
     """
-
-    def check(
-        self, code: str, file_path: str, context: Dict[str, Any] = None
-    ) -> List[RequirementViolation]:
+    
+    def check(self, code: str) -> List[RequirementViolation]:
         violations = []
-        structure = self.ast_analyzer.analyze_structure(code)
-
-        for func_name, func_meta in structure.function_metadata.items():
-            if not func_meta.has_type_hints:
-                violations.append(
-                    RequirementViolation(
-                        rule_id="type_hints_required",
-                        description=f"Function '{func_name}' in {file_path} is missing type hints.",
-                        severity="major",
-                        file_path=file_path,
-                    )
-                )
-
+        
+        # Check for function definitions without type hints
+        lines = code.split('\n')
+        for i, line in enumerate(lines):
+            if line.strip().startswith('def ') and '->' not in line and '(' in line:
+                violations.append(RequirementViolation(
+                    rule_id="type-hint-001",
+                    description=f"Function definition without return type hint at line {i+1}",
+                    severity=RiskLevel.MEDIUM
+                ))
+        
         return violations
 
 
 class DocstringChecker(BaseChecker):
     """
-    Checks for docstrings in functions and classes.
-    Corresponds to 'documentation_requirements' rule.
+    Checks for proper docstrings in code.
     """
-
-    def check(
-        self, code: str, file_path: str, context: Dict[str, Any] = None
-    ) -> List[RequirementViolation]:
+    
+    def check(self, code: str) -> List[RequirementViolation]:
         violations = []
-        structure = self.ast_analyzer.analyze_structure(code)
-
-        missing_docstrings = []
-        for func in structure.functions:
-            if func not in structure.docstrings:
-                missing_docstrings.append(f"function '{func}'")
-
-        for cls in structure.classes:
-            if cls not in structure.docstrings:
-                missing_docstrings.append(f"class '{cls}'")
-
-        if missing_docstrings:
-            violations.append(
-                RequirementViolation(
-                    rule_id="documentation_requirements",
-                    description=f"Missing docstrings in {file_path}: {', '.join(missing_docstrings)}",
-                    severity="major",
-                    file_path=file_path,
-                )
-            )
-
+        
+        lines = code.split('\n')
+        in_function = False
+        has_docstring = False
+        
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            
+            # Check for function definition
+            if stripped.startswith('def '):
+                if in_function and not has_docstring:
+                    violations.append(RequirementViolation(
+                        rule_id="docstring-001",
+                        description=f"Function without docstring at line {i}",
+                        severity=RiskLevel.MEDIUM
+                    ))
+                
+                in_function = True
+                has_docstring = False
+            elif in_function and ('"""' in stripped or "'''" in stripped):
+                has_docstring = True
+            elif in_function and stripped and not stripped.startswith('#'):
+                if not has_docstring:
+                    violations.append(RequirementViolation(
+                        rule_id="docstring-001",
+                        description=f"Function without docstring",
+                        severity=RiskLevel.MEDIUM
+                    ))
+                in_function = False
+                has_docstring = False
+        
+        # Check the last function
+        if in_function and not has_docstring:
+            violations.append(RequirementViolation(
+                rule_id="docstring-001",
+                description="Last function without docstring",
+                severity=RiskLevel.MEDIUM
+            ))
+        
         return violations
 
 
 class SecurityChecker(BaseChecker):
     """
-    Checks for basic security issues (e.g., hardcoded secrets).
-    Corresponds to 'security_considerations' rule.
+    Checks for security-related issues in code.
     """
-
-    def check(
-        self, code: str, file_path: str, context: Dict[str, Any] = None
-    ) -> List[RequirementViolation]:
+    
+    def check(self, code: str) -> List[RequirementViolation]:
         violations = []
-
-        # Very basic check for hardcoded secrets (placeholder for more advanced scanning)
-        # In a real implementation, we'd use a tool like bandit or detect-secrets
-        dangerous_terms = ["password =", "secret =", "api_key =", "token ="]
-
-        for i, line in enumerate(code.splitlines()):
-            line_lower = line.lower()
-            for term in dangerous_terms:
-                if term in line_lower:
-                    # Check if the assignment uses safe patterns
-                    if any(
-                        safe in line_lower
-                        for safe in ["os.getenv", "os.environ", "config.get", "getenv"]
-                    ):
-                        continue
-                    violations.append(
-                        RequirementViolation(
-                            rule_id="security_considerations",
-                            description=f"Potential hardcoded secret found: '{term.strip()}'",
-                            severity="critical",
-                            file_path=file_path,
-                            line_number=i + 1,
-                        )
-                    )
-
+        
+        # Check for potential SQL injection vulnerabilities
+        dangerous_patterns = [
+            ("eval(", "Use of eval() is dangerous and should be avoided", RiskLevel.CRITICAL),
+            ("exec(", "Use of exec() is dangerous and should be avoided", RiskLevel.CRITICAL),
+            ("os.system(", "Use of os.system() with dynamic input can be dangerous", RiskLevel.HIGH),
+            ("subprocess.call(", "Direct use of subprocess with dynamic input can be dangerous", RiskLevel.MEDIUM),
+        ]
+        
+        for pattern, description, severity in dangerous_patterns:
+            if pattern in code:
+                violations.append(RequirementViolation(
+                    rule_id=f"security-{severity.value}-001",
+                    description=description,
+                    severity=severity
+                ))
+        
+        # Check for hardcoded passwords or secrets
+        lines = code.split('\n')
+        for i, line in enumerate(lines):
+            if ('password' in line.lower() or 'secret' in line.lower() or 'key' in line.lower()) and ('=' in line) and ('"' in line or "'" in line):
+                # Check if it's a variable assignment with a string value
+                if ('password' in line.lower() or 'secret' in line.lower() or 'key' in line.lower()) and ('"' in line or "'" in line):
+                    violations.append(RequirementViolation(
+                        rule_id="security-secret-001",
+                        description=f"Potential hardcoded secret found at line {i+1}",
+                        severity=RiskLevel.HIGH
+                    ))
+        
         return violations

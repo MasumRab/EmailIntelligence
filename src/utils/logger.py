@@ -1,95 +1,87 @@
 """
-Structured logging configuration for EmailIntelligence CLI
+Logger utility for EmailIntelligence CLI
 
-This module configures structlog for structured logging, supporting both
-JSON output (for production/parsing) and pretty console output (for development).
+Provides standardized logging functionality across the system.
 """
 
-import sys
 import logging
-import structlog
-from typing import Any, Optional
-from ..core.config import settings
+import sys
+from pathlib import Path
+from typing import Optional
 
 
-def configure_logging(
-    log_level: str = None, json_format: bool = None, log_file: Optional[str] = None
-) -> None:
+def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
     """
-    Configure structured logging based on settings.
-
+    Get a configured logger instance.
+    
     Args:
-        log_level: Override log level from settings
-        json_format: Override log format from settings
-        log_file: Override log file path from settings
-    """
-    level_name = log_level or settings.log_level
-    use_json = json_format if json_format is not None else (settings.log_format.lower() == "json")
-
-    # Map string level to logging constant
-    level = getattr(logging, level_name.upper(), logging.INFO)
-
-    # Configure standard logging
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=level,
-    )
-
-    # Processors common to both formats
-    processors = [
-        structlog.contextvars.merge_contextvars,
-        structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-    ]
-
-    # Add format-specific processor
-    if use_json:
-        processors.append(structlog.processors.JSONRenderer())
-    else:
-        processors.append(structlog.dev.ConsoleRenderer(colors=True))
-
-    # Configure structlog
-    structlog.configure(
-        processors=processors,
-        context_class=dict,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True,
-    )
-
-    # Configure file logging if requested
-    file_path = log_file or settings.log_file
-    if file_path:
-        file_handler = logging.FileHandler(file_path)
-        file_handler.setLevel(level)
-        # Always use JSON for file logs for easier parsing
-        formatter = structlog.stdlib.ProcessorFormatter(
-            processor=structlog.processors.JSONRenderer(),
-        )
-        file_handler.setFormatter(formatter)
-        logging.getLogger().addHandler(file_handler)
-
-
-def get_logger(name: str = None) -> Any:
-    """
-    Get a structured logger instance.
-
-    Args:
-        name: Optional logger name (defaults to module name)
-
+        name: Name for the logger (typically __name__ of the module)
+        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        
     Returns:
-        Structured logger instance
+        Configured logger instance
     """
-    return structlog.get_logger(name)
+    logger = logging.getLogger(name)
+    
+    # Set default level if not provided
+    if level is None:
+        level = "INFO"
+    
+    logger.setLevel(getattr(logging, level.upper()))
+    
+    # Avoid adding multiple handlers if logger already has handlers
+    if not logger.handlers:
+        # Create console handler
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(getattr(logging, level.upper()))
+        
+        # Create formatter
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        console_handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        logger.addHandler(console_handler)
+    
+    return logger
 
 
-# Initialize logging with default settings
-# configure_logging() # Disabled to prevent import-time side effects.
-# Call explicitly in entry point.
+def setup_logging(log_file: Optional[str] = None, level: str = "INFO"):
+    """
+    Setup root logging configuration.
+    
+    Args:
+        log_file: Optional file path to write logs to
+        level: Logging level
+    """
+    root_logger = logging.getLogger()
+    root_logger.setLevel(getattr(logging, level.upper()))
+    
+    # Clear existing handlers
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    # Create formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(getattr(logging, level.upper()))
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+    
+    # File handler if specified
+    if log_file:
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(getattr(logging, level.upper()))
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+
+# Example usage
+if __name__ == "__main__":
+    logger = get_logger(__name__)
+    logger.info("Logger utility initialized")
