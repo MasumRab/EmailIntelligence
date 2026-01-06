@@ -119,6 +119,7 @@ class BranchMetrics:
     codebase_structure: CodebaseMetrics
     migration_metrics: MigrationMetrics
     timestamp: str
+    conflict_probability: float = 0.0
 
 
 @dataclass
@@ -226,7 +227,13 @@ class CommitHistoryAnalyzer:
         if not lines:
             return MIN_BRANCH_AGE_DAYS
 
-        first_commit_date = datetime.fromisoformat(lines[0].replace(" +0000", "+00:00"))
+        try:
+            # Try robust parsing first if available or standard isoformat
+            first_commit_date = datetime.fromisoformat(lines[0].replace(" +0000", "+00:00"))
+        except ValueError:
+            # Fallback for simple cases
+            first_commit_date = datetime.now()
+
         age = (datetime.now(first_commit_date.tzinfo) - first_commit_date).days
         return max(age, MIN_BRANCH_AGE_DAYS)
 
@@ -403,7 +410,7 @@ class CodebaseStructureAnalyzer:
         for line in result.stdout.strip().split("\n"):
             if line:
                 parts = line.split("\t")
-                if len(parts) >= 2:
+                if len(parts) >= 3:
                     try:
                         added = int(parts[0]) if parts[0] != "-" else 0
                         deleted = int(parts[1]) if parts[1] != "-" else 0
@@ -880,7 +887,7 @@ class IntegrationTargetAssigner:
     }
 
     def assign_target(
-        self, branch_name: str, metrics: BranchMetrics, cluster_members: List[str] = None
+        self, branch_name: str, metrics: BranchMetrics
     ) -> TagAssignment:
         """
         Assign integration target and tags to branch using a two-step process:
@@ -934,7 +941,7 @@ class IntegrationTargetAssigner:
 
         for target, rules in self.AFFINITY_RULES.items():
             pattern_match_score = sum(
-                1 for pattern in rules["patterns"] if any(pattern in d for d in dirs)
+                1 for pattern in rules["patterns"] if any(pattern.rstrip("/") == d for d in dirs)
             ) / max(len(rules["patterns"]), 1)
 
             affinities[target] = (
@@ -976,7 +983,7 @@ class IntegrationTargetAssigner:
         tags.append(target_tag)
 
         # Determine execution context based on conflict probability
-        conflict_prob = 0.15  # Placeholder - should be calculated from diff_metrics
+        conflict_prob = metrics.conflict_probability if hasattr(metrics, "conflict_probability") else 0.15
         if conflict_prob < SIMPLE_CONFLICT_PROBABILITY:
             tags.append("tag:parallel_safe")
         else:
@@ -1130,7 +1137,7 @@ class BranchClusteringEngine:
             )
 
             # Simple target assignment
-            assignment = self.assigner.assign_target(branch, metrics, {})
+            assignment = self.assigner.assign_target(branch, metrics)
 
             results.append(
                 {
@@ -1248,7 +1255,7 @@ class BranchClusteringEngine:
 
             # Assign target and generate tags based on metrics and cluster context
             assignment = self.assigner.assign_target(
-                branch, branch_metrics[branch], clusters[cluster_id]
+                branch, branch_metrics[branch]
             )
 
             # Build comprehensive result object
