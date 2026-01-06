@@ -6,6 +6,7 @@ This directory contains comprehensive guidance and tools for merging branches wi
 
 ### Documentation Files
 - `COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md` - Complete guide covering CLI integration and architecture alignment
+- `FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md` - Guide for implementing factory pattern in branches that need it
 - `MERGE_GUIDANCE_DOCUMENTATION.md` - Complete guide on merging branches with different architectural approaches
 - `ARCHITECTURE_ALIGNMENT_COMPLETE_AND_RECOMMENDATIONS.md` - Detailed documentation of the hybrid architecture approach
 - `HANDLING_INCOMPLETE_MIGRATIONS.md` - Guidance for dealing with branches that have partial architectural changes

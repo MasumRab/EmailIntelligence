@@ -15,6 +15,7 @@ This directory contains all the necessary files and documentation to replicate t
 ### Documentation
 - `README.md` - Overview of the guidance directory
 - `COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md` - Complete guide covering CLI integration and architecture alignment
+- `FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md` - Guide for implementing factory pattern in branches that need it
 - `ARCHITECTURE_ALIGNMENT_IMPLEMENTATION_GUIDE.md` - Complete implementation guide
 - `MERGE_GUIDANCE_DOCUMENTATION.md` - Comprehensive merge guidance
 - `ARCHITECTURE_ALIGNMENT_COMPLETE_AND_RECOMMENDATIONS.md` - Architecture alignment recommendations
