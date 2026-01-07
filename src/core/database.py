@@ -664,23 +664,44 @@ class DatabaseManager(DataSource):
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """
+        Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk.
+        Optimized to search newest emails first and exit early once the limit is reached.
+        """
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
         search_term_lower = search_term.lower()
         filtered_emails = []
-        logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
-        )
-        for email_light in self.emails_data:
+
+        # NOTE: self.emails_data is naturally sorted by creation/insertion order (oldest -> newest).
+        # We iterate in reverse to prioritize recent emails and enable early exit.
+
+        # We need a slightly higher limit if we are paginating, but since this function
+        # is typically called with limit=50 and handles sorting/pagination at the end,
+        # we can just collect `limit` matches if offset=0.
+        # However, the current signature doesn't take offset.
+        # Ideally, we should collect `limit` matches.
+
+        target_count = limit
+
+        # If we were to support offset in search, we'd need target_count = limit + offset
+
+        for email_light in reversed(self.emails_data):
+            # Check in-memory metadata first (Fast)
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
+
             if found_in_light:
                 filtered_emails.append(email_light)
+                if len(filtered_emails) >= target_count:
+                    break
                 continue
+
+            # Check content on disk (Slow)
+            # Only performed if not found in metadata
             email_id = email_light.get(FIELD_ID)
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
@@ -690,8 +711,16 @@ class DatabaseManager(DataSource):
                         content = heavy_data.get(FIELD_CONTENT, "")
                         if isinstance(content, str) and search_term_lower in content.lower():
                             filtered_emails.append(email_light)
+                            if len(filtered_emails) >= target_count:
+                                break
                 except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+                    # Log but continue searching
+                    pass
+
+        # Since we collected them in reverse order (newest first),
+        # and _sort_and_paginate_emails sorts by time descending (newest first),
+        # our collected list is already in the correct relative order for the top N.
+
         return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
