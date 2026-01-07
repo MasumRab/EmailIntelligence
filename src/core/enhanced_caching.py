@@ -143,6 +143,9 @@ class EnhancedCachingManager:
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
 
+        # Generic cache for other components (like SmartFilterManager)
+        self.generic_cache = LRUCache(capacity=500)
+
         # Statistics tracking
         self.cache_operations = {
             "email_record_get": 0,
@@ -152,7 +155,10 @@ class EnhancedCachingManager:
             "query_result_get": 0,
             "query_result_put": 0,
             "content_get": 0,
-            "content_put": 0
+            "content_put": 0,
+            "generic_get": 0,
+            "generic_put": 0,
+            "generic_delete": 0
         }
 
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
@@ -208,12 +214,40 @@ class EnhancedCachingManager:
         """Invalidate query result cache."""
         self.query_cache.invalidate(query_key)
 
+    # --- Async Compatibility Methods for SmartFilterManager ---
+
+    async def _ensure_initialized(self):
+        """Ensure the caching manager is initialized (async compatibility)."""
+        pass
+
+    async def close(self):
+        """Close the caching manager (async compatibility)."""
+        self.clear_all_caches()
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Generic async get for SmartFilterManager compatibility."""
+        self.cache_operations["generic_get"] += 1
+        return self.generic_cache.get(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Generic async set for SmartFilterManager compatibility."""
+        self.cache_operations["generic_put"] += 1
+        self.generic_cache.put(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Generic async delete for SmartFilterManager compatibility."""
+        self.cache_operations["generic_delete"] += 1
+        self.generic_cache.invalidate(key)
+
+    # ---------------------------------------------------------
+
     def clear_all_caches(self) -> None:
         """Clear all caches."""
         self.email_record_cache.clear()
         self.category_record_cache.clear()
         self.query_cache.clear()
         self.email_content_cache.clear()
+        self.generic_cache.clear()
 
         # Reset statistics
         for key in self.cache_operations:
@@ -226,5 +260,6 @@ class EnhancedCachingManager:
             "category_record_cache": self.category_record_cache.get_stats(),
             "query_cache": self.query_cache.get_stats(),
             "email_content_cache": self.email_content_cache.get_stats(),
+            "generic_cache": self.generic_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }

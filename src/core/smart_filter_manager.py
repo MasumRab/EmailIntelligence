@@ -723,7 +723,7 @@ class SmartFilterManager:
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
 
                     # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
+                    await self._update_filter_usage(filter_obj.filter_id, filter_obj)
 
             except Exception as e:
                 error_context = create_error_context(
@@ -744,19 +744,37 @@ class SmartFilterManager:
 
         return summary
 
-    async def _update_filter_usage(self, filter_id: str):
-        """Updates the usage statistics for a filter."""
+    async def _update_filter_usage(self, filter_id: str, filter_obj: Optional[EmailFilter] = None):
+        """
+        Updates the usage statistics for a filter.
+
+        Args:
+            filter_id: The ID of the filter to update.
+            filter_obj: Optional filter object to update in-memory to avoid cache invalidation.
+        """
         # Update usage count and last used time
         update_query = """
             UPDATE email_filters
             SET usage_count = usage_count + 1, last_used = ?
             WHERE filter_id = ?
         """
-        current_time = datetime.now(timezone.utc).isoformat()
-        self._db_execute(update_query, (current_time, filter_id))
+        current_time = datetime.now(timezone.utc)
+        current_time_iso = current_time.isoformat()
+        self._db_execute(update_query, (current_time_iso, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Optimization: If we have the filter object, update it in memory
+        # This avoids the need to invalidate the entire sorted list cache
+        if filter_obj:
+            filter_obj.usage_count += 1
+            filter_obj.last_used = current_time
+        else:
+            # Fallback: Invalidate cache if we couldn't update in-place
+            await self.caching_manager.delete("active_filters_sorted")
+
+        # We also don't need to invalidate the specific filter cache if we updated the object
+        # because the cache holds a reference to the mutable object.
+        if not filter_obj:
+             await self.caching_manager.delete(f"filter_{filter_id}")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
