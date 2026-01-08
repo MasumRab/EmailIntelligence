@@ -2,6 +2,7 @@
 CLI commands module.
 """
 
+import warnings
 from typing import Optional
 
 from ..git.worktree import WorktreeManager
@@ -18,9 +19,20 @@ logger = get_logger(__name__)
 class CLICommands:
     """
     Handlers for CLI commands.
+
+    DEPRECATED: This class is deprecated and will be removed in a future version.
+    Use the new modular command system instead:
+    from src.cli.commands.integration import create_registry
     """
 
     def __init__(self):
+        warnings.warn(
+            "CLICommands is deprecated and will be removed in a future version. "
+            "Use the new modular command system instead: "
+            "from src.cli.commands.integration import create_registry",
+            DeprecationWarning,
+            stacklevel=3,
+        )
         self.worktree_manager = WorktreeManager()
         self.conflict_detector = GitConflictDetector()
         self.analyzer = ConstitutionalAnalyzer()
@@ -98,7 +110,9 @@ class CLICommands:
             )
 
             # 3. Generate strategies
-            strategies = await self.strategy_generator.generate_strategies(conflict, analysis)
+            strategies = await self.strategy_generator.generate_strategies(
+                conflict, analysis
+            )
             print(f"Generated {len(strategies)} strategies.")
             for strat in strategies:
                 print(f"  - {strat.name} ({strat.type}): {strat.description}")
