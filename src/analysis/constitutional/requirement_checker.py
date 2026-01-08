@@ -5,8 +5,8 @@ Implements various checkers for different aspects of code quality.
 """
 
 from typing import List
-from ..core.conflict_models import RiskLevel
-from .analyzer import RequirementViolation
+from src.core.conflict_models import RiskLevel
+from .data import RequirementViolation
 
 
 class BaseChecker:

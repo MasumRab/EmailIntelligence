@@ -65,14 +65,18 @@ class CodeChange(BaseModel):
     """Represents a code change for resolution"""
 
     file_path: str = Field(..., description="Path to the file to modify")
-    operation: str = Field(..., description="Type of operation: add, modify, delete, replace")
+    operation: str = Field(
+        ..., description="Type of operation: add, modify, delete, replace"
+    )
     start_line: Optional[int] = Field(None, description="Starting line number")
     end_line: Optional[int] = Field(None, description="Ending line number")
     old_content: Optional[str] = Field(None, description="Original content to replace")
     new_content: str = Field(..., description="New content to add/replace")
     description: str = Field(..., description="Description of the change")
     confidence: float = Field(..., description="AI confidence in this change (0.0-1.0)")
-    validation_required: bool = Field(True, description="Whether this change requires validation")
+    validation_required: bool = Field(
+        True, description="Whether this change requires validation"
+    )
     rollback_data: Optional[str] = Field(None, description="Data needed for rollback")
 
     class Config:
@@ -131,9 +135,15 @@ class ResolutionStrategy(BaseModel):
     name: str = Field(..., description="Strategy name")
     description: str = Field(..., description="Strategy description")
     approach: str = Field(..., description="High-level approach taken")
-    steps: List[ResolutionStep] = Field(default_factory=list, description="Resolution steps")
-    pros: List[str] = Field(default_factory=list, description="Advantages of this approach")
-    cons: List[str] = Field(default_factory=list, description="Disadvantages of this approach")
+    steps: List[ResolutionStep] = Field(
+        default_factory=list, description="Resolution steps"
+    )
+    pros: List[str] = Field(
+        default_factory=list, description="Advantages of this approach"
+    )
+    cons: List[str] = Field(
+        default_factory=list, description="Disadvantages of this approach"
+    )
     confidence: float = Field(..., description="AI confidence in strategy (0.0-1.0)")
     estimated_time: int = Field(..., description="Estimated resolution time in seconds")
     risk_level: RiskLevel = Field(..., description="Overall risk level")
@@ -143,7 +153,9 @@ class ResolutionStrategy(BaseModel):
     success_criteria: List[str] = Field(
         default_factory=list, description="Criteria for successful resolution"
     )
-    rollback_strategy: Optional[str] = Field(None, description="How to roll back if needed")
+    rollback_strategy: Optional[str] = Field(
+        None, description="How to roll back if needed"
+    )
     validation_approach: str = Field(..., description="How to validate the resolution")
     ai_generated: bool = Field(True, description="Whether this was AI-generated")
     model_used: str = Field(..., description="AI model used for generation")
@@ -190,10 +202,16 @@ class ValidationResult(BaseModel):
 
     status: ValidationStatus = Field(..., description="Validation result status")
     message: str = Field(..., description="Validation result message")
-    details: Dict[str, Any] = Field(default_factory=dict, description="Detailed validation results")
-    execution_time: float = Field(..., description="Time taken for validation in seconds")
+    details: Dict[str, Any] = Field(
+        default_factory=dict, description="Detailed validation results"
+    )
+    execution_time: float = Field(
+        ..., description="Time taken for validation in seconds"
+    )
     validator_version: str = Field(..., description="Version of validator used")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Validation timestamp")
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="Validation timestamp"
+    )
 
 
 class QualityMetrics(BaseModel):
@@ -206,7 +224,9 @@ class QualityMetrics(BaseModel):
     security: float = Field(..., description="Security score (0.0-1.0)")
     testability: float = Field(..., description="Testability score (0.0-1.0)")
     overall_score: float = Field(..., description="Overall quality score (0.0-1.0)")
-    improvements: List[str] = Field(default_factory=list, description="Suggested improvements")
+    improvements: List[str] = Field(
+        default_factory=list, description="Suggested improvements"
+    )
     issues: List[str] = Field(default_factory=list, description="Identified issues")
 
 
@@ -219,7 +239,9 @@ class ResolutionPlan(BaseModel):
     strategies: List[ResolutionStrategy] = Field(
         default_factory=list, description="Available resolution strategies"
     )
-    selected_strategy: Optional[str] = Field(None, description="ID of selected strategy")
+    selected_strategy: Optional[str] = Field(
+        None, description="ID of selected strategy"
+    )
     execution_status: ExecutionStatus = Field(
         ExecutionStatus.PENDING, description="Current execution status"
     )
@@ -227,11 +249,21 @@ class ResolutionPlan(BaseModel):
     validation_results: List[ValidationResult] = Field(
         default_factory=list, description="Validation results"
     )
-    quality_metrics: Optional[QualityMetrics] = Field(None, description="Quality assessment")
-    human_feedback: Optional[str] = Field(None, description="Human feedback on resolution")
-    execution_log: List[Dict[str, Any]] = Field(default_factory=list, description="Execution log")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Plan creation time")
-    updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update time")
+    quality_metrics: Optional[QualityMetrics] = Field(
+        None, description="Quality assessment"
+    )
+    human_feedback: Optional[str] = Field(
+        None, description="Human feedback on resolution"
+    )
+    execution_log: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Execution log"
+    )
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow, description="Plan creation time"
+    )
+    updated_at: datetime = Field(
+        default_factory=datetime.utcnow, description="Last update time"
+    )
     timeout_seconds: int = Field(300, description="Timeout for resolution execution")
 
     class Config:
@@ -263,9 +295,13 @@ class MergeConflict(BaseModel):
     base_content: Optional[str] = Field(None, description="Base content before changes")
     content1: str = Field(..., description="First PR's content")
     content2: str = Field(..., description="Second PR's content")
-    similarity_score: float = Field(..., description="Similarity between changes (0.0-1.0)")
+    similarity_score: float = Field(
+        ..., description="Similarity between changes (0.0-1.0)"
+    )
     conflict_type: str = Field(..., description="Type of merge conflict")
-    line_numbers: Dict[str, List[int]] = Field(..., description="Line numbers for each version")
+    line_numbers: Dict[str, List[int]] = Field(
+        ..., description="Line numbers for each version"
+    )
 
     class Config:
         json_schema_extra = {
@@ -273,12 +309,7 @@ class MergeConflict(BaseModel):
                 "pr1_id": "pr_1",
                 "pr2_id": "pr_2",
                 "file_path": "src/main.py",
-                "conflict_region": (
-                    "\\n"
-                    "def new_function():\\n"
-                    "    return 'version2'\\n"
-                    "
-                ),
+                "conflict_region": ("\ndef new_function():\n    return 'version2'\n"),
                 "base_content": "def old_function():\n    return 'original'",
                 "content1": "def new_function():\n    return 'version1'",
                 "content2": "def new_function():\n    return 'version2'",
@@ -294,7 +325,9 @@ class DependencyConflict(BaseModel):
 
     conflict_type: str = Field(..., description="Type of dependency conflict")
     affected_nodes: List[str] = Field(..., description="Affected dependency nodes")
-    cycle_path: List[str] = Field(default_factory=list, description="Path in dependency cycle")
+    cycle_path: List[str] = Field(
+        default_factory=list, description="Path in dependency cycle"
+    )
     version_conflicts: Dict[str, Any] = Field(
         default_factory=dict, description="Version conflict details"
     )
@@ -326,8 +359,12 @@ class ArchitectureViolation(BaseModel):
     pattern_name: str = Field(..., description="Name of violated pattern")
     violating_prs: List[str] = Field(..., description="PRs that violate the pattern")
     description: str = Field(..., description="Description of the violation")
-    affected_components: List[str] = Field(..., description="Affected system components")
-    suggested_fix: Optional[str] = Field(None, description="Suggested architectural fix")
+    affected_components: List[str] = Field(
+        ..., description="Affected system components"
+    )
+    suggested_fix: Optional[str] = Field(
+        None, description="Suggested architectural fix"
+    )
     severity: ConflictSeverity = Field(..., description="Violation severity")
     layer_violations: List[Dict[str, str]] = Field(
         default_factory=list, description="Specific layer violations"
@@ -358,7 +395,9 @@ class SemanticConflict(BaseModel):
     conflict_area: str = Field(..., description="Area of semantic conflict")
     description: str = Field(..., description="Description of semantic incompatibility")
     confidence: float = Field(..., description="AI confidence in conflict detection")
-    evidence: List[str] = Field(default_factory=list, description="Evidence for the conflict")
+    evidence: List[str] = Field(
+        default_factory=list, description="Evidence for the conflict"
+    )
     resolution_suggestions: List[str] = Field(
         default_factory=list, description="Suggested resolutions"
     )

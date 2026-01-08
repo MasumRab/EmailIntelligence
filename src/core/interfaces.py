@@ -43,7 +43,9 @@ class IConstitutionalAnalyzer(ABC):
     """
 
     @abstractmethod
-    async def analyze_constitutional_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
+    async def analyze_constitutional_compliance(
+        self, code: str, context: Dict[str, Any]
+    ) -> AnalysisResult:
         """
         Analyze code for constitutional compliance.
 
@@ -63,7 +65,9 @@ class IResolutionStrategy(ABC):
     """
 
     @abstractmethod
-    async def generate_resolution_strategy(self, conflicts: List[Conflict]) -> ResolutionStrategy:
+    async def generate_resolution_strategy(
+        self, conflicts: List[Conflict]
+    ) -> ResolutionStrategy:
         """
         Generate a resolution strategy for the given conflicts.
 
@@ -82,7 +86,9 @@ class IValidator(ABC):
     """
 
     @abstractmethod
-    async def validate(self, target: Any, context: Dict[str, Any] = None) -> ValidationResult:
+    async def validate(
+        self, target: Any, context: Dict[str, Any] = None
+    ) -> ValidationResult:
         """
         Validate the target object.
 
@@ -112,3 +118,30 @@ class IResolutionEngine(ABC):
         Returns:
             Execution results
         """
+
+
+class MetadataStore(ABC):
+    """
+    Interface for metadata storage components.
+    Responsible for storing and retrieving metadata.
+    """
+
+    @abstractmethod
+    async def save_conflict(self, conflict: Conflict) -> str:
+        """Save conflict metadata"""
+        pass
+
+    @abstractmethod
+    async def get_conflict(self, conflict_id: str) -> Optional[Conflict]:
+        """Retrieve conflict metadata"""
+        pass
+
+    @abstractmethod
+    async def save_analysis(self, analysis: AnalysisResult) -> str:
+        """Save analysis result"""
+        pass
+
+    @abstractmethod
+    async def get_analysis(self, conflict_id: str) -> Optional[AnalysisResult]:
+        """Retrieve analysis result"""
+        pass

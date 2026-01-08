@@ -5,10 +5,9 @@ Core module initialization
 from .interfaces import (
     IConflictDetector,
     IConstitutionalAnalyzer,
-    IStrategyGenerator,
-    IConflictResolver,
+    IResolutionStrategy,
     IValidator,
-    IMetadataStore,
+    IResolutionEngine,
 )
 
 from .conflict_models import (
@@ -34,10 +33,9 @@ __all__ = [
     # Interfaces
     "IConflictDetector",
     "IConstitutionalAnalyzer",
-    "IStrategyGenerator",
-    "IConflictResolver",
+    "IResolutionStrategy",
     "IValidator",
-    "IMetadataStore",
+    "IResolutionEngine",
     # Models
     "Conflict",
     "ConflictBlock",

@@ -48,3 +48,23 @@ class ResourceNotFoundError(EmailIntelligenceException):
 class PermissionError(EmailIntelligenceException):
     """Raised when an operation lacks required permissions."""
     pass
+
+# Aliases for backward compatibility
+EmailIntelligenceError = EmailIntelligenceException
+AnalysisError = ConstitutionalAnalysisError
+StrategyGenerationError = ResolutionStrategyError
+
+
+class ResolutionError(EmailIntelligenceException):
+    """Raised when conflict resolution fails."""
+    pass
+
+
+class DatabaseError(EmailIntelligenceException):
+    """Raised when database operations fail."""
+    pass
+
+
+class StorageError(EmailIntelligenceException):
+    """Raised when storage operations fail."""
+    pass

@@ -18,7 +18,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, AsyncMock
 
 from src.core.config import settings
-from src.core.interfaces import IMetadataStore, IConflictDetector
+from src.core.interfaces import MetadataStore, IConflictDetector
 
 
 # @pytest.fixture(scope="session")
@@ -52,7 +52,7 @@ def temp_repo(temp_dir):
 @pytest.fixture
 def mock_metadata_store():
     """Create a mock metadata store."""
-    store = MagicMock(spec=IMetadataStore)
+    store = MagicMock(spec=MetadataStore)
     store.save_conflict = AsyncMock(return_value="conflict-123")
     store.get_conflict = AsyncMock(return_value=None)
     store.save_analysis = AsyncMock(return_value="conflict-123")

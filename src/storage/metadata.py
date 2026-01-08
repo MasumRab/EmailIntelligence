@@ -1,14 +1,14 @@
 """
 Metadata storage implementation for EmailIntelligence CLI
 
-This module provides the concrete implementations of IMetadataStore,
+This module provides the concrete implementations of MetadataStore,
 supporting both Neo4j (graph) and File-based (JSON) storage.
 """
 
 import json
 from typing import Optional
 
-from ..core.interfaces import IMetadataStore
+from ..core.interfaces import MetadataStore
 from ..core.conflict_models import Conflict, AnalysisResult
 from ..core.config import settings
 from ..core.exceptions import StorageError
@@ -26,7 +26,7 @@ except ImportError:
 logger = get_logger(__name__)
 
 
-class Neo4jMetadataStore(IMetadataStore):
+class Neo4jMetadataStore(MetadataStore):
     """
     Neo4j-backed metadata storage.
     Stores conflicts and analysis results as graph nodes.
@@ -57,7 +57,9 @@ class Neo4jMetadataStore(IMetadataStore):
             )
             return conflict.id
         except Exception as e:
-            logger.error("Failed to save conflict to Neo4j", id=conflict.id, error=str(e))
+            logger.error(
+                "Failed to save conflict to Neo4j", id=conflict.id, error=str(e)
+            )
             raise StorageError(f"Neo4j save failed: {str(e)}") from e
 
     async def get_conflict(self, conflict_id: str) -> Optional[Conflict]:
@@ -79,7 +81,9 @@ class Neo4jMetadataStore(IMetadataStore):
 
             return Conflict(**props)
         except Exception as e:
-            logger.error("Failed to get conflict from Neo4j", id=conflict_id, error=str(e))
+            logger.error(
+                "Failed to get conflict from Neo4j", id=conflict_id, error=str(e)
+            )
             raise StorageError(f"Neo4j get failed: {str(e)}") from e
 
     async def save_analysis(self, analysis: AnalysisResult) -> str:
@@ -123,7 +127,9 @@ class Neo4jMetadataStore(IMetadataStore):
         """
 
         try:
-            results = await connection_manager.execute_query(query, {"conflict_id": conflict_id})
+            results = await connection_manager.execute_query(
+                query, {"conflict_id": conflict_id}
+            )
             if not results:
                 return None
 
@@ -136,11 +142,13 @@ class Neo4jMetadataStore(IMetadataStore):
 
             return AnalysisResult(**props)
         except Exception as e:
-            logger.error("Failed to get analysis from Neo4j", id=conflict_id, error=str(e))
+            logger.error(
+                "Failed to get analysis from Neo4j", id=conflict_id, error=str(e)
+            )
             raise StorageError(f"Neo4j get failed: {str(e)}") from e
 
 
-class FileMetadataStore(IMetadataStore):
+class FileMetadataStore(MetadataStore):
     """
     File-backed metadata storage (JSON).
     Useful for development or when Neo4j is unavailable.
@@ -190,14 +198,16 @@ class FileMetadataStore(IMetadataStore):
             raise StorageError(f"Analysis data parsing failed: {str(e)}") from e
 
 
-def get_metadata_store() -> IMetadataStore:
+def get_metadata_store() -> MetadataStore:
     """Factory to get the configured metadata store"""
     backend = settings.metadata_storage_backend.lower()
 
     if backend == "neo4j" and NEO4J_AVAILABLE:
         return Neo4jMetadataStore()
     elif backend == "neo4j" and not NEO4J_AVAILABLE:
-        logger.warning("Neo4j configured but not available, falling back to file storage")
+        logger.warning(
+            "Neo4j configured but not available, falling back to file storage"
+        )
         return FileMetadataStore()
     else:
         return FileMetadataStore()
