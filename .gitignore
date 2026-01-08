@@ -1,69 +1,77 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
+# Node.js
+node_modules/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
+.DS_Store
+server/public/
+vite.config.ts.*
+*.tar.gz
+
+# Python virtual environment
+venv/
+.env
+.env.*
+*.env
+!.env.example
+
+# Credentials and sensitive data
+token.json
+credentials.json
+apikey.json
+jsons/
+jsons/*
+
+# Build / packaging artifacts
+build/
 *.egg-info/
-.installed.cfg
+pip-wheel-metadata/
 *.egg
-MANIFEST
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.nox/
+*.whl
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Test and coverage reports
 .coverage
 .coverage.*
-.cache
-nosetests.xml
 coverage.xml
+coverage/
 *.cover
-*.py,cover
-.hypothesis/
 .pytest_cache/
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
-# IDE
+# IDEs / editor-specific
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-.DS_Store
+*.iml
+*.sublime-project
+*.sublime-workspace
+.history
 
-# Node
-node_modules/
-package-lock.json
-yarn.lock
-
-# Logs
-*.log
+# Misc
 logs/
 
-# Project specific
-.orchestration-disabled
-.taskmaster/
-worktrees/
+# Ignore configuration and local environment files
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
+config/llm_guidelines.local.json
+
+# Ignore hidden files and directories, with exceptions
+.*
+!docs/.gitkeep
+!.semgrep/
+!.gitignore
+!.git/hooks/
+
+# Python cache
+__pycache__/
+
+# Miscellaneous
+performance_metrics_log.jsonl
+models/*.pkl
 worktrees/
 
 # Merge-notes
@@ -105,24 +113,3 @@ scripts/hooks/
 .python-version
 .ruby-version
 .tool-versions
-.taskmaster/
-=======
-.merge-notes/
-.context-control/
-.rules
-.rulesync/
-.rulesyncignore
-.cursorignore
-.validation_cache.json
-.emailintelligence/
-QWEN.md
-AGENTS.md
-GEMINI.md
-CRUSH.md
-IFLOW.md
-!docs/agents/AMP.md
-terminal-jarvis_AGENTS.md
-cognee-AGENTS.md
-.taskmaster
-.env.local
->>>>>>> 0375e5ef (chore: sync configuration files with latest versions)
