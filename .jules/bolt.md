@@ -1,0 +1,3 @@
+## 2024-05-22 - SmartFilterManager Cache Stampede
+**Learning:** In-place updates of cached mutable objects (lists/objects) can prevent "cache stampede" or "thrashing" scenarios where frequent minor updates (like usage counters) trigger full cache invalidation and subsequent DB re-fetches.
+**Action:** When updating statistics or metadata that don't affect the primary sorting/filtering logic of a cached collection, prefer fetching the collection, updating the specific item in memory, and leaving the cache key valid. Always ensure the cache implementation (reference vs. serialization) supports this.

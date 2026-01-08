@@ -228,3 +228,21 @@ class EnhancedCachingManager:
             "email_content_cache": self.email_content_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
+
+    async def _ensure_initialized(self) -> None:
+        """Ensure caching manager is initialized."""
+        # Current implementation is synchronous and lazy, so this is a placeholder
+        # for interface compatibility with async managers.
+        pass
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Async wrapper for getting query results."""
+        return self.get_query_result(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Async wrapper for setting query results."""
+        self.put_query_result(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Async wrapper for invalidating query results."""
+        self.invalidate_query_result(key)
