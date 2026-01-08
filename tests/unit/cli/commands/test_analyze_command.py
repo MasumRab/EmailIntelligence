@@ -121,23 +121,37 @@ class TestAnalyzeCommand:
         mock_detector = Mock()
         mock_detector.detect_conflicts_between_branches = AsyncMock(return_value=[])
 
+        # Create a mock repository operations class
+        mock_repo_class = Mock()
+        mock_repo_instance = Mock()
+        mock_repo_instance.run_command = AsyncMock(return_value=("main\n", "", 0))
+        mock_repo_class.return_value = mock_repo_instance
+
+        # Mock all dependencies
         cmd.set_dependencies(
             {
                 "conflict_detector": mock_detector,
                 "analyzer": Mock(),
                 "strategy_generator": Mock(),
-                "repository_ops": Mock(),
+                "repository_ops": mock_repo_class,
             }
         )
 
-        args = Namespace(
-            repo_path="/tmp/repo", pr_id=None, base_branch="main", head_branch="feature"
-        )
-        result = await cmd.execute(args)
-        assert result == 0
+        # Create a temporary directory for testing
+        import tempfile
 
-        # Verify the method was called
-        mock_detector.detect_conflicts_between_branches.assert_called_once()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            args = Namespace(
+                repo_path=temp_dir,
+                pr_id=None,
+                base_branch="main",
+                head_branch="feature",
+            )
+            result = await cmd.execute(args)
+            assert result == 0
+
+            # Verify the method was called
+            mock_detector.detect_conflicts_between_branches.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_execute_with_conflicts(self):
@@ -178,20 +192,33 @@ class TestAnalyzeCommand:
         mock_repo = Mock()
         mock_repo.run_command = AsyncMock(return_value=("feature\n", "", 0))
 
+        # Create a mock repository operations class
+        mock_repo_class = Mock()
+        mock_repo_instance = Mock()
+        mock_repo_instance.run_command = AsyncMock(return_value=("feature\n", "", 0))
+        mock_repo_class.return_value = mock_repo_instance
+
         cmd.set_dependencies(
             {
                 "conflict_detector": mock_detector,
                 "analyzer": mock_analyzer,
                 "strategy_generator": mock_strategy_gen,
-                "repository_ops": mock_repo,
+                "repository_ops": mock_repo_class,
             }
         )
 
-        args = Namespace(
-            repo_path="/tmp/repo", pr_id=None, base_branch="main", head_branch="feature"
-        )
-        result = await cmd.execute(args)
-        assert result == 0
+        # Create a temporary directory for testing
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            args = Namespace(
+                repo_path=temp_dir,
+                pr_id=None,
+                base_branch="main",
+                head_branch="feature",
+            )
+            result = await cmd.execute(args)
+            assert result == 0
 
         # Verify interactions
         mock_detector.detect_conflicts_between_branches.assert_called_once()

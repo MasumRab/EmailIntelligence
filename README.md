@@ -186,6 +186,54 @@ Show version information.
 eai version
 ```
 
+## 🆕 Modular CLI System
+
+The CLI now supports a new modular command architecture built on SOLID principles, enabling better maintainability, testing, and extensibility.
+
+### Command Modes
+
+The CLI operates in two modes:
+
+**Legacy Mode** (default):
+```bash
+eai setup-resolution --pr 123 --source-branch feature/auth --target-branch main
+```
+
+**Modular Mode** (recommended):
+```bash
+eai modular analyze /path/to/repo --base-branch main
+eai modular validate
+eai modular analyze-history --output report.txt
+```
+
+### Modular Commands
+
+| Command | Description | Status |
+|---------|-------------|--------|
+| `analyze` | Analyze repository conflicts between branches | ✅ Implemented |
+| `resolve` | Resolve specific conflicts using strategies | ✅ Implemented |
+| `validate` | Run validation checks on the codebase | ✅ Implemented |
+| `analyze-history` | Analyze git commit history and patterns | ✅ Implemented |
+| `plan-rebase` | Generate optimal rebase plans | ✅ Implemented |
+
+### Architecture Benefits
+
+- **SOLID Design**: Single responsibility, dependency injection, interface segregation
+- **Agent Coordination**: Commands assigned to specialized agents (analyze-agent, resolve-agent, etc.)
+- **Comprehensive Testing**: Full unit and integration test coverage
+- **Backward Compatible**: Legacy commands continue to work unchanged
+- **Extensible**: Easy to add new commands following established patterns
+
+### For Developers
+
+The modular system is designed for collaborative development:
+- Each command is an independent class implementing the `Command` interface
+- Dependency injection enables comprehensive testing
+- Agent-based coordination supports complex workflows
+- Complete documentation in `docs/COMMAND_SPECIFICATION.md`
+
+See `docs/CLI_COMMANDS.md` for detailed command reference and examples.
+
 ## ⚙️ Configuration
 
 ### Configuration File
