@@ -228,3 +228,23 @@ class EnhancedCachingManager:
             "email_content_cache": self.email_content_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Async wrapper for getting query result to support SmartFilterManager."""
+        return self.get_query_result(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Async wrapper for putting query result to support SmartFilterManager."""
+        self.put_query_result(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Async wrapper for invalidating query result to support SmartFilterManager."""
+        self.invalidate_query_result(key)
+
+    async def _ensure_initialized(self) -> None:
+        """Async no-op for compatibility with SmartFilterManager."""
+        pass
+
+    async def close(self) -> None:
+        """Async no-op for compatibility with SmartFilterManager."""
+        pass
