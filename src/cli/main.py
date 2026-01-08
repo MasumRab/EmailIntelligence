@@ -218,28 +218,29 @@ async def handle_detect_rebased_command(args, analysis_service: AnalysisService)
         sys.exit(1)
 
 async def handle_verify_command(args, analysis_service: AnalysisService):
-        """
-        TODO: Enhance the `verify` command's functionality and reporting.
-    
-        This function handles the `verify` sub-command. Future enhancements should
-        focus on providing more detailed, actionable, and configurable verification:
-    
-        1.  **Detailed Discrepancy Reporting:** Provide more context for each discrepancy,
-            such as the exact lines of code that differ, or the specific semantic change
-            that was expected but not found (or vice-versa). This could involve
-            integrating with a diff visualization tool.
-        2.  **Handling Intentional Changes:** Implement a mechanism for users to mark
-            intentional changes (e.g., via a configuration file or CLI argument) so
-            they are not flagged as discrepancies, improving the signal-to-noise ratio.
-        3.  **Different Verification Strategies:** Allow different levels or types of
-            verification (e.g., strict file content comparison, semantic comparison,
-            or only checking for presence of key features) through a strategy pattern.
-        4.  **Integration with CI/CD:** Design the output and exit codes to be easily
-            integrable into CI/CD pipelines for automated integrity checks, promoting
-            DevOps best practices.
-        5.  **Interactive Resolution:** For discrepancies, offer an interactive mode
-            to help users understand and potentially resolve them, improving user experience.
-        """    try:
+    """
+    TODO: Enhance the `verify` command's functionality and reporting.
+
+    This function handles the `verify` sub-command. Future enhancements should
+    focus on providing more detailed, actionable, and configurable verification:
+
+    1.  **Detailed Discrepancy Reporting:** Provide more context for each discrepancy,
+        such as the exact lines of code that differ, or the specific semantic change
+        that was expected but not found (or vice-versa). This could involve
+        integrating with a diff visualization tool.
+    2.  **Handling Intentional Changes:** Implement a mechanism for users to mark
+        intentional changes (e.g., via a configuration file or CLI argument) so
+        they are not flagged as discrepancies, improving the signal-to-noise ratio.
+    3.  **Different Verification Strategies:** Allow different levels or types of
+        verification (e.g., strict file content comparison, semantic comparison,
+        or only checking for presence of key features) through a strategy pattern.
+    4.  **Integration with CI/CD:** Design the output and exit codes to be easily
+        integrable into CI/CD pipelines for automated integrity checks, promoting
+        DevOps best practices.
+    5.  **Interactive Resolution:** For discrepancies, offer an interactive mode
+        to help users understand and potentially resolve them, improving user experience.
+    """
+    try:
         with open(args.report, 'r') as f:
             report_data = json.load(f)
         

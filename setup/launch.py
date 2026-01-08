@@ -47,6 +47,7 @@ from typing import List
 # Import project configuration
 from setup.project_config import get_project_config
 
+<<<<<<< HEAD
 # Import command pattern components (with error handling for refactors)
 try:
     from setup.commands.command_factory import get_command_factory
@@ -56,6 +57,29 @@ except ImportError as e:
     get_command_factory = None
     get_container = None
     initialize_all_services = None
+=======
+# Import from setup modules
+from setup.environment import (
+    prepare_environment,
+)
+from setup.utils import (
+    print_system_info,
+)
+from setup.validation import (
+    check_python_version,
+    validate_environment,
+    validate_port,
+    validate_host,
+    check_critical_files,
+    validate_orchestration_environment,
+)
+from setup.container import get_container
+from setup.services import initialize_all_services, start_services, process_manager
+from setup.commands import COMMAND_PATTERN_AVAILABLE, get_command_factory
+from setup.setup_environment_system import (
+    handle_setup,
+)  # Assuming this is the source for handle_setup
+>>>>>>> 4c96f605 (feat: Complete Spec 003, fix launch system, and import new specs)
 
 try:
     from dotenv import load_dotenv
@@ -952,93 +976,6 @@ def main():
         # Handle legacy arguments
         return _handle_legacy_args(args)
 
-
-def _add_common_args(parser):
-    """Add common arguments to subcommand parsers."""
-    parser.add_argument(
-        "--loglevel",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="Set the logging level.",
-    )
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
-
-
-def _add_legacy_args(parser):
-    """Add legacy arguments for backward compatibility."""
-    # Environment Setup
-    parser.add_argument(
-        "--force-recreate-venv", action="store_true", help="Force recreation of the venv."
-    )
-    parser.add_argument(
-        "--use-conda", action="store_true", help="Use Conda environment instead of venv."
-    )
-    parser.add_argument(
-        "--conda-env",
-        type=str,
-        default="base",
-        help="Conda environment name to use (default: base).",
-    )
-    parser.add_argument(
-        "--no-venv", action="store_true", help="Don't create or use a virtual environment."
-    )
-    parser.add_argument(
-        "--update-deps", action="store_true", help="Update dependencies before launching."
-    )
-    parser.add_argument(
-        "--skip-torch-cuda-test",
-        action="store_true",
-        help="Skip CUDA availability test for PyTorch.",
-    )
-    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
-    parser.add_argument(
-        "--skip-python-version-check", action="store_true", help="Skip Python version check."
-    )
-    parser.add_argument(
-        "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
-    )
-    parser.add_argument(
-        "--skip-prepare", action="store_true", help="Skip all environment preparation steps."
-    )
-
-    # Application Configuration
-    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
-    parser.add_argument(
-        "--frontend-port", type=int, default=5173, help="Specify the frontend port to run on."
-    )
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
-    parser.add_argument(
-        "--api-only", action="store_true", help="Run only the API server without the frontend."
-    )
-    parser.add_argument(
-        "--frontend-only", action="store_true", help="Run only the frontend without the API server."
-    )
-
-    # Testing Options
-    parser.add_argument(
-        "--coverage", action="store_true", help="Generate coverage report when running tests."
-    )
-    parser.add_argument("--unit", action="store_true", help="Run unit tests.")
-    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
-    parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
-    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
-    parser.add_argument("--security", action="store_true", help="Run security tests.")
-
-    # Extensions and Models
-    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
-    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
-
-    # Advanced Options
-    parser.add_argument(
-        "--system-info", action="store_true", help="Print system information then exit."
-    )
-    parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
-    parser.add_argument("--share", action="store_true", help="Create a public URL.")
-    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
-    parser.add_argument(
-        "--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region."
-    )
 
 
 def main():

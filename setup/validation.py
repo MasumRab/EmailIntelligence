@@ -121,15 +121,20 @@ def validate_environment() -> bool:
             if not check_func():
                 all_passed = False
         except Exception as e:
-            logger.error(f"Validation check {check_func.__name__} failed: {e}")
+            logger.error(f"Validation check {check_func.__name__} failed with error: {e}")
             all_passed = False
 
-    if all_passed:
-        logger.info("Environment validation passed.")
-    else:
-        logger.error("Environment validation failed.")
-
     return all_passed
+
+
+def check_critical_files() -> bool:
+    """Legacy alias for check_for_merge_conflicts and basic file existence."""
+    return check_for_merge_conflicts()
+
+
+def validate_orchestration_environment() -> bool:
+    """Legacy alias for validate_environment."""
+    return validate_environment()
 
 
 def validate_port(port: int) -> int:
