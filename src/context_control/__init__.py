@@ -9,7 +9,7 @@ from .core import ContextController
 from .environment import detect_branch, get_current_branch, is_git_repository
 from .validation import ContextValidator
 from .models import ContextProfile, AgentContext, ContextValidationResult, ProjectConfig
-from .config import get_current_config
+from .config import get_current_config, init_config
 from .exceptions import (
     ContextNotFoundError,
     ContextValidationError,
@@ -28,6 +28,7 @@ __all__ = [
     "ContextValidationResult",
     "ProjectConfig",
     "get_current_config",
+    "init_config",
     "ContextNotFoundError",
     "ContextValidationError",
     "EnvironmentDetectionError",
