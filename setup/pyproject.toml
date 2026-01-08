@@ -38,12 +38,11 @@ ml = [
     "textblob>=0.19.0",
     "transformers>=4.52.4",
     "accelerate>=1.7.0",
-    "torch>=2.7.1",
-    "torchvision>=0.19.0",
-    "torchaudio>=2.4.0",
     "sentencepiece>=0.2.0",
     "scikit-learn>=1.7.0",
     "joblib>=1.5.1",
+    # CPU-only PyTorch (much smaller than GPU versions)
+    "torch>=2.7.1",
 ]
 
 # Data science features - optional
@@ -141,6 +140,3 @@ where = ["src"]
 # Environment markers for conditional dependencies
 # Note: uv doesn't support marker configuration in pyproject.toml
 # GPU packages should be installed manually only when needed
-
-[tool.pylint]
-sys-path = ["."]
