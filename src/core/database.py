@@ -22,8 +22,8 @@ from .enhanced_error_reporting import (
     ErrorCategory,
     create_error_context
 )
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .security import validate_path_safety, sanitize_path
+from .constants import DEFAULT_CATEGORY_COLOR
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +141,8 @@ class DatabaseManager(DataSource):
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
+        # New search index mapping email ID to lowercased searchable text
+        self._search_index: Dict[int, str] = {}
 
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
@@ -158,6 +160,16 @@ class DatabaseManager(DataSource):
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
+
+    def _get_searchable_text(self, email: Dict[str, Any]) -> str:
+        """Helper to generate consistent searchable text from email metadata."""
+        # Use simple string concatenation or join for speed
+        parts = [
+            str(email.get(FIELD_SUBJECT) or ""),
+            str(email.get(FIELD_SENDER) or ""),
+            str(email.get(FIELD_SENDER_EMAIL) or "")
+        ]
+        return " ".join(parts).lower()
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
@@ -211,19 +223,37 @@ class DatabaseManager(DataSource):
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
         logger.info("Building in-memory indexes...")
-        self.emails_by_id = {email[FIELD_ID]: email for email in self.emails_data}
-        self.emails_by_message_id = {
-            email[FIELD_MESSAGE_ID]: email
-            for email in self.emails_data
-            if FIELD_MESSAGE_ID in email
-        }
+
+        # Initialize containers
+        self.emails_by_id = {}
+        self.emails_by_message_id = {}
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
+        self._search_index = {}
+
+        # Optimized single pass for emails
         for email in self.emails_data:
+            email_id = email.get(FIELD_ID)
+            if email_id is None:
+                continue
+
+            # Build lookups
+            self.emails_by_id[email_id] = email
+
+            msg_id = email.get(FIELD_MESSAGE_ID)
+            if msg_id:
+                self.emails_by_message_id[msg_id] = email
+
+            # Count categories
             cat_id = email.get(FIELD_CATEGORY_ID)
             if cat_id in self.category_counts:
                 self.category_counts[cat_id] += 1
+
+            # Build search index
+            self._search_index[email_id] = self._get_searchable_text(email)
+
+        # Update category counts in records
         for cat_id, count in self.category_counts.items():
             if (
                 cat_id in self.categories_by_id
@@ -231,6 +261,7 @@ class DatabaseManager(DataSource):
             ):
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
+
         logger.info("In-memory indexes built successfully.")
 
     @log_performance(operation="load_data")
@@ -412,6 +443,7 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if message_id:
             self.emails_by_message_id[message_id] = email
+        self._search_index[email_id] = self._get_searchable_text(email)
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
@@ -441,6 +473,9 @@ class DatabaseManager(DataSource):
         self.caching_manager.put_email_record(new_id, light_email_record)
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
+
+        # Invalidate query cache because data changed
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(light_email_record)
 
@@ -602,13 +637,7 @@ class DatabaseManager(DataSource):
             except IOError as e:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
 
-            self.emails_by_id[email_id] = email_to_update
-            self.emails_by_message_id[message_id] = email_to_update
-            idx = next(
-                (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
-            )
-            if idx != -1:
-                self.emails_data[idx] = email_to_update
+            await self._update_email_indexes(email_to_update)
             await self._save_data(DATA_TYPE_EMAILS)
 
             new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
@@ -620,6 +649,8 @@ class DatabaseManager(DataSource):
             
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
+            # Invalidate query cache because data changed
+            self.caching_manager.clear_query_cache()
             
         return self._add_category_details(email_to_update)
 
@@ -664,35 +695,68 @@ class DatabaseManager(DataSource):
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """
+        Search emails with limit parameter using optimized in-memory index.
+        Iterates in reverse (newest first) to enable early exit once limit is reached.
+        """
+        # Implicit default offset as original method didn't support it
+        offset = 0
+
         if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
+            return await self.get_emails(limit=limit, offset=offset)
+
         search_term_lower = search_term.lower()
         filtered_emails = []
+
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            "Starting optimized email search for term: '%s'", search_term_lower
         )
-        for email_light in self.emails_data:
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-            )
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
+
+        matches_processed = 0
+
+        # Assumes emails_data is sorted chronologically (oldest to newest).
+        # We iterate in reverse to find newest matches first.
+        for email_light in reversed(self.emails_data):
             email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+            # Fast index check
+            search_text = self._search_index.get(email_id, "")
+            if not search_text:
+                # Fallback if index missing
+                search_text = self._get_searchable_text(email_light)
+
+            is_match = search_term_lower in search_text
+
+            if not is_match:
+                # Slow disk check
+                # Only check disk if we absolutely have to.
+                # Optimization: Skip disk check if we are just "peeking" and user would likely be satisfied with metadata matches?
+                # No, for correctness we must check content if required.
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    try:
+                        with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                            heavy_data = json.load(f)
+                            content = heavy_data.get(FIELD_CONTENT, "")
+                            if isinstance(content, str) and search_term_lower in content.lower():
+                                is_match = True
+                    except (IOError, json.JSONDecodeError):
+                        # Ignore errors during content search
+                        pass
+
+            if is_match:
+                matches_processed += 1
+                if matches_processed <= offset:
+                    continue
+
+                filtered_emails.append(email_light)
+                if len(filtered_emails) >= limit:
+                    break
+
+        # Since we iterated in reverse (newest first), filtered_emails is already sorted by time (descending).
+        # We just need to add category details.
+
+        return [self._add_category_details(e) for e in filtered_emails]
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -734,12 +798,15 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if email.get(FIELD_MESSAGE_ID):
             self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
+
         idx = next(
             (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
             -1,
         )
         if idx != -1:
             self.emails_data[idx] = email
+
+        self._search_index[email_id] = self._get_searchable_text(email)
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
@@ -766,6 +833,9 @@ class DatabaseManager(DataSource):
                 await self._update_category_count(new_category_id, increment=True)
 
         self.caching_manager.invalidate_email_record(email_id)
+        # Invalidate query cache because data changed
+        self.caching_manager.clear_query_cache()
+
         return self._add_category_details(email_to_update)
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:

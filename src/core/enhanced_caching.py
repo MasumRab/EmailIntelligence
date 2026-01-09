@@ -5,11 +5,10 @@ This module provides enhanced caching capabilities for the DatabaseManager,
 including LRU cache for frequently accessed data and query result caching.
 """
 
-import asyncio
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -207,6 +206,10 @@ class EnhancedCachingManager:
     def invalidate_query_result(self, query_key: str) -> None:
         """Invalidate query result cache."""
         self.query_cache.invalidate(query_key)
+
+    def clear_query_cache(self) -> None:
+        """Clear query result cache."""
+        self.query_cache.clear()
     
     def clear_all_caches(self) -> None:
         """Clear all caches."""
