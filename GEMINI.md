@@ -286,3 +286,45 @@ As a Gemini CLI assistant with Task Master:
 ---
 
 *See AGENTS.md for complete Task Master commands, workflows, and best practices.*
+
+<!-- BACKLOG.MD MCP GUIDELINES START -->
+
+<CRITICAL_INSTRUCTION>
+
+## BACKLOG WORKFLOW INSTRUCTIONS
+
+This project uses Backlog.md MCP for all task and project management activities.
+
+**CRITICAL GUIDANCE**
+
+- If your client supports MCP resources, read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
+- If your client only supports tools or the above request fails, call `backlog.get_workflow_overview()` tool to load the tool-oriented overview (it lists the matching guide tools).
+
+- **First time working here?** Read the overview resource IMMEDIATELY to learn the workflow
+- **Already familiar?** You should have the overview cached ("## Backlog.md Overview (MCP)")
+- **When to read it**: BEFORE creating tasks, or when you're unsure whether to track work
+
+These guides cover:
+- Decision framework for when to create tasks
+- Search-first workflow to avoid duplicates
+- Links to detailed guides for task creation, execution, and completion
+- MCP tools reference
+
+You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.
+
+</CRITICAL_INSTRUCTION>
+
+<!-- BACKLOG.MD MCP GUIDELINES END -->
+
+## Active Technologies
+- Python 3.11+ + GitPython, (potentially a diffing library) (001-rebase-analysis)
+- Git repository (001-rebase-analysis)
+- Git repository (history) (001-rebase-analysis)
+- Python 3.12+ + GitPython, (potentially a diffing library for detailed content comparison), LLM integration (e.g., via API for narrative synthesis). (003-unified-git-analysis)
+- N/A (in-memory processing for reports) (003-unified-git-analysis)
+- Python 3.12+ (Assumed based on project context) + GitPython (for Git repository interaction), potentially a static analysis library (e.g., `ast` module, `pyright`, `shellcheck`) for parsing Python and shell scripts, and a dependency parsing library (e.g., `pip-tools`, `poetry`) for dependency manifest files. (001-toolset-additive-analysis)
+- N/A (in-memory processing for analysis and report generation, with file output for reports). (001-toolset-additive-analysis)
+
+## Recent Changes
+- 001-rebase-analysis: Added Python 3.11+ + GitPython, (potentially a diffing library)
+- 004-guided-workflow: Added Guided CLI Workflows spec and plan.
