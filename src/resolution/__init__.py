@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import json
 import yaml
 from pathlib import Path
+from enum import Enum
 
 
 @dataclass
@@ -21,14 +22,22 @@ class ConstitutionalRequirement:
     compliance_threshold: float  # 0.0 to 1.0
 
 
-from enum import Enum
-
 class ComplianceLevel(Enum):
     """Levels of compliance"""
     NON_COMPLIANT = "non_compliant"
     PARTIALLY_COMPLIANT = "partially_compliant"
     COMPLIANT = "compliant"
     EXCELLENT = "excellent"
+
+
+@dataclass
+class ComplianceResult:
+    """Result of constitutional compliance check"""
+    requirement_id: str
+    is_compliant: bool
+    score: float  # 0.0 to 1.0
+    details: str
+    suggestions: List[str]
 
 
 @dataclass
@@ -43,16 +52,6 @@ class ConstitutionalValidationResult:
     def __post_init__(self):
         if self.recommendations is None:
             self.recommendations = []
-
-
-@dataclass
-class ComplianceResult:
-    """Result of constitutional compliance check"""
-    requirement_id: str
-    is_compliant: bool
-    score: float  # 0.0 to 1.0
-    details: str
-    suggestions: List[str]
 
 
 class ConstitutionalEngine:
@@ -228,7 +227,7 @@ class ConstitutionalEngine:
         pass
 
     async def validate_specification_template(
-        self,
+        self, 
         template_content: str,
         template_type: str,
         context: Dict[str, Any] = None
