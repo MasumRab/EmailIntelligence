@@ -700,6 +700,8 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
 
+        matched_filter_ids = []
+
         for filter_obj in active_filters:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_context):
@@ -709,6 +711,7 @@ class SmartFilterManager:
                         "name": filter_obj.name,
                         "priority": filter_obj.priority
                     })
+                    matched_filter_ids.append(filter_obj.filter_id)
 
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
@@ -721,9 +724,6 @@ class SmartFilterManager:
                         elif action_key == "move_to_folder":
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
-
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
 
             except Exception as e:
                 error_context = create_error_context(
@@ -739,10 +739,42 @@ class SmartFilterManager:
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
 
+        # Batch update filter usage stats
+        if matched_filter_ids:
+            await self._batch_update_filter_usage(matched_filter_ids)
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
 
         return summary
+
+    async def _batch_update_filter_usage(self, filter_ids: List[str]):
+        """Updates the usage statistics for multiple filters efficiently."""
+        if not filter_ids:
+            return
+
+        current_time = datetime.now(timezone.utc).isoformat()
+
+        # Use a single connection for all updates
+        conn = self._get_db_connection()
+        try:
+            # We use executemany for efficiency
+            # Note: We need to pass a list of tuples (last_used, filter_id)
+            params = [(current_time, fid) for fid in filter_ids]
+            conn.executemany(
+                "UPDATE email_filters SET usage_count = usage_count + 1, last_used = ? WHERE filter_id = ?",
+                params
+            )
+            # Commit if we own the connection or if it's not in a larger transaction
+            # (Simplification: just commit here as _get_db_connection handles ownership)
+            conn.commit()
+        except Exception as e:
+            self.logger.error(f"Error batch updating filter usage: {e}")
+        finally:
+            self._close_db_connection(conn)
+
+        # Invalidate cache for active filters ONCE instead of N times
+        await self.caching_manager.delete("active_filters_sorted")
 
     async def _update_filter_usage(self, filter_id: str):
         """Updates the usage statistics for a filter."""
