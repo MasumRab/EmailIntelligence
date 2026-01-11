@@ -1,0 +1,3 @@
+## 2024-05-23 - SmartFilterManager Cache Invalidation N+1 Fix
+**Learning:** Cache invalidation strategies can introduce massive N+1 performance bottlenecks if not carefully scoped. In `SmartFilterManager`, invalidating the entire `active_filters_sorted` list on every usage update (`_update_filter_usage`) meant that batch processing effectively disabled the cache, causing a DB read and JSON parse for *every single email*.
+**Action:** When updating "hot" statistics like usage counts, avoid invalidating structural caches (lists of objects). Accept slightly stale statistics in read-heavy paths to preserve O(1) cache access during batch operations. Also, ensure mocked/interfaced components (like `EnhancedCachingManager`) actually implement the methods being called.

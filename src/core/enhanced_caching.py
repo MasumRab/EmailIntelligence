@@ -228,3 +228,19 @@ class EnhancedCachingManager:
             "email_content_cache": self.email_content_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Async generic get method for compatibility."""
+        return self.get_query_result(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Async generic set method for compatibility."""
+        self.put_query_result(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Async generic delete method for compatibility."""
+        self.invalidate_query_result(key)
+
+    async def _ensure_initialized(self):
+        """Async initialization for compatibility."""
+        pass
