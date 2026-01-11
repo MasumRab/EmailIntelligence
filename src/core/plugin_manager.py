@@ -28,6 +28,7 @@ from .plugin_base import (
     PluginStatus,
     SecuritySandbox,
 )
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -334,6 +335,14 @@ class PluginManager:
                 extract_path.mkdir()
 
                 with zipfile.ZipFile(download_path, "r") as zip_ref:
+                    # Secure extraction: Validate paths before extracting
+                    for member in zip_ref.namelist():
+                        # Use stronger validation by checking against the extraction directory
+                        if not validate_path_safety(member, extract_path):
+                            logger.error(f"Security violation: unsafe file path in plugin archive: {member}")
+                            # Clean up and reject the plugin
+                            return False
+
                     zip_ref.extractall(extract_path)
 
                 # Move to plugins directory
