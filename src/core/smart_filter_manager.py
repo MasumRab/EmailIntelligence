@@ -716,8 +716,25 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
         
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Optimization: Update cache in-place instead of invalidating
+        # This prevents N+1 DB queries when processing batches of emails
+        # by keeping the cache valid but updating the specific filter instance.
+        active_filters = await self.caching_manager.get("active_filters_sorted")
+        if active_filters:
+            found = False
+            for filter_obj in active_filters:
+                if filter_obj.filter_id == filter_id:
+                    filter_obj.usage_count += 1
+                    filter_obj.last_used = datetime.fromisoformat(current_time)
+                    found = True
+                    break
+
+            # Only invalidate if we didn't find the filter in cache (which is weird but possible)
+            if not found:
+                await self.caching_manager.delete("active_filters_sorted")
+        else:
+            # Cache not present, no need to invalidate
+            pass
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
