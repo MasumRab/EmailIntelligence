@@ -435,6 +435,18 @@ class OptimizedPerformanceMonitor:
         except Exception as e:
             logger.error(f"Error flushing metrics to disk: {e}")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Legacy compatibility for log_performance decorator."""
+        # Convert legacy log entry to metric
+        operation = log_entry.get("operation", "unknown")
+        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
+        self.record_metric(
+            name=f"operation_duration",
+            value=duration,
+            unit="ms",
+            tags={"operation": operation}
+        )
+
     def shutdown(self):
         """Shutdown the performance monitor gracefully."""
         logger.info("Shutting down OptimizedPerformanceMonitor")
