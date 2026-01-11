@@ -713,11 +713,27 @@ class SmartFilterManager:
             SET usage_count = usage_count + 1, last_used = ? 
             WHERE filter_id = ?
         """
-        current_time = datetime.now(timezone.utc).isoformat()
-        self._db_execute(update_query, (current_time, filter_id))
+        current_time = datetime.now(timezone.utc)
+        current_time_iso = current_time.isoformat()
+        self._db_execute(update_query, (current_time_iso, filter_id))
         
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Optimize: Update cache in-place instead of invalidating
+        cache_key = "active_filters_sorted"
+        active_filters = await self.caching_manager.get(cache_key)
+
+        if active_filters:
+            # Find and update the filter in the list
+            for filter_obj in active_filters:
+                if filter_obj.filter_id == filter_id:
+                    filter_obj.usage_count += 1
+                    filter_obj.last_used = current_time
+                    break
+            # Update the list in cache (though object mutation might be enough if by ref)
+            # We call set just to be safe if implementation changes or copies are made
+            await self.caching_manager.set(cache_key, active_filters)
+        else:
+            # Fallback if not cached
+            await self.caching_manager.delete(cache_key)
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
