@@ -716,8 +716,18 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
         
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # NOTE: We intentionally DO NOT invalidate "active_filters_sorted" here.
+        # Invalidating the list on every usage update causes cache thrashing during
+        # batch processing (N+1 invalidations). The cached filter objects will have
+        # slightly stale usage_count/last_used, which is acceptable for filtering logic.
+
+        # We DO invalidate the specific filter cache if needed, but since we updated
+        # the DB, the specific filter cache (if accessed by ID) might be stale until TTL.
+        # However, apply_filters uses the list, which we want to keep cached.
+
+        # If strict consistency for usage stats is needed, we could update the cached
+        # object in place, but that's complex with the current architecture.
+        # For now, we prioritize performance.
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
