@@ -5,16 +5,17 @@ Comprehensive cleanup of the EmailIntelligence repository to remove legacy devel
 
 ## Branch Cleanup
 - **Total branches before**: 102 local + 376 remote tracking
-- **Total branches after**: 3 local + remote heads
-- **Branches deleted**: 100 old feature/experiment branches
-- **Remaining branches**: 
-  - `main` (default)
-  - `scientific` (active development)
-  - `orchestration-tools` (active development)
+- **Total branches after**: 18 local (3 active + 15 experiment branches preserved)
+- **Branches deleted**: 85 old feature branches (non-experiment)
+- **Branches preserved**: 
+  - 3 active development: `main`, `scientific`, `orchestration-tools`
+  - 15 experiment branches: `000-*`, `001-*`, `002-*`, `003-*` series
 
-## Deleted Branches Categories
+## Preserved Experiment Branches
 
-### Experiment Branches (001-*, 002-*, 003-*)
+### Experiment Series (000-*, 001-*, 002-*, 003-*)
+These important experiment and analysis branches were **PRESERVED**:
+- 000-integrated-specs
 - 001-agent-context-control
 - 001-command-registry-integration
 - 001-implement-planning-workflow
@@ -22,10 +23,13 @@ Comprehensive cleanup of the EmailIntelligence repository to remove legacy devel
 - 001-orchestration-tools-verification-review
 - 001-pr176-integration-fixes
 - 001-rebase-analysis
+- 001-rebase-analysis-specs
 - 001-task-execution-layer
+- 001-toolset-additive-analysis
+- 002-execution-layer-tasks
 - 002-validate-orchestration-tools
 - 003-execution-layer-tasks-pr
-- *(and 4 others in this pattern)*
+- 003-unified-git-analysis
 
 ### Legacy Feature Branches
 - backend-consolidation
@@ -79,14 +83,17 @@ Removed abandoned worktree directories from `~/github/worktrees/`:
 
 ## Commits
 All three active branches received the cleanup script and were pushed:
-- `main`: commit fd58ead3
-- `scientific`: commit 554ea3d7
-- `orchestration-tools`: commit f60758d0
+- `main`: commit f17cdb4e (with summary)
+- `scientific`: commit 53ebb4ae (with summary)
+- `orchestration-tools`: commit ce768261 (with summary)
 
-Message: "chore: add branch cleanup script and clean up 100 old feature branches"
+Messages: 
+- "chore: add branch cleanup script and clean up 85 old feature branches"
+- "docs: add repository cleanup summary for Jan 11 2026"
 
 ## Post-Cleanup Status
-✅ Repository is clean with only active development branches  
+✅ Repository maintains experiment branches (000-*, 001-*, 002-*, 003-*)  
+✅ Removed 85 legacy feature branches while preserving important work  
 ✅ No orphaned worktrees or submodules  
 ✅ Git config synchronized  
 ✅ All branches pushed and synced  
@@ -99,9 +106,22 @@ The `scripts/cleanup-branches.sh` script can be used for future branch cleanup o
 - Cleans up remote tracking references
 - Reports cleanup statistics
 
+## Branches Now Available
+**Active Development (3):**
+- main
+- scientific
+- orchestration-tools
+
+**Important Experiments (15):**
+- 000-integrated-specs
+- 001-* series (10 branches): context-control, command-registry, planning workflow, orchestration consistency, PR integration, rebase analysis, task execution, toolset analysis
+- 002-* series (2 branches): execution-layer, validation
+- 003-* series (2 branches): execution-layer PR, unified git analysis
+
 ## Impact
 This cleanup:
 - Reduces repository size and improves clone/fetch performance
-- Eliminates confusion from stale branches
-- Provides clear focus on three active development branches
+- Eliminates confusion from legacy/stale feature branches
+- Preserves important experiment and analysis work
+- Maintains clean structure: 3 active + 15 experiment branches
 - Creates template for future branch management
