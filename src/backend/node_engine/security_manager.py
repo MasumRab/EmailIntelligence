@@ -6,6 +6,7 @@ execution sandboxing, and resource management.
 """
 
 import asyncio
+import html
 import json
 import logging
 from dataclasses import dataclass
@@ -222,16 +223,9 @@ class InputSanitizer:
                 value, tags=allowed_tags, attributes=allowed_attributes, strip=True
             )
         else:
-            # Fallback to basic implementation if bleach is not available
-            # Remove potentially dangerous characters/patterns
-            sanitized = value.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript&#58;"
-            )
-            sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
-                "onload", "onload&#58;"
-            )
-            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
-            sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
+            # Fallback to html.escape if bleach is not available
+            # This is safer than a custom blacklist as it escapes all HTML characters
+            sanitized = html.escape(value)
 
         return sanitized
 
