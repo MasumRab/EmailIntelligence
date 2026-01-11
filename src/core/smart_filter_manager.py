@@ -716,8 +716,10 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
         
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Optimization: Do NOT invalidate active_filters_sorted cache here.
+        # This prevents cache thrashing during high-volume email processing.
+        # The filter criteria/priority (which determine if/order of application)
+        # do not change with usage stats.
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
