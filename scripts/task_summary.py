@@ -4,6 +4,7 @@ Generate a comprehensive summary of all tasks across all JSON files
 Usage: python scripts/task_summary.py
 """
 
+import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -92,84 +93,108 @@ def count_subtasks(task):
     return count
 
 
+def print_summary(tasks_json, source_name="tasks.json"):
+    """Prints a summary for a given list of tasks."""
+    print("=" * 70)
+    print(f"TASK SUMMARY REPORT FOR: {source_name}")
+    print("=" * 70)
+    print()
+
+    if not tasks_json:
+        print("No tasks found.")
+        return
+
+    status_count = defaultdict(int)
+    priority_count = defaultdict(int)
+    total_subtasks = 0
+
+    for task in tasks_json:
+        status_count[task.get("status", "unknown")] += 1
+        priority_count[task.get("priority", "unknown")] += 1
+        total_subtasks += count_subtasks(task)
+
+    print(f"Main Tasks ({source_name}) Breakdown:")
+    print(f"  Total tasks: {len(tasks_json)}")
+    print(f"  Total subtasks: {total_subtasks}")
+    print()
+    print("  By Status:")
+    for status, count in sorted(status_count.items()):
+        print(f"    {status:15} {count:3} tasks")
+    print()
+    print("  By Priority:")
+    for priority, count in sorted(priority_count.items()):
+        print(f"    {priority:15} {count:3} tasks")
+    print()
+
+    task_ids = [t.get("id") for t in tasks_json if t.get("id") is not None]
+    if task_ids:
+        try:
+            numeric_ids = [int(i) for i in task_ids]
+            print(f"Task ID Range: {min(numeric_ids)} - {max(numeric_ids)}")
+            missing = [i for i in range(min(numeric_ids), max(numeric_ids) + 1) if i not in numeric_ids]
+            if missing:
+                print(f"Missing IDs: {missing}")
+        except (ValueError, TypeError):
+            print(f"Task IDs are not all numeric: {task_ids}")
+        print()
+
+    print(f"All Tasks ({source_name}):")
+    # Sort by numeric part of ID if possible
+    try:
+        sorted_tasks = sorted(tasks_json, key=lambda x: int(str(x.get("id", "0")).split('.')[0]))
+    except (ValueError, TypeError):
+        sorted_tasks = sorted(tasks_json, key=lambda x: str(x.get("id", "")))
+
+    for task in sorted_tasks:
+        subtask_count = count_subtasks(task)
+        task_id_str = str(task.get('id', 'N/A'))
+        print(
+            f"  {task_id_str:5} [{task.get('status', 'N/A'):12}] [{task.get('priority', 'N/A'):8}] "
+            f"({subtask_count:2} subtasks) {task.get('title', 'No Title')}"
+        )
+    print()
+
+
 def main():
-    script_dir = Path(__file__).parent.parent
+    parser = argparse.ArgumentParser(description="Generate a comprehensive summary of all tasks across all JSON files")
+    parser.add_argument("--tasks-file", help="Path to a single tasks JSON file to summarize.")
+    args = parser.parse_args()
 
-    # Load tasks from different files
-    tasks_json = load_tasks(script_dir / "tasks/tasks.json", "master")
-    tasks_expanded = load_tasks(script_dir / "tasks/tasks_expanded.json", "master")
-    tasks_new = load_tasks(script_dir / "tasks/tasks_new.json")
-    tasks_invalid = parse_invalid_tasks(script_dir / "tasks/tasks_invalid.json")
+    if args.tasks_file:
+        tasks = load_tasks(args.tasks_file)
+        print_summary(tasks, source_name=args.tasks_file)
+    else:
+        script_dir = Path(__file__).parent.parent
+        tasks_json = load_tasks(script_dir / "tasks/tasks.json", "master")
+        tasks_expanded = load_tasks(script_dir / "tasks/tasks_expanded.json", "master")
+        tasks_new = load_tasks(script_dir / "tasks/tasks_new.json")
+        tasks_invalid = parse_invalid_tasks(script_dir / "tasks/tasks_invalid.json")
 
-    print("=" * 70)
-    print("TASK SUMMARY REPORT")
-    print("=" * 70)
-    print()
-
-    # Summary by file
-    print("Tasks by File:")
-    print(f"  tasks.json:           {len(tasks_json)} tasks")
-    print(f"  tasks_expanded.json:  {len(tasks_expanded)} tasks")
-    print(f"  tasks_new.json:       {len(tasks_new)} tasks")
-    print(f"  tasks_invalid.json:   {len(tasks_invalid)} tasks")
-    print()
-
-    # Status breakdown for main tasks
-    if tasks_json:
-        status_count = defaultdict(int)
-        priority_count = defaultdict(int)
-        total_subtasks = 0
-
-        for task in tasks_json:
-            status_count[task.get("status", "unknown")] += 1
-            priority_count[task.get("priority", "unknown")] += 1
-            total_subtasks += count_subtasks(task)
-
-        print("Main Tasks (tasks.json) Breakdown:")
-        print(f"  Total tasks: {len(tasks_json)}")
-        print(f"  Total subtasks: {total_subtasks}")
+        print("=" * 70)
+        print("TASK SUMMARY REPORT")
+        print("=" * 70)
         print()
-        print("  By Status:")
-        for status, count in sorted(status_count.items()):
-            print(f"    {status:15} {count:3} tasks")
-        print()
-        print("  By Priority:")
-        for priority, count in sorted(priority_count.items()):
-            print(f"    {priority:15} {count:3} tasks")
+        
+        print("Tasks by File:")
+        print(f"  tasks.json:           {len(tasks_json)} tasks")
+        print(f"  tasks_expanded.json:  {len(tasks_expanded)} tasks")
+        print(f"  tasks_new.json:       {len(tasks_new)} tasks")
+        print(f"  tasks_invalid.json:   {len(tasks_invalid)} tasks")
         print()
 
-    # Invalid tasks summary
-    if tasks_invalid:
-        invalid_status_count = defaultdict(int)
-        for task in tasks_invalid:
-            invalid_status_count[task.get("status", "unknown")] += 1
+        if tasks_json:
+            print_summary(tasks_json, "tasks.json")
 
-        print("Invalid/Completed Tasks (tasks_invalid.json):")
-        print(f"  Total: {len(tasks_invalid)}")
-        print("  By Status:")
-        for status, count in sorted(invalid_status_count.items()):
-            print(f"    {status:15} {count:3} tasks")
-        print()
-
-    # Task ID ranges
-    if tasks_json:
-        task_ids = [t["id"] for t in tasks_json]
-        print(f"Task ID Range: {min(task_ids)} - {max(task_ids)}")
-        missing = [i for i in range(min(task_ids), max(task_ids) + 1) if i not in task_ids]
-        if missing:
-            print(f"Missing IDs: {missing}")
-        print()
-
-    # List all task IDs and titles
-    if tasks_json:
-        print("All Tasks (tasks.json):")
-        for task in sorted(tasks_json, key=lambda x: x["id"]):
-            subtask_count = count_subtasks(task)
-            print(
-                f"  {task['id']:3} [{task.get('status', 'N/A'):12}] [{task.get('priority', 'N/A'):8}] "
-                f"({subtask_count:2} subtasks) {task['title']}"
-            )
-        print()
+        if tasks_invalid:
+            print("Invalid/Completed Tasks (tasks_invalid.json):")
+            invalid_status_count = defaultdict(int)
+            for task in tasks_invalid:
+                invalid_status_count[task.get("status", "unknown")] += 1
+            print(f"  Total: {len(tasks_invalid)}")
+            print("  By Status:")
+            for status, count in sorted(invalid_status_count.items()):
+                print(f"    {status:15} {count:3} tasks")
+            print()
 
 
 if __name__ == "__main__":

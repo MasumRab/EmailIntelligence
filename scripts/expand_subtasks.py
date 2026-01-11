@@ -42,6 +42,12 @@ TEMPLATE_HEADER = """# Task {id}: {title}
 
 ---
 
+## Guidance & Standards
+
+{guidance}
+
+---
+
 ## Success Criteria
 
 {success_criteria}
@@ -139,7 +145,8 @@ def parse_main_task_info(content: str) -> Dict:
     """Extract main task information from template."""
     info: Dict[str, str] = {}
 
-    title_match = re.search(r"^# Task (\d+): (.+?)$", content, re.MULTILINE)
+    # Support both "# Task 002: ..." and "# Task ID: 002 ..."
+    title_match = re.search(r"^# Task (?:ID: )?(\d+)[:\s]+(.+?)$", content, re.MULTILINE)
     if title_match:
         info["task_number"] = title_match.group(1)
         info["title"] = title_match.group(2)
@@ -165,6 +172,20 @@ def generate_subtask_file(subtask: Dict, main_task: Dict, output_dir: Path) -> P
     filename = f"task-{main_task['task_number']}-{subtask['subtask_id']}.md"
     filepath = output_dir / filename
 
+    guidance_links = [
+        "- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)",
+        "- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)",
+        "- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)",
+        "- **General:** [Project Guidance](../guidance/README.md)",
+    ]
+
+    # Context-aware guidance additions
+    lower_title = subtask["title"].lower()
+    if "cluster" in lower_title or "branch" in lower_title:
+        guidance_links.append(
+            "- **Alignment:** [Architecture Recommendations](../guidance/ARCHITECTURE_ALIGNMENT_COMPLETE_AND_RECOMMENDATIONS.md)"
+        )
+
     content = TEMPLATE_HEADER.format(
         id=subtask["id"],
         title=subtask["title"],
@@ -177,6 +198,7 @@ def generate_subtask_file(subtask: Dict, main_task: Dict, output_dir: Path) -> P
         parent=f"Task {main_task['task_number']}: {main_task['title']}",
         purpose=subtask["purpose"],
         details=subtask["details"],
+        guidance="\n".join(guidance_links),
         success_criteria=format_success_criteria(subtask["success_criteria"]),
         test_strategy=subtask["test_strategy"],
         notes="_Add implementation notes here as work progresses_",

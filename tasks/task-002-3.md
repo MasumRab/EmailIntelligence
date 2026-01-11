@@ -1,0 +1,71 @@
+# Task 002.3: DiffDistanceCalculator
+
+**Status:** pending
+**Priority:** high
+**Effort:** 32-40 hours
+**Complexity:** 8/10
+**Dependencies:** None
+**Created:** 2026-01-12
+**Parent:** Task 002: Branch Clustering System
+
+---
+
+## Purpose
+
+Calculate code distance metrics between feature branches and potential integration targets using various diff algorithms.
+
+---
+
+## Details
+
+Implement a Python module that:
+- Computes file-level diffs between branches
+- Calculates similarity scores (Jaccard, edit distance, etc.)
+- Identifies changed files, added/removed/changed counts
+- Weights changes by significance (core files vs documentation)
+- Generates distance vectors for clustering
+
+---
+
+## Guidance & Standards
+
+- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
+- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
+- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
+- **General:** [Project Guidance](../guidance/README.md)
+
+---
+
+## Success Criteria
+
+- [ ] Multiple distance metrics implemented
+- [ ] Handles large diffs efficiently
+- [ ] Weighted scoring for file importance
+- [ ] Outputs comparable distance vectors
+- [ ] Performance optimized for many branches
+
+---
+
+## Test Strategy
+
+- Compare identical branches (should be distance 0)
+- Test with known similarity levels
+- Benchmark performance on large repositories
+- Validate weighting logic
+
+---
+
+---
+
+## Implementation Notes
+
+_Add implementation notes here as work progresses_
+
+---
+
+## Progress Log
+
+### 2026-01-12
+- Subtask file created from main task template
+- Ready for implementation
+

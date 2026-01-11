@@ -213,10 +213,31 @@ class SemanticMerger:
     
     def _merge_variable_values(self, value1: str, value2: str) -> str:
         """Merge two variable values intelligently."""
+        import ast
+        
         # If both are lists or dicts (indicated by brackets/braces), try to merge them
         if (value1.startswith('[') and value2.startswith('[')) or (value1.startswith('{') and value2.startswith('{')):
-            # This is a simplified list/dict merge
-            return f"/* TODO: Merge {value1} and {value2} */"
+            try:
+                # Parse both values safely using ast.literal_eval
+                parsed1 = ast.literal_eval(value1)
+                parsed2 = ast.literal_eval(value2)
+                
+                # Merge lists (concatenate unique items)
+                if isinstance(parsed1, list) and isinstance(parsed2, list):
+                    merged = list(set(parsed1 + parsed2))
+                    # Sort for consistency
+                    merged.sort()
+                    return str(merged)
+                
+                # Merge dicts (combine keys, prefer value2 on conflict)
+                elif isinstance(parsed1, dict) and isinstance(parsed2, dict):
+                    merged = {**parsed1, **parsed2}
+                    return str(merged)
+                    
+            except (ValueError, SyntaxError, TypeError) as e:
+                logger.warning(f"Failed to parse values for merge: {e}")
+                # Fallback to conflict marker
+                return f"/* CONFLICT: Choose between {value1} and {value2} */"
         
         # For other cases, we might prefer one over the other or mark for manual review
         return f"/* CONFLICT: Choose between {value1} and {value2} */"

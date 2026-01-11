@@ -1,0 +1,104 @@
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:1: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:14: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:24: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:25: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:26: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:63: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:304: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:478: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:743: MD013 Line length
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:605: MD026 Trailing punctuation in header
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:47: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:48: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:49: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:111: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:112: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:113: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:139: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:140: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:141: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:142: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:179: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:180: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:181: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:182: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:220: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:221: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:222: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:223: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:261: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:262: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:263: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:264: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:302: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:303: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:304: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:305: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:343: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:344: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:345: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:346: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:384: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:385: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:386: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:387: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:425: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:426: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:427: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:428: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:554: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:555: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:556: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:565: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:566: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:567: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:576: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:577: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:578: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:598: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:599: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:600: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:601: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:614: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:615: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:616: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:617: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:635: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:636: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:637: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:638: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:639: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:640: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:641: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:704: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:705: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:706: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:707: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:721: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:722: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:723: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:724: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:729: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:730: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:731: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:732: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:733: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:734: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:735: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:736: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:737: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:744: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:745: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:746: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:747: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:752: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:753: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:754: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:755: MD029 Ordered list item prefix
+/home/masum/github/PR/.taskmaster/new_task_plan/task-001.md:815: MD047 File should end with a single newline character
+
+Further documentation is available for these failures:
+ - MD013: https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md#md013---line-length
+ - MD026: https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md#md026---trailing-punctuation-in-header
+ - MD029: https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md#md029---ordered-list-item-prefix
+ - MD047: https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md#md047---file-should-end-with-a-single-newline-character
