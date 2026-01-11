@@ -228,3 +228,19 @@ class EnhancedCachingManager:
             "email_content_cache": self.email_content_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
+
+    async def _ensure_initialized(self):
+        """Ensure the caching manager is initialized. No-op for synchronous implementation."""
+        pass
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Generic async get for compatibility with SmartFilterManager (maps to query cache)."""
+        return self.get_query_result(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Generic async set for compatibility with SmartFilterManager (maps to query cache)."""
+        self.put_query_result(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Generic async delete for compatibility with SmartFilterManager (maps to query cache)."""
+        self.invalidate_query_result(key)
