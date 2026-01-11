@@ -700,6 +700,7 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
 
+        filters_updated = False
         for filter_obj in active_filters:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_context):
@@ -723,7 +724,9 @@ class SmartFilterManager:
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
 
                     # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
+                    # Bolt Optimization: Don't invalidate cache for every match to prevent thrashing
+                    await self._update_filter_usage(filter_obj.filter_id, invalidate_cache=False)
+                    filters_updated = True
 
             except Exception as e:
                 error_context = create_error_context(
@@ -739,12 +742,20 @@ class SmartFilterManager:
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
 
+        # Bolt Optimization: Invalidate cache once at the end if any filters were matched
+        if filters_updated:
+            try:
+                await self.caching_manager.delete("active_filters_sorted")
+            except Exception as e:
+                # Log but don't fail the entire operation if cache invalidation fails
+                self.logger.warning(f"Failed to invalidate filter cache: {e}")
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
 
         return summary
 
-    async def _update_filter_usage(self, filter_id: str):
+    async def _update_filter_usage(self, filter_id: str, invalidate_cache: bool = True):
         """Updates the usage statistics for a filter."""
         # Update usage count and last used time
         update_query = """
@@ -756,7 +767,8 @@ class SmartFilterManager:
         self._db_execute(update_query, (current_time, filter_id))
 
         # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        if invalidate_cache:
+            await self.caching_manager.delete("active_filters_sorted")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
