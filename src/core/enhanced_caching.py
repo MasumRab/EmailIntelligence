@@ -143,6 +143,9 @@ class EnhancedCachingManager:
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
 
+        # Generic cache for SmartFilterManager compatibility
+        self.generic_cache = LRUCache(capacity=1000)
+
         # Statistics tracking
         self.cache_operations = {
             "email_record_get": 0,
@@ -152,8 +155,28 @@ class EnhancedCachingManager:
             "query_result_get": 0,
             "query_result_put": 0,
             "content_get": 0,
-            "content_put": 0
+            "content_put": 0,
+            "generic_get": 0,
+            "generic_put": 0,
         }
+
+    async def _ensure_initialized(self):
+        """Async initialization for compatibility."""
+        pass
+
+    def get(self, key: str) -> Optional[Any]:
+        """Generic get for compatibility."""
+        self.cache_operations["generic_get"] += 1
+        return self.generic_cache.get(key)
+
+    def set(self, key: str, value: Any) -> None:
+        """Generic set for compatibility."""
+        self.cache_operations["generic_put"] += 1
+        self.generic_cache.put(key, value)
+
+    def delete(self, key: str) -> None:
+        """Generic delete for compatibility."""
+        self.generic_cache.invalidate(key)
 
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email record from cache."""
@@ -214,6 +237,7 @@ class EnhancedCachingManager:
         self.category_record_cache.clear()
         self.query_cache.clear()
         self.email_content_cache.clear()
+        self.generic_cache.clear()
 
         # Reset statistics
         for key in self.cache_operations:
