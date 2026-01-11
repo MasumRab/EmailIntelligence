@@ -672,7 +672,12 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
-        for email_light in self.emails_data:
+        # Optimization: Iterate in reverse (newest first) and stop once limit is reached.
+        # This avoids checking content/disk for thousands of old emails when we found enough recent matches.
+        for email_light in reversed(self.emails_data):
+            if len(filtered_emails) >= limit:
+                break
+
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
@@ -681,6 +686,7 @@ class DatabaseManager(DataSource):
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
+
             email_id = email_light.get(FIELD_ID)
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
