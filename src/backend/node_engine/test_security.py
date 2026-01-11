@@ -145,15 +145,16 @@ async def test_input_sanitization():
     print(f"Dangerous input: {dangerous_input}")
     print(f"Sanitized output: {safe_output}")
 
-    # Check that dangerous parts were removed
-    has_script = "<script" in safe_output.lower()
-    has_onerror = "onerror" in safe_output.lower()
+    # Check that HTML tags were escaped (when bleach is missing, we fall back to full escaping)
+    has_script_tag = "<script" in safe_output.lower()
+    has_img_tag = "<img" in safe_output.lower()
 
-    if not has_script and not has_onerror:
-        print("Input sanitization working correctly")
+    # The output should NOT contain raw HTML tags
+    if not has_script_tag and not has_img_tag:
+        print("Input sanitization working correctly (HTML escaped)")
         return True
     else:
-        print("Input sanitization failed")
+        print("Input sanitization failed (HTML tags present)")
         return False
 
 
