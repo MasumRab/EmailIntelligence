@@ -1,0 +1,3 @@
+## 2024-05-23 - Search Performance Bottleneck
+**Learning:** `DatabaseManager.search_emails_with_limit` has a hybrid search logic (memory + disk). When metadata search fails, it checks for a content file on disk using `os.path.exists`. Benchmarking revealed that for non-existent search terms, this `os.path.exists` check dominates execution time because it runs O(N) times. Optimizations to the in-memory search (like pre-computed indexes) only speed up "hits". "Misses" remain bound by system call latency.
+**Action:** In the future, maintaining a "has_content" boolean flag in the in-memory `email_light` record would allow avoiding the `os.path.exists` call entirely for emails that have no heavy content, or allow checking a content index.
