@@ -140,14 +140,13 @@ def _create_decorator(func, op_name):
             end_time = time.perf_counter()
             duration = end_time - start_time
 
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
+            # Optimized logging using record_metric
             try:
-                performance_monitor.log_performance(log_entry)
+                performance_monitor.record_metric(
+                    name=op_name,
+                    value=duration * 1000,  # Convert to ms
+                    unit="ms"
+                )
             except Exception as e:
                 logger.warning(f"Failed to log performance: {e}")
 
@@ -163,14 +162,13 @@ def _create_decorator(func, op_name):
             end_time = time.perf_counter()
             duration = end_time - start_time
 
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
+            # Optimized logging using record_metric
             try:
-                performance_monitor.log_performance(log_entry)
+                performance_monitor.record_metric(
+                    name=op_name,
+                    value=duration * 1000,  # Convert to ms
+                    unit="ms"
+                )
             except Exception as e:
                 logger.warning(f"Failed to log performance: {e}")
 

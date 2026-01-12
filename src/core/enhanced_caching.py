@@ -208,6 +208,10 @@ class EnhancedCachingManager:
         """Invalidate query result cache."""
         self.query_cache.invalidate(query_key)
 
+    def clear_query_cache(self) -> None:
+        """Clear all query results."""
+        self.query_cache.clear()
+
     def clear_all_caches(self) -> None:
         """Clear all caches."""
         self.email_record_cache.clear()
