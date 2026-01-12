@@ -756,7 +756,10 @@ class SmartFilterManager:
         self._db_execute(update_query, (current_time, filter_id))
 
         # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION: Do NOT invalidate active_filters_sorted cache here.
+        # Invalidating it on every usage update causes N+1 cache reload storm during batch processing.
+        # It is acceptable for usage stats in the cached sorted list to be slightly stale.
+        # await self.caching_manager.delete("active_filters_sorted")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
