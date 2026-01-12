@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-01-11T01:58:52.340113",
+  "mode": "quick",
+  "root": "/home/masum/github/EmailIntelligenceGem",
+  "metrics": {
+    "total_files": 548,
+    "total_directories": 89,
+    "language_breakdown": {
+      ".md": 377,
+      "": 14,
+      ".json": 21,
+      ".txt": 30,
+      ".py": 83,
+      ".toml": 2,
+      ".sh": 13,
+      ".log": 1,
+      ".db": 1,
+      ".yaml": 6
+    },
+    "duration_seconds": 0.13
+  },
+  "tech_stack": [
+    "Python"
+  ],
+  "structure_summary": {
+    "roots": [
+      ".rulesync",
+      "task_data",
+      "src",
+      "new_task_plan",
+      "setup",
+      "templates",
+      "logs",
+      ".crush",
+      "implement",
+      "tests",
+      ".vscode",
+      ".taskmaster",
+      "temp",
+      "reports",
+      "docs",
+      "task_scripts",
+      "archive",
+      "scripts",
+      "guidance",
+      "refactor",
+      "client"
+    ],
+    "key_modules": [
+      ".rulesync",
+      "task_data",
+      "src",
+      "new_task_plan",
+      "setup",
+      "templates",
+      "logs",
+      ".crush",
+      "implement",
+      "tests",
+      ".vscode",
+      ".taskmaster",
+      "temp",
+      "reports",
+      "docs",
+      "task_scripts",
+      "archive",
+      "scripts",
+      "guidance",
+      "refactor",
+      "client"
+    ]
+  }
+}
