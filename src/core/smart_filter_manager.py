@@ -33,6 +33,10 @@ logger = logging.getLogger(__name__)
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
+# Pre-compiled regex for keyword extraction (optimization)
+# Captures words with 4 or more letters, avoiding the need for len(word) > 3 check
+KEYWORD_PATTERN = re.compile(r"\b[a-zA-Z]{4,}\b")
+
 
 @dataclass
 class EmailFilter:
@@ -383,10 +387,13 @@ class SmartFilterManager:
         return email_address.split("@")[1].lower() if "@" in email_address else ""
 
     def _extract_keywords(self, text: str) -> List[str]:
-        """Extracts meaningful keywords from a string of text."""
+        """
+        Extracts meaningful keywords from a string of text.
+        Optimized to use pre-compiled regex and avoid post-filtering.
+        """
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        return KEYWORD_PATTERN.findall(text.lower())
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
