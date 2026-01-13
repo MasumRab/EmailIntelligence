@@ -113,7 +113,6 @@ def validate_environment() -> bool:
         check_python_version,
         check_for_merge_conflicts,
         check_required_components,
-        check_nltk_compatibility,
     ]
 
     all_passed = True
@@ -122,20 +121,15 @@ def validate_environment() -> bool:
             if not check_func():
                 all_passed = False
         except Exception as e:
-            logger.error(f"Validation check {check_func.__name__} failed with error: {e}")
+            logger.error(f"Validation check {check_func.__name__} failed: {e}")
             all_passed = False
 
+    if all_passed:
+        logger.info("Environment validation passed.")
+    else:
+        logger.error("Environment validation failed.")
+
     return all_passed
-
-
-def check_critical_files() -> bool:
-    """Legacy alias for check_for_merge_conflicts and basic file existence."""
-    return check_for_merge_conflicts()
-
-
-def validate_orchestration_environment() -> bool:
-    """Legacy alias for validate_environment."""
-    return validate_environment()
 
 
 def validate_port(port: int) -> int:
@@ -151,74 +145,3 @@ def validate_host(host: str) -> str:
         raise ValueError(f"Invalid host: {host}")
     # Basic validation - could be enhanced
     return host
-
-def check_nltk_compatibility() -> bool:
-    """Check NLTK version compatibility and presence of DownloadError."""
-    try:
-        import nltk
-        from packaging.version import parse as parse_version
-
-        # Check for the specific attribute that caused issues
-        if not hasattr(nltk.downloader, 'DownloadError'):
-            logger.error(
-                "NLTK version is incompatible. 'nltk.downloader.DownloadError' is missing. "
-                "Please ensure NLTK version 3.6.5 is installed."
-            )
-            return False
-
-        # Optionally, check the version directly
-        current_nltk_version = parse_version(nltk.__version__)
-        required_nltk_version = parse_version("3.6.5")
-
-        if current_nltk_version > required_nltk_version:
-            logger.warning(
-                f"NLTK version {current_nltk_version} is installed. "
-                f"Version 3.6.5 is recommended to avoid potential issues with 'DownloadError'."
-            )
-            # We return True here because the attribute check passed, but a warning is issued.
-            # The user can choose to ignore the warning if their setup works.
-            return True
-
-        logger.info(f"NLTK version {current_nltk_version} is compatible.")
-        return True
-
-    except ImportError:
-        logger.warning("NLTK is not installed. Skipping NLTK compatibility check.")
-        return True # NLTK not installed, so no compatibility issue yet
-    except Exception as e:
-        logger.error(f"An unexpected error occurred during NLTK compatibility check: {e}")
-        return False
-    # This is a simplified version restored from git history.
-    # The original had a much longer list of files.
-    critical_files = [
-        "scripts/install-hooks.sh",
-        "setup/launch.py",
-        "setup/pyproject.toml",
-        ".pylintrc",
-    ]
-    missing_files = []
-    for file_path in critical_files:
-        full_path = ROOT_DIR / file_path
-        if not full_path.exists():
-            missing_files.append(file_path)
-
-    if missing_files:
-        logger.error("Missing critical files:")
-        for file_path in missing_files:
-            logger.error(f"  - {file_path}")
-        logger.error("Please restore these critical files for proper orchestration functionality.")
-        return False
-
-    logger.info("All critical files are present.")
-    return True
-
-
-def validate_orchestration_environment() -> bool:
-    """Run comprehensive validation for the orchestration-tools branch."""
-    logger.info("Running orchestration environment validation...")
-    if not check_for_merge_conflicts():
-        return False
-    if not check_critical_files():
-        return False
-    logger.info("Orchestration environment validation passed.")
-    return True

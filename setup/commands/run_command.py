@@ -64,8 +64,7 @@ class RunCommand(Command):
             logger.info(f"Available services: {list(available_services.keys())}")
 
             # Start the required services
-            # TODO: Restore this call once the 'start_services' function is found/restored.
-        # start_services(self.args)
+            start_services(self.args)
 
             logger.info("EmailIntelligence application started successfully!")
             logger.info("Application is now running. Press Ctrl+C to stop.")

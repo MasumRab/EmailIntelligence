@@ -13,8 +13,6 @@ from .run_command import RunCommand
 from .test_command import TestCommand
 from .check_command import CheckCommand
 from .cleanup_command import CleanupCommand
-from .guide_dev_command import GuideDevCommand
-from .guide_pr_command import GuidePrCommand
 
 
 class CommandFactory:
@@ -33,8 +31,6 @@ class CommandFactory:
             'test': TestCommand,
             'check': CheckCommand,
             'cleanup': CleanupCommand,
-            'guide-dev': GuideDevCommand,
-            'guide-pr': GuidePrCommand,
         }
 
     def create_command(self, command_name: str, args: Namespace) -> Optional[Command]:
