@@ -33,6 +33,9 @@ logger = logging.getLogger(__name__)
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
+# Pre-compiled regex for keyword extraction (Bolt optimization)
+KEYWORD_PATTERN = re.compile(r"\b[a-zA-Z]{3,}\b")
+
 
 @dataclass
 class EmailFilter:
@@ -373,7 +376,8 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        # Use pre-compiled regex (Bolt optimization)
+        return [word for word in KEYWORD_PATTERN.findall(text.lower()) if len(word) > 3]
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
@@ -716,8 +720,11 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
         
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION (Bolt): Do NOT invalidate the global active filter list here.
+        # Usage stats updates happen frequently (N times per batch) and shouldn't force
+        # a reload of the entire filter configuration. The stale usage counts in the
+        # cached list are acceptable for performance.
+        # await self.caching_manager.delete("active_filters_sorted")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
