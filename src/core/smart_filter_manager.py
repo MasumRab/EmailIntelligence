@@ -271,8 +271,8 @@ class SmartFilterManager:
         if self._initialized:
             return
 
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
+        # Initialize caching manager - No await needed as EnhancedCachingManager is sync
+        # self.caching_manager._ensure_initialized()  # Method doesn't exist on Sync version
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -281,6 +281,8 @@ class SmartFilterManager:
         """Closes the persistent database connection."""
         if self.conn:
             self.conn.close()
+        # Caching manager is in-memory and sync, no explicit close needed if it doesn't hold resources
+        # self.caching_manager.close() # Method doesn't exist
 
     def _load_filter_templates(self) -> Dict[str, Dict[str, Any]]:
         """Loads a set of predefined filter templates."""
@@ -603,7 +605,8 @@ class SmartFilterManager:
         
         # Update cache
         cache_key = f"filter_{filter_obj.filter_id}"
-        await self.caching_manager.set(cache_key, filter_obj)
+        # EnhancedCachingManager is sync
+        self.caching_manager.put_query_result(cache_key, filter_obj)
 
     @log_performance(operation="get_active_filters_sorted")
     async def get_active_filters_sorted(self) -> List[EmailFilter]:
@@ -612,7 +615,8 @@ class SmartFilterManager:
         
         # Check cache first
         cache_key = "active_filters_sorted"
-        cached_result = await self.caching_manager.get(cache_key)
+        # EnhancedCachingManager is sync
+        cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             return cached_result
 
@@ -639,7 +643,7 @@ class SmartFilterManager:
         ]
         
         # Cache the result
-        await self.caching_manager.set(cache_key, filters)
+        self.caching_manager.put_query_result(cache_key, filters)
         
         return filters
 
@@ -657,6 +661,7 @@ class SmartFilterManager:
         await self._ensure_initialized()
         
         summary = {"filters_matched": [], "actions_taken": [], "categories": []}
+        matched_filter_ids = []
         
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
@@ -671,6 +676,8 @@ class SmartFilterManager:
                         "priority": filter_obj.priority
                     })
                     
+                    matched_filter_ids.append(filter_obj.filter_id)
+
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
                         if action_key == "add_label":
@@ -683,8 +690,7 @@ class SmartFilterManager:
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
                     
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
+                    # Update filter usage stats logic moved to batch update
                     
             except Exception as e:
                 error_context = create_error_context(
@@ -700,6 +706,10 @@ class SmartFilterManager:
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
         
+        # Batch update filter usage
+        if matched_filter_ids:
+            await self._batch_update_filter_usage(matched_filter_ids)
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
         
@@ -717,7 +727,33 @@ class SmartFilterManager:
         self._db_execute(update_query, (current_time, filter_id))
         
         # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        self.caching_manager.invalidate_query_result("active_filters_sorted")
+        # Invalidate individual filter cache too
+        self.caching_manager.invalidate_query_result(f"filter_{filter_id}")
+
+    async def _batch_update_filter_usage(self, filter_ids: List[str]):
+        """Updates usage stats for multiple filters in one go."""
+        if not filter_ids:
+            return
+
+        current_time = datetime.now(timezone.utc).isoformat()
+        placeholders = ', '.join(['?'] * len(filter_ids))
+
+        query = f"""
+            UPDATE email_filters
+            SET usage_count = usage_count + 1, last_used = ?
+            WHERE filter_id IN ({placeholders})
+        """
+
+        params = [current_time] + filter_ids
+        self._db_execute(query, tuple(params))
+
+        # Invalidate cache ONCE
+        self.caching_manager.invalidate_query_result("active_filters_sorted")
+
+        # Invalidate individual filter caches
+        for fid in filter_ids:
+             self.caching_manager.invalidate_query_result(f"filter_{fid}")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
@@ -726,7 +762,7 @@ class SmartFilterManager:
         
         # Check cache first
         cache_key = f"filter_{filter_id}"
-        cached_result = await self.caching_manager.get(cache_key)
+        cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             return cached_result
 
@@ -754,7 +790,7 @@ class SmartFilterManager:
         )
         
         # Cache the result
-        await self.caching_manager.set(cache_key, filter_obj)
+        self.caching_manager.put_query_result(cache_key, filter_obj)
         
         return filter_obj
 
@@ -777,8 +813,8 @@ class SmartFilterManager:
         await self._save_filter_async(existing_filter)
         
         # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        self.caching_manager.invalidate_query_result(f"filter_{filter_id}")
+        self.caching_manager.invalidate_query_result("active_filters_sorted")
         
         return True
 
@@ -791,8 +827,8 @@ class SmartFilterManager:
         self._db_execute(update_query, (is_active, filter_id))
         
         # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        self.caching_manager.invalidate_query_result(f"filter_{filter_id}")
+        self.caching_manager.invalidate_query_result("active_filters_sorted")
         
         return True
 
@@ -809,8 +845,8 @@ class SmartFilterManager:
         self._db_execute(delete_perf_query, (filter_id,))
         
         # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        self.caching_manager.invalidate_query_result(f"filter_{filter_id}")
+        self.caching_manager.invalidate_query_result("active_filters_sorted")
         
         return True
 
@@ -849,7 +885,7 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
+        # await self.caching_manager.close() # Removed as it doesn't exist
 
 
 # Global smart filter manager instance

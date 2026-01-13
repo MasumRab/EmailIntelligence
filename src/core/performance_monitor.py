@@ -140,14 +140,20 @@ def _create_decorator(func, op_name):
             end_time = time.perf_counter()
             duration = end_time - start_time
 
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
             try:
-                performance_monitor.log_performance(log_entry)
+                if hasattr(performance_monitor, "record_metric"):
+                    performance_monitor.record_metric(
+                        name=op_name,
+                        value=duration * 1000,  # Convert to ms
+                        unit="ms"
+                    )
+                else:
+                    log_entry = {
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "operation": op_name,
+                        "duration_seconds": duration,
+                    }
+                    performance_monitor.log_performance(log_entry)
             except Exception as e:
                 logger.warning(f"Failed to log performance: {e}")
 
@@ -163,14 +169,20 @@ def _create_decorator(func, op_name):
             end_time = time.perf_counter()
             duration = end_time - start_time
 
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
             try:
-                performance_monitor.log_performance(log_entry)
+                if hasattr(performance_monitor, "record_metric"):
+                    performance_monitor.record_metric(
+                        name=op_name,
+                        value=duration * 1000,  # Convert to ms
+                        unit="ms"
+                    )
+                else:
+                    log_entry = {
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "operation": op_name,
+                        "duration_seconds": duration,
+                    }
+                    performance_monitor.log_performance(log_entry)
             except Exception as e:
                 logger.warning(f"Failed to log performance: {e}")
 
