@@ -228,3 +228,38 @@ class EnhancedCachingManager:
             "email_content_cache": self.email_content_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
+
+    async def _ensure_initialized(self) -> None:
+        """
+        Async initialization method for compatibility with async managers.
+        No-op for in-memory cache, but required by SmartFilterManager.
+        """
+        pass
+
+    async def get(self, key: str) -> Optional[Any]:
+        """
+        Async get wrapper for general purpose caching.
+        Uses query_cache for generic object storage.
+        """
+        return self.get_query_result(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """
+        Async set wrapper for general purpose caching.
+        Uses query_cache for generic object storage.
+        """
+        self.put_query_result(key, value)
+
+    async def delete(self, key: str) -> None:
+        """
+        Async delete wrapper for general purpose caching.
+        Uses query_cache invalidation.
+        """
+        self.invalidate_query_result(key)
+
+    async def close(self) -> None:
+        """
+        Async close wrapper for cleanup.
+        No-op for in-memory cache, but required by SmartFilterManager.
+        """
+        pass
