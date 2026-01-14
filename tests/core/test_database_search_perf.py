@@ -67,6 +67,9 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
     with gzip.open(content_path, "wt", encoding="utf-8") as f:
         json.dump(heavy_data, f)
 
+    # Update content index manually as we bypassed _save_heavy_content/init
+    db_manager._content_available_index.add(email_id)
+
     # Spy on asyncio.to_thread
     with patch("asyncio.to_thread", side_effect=asyncio.to_thread) as mock_to_thread:
         # Execute

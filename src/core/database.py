@@ -10,7 +10,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from functools import partial
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Set
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
@@ -139,6 +139,7 @@ class DatabaseManager(DataSource):
         self.emails_by_id: Dict[int, Dict[str, Any]] = {}
         self.emails_by_message_id: Dict[str, Dict[str, Any]] = {}
         self._search_index: Dict[int, str] = {}  # Cache for searchable text
+        self._content_available_index: Set[int] = set()  # Index of emails with content files
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
@@ -217,10 +218,28 @@ class DatabaseManager(DataSource):
         if not self._initialized:
             await self._load_data()
             self._build_indexes()
+            self._build_content_index()
             self._initialized = True
 
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
+
+    def _build_content_index(self) -> None:
+        """Builds an index of available content files to avoid repeated disk checks."""
+        self._content_available_index = set()
+        if os.path.exists(self.email_content_dir):
+            try:
+                with os.scandir(self.email_content_dir) as entries:
+                    for entry in entries:
+                        if entry.is_file() and entry.name.endswith('.json.gz'):
+                            try:
+                                # extract ID from "123.json.gz"
+                                email_id = int(entry.name.split('.')[0])
+                                self._content_available_index.add(email_id)
+                            except ValueError:
+                                continue
+            except OSError as e:
+                logger.error(f"Error building content index: {e}")
 
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
@@ -770,16 +789,20 @@ class DatabaseManager(DataSource):
                     filtered_emails.append(email_light)
                 continue
 
+            # Optimized check: use in-memory index to avoid os.path.exists system call
+            if email_id not in self._content_available_index:
+                continue
+
             content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                    content = heavy_data.get(FIELD_CONTENT, "")
-                    if isinstance(content, str) and search_term_lower in content.lower():
-                        filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+            # File existence is guaranteed by index (mostly), so we proceed to read
+            try:
+                # Offload synchronous file I/O to a thread to prevent blocking the event loop
+                heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
+                content = heavy_data.get(FIELD_CONTENT, "")
+                if isinstance(content, str) and search_term_lower in content.lower():
+                    filtered_emails.append(email_light)
+            except (IOError, json.JSONDecodeError) as e:
+                logger.error(f"Could not search content for email {email_id}: {e}")
 
         # Results are already sorted because we iterated source_emails (which is sorted)
         return [self._add_category_details(email) for email in filtered_emails]
@@ -815,6 +838,9 @@ class DatabaseManager(DataSource):
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
+
+            # Update index
+            self._content_available_index.add(email_id)
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
