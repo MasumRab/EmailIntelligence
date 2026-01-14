@@ -5,11 +5,10 @@ This module provides enhanced caching capabilities for the DatabaseManager,
 including LRU cache for frequently accessed data and query result caching.
 """
 
-import asyncio
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +142,9 @@ class EnhancedCachingManager:
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
 
+        # Generic cache for other needs (e.g., SmartFilterManager)
+        self.generic_cache = LRUCache(capacity=200)
+
         # Statistics tracking
         self.cache_operations = {
             "email_record_get": 0,
@@ -152,8 +154,34 @@ class EnhancedCachingManager:
             "query_result_get": 0,
             "query_result_put": 0,
             "content_get": 0,
-            "content_put": 0
+            "content_put": 0,
+            "generic_get": 0,
+            "generic_put": 0,
         }
+
+    async def _ensure_initialized(self) -> None:
+        """Ensure the caching manager is initialized. (Async compatibility wrapper)"""
+        # No specific initialization needed for currently implemented caches
+        pass
+
+    async def close(self) -> None:
+        """Close and clear all caches. (Async compatibility wrapper)"""
+        self.clear_all_caches()
+
+    # Async generic interface (used by SmartFilterManager)
+    async def get(self, key: str) -> Optional[Any]:
+        """Async wrapper for generic cache get."""
+        self.cache_operations["generic_get"] += 1
+        return self.generic_cache.get(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Async wrapper for generic cache set."""
+        self.cache_operations["generic_put"] += 1
+        self.generic_cache.put(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Async wrapper for generic cache delete."""
+        self.generic_cache.invalidate(key)
 
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email record from cache."""
@@ -214,6 +242,7 @@ class EnhancedCachingManager:
         self.category_record_cache.clear()
         self.query_cache.clear()
         self.email_content_cache.clear()
+        self.generic_cache.clear()
 
         # Reset statistics
         for key in self.cache_operations:
@@ -226,5 +255,6 @@ class EnhancedCachingManager:
             "category_record_cache": self.category_record_cache.get_stats(),
             "query_cache": self.query_cache.get_stats(),
             "email_content_cache": self.email_content_cache.get_stats(),
+            "generic_cache": self.generic_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
