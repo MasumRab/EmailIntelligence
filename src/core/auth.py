@@ -7,8 +7,9 @@ This module implements JWT-based authentication for API endpoints and integrates
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
-import hashlib
 import secrets
+# Correctly import argon2 to access exceptions
+import argon2
 from argon2 import PasswordHasher
 
 import jwt
@@ -305,7 +306,9 @@ def create_security_context_for_user(username: str) -> SecurityContext:
         user_id=username,
         permissions=permissions,
         security_level=SecurityLevel.INTERNAL,
-        session_id=session_token,
+        session_token=session_token,
+        created_at=datetime.utcnow().timestamp(),  # Add missing fields
+        expires_at=(datetime.utcnow() + timedelta(hours=8)).timestamp(),  # Add missing fields
         allowed_resources=["*"],  # All resources allowed for now
     )
 
