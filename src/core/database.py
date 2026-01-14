@@ -141,6 +141,7 @@ class DatabaseManager(DataSource):
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
+        self._search_index: Dict[int, str] = {}
 
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
@@ -207,6 +208,21 @@ class DatabaseManager(DataSource):
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
+    def _get_searchable_text(self, email: Dict[str, Any]) -> str:
+        """Generates a combined lowercased string for search."""
+        parts = [
+            email.get(FIELD_SUBJECT, ""),
+            email.get(FIELD_SENDER, ""),
+            email.get(FIELD_SENDER_EMAIL, ""),
+        ]
+        return " ".join(part.lower() for part in parts if part)
+
+    def _update_search_index_entry(self, email: Dict[str, Any]) -> None:
+        """Updates the search index for a single email."""
+        email_id = email.get(FIELD_ID)
+        if email_id is not None:
+            self._search_index[email_id] = self._get_searchable_text(email)
+
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
@@ -220,7 +236,9 @@ class DatabaseManager(DataSource):
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
+        self._search_index = {}
         for email in self.emails_data:
+            self._update_search_index_entry(email)
             cat_id = email.get(FIELD_CATEGORY_ID)
             if cat_id in self.category_counts:
                 self.category_counts[cat_id] += 1
@@ -412,6 +430,7 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if message_id:
             self.emails_by_message_id[message_id] = email
+        self._update_search_index_entry(email)
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
@@ -609,6 +628,7 @@ class DatabaseManager(DataSource):
             )
             if idx != -1:
                 self.emails_data[idx] = email_to_update
+            self._update_search_index_entry(email_to_update)
             await self._save_data(DATA_TYPE_EMAILS)
 
             new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
@@ -673,15 +693,25 @@ class DatabaseManager(DataSource):
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
         for email_light in self.emails_data:
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-            )
+            email_id = email_light.get(FIELD_ID)
+            # Use pre-computed search index for faster in-memory check
+            searchable_text = self._search_index.get(email_id)
+            found_in_light = False
+
+            if searchable_text:
+                found_in_light = search_term_lower in searchable_text
+            else:
+                # Fallback if not in index (should happen only if index is out of sync)
+                found_in_light = (
+                    search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+                    or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+                    or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+                )
+
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
-            email_id = email_light.get(FIELD_ID)
+
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
                 try:
@@ -740,6 +770,7 @@ class DatabaseManager(DataSource):
         )
         if idx != -1:
             self.emails_data[idx] = email
+        self._update_search_index_entry(email)
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
