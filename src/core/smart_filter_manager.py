@@ -661,6 +661,7 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
         
+        matched_filter_ids = []
         for filter_obj in active_filters:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_data):
@@ -683,8 +684,7 @@ class SmartFilterManager:
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
                     
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
+                    matched_filter_ids.append(filter_obj.filter_id)
                     
             except Exception as e:
                 error_context = create_error_context(
@@ -700,24 +700,44 @@ class SmartFilterManager:
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
         
+        # Batch update usage statistics
+        if matched_filter_ids:
+            try:
+                await self._batch_update_filter_usage(matched_filter_ids)
+            except Exception as e:
+                self.logger.error(f"Failed to batch update filter usage: {e}")
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
         
         return summary
 
+    async def _batch_update_filter_usage(self, filter_ids: List[str]):
+        """Updates the usage statistics for multiple filters in a single transaction."""
+        if not filter_ids:
+            return
+
+        current_time = datetime.now(timezone.utc).isoformat()
+        
+        # Chunk updates to avoid sqlite limitations
+        chunk_size = 500
+        for i in range(0, len(filter_ids), chunk_size):
+            chunk = filter_ids[i:i + chunk_size]
+            placeholders = ','.join(['?'] * len(chunk))
+            query = f"""
+                UPDATE email_filters
+                SET usage_count = usage_count + 1, last_used = ?
+                WHERE filter_id IN ({placeholders})
+            """
+            params = [current_time] + chunk
+            self._db_execute(query, tuple(params))
+
+        # Invalidate cache for active filters once
+        await self.caching_manager.delete("active_filters_sorted")
+
     async def _update_filter_usage(self, filter_id: str):
         """Updates the usage statistics for a filter."""
-        # Update usage count and last used time
-        update_query = """
-            UPDATE email_filters 
-            SET usage_count = usage_count + 1, last_used = ? 
-            WHERE filter_id = ?
-        """
-        current_time = datetime.now(timezone.utc).isoformat()
-        self._db_execute(update_query, (current_time, filter_id))
-        
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        await self._batch_update_filter_usage([filter_id])
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
