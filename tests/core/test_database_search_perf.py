@@ -20,6 +20,7 @@ def db_manager(db_config):
     manager.caching_manager.get_email_content.return_value = None
     manager.emails_data = []
     manager.emails_by_id = {}
+    manager._content_available_index = set()
     # Ensure initialized to avoid side effects
     manager._initialized = True
     return manager
@@ -55,6 +56,9 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
     email_light = {FIELD_ID: email_id, "subject": "Test Subject 2"}
     db_manager.emails_data = [email_light]
 
+    # Must populate the index for the search to find it
+    db_manager._content_available_index.add(email_id)
+
     # Mock cache miss
     db_manager.caching_manager.get_email_content.return_value = None
 
@@ -84,3 +88,27 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
                 break
 
         assert found_call, "asyncio.to_thread should have been called with _read_content_sync"
+
+@pytest.mark.asyncio
+async def test_search_emails_skips_disk_if_not_in_index(db_manager):
+    """Test that search skips disk check if email is not in _content_available_index."""
+    # Setup
+    email_id = 3
+    email_light = {FIELD_ID: email_id, "subject": "Test Subject 3"}
+    db_manager.emails_data = [email_light]
+
+    # Ensure email_id is NOT in index
+    db_manager._content_available_index.discard(email_id)
+
+    # Mock cache miss
+    db_manager.caching_manager.get_email_content.return_value = None
+
+    # Spy on os.path.exists
+    with patch("os.path.exists") as mock_exists:
+        # Execute
+        results = await db_manager.search_emails_with_limit("hidden", limit=10)
+
+    # Verify
+    assert len(results) == 0
+    # os.path.exists should NOT be called for the content path
+    mock_exists.assert_not_called()
