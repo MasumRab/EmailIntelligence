@@ -1,0 +1,42 @@
+{
+<<<<<<< HEAD
+    "$schema": "https://opencode.ai/config.json",
+    "branch": "main",
+    "model": "gpt-4o-code",
+    "temperature": 0.0,
+    "max_tokens": 2048,
+    "system_instructions": "Opencode preset: prefer code-first, ample examples, explicit typing, and follow the project's style guides.",
+    "safety": {
+        "filter_sensitive": true
+    },
+    "use_cases": {
+        "code": {
+            "format": "apply black/isort for Python; run prettierrc for JS/TS",
+            "tests": "Include unit tests for new public behavior"
+        }
+    }
+}
+=======
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "task-master-ai": {
+      "type": "local",
+      "command": [
+        "npm",
+        "exec",
+        "task-master-ai"
+      ],
+      "enabled": true,
+      "environment": {
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "XAI_API_KEY": "${XAI_API_KEY}",
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+        "MISTRAL_API_KEY": "${MISTRAL_API_KEY}",
+        "OLLAMA_API_KEY": "${OLLAMA_API_KEY}",
+        "GITHUB_API_KEY": "${GITHUB_API_KEY}"
+      }
+    }
+  }
+}
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
