@@ -18,6 +18,12 @@ As a developer, I want to run a simple command that tells me which workflow to f
 ### User Story 2: PR Resolution Guidance
 As a developer, I want a tool that guides me through the correct process for merging a pull request, so that I know whether to use a standard `git merge` or the special `reverse_sync_orchestration.sh` script.
 
+### User Story 3: Advanced Conflict Analysis
+As a developer merging complex branches, I want the system to perform a deep analysis of potential conflicts (content vs. structural) and architectural violations (e.g., forbidden imports) *before* I attempt the merge, so I can plan my resolution strategy without breaking the build.
+
+### User Story 4: Optimal Rebase Planning
+As a developer with a divergent feature branch, I want the system to suggest an optimal rebase order based on the commit topology, minimizing repeated conflict resolution steps.
+
 ## 3. Functional Requirements
 
 ### `guide-dev` Workflow
@@ -31,11 +37,21 @@ As a developer, I want a tool that guides me through the correct process for mer
 ### `guide-pr` Workflow
 - **FR-007**: The system MUST provide a `guide-pr` command accessible via `python launch.py guide-pr`.
 - **FR-008**: The guide MUST ask the user to choose between resolving a "daily orchestration change" and a "major feature branch merge".
-- **FR-009**: If "orchestration change" is chosen, the guide MUST instruct the user to use the `scripts/reverse_sync_orchestration.sh` script and warn them against using a direct `git merge`.
-- **FR-010**: If "major feature merge" is chosen, the guide MUST recommend a standard `git merge` and remind the user to follow the validation and testing plan outlined in `final_merge_approach.md`.
+- **FR-009**: If "orchestration change" is chosen, the guide MUST instruct the user to use `scripts/manage_orchestration_changes.sh`.
+- **FR-010**: If "major feature merge" is chosen, the guide MUST invoke the **Integrated Resolution Engine**.
+
+### Scientific Capabilities Integration (Unified CLI)
+- **FR-014**: The `launch.py` system MUST integrate the capabilities of `emailintelligence_cli.py` directly as native commands.
+    - `python launch.py analyze` (was `analyze-constitutional`)
+    - `python launch.py resolve` (was `auto-resolve`)
+    - `python launch.py strategy` (was `develop-spec-kit-strategy`)
+- **FR-015**: The `src/resolution/` and `src/core/` modules MUST be updated to include the engines from the `scientific` branch (`ConstitutionalEngine`, `GitConflictDetector`, `AutoResolver`).
+- **FR-016**: The `guide-pr` workflow MUST invoke these internal Python classes directly, removing the need for an external CLI call.
+- **FR-017**: The `setup/launch.py` dependency management MUST be updated to include requirements for the Scientific engines (e.g., `PyYAML`, `networkx`).
 
 ### `WorkflowContextManager`
 - **FR-011**: A `WorkflowContextManager` MUST be implemented in `src/lib/workflow_context.py`.
+- **FR-018**: The context manager MUST utilize `scripts/stash_manager_optimized.sh` to safely stash and restore changes during branch switching operations.
 - **FR-012**: The context manager MUST maintain the state of the user's current workflow (e.g., which guide they are in, what step they are on).
 - **FR-013**: The context manager MUST be used by the `guide-dev` and `guide-pr` commands to provide stateful guidance.
 

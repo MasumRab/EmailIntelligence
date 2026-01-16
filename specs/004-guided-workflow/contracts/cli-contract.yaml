@@ -1,0 +1,63 @@
+openapi: 3.0.0
+info:
+  title: Orchestration Core CLI Contract
+  version: 1.1.0
+  description: CLI Interface definition for dev.py. Although a CLI, we model it as an API for strictness.
+
+paths:
+  /analyze:
+    get:
+      summary: Analyze conflicts
+      parameters:
+        - name: target
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: json
+          in: query
+          schema:
+            type: boolean
+        - name: const
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Analysis Report (JSON)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictReport'
+
+  /plan-rebase:
+    get:
+      summary: Generate topological rebase plan
+      responses:
+        '200':
+          description: Rebase Plan (JSON)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryPlan'
+
+components:
+  schemas:
+    ConflictReport:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [clean, conflict, error]
+        conflicts:
+          type: array
+          items:
+            $ref: '../data-model.md#/Conflict'
+
+    HistoryPlan:
+      type: object
+      properties:
+        commits:
+          type: array
+          items:
+            $ref: '../data-model.md#/CommitNode'
