@@ -1,0 +1,122 @@
+graph TD
+    %% Define Nodes
+    T001[Task 001: Framework Strategy Definition]
+    T002[Task 002: Branch Clustering System]
+    T003[Task 003: Pre-merge Validation Scripts]
+    T004[Task 004: Core Branch Alignment Framework]
+    T005[Task 005: Automated Error Detection]
+    T006[Task 006: Branch Backup & Restore]
+    T007[Task 007: Feature Branch Identification]
+    T008[Task 008: Comprehensive Merge Validation]
+    T009[Task 009: Core Alignment Logic]
+    T010[Task 010: Complex Branch Strategies]
+    T011[Task 011: Validation Integration]
+    T012[Task 012: Orchestrate Alignment Workflow]
+    T013[Task 013: Align Orchestration-Tools]
+    T014[Task 014: E2E Testing]
+    T015[Task 015: Finalize Documentation]
+    T016[Task 016: Scientific Branch Recovery]
+    T017[Task 017: Orchestration-Tools Alignment]
+    T018[Task 018: Regression Prevention]
+    T019[Task 019: Scan & Resolve Conflicts]
+    T020[Task 020: Refine launch.py Dependencies]
+    T021[Task 021: E2E Testing & Reporting]
+    T023[Task 023: Parallel Alignment Execution]
+
+    %% Define Sub-Nodes for Iterative Processes
+    subgraph Iterative_Process_Task_010
+        T010_1[Identify Complex Branch]
+        T010_2[Iterative Rebase (Small Batches)]
+        T010_3[Targeted Testing Hook]
+        T010_4[Conflict Resolution]
+        T010_5[Architectural Review]
+        
+        T010_1 --> T010_2
+        T010_2 --> T010_3
+        T010_3 -->|Fail| T010_4
+        T010_4 --> T010_2
+        T010_3 -->|Pass| T010_5
+        T010_5 -->|Continue| T010_2
+        T010_5 -->|Complete| T010_End[Alignment Complete]
+    end
+
+    subgraph Clustering_Refinement_Task_002
+        T002_1[Analyze Branches]
+        T002_2[Cluster & Assign Targets]
+        T001_1[Refine Criteria based on Data]
+        
+        T002_1 --> T002_2
+        T002_2 --> T001_1
+        T001_1 -->|Updated Criteria| T002_2
+    end
+
+    %% Define Dependencies
+    T001 --> T002
+    T001 --> T010
+    T002 --> T010
+    T002 --> T016
+    
+    %% Task 003 Dependencies (11, 12, 13 legacy IDs - inferred mapping or placeholders)
+    %% Assuming flow from framework setup
+    T001 --> T003
+    
+    %% Task 004 Dependencies (None explicitly, but logically follows strategy)
+    T001 --> T004
+    
+    %% Task 005 Dependencies (54 -> Task 004)
+    T004 --> T005
+    
+    %% Task 006 Dependencies (54 -> Task 004)
+    T004 --> T006
+    
+    %% Task 007 Dependencies (54 -> Task 004)
+    T004 --> T007
+    
+    %% Task 008 Dependencies (None explicit, but parallel to 004-007)
+    T001 --> T008
+    
+    %% Task 009 Dependencies (54, 56, 57 -> T004, T006, T007)
+    T004 --> T009
+    T006 --> T009
+    T007 --> T009
+    
+    %% Task 010 Dependencies (55, 59 -> T005, T010 legacy/self reference?)
+    T005 --> T010
+    T009 --> T010
+    
+    %% Task 011 Dependencies (55, 59, 60 -> T005, T010, T011 legacy)
+    T005 --> T011
+    T010 --> T011
+    
+    %% Task 012 Dependencies (57, 58, 59, 60, 61 -> T007, T008, T010, T011, T012 legacy)
+    T007 --> T012
+    T008 --> T012
+    T010 --> T012
+    T011 --> T012
+    
+    %% Task 013 Dependencies (Legacy 14.x)
+    T012 --> T013
+    
+    %% Task 015 Dependencies (58, 62 -> T008, T013)
+    T008 --> T015
+    T013 --> T015
+    
+    %% Task 017 Dependencies (11, 12 legacy)
+    T016 --> T017
+    
+    %% Task 019 Dependencies (12, 13, 16, 17, 18 legacy)
+    T012 --> T019
+    T013 --> T019
+    T016 --> T019
+    T017 --> T019
+    T018 --> T019
+    
+    %% Task 020 Dependencies (11, 12 legacy)
+    T019 --> T020
+    
+    %% Styling
+    classDef iterative fill:#f9f,stroke:#333,stroke-width:2px;
+    class T010,T002,T019,T001 iterative;
+    classDef standard fill:#e1f5fe,stroke:#01579b,stroke-width:1px;
+    class T003,T004,T005,T006,T007,T008,T009,T011,T012,T013,T014,T015,T016,T017,T018,T020,T021,T023 standard;
+

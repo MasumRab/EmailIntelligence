@@ -1,0 +1,1498 @@
+{
+  "master": {
+    "name": "Task Master",
+    "version": "1.0.0",
+    "description": "Tasks generated from advanced PRD (iteration simulation)",
+    "tasks": [
+      {
+        "id": "011",
+        "title": "**Title:** Integrate Validation Framework into Multistage Alignment Workflow",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "005",
+          " 009",
+          " 010",
+          " 075",
+          " 077",
+          " 078"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "003.4",
+        "title": "Integrate Validation into CI/CD Pipeline",
+        "description": "Add validation script as a mandatory pre-merge check in the CI/CD pipeline.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "003.2"
+        ],
+        "details": "Configure GitHub Actions to run validation on all pull requests before merging.\n\n### Steps\n\n1. **Update CI configuration**\n   - Edit `.github/workflows/pull_request.yml`\n   - Add validation job\n\n2. **Configure job settings**\n   - Trigger on PR open/update\n   - Run validation script\n   - Fail build on validation error\n\n3. **Set branch protection**\n   - Require validation check to pass\n   - Configure in GitHub settings\n\n4. **Test CI integration**",
+        "subtasks": [],
+        "testStrategy": "- Create test PR with missing file\n- Verify CI fails\n- Add missing file\n- Verify CI passes",
+        "complexity": "4/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "005.1",
+        "title": "Develop Merge Artifact and Deleted Module Detection",
+        "description": "Create scripts to detect uncleaned merge markers and accidentally deleted modules.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Implement detection for common merge artifacts and track deleted files.\n\n### Steps\n\n1. **Detect merge markers**\n   ```python\n   def detect_merge_markers(changed_files):\n       markers = []\n       for f in changed_files:\n           result = subprocess.run(\n               [\"grep\", \"-n\", r\"^\\(<<<<<<<\\|=======\\|>>>>>>>\\)\", f],\n               capture_output=True,\n               text=True\n           )\n           if result.returncode == 0:\n               markers.append((f, result.stdout))\n       return markers\n   ```\n\n2. **Track deleted files**\n   ```python\n   def detect_deleted_files():\n       result = subprocess.run(\n           [\"git\", \"diff\", \"--name-only\", \"--diff-filter=D\"],\n           capture_output=True,\n           text=True\n       )\n       return result.stdout.strip().split('\\n')\n   ```\n\n3. **Check if deleted modules were imported**\n\n4. **Generate report**",
+        "subtasks": [],
+        "testStrategy": "- Create test file with merge markers (should detect)\n- Delete a file (should detect)\n- Delete imported module (should flag)",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.2",
+        "title": "CodebaseStructureAnalyzer",
+        "description": "Analyze the file structure and code organization of each feature branch to fingerprint its architectural characteristics.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Implement a Python module that:\n- Maps directory structure and file counts per branch\n- Identifies language distribution (Python, JS, etc.)\n- Detects module boundaries and import patterns\n- Generates structural fingerprints for comparison\n- Compares against known patterns for main/scientific/orchestration-tools",
+        "subtasks": [],
+        "testStrategy": "- Test with branches of varying complexity\n- Verify structure detection accuracy\n- Test import pattern extraction\n- Validate comparison scoring",
+        "complexity": "8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001",
+        "title": "Align and Architecturally Integrate Feature Branches with Justified Targets",
+        "description": "Establish the strategic framework and decision criteria for aligning multiple feature branches with their optimal integration targets (main, scientific, or orchestration-tools). This is a **FRAMEWORK-DEFINITION TASK**, not a branch-alignment task. Task 001 defines HOW other feature branches should be aligned rather than performing alignment of a specific branch.\n\n**Scope:** Strategic framework, decision criteria, documentation\n**Focus:** Framework definition, not execution\n**Blocks:** Tasks 016-017 (parallel execution), Tasks 022+ (downstream alignment)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "None"
+        ],
+        "details": "",
+        "subtasks": [
+          {
+            "id": "----",
+            "title": "---------",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "--------",
+            "parentId": "001"
+          },
+          {
+            "id": "001.1",
+            "title": "Identify All Active Feature Branches",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.2",
+            "title": "Analyze Git History and Codebase Similarity",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.3",
+            "title": "Define Target Selection Criteria",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.4",
+            "title": "Propose Optimal Targets with Justifications",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.5",
+            "title": "Create ALIGNMENT_CHECKLIST.md",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.6",
+            "title": "Define Merge vs Rebase Strategy",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.7",
+            "title": "Create Architectural Prioritization Guidelines",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.8",
+            "title": "Define Safety and Validation Procedures",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          }
+        ],
+        "testStrategy": "",
+        "complexity": "8/10",
+        "recommendedSubtasks": 9,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "011.1",
+        "title": "10: Complex Branch Strategies",
+        "description": "Handle complex branches with specialized alignment strategies.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "Task 010"
+        ],
+        "details": "Tasks 60.1-60.10 cover complexity detection and handling.\n\n### Subtasks\n\n**011.1-2: Complexity Criteria Definition**\n- Commit count thresholds\n- File change metrics\n- Branch age calculations\n- Multi-author detection\n\n**011.3-5: Iterative Rebase Logic**\n- Chunk-based commit processing\n- Batch size optimization\n- Progress tracking\n\n**011.6-8: Integration Branch Strategies**\n- Temporary integration branch creation\n- Merge-based alignment\n- Conflict isolation\n\n**011.9-10: Conflict Resolution Enhancement**\n- Visual tool integration\n- Guided resolution workflow\n- Automated conflict detection",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "7-9/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.4",
+        "title": "BranchClusterer",
+        "description": "Cluster feature branches by similarity using analysis outputs from Subtasks 1-3 to group branches targeting the same integration point.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "002.1",
+          " 002.2",
+          " 002.3"
+        ],
+        "details": "Implement a Python module that:\n- Combines metrics from CommitHistoryAnalyzer, CodebaseStructureAnalyzer, DiffDistanceCalculator\n- Applies clustering algorithm (K-means, hierarchical, or DBSCAN)\n- Groups branches by similarity across all dimensions\n- Identifies natural cluster boundaries\n- Assigns confidence scores to cluster assignments",
+        "subtasks": [],
+        "testStrategy": "- Use synthetic data with known clusters\n- Test with real repository data\n- Validate cluster assignments manually\n- Test robustness to missing data",
+        "complexity": "9/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "006.2",
+        "title": "Enhance Backup for Primary/Complex Branches",
+        "description": "Extend backup mechanism for primary branches with comprehensive backup options.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "006.1"
+        ],
+        "details": "Implement git clone --mirror and remote backup options for critical branches.\n\n### Steps\n\n1. **Implement mirror backup**\n   ```bash\n   git clone --mirror <repo_url> backup-mirror-<timestamp>.git\n   ```\n\n2. **Implement remote backup**\n   ```bash\n   git push origin backup-<name>:refs/heads/backup-<name>\n   ```\n\n3. **Implement integrity verification**\n   ```python\n   def verify_backup_integrity(original, backup):\n       original_hash = subprocess.run(\n           [\"git\", \"rev-parse\", original],\n           capture_output=True, text=True\n       ).stdout.strip()\n       \n       backup_hash = subprocess.run(\n           [\"git\", \"rev-parse\", backup],\n           capture_output=True, text=True\n       ).stdout.strip()\n       \n       return original_hash == backup_hash\n   ```\n\n4. **Test comprehensive backup**",
+        "subtasks": [],
+        "testStrategy": "- Test mirror clone (should create .git directory)\n- Test remote push backup (should create remote branch)\n- Test integrity check (should match commits)",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "003.5",
+        "title": "Document and Communicate Validation Process",
+        "description": "Create documentation and communicate the pre-merge validation process to the development team.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "003.4"
+        ],
+        "details": "Document the validation framework and ensure all developers understand how it works.\n\n### Steps\n\n1. **Create documentation**\n   - Write `docs/dev_guides/pre_merge_checks.md`\n   - Include critical file list\n   - Explain validation criteria\n   - Document troubleshooting steps\n\n2. **Update contributing guidelines**\n   - Add to `CONTRIBUTING.md`\n   - Reference new validation checks\n\n3. **Communicate to team**\n   - Announce in team channel\n   - Provide examples of common issues\n   - Share troubleshooting guide\n\n4. **Create FAQ document**",
+        "subtasks": [],
+        "testStrategy": "- Review documentation for completeness\n- Verify file paths are correct\n- Test troubleshooting steps",
+        "complexity": "3/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "003.1",
+        "title": "Define Critical Files and Validation Criteria",
+        "description": "Identify all critical files and directories whose absence or corruption would cause regressions, and define validation criteria for pre-merge checks.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Analyze the codebase to identify files critical to project functionality. Create a definitive list with specific validation rules.\n\n### Steps\n\n1. **Review project structure**\n   - `setup/commands/` - Command modules\n   - `setup/container/` - Container configuration\n   - `AGENTS.md` - Agent documentation\n   - `src/core/` - Core application files\n   - `config/` - Configuration files\n   - `data/` - Data files\n\n2. **Identify critical files**\n   - `setup/commands/__init__.py`\n   - `setup/container/__init__.py`\n   - `AGENTS.md`\n   - Core JSON data schemas\n   - Configuration files\n\n3. **Define validation criteria**\n   - Existence check for all files\n   - Non-empty check for key files\n   - JSON validity for data files\n   - Schema validation where applicable\n\n4. **Document findings**",
+        "subtasks": [],
+        "testStrategy": "- Verify list completeness against project structure\n- Cross-reference with historical missing-file issues\n- Validate criteria appropriateness",
+        "complexity": "4/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "014",
+        "title": "Conflict Detection and Resolution Framework",
+        "description": "Implement a comprehensive conflict detection and resolution framework for Git branch alignment operations. This task provides the intelligent conflict handling infrastructure that detects, reports, and guides resolution of Git conflicts during alignment operations.\n\n**Scope:** Conflict detection and resolution framework only\n**Blocks:** Task 010 (Core alignment logic), Task 015 (Validation and verification)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "010",
+          " 013"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009",
+        "title": "**Title:** Core Multistage Primary-to-Feature Branch Alignment",
+        "description": "Implement the core orchestrator for multistage branch alignment operations that coordinates with specialized tasks for backup/safety (Task 012), conflict resolution (Task 013), validation (Task 014), and rollback/recovery (Task 015). This task serves as the main entry point for the alignment process while delegating specialized operations to dedicated tasks.\n\n**Scope:** Core alignment orchestration only\n**Blocks:** Task 010 (Complex branch alignment), Task 011 (Validation integration)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "004",
+          " 006",
+          " 007",
+          " 012",
+          " 013",
+          " 014",
+          " 015",
+          " 022"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "008.2",
+        "title": "Develop Logic for Detecting Content Mismatches",
+        "description": "Detect when branch content doesn't match its naming convention's expected target.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "008.1"
+        ],
+        "details": "Compare branch content against potential targets to identify misaligned branches.\n\n### Steps\n\n1. **Calculate similarity metrics**\n   - File structure comparison\n   - Directory layout analysis\n   - Code pattern matching\n\n2. **Compare against expected target**\n   - If named feature-scientific-X, expect high similarity to scientific\n   - Flag if actually more similar to main\n\n3. **Generate mismatch alerts**\n\n4. **Include rationale in output**",
+        "subtasks": [],
+        "testStrategy": "- Create misnamed branch (should flag)\n- Test on correctly named branches (should pass)\n- Validate similarity calculations",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "017",
+        "title": "Validation Integration Framework",
+        "description": "Implement a comprehensive validation integration framework that orchestrates validation checks during and after branch alignment operations. This task provides the integration layer that connects various validation components (error detection, pre-merge validation, comprehensive validation) into a cohesive validation workflow.\n\n**Scope:** Validation integration framework only\n**Blocks:** Task 010 (Core alignment logic), Task 018 (End-to-end testing)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "005",
+          " 010",
+          " 015"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.5",
+        "title": "Develop and Implement End-to-End Smoke Tests",
+        "description": "Create smoke tests that verify core application functionality.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "009.1"
+        ],
+        "details": "Implement E2E tests for critical API endpoints.\n\n### Smoke Test Implementation\n\n```python\n# tests/smoke_test.py\nimport pytest\nimport requests\n\nBASE_URL = \"http://localhost:8000\"\n\n@pytest.mark.smoke\ndef test_health_endpoint():\n    \"\"\"Verify application is running.\"\"\"\n    response = requests.get(f\"{BASE_URL}/health\")\n    assert response.status_code == 200\n    assert response.json()[\"status\"] == \"healthy\"\n\n@pytest.mark.smoke\ndef test_core_endpoints():\n    \"\"\"Test critical API endpoints.\"\"\"\n    endpoints = [\n        \"/api/v1/items\",\n        \"/api/v1/users\",\n        \"/api/v1/search\",\n    ]\n    for endpoint in endpoints:\n        response = requests.get(f\"{BASE_URL}{endpoint}\")\n        assert response.status_code in [200, 404], f\"Failed: {endpoint}\"\n\n@pytest.mark.smoke\ndef test_database_connection():\n    \"\"\"Verify database connectivity.\"\"\"\n    from app.database import db\n    assert db.session.execute(\"SELECT 1\").scalar() == 1\n```\n\n### CI Integration\n\n```yaml\n- name: Run smoke tests\n  run: |\n    docker-compose up -d\n    sleep 10\n    pytest tests/smoke_test.py -v\n    docker-compose down\n```",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "018",
+        "title": "E2E Testing and Reporting",
+        "description": "Implement comprehensive end-to-end testing and reporting framework for the Git branch alignment system. This task provides the validation infrastructure that ensures the entire alignment process works correctly from start to finish, including all integrated components and error handling paths.\n\n**Scope:** End-to-end testing and reporting framework only\n**Blocks:** Task 010 (Core alignment logic), Task 019 (Deployment)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "010",
+          " 017",
+          " 016",
+          " 015"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.3",
+        "title": "Define Target Selection Criteria",
+        "description": "Define explicit, reproducible criteria for selecting integration targets (main, scientific, orchestration-tools).",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "001.2"
+        ],
+        "details": "This subtask establishes the decision framework that will be used to assign each feature branch to its optimal integration target. Criteria must be measurable and reproducible.\n\n### Steps\n\n1. **Define main branch targeting criteria**\n   - Stability requirements\n   - Completeness standards\n   - Quality thresholds\n   - Shared history expectations\n   - Dependency satisfaction\n\n2. **Define scientific branch targeting criteria**\n   - Research/experimentation scope\n   - Innovation tolerance\n   - Stability expectations\n   - History requirements\n   - Architecture flexibility\n\n3. **Define orchestration-tools targeting criteria**\n   - Infrastructure focus\n   - Orchestration specificity\n   - Core module changes\n   - Parallel safety requirements\n   - Integration needs\n\n4. **Document criteria weights and priorities**\n   - Primary criteria (must have)\n   - Secondary criteria (should have)\n   - Tertiary criteria (nice to have)\n\n5. **Create decision tree for target assignment**",
+        "subtasks": [],
+        "testStrategy": "- Apply criteria to sample branches\n- Verify reproducible results\n- Review decision logic completeness\n- Validate against historical assignments",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.5",
+        "title": "Create ALIGNMENT_CHECKLIST.md",
+        "description": "Create the central tracking document that consolidates all branch alignment information in a maintainable format.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "001.4"
+        ],
+        "details": "This subtask creates ALIGNMENT_CHECKLIST.md as the master document for tracking branch alignment status throughout the alignment process.\n\n### Steps\n\n1. **Create ALIGNMENT_CHECKLIST.md in project root**\n\n2. **Define standard columns**\n   - Branch Name\n   - Proposed Target\n   - Justification\n   - Status (pending/in-progress/done/blocked)\n   - Notes/Risks\n\n3. **Populate with all branches from 001.1**\n   - Include proposed targets from 001.4\n   - Add justification summaries\n   - Set initial status\n\n4. **Include specific branches**\n   - `feature/backlog-ac-updates`\n   - `docs-cleanup`\n   - `feature/search-in-category`\n   - `feature/merge-clean`\n   - `feature/merge-setup-improvements`\n\n5. **Exclude branches handled elsewhere**\n   - `fix/import-error-corrections` (Task 011)",
+        "subtasks": [],
+        "testStrategy": "- Verify all branches included\n- Check format consistency\n- Validate link to source analysis\n- Test readability",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "007",
+        "title": "**Title:** Develop Feature Branch Identification and Categorization Tool",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "004"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "025",
+        "title": "Scaling and Advanced Features",
+        "description": "Implement comprehensive scaling and advanced features framework for the Git branch alignment system. This task provides the infrastructure for scaling the system to handle larger repositories, more complex scenarios, and advanced functionality requirements.\n\n**Scope:** Scaling and advanced features framework only\n**Blocks:** Task 026 (Advanced Features), Task 027 (Enterprise Features)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "024",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "9/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "008.1",
+        "title": "Implement Destructive Merge Artifact Detection",
+        "description": "Detect merge conflict markers in feature branches to identify broken or poorly merged branches.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Scan feature branches for merge artifacts that indicate broken state.\n\n### Steps\n\n1. **Scan for conflict markers**\n   ```python\n   def detect_merge_artifacts(branch_name):\n       result = subprocess.run(\n           [\"git\", \"log\", \"--oneline\", f\"{branch_name}..main\"],\n           capture_output=True, text=True\n       )\n       # Analyze diff for markers\n   ```\n\n2. **Compare against merge targets**\n\n3. **Flag branches with artifacts**\n\n4. **Update confidence scores**",
+        "subtasks": [],
+        "testStrategy": "- Create branch with markers (should detect)\n- Create branch without markers (should pass)\n- Test on real branches",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "004.1",
+        "title": "Design Local Git Hook Integration for Branch Protection",
+        "description": "Define structure for local branch alignment framework and identify appropriate Git hooks.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Set up foundational integration points within local Git environment for branch protection rules.\n\n### Steps\n\n1. **Research Git hooks**\n   - pre-commit: Run checks before commit\n   - pre-push: Run checks before push\n   - pre-merge: Run checks before merge\n\n2. **Create directory structure**\n   ```\n   .githooks/\n   \u251c\u2500\u2500 pre-commit/\n   \u251c\u2500\u2500 pre-push/\n   \u2514\u2500\u2500 pre-merge/\n   ```\n\n3. **Design hook implementations**\n   - Branch name validation\n   - Protected branch detection\n   - Pre-alignment checks\n\n4. **Create installation script**\n\n5. **Document hook structure**",
+        "subtasks": [],
+        "testStrategy": "- Test hook installation\n- Verify hook triggers on appropriate actions\n- Test hook blocking behavior",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "004",
+        "title": "**Title:** Establish Core Branch Alignment Framework",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "020",
+        "title": "Documentation and Knowledge Management",
+        "description": "Implement comprehensive documentation and knowledge management framework for the Git branch alignment system. This task provides the infrastructure for creating, maintaining, and distributing documentation that helps users understand and effectively use the alignment tools and processes.\n\n**Scope:** Documentation and knowledge management framework only\n**Blocks:** Task 021 (Maintenance), Task 022 (Improvements)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "019",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.5",
+        "title": "IntegrationTargetAssigner",
+        "description": "Assign optimal integration targets (main, scientific, orchestration-tools) to each feature branch based on clustering results and Task 001 criteria.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "002.4"
+        ],
+        "details": "Implement a Python module that:\n- Takes clustered branches and metrics as input\n- Applies Task 001 framework criteria to refine assignments\n- Calculates confidence scores for each target assignment\n- Generates justification for recommendations\n- Outputs categorized_branches.json",
+        "subtasks": [],
+        "testStrategy": "- Compare with manual assignments\n- Test edge cases (equally similar to multiple targets)\n- Validate justification quality\n- Test integration with Task 001",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "004.3",
+        "title": "Develop Centralized Local Alignment Orchestration Script",
+        "description": "Create primary Python script that orchestrates all local branch alignment checks.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "004.1",
+          " 004.2"
+        ],
+        "details": "Implement central orchestrator that sequences validation calls and enforces alignment rules.\n\n### Steps\n\n1. **Design orchestration logic**\n   - Determine current branch\n   - Check branch naming conventions\n   - Sequence validation calls\n\n2. **Implement rule enforcement**\n   - Block commits to protected branches\n   - Require feature branch naming\n   - Prompt for review before push\n\n3. **Create user interface**\n   - Clear status messages\n   - Actionable error messages\n   - Help instructions\n\n4. **Add rollback protection**\n\n5. **Test complete workflow**",
+        "subtasks": [],
+        "testStrategy": "- Test on feature branch (should pass)\n- Test on protected branch (should fail)\n- Test with invalid naming (should warn)\n- Test complete workflow",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "011",
+        "title": "Post-Operation Processing and Reporting",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "010",
+          " 014"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002",
+        "title": "Branch Clustering System",
+        "description": "Advanced intelligent branch clustering and target assignment system that analyzes Git history and codebase structure to automatically determine optimal integration targets (main, scientific, orchestration-tools) for feature branches. Runs **parallel** with Task 001 for optimal results.\n\n**Scope:** Data-driven branch analysis and clustering\n**Focus:** Intelligent categorization and target assignment\n**Blocks:** Tasks 016-017 (parallel execution), Task 022+ (execution)",
+        "status": "in_progress",
+        "priority": "high",
+        "dependencies": [
+          "Task 001 (can run parallel)"
+        ],
+        "details": "",
+        "subtasks": [
+          {
+            "id": "----",
+            "title": "---------",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "--------",
+            "parentId": "002"
+          },
+          {
+            "id": "002.1",
+            "title": "CommitHistoryAnalyzer",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.2",
+            "title": "CodebaseStructureAnalyzer",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.3",
+            "title": "DiffDistanceCalculator",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.4",
+            "title": "BranchClusterer",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.5",
+            "title": "IntegrationTargetAssigner",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.6",
+            "title": "PipelineIntegration",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.7",
+            "title": "VisualizationReporting",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.8",
+            "title": "TestingSuite",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          },
+          {
+            "id": "002.9",
+            "title": "FrameworkIntegration",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "002"
+          }
+        ],
+        "testStrategy": "",
+        "complexity": "9/10",
+        "recommendedSubtasks": 10,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.1",
+        "title": "Define Validation Scope and Tooling",
+        "description": "Define validation layers and select appropriate tools for the merge validation framework.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Research and document validation tools for each layer.\n\n### Validation Layers\n\n| Layer | Tools | Purpose |\n|-------|-------|---------|\n| Architectural | ruff, flake8, mypy | Static analysis |\n| Functional | pytest | Unit/integration tests |\n| Performance | locust, pytest-benchmark | Benchmarking |\n| Security | bandit, safety | SAST, dependency scan |\n\n### Output\n\nCreate `validation_framework_design.md` with:\n- Tool selection rationale\n- Configuration requirements\n- Expected output formats\n- Threshold definitions",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.8",
+        "title": "Consolidate Validation Results and Reporting",
+        "description": "Aggregate results from all validation layers into unified report.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "009.3",
+          " 009.4",
+          " 009.6",
+          " 009.7"
+        ],
+        "details": "Create validation consolidation script.\n\n### Consolidation Script\n\n```python\n# scripts/consolidate_results.py\nimport json\nimport sys\nfrom pathlib import Path\n\nREPORTS = {\n    \"architectural\": \"reports/architectural.json\",\n    \"tests\": \"reports/test_results.json\",\n    \"performance\": \"reports/performance.json\",\n    \"security\": \"reports/security.json\",\n}\n\ndef consolidate():\n    \"\"\"Combine all validation results.\"\"\"\n    results = {}\n    \n    for name, path in REPORTS.items():\n        p = Path(path)\n        if p.exists():\n            results[name] = json.loads(p.read_text())\n        else:\n            results[name] = {\"status\": \"not_run\"}\n    \n    # Determine overall status\n    all_pass = all(\n        r.get(\"passed\", False) \n        for r in results.values()\n    )\n    \n    output = {\n        \"overall\": \"PASS\" if all_pass else \"FAIL\",\n        \"results\": results,\n    }\n    \n    Path(\"reports/consolidated.json\").write_text(\n        json.dumps(output, indent=2)\n    )\n    \n    return all_pass\n\nif __name__ == \"__main__\":\n    success = consolidate()\n    sys.exit(0 if success else 1)\n```",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "4/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "010.1",
+        "title": "7: Core Primary-to-Feature Branch Alignment Logic",
+        "description": "Implement core Git operations for primary-to-feature branch alignment.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "Varies"
+        ],
+        "details": "Grouped implementation for Tasks 59.1-59.7.\n\n### Subtask Breakdown\n\n**010.1: Optimal Primary Target Determination**\n- Validate primary branch input (main/scientific/orchestration-tools)\n- Check branch existence and accessibility\n- Return validated target\n\n**010.2: Environment Setup and Safety Checks**\n- Verify clean working directory\n- Check for uncommitted changes\n- Prompt for stash/commit\n\n**010.3: Local Branch Backup**\n- Create temporary backup branch\n- Store current branch state\n- Enable rollback capability\n\n**010.4: Branch Switching Logic**\n- Implement git checkout programmatically\n- Handle errors gracefully\n- Verify switch success\n\n**010.5: Remote Fetch Logic**\n- Fetch latest from primary target\n- Handle network errors\n- Verify fetch completion\n\n**010.6: Core Rebase Initiation**\n- Execute git rebase command\n- Capture rebase output\n- Detect rebase success/failure\n\n**010.7: Conflict Detection and Pause**\n- Detect merge conflicts\n- Pause for manual resolution\n- Provide resolution instructions",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "6-8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.7",
+        "title": "Create Architectural Prioritization Guidelines",
+        "description": "Define how to handle architectural differences between feature branches and integration targets, including when to prefer feature branch architecture over target.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "001.3"
+        ],
+        "details": "This subtask establishes guidelines for resolving architectural conflicts and determining which architecture should take precedence during alignment.\n\n### Steps\n\n1. **Document framework for preferring advanced architectures**\n   - When feature branch has better patterns\n   - When target has more complete implementation\n   - Evaluation criteria for architectural quality\n\n2. **Define partial update documentation**\n   - How to document architectural changes\n   - When partial updates are acceptable\n   - Cleanup procedures for partial implementations\n\n3. **Create architectural compatibility assessment**\n   - Pattern matching between branches\n   - Dependency compatibility\n   - Interface consistency\n\n4. **Document prioritization decisions**\n   - When feature branch architecture wins\n   - When target architecture is preserved\n   - Hybrid approaches\n\n5. **Create PR documentation format**",
+        "subtasks": [],
+        "testStrategy": "- Review with architectural experts\n- Test on sample branches\n- Validate documentation completeness\n- Cross-check with existing architecture",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "008",
+        "title": "**Title:** Create Comprehensive Merge Validation Framework",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "024",
+        "title": "Future Development and Roadmap",
+        "description": "Implement comprehensive future development and roadmap framework for the Git branch alignment system. This task provides the infrastructure for planning, tracking, and managing future development initiatives and feature enhancements.\n\n**Scope:** Future development and roadmap framework only\n**Blocks:** Task 025 (Scaling), Task 026 (Advanced Features)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "023",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "021",
+        "title": "Maintenance and Monitoring",
+        "description": "Implement comprehensive maintenance and monitoring framework for the Git branch alignment system. This task provides the infrastructure for ongoing maintenance, health monitoring, and performance tracking of the alignment processes.\n\n**Scope:** Maintenance and monitoring framework only\n**Blocks:** Task 022 (Improvements), Task 023 (Optimization)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "020",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "004.2",
+        "title": "Integrate Existing Pre-Merge Validation Scripts and Frameworks",
+        "description": "Adapt and integrate Task 008 and Task 003 validation components into local Git hook structure.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "004.1"
+        ],
+        "details": "Create wrapper scripts that connect existing validation frameworks to local Git hooks.\n\n### Steps\n\n1. **Review Task 008 and Task 003 outputs**\n   - Understand validation interfaces\n   - Identify execution requirements\n   - Map dependencies\n\n2. **Create wrapper scripts**\n   - Wrapper for pre-merge validation (Task 003)\n   - Wrapper for comprehensive validation (Task 008)\n\n3. **Configure environment**\n   - Set up Python path\n   - Configure working directory\n   - Handle dependencies\n\n4. **Test integration**\n   - Run hooks manually\n   - Verify output capture\n   - Test error handling",
+        "subtasks": [],
+        "testStrategy": "- Test wrapper with valid inputs\n- Test wrapper with failing validation\n- Verify error message clarity",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "006.1",
+        "title": "Develop Local Branch Backup and Restore for Feature Branches",
+        "description": "Create backup and restore functionality for feature branches before alignment operations.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Implement Python functions to create timestamped backup branches and restore from them.\n\n### Steps\n\n1. **Create backup function**\n   ```python\n   def create_backup(branch_name):\n       timestamp = datetime.now().strftime(\"%Y%m%d-%H%M%S\")\n       backup_name = f\"backup-{branch_name}-{timestamp}\"\n       subprocess.run([\"git\", \"branch\", backup_name, branch_name])\n       return backup_name\n   ```\n\n2. **Create restore function**\n   ```python\n   def restore_from_backup(backup_name, original_branch):\n       subprocess.run([\"git\", \"checkout\", backup_name])\n       subprocess.run([\"git\", \"branch\", \"-f\", original_branch])\n       subprocess.run([\"git\", \"checkout\", original_branch])\n   ```\n\n3. **Test backup/restore cycle**\n\n4. **Add error handling**",
+        "subtasks": [],
+        "testStrategy": "- Create backup (should create branch)\n- Modify branch\n- Restore (should restore)\n- Verify commit history matches",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.6",
+        "title": "Implement Performance Benchmarking for Critical Endpoints",
+        "description": "Set up performance benchmarking to detect regressions.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "009.1"
+        ],
+        "details": "Configure performance testing for critical API endpoints.\n\n### Benchmark Implementation\n\n```python\n# tests/performance_benchmark.py\nimport pytest\nimport requests\n\nBASE_URL = \"http://localhost:8000\"\n\nclass PerformanceBenchmarks:\n    def test_response_time_health(self):\n        \"\"\"Health endpoint < 100ms.\"\"\"\n        import time\n        start = time.time()\n        requests.get(f\"{BASE_URL}/health\")\n        elapsed = (time.time() - start) * 1000\n        assert elapsed < 100, f\"Response time: {elapsed}ms\"\n\n    def test_response_time_api(self):\n        \"\"\"API endpoints < 500ms.\"\"\"\n        import time\n        endpoints = [\"/api/v1/items\", \"/api/v1/users\"]\n        for endpoint in endpoints:\n            start = time.time()\n            requests.get(f\"{BASE_URL}{endpoint}\")\n            elapsed = (time.time() - start) * 1000\n            assert elapsed < 500, f\"{endpoint}: {elapsed}ms\"\n\n@pytest.mark.performance\nclass TestPerformance:\n    pass\n```\n\n### Baseline Configuration\n\n```ini\n[benchmarks]\nhealth_max_ms = 100\napi_max_ms = 500\ndb_query_max_ms = 50\n```",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.2",
+        "title": "Analyze Git History and Codebase Similarity",
+        "description": "Analyze Git history and codebase structure for each branch to support target determination.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "001.1"
+        ],
+        "details": "This subtask performs detailed analysis of each active feature branch, examining commit history patterns and codebase structure to inform integration target selection.\n\n### Steps\n\n1. **Extract Git history for each branch**\n   ```bash\n   for branch in $(cat active_branches.txt); do\n     echo \"=== $branch ===\"\n     git log --oneline --since=\"1 year ago\" origin/$branch\n     git log --format=\"%H %ai %an\" origin/$branch | head -5\n   done\n   ```\n\n2. **Calculate shared commits with primary targets**\n   ```bash\n   # Find merge base between feature branch and each primary branch\n   git merge-base origin/feature-branch origin/main\n   git merge-base origin/feature-branch origin/scientific\n   git merge-base origin/feature-branch origin/orchestration-tools\n   ```\n\n3. **Analyze file-level codebase similarity**\n   ```bash\n   # Compare file structures\n   git ls-tree -r --name-only origin/$branch | sort > branch_files.txt\n   git ls-tree -r --name-only origin/main | sort > main_files.txt\n   diff branch_files.txt main_files.txt\n   ```\n\n4. **Assess architectural alignment**\n   - Identify modified directories\n   - Detect changes to core modules\n   - Map imports and dependencies\n   - Evaluate architectural patterns\n\n5. **Document findings for each branch**",
+        "subtasks": [],
+        "testStrategy": "- Verify analysis on sample branches\n- Compare manual analysis with automated output\n- Validate similarity calculations\n- Cross-check merge base calculations",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.3",
+        "title": "DiffDistanceCalculator",
+        "description": "Calculate code distance metrics between feature branches and potential integration targets using various diff algorithms.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Implement a Python module that:\n- Computes file-level diffs between branches\n- Calculates similarity scores (Jaccard, edit distance, etc.)\n- Identifies changed files, added/removed/changed counts\n- Weights changes by significance (core files vs documentation)\n- Generates distance vectors for clustering",
+        "subtasks": [],
+        "testStrategy": "- Compare identical branches (should be distance 0)\n- Test with known similarity levels\n- Benchmark performance on large repositories\n- Validate weighting logic",
+        "complexity": "8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "006.3",
+        "title": "Integrate Backup/Restore into Automated Workflow",
+        "description": "Create central orchestration script that integrates backup/restore into alignment workflow.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "006.1",
+          " 006.2"
+        ],
+        "details": "Develop comprehensive script that manages backup, alignment, restore, and cleanup.\n\n### Steps\n\n1. **Create orchestration script**\n   - Backup before alignment\n   - Run alignment\n   - Validate results\n   - Handle failures with restore\n   - Cleanup old backups\n\n2. **Add robust error handling**\n\n3. **Implement logging**\n\n4. **Test complete workflow**",
+        "subtasks": [],
+        "testStrategy": "- Test complete workflow with mock alignment\n- Test restore after simulated failure\n- Test cleanup functionality\n- Test error handling",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "010.8",
+        "title": "30: Advanced Alignment Logic and Integration",
+        "description": "Complete advanced alignment logic, error handling, and integration.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "010.1-7"
+        ],
+        "details": "Tasks 59.8-59.30 cover advanced scenarios.\n\n### Advanced Subtasks\n\n**010.8-10: Conflict Resolution Workflow**\n- Interactive conflict resolution prompts\n- Visual merge tool integration\n- Step-by-step resolution guidance\n\n**010.11-13: Abort and Recovery**\n- Rebase abort functionality\n- Restore from backup\n- Error state handling\n\n**010.14-18: Validation and Testing**\n- Post-rebase validation\n- Test suite execution\n- Integration testing\n\n**010.19-25: Complex Branch Handling**\n- Iterative rebase for large histories\n- Chunk-based commit processing\n- Progress tracking\n\n**010.26-30: Orchestration Integration**\n- CLI interface\n- Logging and reporting\n- TaskMaster integration",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "6-9/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.6",
+        "title": "Define Merge vs Rebase Strategy",
+        "description": "Document the strategy for choosing between `git merge` and `git rebase` based on branch characteristics and team workflows.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "001.3"
+        ],
+        "details": "This subtask establishes guidelines for selecting the appropriate Git operation (merge vs rebase) for each branch alignment scenario.\n\n### Steps\n\n1. **Document when to use merge**\n   - Preserve complete history\n   - Large team collaboration\n   - Public/shared branches\n   - Audit trail importance\n\n2. **Document when to use rebase**\n   - Clean linear history desired\n   - Small team or solo work\n   - Private feature branches\n   - Before squash merge\n\n3. **Define strategy per branch type**\n   - Feature branches \u2192 rebase (typically)\n   - Long-running branches \u2192 merge\n   - Documentation \u2192 rebase\n   - Core changes \u2192 evaluate case-by-case\n\n4. **Document conflict resolution procedures**\n   - Interactive rebase workflow\n   - Merge conflict handling\n   - Visual merge tool integration\n\n5. **Specify when to use visual merge tools**\n   - Complex multi-file conflicts\n   - Binary file changes\n   - Three-way merge scenarios",
+        "subtasks": [],
+        "testStrategy": "- Apply to sample branches\n- Review decision logic\n- Validate against best practices\n- Test conflict resolution flow",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "019",
+        "title": "Deployment and Release Management",
+        "description": "Implement comprehensive deployment and release management framework for the Git branch alignment system. This task provides the infrastructure for packaging, deploying, and managing releases of the alignment tools and processes.\n\n**Scope:** Deployment and release management framework only\n**Blocks:** Task 020 (Documentation), Task 021 (Maintenance)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "018",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.4",
+        "title": "Propose Optimal Targets with Justifications",
+        "description": "Apply criteria to each branch and propose optimal integration targets with explicit, documented justification for each choice.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "001.3"
+        ],
+        "details": "This subtask takes the analysis from 001.2 and criteria from 001.3 to propose specific integration targets for each feature branch. Every assignment must have explicit justification.\n\n### Steps\n\n1. **Apply criteria to each branch from 001.1 list**\n   - Run automated scoring using 001.3 criteria\n   - Calculate scores for each target (main/scientific/orchestration)\n\n2. **Determine proposed optimal target**\n   - Select highest-scoring target\n   - Document score breakdown\n   - Flag any ties or near-ties\n\n3. **Document justification for each choice**\n   - Primary reason for selection\n   - Supporting evidence\n   - Alternative considered and rejected\n   - Any concerns or risks\n\n4. **Identify branches needing renaming**\n   - Ambiguous names (feature-scientific-X targeting main)\n   - Conflicting content (name says scientific, code targets main)\n   - Suggestion for new name\n\n5. **Create comprehensive mapping document**",
+        "subtasks": [],
+        "testStrategy": "- Review all justifications for completeness\n- Verify no arbitrary assignments\n- Validate against Task 002 analysis\n- Cross-check with historical patterns",
+        "complexity": "8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.1",
+        "title": "CommitHistoryAnalyzer",
+        "description": "Analyze Git commit history for each feature branch to extract metrics like commit frequency, author patterns, merge points, and branch divergence dates.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Implement a Python module that:\n- Fetches all remote feature branches\n- Extracts commit metadata (hash, date, author, message)\n- Calculates divergence metrics from main/scientific/orchestration-tools\n- Identifies shared history points and merge bases\n- Outputs structured metrics for clustering",
+        "subtasks": [],
+        "testStrategy": "- Create test repository with known branch structures\n- Verify metrics match expected values\n- Test with empty branches, single commits, long histories",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "012",
+        "title": "**Title:** Orchestrate Sequential Branch Alignment Workflow",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "007",
+          " 008",
+          " 009",
+          " 010",
+          " 011",
+          " 022"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "012",
+        "title": "Advanced Operations and Monitoring",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "011",
+          " 014",
+          " 015"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.4",
+        "title": "Integrate Existing Unit and Integration Tests",
+        "description": "Configure CI to execute full test suite and block on failures.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "009.1"
+        ],
+        "details": "Add pytest execution to GitHub Actions workflow.\n\n### Implementation\n\n```yaml\n# In .github/workflows/merge-validation.yml\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n      - name: Install dependencies\n        run: |\n          pip install -r requirements.txt\n          pip install pytest pytest-cov\n      - name: Run tests\n        run: |\n          pytest src/ --cov --cov-report=xml --tb=short\n      - name: Upload coverage\n        uses: codecov/codecov-action@v3\n        with:\n          files: ./coverage.xml\n```\n\n### Test Configuration\n\n- `pytest.ini` or `pyproject.toml` configuration\n- Coverage threshold: 90%\n- Fail-fast: enabled",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "003.3",
+        "title": "Develop Tests for Validation Script",
+        "description": "Create comprehensive test suite for the validation script to ensure reliability.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "003.2"
+        ],
+        "details": "Develop unit and integration tests covering all validation scenarios.\n\n### Steps\n\n1. **Create test directory structure**\n   ```\n   tests/\n   \u251c\u2500\u2500 unit/\n   \u2502   \u251c\u2500\u2500 test_validate_exists.py\n   \u2502   \u251c\u2500\u2500 test_validate_json.py\n   \u2502   \u2514\u2500\u2500 test_cli.py\n   \u251c\u2500\u2500 integration/\n   \u2502   \u2514\u2500\u2500 test_full_validation.py\n   \u2514\u2500\u2500 fixtures/\n       \u251c\u2500\u2500 valid/\n       \u251c\u2500\u2500 missing/\n       \u251c\u2500\u2500 empty/\n       \u2514\u2500\u2500 invalid/\n   ```\n\n2. **Write unit tests**\n   - Mock file system operations\n   - Test each validation function\n   - Test edge cases\n\n3. **Write integration tests**\n   - Create temp directory with test files\n   - Run full validation script\n   - Verify exit codes and output\n\n4. **Add to CI test suite**",
+        "subtasks": [],
+        "testStrategy": "| Scenario | Input | Expected |\n|----------|-------|----------|\n| All valid | All files present | Exit 0 |\n| Missing file | File removed | Exit 1, error message |\n| Empty file | File truncated | Exit 1, error message |\n| Invalid JSON | Corrupted JSON | Exit 1, error message |",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.7",
+        "title": "Integrate Security Scans (SAST and Dependency)",
+        "description": "Add security scanning to CI pipeline.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "009.1"
+        ],
+        "details": "Integrate bandit (SAST) and safety (dependency scan).\n\n### Security Scanning\n\n```yaml\n# In .github/workflows/merge-validation.yml\nsecurity-scan:\n  runs-on: ubuntu-latest\n  steps:\n    - uses: actions/checkout@v4\n    \n    - name: Run bandit\n      run: |\n        pip install bandit\n        bandit -r src/ -f json -o bandit_report.json\n    \n    - name: Run safety\n      run: |\n        pip install safety\n        safety check -r requirements.txt -o safety_report.json\n    \n    - name: Check results\n      run: |\n        if [ -n \"$(cat bandit_report.json | jq '.results | length')\" ]; then\n          echo \"Security issues found in bandit report\"\n          exit 1\n        fi\n```\n\n### Configuration\n\n- `.bandit` - Bandit configuration\n- Safety checks: Critical/High only",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "010",
+        "title": "Core Git Operations and Conflict Management",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "009",
+          " 013",
+          " 015"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "005",
+        "title": "**Title:** Develop Automated Error Detection Scripts for Merges",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "004"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "016",
+        "title": "Rollback and Recovery Mechanisms",
+        "description": "Implement comprehensive rollback and recovery mechanisms for Git branch alignment operations. This task provides the safety net infrastructure that enables restoration to a known good state when alignment operations fail or produce undesirable results.\n\n**Scope:** Rollback and recovery mechanisms only\n**Blocks:** Task 010 (Core alignment logic), Task 018 (Validation integration)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "006",
+          " 013",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.1",
+        "title": "Identify All Active Feature Branches",
+        "description": "Identify and catalog all active feature branches that need alignment analysis.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "This subtask focuses on discovering and documenting all active feature branches in the repository that require alignment assessment. The goal is to create a comprehensive inventory that will be used throughout Tasks 001.2-001.8.\n\n### Steps\n\n1. **List all remote branches**\n   ```bash\n   git fetch --all --prune\n   git branch -r | grep -v '->' | sort\n   ```\n\n2. **Identify feature branches**\n   - Look for patterns: `feature/*`, `docs/*`, `fix/*`, `enhancement/*`\n   - Exclude: `main`, `scientific`, `orchestration-tools`, `HEAD`\n\n3. **Filter out merged branches**\n   ```bash\n   for branch in $(git branch -r --format='%(refname:short)' | grep feature); do\n     if git merge-base --is-ancestor $(git rev-parse $branch) HEAD; then\n       echo \"Merged: $branch\"\n     else\n       echo \"Active: $branch\"\n     fi\n   done\n   ```\n\n4. **Document branch metadata**\n   - Branch name\n   - Creation date (from first commit)\n   - Last activity date\n   - Author(s)\n   - Current status (active/stale)\n\n5. **Create initial list for further analysis**",
+        "subtasks": [],
+        "testStrategy": "- Verify branch list matches `git branch -r` output\n- Confirm merged branches correctly excluded\n- Validate metadata completeness\n- Cross-check with GitHub/GitLab UI",
+        "complexity": "4/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "011.11",
+        "title": "30: Complete Complex Branch Handling",
+        "description": "Complete all complex branch handling functionality.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "011.1-10"
+        ],
+        "details": "Remaining implementation for Tasks 60.11-60.30.\n\n### Advanced Features\n\n**011.11-15: Testing Hooks**\n- Per-chunk test execution\n- Regression detection\n- Automatic rollback on failure\n\n**011.16-20: Architectural Review Integration**\n- Post-chunk review prompts\n- Diff summarization\n- Manual approval gates\n\n**011.21-25: Rollback Procedures**\n- Granular rollback points\n- Recovery mechanisms\n- State preservation\n\n**011.26-30: Documentation and CLI**\n- Usage documentation\n- Error code specification\n- Shell completion",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "7-9/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "022",
+        "title": "Improvements and Enhancements",
+        "description": "Implement comprehensive improvements and enhancements framework for the Git branch alignment system. This task provides the infrastructure for identifying, implementing, and managing improvements to the alignment processes and tools.\n\n**Scope:** Improvements and enhancements framework only\n**Blocks:** Task 023 (Optimization), Task 024 (Future Development)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "021",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.10",
+        "title": "019: Additional Validation Framework Components",
+        "description": "Additional validation framework components.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "Varies"
+        ],
+        "details": "The following components complete the validation framework:\n\n### 009.10: Static Analysis for src/backend\n- Configure import-linter for module boundaries\n- Custom rules for architectural compliance\n\n### 009.11: Functional Test Execution in CI\n- Pytest configuration for CI\n- Coverage reporting integration\n\n### 009.12: E2E Smoke Tests Integration\n- Docker Compose setup for testing\n- Container health checks\n\n### 009.13: Performance Baselines\n- Establish response time baselines\n- Throughput benchmarks\n\n### 009.013: Security Validation Integration\n- Dependency vulnerability scanning\n- SAST tool integration\n\n### 009.15: Architectural Enforcement for Module Boundaries\n- Import rules enforcement\n- Dependency graph validation\n\n### 009.16: Functional Correctness Checks\n- Unit test execution\n- Integration test execution\n\n### 009.016: Performance Benchmarking\n- Endpoint performance tests\n- Resource utilization benchmarks\n\n### 009.017: Security Scanning\n- Dependency audit\n- Code security analysis\n\n### 009.003: GitHub Actions Workflow Design\n- Job dependencies\n- Conditional execution\n- Result aggregation",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "4-6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.7",
+        "title": "VisualizationReporting",
+        "description": "Generate visualizations and reports from clustering analysis for developer review and decision support.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "002.4",
+          " 002.5"
+        ],
+        "details": "Implement reporting module:\n- Branch similarity heatmaps\n- Cluster assignment visualizations\n- Target distribution charts\n- Confidence score distributions\n- HTML/JSON report generation",
+        "subtasks": [],
+        "testStrategy": "- Verify visualization accuracy\n- Test with various branch counts\n- Validate report formatting\n- Test rendering performance",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.2",
+        "title": "Configure GitHub Actions Workflow and Triggers",
+        "description": "Set up GitHub Actions workflow to trigger validation on PRs.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Create `.github/workflows/merge-validation.yml` with proper triggers.\n\n### Workflow Configuration\n\n```yaml\nname: Merge Validation\n\non:\n  pull_request:\n    branches: [main]\n    types: [opened, synchronize, reopened]\n\njobs:\n  validate:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Set up Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.11'\n      - name: Install dependencies\n        run: |\n          pip install -r requirements.txt\n      - name: Run validation\n        run: python scripts/run_validation.py\n```",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "4/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.8",
+        "title": "TestingSuite",
+        "description": "Develop comprehensive test suite covering all Task 002 components with high coverage and reliability.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "002.1-002.6"
+        ],
+        "details": "Implement test suite:\n- Unit tests for all modules (002.1-002.7)\n- Integration tests between components\n- Performance benchmarks\n- End-to-end workflow tests\n- Test data fixtures and generators",
+        "subtasks": [],
+        "testStrategy": "- Use pytest framework\n- Generate synthetic test data\n- Run full suite on each PR\n- Track coverage metrics\n- Set performance baselines",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "023",
+        "title": "Optimization and Performance Tuning",
+        "description": "Implement comprehensive optimization and performance tuning framework for the Git branch alignment system. This task provides the infrastructure for identifying performance bottlenecks, optimizing algorithms, and tuning system parameters to achieve optimal performance.\n\n**Scope:** Optimization and performance tuning framework only\n**Blocks:** Task 024 (Future Development), Task 025 (Scaling)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "022",
+          " 010"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "8/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "003",
+        "title": "**Title:** Develop and Integrate Pre-merge Validation Scripts",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "11",
+          " 12",
+          " 13 \u2713"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "013",
+        "title": "Branch Backup and Safety Mechanisms",
+        "description": "Implement comprehensive branch backup and safety mechanisms for Git branch alignment operations. This task provides the foundational safety infrastructure that ensures branch alignment operations can be safely executed with reliable backup and recovery capabilities.\n\n**Scope:** Branch backup and safety mechanisms only\n**Blocks:** Task 010 (Core alignment logic), Task 016 (Rollback and recovery)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "006",
+          " 022"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009",
+        "title": "Pre-Alignment Preparation and Safety",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "004",
+          " 007",
+          " 012"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "008.3",
+        "title": "Integrate Backend-to-Src Migration Status Analysis",
+        "description": "Analyze backend-to-src migration status for each feature branch.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "008.1",
+          " 008.2"
+        ],
+        "details": "Check migration progress and categorize branches by migration state.\n\n### Steps\n\n1. **Define migration criteria**\n   - backend/ directory empty/removed\n   - Files moved to src/\n   - Import paths updated\n\n2. **Analyze branch structure**\n   ```python\n   def check_migration_status(branch):\n       result = subprocess.run(\n           [\"git\", \"ls-tree\", \"-r\", \"--name-only\", branch],\n           capture_output=True, text=True\n       )\n       files = result.stdout.strip().split('\\n')\n       \n       has_backend = any(f.startswith('backend/') for f in files)\n       has_src = any(f.startswith('src/') for f in files)\n       \n       # Determine status\n       if has_backend and has_src:\n           return \"partial\"\n       elif has_backend:\n           return \"not_migrated\"\n       elif has_src:\n           return \"migrated\"\n       else:\n           return \"inconsistent\"\n   ```\n\n3. **Categorize branches**\n\n4. **Include in tool output**",
+        "subtasks": [],
+        "testStrategy": "- Test branch with backend/ (not_migrated)\n- Test branch with src/ only (migrated)\n- Test branch with both (partial)\n- Test mixed scenarios",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.6",
+        "title": "PipelineIntegration",
+        "description": "Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "002.5"
+        ],
+        "details": "Implement integration points:\n- Read categorized_branches.json from Task 002.5 output\n- Feed branch assignments to Task 016 orchestrator\n- Handle Task 007 (Feature Branch Identification) as execution mode\n- Report status and results back to pipeline\n- Support incremental updates as new branches appear",
+        "subtasks": [],
+        "testStrategy": "- Test with sample categorized_branches.json\n- Verify integration with Task 016\n- Test Task 007 mode operation\n- Validate status reporting",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "010",
+        "title": "**Title:** Implement Multilevel Strategies for Complex Branches",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "005",
+          " 009",
+          " 012",
+          " 013",
+          " 014",
+          " 015",
+          " 016",
+          " 022",
+          " 075",
+          " 076",
+          " 077",
+          " 078"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "006",
+        "title": "**Title:** Implement Robust Branch Backup and Restore Mechanism",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "004"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.3",
+        "title": "Implement Architectural Enforcement Checks",
+        "description": "Integrate static analysis tools to enforce architectural rules.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "009.1"
+        ],
+        "details": "Configure ruff/flake8/mypy to check module boundaries and import rules.\n\n### Implementation\n\n```python\n# scripts/architectural_checks.py\nimport subprocess\nimport sys\n\ndef run_architectural_checks():\n    \"\"\"Run all architectural enforcement checks.\"\"\"\n    checks = [\n        (\"ruff check src/\", \"Ruff check\"),\n        (\"flake8 src/ --max-line-length=100\", \"Flake8\"),\n        (\"mypy src/ --strict\", \"Type checking\"),\n    ]\n    \n    results = []\n    for cmd, name in checks:\n        result = subprocess.run(\n            cmd.split(),\n            capture_output=True,\n            text=True\n        )\n        results.append((name, result.returncode == 0, result.stdout))\n    \n    return results\n\nif __name__ == \"__main__\":\n    success = run_architectural_checks()\n    for name, passed, output in success:\n        status = \"PASS\" if passed else \"FAIL\"\n        print(f\"{name}: {status}\")\n    sys.exit(0 if all(p[1] for p in success) else 1)\n```\n\n### Configuration Files\n\n- `.ruff.toml` - Ruff configuration\n- `.flake8` - Flake8 configuration\n- `mypy.ini` - Type checking configuration",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "005.2",
+        "title": "Implement Garbled Text Detection and Import Extraction",
+        "description": "Detect encoding issues and extract import statements from Python files.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "005.1"
+        ],
+        "details": "Implement garbled text detection and basic import extraction for Python files.\n\n### Steps\n\n1. **Detect encoding issues**\n   - Open files with utf-8 and error replacement\n   - Check for replacement characters ()\n   - Flag potential encoding errors\n\n2. **Extract import statements**\n   ```python\n   import re\n   IMPORT_PATTERN = re.compile(r'^(?:from|import)\\s+(\\S+)')\n   \n   def extract_imports(filepath):\n       imports = []\n       with open(filepath) as f:\n           for line in f:\n               match = IMPORT_PATTERN.match(line)\n               if match:\n                   imports.append(match.group(1))\n       return imports\n   ```\n\n3. **Track backend\u2192src migration imports**\n   - Flag imports still pointing to 'backend'\n\n4. **Generate detailed report**",
+        "subtasks": [],
+        "testStrategy": "- Create file with encoding issues (should detect)\n- Extract imports from valid Python (should extract)\n- Test with backend imports (should flag)",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "005.3",
+        "title": "Consolidate Error Detection and Implement Import Validation",
+        "description": "Integrate all error detection into a single comprehensive script with AST-based validation.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "005.1",
+          " 005.2"
+        ],
+        "details": "Combine all detection mechanisms and implement full import validation using Python AST.\n\n### Steps\n\n1. **Consolidate detection logic**\n   - Merge artifact detection\n   - Deleted module detection\n   - Garbled text detection\n   - Import extraction\n\n2. **Implement AST-based validation**\n   ```python\n   import ast\n   \n   def validate_imports_ast(filepath):\n       \"\"\"Use AST to validate imports exist.\"\"\"\n       with open(filepath) as f:\n           tree = ast.parse(f.read())\n       \n       for node in ast.walk(tree):\n           if isinstance(node, ast.Import):\n               for alias in node.names:\n                   if not module_exists(alias.name):\n                       yield f\"Missing module: {alias.name}\"\n           \n           elif isinstance(node, ast.ImportFrom):\n               if node.module:\n                   if not module_exists(node.module):\n                       yield f\"Missing module: {node.module}\"\n   ```\n\n3. **Validate backend\u2192src migration**\n   - Check for 'backend' imports\n   - Suggest correct 'src' paths\n\n4. **Create comprehensive report**\n   - All errors grouped by type\n   - Suggested fixes\n\n5. **Ensure safe execution**",
+        "subtasks": [],
+        "testStrategy": "- Test with all error types (should detect all)\n- Test valid file (should pass)\n- Test with mixed errors (should report all)",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.8",
+        "title": "Define Safety and Validation Procedures",
+        "description": "Define backup, validation, and rollback procedures to ensure safe branch alignment operations.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "001.6"
+        ],
+        "details": "This subtask establishes the safety net for all alignment operations, including pre-alignment checks, validation procedures, and rollback capabilities.\n\n### Steps\n\n1. **Document backup procedures**\n   - Branch backup naming convention\n   - When to create backups\n   - Backup retention policy\n\n2. **Define pre-alignment validation**\n   - Existing test suite baseline\n   - Repository state verification\n   - Dependency check\n\n3. **Define post-alignment validation**\n   - Full test suite execution\n   - CI/CD pipeline verification\n   - Smoke tests\n\n4. **Specify regression testing approach**\n   - What to test\n   - How to measure regressions\n   - Pass/fail thresholds\n\n5. **Document rollback procedures**\n   - When to rollback\n   - How to rollback\n   - Post-rollback validation",
+        "subtasks": [],
+        "testStrategy": "- Review against existing procedures\n- Validate rollback testing\n- Verify CI/CD integration\n- Test safety mechanisms",
+        "complexity": "6/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "009.9",
+        "title": "Configure GitHub Branch Protection Rules",
+        "description": "Configure branch protection to require validation checks.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "None"
+        ],
+        "details": "Set up GitHub branch protection rules for main branch.\n\n### Branch Protection Settings\n\n| Setting | Value |\n|---------|-------|\n| Require PR reviews | Yes (1 approval) |\n| Require status checks | merge-validation/* |\n| Require signed commits | No |\n| Require linear history | Yes |\n| Allow force push | No |\n\n### GitHub CLI Configuration\n\n```bash\n# Enable branch protection\ngh api repos/{owner}/{repo}/protection -X PUT \\\n  -f required_status_checks='{\"contexts\": [\"merge-validation\"]}' \\\n  -f required_pull_request_reviews='{\"dismiss_stale_reviews\": true}'\n```",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "3/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "002.9",
+        "title": "FrameworkIntegration",
+        "description": "Final integration of Task 002 with Task 001 framework and documentation of the complete system.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          "All previous"
+        ],
+        "details": "Complete integration:\n- Finalize Task 001 + Task 002 data flow\n- Document usage and workflows\n- Create onboarding guide\n- Archive deprecated components\n- Transfer knowledge to downstream tasks",
+        "subtasks": [],
+        "testStrategy": "- Validate data flow end-to-end\n- Review documentation accuracy\n- Test onboarding flow\n- Verify archive integrity",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "015",
+        "title": "Validation and Verification Framework",
+        "description": "Implement a comprehensive validation and verification framework for Git branch alignment operations. This task provides the quality assurance infrastructure that validates the integrity and correctness of aligned branches through automated checks and verification procedures.\n\n**Scope:** Validation and verification framework only\n**Blocks:** Task 010 (Core alignment logic), Task 018 (Validation integration)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [
+          "005",
+          " 010",
+          " 014"
+        ],
+        "details": "",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": "7/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "003.2",
+        "title": "Develop Core Validation Script",
+        "description": "Implement the validation script that checks critical files for existence, integrity, and validity.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          "003.1"
+        ],
+        "details": "Create `scripts/validate_critical_files.py` that validates all critical files according to criteria from 003.1.\n\n### Steps\n\n1. **Create script structure**\n   ```python\n   #!/usr/bin/env python3\n   import argparse\n   import json\n   import os\n   from pathlib import Path\n   ```\n\n2. **Implement validation functions**\n   - `check_exists(file_path)` - File exists\n   - `check_not_empty(file_path)` - File has content\n   - `check_json_valid(file_path)` - Valid JSON\n\n3. **Load critical file configuration**\n\n4. **Execute validation**\n\n5. **Return exit codes**\n   - 0: All checks pass\n   - 1: One or more checks fail\n\n6. **Log detailed errors**",
+        "subtasks": [],
+        "testStrategy": "- Test with all files present (should pass)\n- Test with missing file (should fail, report file)\n- Test with empty file (should fail)\n- Test with malformed JSON (should fail)",
+        "complexity": "5/10",
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      }
+    ]
+  }
+}

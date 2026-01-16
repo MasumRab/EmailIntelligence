@@ -1,0 +1,23 @@
+{
+  "master": {
+    "name": "Task Master",
+    "version": "1.0.0",
+    "description": "Tasks generated from PRD (round-trip test)",
+    "tasks": [
+      {
+        "id": "001",
+        "title": "ID: 1",
+        "description": "Establish the strategic framework and decision criteria for aligning multiple feature branches with their optimal integration targets (main, scientific, or orchestration-tools). This is a FRAMEWORK-DEFINITION TASK.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "**Title:** Align and Architecturally Integrate Feature Branches with Justified Targets",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      }
+    ]
+  }
+}

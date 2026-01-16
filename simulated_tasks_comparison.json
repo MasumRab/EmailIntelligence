@@ -1,0 +1,226 @@
+{
+  "master": {
+    "name": "Task Master",
+    "version": "1.0.0",
+    "description": "Tasks generated from PRD (comparison simulation)",
+    "tasks": [
+      {
+        "id": "001",
+        "title": "ID: 001 Align and Architecturally Integrate Feature Branches with Justified Targets",
+        "description": "Establish the strategic framework and decision criteria for aligning multiple feature branches with their optimal integration targets (main, scientific, or orchestration-tools). This is a **FRAMEWORK-DEFINITION TASK**, not a branch-alignment task. Task 001 defines HOW other feature branches should be aligned rather than performing alignment of a specific branch.\n\n**Scope:** Strategic framework, decision criteria, documentation\n**Focus:** Framework definition, not execution\n**Blocks:** Tasks 016-017 (parallel execution), Tasks 022+ (downstream alignment)",
+        "status": "Ready for Implementation",
+        "priority": "High",
+        "dependencies": [],
+        "details": "",
+        "subtasks": [
+          {
+            "id": "----",
+            "title": "---------",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "--------",
+            "parentId": "001"
+          },
+          {
+            "id": "001.1",
+            "title": "Identify All Active Feature Branches",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.2",
+            "title": "Analyze Git History and Codebase Similarity",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.3",
+            "title": "Define Target Selection Criteria",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.4",
+            "title": "Propose Optimal Targets with Justifications",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.5",
+            "title": "Create ALIGNMENT_CHECKLIST.md",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.6",
+            "title": "Define Merge vs Rebase Strategy",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.7",
+            "title": "Create Architectural Prioritization Guidelines",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          },
+          {
+            "id": "001.8",
+            "title": "Define Safety and Validation Procedures",
+            "description": "",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": "",
+            "status": "pending",
+            "parentId": "001"
+          }
+        ],
+        "testStrategy": "",
+        "complexity": 9,
+        "recommendedSubtasks": 9,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.3",
+        "title": "001.3: Define Target Selection Criteria",
+        "description": "Define explicit, reproducible criteria for selecting integration targets (main, scientific, orchestration-tools).",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "This subtask establishes the decision framework that will be used to assign each feature branch to its optimal integration target. Criteria must be measurable and reproducible.\n\n### Steps\n\n1. **Define main branch targeting criteria**\n   - Stability requirements\n   - Completeness standards\n   - Quality thresholds\n   - Shared history expectations\n   - Dependency satisfaction\n\n2. **Define scientific branch targeting criteria**\n   - Research/experimentation scope\n   - Innovation tolerance\n   - Stability expectations\n   - History requirements\n   - Architecture flexibility\n\n3. **Define orchestration-tools targeting criteria**\n   - Infrastructure focus\n   - Orchestration specificity\n   - Core module changes\n   - Parallel safety requirements\n   - Integration needs\n\n4. **Document criteria weights and priorities**\n   - Primary criteria (must have)\n   - Secondary criteria (should have)\n   - Tertiary criteria (nice to have)\n\n5. **Create decision tree for target assignment**",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.5",
+        "title": "001.5: Create ALIGNMENT_CHECKLIST.md",
+        "description": "Create the central tracking document that consolidates all branch alignment information in a maintainable format.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "This subtask creates ALIGNMENT_CHECKLIST.md as the master document for tracking branch alignment status throughout the alignment process.\n\n### Steps\n\n1. **Create ALIGNMENT_CHECKLIST.md in project root**\n\n2. **Define standard columns**\n   - Branch Name\n   - Proposed Target\n   - Justification\n   - Status (pending/in-progress/done/blocked)\n   - Notes/Risks\n\n3. **Populate with all branches from 001.1**\n   - Include proposed targets from 001.4\n   - Add justification summaries\n   - Set initial status\n\n4. **Include specific branches**\n   - `feature/backlog-ac-updates`\n   - `docs-cleanup`\n   - `feature/search-in-category`\n   - `feature/merge-clean`\n   - `feature/merge-setup-improvements`\n\n5. **Exclude branches handled elsewhere**\n   - `fix/import-error-corrections` (Task 011)",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.7",
+        "title": "001.7: Create Architectural Prioritization Guidelines",
+        "description": "Define how to handle architectural differences between feature branches and integration targets, including when to prefer feature branch architecture over target.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "This subtask establishes guidelines for resolving architectural conflicts and determining which architecture should take precedence during alignment.\n\n### Steps\n\n1. **Document framework for preferring advanced architectures**\n   - When feature branch has better patterns\n   - When target has more complete implementation\n   - Evaluation criteria for architectural quality\n\n2. **Define partial update documentation**\n   - How to document architectural changes\n   - When partial updates are acceptable\n   - Cleanup procedures for partial implementations\n\n3. **Create architectural compatibility assessment**\n   - Pattern matching between branches\n   - Dependency compatibility\n   - Interface consistency\n\n4. **Document prioritization decisions**\n   - When feature branch architecture wins\n   - When target architecture is preserved\n   - Hybrid approaches\n\n5. **Create PR documentation format**",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.2",
+        "title": "001.2: Analyze Git History and Codebase Similarity",
+        "description": "Analyze Git history and codebase structure for each branch to support target determination.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "This subtask performs detailed analysis of each active feature branch, examining commit history patterns and codebase structure to inform integration target selection.\n\n### Steps\n\n1. **Extract Git history for each branch**\n   ```bash\n   for branch in $(cat active_branches.txt); do\n     echo \"=== $branch ===\"\n     git log --oneline --since=\"1 year ago\" origin/$branch\n     git log --format=\"%H %ai %an\" origin/$branch | head -5\n   done\n   ```\n\n2. **Calculate shared commits with primary targets**\n   ```bash\n   # Find merge base between feature branch and each primary branch\n   git merge-base origin/feature-branch origin/main\n   git merge-base origin/feature-branch origin/scientific\n   git merge-base origin/feature-branch origin/orchestration-tools\n   ```\n\n3. **Analyze file-level codebase similarity**\n   ```bash\n   # Compare file structures\n   git ls-tree -r --name-only origin/$branch | sort > branch_files.txt\n   git ls-tree -r --name-only origin/main | sort > main_files.txt\n   diff branch_files.txt main_files.txt\n   ```\n\n4. **Assess architectural alignment**\n   - Identify modified directories\n   - Detect changes to core modules\n   - Map imports and dependencies\n   - Evaluate architectural patterns\n\n5. **Document findings for each branch**",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.6",
+        "title": "001.6: Define Merge vs Rebase Strategy",
+        "description": "Document the strategy for choosing between `git merge` and `git rebase` based on branch characteristics and team workflows.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "This subtask establishes guidelines for selecting the appropriate Git operation (merge vs rebase) for each branch alignment scenario.\n\n### Steps\n\n1. **Document when to use merge**\n   - Preserve complete history\n   - Large team collaboration\n   - Public/shared branches\n   - Audit trail importance\n\n2. **Document when to use rebase**\n   - Clean linear history desired\n   - Small team or solo work\n   - Private feature branches\n   - Before squash merge\n\n3. **Define strategy per branch type**\n   - Feature branches \u2192 rebase (typically)\n   - Long-running branches \u2192 merge\n   - Documentation \u2192 rebase\n   - Core changes \u2192 evaluate case-by-case\n\n4. **Document conflict resolution procedures**\n   - Interactive rebase workflow\n   - Merge conflict handling\n   - Visual merge tool integration\n\n5. **Specify when to use visual merge tools**\n   - Complex multi-file conflicts\n   - Binary file changes\n   - Three-way merge scenarios",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.4",
+        "title": "001.4: Propose Optimal Targets with Justifications",
+        "description": "Apply criteria to each branch and propose optimal integration targets with explicit, documented justification for each choice.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "This subtask takes the analysis from 001.2 and criteria from 001.3 to propose specific integration targets for each feature branch. Every assignment must have explicit justification.\n\n### Steps\n\n1. **Apply criteria to each branch from 001.1 list**\n   - Run automated scoring using 001.3 criteria\n   - Calculate scores for each target (main/scientific/orchestration)\n\n2. **Determine proposed optimal target**\n   - Select highest-scoring target\n   - Document score breakdown\n   - Flag any ties or near-ties\n\n3. **Document justification for each choice**\n   - Primary reason for selection\n   - Supporting evidence\n   - Alternative considered and rejected\n   - Any concerns or risks\n\n4. **Identify branches needing renaming**\n   - Ambiguous names (feature-scientific-X targeting main)\n   - Conflicting content (name says scientific, code targets main)\n   - Suggestion for new name\n\n5. **Create comprehensive mapping document**",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.1",
+        "title": "001.1: Identify All Active Feature Branches",
+        "description": "Identify and catalog all active feature branches that need alignment analysis.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "This subtask focuses on discovering and documenting all active feature branches in the repository that require alignment assessment. The goal is to create a comprehensive inventory that will be used throughout Tasks 001.2-001.8.\n\n### Steps\n\n1. **List all remote branches**\n   ```bash\n   git fetch --all --prune\n   git branch -r | grep -v '->' | sort\n   ```\n\n2. **Identify feature branches**\n   - Look for patterns: `feature/*`, `docs/*`, `fix/*`, `enhancement/*`\n   - Exclude: `main`, `scientific`, `orchestration-tools`, `HEAD`\n\n3. **Filter out merged branches**\n   ```bash\n   for branch in $(git branch -r --format='%(refname:short)' | grep feature); do\n     if git merge-base --is-ancestor $(git rev-parse $branch) HEAD; then\n       echo \"Merged: $branch\"\n     else\n       echo \"Active: $branch\"\n     fi\n   done\n   ```\n\n4. **Document branch metadata**\n   - Branch name\n   - Creation date (from first commit)\n   - Last activity date\n   - Author(s)\n   - Current status (active/stale)\n\n5. **Create initial list for further analysis**",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      },
+      {
+        "id": "001.8",
+        "title": "001.8: Define Safety and Validation Procedures",
+        "description": "Define backup, validation, and rollback procedures to ensure safe branch alignment operations.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "This subtask establishes the safety net for all alignment operations, including pre-alignment checks, validation procedures, and rollback capabilities.\n\n### Steps\n\n1. **Document backup procedures**\n   - Branch backup naming convention\n   - When to create backups\n   - Backup retention policy\n\n2. **Define pre-alignment validation**\n   - Existing test suite baseline\n   - Repository state verification\n   - Dependency check\n\n3. **Define post-alignment validation**\n   - Full test suite execution\n   - CI/CD pipeline verification\n   - Smoke tests\n\n4. **Specify regression testing approach**\n   - What to test\n   - How to measure regressions\n   - Pass/fail thresholds\n\n5. **Document rollback procedures**\n   - When to rollback\n   - How to rollback\n   - Post-rollback validation",
+        "subtasks": [],
+        "testStrategy": "",
+        "complexity": 0,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "N/A - subtasks already defined."
+      }
+    ]
+  }
+}

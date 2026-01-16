@@ -1,0 +1,279 @@
+{
+  "generated": "2026-01-13T23:32:26.264560",
+  "tasks_analyzed": 25,
+  "tasks_with_extended_metadata": 25,
+  "fields_coverage": {
+    "effort": 16,
+    "complexity": 16,
+    "owner": 2,
+    "initiative": 2,
+    "blocks": 16,
+    "scope": 16,
+    "focus": 2,
+    "successCriteria": 2,
+    "testStrategy": 11,
+    "progressLog": 2
+  },
+  "tasks": [
+    {
+      "id": "001",
+      "title": "Align and Architecturally Integrate Feature Branches with Justified Targets",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "owner",
+        "initiative",
+        "blocks",
+        "scope",
+        "focus",
+        "successCriteria",
+        "testStrategy",
+        "progressLog"
+      ]
+    },
+    {
+      "id": "002",
+      "title": "Branch Clustering System",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "owner",
+        "initiative",
+        "blocks",
+        "scope",
+        "focus",
+        "successCriteria",
+        "testStrategy",
+        "progressLog"
+      ]
+    },
+    {
+      "id": "003",
+      "title": "**Title:** Develop and Integrate Pre-merge Validation Scripts",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "004",
+      "title": "**Title:** Establish Core Branch Alignment Framework",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "005",
+      "title": "**Title:** Develop Automated Error Detection Scripts for Merges",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "006",
+      "title": "**Title:** Implement Robust Branch Backup and Restore Mechanism",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "007",
+      "title": "**Title:** Develop Feature Branch Identification and Categorization Tool",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "008",
+      "title": "**Title:** Create Comprehensive Merge Validation Framework",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "009",
+      "title": "**Title:** Core Multistage Primary-to-Feature Branch Alignment",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "010",
+      "title": "**Title:** Implement Multilevel Strategies for Complex Branches",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "011",
+      "title": "**Title:** Integrate Validation Framework into Multistage Alignment Workflow",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "012",
+      "title": "**Title:** Orchestrate Sequential Branch Alignment Workflow",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "testStrategy"
+      ]
+    },
+    {
+      "id": "013",
+      "title": "Branch Backup and Safety Mechanisms",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "014",
+      "title": "Conflict Detection and Resolution Framework",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "015",
+      "title": "Validation and Verification Framework",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "016",
+      "title": "Rollback and Recovery Mechanisms",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "017",
+      "title": "Validation Integration Framework",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "018",
+      "title": "E2E Testing and Reporting",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "019",
+      "title": "Deployment and Release Management",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "020",
+      "title": "Documentation and Knowledge Management",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "021",
+      "title": "Maintenance and Monitoring",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "022",
+      "title": "Improvements and Enhancements",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "023",
+      "title": "Optimization and Performance Tuning",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "024",
+      "title": "Future Development and Roadmap",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    },
+    {
+      "id": "025",
+      "title": "Scaling and Advanced Features",
+      "has_extended_metadata": true,
+      "fields_present": [
+        "effort",
+        "complexity",
+        "blocks",
+        "scope"
+      ]
+    }
+  ]
+}

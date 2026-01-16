@@ -1,0 +1,109 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Align and Architecturally Integrate Feature Branches with Justified Targets",
+        "description": "Establish the strategic framework and decision criteria for aligning multiple feature branches with their optimal integration targets (main, scientific, or orchestration-tools). This is a FRAMEWORK-DEFINITION TASK.",
+        "details": "Define HOW other feature branches should be aligned rather than performing alignment.\n\n1. Define target selection criteria (codebase similarity, Git history, architecture)\n2. Create alignment strategy framework (merge vs rebase, architectural preservation)\n3. Establish target determination guidelines for main, scientific, orchestration-tools\n4. Assess all feature branches and propose optimal targets with justification\n\n<!-- EXTENDED_METADATA\neffort: 23-31 hours\ncomplexity: 8/10\nowner: TBD\ninitiative: 1 (Core Framework Definition)\nblocks: Tasks 016-017, Tasks 022+\nscope: Strategic framework, decision criteria, documentation\nfocus: Framework definition, not execution\nsuccessCriteria:\n  - Target selection criteria explicitly defined\n  - Alignment strategy framework documented\n  - Target determination guidelines created\n  - Branch analysis methodology specified\n  - All feature branches assessed with justification\n  - ALIGNMENT_CHECKLIST.md created\nEND_EXTENDED_METADATA -->",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Identify All Active Feature Branches",
+            "description": "Identify and catalog all active feature branches that need alignment analysis. [Updated: 1/13/2026]",
+            "details": "1. Use git branch --remote to list all active branches\n2. Identify all feature branches (feature/*, docs/*, etc.)\n3. Exclude completed/merged branches (check git log)\n4. Document all identified branches with metadata\n5. Create initial list for further analysis\n\n<!-- EXTENDED_METADATA\neffort: 2-3 hours\ncomplexity: 4/10\nowner: TBD\nsuccessCriteria:\n  - Complete list of active feature branches created\n  - All branches documented with names and dates\n  - Merged branches correctly excluded\ntestStrategy: Verify branch list matches git branch -r output\nEND_EXTENDED_METADATA -->\n<info added on 2026-01-13T12:37:36.260Z>\nImplementation note: Started branch discovery on 2026-01-13\n</info added on 2026-01-13T12:37:36.260Z>",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 1
+          },
+          {
+            "id": 2,
+            "title": "Analyze Git History and Codebase Similarity",
+            "description": "Analyze Git history and codebase structure for each branch to support target determination.",
+            "details": "1. Extract Git history (commits, dates, authors) for each branch\n2. Calculate shared commits with main, scientific, orchestration-tools\n3. Analyze file-level codebase similarity\n4. Assess architectural alignment with each target\n5. Document findings for each branch\n\n<!-- EXTENDED_METADATA\neffort: 4-5 hours\ncomplexity: 7/10\nowner: TBD\nsuccessCriteria:\n  - Git history analysis complete for all branches\n  - Shared commit counts documented\n  - Codebase similarity metrics calculated\ntestStrategy: Verify analysis on sample branches, compare manual vs automated output\nEND_EXTENDED_METADATA -->",
+            "status": "pending",
+            "dependencies": [
+              "1.1"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 3,
+            "title": "Define Target Selection Criteria",
+            "description": "Define explicit, reproducible criteria for selecting integration targets.",
+            "details": "Define criteria for main, scientific, and orchestration-tools targeting.\n<!-- EXTENDED_METADATA\neffort: 3-4 hours\ncomplexity: 7/10\nEND_EXTENDED_METADATA -->",
+            "status": "pending",
+            "dependencies": [
+              "1.2"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 4,
+            "title": "Propose Optimal Targets with Justifications",
+            "description": "Apply criteria to each branch and propose optimal targets with explicit justification.",
+            "details": "Apply criteria and document justifications.\n<!-- EXTENDED_METADATA\neffort: 4-5 hours\ncomplexity: 8/10\nEND_EXTENDED_METADATA -->",
+            "status": "pending",
+            "dependencies": [
+              "1.3"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 5,
+            "title": "Create ALIGNMENT_CHECKLIST.md",
+            "description": "Create the central document tracking alignment status of all feature branches.",
+            "details": "Create comprehensive checklist with all branches and proposed targets.\n<!-- EXTENDED_METADATA\neffort: 2-3 hours\ncomplexity: 5/10\nEND_EXTENDED_METADATA -->",
+            "status": "pending",
+            "dependencies": [
+              "1.4"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 6,
+            "title": "Define Merge vs Rebase Strategy",
+            "description": "Document criteria for deciding when to use merge versus rebase for alignment.",
+            "details": "Document merge and rebase conditions with conflict resolution procedures.\n<!-- EXTENDED_METADATA\neffort: 3-4 hours\ncomplexity: 6/10\nEND_EXTENDED_METADATA -->",
+            "status": "pending",
+            "dependencies": [
+              "1.3"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 7,
+            "title": "Create Architectural Prioritization Guidelines",
+            "description": "Document guidelines for handling architectural differences between branches.",
+            "details": "Define when to prefer advanced architectural patterns.\n<!-- EXTENDED_METADATA\neffort: 3-4 hours\ncomplexity: 7/10\nEND_EXTENDED_METADATA -->",
+            "status": "pending",
+            "dependencies": [
+              "1.3"
+            ],
+            "parentTaskId": 1
+          },
+          {
+            "id": 8,
+            "title": "Define Safety and Validation Procedures",
+            "description": "Establish backup, validation, and rollback procedures for safe alignment operations.",
+            "details": "Document backup, pre/post-alignment validation, and rollback procedures.\n<!-- EXTENDED_METADATA\neffort: 2-3 hours\ncomplexity: 5/10\nEND_EXTENDED_METADATA -->",
+            "status": "pending",
+            "dependencies": [
+              "1.6"
+            ],
+            "parentTaskId": 1
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2026-01-13T12:34:29.533Z",
+      "updated": "2026-01-13T12:34:29.539Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

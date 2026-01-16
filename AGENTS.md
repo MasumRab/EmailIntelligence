@@ -185,6 +185,46 @@ python scripts/find_lost_tasks.py --commits 50
 python scripts/find_lost_tasks.py --output lost_tasks.json --verbose
 ```
 
+**Task Metadata Preservation:**
+```bash
+# Backup task markdown files (before destructive operations)
+python scripts/task_metadata_manager.py backup --all
+python scripts/task_metadata_manager.py backup --task 001
+
+# List available backups for a task
+python scripts/task_metadata_manager.py list-backups --task 001
+
+# Restore from backup (0 = most recent)
+python scripts/task_metadata_manager.py restore --task 001 --index 0
+
+# Embed extended metadata from markdown into tasks.json
+python scripts/task_metadata_manager.py embed --task 001
+
+# Generate metadata coverage report
+python scripts/task_metadata_manager.py report
+```
+
+**Why Backup is Critical:**
+Task Master's `TaskEntity.toJSON()` strips custom fields during serialization.
+Fields like `effort`, `complexity`, `owner`, `successCriteria` are lost when:
+- Running `expand`, `update-task`, `update`, or `parse-prd`
+- See: [GitHub Issue #1555](https://github.com/eyaltoledano/claude-task-master/issues/1555)
+
+**Extended Metadata Format:**
+Embed in the `details` field using HTML comments:
+```markdown
+Implementation steps...
+
+<!-- EXTENDED_METADATA
+effort: 2-3h
+complexity: 7/10
+owner: developer-name
+successCriteria:
+  - Criterion 1
+  - Criterion 2
+END_EXTENDED_METADATA -->
+```
+
 ### Orchestration Scripts
 
 **Git Hooks Management:**
@@ -587,6 +627,24 @@ These commands make AI calls and may take up to a minute:
 - Requires a research model API key like Perplexity (`PERPLEXITY_API_KEY`) in environment
 - Provides more informed task creation and updates
 - Recommended for complex technical tasks
+
+### Task Enhancement Procedures
+
+For detailed procedures on enhancing task fields (Success Criteria, Test Strategy, etc.), see:
+- **[TASK_ENHANCEMENT_PROCEDURES.md](docs/TASK_ENHANCEMENT_PROCEDURES.md)** - Complete guide
+
+**Quick Reference:**
+
+| Field | Task Master Support | Procedure |
+|-------|---------------------|-----------|
+| Title/Description/Details | ✅ `update-task` | CLI |
+| Status | ✅ `set-status` | CLI |
+| Dependencies | ✅ `add-dependency` | CLI |
+| Complexity | ✅ `analyze-complexity` | CLI (generates report) |
+| Success Criteria | ⚠️ `research` → Manual | `research --save-file` then embed |
+| Test Strategy | ⚠️ `research` → Manual | `research --save-file` then embed |
+| Effort | ⚠️ `research` → Manual | `research --save-file` then embed |
+| Owner | ❌ | Manual + `task_metadata_manager.py embed` |
 
 ---
 

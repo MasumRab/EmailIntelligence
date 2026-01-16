@@ -1,124 +1,111 @@
-# Task System Restructuring Documentation
+# EmailIntelligence CLI - AI-powered Git Worktree-based Conflict Resolution Tool
 
 ## Overview
-The task system has been restructured to address critical issues with task conflation, scope creep, and safety concerns during branch alignment. This document explains the changes made and the new workflow structure.
+EmailIntelligence is an advanced conflict resolution system that uses constitutional/specification-driven analysis to intelligently resolve git merge conflicts. It provides a structured workflow for managing complex branch alignments while ensuring code quality and architectural compliance.
 
-## Critical Updates: Task Classification System
+## Architecture
 
-### Process Tasks vs. Feature Development Tasks (New Critical Distinction)
+### Modular Design
+The application follows the Single Responsibility Principle with the following modules:
 
-A new critical classification system has been implemented to differentiate between **process tasks** and **feature development tasks**:
+- **Core**: Contains configuration, security validation, and git operations
+- **Application**: Contains main application logic
+- **API**: Contains FastAPI endpoints
+- **CLI**: Contains command-line interface (this file)
 
-#### **Alignment Process Tasks (74-83)**: 
-- **Are NOT feature development tasks** requiring individual branches
-- **Define procedures and tools** for the core alignment workflow
-- **Should be implemented as part of the alignment process** on target branches during alignment operations
-- **Create the framework** that will be applied to other feature branches
-- **Contribute to the alignment infrastructure** rather than being independent features
+### Security Features
+- Path traversal prevention
+- Input validation for PR numbers and git references
+- Safe subprocess execution
+- Restricted CORS origins in API
 
-#### **Feature Development Tasks (All others)**: 
-- **ARE feature development work** that typically requires dedicated branches
-- **Implement specific features, fixes, or refactoring** as independent work items
-- **Follow standard development workflow** with dedicated feature branches
-- **Will be aligned to primary branches** using the framework created by Tasks 74-83
+### Configuration Management
+- Centralized configuration using ConfigurationManager
+- Secure default values
+- Validation of configuration parameters
 
-### Script Distribution Process
-- **New Tool**: `scripts/distribute_alignment_scripts.sh` - Distributes alignment tools to target branch
-- **Purpose**: Ensures all branches have same monitoring and verification tools available during alignment
-- **Process**: Cherry-picks essential scripts (monitoring, analysis) to each branch before alignment begins
-- **Benefits**: Consistent safety tools across branches, reduced risk during alignment, standardized verification
+## Installation
 
-## Changes Made
+### Prerequisites
+- Python 3.8+
+- Git with worktree support
 
-### 1. Scope Creep Tasks
-- **Removed**: Tasks 8, 25, 43, 45-50 moved to `scope_creep_tasks_backup.json`
-- **Reason**: These were feature development tasks conflated with core alignment work
-- **Status**: Available for later development after alignment process
+### Setup
+```bash
+pip install -e .
+```
 
-### 2. Risky Task Deferred
-- **Task 31**: Deferred due to high risk of wrong-branch pushes
-- **Reason**: Scanning all remote branches could cause destructive merge patterns
-- **Status**: Will be addressed post-alignment when system is more stable
+Or install dependencies directly:
+```bash
+pip install -r requirements.txt
+```
 
-### 3. New Safety Framework
-- **Pre-alignment checks**: Branch similarity analysis, directory cleanup, migration verification
-- **Script distribution**: Essential tools cherry-picked to each branch before alignment
-- **Orchestration monitoring**: Protection of critical launch and coordination functionality
-- **Verification processes**: Multiple checkpoints to ensure alignment safety
+## Usage
 
-## New Workflow Structure
+### CLI Commands
+```bash
+# Setup resolution workspace
+eai setup-resolution --pr 123 --source-branch feature/auth --target-branch main
 
-### Phase 1: Script Distribution & Branch Preparation
-- Run `scripts/distribute_alignment_scripts.sh` to distribute tools to target branch
-- Verify essential scripts (monitoring, analysis) are available on target branch
-- Test script functionality on target branch before proceeding
+# Analyze constitutional compliance
+eai analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml
 
-### Phase 2: Pre-Alignment Safety Checks
-- Branch similarity analysis
-- Directory cleanup of outdated files
-- Migration status verification
-- Orchestration file integrity check
+# Develop resolution strategy
+eai develop-spec-kit-strategy --pr 123 --worktrees --interactive
 
-### Phase 3: Core Alignment Execution
-- **CRITICAL CLARIFICATION**: Execute Tasks 74-83 (core alignment framework) **as part of the alignment process on target branches**, NOT on separate alignment branch
-- **Process Tasks**: Tasks 74-83 are implemented directly as the framework/infrastructure during alignment
-- **Verify each step before proceeding**
-- **Monitor orchestration integrity during alignment using local tools**
+# Execute content alignment
+eai align-content --pr 123 --interactive --checkpoint-each-step
 
-### Phase 4: Feature Branch Alignment
-- Apply the alignment framework from Tasks 74-83 to align feature branches with primary targets
-- Execute the alignment process using the tools and procedures created in Phase 3
+# Validate resolution
+eai validate-resolution --pr 123 --comprehensive
+```
 
-### Phase 5: Post-Alignment Verification
-- Confirm alignment success
-- Verify orchestration functionality
-- Update documentation and checklists
+### API Usage
+Start the API server:
+```bash
+uvicorn src.api.main:app --reload
+```
 
-### Phase 6: Deferred Tasks
-- Task 31: Conflict scanning (post-alignment)
-- Scope creep tasks: Feature development work (later)
+Then make requests to the endpoints:
+- `GET /` - Health check
+- `POST /setup-resolution/` - Setup resolution workspace
+- `GET /health` - Health check
 
-## Critical Focus Areas
+## Security
 
-### Orchestration Protection
-- **Files to Monitor**: launch.py, agent modules, context control, database connections
-- **Protection**: Automated scripts verify integrity before and after changes
-- **Monitoring**: Changes to orchestration files are flagged for review
+### Input Validation
+- PR numbers are validated to be within reasonable bounds
+- Git references are validated to prevent command injection
+- File paths are validated to prevent directory traversal
 
-### Migration Verification
-- **Import Statements**: Verify all imports updated after backend→src migration
-- **Configuration Files**: Check all configs reference new directory structure
-- **Functionality**: Confirm all features work after structural changes
+### Safe Operations
+- Subprocess calls use parameterized commands to prevent injection
+- Path operations are validated before execution
+- Configuration values are validated before use
 
-### Branch Management
-- **Script Distribution**: Ensure each branch has necessary tools before alignment
-- **Similarity Analysis**: Check for branches with similar names but different content
-- **Target Verification**: Confirm each branch aligns with appropriate target
-- **Conflict Resolution**: Safeguard against destructive merge patterns
-- **Task Classification**: Ensure alignment process tasks (74-83) are implemented as part of alignment, not on separate branches
+## Development
 
-## Files Created/Updated
+### Running Tests
+```bash
+pytest tests/
+```
 
-- `scope_creep_tasks_backup.json` - Backup of scope creep tasks
-- `scripts/monitor_orchestration_changes.sh` - Automated orchestration monitoring
-- `scripts/distribute_alignment_scripts.sh` - Script distribution tool for branch preparation
-- `scripts/branch_analysis_check.sh` - Branch analysis and verification tool
-- `BRANCH_ANALYSIS_FINDINGS.md` - Analysis of branch structure issues
-- `ORCHESTRATION_FILES_MONITORING_CHECKLIST.md` - Checklist for change monitoring
-- `TASK_SYSTEM_UPDATES_SUMMARY.md` - Comprehensive update documentation
-- `EXECUTIVE_SUMMARY_TASK_CHANGES.md` - Executive summary of changes
-- `SCRIPT_DISTRIBUTION_WORKFLOW.md` - Documentation of new script distribution process
-- `TASK_CLASSIFICATION_SYSTEM.md` - New task classification system documentation
+### Code Formatting
+```bash
+black .
+```
 
-## Implementation Status
+### Linting
+```bash
+flake8 .
+```
 
-✅ **Scope creep tasks removed** from core workflow
-✅ **Task 31 properly deferred** due to risk
-✅ **Task Classification System implemented** with clear process vs. feature distinction
-✅ **Script distribution process implemented** for consistent tooling
-✅ **Safety checks implemented** before alignment
-✅ **Monitoring systems created** for orchestration integrity
-✅ **Migration verification process** established
-✅ **Documentation updated** to reflect new structure
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
-The alignment process can now proceed safely with proper safeguards while maintaining focus on the core objectives. Each branch will now have the necessary tools available locally during alignment via the new distribution process. The critical distinction between process tasks (74-83) and feature development tasks is now clearly established.
+## License
+MIT

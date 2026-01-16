@@ -1,0 +1,51 @@
+graph TD
+    %% Define Nodes
+    T001[Task 001: Framework Strategy Definition]
+    T002[Task 002: Branch Clustering System]
+    T009[Task 009: Automate Changes Summary]
+    T010[Task 010: Core Alignment & Iterative Rebase]
+    T016[Task 016: Refine launch.py & Orchestration]
+    T019[Task 019: Scan & Resolve Conflicts]
+
+    %% Define Sub-Nodes / Processes
+    subgraph Iterative_Alignment_Process
+        T010_1[Identify Complex Branch]
+        T010_2[Iterative Rebase (Small Batches)]
+        T010_3[Targeted Testing Hook]
+        T010_4[Conflict Resolution]
+        T010_5[Architectural Review]
+        
+        T010_1 --> T010_2
+        T010_2 --> T010_3
+        T010_3 -->|Fail| T010_4
+        T010_4 --> T010_2
+        T010_3 -->|Pass| T010_5
+        T010_5 -->|Continue| T010_2
+        T010_5 -->|Complete| T010_End[Alignment Complete]
+    end
+
+    subgraph Clustering_Refinement_Cycle
+        T002_1[Analyze Branches]
+        T002_2[Cluster & Assign Targets]
+        T001_1[Refine Criteria based on Data]
+        
+        T002_1 --> T002_2
+        T002_2 --> T001_1
+        T001_1 -->|Updated Criteria| T002_2
+    end
+
+    %% Define Dependencies & Flow
+    T001 -->|Framework Criteria| T002
+    T001 -->|Validation Standards| T010
+    
+    T002 -->|Target Assignments| T010
+    T002 -->|Incremental Updates| T016
+    
+    T009 -->|Diff Analysis Tools| T010
+    
+    T010 -->|Complex Alignment Handled| T019
+    T019 -->|Incremental Integration| T016
+    
+    %% Styling
+    classDef iterative fill:#f9f,stroke:#333,stroke-width:2px;
+    class T010,T002,T019,T001 iterative;

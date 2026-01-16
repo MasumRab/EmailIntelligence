@@ -16,6 +16,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, NoReturn
 
+# Import new modular components
+from src.core.config import ConfigurationManager
+from src.core.security import SecurityValidator
+from src.core.git_operations import GitOperations
+
 # Constitutional Engine integration
 from src.resolution import ConstitutionalEngine
 
@@ -49,11 +54,16 @@ class EmailIntelligenceCLI:
         self.constitutions_dir = self.repo_root / ".emailintelligence" / "constitutions"
         self.strategies_dir = self.repo_root / ".emailintelligence" / "strategies"
 
+        # Initialize modular components
+        self.config_manager = ConfigurationManager(self.repo_root)
+        self.security_validator = SecurityValidator(self.repo_root)
+        self.git_operations = GitOperations(self.repo_root)
+
         # Create necessary directories
         self._ensure_directories()
 
-        # Load configuration
-        self.config = self._load_config()
+        # Load configuration from config manager
+        self.config = self.config_manager.config
 
         # Initialize Constitutional Engine
         self.constitutional_engine = ConstitutionalEngine(
@@ -63,7 +73,7 @@ class EmailIntelligenceCLI:
         self._constitutional_engine_initialized = False
 
         # Initialize Git Conflict Detector
-        self.conflict_detector = GitConflictDetector(self.repo_path)
+        self.conflict_detector = GitConflictDetector(self.repo_root)
 
         # Initialize Conflict Analyzer
         self.conflict_analyzer = ConflictAnalyzer()
@@ -172,52 +182,28 @@ class EmailIntelligenceCLI:
         ]
 
         for directory in directories:
+            # Validate directory path to prevent directory traversal
+            if not self.security_validator.is_safe_path(directory):
+                self._error_exit(f"Unsafe directory path detected: {directory}")
             directory.mkdir(parents=True, exist_ok=True)
+
+    def _is_valid_pr_number(self, pr_number: int) -> bool:
+        """Validate that the PR number is reasonable"""
+        return self.security_validator.is_valid_pr_number(pr_number)
+
+    def _is_valid_git_reference(self, ref: str) -> bool:
+        """Validate git reference (branch name) to prevent command injection"""
+        return self.security_validator.is_valid_git_reference(ref)
 
     def _check_git_repository(self):
         """Verify we're in a git repository"""
-        try:
-            subprocess.run(
-                ["git", "rev-parse", "--git-dir"],
-                cwd=self.repo_root,
-                check=True,
-                capture_output=True
-            )
-        except subprocess.CalledProcessError:
+        if not self.git_operations.check_git_repository():
             self._error_exit("Not in a git repository. Please run from a git repository root.")
 
     def _load_config(self) -> Dict[str, Any]:
         """Load EmailIntelligence configuration"""
-        if not self.config_file.exists():
-            default_config = {
-                'constitutional_framework': {
-                    'default_constitutions': [],
-                    'compliance_threshold': 0.8
-                },
-                'worktree_settings': {
-                    'cleanup_on_completion': True,
-                    'max_worktrees': 10
-                },
-                'analysis_settings': {
-                    'enable_ai_analysis': False,
-                    'detailed_reporting': True
-                }
-            }
-
-            with open(self.config_file, 'w') as f:
-                if yaml:
-                    yaml.dump(default_config, f, default_flow_style=False)
-                else:
-                    json.dump(default_config, f, indent=2)
-
-            self._info("Created default configuration at ~/.emailintelligence/config.yaml")
-            return default_config
-
-        with open(self.config_file) as f:
-            if yaml:
-                return yaml.safe_load(f)
-            else:
-                return json.load(f)
+        # Configuration is now handled by ConfigurationManager
+        return self.config_manager.config
 
     def setup_resolution(
         self, pr_number: int, source_branch: str, target_branch: str,
@@ -235,9 +221,23 @@ class EmailIntelligenceCLI:
             spec_files: List of specification files
             dry_run: Preview setup without creating worktrees
         """
+        # Validate inputs to prevent injection attacks
+        if not self._is_valid_pr_number(pr_number):
+            self._error_exit(f"Invalid PR number: {pr_number}")
+
+        if not self._is_valid_git_reference(source_branch):
+            self._error_exit(f"Invalid source branch name: {source_branch}")
+
+        if not self._is_valid_git_reference(target_branch):
+            self._error_exit(f"Invalid target branch name: {target_branch}")
+
         resolution_branch = f"pr-{pr_number}-resolution"
         worktree_a_path = self.worktrees_dir / f"pr-{pr_number}-branch-a"
         worktree_b_path = self.worktrees_dir / f"pr-{pr_number}-branch-b"
+
+        # Validate paths to prevent directory traversal
+        if not self._is_safe_path(worktree_a_path) or not self._is_safe_path(worktree_b_path):
+            self._error_exit("Unsafe worktree paths detected")
 
         self._info(f"Setting up resolution workspace for PR #{pr_number}...")
 
@@ -250,11 +250,8 @@ class EmailIntelligenceCLI:
         try:
             # Step 1: Create resolution branch
             self._info(f"📁 Creating resolution branch: {resolution_branch}")
-            subprocess.run(
-                ["git", "checkout", "-b", resolution_branch],
-                cwd=self.repo_root,
-                check=True
-            )
+            if not self.git_operations.create_branch(resolution_branch):
+                self._error_exit(f"Failed to create resolution branch: {resolution_branch}")
 
             # Step 2: Create worktrees
             self._info("🔧 Creating worktrees:")
@@ -262,18 +259,12 @@ class EmailIntelligenceCLI:
             self._info(f"   └─ worktree-b: {target_branch} (target branch)")
 
             # Create worktree for source branch
-            subprocess.run(
-                ["git", "worktree", "add", str(worktree_a_path), source_branch],
-                cwd=self.repo_root,
-                check=True
-            )
+            if not self.git_operations.create_worktree(worktree_a_path, source_branch):
+                self._error_exit(f"Failed to create worktree for source branch: {source_branch}")
 
             # Create worktree for target branch
-            subprocess.run(
-                ["git", "worktree", "add", str(worktree_b_path), target_branch],
-                cwd=self.repo_root,
-                check=True
-            )
+            if not self.git_operations.create_worktree(worktree_b_path, target_branch):
+                self._error_exit(f"Failed to create worktree for target branch: {target_branch}")
 
             # Step 3: Load constitutions and specifications
             self._info("📋 Loading constitutions and specifications:")

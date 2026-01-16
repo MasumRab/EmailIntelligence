@@ -157,6 +157,44 @@ python scripts/find_lost_tasks.py --output lost_tasks.json
 python scripts/find_lost_tasks.py --verbose
 ```
 
+#### Task Metadata Preservation
+
+**Task Metadata Manager** - Backup, restore, and embed extended metadata from task markdown files.
+
+> **Why this is critical:** Task Master's `TaskEntity.toJSON()` strips custom fields during serialization. Fields like `effort`, `complexity`, `owner`, `successCriteria` are lost when running `expand`, `update-task`, `update`, or `parse-prd`.
+
+```bash
+# Backup all task markdown files (before destructive operations)
+python scripts/task_metadata_manager.py backup --all
+
+# Backup a specific task
+python scripts/task_metadata_manager.py backup --task 001
+
+# List available backups for a task
+python scripts/task_metadata_manager.py list-backups --task 001
+
+# Restore from backup (0 = most recent)
+python scripts/task_metadata_manager.py restore --task 001 --index 0
+
+# Embed extended metadata from markdown into tasks.json
+python scripts/task_metadata_manager.py embed --task 001
+
+# Generate metadata coverage report
+python scripts/task_metadata_manager.py report
+```
+
+**Extended Metadata Format** (embed in task `details` field):
+```markdown
+<!-- EXTENDED_METADATA
+effort: 2-3h
+complexity: 7/10
+owner: developer-name
+successCriteria:
+  - Criterion 1
+  - Criterion 2
+END_EXTENDED_METADATA -->
+```
+
 ### 2. Orchestration & Setup Scripts (Bash)
 
 #### Git Hooks Management
@@ -386,7 +424,8 @@ scripts/
 │   ├── enhance_tasks_from_archive.py  # Enhance tasks from archive
 │   ├── split_enhanced_plan.py         # Split plan into task files
 │   ├── regenerate_tasks_from_plan.py  # Regenerate tasks.json
-│   └── find_lost_tasks.py             # Find tasks in git history
+│   ├── find_lost_tasks.py             # Find tasks in git history
+│   └── task_metadata_manager.py       # Backup/restore/embed task metadata
 │
 └── Orchestration (Bash)
     ├── disable-hooks.sh               # Disable Git hooks
