@@ -141,6 +141,8 @@ class DatabaseManager(DataSource):
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
+        self._search_index: Dict[int, str] = {}
+        self._content_available_index: Set[int] = set()
 
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
@@ -158,6 +160,18 @@ class DatabaseManager(DataSource):
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
+
+    def _get_searchable_text(self, email: Dict[str, Any]) -> str:
+        """
+        Generates a lowercased string containing all searchable text from the light email record.
+        This is used to optimize the search loop by avoiding repetitive lowercasing and dictionary lookups.
+        """
+        parts = [
+            email.get(FIELD_SUBJECT, ""),
+            email.get(FIELD_SENDER, ""),
+            email.get(FIELD_SENDER_EMAIL, "")
+        ]
+        return " ".join(p for p in parts if p).lower()
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
@@ -217,6 +231,26 @@ class DatabaseManager(DataSource):
             for email in self.emails_data
             if FIELD_MESSAGE_ID in email
         }
+
+        # Build search index
+        self._search_index = {}
+        for email in self.emails_data:
+            self._search_index[email[FIELD_ID]] = self._get_searchable_text(email)
+
+        # Build content available index
+        self._content_available_index = set()
+        if os.path.exists(self.email_content_dir):
+            try:
+                for filename in os.listdir(self.email_content_dir):
+                    if filename.endswith(".json.gz"):
+                        try:
+                            email_id = int(filename.split(".")[0])
+                            self._content_available_index.add(email_id)
+                        except ValueError:
+                            pass
+            except OSError as e:
+                logger.error(f"Error listing email content directory: {e}")
+
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
@@ -412,6 +446,10 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if message_id:
             self.emails_by_message_id[message_id] = email
+        self._search_index[email_id] = self._get_searchable_text(email)
+
+        # Clear query cache when data changes
+        self.caching_manager.clear_query_cache()
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
@@ -667,32 +705,52 @@ class DatabaseManager(DataSource):
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
+
         search_term_lower = search_term.lower()
+
+        # Check cache
+        cache_key = f"search_{search_term_lower}_{limit}"
+        cached_results = self.caching_manager.get_query_result(cache_key)
+        if cached_results is not None:
+            return cached_results
+
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'. Using optimized index."
         )
+
         for email_light in self.emails_data:
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-            )
-            if found_in_light:
+            email_id = email_light.get(FIELD_ID)
+
+            # Use pre-computed search index for light fields
+            if search_term_lower in self._search_index.get(email_id, ""):
                 filtered_emails.append(email_light)
                 continue
-            email_id = email_light.get(FIELD_ID)
+
+            # Use content available index to avoid disk check if content doesn't exist
+            if email_id not in self._content_available_index:
+                continue
+
+            # Only perform disk I/O if content actually exists
             content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+            try:
+                # Use context manager to ensure file is closed
+                with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                    # Partial read might be faster for large files, but json structure requires full read
+                    heavy_data = json.load(f)
+                    content = heavy_data.get(FIELD_CONTENT, "")
+                    if isinstance(content, str) and search_term_lower in content.lower():
+                        filtered_emails.append(email_light)
+            except (IOError, json.JSONDecodeError, OSError) as e:
+                # Don't log every error as it spam logs during heavy search
+                pass
+
+        results = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+        # Cache the results
+        self.caching_manager.put_query_result(cache_key, results)
+
+        return results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -725,6 +783,8 @@ class DatabaseManager(DataSource):
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
+            # Update content available index
+            self._content_available_index.add(email_id)
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
@@ -740,6 +800,10 @@ class DatabaseManager(DataSource):
         )
         if idx != -1:
             self.emails_data[idx] = email
+        self._search_index[email_id] = self._get_searchable_text(email)
+
+        # Clear query cache when data changes
+        self.caching_manager.clear_query_cache()
 
     async def update_email(
         self, email_id: int, update_data: Dict[str, Any]
