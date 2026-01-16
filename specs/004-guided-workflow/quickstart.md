@@ -1,82 +1,40 @@
-# Quickstart: Orchestration Core (`dev.py`)
+# Quickstart: Guided Developer Workflows
 
-The `dev.py` tool is your cockpit for high-rigor development workflows. It replaces manual git plumbing and script execution with a unified, safe interface.
+## Overview
+The `dev.py` CLI provides interactive guidance for common development tasks and advanced conflict resolution.
 
-## 1. Setup
+## Installation
+1.  Ensure you have the project dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+2.  (Optional) Install guide-specific dependencies:
+    ```bash
+    pip install -r src/cli/guides/requirements.txt
+    ```
 
-Ensure you are in the repository root and have the environment active:
+## Usage
 
+### 1. General Development
+Unsure where to start or which branch to use?
 ```bash
-source .venv/bin/activate
-python dev.py --help
+python dev.py guide-dev
+```
+*   **What it does**: Asks about your intent, checks your branch, and warns if you are about to edit shared configuration files in the wrong place.
+
+### 2. PR Resolution
+Need to merge a complex feature or orchestration change?
+```bash
+python dev.py guide-pr
+```
+*   **What it does**: Routes you to the correct script (`manage_orchestration_changes.sh`) or the Advanced Resolution Engine based on the PR type.
+
+### 3. Advanced Analysis (Scientific Engine)
+Run deep conflict analysis using the integrated AI engine:
+```bash
+python dev.py analyze --pr 123
 ```
 
-### IDE Integration
-Generate configuration files for your preferred editor:
-
-```bash
-# For VSCode (default)
-python dev.py ide-init
-
-# For Windsurf or Antigravity
-python dev.py ide-init --target windsurf
-python dev.py ide-init --target antigravity
-```
-
-## 2. Key Workflows
-
-### Analyze Conflicts (In-Memory)
-Check for conflicts between your branch and main without switching branches:
-
-```bash
-python dev.py analyze main
-# Output: JSON report of conflicts (or "Clean" status)
-```
-
-### Plan Rebase
-Generate a topologically sorted rebase plan for your complex feature branch:
-
-```bash
-python dev.py plan-rebase
-# Output: List of commits in dependency order
-```
-
-### Interactive Rebase (Execute)
-Apply the plan:
-```bash
-python dev.py rebase --apply
-```
-
-### Sync Tools
-Update your local environment scripts from the canonical source (`origin/orchestration-tools`):
-
-```bash
-python dev.py sync
-# Interactive: Select which scripts to update
-```
-
-### Install Hooks
-Install constitutional enforcement hooks (safe backup of existing hooks):
-
-```bash
-python dev.py install-hooks
-# Renames existing pre-commit to pre-commit.bak
-```
-
-### Headless Mode (CI/Agents)
-Run any command with `--json` for machine-parsable output:
-
-```bash
-python dev.py analyze main --json
-```
-
-## 3. Configuration Rules
-
-The tool enforces rules defined in `.specify/memory/constitution.md`.
-- **No Logic in Scripts**: `.sh` files are for orchestration only.
-- **Library-First**: Core logic must be in `src/core`.
-
-Run a scan manually:
-```bash
-python dev.py analyze --const
-```
+## Troubleshooting
+*   **"Module not found"**: Ensure you are in the repo root and `src` is in your PYTHONPATH (dev.py handles this automatically).
+*   **"Worktree error"**: Ensure you have a clean working directory before running analysis commands that use ephemeral worktrees.

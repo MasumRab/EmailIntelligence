@@ -1,38 +1,40 @@
-# Research: Unified Launch System (Scientific Integration)
+# Research: Guided CLI Workflows & Unified Integration
 
 **Feature**: 004-guided-workflow
-**Status**: Revised (Unified Strategy)
+**Status**: Consolidated
 
-## 1. Integration Strategy
+## 1. Unified CLI Architecture (`dev.py`)
 
-### Discovery
-The `scientific` branch contains a mature `EmailIntelligenceCLI` (`eai`) with advanced capabilities:
-- **Semantic Conflict Detection**: `GitConflictDetector`
-- **Constitutional Analysis**: `ConstitutionalEngine`
-- **AI Resolution**: `AutoResolver`
+### Decision: Sidecar Entry Point
+- **Context**: `launch.py` is complex and pending refactor.
+- **Choice**: Create `dev.py` as a lightweight, independent entry point.
+- **Rationale**: Decouples new developer tools from legacy infrastructure. Allows "Phase 2" implementation without regression risk.
+- **Pattern**: `dev.py` imports standalone modules from `src/cli/guides/`.
 
-### Decision: Full Integration (Unified CLI)
-Instead of maintaining two CLIs (`launch.py` and `emailintelligence_cli.py`), we will **merge** the Scientific capabilities into the Orchestration `launch.py` framework.
-- **Goal**: One entry point for all developers (`python launch.py`).
-- **Mechanism**: Port `eai` commands to `setup/commands/*.py` using the `Command` pattern.
-- **Architecture**: Move Scientific Engines to `src/core/` and `src/resolution/` as shared libraries.
+## 2. Git Worktree Isolation (`GitWorktreeRunner`)
 
-## 2. Data Model Alignment
+### Decision: Python Context Manager
+- **Context**: Need safe, ephemeral environments for conflict analysis.
+- **Inspiration**: [git-worktree-runner](https://github.com/coderabbitai/git-worktree-runner)
+- **Implementation**:
+  ```python
+  with GitWorktreeRunner(branch="feature/x") as worktree:
+      # worktree.path is now a clean directory
+      engine.analyze(worktree.path)
+  # auto-cleanup on exit
+  ```
+- **Rationale**: Provides the safety of the external tool without the binary dependency/shelling-out overhead.
 
-### Decision: Shared Schema
-The Orchestration tools must adopt the `Conflict` and `Violation` schemas defined in `src.core.conflict_models` (Scientific) to allow seamless data exchange.
-- **Conflict**: Represents semantic conflicts.
-- **ResolutionPlan**: Tracks the strategy for resolving them.
+## 3. Scientific Engine Integration
 
-## 3. Git Plumbing Strategy
+### Decision: Direct Import
+- **Context**: Scientific code (`ConstitutionalEngine`, `GitConflictDetector`) is now merged into `src/`.
+- **Choice**: `dev.py` commands (`analyze`, `resolve`) will directly import these classes.
+- **Gap**: Requires `requirements-guides.txt` to ensure AI dependencies (like `PyYAML`, `networkx`) are present.
 
-### Decision: `git worktree` (Scientific Approach)
-The `scientific` CLI uses ephemeral worktrees for isolation. The Unified `guide-pr` command will adopt this pattern:
-- **Isolate**: Complex merges happen in `resolution-workspace` worktrees.
-- **Protect**: The user's main worktree remains untouched until validation passes.
+## 4. State Management
 
-## 4. AST Scanning Strategy
-
-### Decision: `ConstitutionalEngine`
-We will migrate the `ConstitutionalEngine` class to `src/resolution/` and expose it via `launch.py analyze`.
-- **Config**: It will continue to use the YAML-based "Constitutions" found in `.emailintelligence/constitutions/`.
+### Decision: `WorkflowContextManager`
+- **Context**: Interactive guides need to remember user intent across steps.
+- **Choice**: A simple state machine class (already prototyped in Phase 1).
+- **Persistence**: In-memory for now. Future: `.dev_state.json` for resuming interrupted sessions.

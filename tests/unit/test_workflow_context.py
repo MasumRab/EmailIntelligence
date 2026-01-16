@@ -1,42 +1,33 @@
 """
-Unit tests for the WorkflowContextManager.
+Unit tests for WorkflowContextManager.
 """
 
-import unittest
+import pytest
 from src.lib.workflow_context import WorkflowContextManager
 
-class TestWorkflowContextManager(unittest.TestCase):
-    """
-    Tests for the WorkflowContextManager class.
-    """
+def test_initial_state():
+    """Verify the manager starts at 'start' step."""
+    manager = WorkflowContextManager("test-guide")
+    assert manager.get_current_step() == "start"
+    assert manager.state.guide_name == "test-guide"
+    assert not manager.state.is_completed
 
-    def test_initialization(self):
-        """
-        Test that the WorkflowContextManager can be initialized.
-        """
-        try:
-            manager = WorkflowContextManager()
-            self.assertIsNotNone(manager)
-        except Exception as e:
-            self.fail(f"WorkflowContextManager initialization failed with an error: {e}")
+def test_transition():
+    """Verify step transitions work correctly."""
+    manager = WorkflowContextManager("test-guide")
+    manager.transition_to("next-step")
+    assert manager.get_current_step() == "next-step"
 
-    def test_initial_stage(self):
-        """
-        Test that the initial stage is set correctly.
-        """
-        manager = WorkflowContextManager()
-        self.assertEqual(manager.stage, "INITIAL")
+def test_context_updates():
+    """Verify data can be stored and retrieved from context."""
+    manager = WorkflowContextManager("test-guide")
+    manager.update_context({"intent": "app_code", "count": 42})
+    assert manager.get_context_value("intent") == "app_code"
+    assert manager.get_context_value("count") == 42
+    assert manager.get_context_value("missing", "default") == "default"
 
-    def test_context_management_protocol(self):
-        """
-        Test that the class works as a context manager.
-        """
-        try:
-            with WorkflowContextManager() as guide:
-                self.assertIsInstance(guide, WorkflowContextManager)
-                self.assertEqual(guide.stage, "INITIAL")
-        except Exception as e:
-            self.fail(f"Using WorkflowContextManager as a context manager failed: {e}")
-
-if __name__ == '__main__':
-    unittest.main()
+def test_completion():
+    """Verify workflow can be marked completed."""
+    manager = WorkflowContextManager("test-guide")
+    manager.complete()
+    assert manager.state.is_completed

@@ -1,49 +1,43 @@
 """
-This module contains the WorkflowContextManager for guiding users through CLI workflows.
+Workflow Context Manager for Guided CLI Workflows.
+
+Manages the state and transitions of interactive developer guides.
 """
+
+from typing import Dict, Any, Optional
+from dataclasses import dataclass, field
+
+@dataclass
+class WorkflowState:
+    """Represents the current state of a workflow session."""
+    guide_name: str
+    current_step: str = "start"
+    context: Dict[str, Any] = field(default_factory=dict)
+    is_completed: bool = False
 
 class WorkflowContextManager:
     """
-    A context manager to guide users through complex repository workflows.
+    Manages the lifecycle and state transitions of guided workflows.
     """
+    def __init__(self, guide_name: str):
+        self.state = WorkflowState(guide_name=guide_name)
 
-    def __init__(self):
-        self.stage = "INITIAL"
-        print("Initializing Workflow Guide...")
+    def get_current_step(self) -> str:
+        """Return the ID of the current step."""
+        return self.state.current_step
 
-    def __enter__(self):
-        """
-        Enter the context, providing initial guidance.
-        """
-        print("--- Workflow Guide Activated ---")
-        return self
+    def update_context(self, data: Dict[str, Any]):
+        """Merge new data into the workflow context."""
+        self.state.context.update(data)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """
-        Exit the context, providing a summary or cleanup.
-        """
-        print("--- Workflow Guide Deactivated ---")
-        if exc_type:
-            print(f"An error occurred: {exc_val}")
+    def transition_to(self, step_id: str):
+        """Move the workflow to a new step."""
+        self.state.current_step = step_id
 
-    def guide_dev(self):
-        """
-        Provides guidance for the general development workflow.
-        """
-        # Implementation to follow based on tasks.md
-        pass
+    def complete(self):
+        """Mark the workflow as completed."""
+        self.state.is_completed = True
 
-    def guide_pr(self):
-        """
-        Provides guidance for the PR resolution workflow.
-        """
-        # Implementation to follow based on tasks.md
-        pass
-
-if __name__ == '__main__':
-    # Example usage:
-    with WorkflowContextManager() as guide:
-        print("Guide is active. Current stage:", guide.stage)
-        # In a real scenario, we would call guide.guide_dev() or guide.guide_pr()
-        # based on user input from launch.py.
-
+    def get_context_value(self, key: str, default: Any = None) -> Any:
+        """Retrieve a value from the workflow context."""
+        return self.state.context.get(key, default)
