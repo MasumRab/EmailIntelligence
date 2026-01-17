@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
+import argon2
 from argon2 import PasswordHasher
 
 import jwt
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
+
     username: Optional[str] = None
     role: Optional[str] = "user"
 
@@ -36,6 +38,7 @@ from enum import Enum
 
 class UserRole(str, Enum):
     """User roles for role-based access control"""
+
     ADMIN = "admin"
     USER = "user"
     GUEST = "guest"
@@ -43,6 +46,7 @@ class UserRole(str, Enum):
 
 class User(BaseModel):
     """User model for authentication"""
+
     username: str
     hashed_password: str
     role: UserRole = UserRole.USER
@@ -51,6 +55,12 @@ class User(BaseModel):
 
 # Initialize security scheme
 security = HTTPBearer()
+
+# Create a dummy hash for timing attack protection
+# This ensures that even if a user is not found, we perform a hash verification
+# to prevent timing attacks that could reveal valid usernames.
+# Pre-calculated Argon2 hash for "dummy_password_for_timing_protection"
+DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$vmGJcsypz0mUw/buorH0Vw$v0n8bmGvoumOVjswxz1fS0cN061kGca7t2ZAI69o2S0"
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -70,7 +80,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )
     return encoded_jwt
 
 
@@ -115,7 +127,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
+async def authenticate_user(
+    username: str, password: str, db
+) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
 
@@ -130,8 +144,21 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
     try:
         # Try to get user from database
         user_data = await db.get_user_by_username(username)
-        if user_data and verify_password(password, user_data.get("hashed_password", "")):
+
+        # TIMING ATTACK PROTECTION:
+        # Always perform password verification to prevent timing attacks
+        # that could allow attackers to enumerate valid usernames.
+        if user_data:
+            hashed_password = user_data.get("hashed_password", "")
+        else:
+            # Use dummy hash if user not found
+            hashed_password = DUMMY_HASH
+
+        is_valid = verify_password(password, hashed_password)
+
+        if user_data and is_valid:
             return user_data
+
         return None
     except Exception as e:
         logger.error(f"Error authenticating user {username}: {e}")
@@ -160,10 +187,7 @@ async def create_user(username: str, password: str, db) -> bool:
         hashed_password = hash_password(password)
 
         # Create user in database
-        user_data = {
-            "username": username,
-            "hashed_password": hashed_password
-        }
+        user_data = {"username": username, "hashed_password": hashed_password}
 
         await db.create_user(user_data)
         return True
@@ -173,7 +197,7 @@ async def create_user(username: str, password: str, db) -> bool:
 
 
 async def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
@@ -199,7 +223,7 @@ async def verify_token(
         payload = jwt.decode(
             credentials.credentials,
             settings.secret_key,
-            algorithms=[settings.algorithm]
+            algorithms=[settings.algorithm],
         )
         username: str = payload.get("sub")
         role: str = payload.get("role", "user")
@@ -248,15 +272,17 @@ def require_role(required_role: UserRole):
     Returns:
         A dependency function that checks the user's role
     """
+
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role != required_role.value:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. {required_role.value} role required."
+                detail=f"Access denied. {required_role.value} role required.",
             )
         return token_data
+
     return role_checker
 
 
@@ -270,15 +296,17 @@ def require_any_role(required_roles: List[UserRole]):
     Returns:
         A dependency function that checks the user's role
     """
+
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role not in [role.value for role in required_roles]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required."
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required.",
             )
         return token_data
+
     return role_checker
 
 
