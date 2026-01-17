@@ -141,6 +141,8 @@ class DatabaseManager(DataSource):
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
+        self._search_index: Dict[int, str] = {}
+        self._content_available_index: set[int] = set()
 
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
@@ -207,6 +209,14 @@ class DatabaseManager(DataSource):
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
+    def _get_searchable_text(self, email: Dict[str, Any]) -> str:
+        """Generates a lowercased searchable string from email metadata."""
+        return " ".join([
+            email.get(FIELD_SUBJECT, "") or "",
+            email.get(FIELD_SENDER, "") or "",
+            email.get(FIELD_SENDER_EMAIL, "") or ""
+        ]).lower()
+
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
@@ -220,10 +230,33 @@ class DatabaseManager(DataSource):
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
+
+        # Reset optimized indexes
+        self._search_index = {}
+        self._content_available_index = set()
+
+        # Build content availability index
+        try:
+            if os.path.exists(self.email_content_dir):
+                available_files = os.listdir(self.email_content_dir)
+                for filename in available_files:
+                    if filename.endswith(".json.gz"):
+                        try:
+                            email_id = int(filename.split(".")[0])
+                            self._content_available_index.add(email_id)
+                        except ValueError:
+                            pass
+        except OSError:
+            logger.warning(f"Could not list content directory: {self.email_content_dir}")
+
         for email in self.emails_data:
             cat_id = email.get(FIELD_CATEGORY_ID)
             if cat_id in self.category_counts:
                 self.category_counts[cat_id] += 1
+
+            # Build search index
+            self._search_index[email[FIELD_ID]] = self._get_searchable_text(email)
+
         for cat_id, count in self.category_counts.items():
             if (
                 cat_id in self.categories_by_id
@@ -412,6 +445,9 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if message_id:
             self.emails_by_message_id[message_id] = email
+
+        # Update search index
+        self._search_index[email_id] = self._get_searchable_text(email)
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
@@ -670,20 +706,22 @@ class DatabaseManager(DataSource):
         search_term_lower = search_term.lower()
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'. using optimized indexes."
         )
+
+        # Performance optimization: Use pre-computed indexes and content availability check
         for email_light in self.emails_data:
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-            )
-            if found_in_light:
+            email_id = email_light.get(FIELD_ID)
+
+            # Fast check using search index (avoids repeated string operations)
+            searchable_text = self._search_index.get(email_id, "")
+            if search_term_lower in searchable_text:
                 filtered_emails.append(email_light)
                 continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
+
+            # Check content ONLY if available on disk (avoids os.path.exists calls)
+            if email_id in self._content_available_index:
+                content_path = self._get_email_content_path(email_id)
                 try:
                     with gzip.open(content_path, "rt", encoding="utf-8") as f:
                         heavy_data = json.load(f)
@@ -692,6 +730,7 @@ class DatabaseManager(DataSource):
                             filtered_emails.append(email_light)
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
+
         return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
@@ -725,6 +764,9 @@ class DatabaseManager(DataSource):
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
+
+            # Update content availability index
+            self._content_available_index.add(email_id)
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
@@ -734,6 +776,10 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if email.get(FIELD_MESSAGE_ID):
             self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
+
+        # Update search index
+        self._search_index[email_id] = self._get_searchable_text(email)
+
         idx = next(
             (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
             -1,
