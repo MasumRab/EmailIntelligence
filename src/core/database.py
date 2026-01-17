@@ -141,6 +141,7 @@ class DatabaseManager(DataSource):
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
+        self._content_available_index: set[int] = set()
 
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
@@ -231,6 +232,21 @@ class DatabaseManager(DataSource):
             ):
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
+
+        # Build content available index
+        try:
+            content_files = os.listdir(self.email_content_dir)
+            self._content_available_index = set()
+            for filename in content_files:
+                if filename.endswith(".json.gz"):
+                    try:
+                        email_id = int(filename.split(".")[0])
+                        self._content_available_index.add(email_id)
+                    except ValueError:
+                        pass
+        except OSError as e:
+            logger.error(f"Error building content available index: {e}")
+
         logger.info("In-memory indexes built successfully.")
 
     @log_performance(operation="load_data")
@@ -682,6 +698,11 @@ class DatabaseManager(DataSource):
                 filtered_emails.append(email_light)
                 continue
             email_id = email_light.get(FIELD_ID)
+
+            # Optimization: check in-memory index before hitting disk
+            if email_id not in self._content_available_index:
+                continue
+
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
                 try:
@@ -725,6 +746,7 @@ class DatabaseManager(DataSource):
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
+            self._content_available_index.add(email_id)
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
