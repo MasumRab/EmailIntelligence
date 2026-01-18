@@ -5,6 +5,7 @@ This module implements JWT-based authentication for API endpoints and integrates
 """
 
 import logging
+import time
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import hashlib
@@ -301,11 +302,19 @@ def create_security_context_for_user(username: str) -> SecurityContext:
     # Create a session token (in a real system, this would be linked to the JWT)
     session_token = secrets.token_urlsafe(32)
 
+    # Create timestamps for session lifecycle
+    # Use time.time() for reliable UTC timestamps independent of timezone issues
+    now = time.time()
+    # Default session duration is 8 hours
+    expires_at = now + (8 * 3600)
+
     context = SecurityContext(
         user_id=username,
         permissions=permissions,
         security_level=SecurityLevel.INTERNAL,
-        session_id=session_token,
+        session_token=session_token,
+        created_at=now,
+        expires_at=expires_at,
         allowed_resources=["*"],  # All resources allowed for now
     )
 
