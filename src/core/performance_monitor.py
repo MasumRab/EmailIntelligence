@@ -465,3 +465,73 @@ def record_metric(*args, **kwargs):
 def time_function(*args, **kwargs):
     """Convenience function to time functions."""
     return performance_monitor.time_function(*args, **kwargs)
+
+
+def log_performance(operation_or_func=None, *, operation: str = ""):
+    """
+    Adapter decorator to map legacy @log_performance usage to OptimizedPerformanceMonitor.
+    Can be used as @log_performance or @log_performance(operation="custom_name").
+    """
+    if callable(operation_or_func) and operation == "":
+        # Used as @log_performance (without parentheses)
+        func = operation_or_func
+        op_name = func.__name__
+        return _create_adapter_decorator(func, op_name)
+    elif operation_or_func is not None and operation == "":
+        # Used as @log_performance("custom_name")
+        op_name = operation
+
+        def decorator(func):
+            return _create_adapter_decorator(func, op_name)
+
+        return decorator
+    else:
+        # Used as @log_performance(operation="custom_name")
+        op_name = operation
+
+        def decorator(func):
+            return _create_adapter_decorator(func, op_name)
+
+        return decorator
+
+
+def _create_adapter_decorator(func, op_name):
+    """Create the actual decorator for a function, mapping to record_metric"""
+    if asyncio.iscoroutinefunction(func):
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            try:
+                result = await func(*args, **kwargs)
+                return result
+            finally:
+                duration = (time.perf_counter() - start_time)
+                try:
+                    record_metric(
+                        name=op_name,
+                        value=duration * 1000,  # Convert to ms
+                        unit="ms",
+                        tags={"operation": op_name}
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to log performance: {e}")
+        return async_wrapper
+    else:
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            try:
+                result = func(*args, **kwargs)
+                return result
+            finally:
+                duration = (time.perf_counter() - start_time)
+                try:
+                    record_metric(
+                        name=op_name,
+                        value=duration * 1000,  # Convert to ms
+                        unit="ms",
+                        tags={"operation": op_name}
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to log performance: {e}")
+        return sync_wrapper

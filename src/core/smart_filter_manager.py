@@ -723,7 +723,7 @@ class SmartFilterManager:
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
 
                     # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
+                    await self._update_filter_usage(filter_obj.filter_id, filter_obj)
 
             except Exception as e:
                 error_context = create_error_context(
@@ -744,7 +744,7 @@ class SmartFilterManager:
 
         return summary
 
-    async def _update_filter_usage(self, filter_id: str):
+    async def _update_filter_usage(self, filter_id: str, filter_obj: Optional[EmailFilter] = None):
         """Updates the usage statistics for a filter."""
         # Update usage count and last used time
         update_query = """
@@ -752,11 +752,21 @@ class SmartFilterManager:
             SET usage_count = usage_count + 1, last_used = ?
             WHERE filter_id = ?
         """
-        current_time = datetime.now(timezone.utc).isoformat()
+        current_time_dt = datetime.now(timezone.utc)
+        current_time = current_time_dt.isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION: Do not invalidate the sorted list cache.
+        # This prevents N+1 DB query issues when processing multiple matching filters/emails.
+        # Instead, we update the filter object in-memory (which updates the cached list by reference).
+        # await self.caching_manager.delete("active_filters_sorted")
+
+        if filter_obj:
+            filter_obj.usage_count += 1
+            filter_obj.last_used = current_time_dt
+
+        # We invalidate individual filter cache so fresh fetches get updated data
+        await self.caching_manager.delete(f"filter_{filter_id}")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
