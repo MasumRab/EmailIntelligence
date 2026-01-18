@@ -442,6 +442,9 @@ class DatabaseManager(DataSource):
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
 
+        # Clear query cache as data has changed
+        self.caching_manager.clear_query_cache()
+
         return self._add_category_details(light_email_record)
 
     async def get_email_by_id(
@@ -621,6 +624,9 @@ class DatabaseManager(DataSource):
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
             
+            # Clear query cache as data has changed
+            self.caching_manager.clear_query_cache()
+
         return self._add_category_details(email_to_update)
 
     async def get_email_by_message_id(
@@ -667,6 +673,13 @@ class DatabaseManager(DataSource):
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
+
+        # Check query cache
+        cache_key = f"search:{search_term}:{limit}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
+        if cached_result is not None:
+            return cached_result
+
         search_term_lower = search_term.lower()
         filtered_emails = []
         logger.info(
@@ -692,7 +705,13 @@ class DatabaseManager(DataSource):
                             filtered_emails.append(email_light)
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+
+        # Cache the result
+        self.caching_manager.put_query_result(cache_key, result)
+
+        return result
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -766,6 +785,9 @@ class DatabaseManager(DataSource):
                 await self._update_category_count(new_category_id, increment=True)
 
         self.caching_manager.invalidate_email_record(email_id)
+        # Clear query cache as data has changed
+        self.caching_manager.clear_query_cache()
+
         return self._add_category_details(email_to_update)
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
