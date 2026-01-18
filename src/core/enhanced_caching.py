@@ -207,6 +207,10 @@ class EnhancedCachingManager:
     def invalidate_query_result(self, query_key: str) -> None:
         """Invalidate query result cache."""
         self.query_cache.invalidate(query_key)
+
+    def clear_query_cache(self) -> None:
+        """Clear the entire query result cache."""
+        self.query_cache.clear()
     
     def clear_all_caches(self) -> None:
         """Clear all caches."""
