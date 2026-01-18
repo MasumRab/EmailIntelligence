@@ -7,7 +7,6 @@ marketplace integration, and runtime monitoring for extensible functionality.
 
 import asyncio
 import hashlib
-import json
 import logging
 import shutil
 import tempfile
@@ -21,13 +20,13 @@ from urllib.request import urlopen
 from .plugin_base import (
     HookSystem,
     PluginInstance,
-    PluginInterface,
     PluginMetadata,
     PluginRegistry,
     PluginSecurityLevel,
     PluginStatus,
     SecuritySandbox,
 )
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -334,6 +333,12 @@ class PluginManager:
                 extract_path.mkdir()
 
                 with zipfile.ZipFile(download_path, "r") as zip_ref:
+                    # Secure extraction - validate all paths first
+                    for member in zip_ref.infolist():
+                        if not validate_path_safety(member.filename, extract_path):
+                            raise SecurityError(f"Malicious file path detected in plugin archive: {member.filename}")
+
+                    # Safe to extract
                     zip_ref.extractall(extract_path)
 
                 # Move to plugins directory
