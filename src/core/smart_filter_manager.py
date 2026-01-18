@@ -700,9 +700,12 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
 
+        matched_filters = []
+
         for filter_obj in active_filters:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_context):
+                    matched_filters.append(filter_obj)
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
@@ -722,9 +725,6 @@ class SmartFilterManager:
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
 
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
-
             except Exception as e:
                 error_context = create_error_context(
                     component="SmartFilterManager",
@@ -738,6 +738,13 @@ class SmartFilterManager:
                     context=error_context
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
+
+        # Batch update usage statistics for all matched filters
+        if matched_filters:
+            await self._batch_update_filter_usage(matched_filters)
+            # Update the sorted list cache to ensure consistency
+            # This is safer than relying on in-place reference updates if caching strategy changes
+            await self.caching_manager.set("active_filters_sorted", active_filters)
 
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
@@ -757,6 +764,39 @@ class SmartFilterManager:
 
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
+
+    async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
+        """
+        Updates usage statistics for multiple filters efficiently.
+
+        This method updates the database and in-memory objects without
+        invalidating the entire sorted list cache, significantly improving
+        performance when multiple filters match an email.
+        """
+        current_time = datetime.now(timezone.utc)
+        current_time_iso = current_time.isoformat()
+
+        for filter_obj in filters:
+            # Update DB (could be further optimized with executemany but this is already better)
+            update_query = """
+                UPDATE email_filters
+                SET usage_count = usage_count + 1, last_used = ?
+                WHERE filter_id = ?
+            """
+            # We use _db_execute for each to ensure robustness, but we could optimize later
+            self._db_execute(update_query, (current_time_iso, filter_obj.filter_id))
+
+            # Update object in memory (updates the reference in cache if it exists there)
+            filter_obj.usage_count += 1
+            filter_obj.last_used = current_time
+
+            # Invalidate single filter cache just in case
+            await self.caching_manager.delete(f"filter_{filter_obj.filter_id}")
+
+        # NOTE: We specifically DO NOT invalidate "active_filters_sorted" here.
+        # Since we updated the objects in memory, and the cache (if using in-memory mode)
+        # holds references to these objects, the cached list is automatically up-to-date.
+        # This avoids expensive cache invalidation and rebuilding on every match.
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
