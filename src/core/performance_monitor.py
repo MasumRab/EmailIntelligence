@@ -265,6 +265,17 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Compatibility method for legacy log_performance decorator."""
+        # Extract fields from log_entry to map to record_metric
+        operation = log_entry.get("operation", "unknown_operation")
+        duration_ms = log_entry.get("duration_seconds", 0) * 1000
+        self.record_metric(
+            name=operation,
+            value=duration_ms,
+            unit="ms"
+        )
+
     def record_metric(
         self,
         name: str,
