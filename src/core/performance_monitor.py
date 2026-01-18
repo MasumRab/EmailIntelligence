@@ -265,6 +265,12 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Log a performance entry (compatibility wrapper)."""
+        name = log_entry.get("operation", "unknown_operation")
+        value = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
+        self.record_metric(name=name, value=value, unit="ms")
+
     def record_metric(
         self,
         name: str,
