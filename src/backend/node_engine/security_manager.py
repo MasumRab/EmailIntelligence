@@ -20,15 +20,6 @@ except ImportError:
     bleach = None
 
 
-class SecurityLevel(Enum):
-    """Security levels for different operations and data access"""
-
-    PUBLIC = "public"
-    INTERNAL = "internal"
-    CONFIDENTIAL = "confidential"
-    RESTRICTED = "restricted"
-
-
 @dataclass
 class ResourceLimits:
     """Defines resource limits for workflow execution."""
@@ -39,6 +30,62 @@ class ResourceLimits:
 
 
 from .enums import SecurityLevel
+
+
+class SanitizationLevel(Enum):
+    """Security levels for input sanitization policies."""
+    STRICT = "strict"
+    STANDARD = "standard"
+    PERMISSIVE = "permissive"
+
+
+@dataclass
+class SanitizationPolicy:
+    """Defines rules for input sanitization."""
+    level: SanitizationLevel
+    allowed_tags: List[str]
+    allowed_attributes: Dict[str, List[str]]
+    strip: bool = True
+
+
+# Define sanitization policies for each level
+SANITIZATION_POLICIES = {
+    SanitizationLevel.STRICT: SanitizationPolicy(
+        level=SanitizationLevel.STRICT,
+        allowed_tags=[],  # No tags allowed, plain text only
+        allowed_attributes={},
+        strip=True
+    ),
+    SanitizationLevel.STANDARD: SanitizationPolicy(
+        level=SanitizationLevel.STANDARD,
+        allowed_tags=[
+            "p", "br", "strong", "em", "u", "ol", "ul", "li",
+            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre"
+        ],
+        allowed_attributes={
+            "a": ["href", "title"],
+            "img": ["src", "alt", "title", "width", "height"],
+            "*": ["class", "id"],
+        },
+        strip=True
+    ),
+    SanitizationLevel.PERMISSIVE: SanitizationPolicy(
+        level=SanitizationLevel.PERMISSIVE,
+        allowed_tags=[
+            "p", "br", "strong", "em", "u", "ol", "ul", "li",
+            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre",
+            "div", "span", "table", "thead", "tbody", "tr", "th", "td",
+            "img", "a", "hr", "sub", "sup", "iframe"
+        ],
+        allowed_attributes={
+            "a": ["href", "title", "target", "rel"],
+            "img": ["src", "alt", "title", "width", "height", "style"],
+            "iframe": ["src", "width", "height", "frameborder", "allowfullscreen"],
+            "*": ["class", "id", "style"],
+        },
+        strip=True
+    ),
+}
 
 
 class SecurityManager:
@@ -188,38 +235,32 @@ class InputSanitizer:
     """Sanitizes inputs to prevent injection attacks."""
 
     @staticmethod
-    def sanitize_string(value: str) -> str:
-        """Sanitize a string input using proper HTML sanitization."""
+    def get_policy(level: SanitizationLevel) -> SanitizationPolicy:
+        """Get the sanitization policy for a specific level."""
+        return SANITIZATION_POLICIES.get(level, SANITIZATION_POLICIES[SanitizationLevel.STANDARD])
+
+    @staticmethod
+    def sanitize_string(value: str, level: SanitizationLevel = SanitizationLevel.STANDARD) -> str:
+        """
+        Sanitize a string input using proper HTML sanitization.
+
+        Args:
+            value: The string to sanitize.
+            level: The security level to apply (Strict, Standard, Permissive).
+        """
         if not isinstance(value, str):
             raise ValueError("Expected string input")
 
+        policy = InputSanitizer.get_policy(level)
+
         # If bleach is available, use it for proper HTML sanitization
         if bleach is not None:
-            # Allow only safe HTML tags and attributes
-            allowed_tags = [
-                "p",
-                "br",
-                "strong",
-                "em",
-                "u",
-                "ol",
-                "ul",
-                "li",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-            ]
-            allowed_attributes = {
-                "a": ["href", "title"],
-                "img": ["src", "alt", "title"],
-                "*": ["class", "id"],
-            }
-            # Clean HTML and strip malicious content
+            # Clean HTML and strip malicious content based on policy
             sanitized = bleach.clean(
-                value, tags=allowed_tags, attributes=allowed_attributes, strip=True
+                value,
+                tags=policy.allowed_tags,
+                attributes=policy.allowed_attributes,
+                strip=policy.strip
             )
         else:
             # Fallback to basic implementation if bleach is not available
@@ -230,6 +271,7 @@ class InputSanitizer:
             sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
                 "onload", "onload&#58;"
             )
+
             sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
             sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
 
@@ -243,25 +285,17 @@ class InputSanitizer:
     # - Support YAML sanitization with type safety checks
     # - Implement binary data sanitization for file uploads
 
-    # TODO(P2, 2h): Add configurable sanitization policies based on security levels
-    # Pseudo code for configurable sanitization policies:
-    # - Create SanitizationPolicy class with different security levels
-    # - Level 1 (Strict): Minimal allowed content, maximum security
-    # - Level 2 (Standard): Balanced security and functionality
-    # - Level 3 (Permissive): Maximum functionality, reduced security
-    # - Allow per-user or per-operation policy selection
-
     @staticmethod
-    def sanitize_json(value: str) -> Dict[str, Any]:
+    def sanitize_json(value: str, level: SanitizationLevel = SanitizationLevel.STANDARD) -> Dict[str, Any]:
         """Sanitize and parse JSON input."""
         try:
             parsed = json.loads(value)
-            return InputSanitizer._sanitize_dict(parsed)
+            return InputSanitizer._sanitize_dict(parsed, level)
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON input")
 
     @staticmethod
-    def _sanitize_dict(obj: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitize_dict(obj: Dict[str, Any], level: SanitizationLevel = SanitizationLevel.STANDARD) -> Dict[str, Any]:
         """Recursively sanitize a dictionary."""
         if not isinstance(obj, dict):
             return obj
@@ -269,25 +303,25 @@ class InputSanitizer:
         sanitized = {}
         for key, value in obj.items():
             if isinstance(value, str):
-                sanitized[key] = InputSanitizer.sanitize_string(value)
+                sanitized[key] = InputSanitizer.sanitize_string(value, level)
             elif isinstance(value, dict):
-                sanitized[key] = InputSanitizer._sanitize_dict(value)
+                sanitized[key] = InputSanitizer._sanitize_dict(value, level)
             elif isinstance(value, list):
-                sanitized[key] = [InputSanitizer._sanitize_item(item) for item in value]
+                sanitized[key] = [InputSanitizer._sanitize_item(item, level) for item in value]
             else:
                 sanitized[key] = value
 
         return sanitized
 
     @staticmethod
-    def _sanitize_item(item: Any) -> Any:
+    def _sanitize_item(item: Any, level: SanitizationLevel = SanitizationLevel.STANDARD) -> Any:
         """Sanitize an item in a list."""
         if isinstance(item, str):
-            return InputSanitizer.sanitize_string(item)
+            return InputSanitizer.sanitize_string(item, level)
         elif isinstance(item, dict):
-            return InputSanitizer._sanitize_dict(item)
+            return InputSanitizer._sanitize_dict(item, level)
         elif isinstance(item, list):
-            return [InputSanitizer._sanitize_item(i) for i in item]
+            return [InputSanitizer._sanitize_item(i, level) for i in item]
         return item
 
 
