@@ -33,6 +33,10 @@ logger = logging.getLogger(__name__)
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
+# Compiled regex for keyword extraction (Module level for performance)
+# Matches words with 4 or more letters.
+KEYWORD_PATTERN = re.compile(r"\b[a-zA-Z]{4,}\b")
+
 
 @dataclass
 class EmailFilter:
@@ -373,7 +377,9 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        # Use compiled regex and avoid Python-side length check for 4+ chars
+        # The regex \b[a-zA-Z]{4,}\b already ensures length >= 4
+        return KEYWORD_PATTERN.findall(text.lower())
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
@@ -657,6 +663,7 @@ class SmartFilterManager:
         await self._ensure_initialized()
         
         summary = {"filters_matched": [], "actions_taken": [], "categories": []}
+        matched_filter_ids = []
         
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
@@ -671,6 +678,8 @@ class SmartFilterManager:
                         "priority": filter_obj.priority
                     })
                     
+                    matched_filter_ids.append(filter_obj.filter_id)
+
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
                         if action_key == "add_label":
@@ -682,9 +691,6 @@ class SmartFilterManager:
                         elif action_key == "move_to_folder":
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
-                    
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
                     
             except Exception as e:
                 error_context = create_error_context(
@@ -700,23 +706,57 @@ class SmartFilterManager:
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
         
+        # Batch update filter usage stats
+        if matched_filter_ids:
+            await self._batch_update_filter_usage(matched_filter_ids)
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
         
         return summary
 
     async def _update_filter_usage(self, filter_id: str):
-        """Updates the usage statistics for a filter."""
-        # Update usage count and last used time
-        update_query = """
-            UPDATE email_filters 
-            SET usage_count = usage_count + 1, last_used = ? 
-            WHERE filter_id = ?
-        """
+        """Updates the usage statistics for a filter. (Legacy single update)"""
+        await self._batch_update_filter_usage([filter_id])
+
+    async def _batch_update_filter_usage(self, filter_ids: List[str]):
+        """Updates usage statistics for multiple filters in a batch."""
+        if not filter_ids:
+            return
+
         current_time = datetime.now(timezone.utc).isoformat()
-        self._db_execute(update_query, (current_time, filter_id))
         
-        # Invalidate cache for active filters
+        conn = self._get_db_connection()
+        try:
+            # We use a transaction to update all filters
+            # Note: We need to handle potential locking if using a shared connection,
+            # but _get_db_connection returns a new one for non-memory DBs usually?
+            # Wait, _get_db_connection returns self.conn if persistent, or new one.
+            # SmartFilterManager uses persistent connection for memory DB, but creates new for file DB?
+            # Looking at code: if self.conn: return self.conn.
+            # self.conn is only set if db_path == ":memory:".
+            # So for file DB, it creates a NEW connection every time.
+
+            # Since we have a list of IDs, we can execute multiple updates.
+            # Or use WHERE filter_id IN (...) if we are just setting last_used.
+            # But we are also incrementing usage_count.
+
+            # Best way: Execute multiple statements in one transaction.
+            query = "UPDATE email_filters SET usage_count = usage_count + 1, last_used = ? WHERE filter_id = ?"
+
+            # Since execute_many is not available on connection directly in standard sqlite3 (it is on cursor),
+            # but we can use conn.executemany
+            params = [(current_time, fid) for fid in filter_ids]
+            conn.executemany(query, params)
+            conn.commit()
+
+        except sqlite3.Error as e:
+             # Log error but don't fail the operation
+            self.logger.error(f"Error in batch update filter usage: {e}")
+        finally:
+            self._close_db_connection(conn)
+
+        # Single cache invalidation
         await self.caching_manager.delete("active_filters_sorted")
 
     @log_performance(operation="get_filter_by_id")

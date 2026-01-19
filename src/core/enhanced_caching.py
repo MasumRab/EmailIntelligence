@@ -143,6 +143,9 @@ class EnhancedCachingManager:
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
         
+        # In-memory general cache for other objects (like filters)
+        self.general_cache = LRUCache(capacity=1000)
+
         # Statistics tracking
         self.cache_operations = {
             "email_record_get": 0,
@@ -152,8 +155,32 @@ class EnhancedCachingManager:
             "query_result_get": 0,
             "query_result_put": 0,
             "content_get": 0,
-            "content_put": 0
+            "content_put": 0,
+            "general_get": 0,
+            "general_put": 0
         }
+
+    async def _ensure_initialized(self):
+        """Ensure caching manager is initialized. (No-op for in-memory)"""
+        pass
+
+    async def get(self, key: str) -> Optional[Any]:
+        """Async wrapper for general cache get."""
+        self.cache_operations["general_get"] += 1
+        return self.general_cache.get(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Async wrapper for general cache set."""
+        self.cache_operations["general_put"] += 1
+        self.general_cache.put(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Async wrapper for general cache delete."""
+        self.general_cache.invalidate(key)
+
+    async def close(self):
+        """Close cache resources."""
+        self.clear_all_caches()
     
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email record from cache."""
@@ -218,6 +245,7 @@ class EnhancedCachingManager:
         self.category_record_cache.clear()
         self.query_cache.clear()
         self.email_content_cache.clear()
+        self.general_cache.clear()
         
         # Reset statistics
         for key in self.cache_operations:
@@ -230,5 +258,6 @@ class EnhancedCachingManager:
             "category_record_cache": self.category_record_cache.get_stats(),
             "query_cache": self.query_cache.get_stats(),
             "email_content_cache": self.email_content_cache.get_stats(),
+            "general_cache": self.general_cache.get_stats(),
             "operations": self.cache_operations.copy()
         }
