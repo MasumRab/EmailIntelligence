@@ -8,6 +8,8 @@ execution sandboxing, and resource management.
 import asyncio
 import json
 import logging
+import os
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -18,6 +20,18 @@ try:
     import bleach
 except ImportError:
     bleach = None
+
+# Try to import defusedxml for XML sanitization
+try:
+    import defusedxml.ElementTree as DefusedET
+except ImportError:
+    DefusedET = None
+
+# Try to import lxml for XML schema validation
+try:
+    from lxml import etree as LxmlEtree
+except ImportError:
+    LxmlEtree = None
 
 
 class SecurityLevel(Enum):
@@ -235,12 +249,110 @@ class InputSanitizer:
 
         return sanitized
 
-    # TODO(P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
-    # Pseudo code for additional content type sanitization:
-    # - Add Markdown sanitization with allowed elements (headers, links, lists)
-    # - Implement CSV sanitization to prevent formula injection
-    # - Add XML sanitization with schema validation
-    # - Support YAML sanitization with type safety checks
+    @staticmethod
+    def sanitize_markdown(value: str) -> str:
+        """
+        Sanitize Markdown content.
+
+        Removes dangerous HTML tags and checks for malicious links.
+        """
+        if not isinstance(value, str):
+            raise ValueError("Expected string input")
+
+        # First, sanitize any HTML embedded in the markdown
+        sanitized = InputSanitizer.sanitize_string(value)
+
+        # Check for dangerous links in Markdown syntax: [text](scheme:...)
+        # We target javascript:, vbscript:, and data: schemes
+        def replace_unsafe_link(match):
+            text = match.group(1)
+            scheme = match.group(2)
+            content = match.group(3)
+            return f"[{text}](unsafe-link:{scheme}:{content})"
+
+        # Pattern: [text](scheme:content)
+        # This regex is non-exhaustive but catches common patterns
+        link_pattern = re.compile(
+            r"\[([^\]]+)\]\s*\((javascript|vbscript|data):([^\)]+)\)", re.IGNORECASE
+        )
+        sanitized = link_pattern.sub(replace_unsafe_link, sanitized)
+
+        return sanitized
+
+    @staticmethod
+    def sanitize_csv(value: str) -> str:
+        """
+        Sanitize a value for CSV export to prevent formula injection.
+
+        If the value starts with =, +, -, or @, it is escaped with a single quote.
+        """
+        if not isinstance(value, str):
+            # Convert non-string values to string to check, or just return as is?
+            # Assuming the caller expects a string back for CSV writing.
+            return str(value)
+
+        if value.startswith(("=", "+", "-", "@")):
+            return f"'{value}"
+
+        return value
+
+    @staticmethod
+    def sanitize_xml(value: str, schema_path: Optional[str] = None) -> str:
+        """
+        Sanitize XML content using defusedxml.
+
+        Args:
+            value: The XML string to sanitize.
+            schema_path: Optional path to an XSD schema for validation.
+
+        Returns:
+            The sanitized (parsed and re-serialized) XML string.
+        """
+        if not isinstance(value, str):
+            raise ValueError("Expected string input")
+
+        if DefusedET is None:
+            # Fallback if defusedxml is not installed
+            # Perform basic check for DOCTYPE/ENTITY which are vectors for XXE
+            if "<!DOCTYPE" in value or "<!ENTITY" in value:
+                raise ValueError("Potentially unsafe XML: DOCTYPE/ENTITY detected and defusedxml not available")
+            return InputSanitizer.sanitize_string(value)
+
+        try:
+            # Parse with defusedxml to check for XXE/Billion Laughs
+            root = DefusedET.fromstring(value)
+
+            # Schema validation if requested and lxml is available
+            if schema_path:
+                if LxmlEtree is None:
+                    logging.getLogger(__name__).warning(
+                        "XML schema validation requested but lxml is not installed"
+                    )
+                else:
+                    if not os.path.exists(schema_path):
+                        raise ValueError(f"Schema file not found: {schema_path}")
+
+                    try:
+                        schema_doc = LxmlEtree.parse(schema_path)
+                        schema = LxmlEtree.XMLSchema(schema_doc)
+
+                        # Validate the string
+                        doc = LxmlEtree.fromstring(value.encode("utf-8"))
+                        schema.assertValid(doc)
+                    except (LxmlEtree.XMLSchemaError, LxmlEtree.DocumentInvalid) as e:
+                        raise ValueError(f"XML validation failed: {str(e)}")
+
+            # Re-serialize to ensure output is clean
+            # default encoding is unicode (str)
+            return DefusedET.tostring(root, encoding="unicode")
+
+        except Exception as e:
+            # Catch parse errors and validation errors that weren't caught specifically
+            if isinstance(e, ValueError):
+                raise e
+            raise ValueError(f"Invalid XML: {str(e)}")
+
+    # TODO(P1, 4h): Support YAML sanitization with type safety checks
     # - Implement binary data sanitization for file uploads
 
     # TODO(P2, 2h): Add configurable sanitization policies based on security levels
