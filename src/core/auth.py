@@ -5,10 +5,12 @@ This module implements JWT-based authentication for API endpoints and integrates
 """
 
 import logging
+import time
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
+import argon2
 from argon2 import PasswordHasher
 
 import jwt
@@ -23,6 +25,15 @@ from .settings import settings
 from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
+
+# Pre-calculate a dummy hash for constant-time verification when user doesn't exist
+# This prevents timing attacks (user enumeration)
+try:
+    _DUMMY_PH = PasswordHasher()
+    DUMMY_HASH = _DUMMY_PH.hash("dummy_password_for_timing_mitigation")
+except Exception as e:
+    logger.error(f"Failed to generate dummy hash: {e}")
+    DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$ZHVtbXlzYWx0$dHVtbXloYXNo"  # Fallback
 
 
 class TokenData(BaseModel):
@@ -130,8 +141,16 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
     try:
         # Try to get user from database
         user_data = await db.get_user_by_username(username)
-        if user_data and verify_password(password, user_data.get("hashed_password", "")):
-            return user_data
+
+        # Verify password if user exists
+        if user_data:
+            if verify_password(password, user_data.get("hashed_password", "")):
+                return user_data
+        else:
+            # Prevent timing attacks by doing a dummy verification
+            # This ensures that both valid and invalid usernames take roughly same time
+            verify_password(password, DUMMY_HASH)
+
         return None
     except Exception as e:
         logger.error(f"Error authenticating user {username}: {e}")
@@ -301,12 +320,19 @@ def create_security_context_for_user(username: str) -> SecurityContext:
     # Create a session token (in a real system, this would be linked to the JWT)
     session_token = secrets.token_urlsafe(32)
 
+    current_time = time.time()
+
+    # Use explicit argument names matching SecurityContext definition
     context = SecurityContext(
         user_id=username,
         permissions=permissions,
         security_level=SecurityLevel.INTERNAL,
-        session_id=session_token,
+        session_token=session_token,  # Correct argument name
+        created_at=current_time,
+        expires_at=current_time + (8 * 3600),  # 8 hours expiration
         allowed_resources=["*"],  # All resources allowed for now
+        ip_address=None,
+        origin=None
     )
 
     return context
