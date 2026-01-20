@@ -154,7 +154,29 @@ class EnhancedCachingManager:
             "content_get": 0,
             "content_put": 0
         }
+
+    async def _ensure_initialized(self):
+        """Ensure caching manager is initialized. Currently a no-op but required for interface consistency."""
+        pass
     
+    async def get(self, key: str) -> Optional[Any]:
+        """Get item from query cache (Async interface)."""
+        self.cache_operations["query_result_get"] += 1
+        return self.query_cache.get(key)
+
+    async def set(self, key: str, value: Any) -> None:
+        """Set item in query cache (Async interface)."""
+        self.cache_operations["query_result_put"] += 1
+        self.query_cache.put(key, value)
+
+    async def delete(self, key: str) -> None:
+        """Delete item from query cache (Async interface)."""
+        self.query_cache.invalidate(key)
+
+    async def close(self):
+        """Clean up resources."""
+        pass
+
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email record from cache."""
         self.cache_operations["email_record_get"] += 1
