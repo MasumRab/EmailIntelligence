@@ -6,7 +6,6 @@ performance monitoring, and integration with the advanced workflow engine.
 It follows the same patterns as other core modules in the src/core directory.
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -15,12 +14,11 @@ import sqlite3
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -129,8 +127,8 @@ class SmartFilterManager:
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
         
-        # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        # Caching system
+        self.caching_manager = get_cache_manager()
         
         # State
         self._dirty_data: set[str] = set()
@@ -270,9 +268,6 @@ class SmartFilterManager:
         """Ensure all components are properly initialized."""
         if self._initialized:
             return
-
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -661,6 +656,8 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
         
+        matched_filter_ids = []
+
         for filter_obj in active_filters:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_data):
@@ -671,6 +668,8 @@ class SmartFilterManager:
                         "priority": filter_obj.priority
                     })
                     
+                    matched_filter_ids.append(filter_obj.filter_id)
+
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
                         if action_key == "add_label":
@@ -683,14 +682,14 @@ class SmartFilterManager:
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
                     
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
-                    
             except Exception as e:
                 error_context = create_error_context(
                     component="SmartFilterManager",
                     operation="apply_filters_to_email",
-                    additional_context={"filter_id": filter_obj.filter_id, "email_id": email_data.get("id")}
+                    additional_context={
+                        "filter_id": filter_obj.filter_id,
+                        "email_id": email_data.get("id")
+                    }
                 )
                 error_id = log_error(
                     e,
@@ -698,24 +697,53 @@ class SmartFilterManager:
                     category=ErrorCategory.INTEGRATION,
                     context=error_context
                 )
-                self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
+                self.logger.warning(
+                    f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. "
+                    f"Error ID: {error_id}"
+                )
         
+        # Batch update filter usage
+        if matched_filter_ids:
+            await self._batch_update_filter_usage(matched_filter_ids)
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
         
         return summary
 
-    async def _update_filter_usage(self, filter_id: str):
-        """Updates the usage statistics for a filter."""
-        # Update usage count and last used time
+    async def _batch_update_filter_usage(self, filter_ids: List[str]):
+        """Updates the usage statistics for multiple filters in a batch."""
+        if not filter_ids:
+            return
+
+        current_time = datetime.now(timezone.utc).isoformat()
         update_query = """
             UPDATE email_filters 
             SET usage_count = usage_count + 1, last_used = ? 
             WHERE filter_id = ?
         """
-        current_time = datetime.now(timezone.utc).isoformat()
-        self._db_execute(update_query, (current_time, filter_id))
         
+        conn = self._get_db_connection()
+        try:
+            params = [(current_time, fid) for fid in filter_ids]
+            conn.executemany(update_query, params)
+            conn.commit()
+        except sqlite3.Error as e:
+            error_context = create_error_context(
+                component="SmartFilterManager",
+                operation="_batch_update_filter_usage",
+                additional_context={"count": len(filter_ids)}
+            )
+            log_error(
+                e,
+                severity=ErrorSeverity.ERROR,
+                category=ErrorCategory.INTEGRATION,
+                context=error_context
+            )
+            self.logger.error(f"Database error in batch update: {e}")
+        finally:
+            self._close_db_connection(conn)
+
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
 
@@ -849,7 +877,6 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
 
 
 # Global smart filter manager instance
