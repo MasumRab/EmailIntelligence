@@ -1,111 +1,76 @@
-# EmailIntelligence CLI - AI-powered Git Worktree-based Conflict Resolution Tool
+# gemini-flow-project
 
-## Overview
-EmailIntelligence is an advanced conflict resolution system that uses constitutional/specification-driven analysis to intelligently resolve git merge conflicts. It provides a structured workflow for managing complex branch alignments while ensuring code quality and architectural compliance.
+AI-powered project using Gemini-Flow
 
-## Architecture
+## Getting Started
 
-### Modular Design
-The application follows the Single Responsibility Principle with the following modules:
-
-- **Core**: Contains configuration, security validation, and git operations
-- **Application**: Contains main application logic
-- **API**: Contains FastAPI endpoints
-- **CLI**: Contains command-line interface (this file)
-
-### Security Features
-- Path traversal prevention
-- Input validation for PR numbers and git references
-- Safe subprocess execution
-- Restricted CORS origins in API
-
-### Configuration Management
-- Centralized configuration using ConfigurationManager
-- Secure default values
-- Validation of configuration parameters
-
-## Installation
+This project is powered by Gemini-Flow, an AI orchestration platform with intelligent agent swarms.
 
 ### Prerequisites
-- Python 3.8+
-- Git with worktree support
 
-### Setup
+- Node.js 18+ 
+- npm or yarn
+- Google Cloud Project (for AI features)
+
+### Installation
+
 ```bash
-pip install -e .
+npm install
 ```
 
-Or install dependencies directly:
+### Configuration
+
+1. Set up Google Cloud credentials:
 ```bash
-pip install -r requirements.txt
+export GOOGLE_CLOUD_PROJECT_ID="your-project-id"
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
 ```
 
-## Usage
-
-### CLI Commands
+2. Initialize swarm:
 ```bash
-# Setup resolution workspace
-eai setup-resolution --pr 123 --source-branch feature/auth --target-branch main
-
-# Analyze constitutional compliance
-eai analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml
-
-# Develop resolution strategy
-eai develop-spec-kit-strategy --pr 123 --worktrees --interactive
-
-# Execute content alignment
-eai align-content --pr 123 --interactive --checkpoint-each-step
-
-# Validate resolution
-eai validate-resolution --pr 123 --comprehensive
+npm run swarm:init
 ```
 
-### API Usage
-Start the API server:
+3. Spawn agents:
 ```bash
-uvicorn src.api.main:app --reload
+npm run agents:spawn
 ```
 
-Then make requests to the endpoints:
-- `GET /` - Health check
-- `POST /setup-resolution/` - Setup resolution workspace
-- `GET /health` - Health check
+### Usage
 
-## Security
-
-### Input Validation
-- PR numbers are validated to be within reasonable bounds
-- Git references are validated to prevent command injection
-- File paths are validated to prevent directory traversal
-
-### Safe Operations
-- Subprocess calls use parameterized commands to prevent injection
-- Path operations are validated before execution
-- Configuration values are validated before use
-
-## Development
-
-### Running Tests
+#### Development Mode
 ```bash
-pytest tests/
+npm run dev
 ```
 
-### Code Formatting
+#### Build Project
 ```bash
-black .
+npm run build
 ```
 
-### Linting
+#### Run Tests
 ```bash
-flake8 .
+npm run test
 ```
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+## Gemini-Flow Commands
+
+- `gemini-flow swarm init` - Initialize agent swarm
+- `gemini-flow agent spawn` - Spawn AI agents
+- `gemini-flow sparc run <mode>` - Run SPARC methodology
+- `gemini-flow hive-mind sync` - Sync collective intelligence
+
+## Project Structure
+
+```
+gemini-flow-project/
+├── .gemini-flow/          # Gemini-Flow configuration
+├── src/                   # Source code
+├── tests/                 # Test files
+├── docs/                  # Documentation
+└── scripts/               # Build scripts
+```
 
 ## License
+
 MIT
