@@ -8,7 +8,7 @@ This project is powered by Gemini-Flow, an AI orchestration platform with intell
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Google Cloud Project (for AI features)
 
