@@ -8,10 +8,55 @@
 node_modules/
 .pnpm-debug.log*
 
-# Environment
+# Environment files
 .env
 .env.local
 .env.*.local
+.env*.bak
+.env*.old
+.env*.example
+.env*.template
+.env*.sample
+.env*.dist
+.env*.default
+.env*.prod
+.env*.dev
+.env*.test
+.env*.staging
+.env*.development
+.env*.production
+.env*.ci
+.env*.cd
+
+# Secrets and keys
+*.pem
+*.key
+*.secret
+*.token
+*.credential
+*.password
+*.passwd
+*.p12
+*.pfx
+*.cer
+*.crt
+*.jks
+*.keystore
+*.p8
+
+# API keys and configuration
+*.config
+*.conf
+*.cfg
+*.ini
+*.yaml
+*.yml
+*.json
+*.toml
+*.properties
+*.props
+*.xml
+*.plist
 
 # IDE
 .vscode/
@@ -28,3 +73,46 @@ dist/
 build/
 *.tsbuildinfo
 .aider*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# Virtual environments
+venv/
+.env/
+.venv/
+ENV/
+env/
+.venv/
+env/
+ENV/
+venv/
