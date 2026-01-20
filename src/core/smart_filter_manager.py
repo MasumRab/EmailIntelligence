@@ -210,6 +210,54 @@ class SmartFilterManager:
             finally:
                 self._close_db_connection(conn)
 
+    def _db_executemany(self, query: str, params_list: List[tuple], retries: int = 3):
+        """Execute a batch query (INSERT, UPDATE, DELETE) with retry logic."""
+        for attempt in range(retries):
+            conn = self._get_db_connection()
+            try:
+                conn.executemany(query, params_list)
+                conn.commit()
+                return
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < retries - 1:
+                    self.logger.warning(f"Database locked, retrying ({attempt + 1}/{retries}): {e}")
+                    import time
+
+                    time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    error_context = create_error_context(
+                        component="SmartFilterManager",
+                        operation="_db_executemany",
+                        additional_context={"query": query[:100], "attempt": attempt, "batch_size": len(params_list)}
+                    )
+                    error_id = log_error(
+                        e,
+                        severity=ErrorSeverity.ERROR,
+                        category=ErrorCategory.INTEGRATION,
+                        context=error_context
+                    )
+                    self.logger.error(
+                        f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
+                    )
+                    raise
+            except sqlite3.Error as e:
+                error_context = create_error_context(
+                    component="SmartFilterManager",
+                    operation="_db_executemany",
+                    additional_context={"query": query[:100], "batch_size": len(params_list)}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.ERROR,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
+                raise
+            finally:
+                self._close_db_connection(conn)
+
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Executes a read query and fetches a single row."""
         conn = self._get_db_connection()
@@ -773,19 +821,27 @@ class SmartFilterManager:
         invalidating the entire sorted list cache, significantly improving
         performance when multiple filters match an email.
         """
+        if not filters:
+            return
+
         current_time = datetime.now(timezone.utc)
         current_time_iso = current_time.isoformat()
 
+        # Prepare batch update parameters
+        update_params = []
         for filter_obj in filters:
-            # Update DB (could be further optimized with executemany but this is already better)
-            update_query = """
-                UPDATE email_filters
-                SET usage_count = usage_count + 1, last_used = ?
-                WHERE filter_id = ?
-            """
-            # We use _db_execute for each to ensure robustness, but we could optimize later
-            self._db_execute(update_query, (current_time_iso, filter_obj.filter_id))
+            update_params.append((current_time_iso, filter_obj.filter_id))
 
+        # Update DB with a single transaction using executemany
+        update_query = """
+            UPDATE email_filters
+            SET usage_count = usage_count + 1, last_used = ?
+            WHERE filter_id = ?
+        """
+        self._db_executemany(update_query, update_params)
+
+        # Update objects in memory and invalidate individual caches
+        for filter_obj in filters:
             # Update object in memory (updates the reference in cache if it exists there)
             filter_obj.usage_count += 1
             filter_obj.last_used = current_time

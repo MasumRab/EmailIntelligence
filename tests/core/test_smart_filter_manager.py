@@ -12,6 +12,7 @@ def mock_db_manager():
     manager = SmartFilterManager(db_path=":memory:")
     manager.caching_manager = AsyncMock()
     manager._db_execute = MagicMock()
+    manager._db_executemany = MagicMock()
     manager._db_fetchall = MagicMock()
     manager._ensure_initialized = AsyncMock()
     manager._update_filter_usage = AsyncMock()
@@ -20,6 +21,47 @@ def mock_db_manager():
     manager.get_active_filters_sorted = AsyncMock()
 
     return manager
+
+@pytest.mark.asyncio
+async def test_apply_filters_updates_usage_batch(mock_db_manager):
+    """Verify that filter usage stats are updated in batch."""
+    filter_obj = EmailFilter(
+        filter_id="test_filter",
+        name="Test Filter",
+        description="Test",
+        criteria={"subject_keywords": ["test"]},
+        actions={"add_label": "Test"},
+        priority=5,
+        effectiveness_score=0.0,
+        created_at=datetime.now(timezone.utc),
+        last_used=datetime.now(timezone.utc),
+        usage_count=0,
+        false_positive_rate=0.0,
+        performance_metrics={},
+        is_active=True
+    )
+
+    mock_db_manager.get_active_filters_sorted.return_value = [filter_obj]
+
+    email_data = {
+        "id": "e1",
+        "sender": "user@example.com",
+        "subject": "This is a TEST email",
+        "body": "Some content"
+    }
+
+    await mock_db_manager.apply_filters_to_email(email_data)
+
+    # Check if _db_executemany was called once
+    assert mock_db_manager._db_executemany.called
+    assert mock_db_manager._db_executemany.call_count == 1
+
+    # Check arguments
+    call_args = mock_db_manager._db_executemany.call_args
+    assert "UPDATE email_filters" in call_args[0][0]
+    # Check that params list has one entry (for our one filter)
+    assert len(call_args[0][1]) == 1
+    assert call_args[0][1][0][1] == "test_filter"
 
 @pytest.mark.asyncio
 async def test_apply_filters_to_email_context_creation(mock_db_manager):
