@@ -1,82 +1,30 @@
-# Node.js
+# Gemini-Flow
+.gemini-flow/cache/
+.gemini-flow/logs/
+.gemini-flow/temp/
+*.log
+
+# Dependencies
 node_modules/
-dist/
-.DS_Store
-server/public/
-vite.config.ts.*
-*.tar.gz
+.pnpm-debug.log*
 
-# Python virtual environment
-venv/
+# Environment
 .env
-.env.*
-*.env
-!.env.example
+.env.local
+.env.*.local
 
-# Credentials and sensitive data
-token.json
-credentials.json
-apikey.json
-jsons/
-jsons/*
-
-# Build / packaging artifacts
-build/
-dist/
-*.egg-info/
-pip-wheel-metadata/
-*.egg
-*.whl
-
-# Databases
-*.sqlite3
-*.db
-*.db-journal
-
-# Test and coverage reports
-.coverage
-.coverage.*
-coverage.xml
-coverage/
-*.cover
-.pytest_cache/
-
-# IDEs / editor-specific
+# IDE
 .vscode/
 .idea/
-*.iml
-*.sublime-project
-*.sublime-workspace
-.history
+*.swp
+*.swo
 
-# Misc
-diagnosis_message.txt
-logs/
+# OS
+.DS_Store
+Thumbs.db
 
-# Ignore configuration and local environment files
-*.local.config
-*.local.json
-*.local.yaml
-*.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
-config.local.*
-config/llm_guidelines.local.json
-
-# Ignore hidden files and directories, with exceptions
-.*
-!docs/.gitkeep
-!.semgrep/
-!.gitignore
-!.git/hooks/
-
-# Python cache
-__pycache__/
-
-# Miscellaneous
-diagnosis_message.txt
-performance_metrics_log.jsonl
-config/llm_guidelines.local.json
-models/*.pkl
-worktrees/
+# Build
+dist/
+build/
+*.tsbuildinfo
+.aider*
