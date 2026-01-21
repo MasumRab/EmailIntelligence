@@ -6,7 +6,6 @@ performance monitoring, and integration with the advanced workflow engine.
 It follows the same patterns as other core modules in the src/core directory.
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -15,12 +14,11 @@ import sqlite3
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -130,7 +128,7 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
         
         # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        self.caching_manager = get_cache_manager()
         
         # State
         self._dirty_data: set[str] = set()
@@ -185,6 +183,54 @@ class SmartFilterManager:
                     component="SmartFilterManager",
                     operation="_db_execute",
                     additional_context={"query": query[:100]}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.ERROR,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
+                raise
+            finally:
+                self._close_db_connection(conn)
+
+    def _db_executemany(self, query: str, params_list: List[tuple], retries: int = 3):
+        """Execute a batch query (INSERT, UPDATE) with retry logic for robustness."""
+        for attempt in range(retries):
+            conn = self._get_db_connection()
+            try:
+                conn.executemany(query, params_list)
+                conn.commit()
+                return
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < retries - 1:
+                    self.logger.warning(f"Database locked, retrying ({attempt + 1}/{retries}): {e}")
+                    import time
+
+                    time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    error_context = create_error_context(
+                        component="SmartFilterManager",
+                        operation="_db_executemany",
+                        additional_context={"query": query[:100], "attempt": attempt, "batch_size": len(params_list)}
+                    )
+                    error_id = log_error(
+                        e,
+                        severity=ErrorSeverity.ERROR,
+                        category=ErrorCategory.INTEGRATION,
+                        context=error_context
+                    )
+                    self.logger.error(
+                        f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
+                    )
+                    raise
+            except sqlite3.Error as e:
+                error_context = create_error_context(
+                    component="SmartFilterManager",
+                    operation="_db_executemany",
+                    additional_context={"query": query[:100], "batch_size": len(params_list)}
                 )
                 error_id = log_error(
                     e,
@@ -270,9 +316,6 @@ class SmartFilterManager:
         """Ensure all components are properly initialized."""
         if self._initialized:
             return
-
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -661,6 +704,8 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
         
+        matched_filter_ids = []
+
         for filter_obj in active_filters:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_data):
@@ -682,9 +727,8 @@ class SmartFilterManager:
                         elif action_key == "move_to_folder":
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
-                    
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
+
+                    matched_filter_ids.append(filter_obj.filter_id)
                     
             except Exception as e:
                 error_context = create_error_context(
@@ -698,26 +742,45 @@ class SmartFilterManager:
                     category=ErrorCategory.INTEGRATION,
                     context=error_context
                 )
-                self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
-        
+                self.logger.warning(
+                    f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. "
+                    f"Error ID: {error_id}"
+                )
+
+        # Batch update usage stats
+        if matched_filter_ids:
+            await self._batch_update_filter_usage(matched_filter_ids)
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
-        
+
         return summary
 
     async def _update_filter_usage(self, filter_id: str):
         """Updates the usage statistics for a filter."""
-        # Update usage count and last used time
+        await self._batch_update_filter_usage([filter_id])
+
+    async def _batch_update_filter_usage(self, filter_ids: List[str]):
+        """Updates the usage statistics for multiple filters in a batch."""
+        if not filter_ids:
+            return
+
         update_query = """
-            UPDATE email_filters 
-            SET usage_count = usage_count + 1, last_used = ? 
+            UPDATE email_filters
+            SET usage_count = usage_count + 1, last_used = ?
             WHERE filter_id = ?
         """
         current_time = datetime.now(timezone.utc).isoformat()
-        self._db_execute(update_query, (current_time, filter_id))
-        
+        params_list = [(current_time, filter_id) for filter_id in filter_ids]
+
+        self._db_executemany(update_query, params_list)
+
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
+
+        # Invalidate individual filter caches
+        for filter_id in filter_ids:
+            await self.caching_manager.delete(f"filter_{filter_id}")
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
@@ -849,7 +912,6 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
 
 
 # Global smart filter manager instance
