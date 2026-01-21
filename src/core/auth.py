@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import time
-import hashlib
 import secrets
 from argon2 import PasswordHasher
+from enum import Enum
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -30,9 +30,6 @@ class TokenData(BaseModel):
     """Data structure for JWT token payload"""
     username: Optional[str] = None
     role: Optional[str] = "user"
-
-
-from enum import Enum
 
 
 class UserRole(str, Enum):
@@ -103,10 +100,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except argon2.exceptions.VerifyMismatchError:
+    except PasswordHasher.VerifyMismatchError:
         # Password verification failed
         return False
-    except argon2.exceptions.InvalidHashError:
+    except PasswordHasher.InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
