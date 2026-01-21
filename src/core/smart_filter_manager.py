@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -130,7 +130,7 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
         
         # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        self.caching_manager = get_cache_manager()
         
         # State
         self._dirty_data: set[str] = set()
@@ -270,9 +270,6 @@ class SmartFilterManager:
         """Ensure all components are properly initialized."""
         if self._initialized:
             return
-
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -661,6 +658,8 @@ class SmartFilterManager:
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
         
+        matched_filter_ids = []
+
         for filter_obj in active_filters:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_data):
@@ -671,6 +670,8 @@ class SmartFilterManager:
                         "priority": filter_obj.priority
                     })
                     
+                    matched_filter_ids.append(filter_obj.filter_id)
+
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
                         if action_key == "add_label":
@@ -682,9 +683,6 @@ class SmartFilterManager:
                         elif action_key == "move_to_folder":
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
-                    
-                    # Update filter usage stats
-                    await self._update_filter_usage(filter_obj.filter_id)
                     
             except Exception as e:
                 error_context = create_error_context(
@@ -700,10 +698,34 @@ class SmartFilterManager:
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
         
+        # Batch update usage stats
+        if matched_filter_ids:
+            await self._batch_update_filter_usage(matched_filter_ids)
+
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
         
         return summary
+
+    async def _batch_update_filter_usage(self, filter_ids: List[str]):
+        """Updates the usage statistics for multiple filters in a batch."""
+        if not filter_ids:
+            return
+
+        placeholders = ', '.join(['?'] * len(filter_ids))
+        update_query = f"""
+            UPDATE email_filters
+            SET usage_count = usage_count + 1, last_used = ?
+            WHERE filter_id IN ({placeholders})
+        """
+
+        current_time = datetime.now(timezone.utc).isoformat()
+        params = [current_time] + filter_ids
+
+        self._db_execute(update_query, tuple(params))
+
+        # Invalidate cache for active filters
+        await self.caching_manager.delete("active_filters_sorted")
 
     async def _update_filter_usage(self, filter_id: str):
         """Updates the usage statistics for a filter."""
@@ -849,7 +871,6 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
 
 
 # Global smart filter manager instance
