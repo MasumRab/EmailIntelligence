@@ -49,7 +49,11 @@ class PluginManager:
     security, and lifecycle management.
     """
 
-    def __init__(self, plugins_dir: Path = None, marketplace_url: str = None):
+    def __init__(
+        self,
+        plugins_dir: Optional[Path] = None,
+        marketplace_url: Optional[str] = None,
+    ):
         self.plugins_dir = plugins_dir or Path("plugins")
         self.marketplace_url = (
             marketplace_url or "https://api.emailintelligence.plugins/marketplace"
@@ -94,7 +98,9 @@ class PluginManager:
 
         logger.info("PluginManager shutdown complete")
 
-    async def install_plugin(self, plugin_id: str, version: str = None) -> bool:
+    async def install_plugin(
+        self, plugin_id: str, version: Optional[str] = None
+    ) -> bool:
         """Install a plugin from the marketplace."""
         try:
             # Get plugin info from marketplace
@@ -139,7 +145,7 @@ class PluginManager:
             return False
 
     async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
+        self, plugin_id: str, config: Optional[Dict[str, Any]] = None
     ) -> Optional[PluginInstance]:
         """Load a plugin into memory."""
         return await self.registry.load_plugin(plugin_id, config)
@@ -297,7 +303,7 @@ class PluginManager:
             raise
 
     async def _get_plugin_from_marketplace(
-        self, plugin_id: str, version: str = None
+        self, plugin_id: str, version: Optional[str] = None
     ) -> Optional[PluginMarketplaceEntry]:
         """Get plugin information from marketplace."""
         try:
