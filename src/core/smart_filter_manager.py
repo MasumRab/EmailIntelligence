@@ -773,19 +773,35 @@ class SmartFilterManager:
         invalidating the entire sorted list cache, significantly improving
         performance when multiple filters match an email.
         """
+        if not filters:
+            return
+
         current_time = datetime.now(timezone.utc)
         current_time_iso = current_time.isoformat()
 
-        for filter_obj in filters:
-            # Update DB (could be further optimized with executemany but this is already better)
-            update_query = """
+        # Extract all IDs
+        filter_ids = [f.filter_id for f in filters]
+
+        # SQLite limits the number of host parameters (variables) in a single query.
+        # It's commonly 999 or 32766. We'll use a conservative batch size of 500
+        # to stay well within limits while still getting massive performance gains.
+        batch_size = 500
+
+        for i in range(0, len(filter_ids), batch_size):
+            batch_ids = filter_ids[i : i + batch_size]
+            placeholders = ",".join(["?"] * len(batch_ids))
+
+            update_query = f"""
                 UPDATE email_filters
                 SET usage_count = usage_count + 1, last_used = ?
-                WHERE filter_id = ?
+                WHERE filter_id IN ({placeholders})
             """
-            # We use _db_execute for each to ensure robustness, but we could optimize later
-            self._db_execute(update_query, (current_time_iso, filter_obj.filter_id))
 
+            # Combine timestamp and IDs for parameters
+            params = [current_time_iso] + batch_ids
+            self._db_execute(update_query, tuple(params))
+
+        for filter_obj in filters:
             # Update object in memory (updates the reference in cache if it exists there)
             filter_obj.usage_count += 1
             filter_obj.last_used = current_time
