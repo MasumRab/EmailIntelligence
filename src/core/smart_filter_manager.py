@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -143,7 +143,7 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
 
         # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        self.caching_manager = get_cache_manager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -331,9 +331,6 @@ class SmartFilterManager:
         """Ensure all components are properly initialized."""
         if self._initialized:
             return
-
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -845,8 +842,10 @@ class SmartFilterManager:
         self._db_executemany(update_query, update_params)
 
         # Invalidate single filter caches
-        for filter_obj in filters:
-            await self.caching_manager.delete(f"filter_{filter_obj.filter_id}")
+        await asyncio.gather(*(
+            self.caching_manager.delete(f"filter_{filter_obj.filter_id}")
+            for filter_obj in filters
+        ))
 
         # NOTE: We specifically DO NOT invalidate "active_filters_sorted" here.
         # Since we updated the objects in memory, and the cache (if using in-memory mode)
@@ -983,4 +982,3 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
