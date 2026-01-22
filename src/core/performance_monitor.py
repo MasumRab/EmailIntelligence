@@ -20,7 +20,10 @@ from datetime import datetime, timezone
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
 
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +82,8 @@ class PerformanceMonitor:
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics"""
         try:
+            if psutil is None:
+                return {}
             cpu_percent = psutil.cpu_percent()
             memory = psutil.virtual_memory()
             return {
