@@ -5,11 +5,10 @@ This module provides enhanced caching capabilities for the DatabaseManager,
 including LRU cache for frequently accessed data and query result caching.
 """
 
-import asyncio
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
