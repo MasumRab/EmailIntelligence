@@ -18,6 +18,8 @@ def db_manager(db_config):
     # Mock caching manager to isolate behavior
     manager.caching_manager = MagicMock()
     manager.caching_manager.get_email_content.return_value = None
+    # Ensure query cache miss so we test the search logic
+    manager.caching_manager.get_query_result.return_value = None
     manager.emails_data = []
     manager.emails_by_id = {}
     # Ensure initialized to avoid side effects
