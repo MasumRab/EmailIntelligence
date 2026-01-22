@@ -63,3 +63,27 @@ async def test_search_emails_uses_cached_results(db_manager):
 
     # Verify we didn't search (emails_data is empty in fixture)
     assert db_manager.caching_manager.get_query_result.called
+
+@pytest.mark.asyncio
+async def test_add_tags_invalidates_cache(db_manager):
+    """Test that adding tags invalidates the query cache."""
+    # Setup
+    email_id = 1
+    email = {FIELD_ID: email_id, "subject": "Tag Test", "tags": []}
+    db_manager.emails_data = [email]
+    db_manager.emails_by_id = {email_id: email}
+
+    # Mock update dependencies
+    # We need to mock _save_data and _save_heavy_content to avoid disk I/O errors in test
+    # and _update_email_indexes
+    with patch.object(db_manager, '_save_data', new_callable=AsyncMock) as mock_save, \
+         patch.object(db_manager, '_save_heavy_content', new_callable=AsyncMock) as mock_save_content, \
+         patch.object(db_manager, '_update_email_indexes', new_callable=AsyncMock) as mock_update_idx:
+
+        # Execute
+        result = await db_manager.add_tags(email_id, ["new-tag"])
+
+        # Verify
+        assert result is True
+        # Verify cache invalidation was called
+        db_manager.caching_manager.clear_query_cache.assert_called_once()
