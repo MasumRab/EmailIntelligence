@@ -545,27 +545,41 @@ class SmartFilterManager:
         
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
+    async def _apply_filter_to_email(
+        self,
+        filter_obj: EmailFilter,
+        email: Dict[str, Any],
+        sender_domain: Optional[str] = None,
+        subject_lower: Optional[str] = None,
+        content_lower: Optional[str] = None,
+    ) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
-        
+
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
-            if domain != criteria["sender_domain"]:
+            if sender_domain is None:
+                sender_email = email.get("sender_email", email.get("sender", ""))
+                sender_domain = self._extract_domain(sender_email)
+            if sender_domain != criteria["sender_domain"]:
                 return False
-        
+
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
-            if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
+            if subject_lower is None:
+                subject_lower = email.get("subject", "").lower()
+            if not any(
+                keyword.lower() in subject_lower for keyword in criteria["subject_keywords"]
+            ):
                 return False
-        
+
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
-            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+            if content_lower is None:
+                content_lower = email.get("content", email.get("body", "")).lower()
+            if not any(
+                keyword.lower() in content_lower for keyword in criteria["content_keywords"]
+            ):
                 return False
         
         # Check from patterns
@@ -657,12 +671,24 @@ class SmartFilterManager:
         
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
-        
+
+        # Pre-compute email properties for performance
+        sender_email = email_data.get("sender_email", email_data.get("sender", ""))
+        sender_domain = self._extract_domain(sender_email)
+        subject_lower = email_data.get("subject", "").lower()
+        content_lower = email_data.get("content", email_data.get("body", "")).lower()
+
         matched_filter_ids = []
 
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                if await self._apply_filter_to_email(
+                    filter_obj,
+                    email_data,
+                    sender_domain=sender_domain,
+                    subject_lower=subject_lower,
+                    content_lower=content_lower,
+                ):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
