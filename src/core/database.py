@@ -474,6 +474,7 @@ class DatabaseManager(DataSource):
 
         # Invalidate sorted cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(light_email_record)
 
@@ -682,6 +683,7 @@ class DatabaseManager(DataSource):
             
             # Invalidate sorted cache
             self._sorted_emails_cache = None
+            self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
@@ -729,6 +731,12 @@ class DatabaseManager(DataSource):
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
+
+        # Check query cache
+        cache_key = f"search:{search_term}:{limit}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
+        if cached_result is not None:
+            return cached_result
 
         search_term_lower = search_term.lower()
         filtered_emails = []
@@ -782,7 +790,12 @@ class DatabaseManager(DataSource):
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
         # Results are already sorted because we iterated source_emails (which is sorted)
-        return [self._add_category_details(email) for email in filtered_emails]
+        results = [self._add_category_details(email) for email in filtered_emails]
+
+        # Cache the result
+        self.caching_manager.put_query_result(cache_key, results)
+
+        return results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -864,6 +877,7 @@ class DatabaseManager(DataSource):
 
         # Invalidate sorted cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
