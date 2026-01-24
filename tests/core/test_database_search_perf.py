@@ -18,6 +18,7 @@ def db_manager(db_config):
     # Mock caching manager to isolate behavior
     manager.caching_manager = MagicMock()
     manager.caching_manager.get_email_content.return_value = None
+    manager.caching_manager.get_query_result.return_value = None
     manager.emails_data = []
     manager.emails_by_id = {}
     # Ensure initialized to avoid side effects
@@ -84,3 +85,33 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
                 break
 
         assert found_call, "asyncio.to_thread should have been called with _read_content_sync"
+
+@pytest.mark.asyncio
+async def test_search_emails_caches_results(db_manager):
+    """Test that search results are cached and retrieved."""
+    # Setup
+    search_term = "query_cache_test"
+    cache_key = f"search:{search_term}:50"
+
+    # First call: Cache miss
+    db_manager.caching_manager.get_query_result.return_value = None
+
+    # Execute
+    await db_manager.search_emails_with_limit(search_term, limit=50)
+
+    # Verify cache put
+    db_manager.caching_manager.put_query_result.assert_called_once()
+    call_args = db_manager.caching_manager.put_query_result.call_args
+    assert call_args[0][0] == cache_key
+
+    # Second call: Cache hit
+    expected_result = [{"id": 1, "subject": "cached"}]
+    db_manager.caching_manager.get_query_result.return_value = expected_result
+    db_manager.caching_manager.put_query_result.reset_mock()
+
+    # Execute
+    results = await db_manager.search_emails_with_limit(search_term, limit=50)
+
+    # Verify result and NO cache put (because it was a hit)
+    assert results == expected_result
+    db_manager.caching_manager.put_query_result.assert_not_called()
