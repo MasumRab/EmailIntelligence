@@ -204,7 +204,10 @@ class SecuritySandbox:
         return "*" in allowed or module_name in allowed or module_name.startswith("src.")
 
     def execute_in_sandbox(
-        self, code: str, security_level: PluginSecurityLevel, globals_dict: Dict[str, Any] = None
+        self,
+        code: str,
+        security_level: PluginSecurityLevel,
+        globals_dict: Optional[Dict[str, Any]] = None,
     ) -> Any:
         """Execute code in a sandboxed environment."""
         # Create restricted globals
@@ -276,7 +279,7 @@ class PluginRegistry:
     Provides discovery, registration, and lifecycle management for plugins.
     """
 
-    def __init__(self, plugins_dir: Path = None):
+    def __init__(self, plugins_dir: Optional[Path] = None):
         self.plugins_dir = plugins_dir or Path("plugins")
         self._registry: Dict[str, PluginMetadata] = {}
         self._instances: Dict[str, PluginInstance] = {}
@@ -319,7 +322,7 @@ class PluginRegistry:
             return False
 
     async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
+        self, plugin_id: str, config: Optional[Dict[str, Any]] = None
     ) -> Optional[PluginInstance]:
         """Load and initialize a plugin."""
         if plugin_id not in self._registry:

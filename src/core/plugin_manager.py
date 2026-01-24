@@ -15,17 +15,12 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
-from urllib.request import urlopen
 
-from .plugin_base import (
-    HookSystem,
-    PluginInstance,
-    PluginMetadata,
-    PluginRegistry,
-    PluginSecurityLevel,
-    PluginStatus,
-    SecuritySandbox,
-)
+import httpx
+
+from .plugin_base import (HookSystem, PluginInstance, PluginMetadata,
+                          PluginRegistry, PluginSecurityLevel, PluginStatus,
+                          SecuritySandbox)
 from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
@@ -54,7 +49,11 @@ class PluginManager:
     security, and lifecycle management.
     """
 
-    def __init__(self, plugins_dir: Path = None, marketplace_url: str = None):
+    def __init__(
+        self,
+        plugins_dir: Optional[Path] = None,
+        marketplace_url: Optional[str] = None,
+    ):
         self.plugins_dir = plugins_dir or Path("plugins")
         self.marketplace_url = (
             marketplace_url or "https://api.emailintelligence.plugins/marketplace"
@@ -99,7 +98,9 @@ class PluginManager:
 
         logger.info("PluginManager shutdown complete")
 
-    async def install_plugin(self, plugin_id: str, version: str = None) -> bool:
+    async def install_plugin(
+        self, plugin_id: str, version: Optional[str] = None
+    ) -> bool:
         """Install a plugin from the marketplace."""
         try:
             # Get plugin info from marketplace
@@ -144,7 +145,7 @@ class PluginManager:
             return False
 
     async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
+        self, plugin_id: str, config: Optional[Dict[str, Any]] = None
     ) -> Optional[PluginInstance]:
         """Load a plugin into memory."""
         return await self.registry.load_plugin(plugin_id, config)
@@ -206,7 +207,9 @@ class PluginManager:
         """Get the security sandbox."""
         return self.registry.get_security_sandbox()
 
-    async def get_marketplace_plugins(self, refresh: bool = False) -> List[Dict[str, Any]]:
+    async def get_marketplace_plugins(
+        self, refresh: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get available plugins from the marketplace."""
         try:
             if refresh or self._should_refresh_marketplace_cache():
@@ -254,12 +257,16 @@ class PluginManager:
             "background_tasks_active": len(self._background_tasks),
             "plugins_dir": str(self.plugins_dir),
             "security_levels": {
-                level.value: len([p for p in plugins if p.get("security_level") == level.value])
+                level.value: len(
+                    [p for p in plugins if p.get("security_level") == level.value]
+                )
                 for level in PluginSecurityLevel
             },
         }
 
-    async def execute_plugin_method(self, plugin_id: str, method_name: str, *args, **kwargs) -> Any:
+    async def execute_plugin_method(
+        self, plugin_id: str, method_name: str, *args, **kwargs
+    ) -> Any:
         """Execute a method on a loaded plugin safely."""
         if plugin_id not in self.registry._instances:
             raise ValueError(f"Plugin {plugin_id} is not loaded")
@@ -277,8 +284,12 @@ class PluginManager:
 
         # Execute with security validation
         security_level = instance.metadata.security_level
-        if not self._validate_method_execution(plugin_object, method_name, security_level):
-            raise SecurityError(f"Method execution not allowed for security level {security_level}")
+        if not self._validate_method_execution(
+            plugin_object, method_name, security_level
+        ):
+            raise SecurityError(
+                f"Method execution not allowed for security level {security_level}"
+            )
 
         try:
             if asyncio.iscoroutinefunction(method):
@@ -286,11 +297,13 @@ class PluginManager:
             else:
                 return method(*args, **kwargs)
         except Exception as e:
-            logger.error(f"Plugin method execution failed: {plugin_id}.{method_name}: {e}")
+            logger.error(
+                f"Plugin method execution failed: {plugin_id}.{method_name}: {e}"
+            )
             raise
 
     async def _get_plugin_from_marketplace(
-        self, plugin_id: str, version: str = None
+        self, plugin_id: str, version: Optional[str] = None
     ) -> Optional[PluginMarketplaceEntry]:
         """Get plugin information from marketplace."""
         try:
@@ -304,7 +317,9 @@ class PluginManager:
 
             # Check version
             if version and entry.version != version:
-                logger.warning(f"Requested version {version} not available for {plugin_id}")
+                logger.warning(
+                    f"Requested version {version} not available for {plugin_id}"
+                )
                 return None
 
             return entry
@@ -313,7 +328,9 @@ class PluginManager:
             logger.error(f"Failed to get plugin from marketplace: {e}")
             return None
 
-    async def _download_and_install_plugin(self, plugin_info: PluginMarketplaceEntry) -> bool:
+    async def _download_and_install_plugin(
+        self, plugin_info: PluginMarketplaceEntry
+    ) -> bool:
         """Download and install a plugin from the marketplace."""
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -325,7 +342,9 @@ class PluginManager:
 
                 # Verify checksum
                 if not await self._verify_checksum(download_path, plugin_info.checksum):
-                    logger.error(f"Checksum verification failed for {plugin_info.plugin_id}")
+                    logger.error(
+                        f"Checksum verification failed for {plugin_info.plugin_id}"
+                    )
                     return False
 
                 # Extract archive
@@ -336,7 +355,9 @@ class PluginManager:
                     # Secure extraction - validate all paths first
                     for member in zip_ref.infolist():
                         if not validate_path_safety(member.filename, extract_path):
-                            raise SecurityError(f"Malicious file path detected in plugin archive: {member.filename}")
+                            raise SecurityError(
+                                f"Malicious file path detected in plugin archive: {member.filename}"
+                            )
 
                     # Safe to extract
                     zip_ref.extractall(extract_path)
@@ -355,7 +376,9 @@ class PluginManager:
                     plugin_dir.mkdir()
                     for file_path in extract_path.iterdir():
                         if file_path.is_file():
-                            shutil.move(str(file_path), str(plugin_dir / file_path.name))
+                            shutil.move(
+                                str(file_path), str(plugin_dir / file_path.name)
+                            )
 
                 # Register the plugin
                 metadata = PluginMetadata(
@@ -369,15 +392,27 @@ class PluginManager:
                 return await self.registry.register_plugin(metadata)
 
         except Exception as e:
-            logger.error(f"Failed to download and install plugin {plugin_info.plugin_id}: {e}")
+            logger.error(
+                f"Failed to download and install plugin {plugin_info.plugin_id}: {e}"
+            )
             return False
 
     async def _download_file(self, url: str, dest_path: Path):
         """Download a file from URL."""
+        # Validate URL scheme to prevent SSRF against non-HTTP protocols (e.g. file://)
+        if not url.startswith(("http://", "https://")):
+            raise ValueError(
+                f"Invalid URL scheme: {url}. Only 'http' and 'https' are allowed."
+            )
+
         try:
-            with urlopen(url) as response:
-                with open(dest_path, "wb") as f:
-                    f.write(response.read())
+            # Use httpx for async download with timeout
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                async with client.stream("GET", url, follow_redirects=True) as response:
+                    response.raise_for_status()
+                    with open(dest_path, "wb") as f:
+                        async for chunk in response.aiter_bytes():
+                            f.write(chunk)
         except Exception as e:
             logger.error(f"Failed to download file from {url}: {e}")
             raise
@@ -437,7 +472,10 @@ class PluginManager:
         dangerous_methods = ["__del__", "system", "exec", "eval", "__import__"]
 
         if method_name in dangerous_methods:
-            if security_level in [PluginSecurityLevel.SANDBOXED, PluginSecurityLevel.STANDARD]:
+            if security_level in [
+                PluginSecurityLevel.SANDBOXED,
+                PluginSecurityLevel.STANDARD,
+            ]:
                 return False
 
         return True
@@ -462,7 +500,9 @@ class PluginManager:
                     try:
                         validation = await self.validate_plugin(plugin_id)
                         if not validation.get("valid", True):
-                            logger.warning(f"Plugin {plugin_id} health check failed: {validation}")
+                            logger.warning(
+                                f"Plugin {plugin_id} health check failed: {validation}"
+                            )
                     except Exception as e:
                         logger.error(f"Health check failed for plugin {plugin_id}: {e}")
 
