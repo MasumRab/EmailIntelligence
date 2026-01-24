@@ -15,7 +15,9 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
-from urllib.request import urlopen
+from urllib.parse import urlparse
+
+import httpx
 
 from .plugin_base import (
     HookSystem,
@@ -373,11 +375,21 @@ class PluginManager:
             return False
 
     async def _download_file(self, url: str, dest_path: Path):
-        """Download a file from URL."""
+        """Download a file from URL safely."""
         try:
-            with urlopen(url) as response:
-                with open(dest_path, "wb") as f:
-                    f.write(response.read())
+            # Validate scheme
+            parsed = urlparse(url)
+            if parsed.scheme not in ("http", "https"):
+                raise ValueError(
+                    f"Only HTTP/HTTPS protocols are supported. Invalid scheme: {parsed.scheme}"
+                )
+
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                async with client.stream("GET", url, follow_redirects=True) as response:
+                    response.raise_for_status()
+                    with open(dest_path, "wb") as f:
+                        async for chunk in response.aiter_bytes():
+                            f.write(chunk)
         except Exception as e:
             logger.error(f"Failed to download file from {url}: {e}")
             raise
