@@ -17,6 +17,9 @@ def db_manager(db_config):
     manager = DatabaseManager(config=db_config)
     # Mock caching manager to isolate behavior
     manager.caching_manager = MagicMock()
+    # IMPORTANT: Mock get_query_result to return None by default,
+    # otherwise it returns a Mock object which is truthy but has len()=0 (or crashes)
+    manager.caching_manager.get_query_result.return_value = None
     manager.caching_manager.get_email_content.return_value = None
     manager.emails_data = []
     manager.emails_by_id = {}
@@ -32,7 +35,7 @@ async def test_search_emails_uses_cache(db_manager):
     email_light = {FIELD_ID: email_id, "subject": "Test Subject"}
     db_manager.emails_data = [email_light]
 
-    # Mock cache hit
+    # Mock cache hit for content (NOT query cache for this test)
     cached_content = {FIELD_CONTENT: "This contains the secret keyword"}
     db_manager.caching_manager.get_email_content.return_value = cached_content
 
@@ -54,6 +57,9 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
     email_id = 2
     email_light = {FIELD_ID: email_id, "subject": "Test Subject 2"}
     db_manager.emails_data = [email_light]
+
+    # Ensure we use the overridden manager correctly
+    db_manager.email_content_dir = str(tmp_path / "data" / "email_content")
 
     # Mock cache miss
     db_manager.caching_manager.get_email_content.return_value = None
@@ -79,7 +85,12 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
         # Verify to_thread was called with the helper
         found_call = False
         for call in mock_to_thread.call_args_list:
-            if call.args and getattr(call.args[0], "__name__", "") == "_read_content_sync":
+            # Check if the first argument is a callable with name _read_content_sync
+            if call.args and callable(call.args[0]) and call.args[0].__name__ == "_read_content_sync":
+                found_call = True
+                break
+            # Alternatively, it might be a partial or bound method
+            if call.args and hasattr(call.args[0], "__name__") and call.args[0].__name__ == "_read_content_sync":
                 found_call = True
                 break
 
