@@ -16,6 +16,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from urllib.request import urlopen
+from urllib.parse import urlparse
+
+import httpx
 
 from .plugin_base import (
     HookSystem,
@@ -373,11 +376,20 @@ class PluginManager:
             return False
 
     async def _download_file(self, url: str, dest_path: Path):
-        """Download a file from URL."""
+        """Download a file from URL securely."""
+        # Validate URL scheme to prevent SSRF and local file access
+        parsed = urlparse(url)
+        if parsed.scheme not in ('http', 'https'):
+            raise SecurityError(f"Invalid URL scheme: {parsed.scheme}. Only http and https are allowed.")
+
         try:
-            with urlopen(url) as response:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, follow_redirects=True, timeout=30.0)
+                response.raise_for_status()
+
                 with open(dest_path, "wb") as f:
-                    f.write(response.read())
+                    async for chunk in response.aiter_bytes():
+                        f.write(chunk)
         except Exception as e:
             logger.error(f"Failed to download file from {url}: {e}")
             raise
