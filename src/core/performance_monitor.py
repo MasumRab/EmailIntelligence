@@ -11,177 +11,11 @@ Also includes the optimized version features:
 """
 
 import asyncio
+import atexit
 import json
 import logging
 import threading
 import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
-
-import psutil
-
-logger = logging.getLogger(__name__)
-
-LOG_FILE = "performance_metrics_log.jsonl"
-
-
-@dataclass
-class PerformanceMetric:
-    """Represents a single performance metric"""
-
-    timestamp: float
-    value: float
-    unit: str
-    source: str
-
-
-@dataclass
-class ProcessingEvent:
-    """Represents a processing event in the system"""
-
-    event_type: str  # 'model_load', 'model_unload', 'workflow_execute', etc.
-    model_name: Optional[str]
-    workflow_name: Optional[str]
-    start_time: float
-    end_time: Optional[float]
-    success: bool
-    details: Dict[str, Any]
-
-
-class PerformanceMonitor:
-    """Monitors and tracks performance metrics across the system"""
-
-    def __init__(self):
-        self.metrics: List[PerformanceMetric] = []
-        self.processing_events: List[ProcessingEvent] = []
-        self.lock = threading.Lock()
-        self._ensure_log_file_exists()
-
-    def _ensure_log_file_exists(self):
-        """Ensure the log file exists"""
-        try:
-            with open(LOG_FILE, "a"):
-                pass
-        except Exception as e:
-            logger.warning(f"Failed to create performance log file: {e}")
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Log a performance entry to the log file"""
-        try:
-            with self.lock:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-        except Exception as e:
-            logger.warning(f"Failed to log performance: {e}")
-
-    def get_system_metrics(self) -> Dict[str, Any]:
-        """Get current system metrics"""
-        try:
-            cpu_percent = psutil.cpu_percent()
-            memory = psutil.virtual_memory()
-            return {
-                "cpu_percent": cpu_percent,
-                "memory_percent": memory.percent,
-                "memory_available": memory.available,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-        except Exception as e:
-            logger.warning(f"Failed to get system metrics: {e}")
-            return {}
-
-    def record_processing_event(self, event: ProcessingEvent) -> None:
-        """Record a processing event"""
-        with self.lock:
-            self.processing_events.append(event)
-
-
-# Global performance monitor instance
-performance_monitor = PerformanceMonitor()
-
-
-def log_performance(operation_or_func=None, *, operation: str = ""):
-    """
-    A decorator to log the performance of both sync and async functions.
-    Can be used as @log_performance or @log_performance(operation="custom_name").
-    """
-    if callable(operation_or_func) and operation == "":
-        # Used as @log_performance (without parentheses)
-        func = operation_or_func
-        op_name = func.__name__
-        return _create_decorator(func, op_name)
-    elif operation_or_func is not None and operation == "":
-        # Used as @log_performance("custom_name")
-        op_name = operation
-
-        def decorator(func):
-            return _create_decorator(func, op_name)
-
-        return decorator
-    else:
-        # Used as @log_performance(operation="custom_name")
-        op_name = operation
-
-        def decorator(func):
-            return _create_decorator(func, op_name)
-
-        return decorator
-
-
-def _create_decorator(func, op_name):
-    """Create the actual decorator for a function"""
-    if asyncio.iscoroutinefunction(func):
-
-        @wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = await func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
-            try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
-
-            return result
-
-        return async_wrapper
-    else:
-
-        @wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = func(*args, **kwargs)
-            end_time = time.perf_counter()
-            duration = end_time - start_time
-
-            log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "operation": op_name,
-                "duration_seconds": duration,
-            }
-
-            try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
-
-            return result
-
-        return sync_wrapper
-
-
-import atexit
-
-# Enhanced performance monitoring system with additional features
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -189,7 +23,15 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
+# Try to import psutil, but don't fail if it's missing (fallback gracefully)
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
 logger = logging.getLogger(__name__)
+
+LOG_FILE = "logs/performance_metrics.jsonl"
 
 
 @dataclass
@@ -233,7 +75,7 @@ class OptimizedPerformanceMonitor:
 
     def __init__(
         self,
-        log_file: str = "logs/performance_metrics.jsonl",
+        log_file: str = LOG_FILE,
         aggregation_window: int = 60,  # seconds
         max_metrics_buffer: int = 10000,
         flush_interval: int = 10,
@@ -264,6 +106,56 @@ class OptimizedPerformanceMonitor:
         atexit.register(self.shutdown)
 
         logger.info("OptimizedPerformanceMonitor initialized")
+
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """
+        Adapter method for backward compatibility with the old PerformanceMonitor interface.
+        Translates the old log entry format into the new metric format.
+
+        Args:
+            log_entry: Dictionary containing 'operation', 'duration_seconds', etc.
+        """
+        operation = log_entry.get("operation", "unknown_operation")
+        duration_seconds = log_entry.get("duration_seconds", 0)
+
+        # Convert seconds to milliseconds for consistency with new system
+        duration_ms = duration_seconds * 1000
+
+        # Extract other potential tags
+        tags = {}
+        for key, value in log_entry.items():
+            if key not in ["operation", "duration_seconds", "timestamp"] and isinstance(value, str):
+                tags[key] = value
+
+        self.record_metric(
+            name=operation,
+            value=duration_ms,
+            unit="ms",
+            tags=tags
+        )
+
+    def get_system_metrics(self) -> Dict[str, Any]:
+        """Get current system metrics. Backward compatibility adapter."""
+        if not psutil:
+            return {}
+
+        try:
+            cpu_percent = psutil.cpu_percent()
+            memory = psutil.virtual_memory()
+
+            # Record these as metrics too
+            self.record_metric("system.cpu_percent", cpu_percent, "%")
+            self.record_metric("system.memory_percent", memory.percent, "%")
+
+            return {
+                "cpu_percent": cpu_percent,
+                "memory_percent": memory.percent,
+                "memory_available": memory.available,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        except Exception as e:
+            logger.warning(f"Failed to get system metrics: {e}")
+            return {}
 
     def record_metric(
         self,
@@ -383,7 +275,8 @@ class OptimizedPerformanceMonitor:
                 self._flush_to_disk()
 
             except Exception as e:
-                logger.error(f"Error in metrics processing: {e}")
+                # Use standard logging here to avoid recursion loop if logging fails
+                logging.getLogger(__name__).error(f"Error in metrics processing: {e}")
 
     def _aggregate_metrics(self):
         """Aggregate metrics in sliding windows."""
@@ -424,16 +317,22 @@ class OptimizedPerformanceMonitor:
     def _flush_to_disk(self):
         """Flush aggregated metrics to disk."""
         try:
+            # Skip if no metrics
+            if not self._aggregated_metrics:
+                return
+
             with open(self.log_file, "a", encoding="utf-8") as f:
                 for metric in self._aggregated_metrics.values():
                     json.dump(asdict(metric), f, ensure_ascii=False)
                     f.write("\n")
 
-            # Clear aggregated metrics after flushing
+            # Clear aggregated metrics after flushing to avoid re-writing old aggregations
+            # But keep them in memory for get_aggregated_metrics until next flush?
+            # Actually, standard behavior for timeseries is to flush and clear.
             self._aggregated_metrics.clear()
 
         except Exception as e:
-            logger.error(f"Error flushing metrics to disk: {e}")
+            logging.getLogger(__name__).error(f"Error flushing metrics to disk: {e}")
 
     def shutdown(self):
         """Shutdown the performance monitor gracefully."""
@@ -446,14 +345,92 @@ class OptimizedPerformanceMonitor:
             self._aggregate_metrics()
             self._flush_to_disk()
         except Exception as e:
-            logger.error(f"Error in final metrics flush: {e}")
+            logging.getLogger(__name__).error(f"Error in final metrics flush: {e}")
 
         if self._processing_thread.is_alive():
-            self._processing_thread.join(timeout=5.0)
+            self._processing_thread.join(timeout=1.0)
 
 
 # Global performance monitor instance
 performance_monitor = OptimizedPerformanceMonitor()
+
+
+def log_performance(operation_or_func=None, *, operation: str = ""):
+    """
+    A decorator to log the performance of both sync and async functions.
+    Can be used as @log_performance or @log_performance(operation="custom_name").
+    """
+    if callable(operation_or_func) and operation == "":
+        # Used as @log_performance (without parentheses)
+        func = operation_or_func
+        op_name = func.__name__
+        return _create_decorator(func, op_name)
+    elif operation_or_func is not None and operation == "":
+        # Used as @log_performance("custom_name")
+        op_name = operation
+
+        def decorator(func):
+            return _create_decorator(func, op_name)
+
+        return decorator
+    else:
+        # Used as @log_performance(operation="custom_name")
+        op_name = operation
+
+        def decorator(func):
+            return _create_decorator(func, op_name)
+
+        return decorator
+
+
+def _create_decorator(func, op_name):
+    """Create the actual decorator for a function"""
+    if asyncio.iscoroutinefunction(func):
+
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = await func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": op_name,
+                "duration_seconds": duration,
+            }
+
+            try:
+                performance_monitor.log_performance(log_entry)
+            except Exception as e:
+                logger.warning(f"Failed to log performance: {e}")
+
+            return result
+
+        return async_wrapper
+    else:
+
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            duration = end_time - start_time
+
+            log_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "operation": op_name,
+                "duration_seconds": duration,
+            }
+
+            try:
+                performance_monitor.log_performance(log_entry)
+            except Exception as e:
+                logger.warning(f"Failed to log performance: {e}")
+
+            return result
+
+        return sync_wrapper
 
 
 # Convenience functions
