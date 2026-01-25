@@ -68,6 +68,24 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+    _precomputed: Optional[Dict[str, Any]] = None
+
+    def __post_init__(self):
+        """Pre-compute values for faster filtering."""
+        if self._precomputed is None:
+            self._precomputed = {}
+            if "subject_keywords" in self.criteria:
+                self._precomputed["subject_keywords_lower"] = [
+                    k.lower() for k in self.criteria["subject_keywords"]
+                ]
+            if "content_keywords" in self.criteria:
+                self._precomputed["content_keywords_lower"] = [
+                    k.lower() for k in self.criteria["content_keywords"]
+                ]
+            if "sender_domain" in self.criteria:
+                self._precomputed["sender_domain_lower"] = self.criteria[
+                    "sender_domain"
+                ].lower()
 
 
 @dataclass
@@ -545,35 +563,66 @@ class SmartFilterManager:
         
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
+    async def _apply_filter_to_email(
+        self,
+        filter_obj: EmailFilter,
+        email: Dict[str, Any],
+        precomputed_email: Optional[Dict[str, Any]] = None,
+    ) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
-        
+        precomputed = filter_obj._precomputed or {}
+
+        # Prepare email data
+        if precomputed_email:
+            sender_domain = precomputed_email.get("sender_domain", "")
+            subject_lower = precomputed_email.get("subject_lower", "")
+            content_lower = precomputed_email.get("content_lower", "")
+        else:
+            sender_email = email.get("sender_email", email.get("sender", ""))
+            sender_domain = self._extract_domain(sender_email)
+            subject_lower = email.get("subject", "").lower()
+            content_lower = email.get("content", email.get("body", "")).lower()
+
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
-            if domain != criteria["sender_domain"]:
+            target_domain = precomputed.get(
+                "sender_domain_lower", criteria["sender_domain"]
+            )
+            if sender_domain != target_domain:
                 return False
-        
+
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
-            if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
+            keywords = precomputed.get(
+                "subject_keywords_lower",
+                [k.lower() for k in criteria["subject_keywords"]],
+            )
+            if not any(keyword in subject_lower for keyword in keywords):
                 return False
-        
+
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
-            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+            keywords = precomputed.get(
+                "content_keywords_lower",
+                [k.lower() for k in criteria["content_keywords"]],
+            )
+            if not any(keyword in content_lower for keyword in keywords):
                 return False
-        
+
         # Check from patterns
         if "from_patterns" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", "")).lower()
-            if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
+            sender_email_lower = (
+                precomputed_email.get("sender_lower")
+                if precomputed_email
+                else email.get("sender_email", email.get("sender", "")).lower()
+            )
+            if not any(
+                re.search(p, sender_email_lower, re.IGNORECASE)
+                for p in criteria["from_patterns"]
+            ):
                 return False
-        
+
         return True
 
     async def _save_filter_async(self, filter_obj: EmailFilter):
@@ -657,12 +706,25 @@ class SmartFilterManager:
         
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
-        
+
+        # Pre-compute email data for performance
+        sender_email = email_data.get("sender_email", email_data.get("sender", ""))
+        precomputed_email = {
+            "sender_domain": self._extract_domain(sender_email).lower(),
+            "subject_lower": email_data.get("subject", "").lower(),
+            "content_lower": email_data.get(
+                "content", email_data.get("body", "")
+            ).lower(),
+            "sender_lower": sender_email.lower(),
+        }
+
         matched_filter_ids = []
 
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                if await self._apply_filter_to_email(
+                    filter_obj, email_data, precomputed_email=precomputed_email
+                ):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
