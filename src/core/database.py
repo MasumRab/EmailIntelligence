@@ -472,8 +472,9 @@ class DatabaseManager(DataSource):
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
 
-        # Invalidate sorted cache
+        # Invalidate sorted cache and query cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(light_email_record)
 
@@ -680,8 +681,9 @@ class DatabaseManager(DataSource):
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
             
-            # Invalidate sorted cache
+            # Invalidate sorted cache and query cache
             self._sorted_emails_cache = None
+            self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
@@ -731,6 +733,16 @@ class DatabaseManager(DataSource):
             return await self.get_emails(limit=limit, offset=0)
 
         search_term_lower = search_term.lower()
+
+        # Check query cache
+        query_key = f"search:{search_term_lower}:{limit}"
+        cached_results = self.caching_manager.get_query_result(query_key)
+        if cached_results is not None:
+            # Check if we need to hydrate with category details
+            # Cached results might be stale regarding category details if not invalidated on category changes,
+            # but we clear query cache on email changes.
+            return cached_results
+
         filtered_emails = []
 
         # Optimization: Iterate over sorted emails and stop once we reach the limit.
@@ -782,7 +794,12 @@ class DatabaseManager(DataSource):
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
         # Results are already sorted because we iterated source_emails (which is sorted)
-        return [self._add_category_details(email) for email in filtered_emails]
+        results = [self._add_category_details(email) for email in filtered_emails]
+
+        # Cache the results
+        self.caching_manager.put_query_result(query_key, results)
+
+        return results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -862,8 +879,9 @@ class DatabaseManager(DataSource):
 
         self.caching_manager.invalidate_email_record(email_id)
 
-        # Invalidate sorted cache
+        # Invalidate sorted cache and query cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
