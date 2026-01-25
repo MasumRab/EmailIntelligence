@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any, List
 import time
 import hashlib
 import secrets
+import argon2
 from argon2 import PasswordHasher
 
 import jwt
