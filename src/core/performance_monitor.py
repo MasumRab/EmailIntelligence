@@ -265,6 +265,21 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """
+        Legacy compatibility method for log_performance decorator.
+        Bridges the old synchronous file logging to the new async metrics system.
+        """
+        operation = log_entry.get("operation", "unknown")
+        duration = log_entry.get("duration_seconds", 0)
+        # Convert seconds to ms for consistency with new monitor default
+        self.record_metric(
+            name=operation,
+            value=duration * 1000,
+            unit="ms",
+            tags={"source": "legacy_decorator"},
+        )
+
     def record_metric(
         self,
         name: str,
