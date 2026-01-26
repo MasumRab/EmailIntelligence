@@ -13,14 +13,14 @@ import os
 import re
 import sqlite3
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Union
 from pathlib import Path
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -68,6 +68,23 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+    _precomputed: Dict[str, Any] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self):
+        """Pre-compute lowercased keywords and compiled regexes for performance."""
+        self._precomputed = {}
+        if "subject_keywords" in self.criteria:
+            self._precomputed["subject_keywords"] = [
+                k.lower() for k in self.criteria["subject_keywords"]
+            ]
+        if "content_keywords" in self.criteria:
+            self._precomputed["content_keywords"] = [
+                k.lower() for k in self.criteria["content_keywords"]
+            ]
+        if "from_patterns" in self.criteria:
+            self._precomputed["from_patterns"] = [
+                re.compile(p, re.IGNORECASE) for p in self.criteria["from_patterns"]
+            ]
 
 
 @dataclass
@@ -143,7 +160,7 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
 
         # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        self.caching_manager = get_cache_manager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -331,9 +348,6 @@ class SmartFilterManager:
         """Ensure all components are properly initialized."""
         if self._initialized:
             return
-
-        # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -640,18 +654,34 @@ class SmartFilterManager:
         # Check subject keywords
         if "subject_keywords" in criteria:
             # Optimization: check if any keyword matches
-            if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
-                return False
+            keywords = filter_obj._precomputed.get("subject_keywords")
+            if keywords:
+                if not any(keyword in ctx.subject_lower for keyword in keywords):
+                    return False
+            else:
+                # Fallback if _precomputed not available
+                if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
+                    return False
 
         # Check content keywords
         if "content_keywords" in criteria:
-            if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
-                return False
+            keywords = filter_obj._precomputed.get("content_keywords")
+            if keywords:
+                if not any(keyword in ctx.content_lower for keyword in keywords):
+                    return False
+            else:
+                if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
+                    return False
 
         # Check from patterns
         if "from_patterns" in criteria:
-            if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
-                return False
+            patterns = filter_obj._precomputed.get("from_patterns")
+            if patterns:
+                if not any(p.search(ctx.sender_lower) for p in patterns):
+                    return False
+            else:
+                if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
+                    return False
 
         return True
 

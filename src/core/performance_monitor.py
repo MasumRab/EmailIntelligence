@@ -451,6 +451,17 @@ class OptimizedPerformanceMonitor:
         if self._processing_thread.is_alive():
             self._processing_thread.join(timeout=5.0)
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Legacy compatibility for log_performance decorator."""
+        # Convert legacy log entry to metric
+        operation = log_entry.get("operation", "unknown")
+        duration_ms = log_entry.get("duration_seconds", 0) * 1000
+        self.record_metric(
+            name=f"operation_duration_{operation}",
+            value=duration_ms,
+            unit="ms",
+        )
+
 
 # Global performance monitor instance
 performance_monitor = OptimizedPerformanceMonitor()
