@@ -545,33 +545,31 @@ class SmartFilterManager:
         
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
-        """Applies a single filter's criteria to an email."""
+    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email_context: Dict[str, Any]) -> bool:
+        """Applies a single filter's criteria to an email using pre-computed context."""
         criteria = filter_obj.criteria
         
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
-            if domain != criteria["sender_domain"]:
+            if email_context["sender_domain"] != criteria["sender_domain"]:
                 return False
         
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
-            if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
+            if not any(keyword.lower() in email_context["subject_lower"] for keyword in criteria["subject_keywords"]):
                 return False
         
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
-            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+            if not any(keyword.lower() in email_context["content_lower"] for keyword in criteria["content_keywords"]):
                 return False
         
         # Check from patterns
         if "from_patterns" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", "")).lower()
-            if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
+            # We use the pre-lowercased sender email. re.IGNORECASE is still useful if the pattern
+            # implies specific case handling, but generally sender emails are case insensitive.
+            # Using IGNORECASE with lowercased string is safe.
+            if not any(re.search(p, email_context["sender_lower"], re.IGNORECASE) for p in criteria["from_patterns"]):
                 return False
         
         return True
@@ -660,9 +658,19 @@ class SmartFilterManager:
         
         matched_filter_ids = []
 
+        # Pre-compute email context for optimization
+        sender_email = email_data.get("sender_email", email_data.get("sender", ""))
+        email_context = {
+            "sender_domain": self._extract_domain(sender_email),
+            "sender_lower": sender_email.lower(),
+            "subject_lower": email_data.get("subject", "").lower(),
+            "content_lower": email_data.get("content", email_data.get("body", "")).lower(),
+            "original_email": email_data
+        }
+
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                if await self._apply_filter_to_email(filter_obj, email_context):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
