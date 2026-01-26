@@ -265,6 +265,24 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """
+        Adapter for legacy log_performance calls to record metrics.
+        """
+        try:
+            operation = log_entry.get("operation", "unknown")
+            duration = log_entry.get("duration_seconds", 0.0)
+
+            # Record as metric, converting seconds to ms
+            self.record_metric(
+                name=f"operation_duration_{operation}",
+                value=duration * 1000,
+                unit="ms",
+                tags={"operation": operation}
+            )
+        except Exception as e:
+            logger.warning(f"Failed to record legacy performance metric: {e}")
+
     def record_metric(
         self,
         name: str,
