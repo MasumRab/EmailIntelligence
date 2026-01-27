@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -143,7 +143,7 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
 
         # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        self.caching_manager = get_cache_manager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -333,7 +333,7 @@ class SmartFilterManager:
             return
 
         # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
+        # CacheManager doesn't need explicit initialization
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -983,4 +983,4 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
+        # CacheManager doesn't have a close method and is global/shared
