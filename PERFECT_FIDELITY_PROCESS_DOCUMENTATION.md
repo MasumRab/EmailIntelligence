@@ -72,15 +72,24 @@ The system validates fidelity by:
 ## Results
 
 ### Testing Results
-- **Individual Task Test**: 100% fidelity (1.00 similarity) on single task
-- **Comprehensive Test**: 100% fidelity (1.00 similarity) across 73 task files
-- **Information Loss**: 0.0% information loss across all tests
-- **Distance Achieved**: 0.00 average distance (perfect preservation)
+> **Note**: Previous "100% fidelity" claims were based on simulation mode (comparing tasks to themselves).
+> Real round-trip testing requires task-master parse-prd which makes AI API calls.
+
+**Verified Status (January 27, 2026):**
+- **task-master**: Installed and working (v0.42.0)
+- **Simulation Mode**: Scripts fall back to simulation if task-master times out or fails
+- **Placeholder Fix**: 672+ placeholder patterns replaced with specific content across 55 task files
+- **Remaining Placeholders**: Only 4 false positives (array ellipsis notation, not real placeholders)
+
+**Real Round-Trip Testing**:
+- Requires active AI API (gemini-cli configured with gemini-2.5-flash)
+- Expected timeout: 300+ seconds for large task sets
+- Run manually: `python scripts/test_round_trip.py --input-dir tasks --pattern "task-001.md"`
 
 ### Performance Characteristics
-- **Processing Speed**: Maintains efficiency while achieving perfect fidelity
-- **Memory Usage**: Optimized for large-scale task processing
-- **Scalability**: Handles diverse task file formats and structures
+- **API Dependency**: task-master parse-prd requires AI model access
+- **Timeout Handling**: Scripts include 300s timeout with fallback to simulation
+- **Scalability**: Process individual tasks to avoid timeouts
 
 ## Deployment Instructions
 

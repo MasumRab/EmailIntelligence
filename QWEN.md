@@ -233,6 +233,51 @@ eai validate-resolution --pr 123 --comprehensive
 eai auto-resolve --pr 123
 ```
 
+## Session Management System
+
+Taskmaster now includes a comprehensive session management system that provides documented development sessions with full state management. The system enables continuity across development sessions and maintains detailed records of development activities.
+
+### Key Features:
+- **State Management**: Tracks current session and command history with automatic backups
+- **Session Lifecycle**: Full support for starting, running, and ending development sessions
+- **Project Context**: Captures project context including documentation and pending handoffs
+- **Command-Line Interface**: Easy-to-use commands for session management
+- **Cross-Project Registration**: Maintains registry of projects for continuity
+
+### Session Management Commands:
+```bash
+# Start a new session with goals
+python .qwen/session_cli.py start --goals "Goal 1,Goal 2,Goal 3"
+
+# Show current session information
+python .qwen/session_cli.py show
+
+# Show project context
+python .qwen/session_cli.py context
+
+# End the current session
+python .qwen/session_cli.py end
+```
+
+### Programmatic Usage:
+```python
+from .qwen.session_manager import SessionManager
+
+# Initialize session manager for the current project
+sm = SessionManager("/path/to/project")
+
+# Start a session
+session_info = sm.start_session(
+    goals=["Implement feature X", "Fix bug Y"]
+)
+
+# End the session
+sm.end_session()
+
+# Get current session info
+current_session = sm.get_current_session()
+```
+
 ## Best Practices
 
 ### Task Management
