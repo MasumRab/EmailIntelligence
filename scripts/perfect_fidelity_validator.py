@@ -18,6 +18,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from perfect_fidelity_reverse_engineer_prd import create_perfect_fidelity_reverse_engineered_prd, extract_task_info_with_perfect_fidelity
 from ultra_enhanced_convert_md_to_task_json import extract_task_info_from_md_ultra_enhanced, map_to_tasks_json_format_ultra
+from taskmaster_runner import run_task_master_parse_prd, check_task_master_available
 
 
 def calculate_similarity(text1: str, text2: str) -> float:
@@ -87,100 +88,26 @@ def calculate_task_similarity(original_task: Dict[str, Any], reconstructed_task:
     return similarities
 
 
-def simulate_task_master_parse_prd(prd_content: str, original_task_files: List[str]) -> str:
+def run_parse_prd_for_validation(prd_file: str, original_task_files: List[str]) -> str:
     """
-    Simulate the task-master parse-prd process by creating a mock tasks.json.
-    In a real scenario, this would call `task-master parse-prd <prd_file>`,
-    but for testing purposes we'll create a mock JSON based on the PRD content
-    and the original tasks for comparison.
+    Run task-master parse-prd to generate tasks from PRD.
+    Falls back to simulation if task-master is not available.
+
+    Args:
+        prd_file: Path to the PRD file
+        original_task_files: List of original task files (for simulation fallback)
+
+    Returns:
+        Path to the generated tasks.json file
     """
-    # This is a simplified simulation - in reality, task-master would process the PRD
-    # For this test, we'll create a mock JSON based on the original tasks
-    # but shaped by PRD structure
-    
-    # Create a tasks.json structure based on the original tasks but using PRD structure
-    tasks_json = {
-        "master": {
-            "name": "Task Master",
-            "version": "1.0.0",
-            "description": "Tasks generated from PRD (perfect fidelity simulation)",
-            "lastUpdated": "2026-01-16T06:30:00Z",
-            "tasks": []
-        }
-    }
-
-    # Extract task information from original files to simulate what task-master might generate
-    for task_file in original_task_files:
-        original_info = extract_task_info_with_perfect_fidelity(task_file)
-
-        # Create a simulated task based on the original but shaped by PRD structure
-        simulated_task = {
-            "id": original_info['id'],
-            "title": original_info['title'],
-            "description": original_info.get('purpose', ''),
-            "status": original_info.get('status', 'pending'),
-            "priority": original_info.get('priority', 'medium'),
-            "dependencies": [],
-            "details": original_info.get('details', ''),
-            "subtasks": [],
-            "testStrategy": original_info.get('test_strategy', ''),
-            "complexity": original_info.get('complexity', '0/10'),
-            "effort": original_info.get('effort', '0 hours'),
-            "updatedAt": "2026-01-16T06:30:00Z",
-            "createdAt": "2026-01-16T06:30:00Z",
-            "blocks": original_info.get('blocks', ''),
-            "initiative": original_info.get('initiative', ''),
-            "scope": original_info.get('scope', ''),
-            "focus": original_info.get('focus', ''),
-            "owner": original_info.get('owner', ''),
-            "prerequisites": original_info.get('prerequisites', ''),
-            "specification_details": original_info.get('specification_details', ''),
-            "implementation_guide": original_info.get('implementation_guide', ''),
-            "configuration_params": original_info.get('configuration_params', ''),
-            "performance_targets": original_info.get('performance_targets', ''),
-            "common_gotchas": original_info.get('common_gotchas', ''),
-            "integration_checkpoint": original_info.get('integration_checkpoint', ''),
-            "done_definition": original_info.get('done_definition', ''),
-            "next_steps": original_info.get('next_steps', ''),
-            "extended_metadata": original_info.get('extended_metadata', {}),
-        }
-
-        # Parse dependencies string into array
-        if original_info.get("dependencies"):
-            deps_str = original_info["dependencies"]
-            if deps_str.lower() not in ['none', 'null', '']:
-                # Handle various formats: comma-separated, space-separated, "and" separated
-                deps = re.split(r'[,\s]+| and ', deps_str)
-                deps = [dep.strip() for dep in deps if dep.strip()]
-                simulated_task["dependencies"] = deps
-
-        # Add success criteria as specific requirements
-        if original_info.get("success_criteria"):
-            simulated_task["success_criteria"] = original_info["success_criteria"]
-
-        # Add subtasks if they exist
-        for subtask in original_info.get('subtasks', []):
-            simulated_subtask = {
-                "id": subtask.get('id', 1),
-                "title": subtask.get('title', ''),
-                "description": "",
-                "dependencies": [],
-                "details": "",
-                "testStrategy": "",
-                "status": subtask.get('status', 'pending'),
-                "parentId": original_info['id'],
-                "effort": "",
-            }
-            simulated_task['subtasks'].append(simulated_subtask)
-
-        tasks_json["master"]["tasks"].append(simulated_task)
-
-    # Write the simulated tasks.json
-    output_path = Path(f"perfect_fidelity_simulated_tasks.json")
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(tasks_json, f, indent=2)
-
-    return str(output_path)
+    return run_task_master_parse_prd(
+        prd_file=prd_file,
+        output_dir=None,
+        fallback_simulation=True,
+        extract_task_info_func=extract_task_info_with_perfect_fidelity,
+        original_task_files=original_task_files,
+        simulation_description="perfect fidelity validation",
+    )
 
 
 def run_perfect_fidelity_test(task_files: List[str]) -> Dict[str, Any]:
@@ -201,9 +128,9 @@ def run_perfect_fidelity_test(task_files: List[str]) -> Dict[str, Any]:
 
     print(f"Generated perfect fidelity PRD saved to {prd_path}")
 
-    # Step 2: Simulate task-master parse-prd to generate tasks from PRD
-    print("Step 2: Simulating task-master parse-prd to generate tasks from PRD...")
-    generated_tasks_path = simulate_task_master_parse_prd(prd_content, task_files)
+    # Step 2: Run task-master parse-prd to generate tasks from PRD
+    print("Step 2: Running task-master parse-prd to generate tasks from PRD...")
+    generated_tasks_path = run_parse_prd_for_validation(str(prd_path), task_files)
 
     # Step 3: Compare original tasks with generated tasks
     print("Step 3: Comparing original tasks with generated tasks...")

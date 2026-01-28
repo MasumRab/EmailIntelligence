@@ -24,6 +24,7 @@ from typing import Dict, List, Any
 import copy
 from task_distance_analyzer import analyze_task_distance, print_analysis_report
 from reverse_engineer_prd import create_reverse_engineered_prd, extract_task_info_from_md
+from taskmaster_runner import run_task_master_parse_prd, check_task_master_available
 
 
 def generate_improved_prd(task_files: List[str], iteration: int, prev_results: Dict[str, Any] = None) -> str:
@@ -82,77 +83,26 @@ def generate_improved_prd(task_files: List[str], iteration: int, prev_results: D
     return prd_content
 
 
-def simulate_task_generation_from_prd(prd_content: str, original_task_files: List[str]) -> str:
+def run_task_generation_from_prd(prd_file: str, original_task_files: List[str]) -> str:
     """
-    Simulate the task-master parse-prd process by creating a mock tasks.json.
-    
-    In a real scenario, this would call `task-master parse-prd <prd_file>`,
-    but for simulation purposes we'll create a mock JSON based on the PRD content.
+    Run task-master parse-prd to generate tasks from PRD.
+    Falls back to simulation if task-master is not available.
     
     Args:
-        prd_content: Content of the PRD file
-        original_task_files: List of original task files for reference
+        prd_file: Path to the PRD file
+        original_task_files: List of original task files for reference (for simulation fallback)
         
     Returns:
-        Path to the simulated tasks.json file
+        Path to the generated tasks.json file
     """
-    # In a real implementation, we would call task-master here
-    # For simulation, we'll create a mock JSON based on the original tasks
-    # but using the structure implied by the PRD
-    
-    # For now, let's create a mock tasks.json that represents what task-master
-    # might generate from the PRD
-    tasks_json = {
-        "master": {
-            "name": "Task Master",
-            "version": "1.0.0",
-            "description": "Tasks generated from PRD (iteration simulation)",
-            "tasks": []
-        }
-    }
-    
-    # Extract task information from original files to simulate what might be generated
-    for task_file in original_task_files:
-        original_info = extract_task_info_from_md(task_file)
-        
-        # Create a simulated task based on the original but shaped by PRD structure
-        simulated_task = {
-            "id": original_info['id'],
-            "title": original_info['title'],
-            "description": original_info['purpose'],
-            "status": original_info.get('status', 'pending'),
-            "priority": original_info.get('priority', 'medium'),
-            "dependencies": [],
-            "details": original_info.get('details', ''),
-            "subtasks": [],
-            "testStrategy": original_info.get('test_strategy', ''),
-            "complexity": len(original_info.get('subtasks', [])),
-            "recommendedSubtasks": len(original_info.get('subtasks', [])),
-            "expansionPrompt": "N/A - subtasks already defined.",
-        }
-        
-        # Add subtasks if they exist
-        for subtask in original_info.get('subtasks', []):
-            simulated_subtask = {
-                "id": subtask.get('id', 1),
-                "title": subtask.get('title', ''),
-                "description": "",
-                "dependencies": [],
-                "details": "",
-                "testStrategy": "",
-                "status": subtask.get('status', 'pending'),
-                "parentId": original_info['id'],
-            }
-            simulated_task['subtasks'].append(simulated_subtask)
-        
-        tasks_json["master"]["tasks"].append(simulated_task)
-    
-    # Write the simulated tasks.json
-    output_path = Path(f"simulated_tasks_iteration.json")
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(tasks_json, f, indent=2)
-    
-    return str(output_path)
+    return run_task_master_parse_prd(
+        prd_file=prd_file,
+        output_dir=None,
+        fallback_simulation=True,
+        extract_task_info_func=extract_task_info_from_md,
+        original_task_files=original_task_files,
+        simulation_description="iterative distance minimization",
+    )
 
 
 def iterative_distance_minimization(original_dir: str, max_iterations: int = 10) -> Dict[str, Any]:
@@ -192,8 +142,8 @@ def iterative_distance_minimization(original_dir: str, max_iterations: int = 10)
         
         print(f"Generated PRD for iteration {iteration}")
         
-        # Simulate task generation from PRD (in real scenario, this would call task-master)
-        tasks_json_path = simulate_task_generation_from_prd(prd_content, original_files)
+        # Run task-master parse-prd (falls back to simulation if unavailable)
+        tasks_json_path = run_task_generation_from_prd(str(prd_path), original_files)
         
         # Analyze distance between original and generated tasks
         results = analyze_task_distance(original_dir, tasks_json_path)

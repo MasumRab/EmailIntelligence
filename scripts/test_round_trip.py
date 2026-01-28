@@ -14,79 +14,33 @@ import subprocess
 import sys
 
 # Add the current directory to the path to import the module
-import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import the ultra enhanced PRD generation
 from ultra_enhanced_reverse_engineer_prd import create_ultra_enhanced_reverse_engineered_prd, extract_task_info_from_md_ultra_enhanced
+from taskmaster_runner import run_task_master_parse_prd, check_task_master_available
 
 
-def simulate_task_master_parse_prd(prd_content: str, original_task_files: List[str]) -> str:
+def run_parse_prd_for_round_trip(prd_file: str, original_task_files: List[str]) -> str:
     """
-    Simulate the task-master parse-prd process by creating a mock tasks.json.
+    Run task-master parse-prd to generate tasks from PRD.
+    Falls back to simulation if task-master is not available.
 
-    In a real scenario, this would call `task-master parse-prd <prd_file>`,
-    but for testing purposes we'll create a mock JSON based on the PRD content
-    and the original tasks for comparison.
+    Args:
+        prd_file: Path to the PRD file
+        original_task_files: List of original task files (for simulation fallback)
+
+    Returns:
+        Path to the generated tasks.json file
     """
-    # This is a simplified simulation - in reality, task-master would process the PRD
-    # For this test, we'll create a mock JSON based on the original tasks
-    # but shaped by PRD structure
-
-    # Import the extraction function from the ultra enhanced approach
-    from ultra_enhanced_reverse_engineer_prd import extract_task_info_from_md_ultra_enhanced
-    
-    tasks_json = {
-        "master": {
-            "name": "Task Master",
-            "version": "1.0.0",
-            "description": "Tasks generated from PRD (round-trip test)",
-            "tasks": []
-        }
-    }
-
-    # Extract task information from original files to simulate what might be generated
-    for task_file in original_task_files:
-        original_info = extract_task_info_from_md_ultra_enhanced(task_file)
-
-        # Create a simulated task based on the original but shaped by PRD structure
-        simulated_task = {
-            "id": original_info['id'],
-            "title": original_info['title'],
-            "description": original_info['purpose'],
-            "status": original_info.get('status', 'pending'),
-            "priority": original_info.get('priority', 'medium'),
-            "dependencies": [],
-            "details": original_info.get('details', ''),
-            "subtasks": [],
-            "testStrategy": original_info.get('test_strategy', ''),
-            "complexity": len(original_info.get('subtasks', [])),
-            "recommendedSubtasks": len(original_info.get('subtasks', [])),
-            "expansionPrompt": "N/A - subtasks already defined.",
-        }
-
-        # Add subtasks if they exist
-        for subtask in original_info.get('subtasks', []):
-            simulated_subtask = {
-                "id": subtask.get('id', 1),
-                "title": subtask.get('title', ''),
-                "description": "",
-                "dependencies": [],
-                "details": "",
-                "testStrategy": "",
-                "status": subtask.get('status', 'pending'),
-                "parentId": original_info['id'],
-            }
-            simulated_task['subtasks'].append(simulated_subtask)
-
-        tasks_json["master"]["tasks"].append(simulated_task)
-
-    # Write the simulated tasks.json
-    output_path = Path(f"roundtrip_simulated_tasks.json")
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(tasks_json, f, indent=2)
-
-    return str(output_path)
+    return run_task_master_parse_prd(
+        prd_file=prd_file,
+        output_dir=None,
+        fallback_simulation=True,
+        extract_task_info_func=extract_task_info_from_md_ultra_enhanced,
+        original_task_files=original_task_files,
+        simulation_description="round-trip test",
+    )
 
 
 def calculate_similarity(text1: str, text2: str) -> float:
@@ -190,9 +144,9 @@ def run_round_trip_test(task_files: List[str]) -> Dict[str, Any]:
 
     print(f"Generated PRD saved to {prd_path}")
 
-    # Step 2: Simulate task-master parse-prd to generate tasks from PRD
-    print("Step 2: Simulating task-master parse-prd to generate tasks from PRD...")
-    generated_tasks_path = simulate_task_master_parse_prd(prd_content, task_files)
+    # Step 2: Run task-master parse-prd to generate tasks from PRD
+    print("Step 2: Running task-master parse-prd to generate tasks from PRD...")
+    generated_tasks_path = run_parse_prd_for_round_trip(str(prd_path), task_files)
 
     # Step 3: Compare original tasks with generated tasks
     print("Step 3: Comparing original tasks with generated tasks...")

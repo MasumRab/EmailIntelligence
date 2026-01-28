@@ -219,7 +219,7 @@ def parse_dependencies_ultra_enhanced(dependencies_str: str) -> List[str]:
         for id_match in id_matches:
             # Normalize the ID format (ensure dots for decimals)
             normalized_id = id_match.replace(',', '.')
-            if normalized_id and normalized_id != task_info.get('id'):  # Avoid self-dependencies
+            if normalized_id:
                 result.append(normalized_id)
 
     return [dep for dep in result if dep]
