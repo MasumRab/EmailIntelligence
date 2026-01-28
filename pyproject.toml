@@ -39,3 +39,4 @@ dev = [
 
 [project.scripts]
 eai = "emailintelligence_cli:main"
+task-master = "taskmaster_cli:main"
