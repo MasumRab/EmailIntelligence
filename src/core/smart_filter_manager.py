@@ -545,32 +545,30 @@ class SmartFilterManager:
         
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
+    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email_context: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
         
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
-            if domain != criteria["sender_domain"]:
+            if email_context.get("sender_domain") != criteria["sender_domain"]:
                 return False
         
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
+            subject = email_context.get("subject_lower", "")
             if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
                 return False
         
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
+            content = email_context.get("content_lower", "")
             if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
                 return False
         
         # Check from patterns
         if "from_patterns" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", "")).lower()
+            sender_email = email_context.get("sender_lower", "")
             if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
                 return False
         
@@ -660,9 +658,19 @@ class SmartFilterManager:
         
         matched_filter_ids = []
 
+        # Pre-compute email context for faster filtering
+        sender_email = email_data.get("sender_email", email_data.get("sender", ""))
+        email_context = {
+            "email": email_data,
+            "sender_domain": self._extract_domain(sender_email),
+            "subject_lower": email_data.get("subject", "").lower(),
+            "content_lower": email_data.get("content", email_data.get("body", "")).lower(),
+            "sender_lower": sender_email.lower(),
+        }
+
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                if await self._apply_filter_to_email(filter_obj, email_context):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
