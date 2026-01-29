@@ -1,0 +1,82 @@
+# Task 002.1: CommitHistoryAnalyzer
+
+**Status:** pending
+**Priority:** high
+**Effort:** 24-32 hours
+**Complexity:** 7/10
+**Dependencies:** None
+**Created:** 2026-01-12
+**Parent:** Task 002: Branch Clustering System
+
+## Sub-subtasks Breakdown
+
+### 1.1: Execute Task
+- Complete 005.1: CommitHistoryAnalyzer
+- Verify completion
+- Update status
+
+
+
+---
+
+## Purpose
+
+Analyze Git commit history for each feature branch to extract metrics like commit frequency, author patterns, merge points, and branch divergence dates.
+
+---
+
+## Details
+
+Implement a Python module that:
+- Fetches all remote feature branches
+- Extracts commit metadata (hash, date, author, message)
+- Calculates divergence metrics from main/scientific/orchestration-tools
+- Identifies shared history points and merge bases
+- Outputs structured metrics for clustering
+
+---
+
+## Guidance & Standards
+
+- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
+- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
+- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
+- **General:** [Project Guidance](../guidance/README.md)
+
+---
+
+## Success Criteria
+
+## Success Criteria
+
+- [ ] Module fetches and analyzes all feature branches - Verification: [Method to verify completion]
+- [ ] Generates commit history metrics for each branch - Verification: [Method to verify completion]
+- [ ] Identifies merge bases with all primary targets - Verification: [Method to verify completion]
+- [ ] Outputs structured JSON for downstream processing - Verification: [Method to verify completion]
+- [ ] Unit tests cover all extraction functions
+
+
+---
+
+## Test Strategy
+
+- Create test repository with known branch structures
+- Verify metrics match expected values
+- Test with empty branches, single commits, long histories
+
+---
+
+---
+
+## Implementation Notes
+
+_Add implementation notes here as work progresses_
+
+---
+
+## Progress Log
+
+### 2026-01-12
+- Subtask file created from main task template
+- Ready for implementation
+

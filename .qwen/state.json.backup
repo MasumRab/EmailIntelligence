@@ -1,0 +1,20 @@
+{
+  "current_session": "abbcd738-7103-48cf-896e-5891da83e6ff",
+  "command_history": [
+    {
+      "command": "session-start",
+      "timestamp": "2026-01-20T23:11:30.757238Z",
+      "session_id": "4b734345-82f3-44b1-9501-4026c8461ffc"
+    },
+    {
+      "command": "session-end",
+      "timestamp": "2026-01-20T23:11:37.084001Z",
+      "session_id": "4b734345-82f3-44b1-9501-4026c8461ffc"
+    },
+    {
+      "command": "session-start",
+      "timestamp": "2026-01-20T23:12:51.126259Z",
+      "session_id": "abbcd738-7103-48cf-896e-5891da83e6ff"
+    }
+  ]
+}

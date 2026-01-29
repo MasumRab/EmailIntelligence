@@ -1,0 +1,642 @@
+# Task Master AI - Architecture Diagrams
+
+**Analysis Date:** 2026-01-29  
+**Analysis Depth:** Standard
+
+---
+
+## System Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Task Master AI System"
+        A[CLI / API Layer] --> B[Task Management Layer]
+        A --> C[Orchestration Layer]
+        A --> D[Git Operations Layer]
+        
+        B --> E[taskmaster_common.py]
+        B --> F[Task Scripts]
+        B --> G[Metadata Manager]
+        
+        C --> H[Git Hooks]
+        C --> I[Worktree Sync]
+        C --> J[Reverse Sync]
+        
+        D --> K[Branch Analysis]
+        D --> L[Commit Operations]
+        D --> M[Merge Operations]
+        
+        E --> N[Security Validator]
+        E --> O[File Validator]
+        E --> P[Task Validator]
+        
+        F --> Q[Task Generation]
+        F --> R[Task Search]
+        F --> S[Task Comparison]
+        
+        G --> T[Backup Manager]
+        G --> U[Embed/Restore]
+        
+        H --> V[Pre-commit Hooks]
+        H --> W[Post-merge Hooks]
+        
+        I --> X[Setup File Sync]
+        I --> Y[Config Sync]
+        
+        J --> Z[Orchestration-tools Sync]
+        J --> AA[Flake8 Update]
+        
+        K --> AB[Branch Clustering]
+        K --> AC[Target Assignment]
+        
+        L --> AD[Commit History]
+        L --> AE[Diff Analysis]
+        
+        M --> AF[Merge Conflicts]
+        M --> AG[Validation]
+    end
+    
+    style A fill:#e1f5ff
+    style E fill:#fff4e1
+    style N fill:#ffe1e1
+    style T fill:#e1ffe1
+```
+
+---
+
+## Security Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Security Architecture"
+        A[Input Validation] --> B[Path Security]
+        A --> C[File Size Limits]
+        A --> D[Pattern Detection]
+        
+        B --> E[Directory Traversal Prevention]
+        B --> F[URL Encoding Detection]
+        B --> G[Base Directory Validation]
+        
+        C --> H[50MB File Size Limit]
+        C --> I[Memory Exhaustion Prevention]
+        
+        D --> J[Suspicious Pattern Detection]
+        D --> K[Command Injection Prevention]
+        D --> L[Null Byte Detection]
+        
+        E --> M[Safe Path Resolution]
+        F --> N[Path Normalization]
+        G --> O[Relative Path Validation]
+        
+        H --> P[Chunked Processing]
+        I --> Q[Heap Monitoring]
+        
+        J --> R[Regex Pattern Matching]
+        K --> S[Safe Subprocess Execution]
+        L --> T[Input Sanitization]
+        
+        M --> U[Secure Operations]
+        N --> U
+        O --> U
+        P --> U
+        Q --> U
+        R --> U
+        S --> U
+        T --> U
+    end
+    
+    style A fill:#ffe1e1
+    style U fill:#e1ffe1
+```
+
+---
+
+## Task Management Workflow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as CLI/API
+    participant S as Shared Utils
+    participant T as Tasks
+    participant B as Backup
+    participant G as Git
+
+    U->>C: list_tasks()
+    C->>S: validate_path_security()
+    S-->>C: validated
+    C->>S: load_json_secure()
+    S->>T: tasks.json
+    T-->>S: data
+    S-->>C: validated data
+    C->>B: create_backup()
+    B-->>C: backup created
+    C->>S: TaskValidator.search_tasks()
+    S-->>C: filtered tasks
+    C-->>U: task list
+
+    U->>C: set_status(task_id, "done")
+    C->>S: validate_path_security()
+    C->>B: create_backup()
+    C->>T: update task
+    C->>G: git add / commit
+    G-->>C: commit hash
+    C-->>U: status updated
+```
+
+---
+
+## Orchestration Workflow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant H as Git Hooks
+    participant O as Orchestrator
+    participant W as Worktrees
+    participant G as Git
+
+    U->>G: git commit
+    G->>H: pre-commit hook
+    H->>O: sync_setup_worktrees()
+    O->>W: compare setup files
+    W-->>O: differences
+    O->>G: git pull orchestration-tools
+    G-->>O: latest config
+    O->>W: sync files
+    W-->>O: synced
+    O-->>H: sync complete
+    H-->>G: hook success
+    G-->>U: commit successful
+```
+
+---
+
+## Metadata Preservation Workflow
+
+```mermaid
+sequenceDiagram
+    participant M as Metadata Manager
+    participant T as Task Markdown
+    participant J as tasks.json
+    participant B as Backup
+
+    M->>T: parse_markdown_task()
+    T-->>M: extended metadata
+    M->>M: embed_metadata()
+    M->>J: update task.details
+    J-->>M: saved
+    M->>B: create_backup()
+    B-->>M: backup created
+    M-->>User: metadata embedded
+
+    Note over M,B: Later, if metadata is lost...
+    M->>B: restore_from_backup()
+    B-->>M: markdown content
+    M->>T: write_markdown_task()
+    T-->>M: restored
+    M-->>User: task restored
+```
+
+---
+
+## Component Dependency Graph
+
+```mermaid
+graph TD
+    subgraph "Core Dependencies"
+        A[taskmaster_common.py] --> B[Security Validator]
+        A --> C[File Validator]
+        A --> D[Task Validator]
+        A --> E[Backup Manager]
+        A --> F[Task Comparison]
+        A --> G[Task Summary]
+    end
+    
+    subgraph "Task Management Scripts"
+        H[list_tasks.py] --> A
+        I[show_task.py] --> A
+        J[next_task.py] --> A
+        K[search_tasks.py] --> A
+        L[task_summary.py] --> A
+        M[compare_task_files.py] --> A
+        N[list_invalid_tasks.py] --> A
+    end
+    
+    subgraph "Task Generation Scripts"
+        O[generate_clean_tasks.py] --> A
+        P[enhance_tasks_from_archive.py] --> A
+        Q[split_enhanced_plan.py] --> A
+        R[regenerate_tasks_from_plan.py] --> A
+    end
+    
+    subgraph "Metadata Management"
+        S[task_metadata_manager.py] --> A
+        S --> E
+        T[Backup Manager] --> A
+    end
+    
+    subgraph "Advanced Task Management"
+        U[merge_task_manager.py] --> A
+        V[task_validator_fixer.py] --> A
+        W[secure_merge_task_manager.py] --> A
+    end
+    
+    style A fill:#fff4e1
+    style T fill:#e1ffe1
+```
+
+---
+
+## Data Flow Architecture
+
+```mermaid
+graph LR
+    subgraph "Input Layer"
+        A[User Input]
+        B[CLI Arguments]
+        C[Environment Variables]
+    end
+    
+    subgraph "Validation Layer"
+        D[Security Validator]
+        E[Path Validator]
+        F[File Validator]
+    end
+    
+    subgraph "Processing Layer"
+        G[Task Manager]
+        H[Orchestrator]
+        I[Git Operations]
+    end
+    
+    subgraph "Data Layer"
+        J[tasks.json]
+        K[Task Markdown Files]
+        L[Backup Files]
+        M[Git Repository]
+    end
+    
+    subgraph "Output Layer"
+        N[Console Output]
+        O[JSON Output]
+        P[Report Files]
+    end
+    
+    A --> D
+    B --> E
+    C --> F
+    
+    D --> G
+    E --> H
+    F --> I
+    
+    G --> J
+    G --> K
+    H --> L
+    I --> M
+    
+    G --> N
+    G --> O
+    G --> P
+    
+    style D fill:#ffe1e1
+    style J fill:#e1f5ff
+    style L fill:#e1ffe1
+```
+
+---
+
+## Branch Alignment Pipeline
+
+```mermaid
+graph TB
+    subgraph "Stage One: Analysis"
+        A[Commit History Analyzer]
+        B[Codebase Structure Analyzer]
+        C[Diff Distance Calculator]
+    end
+    
+    subgraph "Stage Two: Clustering"
+        D[Branch Clusterer]
+        E[Target Assignment]
+        F[Tag Generation]
+    end
+    
+    subgraph "Stage Three: Integration"
+        G[Parallel Alignment Orchestrator]
+        H[Pre-merge Validation]
+        I[E2E Testing & Reporting]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    
+    style A fill:#fff4e1
+    style B fill:#fff4e1
+    style C fill:#fff4e1
+    style G fill:#e1ffe1
+    style I fill:#e1ffe1
+```
+
+---
+
+## Git Hooks Integration
+
+```mermaid
+graph TB
+    subgraph "Git Hooks"
+        A[pre-commit]
+        B[post-commit]
+        C[post-merge]
+        D[post-checkout]
+        E[post-push]
+    end
+    
+    subgraph "Orchestration Actions"
+        F[Setup File Sync]
+        G[Config Sync]
+        H[Validation Checks]
+        I[Backup Creation]
+        J[Reverse Sync]
+    end
+    
+    A --> F
+    A --> G
+    A --> H
+    B --> I
+    C --> J
+    D --> F
+    D --> G
+    E --> J
+    
+    style A fill:#ffe1e1
+    style J fill:#e1ffe1
+```
+
+---
+
+## Performance Optimization Flow
+
+```mermaid
+graph LR
+    subgraph "Input Processing"
+        A[File Queue]
+        B[File Size Check]
+        C[Memory Check]
+    end
+    
+    subgraph "Processing Strategy"
+        D[Sequential Processing]
+        E[Chunked Processing]
+        F[Streaming]
+    end
+    
+    subgraph "Caching Layer"
+        G[Cache Lookup]
+        H[Cache Miss]
+        I[Cache Update]
+        J[LRU Eviction]
+    end
+    
+    subgraph "Output"
+        K[Results]
+        L[Reports]
+        M[Metrics]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    C --> F
+    
+    D --> G
+    E --> G
+    F --> G
+    
+    G -->|hit| K
+    G -->|miss| H
+    H --> I
+    I --> J
+    J --> K
+    
+    K --> L
+    K --> M
+    
+    style G fill:#fff4e1
+    style J fill:#ffe1e1
+```
+
+---
+
+## Error Handling Flow
+
+```mermaid
+graph TB
+    subgraph "Error Detection"
+        A[Security Error]
+        B[File Error]
+        C[Git Error]
+        D[Validation Error]
+    end
+    
+    subgraph "Error Handling"
+        E[Log Error]
+        F[Create Backup]
+        G[Rollback]
+        H[Retry]
+        I[Fail Gracefully]
+    end
+    
+    subgraph "Error Reporting"
+        J[Console Output]
+        K[Log File]
+        L[Error Report]
+    end
+    
+    A --> E
+    A --> I
+    B --> F
+    B --> G
+    C --> H
+    D --> E
+    
+    E --> J
+    E --> K
+    F --> J
+    G --> J
+    H --> J
+    I --> J
+    
+    J --> L
+    
+    style A fill:#ffe1e1
+    style G fill:#ffe1e1
+    style L fill:#ffe1e1
+```
+
+---
+
+## Deployment Architecture
+
+```mermaid
+graph TB
+    subgraph "Development Environment"
+        A[Local Development]
+        B[Feature Branches]
+        C[Worktrees]
+    end
+    
+    subgraph "Integration Environment"
+        D[Main Branch]
+        E[Scientific Branch]
+        F[Orchestration Tools Branch]
+    end
+    
+    subgraph "Production Environment"
+        G[Task Master AI]
+        H[MCP Server]
+        I[Claude Code Integration]
+    end
+    
+    subgraph "External Services"
+        J[Git Repository]
+        K[AI APIs]
+        L[Task Storage]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    C --> F
+    
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H
+    G --> I
+    
+    G --> J
+    H --> K
+    G --> L
+    
+    style G fill:#e1ffe1
+    style J fill:#fff4e1
+    style L fill:#fff4e1
+```
+
+---
+
+## Component Communication Flow
+
+```mermaid
+graph LR
+    subgraph "User Interface"
+        A[CLI]
+        B[API]
+        C[Slash Commands]
+    end
+    
+    subgraph "Core Layer"
+        D[Task Manager]
+        E[Orchestrator]
+        F[Security Validator]
+    end
+    
+    subgraph "Data Layer"
+        G[tasks.json]
+        H[Task Files]
+        I[Backups]
+    end
+    
+    subgraph "Git Layer"
+        J[Git Operations]
+        K[Git Hooks]
+        L[Worktrees]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    
+    D --> F
+    D --> E
+    
+    D --> G
+    D --> H
+    D --> I
+    
+    E --> J
+    E --> K
+    E --> L
+    
+    style D fill:#fff4e1
+    style F fill:#ffe1e1
+    style G fill:#e1f5ff
+```
+
+---
+
+## Test Coverage Flow
+
+```mermaid
+graph TB
+    subgraph "Unit Tests"
+        A[Security Tests]
+        B[File Validator Tests]
+        C[Task Validator Tests]
+        D[Backup Manager Tests]
+    end
+    
+    subgraph "Integration Tests"
+        E[Task Management Tests]
+        F[Orchestration Tests]
+        G[Git Operations Tests]
+    end
+    
+    subgraph "End-to-End Tests"
+        H[Workflow Tests]
+        I[Performance Tests]
+        J[Security Tests]
+    end
+    
+    subgraph "Test Results"
+        K[Coverage Report]
+        L[Performance Report]
+        M[Security Report]
+    end
+    
+    A --> K
+    B --> K
+    C --> K
+    D --> K
+    
+    E --> K
+    F --> K
+    G --> K
+    
+    H --> L
+    I --> L
+    J --> M
+    
+    style K fill:#e1ffe1
+    style L fill:#e1ffe1
+    style M fill:#ffe1e1
+```
+
+---
+
+**End of Architecture Diagrams**
+
+Total Diagrams: 12
+Format: Mermaid
+Generated: 2026-01-29
