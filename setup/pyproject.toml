@@ -29,6 +29,8 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+    # Pin Markupsafe to avoid 3.0.2 which is missing wheels for Python 3.11 on PyTorch index
+    "markupsafe>=2.1.1,<3.0.2",
 ]
 
 [project.optional-dependencies]
