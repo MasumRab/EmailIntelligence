@@ -13,7 +13,7 @@ import os
 import re
 import sqlite3
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Union
 from pathlib import Path
@@ -68,6 +68,30 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+    _precomputed: Dict[str, Any] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self):
+        """Pre-compute optimized values for faster filtering."""
+        self._precomputed = {}
+
+        if "subject_keywords" in self.criteria:
+            self._precomputed["subject_keywords_lower"] = {
+                k.lower() for k in self.criteria["subject_keywords"]
+            }
+
+        if "content_keywords" in self.criteria:
+            self._precomputed["content_keywords_lower"] = {
+                k.lower() for k in self.criteria["content_keywords"]
+            }
+
+        if "from_patterns" in self.criteria:
+            compiled = []
+            for p in self.criteria["from_patterns"]:
+                try:
+                    compiled.append(re.compile(p, re.IGNORECASE))
+                except re.error:
+                    pass
+            self._precomputed["from_patterns_compiled"] = compiled
 
 
 @dataclass
@@ -639,19 +663,32 @@ class SmartFilterManager:
 
         # Check subject keywords
         if "subject_keywords" in criteria:
-            # Optimization: check if any keyword matches
-            if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
-                return False
+            try:
+                # Use pre-computed lowercased keywords
+                if not any(keyword in ctx.subject_lower for keyword in filter_obj._precomputed["subject_keywords_lower"]):
+                    return False
+            except (KeyError, AttributeError):
+                # Fallback
+                if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
+                    return False
 
         # Check content keywords
         if "content_keywords" in criteria:
-            if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
-                return False
+            try:
+                if not any(keyword in ctx.content_lower for keyword in filter_obj._precomputed["content_keywords_lower"]):
+                    return False
+            except (KeyError, AttributeError):
+                if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
+                    return False
 
         # Check from patterns
         if "from_patterns" in criteria:
-            if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
-                return False
+            try:
+                if not any(p.search(ctx.sender_lower) for p in filter_obj._precomputed["from_patterns_compiled"]):
+                    return False
+            except (KeyError, AttributeError):
+                if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
+                    return False
 
         return True
 
