@@ -141,7 +141,6 @@ class DatabaseManager(DataSource):
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
-        self.email_search_index: Dict[int, str] = {}
 
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
@@ -208,18 +207,6 @@ class DatabaseManager(DataSource):
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
-    def _update_search_index_entry(self, email: Dict[str, Any]) -> None:
-        """Updates the search index entry for a single email."""
-        email_id = email.get(FIELD_ID)
-        if email_id is not None:
-            # Pre-compute lowercased search text including subject, sender, and sender email
-            search_text = (
-                f"{email.get(FIELD_SUBJECT, '')} "
-                f"{email.get(FIELD_SENDER, '')} "
-                f"{email.get(FIELD_SENDER_EMAIL, '')}"
-            ).lower()
-            self.email_search_index[email_id] = search_text
-
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
@@ -233,18 +220,10 @@ class DatabaseManager(DataSource):
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
-
-        # Reset and rebuild search index
-        self.email_search_index = {}
-
         for email in self.emails_data:
             cat_id = email.get(FIELD_CATEGORY_ID)
             if cat_id in self.category_counts:
                 self.category_counts[cat_id] += 1
-
-            # Populate search index
-            self._update_search_index_entry(email)
-
         for cat_id, count in self.category_counts.items():
             if (
                 cat_id in self.categories_by_id
@@ -436,7 +415,6 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if message_id:
             self.emails_by_message_id[message_id] = email
-        self._update_search_index_entry(email)
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
@@ -632,7 +610,6 @@ class DatabaseManager(DataSource):
 
             self.emails_by_id[email_id] = email_to_update
             self.emails_by_message_id[message_id] = email_to_update
-            self._update_search_index_entry(email_to_update)
             idx = next(
                 (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
             )
@@ -712,11 +689,12 @@ class DatabaseManager(DataSource):
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
         for email_light in self.emails_data:
-            email_id = email_light.get(FIELD_ID)
-            search_text = self.email_search_index.get(email_id, "")
-
-            # Fast check against pre-computed lowercased text
-            if search_term_lower in search_text:
+            found_in_light = (
+                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+            )
+            if found_in_light:
                 filtered_emails.append(email_light)
                 continue
             email_id = email_light.get(FIELD_ID)
@@ -777,7 +755,6 @@ class DatabaseManager(DataSource):
         self.emails_by_id[email_id] = email
         if email.get(FIELD_MESSAGE_ID):
             self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
-        self._update_search_index_entry(email)
         idx = next(
             (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
             -1,
