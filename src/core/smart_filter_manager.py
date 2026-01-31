@@ -13,7 +13,7 @@ import os
 import re
 import sqlite3
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 from pathlib import Path
@@ -68,6 +68,22 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+    _precomputed: Dict[str, Any] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self):
+        """Pre-compute filter criteria for performance."""
+        self._precomputed = {}
+        if "subject_keywords" in self.criteria:
+            self._precomputed["subject_keywords"] = {k.lower() for k in self.criteria["subject_keywords"]}
+        if "content_keywords" in self.criteria:
+            self._precomputed["content_keywords"] = {k.lower() for k in self.criteria["content_keywords"]}
+        if "from_patterns" in self.criteria:
+            self._precomputed["from_patterns"] = []
+            for p in self.criteria["from_patterns"]:
+                try:
+                    self._precomputed["from_patterns"].append(re.compile(p, re.IGNORECASE))
+                except re.error:
+                    pass  # Ignore invalid regex patterns
 
 
 @dataclass
@@ -545,34 +561,55 @@ class SmartFilterManager:
         
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
+    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email_context: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
         
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
-            if domain != criteria["sender_domain"]:
+            if email_context["sender_domain"] != criteria["sender_domain"]:
                 return False
-        
+
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
-            if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
-                return False
-        
+            subject = email_context["subject_lower"]
+
+            # Use precomputed if available
+            precomputed = getattr(filter_obj, "_precomputed", {}).get("subject_keywords")
+            if precomputed:
+                if not any(keyword in subject for keyword in precomputed):
+                    return False
+            else:
+                if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
+                    return False
+
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
-            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
-                return False
-        
+            content = email_context["content_lower"]
+
+            precomputed = getattr(filter_obj, "_precomputed", {}).get("content_keywords")
+            if precomputed:
+                if not any(keyword in content for keyword in precomputed):
+                    return False
+            else:
+                if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+                    return False
+
         # Check from patterns
         if "from_patterns" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", "")).lower()
-            if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
+            sender_email = email_context["sender_lower"]
+
+            precomputed = getattr(filter_obj, "_precomputed", {}).get("from_patterns")
+            if precomputed:
+                if not any(p.search(sender_email) for p in precomputed):
+                    return False
+            elif "from_patterns" in getattr(filter_obj, "_precomputed", {}):
+                # Key exists but is empty list (all regexes invalid)
                 return False
+            else:
+                # Fallback
+                if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
+                    return False
         
         return True
 
@@ -660,9 +697,19 @@ class SmartFilterManager:
         
         matched_filter_ids = []
 
+        # Pre-compute email context for optimization
+        # This avoids repeated string lowercasing and domain extraction inside the loop
+        email_context = {
+            "email": email_data,
+            "sender_domain": self._extract_domain(email_data.get("sender_email", email_data.get("sender", ""))),
+            "subject_lower": email_data.get("subject", "").lower(),
+            "content_lower": email_data.get("content", email_data.get("body", "")).lower(),
+            "sender_lower": email_data.get("sender_email", email_data.get("sender", "")).lower()
+        }
+
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                if await self._apply_filter_to_email(filter_obj, email_context):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,

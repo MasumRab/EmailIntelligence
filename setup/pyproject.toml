@@ -9,7 +9,7 @@ url = "https://download.pytorch.org/whl/cpu"
 name = "emailintelligence"
 version = "0.2.0"
 description = "Email Intelligence with optimized dependencies for system-managed Python environments"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 
 # Core dependencies only - always required
 dependencies = [
@@ -21,6 +21,7 @@ dependencies = [
     "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
     "httpx>=0.28.1",
+    "psutil>=6.0.0",
 
     # Basic UI (always needed)
     "gradio>=4.0.0",
