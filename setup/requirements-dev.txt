@@ -1,7 +1,4 @@
-# Development and testing dependencies
-# These are installed in addition to base requirements
-
-# Code quality and linting
+# Core test dependencies
 black>=25.1.0
 isort>=6.0.1
 flake8>=7.2.0
@@ -9,13 +6,12 @@ mypy>=1.16.0
 pylint>=3.3.7
 pre-commit>=3.0.0
 
-# Testing framework (base testing already in requirements.txt)
+# Test runner
 pytest>=8.4.0
 pytest-asyncio>=0.23.0
 
-# Development tools
+# Backend dependencies for tests
 uvicorn[standard]>=0.30.0
 
-# Additional development dependencies
-# Add any development-specific packages here
+# Install project in editable mode to ensure core deps are present
 -e .
