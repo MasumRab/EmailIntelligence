@@ -219,6 +219,10 @@ class EnhancedCachingManager:
         for key in self.cache_operations:
             self.cache_operations[key] = 0
 
+    def clear_query_cache(self) -> None:
+        """Clear the query result cache."""
+        self.query_cache.clear()
+
     def get_cache_statistics(self) -> Dict[str, Any]:
         """Get comprehensive cache statistics."""
         return {
