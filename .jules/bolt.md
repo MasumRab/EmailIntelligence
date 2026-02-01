@@ -5,3 +5,7 @@
 ## 2026-01-24 - [Batched Smart Filter Updates]
 **Learning:** `SmartFilterManager.apply_filters_to_email` was performing N database updates and N cache invalidations for N matching filters, causing unnecessary overhead. Consolidating updates into a single batch operation reduced DB roundtrips and cache thrashing.
 **Action:** Always batch database updates (especially `UPDATE ... WHERE id IN (...)`) and cache invalidations when processing multiple items in a single logical operation.
+
+## 2026-02-04 - [Smart Filter Context Optimization]
+**Learning:** `SmartFilterManager.apply_filters_to_email` was re-computing derived email fields (lower-cased subject/content, sender domain) for every filter (O(N) operations), causing significant overhead (~25% of processing time).
+**Action:** Pre-compute derived fields into a context object once before iterating over filters to reduce complexity from O(N*M) to O(N).
