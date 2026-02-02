@@ -68,6 +68,7 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+    _compiled_patterns: Optional[Dict[str, List[Any]]] = None
 
 
 @dataclass
@@ -327,6 +328,24 @@ class SmartFilterManager:
         for query in queries:
             self._db_execute(query)
 
+    def _compile_filter_patterns(self, filter_obj: EmailFilter) -> None:
+        """Pre-compiles regex patterns for a filter to improve performance."""
+        if filter_obj._compiled_patterns is None:
+            filter_obj._compiled_patterns = {}
+
+        criteria = filter_obj.criteria
+        if "from_patterns" in criteria:
+            patterns = criteria["from_patterns"]
+            compiled = []
+            for p in patterns:
+                try:
+                    compiled.append(re.compile(p, re.IGNORECASE))
+                except re.error as e:
+                    self.logger.warning(
+                        f"Invalid regex pattern '{p}' in filter {filter_obj.filter_id}: {e}"
+                    )
+            filter_obj._compiled_patterns["from_patterns"] = compiled
+
     async def _ensure_initialized(self):
         """Ensure all components are properly initialized."""
         if self._initialized:
@@ -453,7 +472,7 @@ class SmartFilterManager:
     def _create_filter_from_template(self, name: str, template: Dict[str, Any]) -> EmailFilter:
         """Creates an EmailFilter object from a template."""
         filter_id = f"template_{name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
-        return EmailFilter(
+        filter_obj = EmailFilter(
             filter_id=filter_id,
             name=name,
             description=template["description"],
@@ -467,6 +486,8 @@ class SmartFilterManager:
             false_positive_rate=0.0,
             performance_metrics={},
         )
+        self._compile_filter_patterns(filter_obj)
+        return filter_obj
 
     async def _create_custom_filters(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
         """Creates custom filters based on frequently observed patterns."""
@@ -492,7 +513,7 @@ class SmartFilterManager:
         """Creates a filter for a specific domain."""
         name = f"From {domain}"
         filter_id = f"domain_{domain.replace('.', '_')}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
-        return EmailFilter(
+        filter_obj = EmailFilter(
             filter_id=filter_id,
             name=name,
             description=f"Filter for emails from {domain}",
@@ -506,12 +527,14 @@ class SmartFilterManager:
             false_positive_rate=0.0,
             performance_metrics={},
         )
+        self._compile_filter_patterns(filter_obj)
+        return filter_obj
 
     def _create_keyword_filter(self, keyword: str) -> EmailFilter:
         """Creates a filter for a specific keyword."""
         name = f"Contains {keyword}"
         filter_id = f"keyword_{keyword}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
-        return EmailFilter(
+        filter_obj = EmailFilter(
             filter_id=filter_id,
             name=name,
             description=f"Filter for emails containing {keyword}",
@@ -525,6 +548,8 @@ class SmartFilterManager:
             false_positive_rate=0.0,
             performance_metrics={},
         )
+        self._compile_filter_patterns(filter_obj)
+        return filter_obj
 
     @log_performance(operation="add_custom_filter")
     async def add_custom_filter(
@@ -565,6 +590,7 @@ class SmartFilterManager:
             false_positive_rate=0.0,
             performance_metrics={},
         )
+        self._compile_filter_patterns(new_filter)
         await self._save_filter_async(new_filter)
         self.logger.info(f"Custom filter '{name}' added with ID: {filter_id}")
         return new_filter
@@ -609,7 +635,9 @@ class SmartFilterManager:
 
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, context: Union[Dict[str, Any], '_EmailContext']) -> bool:
+    def _apply_filter_to_email(
+        self, filter_obj: EmailFilter, context: Union[Dict[str, Any], "_EmailContext"]
+    ) -> bool:
         """
         Applies a single filter's criteria to an email.
 
@@ -627,7 +655,7 @@ class SmartFilterManager:
                 sender_domain=self._extract_domain(sender_email),
                 subject_lower=context.get("subject", "").lower(),
                 content_lower=context.get("content", context.get("body", "")).lower(),
-                sender_lower=sender_email.lower()
+                sender_lower=sender_email.lower(),
             )
         else:
             ctx = context
@@ -640,18 +668,40 @@ class SmartFilterManager:
         # Check subject keywords
         if "subject_keywords" in criteria:
             # Optimization: check if any keyword matches
-            if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
+            if not any(
+                keyword.lower() in ctx.subject_lower
+                for keyword in criteria["subject_keywords"]
+            ):
                 return False
 
         # Check content keywords
         if "content_keywords" in criteria:
-            if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
+            if not any(
+                keyword.lower() in ctx.content_lower
+                for keyword in criteria["content_keywords"]
+            ):
                 return False
 
         # Check from patterns
         if "from_patterns" in criteria:
-            if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
-                return False
+            # Use compiled patterns if available to avoid re-compilation overhead
+            if (
+                filter_obj._compiled_patterns
+                and "from_patterns" in filter_obj._compiled_patterns
+            ):
+                # Use compiled regex objects
+                if not any(
+                    p.search(ctx.sender_lower)
+                    for p in filter_obj._compiled_patterns["from_patterns"]
+                ):
+                    return False
+            else:
+                # Fallback to slower on-the-fly compilation
+                if not any(
+                    re.search(p, ctx.sender_lower, re.IGNORECASE)
+                    for p in criteria["from_patterns"]
+                ):
+                    return False
 
         return True
 
@@ -695,8 +745,9 @@ class SmartFilterManager:
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
         )
-        filters = [
-            EmailFilter(
+        filters = []
+        for row in rows:
+            filter_obj = EmailFilter(
                 filter_id=row["filter_id"],
                 name=row["name"],
                 description=row["description"],
@@ -711,8 +762,8 @@ class SmartFilterManager:
                 performance_metrics=json.loads(row["performance_metrics"]),
                 is_active=bool(row["is_active"]),
             )
-            for row in rows
-        ]
+            self._compile_filter_patterns(filter_obj)
+            filters.append(filter_obj)
 
         # Cache the result
         await self.caching_manager.set(cache_key, filters)
@@ -752,7 +803,7 @@ class SmartFilterManager:
 
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_context):
+                if self._apply_filter_to_email(filter_obj, email_context):
                     matched_filters.append(filter_obj)
                     # Record that this filter matched
                     summary["filters_matched"].append({
@@ -886,6 +937,7 @@ class SmartFilterManager:
             performance_metrics=json.loads(row["performance_metrics"]),
             is_active=bool(row["is_active"]),
         )
+        self._compile_filter_patterns(filter_obj)
 
         # Cache the result
         await self.caching_manager.set(cache_key, filter_obj)
@@ -959,8 +1011,9 @@ class SmartFilterManager:
             (f'%{category}%',)
         )
 
-        filters = [
-            EmailFilter(
+        filters = []
+        for row in rows:
+            filter_obj = EmailFilter(
                 filter_id=row["filter_id"],
                 name=row["name"],
                 description=row["description"],
@@ -975,8 +1028,8 @@ class SmartFilterManager:
                 performance_metrics=json.loads(row["performance_metrics"]),
                 is_active=bool(row["is_active"]),
             )
-            for row in rows
-        ]
+            self._compile_filter_patterns(filter_obj)
+            filters.append(filter_obj)
 
         return filters
 
