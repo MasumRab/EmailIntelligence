@@ -209,7 +209,7 @@ class ModernAIEngine(BaseAIEngine):
         # Check if basic analysis works
         try:
             # Quick test with simple text
-            test_result = asyncio.run(self.analyze_email("test", "test content"))
+            _ = asyncio.run(self.analyze_email("test", "test content"))
             health_status["components"]["analysis_engine"] = {
                 "status": "healthy",
                 "test_result": "passed",
@@ -260,7 +260,7 @@ class ModernAIEngine(BaseAIEngine):
                 "intent": intent.get("type", "unknown") if intent else "unknown",
                 "urgency": urgency.get("level", "low") if urgency else "low",
                 "confidence": self._calculate_overall_confidence(
-                    sentiment, topics, intent, urgency
+                    sentiment, intent, urgency
                 ),
                 "categories": topics if topics else [],
                 "keywords": self._extract_keywords(full_text, full_text_lower),
@@ -421,7 +421,7 @@ class ModernAIEngine(BaseAIEngine):
             "confidence": 0.7 if has_urgency else 0.5,
         }
 
-    def _calculate_overall_confidence(self, sentiment, topics, intent, urgency) -> float:
+    def _calculate_overall_confidence(self, sentiment, intent, urgency) -> float:
         """Calculate overall confidence score."""
         confidences = []
         if sentiment and "confidence" in sentiment:
@@ -494,4 +494,3 @@ class ModernAIEngine(BaseAIEngine):
         """Train or retrain AI models."""
         # Implementation for model training
         logger.info("Model training requested but not yet implemented")
-        pass
