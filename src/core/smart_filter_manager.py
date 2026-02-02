@@ -346,6 +346,26 @@ class SmartFilterManager:
                     )
             filter_obj._compiled_patterns["from_patterns"] = compiled
 
+    def _map_row_to_filter(self, row: sqlite3.Row) -> EmailFilter:
+        """Maps a database row to an EmailFilter object and compiles patterns."""
+        filter_obj = EmailFilter(
+            filter_id=row["filter_id"],
+            name=row["name"],
+            description=row["description"],
+            criteria=json.loads(row["criteria"]),
+            actions=json.loads(row["actions"]),
+            priority=row["priority"],
+            effectiveness_score=row["effectiveness_score"],
+            created_at=datetime.fromisoformat(row["created_at"]),
+            last_used=datetime.fromisoformat(row["last_used"]),
+            usage_count=row["usage_count"],
+            false_positive_rate=row["false_positive_rate"],
+            performance_metrics=json.loads(row["performance_metrics"]),
+            is_active=bool(row["is_active"]),
+        )
+        self._compile_filter_patterns(filter_obj)
+        return filter_obj
+
     async def _ensure_initialized(self):
         """Ensure all components are properly initialized."""
         if self._initialized:
@@ -745,25 +765,7 @@ class SmartFilterManager:
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
         )
-        filters = []
-        for row in rows:
-            filter_obj = EmailFilter(
-                filter_id=row["filter_id"],
-                name=row["name"],
-                description=row["description"],
-                criteria=json.loads(row["criteria"]),
-                actions=json.loads(row["actions"]),
-                priority=row["priority"],
-                effectiveness_score=row["effectiveness_score"],
-                created_at=datetime.fromisoformat(row["created_at"]),
-                last_used=datetime.fromisoformat(row["last_used"]),
-                usage_count=row["usage_count"],
-                false_positive_rate=row["false_positive_rate"],
-                performance_metrics=json.loads(row["performance_metrics"]),
-                is_active=bool(row["is_active"]),
-            )
-            self._compile_filter_patterns(filter_obj)
-            filters.append(filter_obj)
+        filters = [self._map_row_to_filter(row) for row in rows]
 
         # Cache the result
         await self.caching_manager.set(cache_key, filters)
@@ -922,22 +924,7 @@ class SmartFilterManager:
         if not row:
             return None
 
-        filter_obj = EmailFilter(
-            filter_id=row["filter_id"],
-            name=row["name"],
-            description=row["description"],
-            criteria=json.loads(row["criteria"]),
-            actions=json.loads(row["actions"]),
-            priority=row["priority"],
-            effectiveness_score=row["effectiveness_score"],
-            created_at=datetime.fromisoformat(row["created_at"]),
-            last_used=datetime.fromisoformat(row["last_used"]),
-            usage_count=row["usage_count"],
-            false_positive_rate=row["false_positive_rate"],
-            performance_metrics=json.loads(row["performance_metrics"]),
-            is_active=bool(row["is_active"]),
-        )
-        self._compile_filter_patterns(filter_obj)
+        filter_obj = self._map_row_to_filter(row)
 
         # Cache the result
         await self.caching_manager.set(cache_key, filter_obj)
@@ -1011,25 +998,7 @@ class SmartFilterManager:
             (f'%{category}%',)
         )
 
-        filters = []
-        for row in rows:
-            filter_obj = EmailFilter(
-                filter_id=row["filter_id"],
-                name=row["name"],
-                description=row["description"],
-                criteria=json.loads(row["criteria"]),
-                actions=json.loads(row["actions"]),
-                priority=row["priority"],
-                effectiveness_score=row["effectiveness_score"],
-                created_at=datetime.fromisoformat(row["created_at"]),
-                last_used=datetime.fromisoformat(row["last_used"]),
-                usage_count=row["usage_count"],
-                false_positive_rate=row["false_positive_rate"],
-                performance_metrics=json.loads(row["performance_metrics"]),
-                is_active=bool(row["is_active"]),
-            )
-            self._compile_filter_patterns(filter_obj)
-            filters.append(filter_obj)
+        filters = [self._map_row_to_filter(row) for row in rows]
 
         return filters
 
