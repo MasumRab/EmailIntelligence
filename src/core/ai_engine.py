@@ -13,6 +13,7 @@ class AIAnalysisResult:
     return data in a consistent format.
     """
 
+    # pylint: disable=too-many-instance-attributes,too-few-public-methods
     def __init__(self, data: Dict[str, Any]):
         self.topic: str = data.get("topic", "unknown")
         self.sentiment: str = data.get("sentiment", "neutral")
