@@ -11,10 +11,6 @@ mypy>=1.16.0
 pylint>=3.3.7
 pre-commit>=3.0.0
 
-# Testing framework (base testing already in requirements.txt)
-pytest>=8.4.0
-pytest-asyncio>=0.23.0
-
 # Development tools
 uvicorn[standard]>=0.30.0
 
