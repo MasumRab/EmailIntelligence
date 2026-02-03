@@ -1,15 +1,17 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
-from backend.python_nlp.smart_filters import EmailFilter
+from src.backend.python_nlp.smart_filters import EmailFilter
 from datetime import datetime
+# Import module to ensure it is loaded for mock patching
+import src.backend.python_backend.filter_routes
 
 
 @pytest.fixture
 def mock_filter_manager():
     """Fixture to mock the SmartFilterManager used in filter routes."""
     with patch(
-        "server.python_backend.filter_routes.filter_manager", new_callable=MagicMock
+        "src.backend.python_backend.filter_routes.filter_manager", new_callable=MagicMock
     ) as mock_fm:
         yield mock_fm
 
@@ -18,7 +20,7 @@ def mock_filter_manager():
 def mock_performance_monitor():
     """Fixture to mock the performance monitor."""
     with patch(
-        "server.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
+        "src.backend.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
     ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm
@@ -80,7 +82,7 @@ def test_generate_intelligent_filters_success(
     response = client.post("/api/filters/generate-intelligent")
 
     assert response.status_code == 200
-    assert response.json()["created_filters"] == 1
+    assert response.json()["filters_created"] == 1
     mock_db_manager.get_recent_emails.assert_called_once_with(limit=1000)
     mock_filter_manager.create_intelligent_filters.assert_called_once()
 

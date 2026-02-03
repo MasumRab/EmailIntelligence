@@ -13,12 +13,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
-# Assuming the script is at /app/setup/test_stages.py
-=======
-# Assuming the script is at /app/deployment/test_stages.py
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-# ROOT_DIR will be /app
+# Root dir
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -38,12 +33,8 @@ def get_python_executable() -> str:
 
 def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
     """Helper function to run pytest."""
-<<<<<<< HEAD
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "pytest"] + test_path.split()
-=======
-    cmd = ["uv", "run", "python", "-m", "pytest"] + test_path.split()
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
     if coverage:
         cmd.extend(["--cov=src", "--cov-report=term-missing"])
     if debug:
@@ -63,11 +54,7 @@ def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
         print("Stderr:\n", e.stderr)
         return False
     except FileNotFoundError:
-<<<<<<< HEAD
         print(f"Error: Python executable not found at {python_exe}")
-=======
-        print("Error: uv command not found")
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
         return False
 
 
@@ -77,13 +64,8 @@ class TestStages:
     def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
         """Runs unit tests."""
         print("\n--- Running Unit Tests ---")
-<<<<<<< HEAD
-        # Run unit tests in tests/core and tests/modules
-        success = _run_pytest("tests/core tests/modules", coverage, debug)
-=======
-        # Run unit tests in tests directory
+        # Run unit tests in tests/
         success = _run_pytest("tests/", coverage, debug)
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
         print(f"--- Unit Test Result: {'SUCCESS' if success else 'FAILURE'} ---")
         return success
 
@@ -115,3 +97,41 @@ class TestStages:
 
 # The launch script expects to import this specific object.
 test_stages = TestStages()
+
+def handle_test_stage(args):
+    """Handles the test stage execution."""
+    logger.info("Starting test stage...")
+    results = []
+    if getattr(args, 'unit', False):
+        results.append(test_stages.run_unit_tests(getattr(args, 'coverage', False), getattr(args, 'debug', False)))
+    if getattr(args, 'integration', False):
+        results.append(test_stages.run_integration_tests(getattr(args, 'coverage', False), getattr(args, 'debug', False)))
+    if getattr(args, 'e2e', False):
+        results.append(test_stages.run_e2e_tests(headless=not getattr(args, 'debug', False), debug=getattr(args, 'debug', False)))
+    if getattr(args, 'performance', False):
+        results.append(test_stages.run_performance_tests(duration=300, users=10, debug=getattr(args, 'debug', False)))
+    if getattr(args, 'security', False):
+        results.append(
+            test_stages.run_security_tests(
+                target_url=f"http://{getattr(args, 'host', 'localhost')}:{getattr(args, 'port', 8000)}", debug=getattr(args, 'debug', False)
+            )
+        )
+
+    # If no specific test type is selected, run a default set (e.g., unit and integration)
+    if not any([
+        getattr(args, 'unit', False),
+        getattr(args, 'integration', False),
+        getattr(args, 'e2e', False),
+        getattr(args, 'performance', False),
+        getattr(args, 'security', False)
+    ]):
+        logger.info("No specific test type selected, running unit and integration tests.")
+        results.append(test_stages.run_unit_tests(getattr(args, 'coverage', False), getattr(args, 'debug', False)))
+        results.append(test_stages.run_integration_tests(getattr(args, 'coverage', False), getattr(args, 'debug', False)))
+
+    if all(results):
+        logger.info("All tests passed successfully.")
+        sys.exit(0)
+    else:
+        logger.error("Some tests failed.")
+        sys.exit(1)

@@ -141,6 +141,7 @@ class DatabaseManager(DataSource):
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
+        self.email_search_index: Dict[int, str] = {}
 
         # Enhanced caching system
         self.caching_manager = EnhancedCachingManager()
@@ -207,6 +208,14 @@ class DatabaseManager(DataSource):
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
+    def _get_search_text(self, email: Dict[str, Any]) -> str:
+        """Constructs the search text for an email."""
+        return (
+            f"{email.get(FIELD_SUBJECT, '')}\0"
+            f"{email.get(FIELD_SENDER, '')}\0"
+            f"{email.get(FIELD_SENDER_EMAIL, '')}"
+        ).lower()
+
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
@@ -217,6 +226,14 @@ class DatabaseManager(DataSource):
             for email in self.emails_data
             if FIELD_MESSAGE_ID in email
         }
+
+        # Build search index
+        self.email_search_index = {}
+        for email in self.emails_data:
+            email_id = email.get(FIELD_ID)
+            if email_id:
+                self.email_search_index[email_id] = self._get_search_text(email)
+
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
@@ -413,6 +430,10 @@ class DatabaseManager(DataSource):
         message_id = email.get(FIELD_MESSAGE_ID)
         self.emails_data.append(email)
         self.emails_by_id[email_id] = email
+
+        # Update search index
+        self.email_search_index[email_id] = self._get_search_text(email)
+
         if message_id:
             self.emails_by_message_id[message_id] = email
 
@@ -688,16 +709,31 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
+
+        # Optimize: Use pre-computed search index for in-memory fields
+        # This avoids repetitive .lower() calls and string construction during search loop
         for email_light in self.emails_data:
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-            )
+            email_id = email_light.get(FIELD_ID)
+
+            # Check in-memory index first (subject, sender, sender_email)
+            found_in_light = False
+            if email_id in self.email_search_index:
+                if search_term_lower in self.email_search_index[email_id]:
+                    found_in_light = True
+            else:
+                # Fallback if index missing (should typically be present)
+                found_in_light = (
+                    search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+                    or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+                    or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+                )
+
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
-            email_id = email_light.get(FIELD_ID)
+
+            # If not found in light data, check heavy content on disk
+            # TODO: Future optimization - index content to avoid this disk I/O
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
                 try:
@@ -753,6 +789,10 @@ class DatabaseManager(DataSource):
         """Updates in-memory indexes for an email."""
         email_id = email[FIELD_ID]
         self.emails_by_id[email_id] = email
+
+        # Update search index
+        self.email_search_index[email_id] = self._get_search_text(email)
+
         if email.get(FIELD_MESSAGE_ID):
             self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
         idx = next(

@@ -51,7 +51,7 @@ async def create_filter(
     try:
         description = filter_request_model.description or ""
         new_filter_object = filter_manager.add_custom_filter(
-            filter_request_model.criteria, filter_request_model.action, description
+            filter_request_model.criteria, filter_request_model.actions, description
         )
         return new_filter_object
     except Exception as e:

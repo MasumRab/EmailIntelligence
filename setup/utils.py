@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Utility functions for the launch system.
 
 This module contains shared utility functions used across the launch system.
@@ -13,6 +12,7 @@ import subprocess
 import sys
 import threading
 import time
+import shlex
 from pathlib import Path
 from typing import List
 
@@ -20,6 +20,14 @@ logger = logging.getLogger(__name__)
 
 # Global paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
+
+# Import security validation with fallback
+try:
+    from src.core.security import validate_path_safety
+except ImportError:
+    # Fallback if src is not yet importable (e.g. during early setup)
+    def validate_path_safety(path, base_dir=None):
+        return True
 
 
 class ProcessManager:
@@ -69,49 +77,12 @@ class ProcessManager:
         except KeyboardInterrupt:
             logger.info("Received interrupt signal, shutting down...")
             self.cleanup()
-=======
-Utility functions for EmailIntelligence launcher
-"""
-
-import logging
-import os
-import sys
-from pathlib import Path
-
-logger = logging.getLogger("launcher")
-
-# Get root directory (avoid circular import)
-ROOT_DIR = Path(__file__).parent.parent
-
-
-class ProcessManager:
-    """Simple process manager to track and cleanup subprocesses."""
-
-    def __init__(self):
-        self.processes = []
-
-    def add_process(self, process):
-        """Add a process to track."""
-        self.processes.append(process)
-
-    def cleanup(self):
-        """Terminate all tracked processes."""
-        for process in self.processes:
-            try:
-                if process.poll() is None:  # Process is still running
-                    process.terminate()
-                    process.wait(timeout=5)
-            except Exception as e:
-                logger.warning(f"Error terminating process: {e}")
-        self.processes.clear()
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
 
 # Global process manager instance
 process_manager = ProcessManager()
 
 
-<<<<<<< HEAD
 def find_project_root() -> Path:
     """Find the project root directory by looking for key files."""
     current = Path.cwd()
@@ -208,6 +179,74 @@ def activate_conda_env(env_name: str = None) -> bool:
         logger.debug(f"Could not activate conda environment: {e}")
         return False
 
+def get_python_executable() -> str:
+    """Get the appropriate Python executable (conda > venv > system)."""
+    # Check if we're in a conda environment
+    conda_info = get_conda_env_info()
+    if conda_info.get("active") and conda_info.get("prefix"):
+        python_exe = Path(conda_info["prefix"]) / "bin" / "python"
+        if platform.system() == "Windows":
+             python_exe = Path(conda_info["prefix"]) / "python.exe"
+        if python_exe.exists():
+            return str(python_exe)
+
+    # Check for venv
+    # We need to import VENV_DIR or assume 'venv'
+    VENV_DIR = "venv"
+    venv_path = ROOT_DIR / VENV_DIR
+    if venv_path.exists():
+        if platform.system() == "Windows":
+             python_exe = venv_path / "Scripts" / "python.exe"
+        else:
+             python_exe = venv_path / "bin" / "python"
+
+        if python_exe.exists():
+            return str(python_exe)
+
+    # Fall back to system Python
+    return sys.executable
+
+def check_uvicorn_installed() -> bool:
+    """Check if uvicorn is installed."""
+    python_exe = get_python_executable()
+    # Validate the python executable path to prevent command injection
+    if not validate_path_safety(str(python_exe)):
+        logger.error(f"Unsafe Python executable path: {python_exe}")
+        return False
+
+    try:
+        # Use list args, safe. Explicitly convert path to string.
+        result = subprocess.run(
+            [str(python_exe), "-c", "import uvicorn"],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            return True
+        else:
+            return False
+    except FileNotFoundError:
+        return False
+
+def run_command(cmd: List[str], description: str, **kwargs) -> bool:
+    """Run a command and log its output."""
+    logger.info(f"{description}...")
+
+    # Ensure all elements in cmd are strings
+    cmd = [str(arg) for arg in cmd]
+
+    try:
+        # shell=False is default and safe for lists
+        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
+        if proc.stdout:
+            logger.debug(proc.stdout)
+        if proc.stderr:
+            logger.warning(proc.stderr)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logger.error(f"Failed: {description}")
+        if isinstance(e, subprocess.CalledProcessError):
+            logger.error(f"Stderr: {e.stderr}")
+        return False
 
 def print_system_info():
     """Print system information for debugging."""
@@ -247,94 +286,53 @@ def print_system_info():
         print(f"  Virtual Environment: {venv_python.parent.parent}")
     else:
         print("  Virtual Environment: None")
-=======
-def get_python_executable():
-    """Get the path to the Python executable to use."""
-    # Check if we're in a virtual environment
-    venv_python = os.environ.get("VIRTUAL_ENV")
-    if venv_python:
-        python_exe = Path(venv_python) / "bin" / "python"
-        if python_exe.exists():
-            return str(python_exe)
 
-    conda_env = os.environ.get("CONDA_DEFAULT_ENV")
-    if conda_env:
-        # Try to find conda python
-        conda_python = Path.home() / "anaconda3" / "envs" / conda_env / "bin" / "python"
-        if conda_python.exists():
-            return str(conda_python)
+def check_node_npm_installed() -> bool:
+    """Check if Node.js and npm are installed."""
+    try:
+        # Static commands, safe
+        result = subprocess.run(["node", "--version"], capture_output=True)
+        if result.returncode != 0:
+            return False
 
-    # Fall back to system python
-    return sys.executable
+        result = subprocess.run(["npm", "--version"], capture_output=True)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
+def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
+    """Install Node.js dependencies in a directory."""
+    dir_path = ROOT_DIR / directory
+    if not dir_path.exists():
+        logger.warning(f"Directory {directory} does not exist, skipping npm install")
+        return False
 
-def get_venv_executable(venv_path: Path, executable: str) -> Path:
-    """Get the path to an executable in a virtual environment."""
-    if os.name == "nt":  # Windows
-        return venv_path / "Scripts" / f"{executable}.exe"
-    else:  # Unix-like
-        return venv_path / "bin" / executable
+    # Validate directory path to prevent directory traversal
+    if not validate_path_safety(str(dir_path), str(ROOT_DIR)):
+        logger.error(f"Unsafe directory path: {dir_path}")
+        return False
 
+    package_json = dir_path / "package.json"
+    if not package_json.exists():
+        logger.warning(f"No package.json in {directory}, skipping npm install")
+        return False
 
-def print_system_info():
-    """Print detailed system, Python, and project configuration information."""
-    import platform
+    node_modules = dir_path / "node_modules"
+    if node_modules.exists() and not update:
+        logger.info(f"Node.js dependencies already installed in {directory}")
+        return True
 
-    print("=== System Information ===")
-    print(f"OS: {platform.system()} {platform.release()}")
-    print(f"Architecture: {platform.machine()}")
-    print(f"Python Version: {sys.version}")
-    print(f"Python Executable: {sys.executable}")
-
-    print("\n=== Project Information ===")
-    print(f"Project Root: {ROOT_DIR}")
-    print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
-
-    print("\n=== Environment Status ===")
-    venv_path = ROOT_DIR / "venv"
-    if venv_path.exists():
-        print(f"Virtual Environment: {venv_path} (exists)")
-        python_exe = get_venv_executable(venv_path, "python")
-        if python_exe.exists():
-            print(f"Venv Python: {python_exe}")
+    logger.info(f"Installing Node.js dependencies in {directory}...")
+    try:
+        if update:
+            cmd = ["npm", "update"]
         else:
-            print("Venv Python: Not found")
-    else:
-        print(f"Virtual Environment: {venv_path} (not created)")
+            cmd = ["npm", "install"]
 
-    # Check conda availability
-    try:
-        import subprocess
-        result = subprocess.run(["conda", "--version"], capture_output=True, text=True, timeout=2)
-        conda_available = result.returncode == 0
-    except:
-        conda_available = False
-
-    print(f"Conda Available: {conda_available}")
-    if conda_available:
-        conda_env = os.environ.get("CONDA_DEFAULT_ENV", "None")
-        print(f"Current Conda Env: {conda_env}")
-
-    # Check node availability
-    try:
-        import subprocess
-        result = subprocess.run(["node", "--version"], capture_output=True, text=True, timeout=2)
-        node_available = result.returncode == 0
-    except:
-        node_available = False
-
-    print(f"Node.js Available: {node_available}")
-
-    print("\n=== Configuration Files ===")
-    config_files = [
-        "pyproject.toml",
-        "requirements.txt",
-        "requirements-dev.txt",
-        "package.json",
-        "launch-user.env",
-        ".env",
-    ]
-    for cf in config_files:
-        exists = (ROOT_DIR / cf).exists()
-        print(f"{cf}: {'Found' if exists else 'Not found'}")
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+        if run_command(cmd, f"Installing Node.js dependencies in {directory}", cwd=str(dir_path)):
+             return True
+        else:
+             return False
+    except Exception as e:
+        logger.error(f"Error installing Node.js dependencies: {e}")
+        return False

@@ -1,6 +1,9 @@
 # Development and testing dependencies
 # These are installed in addition to base requirements
 
+# Include base requirements to ensure everything is installed
+-r requirements.txt
+
 # Code quality and linting
 black>=25.1.0
 isort>=6.0.1
@@ -12,6 +15,7 @@ pre-commit>=3.0.0
 # Testing framework (base testing already in requirements.txt)
 pytest>=8.4.0
 pytest-asyncio>=0.23.0
+pytest-cov>=6.0.0
 
 # Development tools
 uvicorn[standard]>=0.30.0
