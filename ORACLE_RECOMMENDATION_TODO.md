@@ -1,17 +1,33 @@
-# Oracle Recommendation TODO - EmailIntelligence MVP Refactoring
-
 **Status**: PENDING EXECUTION  
 **Severity**: CRITICAL - Scope bloat + dependency corruption blocking development  
 **Target Timeline**: 2-4 weeks (single developer)  
 **Created**: 2026-01-29
+**Updated**: 2026-02-03
+
+---
+
+## ⛔ CRITICAL WARNING FOR AGENTS
+
+> **THIS DOCUMENT CONTAINS HISTORICAL PROPOSALS THAT WERE REJECTED.**
+>
+> **THIS PIVOT WAS NOT EXECUTED.**
+>
+> | Fact | Value |
+> |------|-------|
+> | **Canonical Project** | Branch Alignment Tooling |
+> | **Authoritative Guide** | [PROJECT_IDENTITY.md](PROJECT_IDENTITY.md) |
+> | **Tasks 002-004** | Branch clustering/validation/framework |
+>
+> **DO NOT**: Rewrite alignment tasks outside branch alignment scope
+> **DO**: Restore alignment-focused specs, maintain project separation
 
 ---
 
 ## Executive Summary
 
-**Current State**: 28 tasks, 2327-3179 hours (58-79 weeks), 25/28 with corrupted dependencies
-**Target State**: 12-15 high-quality MVP tasks, 84-168 hours (2-4 weeks), email intelligence focused
-**Action**: Hard cut Tasks 005-028 (git/branch alignment tooling), reframe 002-004 as product epics
+**Current State**: Canonical `tasks/` cleaned; backups centralized; alignment tasks restored and augmented with archives
+**Target State**: Alignment-focused canonical task set under `tasks/` with full 14-section compliance
+**Action**: Preserve alignment scope in `tasks/`; keep any MVP pivots in `tasks/mvp/` only
 
 **🔴 CRITICAL ARCHITECTURAL CHANGE**:
 - **Task .md files** are the **canonical source** of task information
@@ -19,15 +35,14 @@
 - **tasks.json should be EMPTY** - not the source of truth
 - **All task specifications** (formulas, schemas, test cases) must be in .md files
 
-**Root Cause**: Tasks drifted from EmailIntelligence to generic git branch management tooling
-- Only 8 "email" references in 28 tasks
+**Root Cause**: Tasks drifted from alignment scope into generic tooling bloat
 - 26 tasks mention validation (duplication)
 - 10 tasks mention rollback (enterprise feature bloat)
 - 90%+ effort on CI/CD orchestration, scaling, multi-team infrastructure
 
 **🔴 CRITICAL ISSUES IDENTIFIED**:
 1. **Task 75 technical specs NOT preserved in Task 002** (metric formulas, schemas, test cases lost)
-2. **task-021.md exists** (should be deleted per OLD_TASK_NUMBERING_DEPRECATED.md)
+2. **Task 003/004 missing from canonical `tasks/`** (only backups exist)
 3. **Dependency references wrong** (005.* instead of 002.* in task-002 subtasks)
 4. **Missing subtasks** for tasks 005-007, 012-025
 
@@ -45,13 +60,11 @@
 - **Location**: Archived in `.taskmaster/task_data/archived/handoff_archive_task75/`
 - **Action Required**: Restore all technical specs to task-002.1-002.9
 
-### 2. 🔴 Task 021 Exists (Should Be Deleted)
-**Affected**: `.taskmaster/tasks/task-021.md`
-- **Problem**: task-021.md exists but violates OLD_TASK_NUMBERING_DEPRECATED.md
-- **Expected**: Should have been renamed to task-002.md or deleted
-- **Current Content**: "E2E Testing and Reporting"
-- **Conflict**: Both task-002.md and task-021.md exist with different content
-- **Action Required**: Delete task-021.md immediately
+### 2. 🔴 Task 003/004 Missing from Canonical Tasks
+**Affected**: `.taskmaster/tasks/`
+- **Problem**: Task 003 and 004 only exist in backup/working directories
+- **Impact**: Canonical task set is incomplete; cannot execute planned epics
+- **Action Required**: Restore task 003/004 (and subtasks) into `tasks/` using the 14-section standard
 
 ### 3. 🔴 Dependency References Wrong (BLOCKING)
 **Affected**: task-002.1-002.9 subtasks
@@ -73,7 +86,7 @@
 - **Problem**: Current approach treats tasks.json as source of truth
 - **Required**: Task .md files are the canonical source
 - **Required**: tasks.json should be empty, used only for round-trip testing
-- **Action Required**: Empty tasks.json to `[]`, document .md as authoritative
+- **Action Required**: Confirm tasks.json remains empty and document .md as authoritative
 
 ### 6. Massive Scope (BLOCKER)
 **Affected**: All 28 tasks
@@ -84,92 +97,54 @@
 
 ### 7. Product Drift (STRATEGIC)
 **Affected**: Tasks 005-028 (24 tasks)
-- These are git branch alignment tooling, not email intelligence
 - Feature examples: orchestration, scaling, multi-team RBAC, rollback systems
 - Should be separate project or Phase 2+
 - **Impact**: Building wrong product while correct one gets neglected
 
 ---
 
-## CORE MVP TODO: What to Keep vs Eliminate
+## Scope Notes
 
-### ✅ KEEP: Reframe as Product Epics (2-4 weeks)
-- **Task 002** → Epic A: Email Ingest + Normalize
-- **Task 003** → Epic B: Intelligence Analysis + Clustering
-- **Task 004** → Epic C: Presentation + Search UI
-
-### ❌ ELIMINATE: Move Out of Scope (save 90%+ effort)
-- **Tasks 005-028** (24 tasks): All git/branch alignment tooling
-  - Delete from this project or create separate `emailintelligence-ops` repo
-  - Keep backups in `.taskmaster/tasks/option_c_backup/`
-  - Decision point: Spin out or archive?
-
----
-
-## MVP Feature Definition (What "Done" Means)
-
-### Input
-One mailbox source (Gmail API OR IMAP):
-- Incremental sync with cursor/UID tracking
-- Handle HTML + text bodies
-- Extract headers, threading metadata
-
-### Processing (3-5 signals only)
-1. **Threading**: Reconstruct conversations (Message-ID / In-Reply-To / References)
-2. **Entity Extraction**: Participants, domains, subject normalization
-3. **Classification**: "action required", "FYI", "spam/marketing" (heuristic rules OK)
-4. **Basic Clustering** (optional Week 4): Sender/org/topic grouping
-5. **Lightweight Summary**: Per-thread summary (rule-based)
-
-### Output
-- **Storage**: SQLite/Postgres (minimal schema: emails, threads, labels, results)
-- **UI Surface**: Local web view or CLI (list threads, view details, search by sender/subject/tag)
-- **Quality**: Parser tests, pipeline idempotency tests, golden fixtures
-
----
-
-## Proposed Epic Structure (15 tasks, 0.5-2 days each)
-
-### Epic A: Ingest + Normalize (Week 1-2)
-- **A1** (0.5d): Mailbox source selection + API/IMAP setup
-- **A2** (1.5d): Robust email parser (headers, bodies, threading headers)
-- **A3** (1d): Persistence layer (schema + migrations)
-- **A4** (0.5d): CLI for sync + inspect (debugging surface)
-
-### Epic B: Intelligence (Week 2-3)
-- **B1** (1d): Thread reconstruction + conversation view
-- **B2** (1.5d): Signal extraction (participants, orgs, action classification)
-- **B3** (1d): Idempotent reprocessing + result storage
-- **B4** (0.5d): Search/filter API (sender, domain, tags, action-required)
-
-### Epic C: Present + Polish (Week 3-4)
-- **C1** (1d): Web UI or TUI (thread list + details)
-- **C2** (0.5d): Structured logging + error reporting
-- **C3** (1.5d): Tests (parser, pipeline idempotency, sync regressions)
-- **C4** (0.5d): Packaging + README (single "run locally" command)
-
-**Total**: 15 tasks, ~10 days at realistic velocity = 2 weeks development + 1-2 weeks for iteration
+Do not recreate historical pivot content in this file. Alignment scope only.
 
 ---
 
 ## Implementation Priorities
 
 ### Phase 1: Fix Task Structure & Preserve Technical Specs (THIS WEEK)
-- [ ] **CRITICAL**: Task .md files are the canonical source (not tasks.json)
-- [ ] Restore Task 75 technical specs to Task 002 subtasks (002.1-002.9):
+- [x] **CRITICAL**: Task .md files are the canonical source (not tasks.json)
+- [x] Cleaned `tasks/` of backup artifacts; centralized backups under `backups/`
+- [x] Incremental augmentation completed using richest archive sources (additive only; no replacement)
+- [x] Appended missing sections from secondary archives (improved/restructured/migration backups)
+- [x] Third-pass archive import completed (Task 002 migration/quick-start archives)
+- [x] Restore Task 75 technical specs to Task 002 subtasks (002.1-002.9):
   - Add metric formulas from HANDOFF_75.1-75.3 (commit_recency, commit_frequency, etc.)
   - Add input/output JSON schemas from all HANDOFF_75 files
   - Add clustering parameters from HANDOFF_75.4 (Ward's method, threshold 0.5)
   - Add tagging system from HANDOFF_75.5 (30+ tags by category)
   - Add test cases from HANDOFF_75.8
-- [ ] Delete task-021.md (should not exist per OLD_TASK_NUMBERING_DEPRECATED.md)
+- [ ] Restore canonical Task 003/004 files into `tasks/` with 14-section standard
 - [ ] Fix dependency references: Change 005.* → 002.* in task-002 subtasks
-- [ ] Create missing subtasks for tasks 005-007, 012-025
-- [ ] Ensure all tasks follow 14-section standard
+- [x] Create missing subtasks for tasks 005-007, 012-025 (where available in archives)
+- [x] Create placeholder subtasks for tasks 026-028 (derived from main task subtask breakdown)
+- [x] Ensure all tasks follow 14-section standard
+
+---
+
+## Decision Log (Next Set for Completion)
+
+### 2026-02-02
+- **Augmentation Source Priority**: Use `enhanced_improved_tasks/` as the richest source for incremental imports, then fall back to other archives if missing.
+- **Merge Rule**: Additive-only append under existing sections (no replacements); provenance tracked with `<!-- IMPORTED_FROM: ... -->` markers.
+- **Placement Rule**: Imported content is appended under `## Implementation Guide` to avoid disrupting existing section order.
+- **Canonical Naming**: Keep underscore naming (`task_XXX.md`, `task_XXX.Y.md`) for canonical tasks.
+- **Marker Retention**: Keep `IMPORTED_FROM` markers until the final audit/cleanup pass.
+- **Secondary Archive Pass**: Allow imports from `task_data/migration_backup_20260129/current_tasks/`, `improved_tasks/`, and `restructured_tasks_14_section/` after `enhanced_improved_tasks/`.
+- **Third-Pass Archives**: Include `task_data/archived/backups_archive_task75/`, `task_data/archived/handoff_archive_task75/`, `archive/task_context/`, `archive/project_docs/`, `archive/phase_planning/` for any remaining sections.
 
 ### Phase 2: Empty tasks.json for Round-Trip Testing (THIS WEEK)
-- [ ] **CRITICAL**: tasks.json is ONLY for perfect fidelity round-trip testing
-- [ ] Clear tasks.json to empty array `[]`
+- [x] **CRITICAL**: tasks.json is ONLY for perfect fidelity round-trip testing
+- [x] tasks.json remains empty array `[]`
 - [ ] Create round-trip test: .md → tasks.json → .md → verify identical
 - [ ] Document round-trip fidelity requirements (100% field preservation)
 - [ ] Test with sample tasks to ensure no data loss
@@ -182,13 +157,8 @@ One mailbox source (Gmail API OR IMAP):
 - [ ] Keep Task 75 archived specs for reference
 - [ ] Update documentation to reflect .md as canonical source
 
-### Phase 4: Reframe Core Tasks as Product Epics (NEXT WEEK)
-- [ ] **Focus**: EmailIntelligence MVP, not git/branch alignment
-- [ ] Rewrite Task 002 as Epic A: Email Ingest + Normalize (4 subtasks)
-- [ ] Rewrite Task 003 as Epic B: Intelligence Analysis (4 subtasks)
-- [ ] Rewrite Task 004 as Epic C: Presentation + Search UI (4 subtasks)
-- [ ] Validate all subtasks have complete technical specs
-- [ ] Ensure total effort: 84-168 hours (2-4 weeks realistic)
+### Phase 4: Preserve Alignment Scope (NEXT WEEK)
+- [ ] Confirm `tasks/` remains alignment-only and MVP work stays in `tasks/mvp/`
 
 ### Phase 5: Define Single-Dev Discipline (NEXT WEEK)
 - [ ] Document: Task .md files are the canonical source of truth
@@ -221,17 +191,15 @@ One mailbox source (Gmail API OR IMAP):
 - [ ] All tasks follow 14-section standard
 
 ### For tasks.json Round-Trip Testing
-- [ ] tasks.json is empty array `[]` (not source of truth)
+- [x] tasks.json is empty array `[]` (not source of truth)
 - [ ] Round-trip test passes: .md → tasks.json → .md → 100% identical
 - [ ] No data loss during .md → tasks.json conversion
 - [ ] No field corruption during round-trip
 - [ ] Documented as testing tool only
 
-### For Scope Reduction
-- [ ] Tasks 005-028 removed or moved to separate project
-- [ ] Total effort estimate: 84-168 hours (2-4 weeks, not 2327+ hours)
-- [ ] Product focus restored: "email" mentioned in all remaining tasks
-- [ ] Git/branch alignment moved to separate project or archived
+### For Scope Preservation
+- [ ] Alignment tasks remain intact in `tasks/`
+- [ ] MVP tasks remain isolated in `tasks/mvp/`
 
 ### For Quality
 - [ ] All tasks have complete technical specs (no generic descriptions)
@@ -252,12 +220,11 @@ One mailbox source (Gmail API OR IMAP):
 - **Location of archived specs**: `.taskmaster/task_data/archived/handoff_archive_task75/`
 - **Verification**: Task 002.1-002.9 have exact metric formulas, schemas, test cases
 
-### Risk: task-021.md Exists (Should Be Deleted)
+### Risk: Canonical Task Set Missing 003/004
 **Mitigation**:
-- ✅ **IDENTIFIED**: task-021.md exists but violates OLD_TASK_NUMBERING_DEPRECATED.md
-- **Action**: Delete task-021.md immediately
-- **Reason**: Task 021 was intermediate numbering, should have been Task 002
-- **Conflict**: Both task-002.md and task-021.md exist with different content
+- ✅ **IDENTIFIED**: Task 003/004 only exist in backup/working directories
+- **Action**: Restore into `tasks/` and normalize to 14-section standard
+- **Reason**: Canonical alignment task set must be complete
 
 ### Risk: Dependency References Wrong (005→002)
 **Mitigation**:
@@ -273,28 +240,25 @@ One mailbox source (Gmail API OR IMAP):
 - **Action**: Empty tasks.json to `[]` for round-trip testing only
 - **Documentation**: Update all references to .md as authoritative
 
-### Risk: MVP Still Too Large (15 tasks > 2-4 weeks)
+### Risk: MVP Content Leaks Into Alignment Tasks
 **Mitigation**:
-- If A/B/C epics still >20 hours each, cut to single mailbox source
-- Defer clustering (B3) to Week 4 or Phase 2
-- Use heuristic rules instead of ML for classification
-- Cut "nice to have" features (C2 logging can be minimal)
+- Keep MVP documentation in `tasks/mvp/` only
+- Do not rewrite alignment tasks as MVP epics
 
 ### Risk: Core 002-004 Tasks Use Generic Descriptions
 **Mitigation**:
-- **Verified**: Current Task 002 has generic descriptions, missing technical specs
+- **Verified**: Current Task 002 had generic descriptions, missing technical specs
 - **Action**: Restore exact technical specs from archived Task 75 files
-- **Don't**: Copy-paste old definitions without verification
-- **Do**: Rewrite with complete metric formulas, weights, schemas
+- **Don't**: Introduce MVP scope into alignment tasks
+- **Do**: Preserve alignment-specific formulas, weights, schemas
 
 ---
 
 ## Backups & Safe Harbor
 
-**Location**: `.taskmaster/tasks/option_c_backup/`
-- Full copy of all 28 tasks before cutting Tasks 005-028
-- Dated snapshot: 2026-01-29
-- Use if pivoting back: `cp option_c_backup/task-*.md .`
+**Location**: `.taskmaster/backups/task_markdown_backups/`
+- Centralized task markdown backups (deduplicated from `tasks/`)
+**Additional**: `.taskmaster/tasks/option_c_backup/` (if present)
 
 **Git**: Option C commit hash (record for revert if needed)
 
@@ -309,7 +273,7 @@ One mailbox source (Gmail API OR IMAP):
    - Copy clustering parameters from HANDOFF_75.4 to task-002.4
    - Copy tagging system from HANDOFF_75.5 to task-002.5
    - Copy test cases from HANDOFF_75.8 to task-002.8
-3. **Delete task-021.md** (30 mins)
+3. **Restore canonical Task 003/004** (1-2 hours)
 4. **Fix dependency references** (1 hour):
    - Change all 005.* → 002.* in task-002.1-002.9
    - Validate dependency chains
@@ -440,3 +404,16 @@ One mailbox source (Gmail API OR IMAP):
 ---
 
 **Recommended**: Start with Task 75 technical specs restoration (Phase 1, Step 2).
+
+---
+
+## Alignment Task Migration & Restructuring Guides (Reference Only)
+
+- `TASK_STRUCTURE_STANDARD.md` - Required 14-section task format
+- `SUBTASK_MARKDOWN_TEMPLATE.md` - Full subtask template and section order
+- `guidance/SUBTASK_EXPANSION_TEMPLATE.md` - Parent task expansion guide
+- `TASK_EXPANSION_PLAN_BY_WEEK.md` - Weekly expansion and verification checks
+- `MIGRATION_STATUS_ANALYSIS.md` - Current migration gaps and consistency issues
+- `DEPENDENCY_CORRUPTION_FIX_PLAN.md` - Dependency repair plan for renumbering
+- `OLD_TASK_NUMBERING_DEPRECATED.md` - Deprecated numbering notice
+- `guidance/TASK_NUMBERING_ANALYSIS.md` - Renumbering analysis

@@ -1,4 +1,18 @@
-# ⚠️ CRITICAL: Task Numbering System - READ FIRST
+# ⚠️ CRITICAL: Project Identity & Task System - READ FIRST
+
+## 🔴 PROJECT IDENTITY: Branch Alignment Tooling
+
+**This project is for Git branch clustering, merge automation, and validation.**
+**It is NOT an EmailIntelligence project.**
+
+| Before Any Migration/Restoration | Read This |
+|----------------------------------|-----------|
+| Project identity confusion | [PROJECT_IDENTITY.md](PROJECT_IDENTITY.md) |
+| Tasks 002-004 purpose | Branch clustering/validation/framework |
+| EmailIntelligence MVP | Separate project in `tasks/mvp/` only |
+| ORACLE_RECOMMENDATION_TODO.md | Contains REJECTED pivot proposals |
+
+---
 
 ## IMPORTANT: Old Task Numbering (task-001 through task-020) is DEPRECATED
 
