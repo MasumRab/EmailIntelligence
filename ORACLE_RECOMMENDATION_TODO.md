@@ -123,8 +123,8 @@ Do not recreate historical pivot content in this file. Alignment scope only.
   - Add clustering parameters from HANDOFF_75.4 (Ward's method, threshold 0.5)
   - Add tagging system from HANDOFF_75.5 (30+ tags by category)
   - Add test cases from HANDOFF_75.8
-- [ ] Restore canonical Task 003/004 files into `tasks/` with 14-section standard
-- [ ] Fix dependency references: Change 005.* → 002.* in task-002 subtasks
+- [x] Restore canonical Task 003/004 files into `tasks/` with 14-section standard
+- [x] Fix dependency references: Change 005.* → 002.* in task-002 subtasks (verified: no 005.* refs in task_002.*)
 - [x] Create missing subtasks for tasks 005-007, 012-025 (where available in archives)
 - [x] Create placeholder subtasks for tasks 026-028 (derived from main task subtask breakdown)
 - [x] Ensure all tasks follow 14-section standard
@@ -157,8 +157,12 @@ Do not recreate historical pivot content in this file. Alignment scope only.
 - [ ] Keep Task 75 archived specs for reference
 - [ ] Update documentation to reflect .md as canonical source
 
-### Phase 4: Preserve Alignment Scope (NEXT WEEK)
-- [ ] Confirm `tasks/` remains alignment-only and MVP work stays in `tasks/mvp/`
+### Phase 4: Preserve Alignment Scope (COMPLETED)
+- [x] Confirm `tasks/` remains alignment-only and MVP work stays in `tasks/mvp/`
+- [x] Created PROJECT_IDENTITY.md as canonical project identity reference
+- [x] Added agent warning block to ORACLE_RECOMMENDATION_TODO.md
+- [x] Added project identity header to CLAUDE.md
+- [x] Moved Epic A/B/C definitions to tasks/mvp/EPIC_DEFINITIONS.md
 
 ### Phase 5: Define Single-Dev Discipline (NEXT WEEK)
 - [ ] Document: Task .md files are the canonical source of truth
@@ -198,8 +202,10 @@ Do not recreate historical pivot content in this file. Alignment scope only.
 - [ ] Documented as testing tool only
 
 ### For Scope Preservation
-- [ ] Alignment tasks remain intact in `tasks/`
-- [ ] MVP tasks remain isolated in `tasks/mvp/`
+- [x] Alignment tasks remain intact in `tasks/`
+- [x] MVP tasks remain isolated in `tasks/mvp/`
+- [x] PROJECT_IDENTITY.md created as authoritative reference
+- [x] Agent warnings added to prevent conflation
 
 ### For Quality
 - [ ] All tasks have complete technical specs (no generic descriptions)
