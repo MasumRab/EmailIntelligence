@@ -215,8 +215,9 @@ def check_uvicorn_installed() -> bool:
         return False
 
     try:
+        # Use list args, safe. Explicitly convert path to string.
         result = subprocess.run(
-            [shlex.quote(str(python_exe)), "-c", "import uvicorn"],
+            [str(python_exe), "-c", "import uvicorn"],
             capture_output=True, text=True
         )
         if result.returncode == 0:
@@ -230,13 +231,11 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
 
-    # Sanitize command arguments for subprocess
-    # subprocess.run handles lists safely, but if we need to satisfy linters,
-    # we can explicitly quote them, though it's technically double-escaping for shell=False.
-    # However, Sourcery/SonarCloud flag variables in subprocess calls.
-    # We will assume shell=False is the default and safe, but validation is key.
+    # Ensure all elements in cmd are strings
+    cmd = [str(arg) for arg in cmd]
 
     try:
+        # shell=False is default and safe for lists
         proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
         if proc.stdout:
             logger.debug(proc.stdout)

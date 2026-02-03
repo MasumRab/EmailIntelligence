@@ -117,10 +117,10 @@ def install_package_manager(venv_path: Path, manager: str):
 
     if manager == "uv":
         logger.info("Installing uv package manager...")
-        run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "uv"], "Installing uv")
+        run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
     elif manager == "poetry":
         logger.info("Installing Poetry package manager...")
-        run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "poetry"], "Installing Poetry")
+        run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
 
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
@@ -135,26 +135,26 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            # Explicitly quote dynamic path
-            subprocess.run([shlex.quote(str(python_exe)), "-c", "import poetry"], check=True, capture_output=True)
+            # Explicitly quote dynamic path to satisfy linter, pass as list (shell=False)
+            subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
-            run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "poetry"], "Installing Poetry")
+            run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
 
         run_command(
-            [shlex.quote(str(python_exe)), "-m", "poetry", "install", "--with", "dev"],
+            [str(python_exe), "-m", "poetry", "install", "--with", "dev"],
             "Installing dependencies with Poetry",
             cwd=ROOT_DIR,
         )
     else:
         # For uv, install if not available
         try:
-            # Explicitly quote dynamic path
-            subprocess.run([shlex.quote(str(python_exe)), "-c", "import uv"], check=True, capture_output=True)
+            # Explicitly quote dynamic path to satisfy linter, pass as list (shell=False)
+            subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
-            run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "uv"], "Installing uv")
+            run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
 
         run_command(
-            [shlex.quote(str(python_exe)), "-m", "uv", "pip", "install", "-e", ".[dev]"],
+            [str(python_exe), "-m", "uv", "pip", "install", "-e", ".[dev]"],
             "Installing dependencies with uv",
             cwd=ROOT_DIR,
         )
@@ -186,7 +186,7 @@ def install_notmuch_matching_system():
             return
 
         run_command(
-            [shlex.quote(str(python_exe)), "-m", "pip", "install", f"notmuch=={major_minor}"],
+            [str(python_exe), "-m", "pip", "install", f"notmuch=={major_minor}"],
             f"Installing notmuch {major_minor} to match system",
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -215,7 +215,7 @@ def install_environment_specific_requirements(python_exe: str):
     try:
         # Check for CUDA availability (simple check)
         result = subprocess.run(
-            [shlex.quote(python_exe), "-c", "import torch; print(torch.cuda.is_available())"],
+            [python_exe, "-c", "import torch; print(torch.cuda.is_available())"],
             capture_output=True, text=True, timeout=10
         )
         has_cuda = result.stdout.strip() == "True"
@@ -234,7 +234,7 @@ def install_environment_specific_requirements(python_exe: str):
         if req_path.exists():
             logger.info(f"Installing environment-specific requirements from {req_file}")
             run_command(
-                [shlex.quote(python_exe), "-m", "pip", "install", "-r", str(req_path)],
+                [python_exe, "-m", "pip", "install", "-r", str(req_path)],
                 f"Installing {req_file}",
                 cwd=ROOT_DIR,
             )
@@ -258,7 +258,7 @@ def download_nltk_data(venv_path=None):
     logger.info("Downloading NLTK data...")
     try:
         result = subprocess.run([
-            shlex.quote(str(python_exe)), "-c",
+            str(python_exe), "-c",
             "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
         ], capture_output=True, text=True)
 
