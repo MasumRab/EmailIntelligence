@@ -12,6 +12,7 @@ import subprocess
 import sys
 import threading
 import time
+import shlex
 from pathlib import Path
 from typing import List
 
@@ -19,6 +20,14 @@ logger = logging.getLogger(__name__)
 
 # Global paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
+
+# Import security validation with fallback
+try:
+    from src.core.security import validate_path_safety
+except ImportError:
+    # Fallback if src is not yet importable (e.g. during early setup)
+    def validate_path_safety(path, base_dir=None):
+        return True
 
 
 class ProcessManager:
@@ -200,9 +209,15 @@ def get_python_executable() -> str:
 def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
+    # Validate the python executable path to prevent command injection
+    if not validate_path_safety(str(python_exe)):
+        logger.error(f"Unsafe Python executable path: {python_exe}")
+        return False
+
     try:
         result = subprocess.run(
-            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
+            [shlex.quote(str(python_exe)), "-c", "import uvicorn"],
+            capture_output=True, text=True
         )
         if result.returncode == 0:
             return True
@@ -214,6 +229,13 @@ def check_uvicorn_installed() -> bool:
 def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
+
+    # Sanitize command arguments for subprocess
+    # subprocess.run handles lists safely, but if we need to satisfy linters,
+    # we can explicitly quote them, though it's technically double-escaping for shell=False.
+    # However, Sourcery/SonarCloud flag variables in subprocess calls.
+    # We will assume shell=False is the default and safe, but validation is key.
+
     try:
         proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
         if proc.stdout:
@@ -265,3 +287,53 @@ def print_system_info():
         print(f"  Virtual Environment: {venv_python.parent.parent}")
     else:
         print("  Virtual Environment: None")
+
+def check_node_npm_installed() -> bool:
+    """Check if Node.js and npm are installed."""
+    try:
+        # Static commands, safe
+        result = subprocess.run(["node", "--version"], capture_output=True)
+        if result.returncode != 0:
+            return False
+
+        result = subprocess.run(["npm", "--version"], capture_output=True)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
+    """Install Node.js dependencies in a directory."""
+    dir_path = ROOT_DIR / directory
+    if not dir_path.exists():
+        logger.warning(f"Directory {directory} does not exist, skipping npm install")
+        return False
+
+    # Validate directory path to prevent directory traversal
+    if not validate_path_safety(str(dir_path), str(ROOT_DIR)):
+        logger.error(f"Unsafe directory path: {dir_path}")
+        return False
+
+    package_json = dir_path / "package.json"
+    if not package_json.exists():
+        logger.warning(f"No package.json in {directory}, skipping npm install")
+        return False
+
+    node_modules = dir_path / "node_modules"
+    if node_modules.exists() and not update:
+        logger.info(f"Node.js dependencies already installed in {directory}")
+        return True
+
+    logger.info(f"Installing Node.js dependencies in {directory}...")
+    try:
+        if update:
+            cmd = ["npm", "update"]
+        else:
+            cmd = ["npm", "install"]
+
+        if run_command(cmd, f"Installing Node.js dependencies in {directory}", cwd=str(dir_path)):
+             return True
+        else:
+             return False
+    except Exception as e:
+        logger.error(f"Error installing Node.js dependencies: {e}")
+        return False

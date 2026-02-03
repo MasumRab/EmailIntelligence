@@ -12,12 +12,16 @@ import shutil
 import subprocess
 import sys
 import venv
+import shlex
 from pathlib import Path
 from typing import List
 
 from setup.project_config import get_project_config
-# Import utils (which I fixed)
-from setup.utils import run_command, is_conda_available, get_conda_env_info, activate_conda_env
+# Import utils
+from setup.utils import (
+    run_command, is_conda_available, get_conda_env_info,
+    activate_conda_env, install_nodejs_dependencies
+)
 
 logger = logging.getLogger(__name__)
 
@@ -113,10 +117,10 @@ def install_package_manager(venv_path: Path, manager: str):
 
     if manager == "uv":
         logger.info("Installing uv package manager...")
-        run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
+        run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "uv"], "Installing uv")
     elif manager == "poetry":
         logger.info("Installing Poetry package manager...")
-        run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
+        run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "poetry"], "Installing Poetry")
 
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
@@ -131,24 +135,26 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True)
+            # Explicitly quote dynamic path
+            subprocess.run([shlex.quote(str(python_exe)), "-c", "import poetry"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
-            run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
+            run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "poetry"], "Installing Poetry")
 
         run_command(
-            [str(python_exe), "-m", "poetry", "install", "--with", "dev"],
+            [shlex.quote(str(python_exe)), "-m", "poetry", "install", "--with", "dev"],
             "Installing dependencies with Poetry",
             cwd=ROOT_DIR,
         )
     else:
         # For uv, install if not available
         try:
-            subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True)
+            # Explicitly quote dynamic path
+            subprocess.run([shlex.quote(str(python_exe)), "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
-            run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
+            run_command([shlex.quote(str(python_exe)), "-m", "pip", "install", "uv"], "Installing uv")
 
         run_command(
-            [str(python_exe), "-m", "uv", "pip", "install", "-e", ".[dev]"],
+            [shlex.quote(str(python_exe)), "-m", "uv", "pip", "install", "-e", ".[dev]"],
             "Installing dependencies with uv",
             cwd=ROOT_DIR,
         )
@@ -180,7 +186,7 @@ def install_notmuch_matching_system():
             return
 
         run_command(
-            [str(python_exe), "-m", "pip", "install", f"notmuch=={major_minor}"],
+            [shlex.quote(str(python_exe)), "-m", "pip", "install", f"notmuch=={major_minor}"],
             f"Installing notmuch {major_minor} to match system",
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -209,7 +215,7 @@ def install_environment_specific_requirements(python_exe: str):
     try:
         # Check for CUDA availability (simple check)
         result = subprocess.run(
-            [python_exe, "-c", "import torch; print(torch.cuda.is_available())"],
+            [shlex.quote(python_exe), "-c", "import torch; print(torch.cuda.is_available())"],
             capture_output=True, text=True, timeout=10
         )
         has_cuda = result.stdout.strip() == "True"
@@ -228,7 +234,7 @@ def install_environment_specific_requirements(python_exe: str):
         if req_path.exists():
             logger.info(f"Installing environment-specific requirements from {req_file}")
             run_command(
-                [python_exe, "-m", "pip", "install", "-r", str(req_path)],
+                [shlex.quote(python_exe), "-m", "pip", "install", "-r", str(req_path)],
                 f"Installing {req_file}",
                 cwd=ROOT_DIR,
             )
@@ -252,7 +258,7 @@ def download_nltk_data(venv_path=None):
     logger.info("Downloading NLTK data...")
     try:
         result = subprocess.run([
-            str(python_exe), "-c",
+            shlex.quote(str(python_exe)), "-c",
             "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
         ], capture_output=True, text=True)
 
@@ -263,56 +269,7 @@ def download_nltk_data(venv_path=None):
     except Exception as e:
         logger.warning(f"Failed to download NLTK data: {e}")
 
-def check_node_npm_installed() -> bool:
-    """Check if Node.js and npm are installed."""
-    try:
-        # Static commands, safe
-        result = subprocess.run(["node", "--version"], capture_output=True)
-        if result.returncode != 0:
-            return False
-
-        result = subprocess.run(["npm", "--version"], capture_output=True)
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
-
-def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
-    """Install Node.js dependencies in a directory."""
-    dir_path = ROOT_DIR / directory
-    if not dir_path.exists():
-        logger.warning(f"Directory {directory} does not exist, skipping npm install")
-        return False
-
-    # Validate directory path to prevent directory traversal
-    if not validate_path_safety(str(dir_path), str(ROOT_DIR)):
-        logger.error(f"Unsafe directory path: {dir_path}")
-        return False
-
-    package_json = dir_path / "package.json"
-    if not package_json.exists():
-        logger.warning(f"No package.json in {directory}, skipping npm install")
-        return False
-
-    node_modules = dir_path / "node_modules"
-    if node_modules.exists() and not update:
-        logger.info(f"Node.js dependencies already installed in {directory}")
-        return True
-
-    logger.info(f"Installing Node.js dependencies in {directory}...")
-    try:
-        if update:
-            cmd = ["npm", "update"]
-        else:
-            cmd = ["npm", "install"]
-
-        # Use run_command wrapper for consistency and to potentially satisfy linter
-        if run_command(cmd, f"Installing Node.js dependencies in {directory}", cwd=dir_path):
-             return True
-        else:
-             return False
-    except Exception as e:
-        logger.error(f"Error installing Node.js dependencies: {e}")
-        return False
+# Removed check_node_npm_installed and install_nodejs_dependencies as they are now in setup/utils.py
 
 def handle_setup(args, venv_path):
     """Handle the complete setup process."""

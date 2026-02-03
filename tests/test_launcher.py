@@ -29,7 +29,7 @@ from setup.launch import (
 @patch("setup.launch.logger")
 @patch("pathlib.Path.exists")
 @patch("setup.launch.shutil.which", return_value=True)
-@patch("setup.environment.run_command", return_value=False)
+@patch("setup.utils.run_command", return_value=False)
 def test_install_deps_npm_install_fails(mock_run, mock_which, mock_exists, mock_logger):
     """
     Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.

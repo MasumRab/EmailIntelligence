@@ -57,12 +57,11 @@ from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements,
     is_conda_available, get_conda_env_info, activate_conda_env, create_venv,
     setup_dependencies, install_package_manager, download_nltk_data,
-    check_node_npm_installed, install_nodejs_dependencies, get_venv_executable,
-    install_notmuch_matching_system
+    get_venv_executable, install_notmuch_matching_system
 )
 from setup.utils import (
     print_system_info, process_manager, run_command, check_uvicorn_installed,
-    get_python_executable
+    get_python_executable, check_node_npm_installed, install_nodejs_dependencies
 )
 from setup.test_stages import test_stages, handle_test_stage
 
