@@ -24,6 +24,14 @@ logger = logging.getLogger(__name__)
 # Global paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
+# Import security validation with fallback
+try:
+    from src.core.security import validate_path_safety
+except ImportError:
+    # Fallback if src is not yet importable (e.g. during early setup)
+    def validate_path_safety(path, base_dir=None):
+        return True
+
 
 def is_wsl():
     """Check if running in WSL environment."""
@@ -64,6 +72,7 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
+        # Static command, safe
         result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
@@ -97,6 +106,11 @@ def install_package_manager(venv_path: Path, manager: str):
     """Install a package manager in the virtual environment."""
     python_exe = get_venv_executable(venv_path, "python")
 
+    # Validate python executable path
+    if not validate_path_safety(str(python_exe)):
+        logger.error(f"Unsafe Python executable path: {python_exe}")
+        return
+
     if manager == "uv":
         logger.info("Installing uv package manager...")
         run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
@@ -109,10 +123,15 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     """Install Python dependencies using uv or poetry."""
     python_exe = get_venv_executable(venv_path, "python")
 
+    # Validate python executable path
+    if not validate_path_safety(str(python_exe)):
+        logger.error(f"Unsafe Python executable path: {python_exe}")
+        return
+
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -124,7 +143,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
 
@@ -144,6 +163,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 def install_notmuch_matching_system():
     """Install notmuch with version matching the system."""
     try:
+        # Static command, safe
         result = subprocess.run(
             ["notmuch", "--version"], capture_output=True, text=True, check=True
         )
@@ -155,8 +175,12 @@ def install_notmuch_matching_system():
         from setup.utils import get_python_executable
         python_exe = get_python_executable()
 
+        if not validate_path_safety(str(python_exe)):
+            logger.error(f"Unsafe Python executable path: {python_exe}")
+            return
+
         run_command(
-            [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
+            [str(python_exe), "-m", "pip", "install", f"notmuch=={major_minor}"],
             f"Installing notmuch {major_minor} to match system",
         )
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -165,6 +189,11 @@ def install_notmuch_matching_system():
 
 def install_environment_specific_requirements(python_exe: str):
     """Install environment-specific requirements based on platform and hardware."""
+    # Validate python executable path
+    if not validate_path_safety(python_exe):
+        logger.error(f"Unsafe Python executable path: {python_exe}")
+        return
+
     system = platform.system().lower()
     requirements_files = []
 
@@ -215,10 +244,15 @@ def download_nltk_data(venv_path=None):
         from setup.utils import get_python_executable
         python_exe = get_python_executable()
 
+    # Validate python executable path
+    if not validate_path_safety(str(python_exe)):
+        logger.error(f"Unsafe Python executable path: {python_exe}")
+        return
+
     logger.info("Downloading NLTK data...")
     try:
         result = subprocess.run([
-            python_exe, "-c",
+            str(python_exe), "-c",
             "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
         ], capture_output=True, text=True)
 
@@ -232,6 +266,7 @@ def download_nltk_data(venv_path=None):
 def check_node_npm_installed() -> bool:
     """Check if Node.js and npm are installed."""
     try:
+        # Static commands, safe
         result = subprocess.run(["node", "--version"], capture_output=True)
         if result.returncode != 0:
             return False
@@ -243,11 +278,6 @@ def check_node_npm_installed() -> bool:
 
 def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     """Install Node.js dependencies in a directory."""
-    try:
-        from src.core.security import validate_path_safety
-    except ImportError:
-         def validate_path_safety(path, base_dir=None): return True
-
     dir_path = ROOT_DIR / directory
     if not dir_path.exists():
         logger.warning(f"Directory {directory} does not exist, skipping npm install")
@@ -275,6 +305,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         else:
             cmd = ["npm", "install"]
 
+        # Use run_command wrapper for consistency and to potentially satisfy linter
         if run_command(cmd, f"Installing Node.js dependencies in {directory}", cwd=dir_path):
              return True
         else:

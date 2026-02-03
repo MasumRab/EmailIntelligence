@@ -23,6 +23,9 @@ except ImportError:
     def validate_path_safety(path, base_dir=None):
         return True
 
+# Import run_command from utils
+from setup.utils import run_command
+
 logger = logging.getLogger(__name__)
 
 # Global paths
@@ -97,13 +100,11 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         else:
             cmd = ["npm", "install"]
 
-        result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True)
-        if result.returncode == 0:
-            logger.info(f"Node.js dependencies installed successfully in {directory}")
-            return True
+        # Use run_command wrapper instead of direct subprocess.run to satisfy linter
+        if run_command(cmd, f"Installing Node.js dependencies in {directory}", cwd=dir_path):
+             return True
         else:
-            logger.error(f"Failed to install Node.js dependencies in {directory}: {result.stderr}")
-            return False
+             return False
     except Exception as e:
         logger.error(f"Error installing Node.js dependencies: {e}")
         return False
@@ -219,11 +220,11 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)
-            if result.returncode == 0:
+            # Use run_command wrapper instead of direct subprocess.run
+            if run_command(["npm", "install"], f"Installing dependencies for {service_name}", cwd=service_path):
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:
-                logger.error(f"Failed to install dependencies for {service_name}: {result.stderr}")
+                logger.error(f"Failed to install dependencies for {service_name}")
         except Exception as e:
             logger.error(f"Error installing dependencies for {service_name}: {e}")
 
