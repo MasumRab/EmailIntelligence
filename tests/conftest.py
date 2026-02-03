@@ -42,7 +42,23 @@ def create_test_app():
     async def health():
         return {"status": "healthy"}
 
+    # Include routers for testing
+    try:
+        from src.backend.python_backend.filter_routes import router as filter_router
+        app.include_router(filter_router)
+    except Exception as e:
+        print(f"Warning: Could not include filter_router: {e}")
+
+    # Override auth to bypass requirement
+    from src.core.auth import get_current_active_user
+    app.dependency_overrides[get_current_active_user] = lambda: "test_user"
+
     return app
+
+
+# from src.core.database import get_db  # FIXME: get_db function doesn't exist
+from src.core.factory import get_data_source
+from src.backend.python_backend.database import get_db
 
 
 def setup_test_environment():
@@ -152,11 +168,11 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
-    # app.dependency_overrides[get_db] = lambda: mock_db_manager  # FIXME: get_db doesn't exist
+    app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
-    # del app.dependency_overrides[get_db]  # FIXME: get_db doesn't exist
+    del app.dependency_overrides[get_db]
     del app.dependency_overrides[get_data_source]
