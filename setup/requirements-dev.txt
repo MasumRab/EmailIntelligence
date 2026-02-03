@@ -1,6 +1,9 @@
 # Development and testing dependencies
 # These are installed in addition to base requirements
 
+# Include base requirements to ensure everything is installed
+-r requirements.txt
+
 # Code quality and linting
 black>=25.1.0
 isort>=6.0.1
