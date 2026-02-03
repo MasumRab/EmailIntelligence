@@ -21,6 +21,8 @@ dependencies = [
     "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
     "httpx>=0.28.1",
+    # Pin markupsafe to <3.0.0 due to missing wheels for Python 3.11 in v3.0.2+
+    "markupsafe<3.0.0",
 
     # Basic UI (always needed)
     "gradio>=4.0.0",
