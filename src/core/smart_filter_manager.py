@@ -13,10 +13,11 @@ import os
 import re
 import sqlite3
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Union
 from pathlib import Path
+from re import Pattern
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
@@ -32,6 +33,9 @@ logger = logging.getLogger(__name__)
 
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
+
+# Pre-compiled regex for keyword extraction
+KEYWORDS_PATTERN = re.compile(r"\b[a-z]{3,}\b")
 
 
 @dataclass
@@ -68,6 +72,24 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+    _compiled_patterns: Dict[str, List[Pattern]] = field(init=False, default_factory=dict, repr=False)
+
+    def __post_init__(self):
+        """Initialize computed fields."""
+        self._compile_patterns()
+
+    def _compile_patterns(self):
+        """Pre-compiles regex patterns defined in criteria to optimize matching."""
+        self._compiled_patterns = {}
+        if "from_patterns" in self.criteria:
+            try:
+                self._compiled_patterns["from_patterns"] = [
+                    re.compile(p, re.IGNORECASE)
+                    for p in self.criteria["from_patterns"]
+                ]
+            except re.error:
+                # Fallback to empty list for invalid patterns
+                self._compiled_patterns["from_patterns"] = []
 
 
 @dataclass
@@ -434,7 +456,7 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        return [word for word in KEYWORDS_PATTERN.findall(text.lower()) if len(word) > 3]
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
@@ -650,7 +672,11 @@ class SmartFilterManager:
 
         # Check from patterns
         if "from_patterns" in criteria:
-            if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
+            # Use pre-compiled patterns if available for performance
+            patterns = filter_obj._compiled_patterns.get("from_patterns", [])
+            # If patterns list is empty but criteria exists, it might mean compilation failed
+            # or the list was empty. In either case, if we can't match any, we return False.
+            if not patterns or not any(p.search(ctx.sender_lower) for p in patterns):
                 return False
 
         return True
