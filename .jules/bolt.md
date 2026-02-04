@@ -9,3 +9,11 @@
 ## 2026-02-03 - [Optimized Memory Cache Backend]
 **Learning:** `MemoryCacheBackend` used a List for `_access_order` and `remove()`/`pop(0)` for LRU, resulting in O(N) operations. This caused massive slowdowns (200x slower at 20k items). `OrderedDict` provides O(1) operations.
 **Action:** When implementing LRU caches, always use `OrderedDict` or specialized structures. Avoid `list.remove()` or `list.pop(0)` in hot paths.
+
+## 2026-02-04 - [Fixed CI Dependencies and Audit Logger]
+**Learning:**  is deprecated and slow;  is the modern replacement. CI failures on Python 3.12 were due to missing  and .  had a logic error trying to catch  in a synchronous thread using .
+**Action:** When modernizing scripts, prefer standard library alternatives (like ). Ensure exception handling matches the concurrency model (sync vs async). Verify development dependencies (, ) are explicitly listed for CI environments.
+
+## 2026-02-04 - [Fixed CI Dependencies and Audit Logger]
+**Learning:** `pkg_resources` is deprecated and slow; `importlib.metadata` is the modern replacement. CI failures on Python 3.12 were due to missing `psutil` and `pkg_resources`. `AuditLogger` had a logic error trying to catch `asyncio.TimeoutError` in a synchronous thread using `queue.Queue`.
+**Action:** When modernizing scripts, prefer standard library alternatives (like `importlib.metadata`). Ensure exception handling matches the concurrency model (sync vs async). Verify development dependencies (`pytest-cov`, `psutil`) are explicitly listed for CI environments.
