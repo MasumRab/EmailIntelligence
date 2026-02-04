@@ -700,6 +700,10 @@ def create_app():
     return app
 
 
+# Create a global app instance for imports (e.g., tests)
+app = create_app()
+
+
 def main():
     """
     Main entry point to run the server.
