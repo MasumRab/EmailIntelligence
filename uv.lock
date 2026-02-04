@@ -814,8 +814,11 @@ dependencies = [
     { name = "gradio" },
     { name = "httpx" },
     { name = "markupsafe" },
+    { name = "networkx" },
     { name = "pydantic" },
+    { name = "pyjwt" },
     { name = "pyngrok" },
+    { name = "pyotp" },
     { name = "python-dotenv" },
     { name = "python-multipart" },
     { name = "restrictedpython" },
@@ -928,6 +931,7 @@ requires-dist = [
     { name = "markupsafe", specifier = "<3.0.0" },
     { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.8.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.16.0" },
+    { name = "networkx", specifier = ">=3.0" },
     { name = "nltk", marker = "extra == 'ml'", specifier = ">=3.9.1" },
     { name = "notmuch", marker = "extra == 'db'", specifier = ">=0.29" },
     { name = "numpy", marker = "extra == 'data'", specifier = ">=1.26.0" },
@@ -936,8 +940,10 @@ requires-dist = [
     { name = "plotly", marker = "extra == 'viz'", specifier = ">=5.18.0" },
     { name = "psycopg2-binary", marker = "extra == 'db'", specifier = ">=2.9.10" },
     { name = "pydantic", specifier = ">=2.11.5" },
+    { name = "pyjwt", specifier = ">=2.8.0" },
     { name = "pylint", marker = "extra == 'dev'", specifier = ">=3.3.7" },
     { name = "pyngrok", specifier = ">=0.7.0" },
+    { name = "pyotp", specifier = ">=2.9.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.2.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.0.0" },
@@ -2943,6 +2949,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyjwt"
+version = "2.11.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5c/5a/b46fa56bf322901eee5b0454a34343cdbdae202cd421775a8ee4e42fd519/pyjwt-2.11.0.tar.gz", hash = "sha256:35f95c1f0fbe5d5ba6e43f00271c275f7a1a4db1dab27bf708073b75318ea623", size = 98019, upload-time = "2026-01-30T19:59:55.694Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6f/01/c26ce75ba460d5cd503da9e13b21a33804d38c2165dec7b716d06b13010c/pyjwt-2.11.0-py3-none-any.whl", hash = "sha256:94a6bde30eb5c8e04fee991062b534071fd1439ef58d2adc9ccb823e7bcd0469", size = 28224, upload-time = "2026-01-30T19:59:54.539Z" },
+]
+
+[[package]]
 name = "pylint"
 version = "4.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2970,6 +2985,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3f/64/5ab436dd78db3bcfdbae5965c48e21a6ee3fa6ec87859e44442e2fb361c3/pyngrok-7.4.1.tar.gz", hash = "sha256:ad8637738ced5bdb88c28b087fea39ca552860c2d30004ac01033c0f8eb4f36e", size = 44612, upload-time = "2025-10-23T14:32:50.524Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/5d/231c395723ee72bae6c272831642304067fda24a4d4f008e18b1088348f4/pyngrok-7.4.1-py3-none-any.whl", hash = "sha256:0325e34f26f7a5a9324df414eebbfaec5e5388f77e7439ea45a3358f645bc840", size = 25464, upload-time = "2025-10-23T14:32:49.147Z" },
+]
+
+[[package]]
+name = "pyotp"
+version = "2.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/b2/1d5994ba2acde054a443bd5e2d384175449c7d2b6d1a0614dbca3a63abfc/pyotp-2.9.0.tar.gz", hash = "sha256:346b6642e0dbdde3b4ff5a930b664ca82abfa116356ed48cc42c7d6590d36f63", size = 17763, upload-time = "2023-07-27T23:41:03.295Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/c0/c33c8792c3e50193ef55adb95c1c3c2786fe281123291c2dbf0eaab95a6f/pyotp-2.9.0-py3-none-any.whl", hash = "sha256:81c2e5865b8ac55e825b0358e496e1d9387c811e85bb40e71a3b29b288963612", size = 13376, upload-time = "2023-07-27T23:41:01.685Z" },
 ]
 
 [[package]]
