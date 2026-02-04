@@ -92,6 +92,20 @@ class BaseAIEngine(ABC):
         pass
 
 
+# Global AI engine instance
+_active_ai_engine: Optional[BaseAIEngine] = None
+
+
+def get_active_ai_engine() -> Optional[BaseAIEngine]:
+    """Get the currently active AI engine."""
+    global _active_ai_engine
+    return _active_ai_engine
+
+
+def set_active_ai_engine(engine: BaseAIEngine):
+    """Set the active AI engine."""
+    global _active_ai_engine
+    _active_ai_engine = engine
 
 
 class ModernAIEngine(BaseAIEngine):

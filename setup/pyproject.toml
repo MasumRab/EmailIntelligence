@@ -29,6 +29,7 @@ dependencies = [
     # Authentication & Security (core requirement)
     "pyjwt>=2.8.0",
     "pyotp>=2.9.0",
+    "qrcode>=7.4.2",
 
     # Basic UI (always needed)
     "gradio>=4.0.0",

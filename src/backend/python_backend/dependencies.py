@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from .ai_engine import AdvancedAIEngine
     from .smart_filters import SmartFilterManager
     from .workflow_engine import WorkflowEngine
-    from src.plugins.plugin_manager import PluginManager
+    from src.core.plugin_manager import PluginManager
     from .gmail_service import GmailAIService
 
 logger = logging.getLogger(__name__)
