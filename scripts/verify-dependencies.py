@@ -13,8 +13,12 @@ from typing import Dict, List, Set, Tuple
 import re
 import os
 import importlib.metadata
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+except ImportError:
+    Requirement = None
+    parse_version = None
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -125,6 +129,10 @@ def main():
     if args.minimal:
         print("Minimal dependency check passed.")
         return 0
+
+    if Requirement is None:
+        print("Error: 'packaging' module not found. Please install it to verify dependencies.")
+        return 1
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
 
