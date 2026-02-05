@@ -29,6 +29,9 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+
+    # Dependency pinning for compatibility
+    "markupsafe>=2.1.1,<3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -73,7 +76,15 @@ google = [
     "google-auth-oauthlib>=1.2.2",
 ]
 
-# Development tools - only for development
+# Minimal installation - just core features
+minimal = []
+
+# Full installation - all features except GPU
+full = [
+    "emailintelligence[ml,data,viz,db,google]",
+]
+
+[dependency-groups]
 dev = [
     # Testing
     "pytest>=8.4.0",
@@ -95,14 +106,6 @@ dev = [
     
     # Utilities
     "pip-autoremove>=0.10.0",
-]
-
-# Minimal installation - just core features
-minimal = []
-
-# Full installation - all features except GPU
-full = [
-    "emailintelligence[ml,data,viz,db,google,dev]",
 ]
 
 [build-system]
