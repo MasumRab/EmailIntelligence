@@ -8,13 +8,17 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+import importlib.metadata
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+except ImportError:
+    Requirement = None
+    parse_version = None
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,7 +35,12 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    packages = {}
+    for dist in importlib.metadata.distributions():
+        name = dist.metadata["Name"].lower()
+        version = dist.version
+        packages[name] = version
+    return packages
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
@@ -120,6 +129,10 @@ def main():
     if args.minimal:
         print("Minimal dependency check passed.")
         return 0
+
+    if Requirement is None:
+        print("Error: 'packaging' module not found. Please install it to verify dependencies.")
+        return 1
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
 

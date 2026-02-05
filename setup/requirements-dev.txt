@@ -12,6 +12,7 @@ pytest-asyncio>=0.23.0
 
 # Backend dependencies for tests
 uvicorn[standard]>=0.30.0
+psutil>=6.0.0
 
 # Install project in editable mode to ensure core deps are present
 -e .
