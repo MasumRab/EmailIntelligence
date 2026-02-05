@@ -13,7 +13,7 @@ import os
 import re
 import sqlite3
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Union
 from pathlib import Path
@@ -68,6 +68,34 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+    _compiled_patterns: Dict[str, Any] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self):
+        """Pre-compile patterns and keywords for performance."""
+        self._compiled_patterns = {}
+
+        # Pre-process subject keywords
+        if "subject_keywords" in self.criteria:
+            self._compiled_patterns["subject_keywords"] = [
+                k.lower() for k in self.criteria["subject_keywords"] if isinstance(k, str)
+            ]
+
+        # Pre-process content keywords
+        if "content_keywords" in self.criteria:
+            self._compiled_patterns["content_keywords"] = [
+                k.lower() for k in self.criteria["content_keywords"] if isinstance(k, str)
+            ]
+
+        # Pre-compile regex patterns
+        if "from_patterns" in self.criteria:
+            patterns = []
+            for p in self.criteria["from_patterns"]:
+                if isinstance(p, str):
+                    try:
+                        patterns.append(re.compile(p, re.IGNORECASE))
+                    except re.error:
+                        pass
+            self._compiled_patterns["from_patterns"] = patterns
 
 
 @dataclass
@@ -618,6 +646,7 @@ class SmartFilterManager:
             context: Either the raw email dict (for backward compatibility) or an _EmailContext object.
         """
         criteria = filter_obj.criteria
+        compiled = getattr(filter_obj, "_compiled_patterns", {})
 
         # Handle backward compatibility or raw usage
         if not isinstance(context, _EmailContext):
@@ -639,19 +668,31 @@ class SmartFilterManager:
 
         # Check subject keywords
         if "subject_keywords" in criteria:
-            # Optimization: check if any keyword matches
-            if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
-                return False
+            # Use pre-lowercased keywords if available
+            if "subject_keywords" in compiled:
+                if not any(keyword in ctx.subject_lower for keyword in compiled["subject_keywords"]):
+                    return False
+            else:
+                if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
+                    return False
 
         # Check content keywords
         if "content_keywords" in criteria:
-            if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
-                return False
+            if "content_keywords" in compiled:
+                if not any(keyword in ctx.content_lower for keyword in compiled["content_keywords"]):
+                    return False
+            else:
+                if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
+                    return False
 
         # Check from patterns
         if "from_patterns" in criteria:
-            if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
-                return False
+            if "from_patterns" in compiled:
+                if not any(p.search(ctx.sender_lower) for p in compiled["from_patterns"]):
+                    return False
+            else:
+                if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
+                    return False
 
         return True
 

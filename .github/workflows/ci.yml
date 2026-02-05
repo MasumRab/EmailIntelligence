@@ -27,23 +27,23 @@ jobs:
           
       - name: Install dependencies
         run: |
-          uv sync --dev
+          uv sync --extra dev
           
       - name: Run tests
         run: |
-          uv run pytest backend/ src/ modules/ -v --tb=short --cov=backend --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+          uv run --extra dev python -m pytest src/ modules/ tests/ -v --tb=short --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
 
       - name: Run Security Scans
         run: |
-          uv run bandit -r backend/ src/ modules/
-          uv run safety check
+          uv run --extra dev bandit -r src/ modules/
+          uv run --extra dev safety check
           
       - name: Run linting
         run: |
-          uv run flake8 backend/
-          uv run black --check backend/
-          uv run isort --check-only backend/
+          uv run --extra dev flake8 src/ modules/ tests/
+          uv run --extra dev black --check src/ modules/ tests/
+          uv run --extra dev isort --check-only src/ modules/ tests/
           
       - name: Type checking
         run: |
-          uv run mypy backend/ --show-error-codes --no-strict-optional
+          uv run --extra dev mypy src/ modules/ --show-error-codes --no-strict-optional
