@@ -11,3 +11,6 @@
 *.css text eol=lf
 *.yaml text eol=lf
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+
+# Use bd merge for beads JSONL files
+.beads/issues.jsonl merge=beads
