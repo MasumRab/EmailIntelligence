@@ -38,15 +38,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
       
-      - name: Verify system dependencies
-        run: |
-          python scripts/verify-dependencies.py --check-gpu --system-packages || true
-      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install packaging
           pip install -r requirements-dev.txt
           pip install flake8 pylint black isort pytest-cov
+          pip install -e .
+
+      - name: Verify system dependencies
+        run: |
+          python scripts/verify-dependencies.py --check-gpu --system-packages || true
       
       - name: Code Quality Checks
         run: |
