@@ -8,13 +8,18 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
+
+if sys.version_info >= (3, 8):
+    from importlib.metadata import distributions
+else:
+    # Fallback for older python versions if ever needed, though CI is now >= 3.11
+    from importlib_metadata import distributions
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,7 +36,7 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    return {dist.metadata['Name'].lower(): dist.version for dist in distributions()}
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""

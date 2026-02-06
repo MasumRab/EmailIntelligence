@@ -58,25 +58,6 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
 
-    def __post_init__(self):
-        """Pre-compile regex patterns for performance."""
-        self._compiled_patterns = {}
-        if "from_patterns" in self.criteria:
-            patterns = []
-            for p in self.criteria["from_patterns"]:
-                try:
-                    patterns.append(re.compile(p, re.IGNORECASE))
-                except re.error:
-                    # Fallback or log warning? For now just skip invalid patterns
-                    pass
-            self._compiled_patterns["from_patterns"] = patterns
-
-        # Pre-process other criteria if needed
-        if "subject_keywords" in self.criteria:
-            self._compiled_patterns["subject_keywords"] = [
-                k.lower() for k in self.criteria["subject_keywords"]
-            ]
-
 
 @dataclass
 class FilterPerformance:
@@ -147,20 +128,11 @@ class SmartFilterManager:
         self._filter_templates = None
         self._pruning_criteria = None
 
-        # In-memory cache for active filters
-        self._active_filters_cache: Optional[List[EmailFilter]] = None
-        self._active_filters_cache_time: Optional[datetime] = None
-        self._cache_ttl_seconds = 5.0
-
     def _ensure_db_initialized(self):
         """Ensure the database is initialized, but only when needed."""
         if not self._db_initialized:
+            self._init_filter_db()
             self._db_initialized = True
-            try:
-                self._init_filter_db()
-            except Exception:
-                self._db_initialized = False
-                raise
 
     def _get_db_connection(self) -> sqlite3.Connection:
         """Establishes and returns a database connection."""
@@ -417,37 +389,19 @@ class SmartFilterManager:
     def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
-
-        # Use pre-compiled patterns if available
-        if hasattr(filter_obj, "_compiled_patterns"):
-            if "from_patterns" in filter_obj._compiled_patterns:
-                sender = email.get("senderEmail", "")
-                if not any(p.search(sender) for p in filter_obj._compiled_patterns["from_patterns"]):
-                    return False
-
-            if "subject_keywords" in filter_obj._compiled_patterns:
-                subject_lower = email.get("subject", "").lower()
-                if not any(k in subject_lower for k in filter_obj._compiled_patterns["subject_keywords"]):
-                    return False
-        else:
-            # Fallback for filters created without __post_init__ (unlikely but safe)
-            if "from_patterns" in criteria and not any(
-                re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
-                for p in criteria["from_patterns"]
-            ):
-                return False
-            if "subject_keywords" in criteria and not any(
-                k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
-            ):
-                return False
-
+        if "from_patterns" in criteria and not any(
+            re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
+            for p in criteria["from_patterns"]
+        ):
+            return False
+        if "subject_keywords" in criteria and not any(
+            k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
+        ):
+            return False
         return True
 
     def _save_filter(self, filter_obj: EmailFilter):
         """Saves a filter to the database."""
-        # Invalidate cache
-        self._active_filters_cache = None
-
         query = (
             "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         )
@@ -470,16 +424,10 @@ class SmartFilterManager:
 
     def get_active_filters_sorted(self) -> List[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
-        # Check cache validity
-        if self._active_filters_cache is not None and self._active_filters_cache_time:
-            age = (datetime.now() - self._active_filters_cache_time).total_seconds()
-            if age < self._cache_ttl_seconds:
-                return self._active_filters_cache
-
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
         )
-        filters = [
+        return [
             EmailFilter(
                 row["filter_id"],
                 row["name"],
@@ -496,12 +444,6 @@ class SmartFilterManager:
             )
             for row in rows
         ]
-
-        # Update cache
-        self._active_filters_cache = filters
-        self._active_filters_cache_time = datetime.now()
-
-        return filters
 
     def apply_filters_to_email_data(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
