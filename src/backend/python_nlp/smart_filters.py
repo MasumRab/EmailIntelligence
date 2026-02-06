@@ -58,6 +58,17 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
 
+    def __post_init__(self):
+        """Pre-compile regex patterns for performance."""
+        self._compiled_patterns = {}
+        if isinstance(self.criteria, dict) and "from_patterns" in self.criteria:
+            try:
+                self._compiled_patterns["from_patterns"] = [
+                    re.compile(p, re.IGNORECASE) for p in self.criteria["from_patterns"]
+                ]
+            except re.error:
+                pass
+
 
 @dataclass
 class FilterPerformance:
@@ -107,15 +118,19 @@ class SmartFilterManager:
                      resolved relative to the project's data directory to prevent
                      path traversal attacks and ensure consistent behavior.
         """
-        if db_path is None:
-            db_path = DEFAULT_DB_PATH
-        elif not os.path.isabs(db_path):
-            # Secure path validation to prevent directory traversal
-            filename = PathValidator.sanitize_filename(os.path.basename(db_path))
-            db_path = os.path.join(DATA_DIR, filename)
+        if db_path == ":memory:":
+            self.db_path = ":memory:"
+        else:
+            if db_path is None:
+                db_path = DEFAULT_DB_PATH
+            elif not os.path.isabs(db_path):
+                # Secure path validation to prevent directory traversal
+                filename = PathValidator.sanitize_filename(os.path.basename(db_path))
+                db_path = os.path.join(DATA_DIR, filename)
 
-        # Validate the final path
-        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
+            # Validate the final path
+            self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
+
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
@@ -124,6 +139,11 @@ class SmartFilterManager:
         self._init_filter_db()
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
+
+        # Cache for active filters
+        self._active_filters_cache: Optional[List[EmailFilter]] = None
+        self._active_filters_cache_time: Optional[datetime] = None
+        self._cache_ttl = timedelta(seconds=5)
 
     def _get_db_connection(self) -> sqlite3.Connection:
         """Establishes and returns a database connection."""
@@ -379,11 +399,17 @@ class SmartFilterManager:
     def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
-        if "from_patterns" in criteria and not any(
+
+        # Use pre-compiled patterns if available
+        if hasattr(filter_obj, "_compiled_patterns") and "from_patterns" in filter_obj._compiled_patterns:
+            if not any(p.search(email.get("senderEmail", "")) for p in filter_obj._compiled_patterns["from_patterns"]):
+                return False
+        elif "from_patterns" in criteria and not any(
             re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
             for p in criteria["from_patterns"]
         ):
             return False
+
         if "subject_keywords" in criteria and not any(
             k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
         ):
@@ -411,13 +437,21 @@ class SmartFilterManager:
             True,
         )
         self._db_execute(query, params)
+        # Invalidate cache
+        self._active_filters_cache = None
 
     def get_active_filters_sorted(self) -> List[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
+        # Check cache
+        if (self._active_filters_cache is not None and
+            self._active_filters_cache_time and
+            datetime.now() - self._active_filters_cache_time < self._cache_ttl):
+            return self._active_filters_cache
+
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
         )
-        return [
+        filters = [
             EmailFilter(
                 row["filter_id"],
                 row["name"],
@@ -434,6 +468,12 @@ class SmartFilterManager:
             )
             for row in rows
         ]
+
+        # Update cache
+        self._active_filters_cache = filters
+        self._active_filters_cache_time = datetime.now()
+
+        return filters
 
     def apply_filters_to_email_data(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
