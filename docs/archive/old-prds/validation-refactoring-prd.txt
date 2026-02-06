@@ -5,7 +5,7 @@ Implement comprehensive validation processes and refactoring activities to ensur
 
 ## User Stories
 
-### User Story 1 - Eliminate Global State & Singletons (Priority: P1) 🎯 MVP
+### User Story 1 - Eliminate Global State & Singletons (Priority: P1) 🎯 separate project
 Remove global variables and singleton patterns from the DatabaseManager, replacing them with proper dependency injection mechanisms.
 
 **Acceptance Criteria:**

@@ -1,0 +1,247 @@
+# Task 011.7: Integrate Security Scans (SAST and Dependency)
+
+**Status:** pending
+**Priority:** high
+**Effort:** 3-4 hours
+**Complexity:** 5/10
+**Dependencies:** 011.1
+**Created:** 2026-01-06
+**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+
+## Sub-subtasks Breakdown
+
+### 1.1: Execute Task
+- Complete 011.7: Integrate Security Scans (SAST and Dependency)
+- Verify completion
+- Update status
+
+
+
+---
+
+## Purpose
+
+Add security scanning to CI pipeline.
+
+---
+
+## Details
+
+Integrate bandit (SAST) and safety (dependency scan).
+
+### Security Scanning
+
+```yaml
+# In .github/workflows/merge-validation.yml
+security-scan:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run bandit
+      run: |
+        pip install bandit
+        bandit -r src/ -f json -o bandit_report.json
+    
+    - name: Run safety
+      run: |
+        pip install safety
+        safety check -r requirements.txt -o safety_report.json
+    
+    - name: Check results
+      run: |
+        if [ -n "$(cat bandit_report.json | jq '.results | length')" ]; then
+          echo "Security issues found in bandit report"
+          exit 1
+        fi
+```
+
+### Configuration
+
+- `.bandit` - Bandit configuration
+- Safety checks: Critical/High only
+
+---
+
+## Success Criteria
+
+- [ ] SAST integrated - Verification: [Method to verify completion]
+- [ ] Dependency scanning integrated - Verification: [Method to verify completion]
+- [ ] Critical issues block merge - Verification: [Method to verify completion]
+- [ ] Reports generated - Verification: [Method to verify completion]
+
+
+---
+
+## Success Criteria
+
+- [ ] SAST integrated - Verification: [Method to verify completion]
+- [ ] Dependency scanning integrated - Verification: [Method to verify completion]
+- [ ] Critical issues block merge - Verification: [Method to verify completion]
+- [ ] Reports generated - Verification: [Method to verify completion]
+
+
+---
+
+## Progress Log
+
+### 2026-01-06
+- Subtask file created
+- Ready for implementation
+
+---
+
+## Next Steps
+
+After completion, proceed to **Task 011.8**: Consolidate Validation Results
+
+## Specification Details
+
+### Task Interface
+- **ID**: TBD
+- **Title**: TBD
+- **Status**: TBD
+- **Priority**: TBD
+- **Effort**: TBD
+- **Complexity**: TBD
+
+### Requirements
+Requirements to be specified
+
+## Implementation Guide
+
+
+
+<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/task_data/migration_backup_20260129/current_tasks/task-011-7.md -->
+
+## Prerequisites & Dependencies
+
+### Required Before Starting
+- [ ] No external prerequisites
+
+### Blocks (What This Task Unblocks)
+- [ ] No specific blocks defined
+
+### External Dependencies
+- [ ] No external dependencies
+
+## Sub-subtasks Breakdown
+
+### 1.1: Execute Task
+- Complete 011.7: Integrate Security Scans (SAST and Dependency)
+- Verify completion
+- Update status
+
+
+
+---
+
+## Purpose
+
+Add security scanning to CI pipeline.
+
+---
+
+## Details
+
+Integrate bandit (SAST) and safety (dependency scan).
+
+### Security Scanning
+
+```yaml
+# In .github/workflows/merge-validation.yml
+security-scan:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run bandit
+      run: |
+        pip install bandit
+        bandit -r src/ -f json -o bandit_report.json
+    
+    - name: Run safety
+      run: |
+        pip install safety
+        safety check -r requirements.txt -o safety_report.json
+    
+    - name: Check results
+      run: |
+        if [ -n "$(cat bandit_report.json | jq '.results | length')" ]; then
+          echo "Security issues found in bandit report"
+          exit 1
+        fi
+```
+
+### Configuration
+
+- `.bandit` - Bandit configuration
+- Safety checks: Critical/High only
+
+---
+
+## Success Criteria
+
+## Overview/Purpose
+
+[Overview to be defined]
+
+## Success Criteria
+
+- [ ] SAST integrated - Verification: [Method to verify completion]
+- [ ] Dependency scanning integrated - Verification: [Method to verify completion]
+- [ ] Critical issues block merge - Verification: [Method to verify completion]
+- [ ] Reports generated - Verification: [Method to verify completion]
+
+
+---
+
+## Progress Log
+
+### 2026-01-06
+- Subtask file created
+- Ready for implementation
+
+---
+
+## Configuration Parameters
+
+- **Owner**: TBD
+- **Initiative**: TBD
+- **Scope**: TBD
+- **Focus**: TBD
+
+## Performance Targets
+
+- **Effort Range**: TBD
+- **Complexity Level**: TBD
+
+## Testing Strategy
+
+Test strategy to be defined
+
+## Common Gotchas & Solutions
+
+- [ ] No common gotchas identified
+
+## Integration Checkpoint
+
+### Criteria for Moving Forward
+- [ ] All success criteria met
+- [ ] Code reviewed and approved
+- [ ] Tests passing
+- [ ] Documentation updated
+- [ ] No critical or high severity issues
+
+## Done Definition
+
+### Completion Criteria
+- [ ] All success criteria met
+- [ ] Code reviewed and approved
+- [ ] Tests passing
+- [ ] Documentation updated
+
+## Next Steps
+
+After completion, proceed to **Task 011.8**: Consolidate Validation Results
+

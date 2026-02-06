@@ -24,7 +24,7 @@
 
 # Development Roadmap  
 [Break down the development process into phases:
-- MVP requirements
+- separate project requirements
 - Future enhancements
 - Do not think about timelines whatsoever -- all that matters is scope and detailing exactly what needs to be build in each phase so it can later be cut up into tasks]
 
@@ -37,7 +37,7 @@
 # Risks and Mitigations  
 [Identify potential risks and how they'll be addressed:
 - Technical challenges
-- Figuring out the MVP that we can build upon
+- Figuring out the separate project that we can build upon
 - Resource constraints]
 
 # Appendix  

@@ -1,76 +1,28 @@
-# gemini-flow-project
+# EmailIntelligence Task Workspace
 
-AI-powered project using Gemini-Flow
+Task management workspace for EmailIntelligence planning and migration work.
 
-## Getting Started
+## Task Workspace Overview
 
-This project is powered by Gemini-Flow, an AI orchestration platform with intelligent agent swarms.
+### Canonical Task Source
 
-### Prerequisites
+- `tasks/` is the canonical source of task specifications.
+- `tasks.json` is intentionally empty and used only for round-trip fidelity testing.
+- Task files follow the 14-section standard in `TASK_STRUCTURE_STANDARD.md`.
 
-- Node.js 18+
-- npm or yarn
-- Google Cloud Project (for AI features)
+### Backup and Archive Locations
 
-### Installation
+- `backups/task_markdown_backups/` stores centralized task markdown backups.
+- `backups/task_json/` stores JSON backup artifacts.
+- `task_data/` and `archive/` contain historical sources and should not be treated as canonical.
 
-```bash
-npm install
-```
+### Current Status
 
-### Configuration
+- `tasks/` has been cleaned of backup files.
+- Remaining work includes restoring missing tasks and normalizing all tasks to the 14-section format.
+- Separate project materials live under `tasks/mvp/` and must not be merged into `tasks/`.
 
-1. Set up Google Cloud credentials:
-```bash
-export GOOGLE_CLOUD_PROJECT_ID="your-project-id"
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
-```
+## References
 
-2. Initialize swarm:
-```bash
-npm run swarm:init
-```
-
-3. Spawn agents:
-```bash
-npm run agents:spawn
-```
-
-### Usage
-
-#### Development Mode
-```bash
-npm run dev
-```
-
-#### Build Project
-```bash
-npm run build
-```
-
-#### Run Tests
-```bash
-npm run test
-```
-
-## Gemini-Flow Commands
-
-- `gemini-flow swarm init` - Initialize agent swarm
-- `gemini-flow agent spawn` - Spawn AI agents
-- `gemini-flow sparc run <mode>` - Run SPARC methodology
-- `gemini-flow hive-mind sync` - Sync collective intelligence
-
-## Project Structure
-
-```
-gemini-flow-project/
-├── .gemini-flow/          # Gemini-Flow configuration
-├── src/                   # Source code
-├── tests/                 # Test files
-├── docs/                  # Documentation
-└── scripts/               # Build scripts
-```
-
-## License
-
-MIT
+- `ORACLE_RECOMMENDATION_TODO.md` for the migration TODO list.
+- `TASK_STRUCTURE_STANDARD.md` for the required task format.

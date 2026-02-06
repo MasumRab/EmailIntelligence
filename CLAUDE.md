@@ -9,7 +9,7 @@
 |----------------------------------|-----------|
 | Project identity confusion | [PROJECT_IDENTITY.md](PROJECT_IDENTITY.md) |
 | Tasks 002-004 purpose | Branch clustering/validation/framework |
-| EmailIntelligence MVP | Separate project in `tasks/mvp/` only |
+| EmailIntelligence (separate project) | Separate project in `tasks/mvp/` only |
 | ORACLE_RECOMMENDATION_TODO.md | Contains REJECTED pivot proposals |
 
 ---

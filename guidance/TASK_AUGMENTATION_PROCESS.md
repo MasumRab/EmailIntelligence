@@ -11,7 +11,7 @@ Before augmenting any task, verify:
 
 - [ ] Read [PROJECT_IDENTITY.md](../PROJECT_IDENTITY.md) - understand project scope
 - [ ] Target task exists in `tasks/` with underscore naming (`task_XXX.md`)
-- [ ] Archive source contains alignment-related content (not MVP/email content)
+- [ ] Archive source contains alignment-related content (not separate project/email content)
 - [ ] Backup exists or will be created before modification
 
 ---
@@ -87,7 +87,7 @@ Add import markers before any appended content:
 
 ### Rule 5: Scope Filtering
 - **INCLUDE**: Git, branch, merge, clustering, validation content
-- **EXCLUDE**: Email, MVP, EmailIntelligence content
+- **EXCLUDE**: Email, separate project, EmailIntelligence content
 - **CHECK**: [PROJECT_IDENTITY.md](../PROJECT_IDENTITY.md) if uncertain
 
 ---
@@ -150,7 +150,7 @@ After augmentation:
 1. **Verify 14-section structure** (see TASK_STRUCTURE_STANDARD.md)
 2. **Check for broken references**
 3. **Validate dependencies** point to correct task IDs
-4. **Confirm no MVP content** was accidentally imported
+4. **Confirm no separate project content** was accidentally imported
 
 ---
 
@@ -307,7 +307,7 @@ if __name__ == "__main__":
 - [ ] No existing content was replaced or deleted
 - [ ] Task follows 14-section structure
 - [ ] Dependencies reference correct task IDs (not old 75.* or 005.* refs)
-- [ ] No MVP/EmailIntelligence content was imported
+- [ ] No separate project/EmailIntelligence content was imported
 - [ ] Changes committed with descriptive message
 
 ---

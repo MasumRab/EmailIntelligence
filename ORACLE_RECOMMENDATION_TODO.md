@@ -27,7 +27,7 @@
 
 **Current State**: Canonical `tasks/` cleaned; backups centralized; alignment tasks restored and augmented with archives
 **Target State**: Alignment-focused canonical task set under `tasks/` with full 14-section compliance
-**Action**: Preserve alignment scope in `tasks/`; keep any MVP pivots in `tasks/mvp/` only
+**Action**: Preserve alignment scope in `tasks/`; keep any separate project pivots in `tasks/mvp/` only
 
 **🔴 CRITICAL ARCHITECTURAL CHANGE**:
 - **Task .md files** are the **canonical source** of task information
@@ -158,7 +158,7 @@ Do not recreate historical pivot content in this file. Alignment scope only.
 - [ ] Update documentation to reflect .md as canonical source
 
 ### Phase 4: Preserve Alignment Scope (COMPLETED)
-- [x] Confirm `tasks/` remains alignment-only and MVP work stays in `tasks/mvp/`
+- [x] Confirm `tasks/` remains alignment-only and separate project work stays in `tasks/mvp/`
 - [x] Created PROJECT_IDENTITY.md as canonical project identity reference
 - [x] Added agent warning block to ORACLE_RECOMMENDATION_TODO.md
 - [x] Added project identity header to CLAUDE.md
@@ -203,7 +203,7 @@ Do not recreate historical pivot content in this file. Alignment scope only.
 
 ### For Scope Preservation
 - [x] Alignment tasks remain intact in `tasks/`
-- [x] MVP tasks remain isolated in `tasks/mvp/`
+- [x] separate project tasks remain isolated in `tasks/mvp/`
 - [x] PROJECT_IDENTITY.md created as authoritative reference
 - [x] Agent warnings added to prevent conflation
 
@@ -211,7 +211,7 @@ Do not recreate historical pivot content in this file. Alignment scope only.
 - [ ] All tasks have complete technical specs (no generic descriptions)
 - [ ] All epic tasks have subtasks (no task >2 days)
 - [ ] All dependencies are within epic OR justified with cross-epic link
-- [ ] README clearly states MVP scope + Phase 2 boundary
+- [ ] README clearly states separate project scope + Phase 2 boundary
 - [ ] Task .md files are the authoritative source
 
 ---
@@ -246,16 +246,16 @@ Do not recreate historical pivot content in this file. Alignment scope only.
 - **Action**: Empty tasks.json to `[]` for round-trip testing only
 - **Documentation**: Update all references to .md as authoritative
 
-### Risk: MVP Content Leaks Into Alignment Tasks
+### Risk: separate project Content Leaks Into Alignment Tasks
 **Mitigation**:
-- Keep MVP documentation in `tasks/mvp/` only
-- Do not rewrite alignment tasks as MVP epics
+- Keep separate project documentation in `tasks/mvp/` only
+- Do not rewrite alignment tasks as separate project epics
 
 ### Risk: Core 002-004 Tasks Use Generic Descriptions
 **Mitigation**:
 - **Verified**: Current Task 002 had generic descriptions, missing technical specs
 - **Action**: Restore exact technical specs from archived Task 75 files
-- **Don't**: Introduce MVP scope into alignment tasks
+- **Don't**: Introduce separate project scope into alignment tasks
 - **Do**: Preserve alignment-specific formulas, weights, schemas
 
 ---
@@ -272,7 +272,7 @@ Do not recreate historical pivot content in this file. Alignment scope only.
 
 ## Next Actions
 
-1. **Read this document in full → sign off on MVP scope** (1 hour)
+1. **Read this document in full → sign off on separate project scope** (1 hour)
 2. **Restore Task 75 technical specs to Task 002** (CRITICAL - 2-3 hours):
    - Copy metric formulas from HANDOFF_75.1-75.3 to task-002.1-002.3
    - Copy schemas from all HANDOFF_75 files to task-002 subtasks

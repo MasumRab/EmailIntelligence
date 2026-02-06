@@ -5,7 +5,7 @@ Resolve all comments and issues raised in PR #176, handle merge conflicts with t
 
 ## User Stories
 
-### User Story 1 - PR Comment Resolution (Priority: P1) 🎯 MVP
+### User Story 1 - PR Comment Resolution (Priority: P1) 🎯 separate project
 Resolve all comments and issues raised in PR #176 to get the pull request approved and merged. This includes addressing code review feedback, fixing identified bugs, and resolving any merge conflicts that prevent the PR from being integrated.
 
 **Acceptance Criteria:**
@@ -106,6 +106,6 @@ Create documentation that details how this PR integrates with other outstanding 
 - Integration issues: Documentation and testing
 
 ## Timeline
-- MVP (User Story 1): Complete PR comment resolution and merge conflict handling
+- separate project (User Story 1): Complete PR comment resolution and merge conflict handling
 - Full implementation: All user stories completed and validated
 - Documentation: Integration points documented

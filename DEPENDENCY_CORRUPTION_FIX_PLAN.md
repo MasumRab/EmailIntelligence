@@ -116,7 +116,7 @@ Create `DEPENDENCY_AUDIT_RESULTS.json`:
 
 Before fixing, establish rules:
 
-#### Rule 1: Keep only within-epic dependencies (for MVP)
+#### Rule 1: Keep only within-epic dependencies (for separate project)
 - Task 002 (Epic A) can depend on other 002.* subtasks or 001
 - Task 003 (Epic B) can depend on 002.* completing + 003.* subtasks
 - Task 004 (Epic C) can depend on 003.* completing + 004.* subtasks
@@ -144,7 +144,7 @@ Before fixing, establish rules:
 
 ## Phase 3: Manual Review & Correction (2-3 hours)
 
-### Step 3.1: Review Tasks 002-004 (Core MVP)
+### Step 3.1: Review Tasks 002-004 (Core separate project)
 
 **Task 002 (Email Ingest + Normalize)**
 Current dependencies:
@@ -474,7 +474,7 @@ Add completion checkmark to Phase 1:
 Once this plan is executed and validated:
 1. Move to Phase 2 of ORACLE_RECOMMENDATION_TODO: **Eliminate Tasks 005-028**
 2. Execute Phase 3: **Reframe Core Tasks as Epics**
-3. Then begin actual MVP development
+3. Then begin actual separate project development
 
 ---
 
