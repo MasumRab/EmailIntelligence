@@ -8,11 +8,16 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
+try:
+    from importlib.metadata import distributions, version as get_version
+except ImportError:
+    # Fallback for Python < 3.8
+    from importlib_metadata import distributions, version as get_version
+
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
 
@@ -31,7 +36,12 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    installed = {}
+    for dist in distributions():
+        name = dist.metadata['Name'].lower()
+        version = dist.version
+        installed[name] = version
+    return installed
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
