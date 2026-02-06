@@ -12,7 +12,7 @@ import os
 import re
 import sqlite3
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
@@ -57,6 +57,30 @@ class EmailFilter:
     usage_count: int
     false_positive_rate: float
     performance_metrics: Dict[str, float]
+
+    _compiled_patterns: Dict[str, Any] = field(init=False, repr=False, default_factory=dict)
+
+    def __post_init__(self):
+        """Pre-compile patterns for better performance."""
+        self._compiled_patterns = {}
+
+        # Optimize subject keyword matching
+        if "subject_keywords" in self.criteria:
+            self._compiled_patterns["subject_keywords"] = {
+                k.lower() for k in self.criteria["subject_keywords"]
+            }
+
+        # Optimize regex pattern matching
+        if "from_patterns" in self.criteria:
+            self._compiled_patterns["from_patterns"] = []
+            for p in self.criteria["from_patterns"]:
+                try:
+                    self._compiled_patterns["from_patterns"].append(
+                        re.compile(p, re.IGNORECASE)
+                    )
+                except re.error:
+                    # Skip invalid regex patterns to prevent initialization failure
+                    pass
 
 
 @dataclass
@@ -388,16 +412,24 @@ class SmartFilterManager:
 
     def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
-        criteria = filter_obj.criteria
-        if "from_patterns" in criteria and not any(
-            re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
-            for p in criteria["from_patterns"]
-        ):
-            return False
-        if "subject_keywords" in criteria and not any(
-            k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
-        ):
-            return False
+        # Check from patterns (optimized)
+        if "from_patterns" in filter_obj._compiled_patterns:
+            sender = email.get("senderEmail", "")
+            if not any(
+                p.search(sender)
+                for p in filter_obj._compiled_patterns["from_patterns"]
+            ):
+                return False
+
+        # Check subject keywords (optimized)
+        if "subject_keywords" in filter_obj._compiled_patterns:
+            subject_lower = email.get("subject", "").lower()
+            if not any(
+                k in subject_lower
+                for k in filter_obj._compiled_patterns["subject_keywords"]
+            ):
+                return False
+
         return True
 
     def _save_filter(self, filter_obj: EmailFilter):
