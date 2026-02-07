@@ -530,15 +530,10 @@ class DatabaseManager(DataSource):
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
-    async def _sort_and_paginate_emails(
-        self,
-        emails: List[Dict[str, Any]],
-        limit: int = 50,
-        offset: int = 0,
-    ) -> List[Dict[str, Any]]:
-        """Sorts and paginates a list of emails."""
+    def _sort_emails_by_date(self, emails: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Sorts emails by date (time or created_at) in descending order."""
         try:
-            sorted_emails = sorted(
+            return sorted(
                 emails,
                 key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
                 reverse=True,
@@ -547,9 +542,18 @@ class DatabaseManager(DataSource):
             logger.warning(
                 f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
             )
-            sorted_emails = sorted(
+            return sorted(
                 emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
             )
+
+    async def _sort_and_paginate_emails(
+        self,
+        emails: List[Dict[str, Any]],
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """Sorts and paginates a list of emails."""
+        sorted_emails = self._sort_emails_by_date(emails)
         paginated_emails = sorted_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
@@ -691,17 +695,7 @@ class DatabaseManager(DataSource):
         )
 
         # Sort candidates by date descending first to find most recent matches early
-        # This matches the sort logic in _sort_and_paginate_emails
-        try:
-            candidates = sorted(
-                self.emails_data,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            candidates = sorted(
-                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
+        candidates = self._sort_emails_by_date(self.emails_data)
 
         for email_light in candidates:
             # Stop if we have enough matches
