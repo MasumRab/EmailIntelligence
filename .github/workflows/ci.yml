@@ -24,7 +24,7 @@ jobs:
     
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.11", "3.12"]
     
     steps:
       - name: Checkout code
@@ -38,16 +38,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
       
-      - name: Verify system dependencies
-        run: |
-          python scripts/verify-dependencies.py --check-gpu --system-packages || true
-      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
+          pip install -e .
           pip install flake8 pylint black isort pytest-cov
       
+      - name: Verify system dependencies
+        run: |
+          python scripts/verify-dependencies.py --check-gpu --system-packages
+
       - name: Code Quality Checks
         run: |
           echo "Running code quality checks..."
