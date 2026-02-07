@@ -673,7 +673,8 @@ class DatabaseManager(DataSource):
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk.
+        Optimized to search most recent emails first and stop early when limit is reached."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
@@ -686,9 +687,27 @@ class DatabaseManager(DataSource):
         search_term_lower = search_term.lower()
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'. Using early exit optimization."
         )
-        for email_light in self.emails_data:
+
+        # Sort candidates by date descending first to find most recent matches early
+        # This matches the sort logic in _sort_and_paginate_emails
+        try:
+            candidates = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            candidates = sorted(
+                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
+        for email_light in candidates:
+            # Stop if we have enough matches
+            if len(filtered_emails) >= limit:
+                break
+
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
@@ -697,6 +716,8 @@ class DatabaseManager(DataSource):
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
+
+            # If not in light data, check heavy content on disk
             email_id = email_light.get(FIELD_ID)
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
@@ -709,7 +730,8 @@ class DatabaseManager(DataSource):
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+        # Add category details (results are already sorted by date due to candidates order)
+        result = [self._add_category_details(email) for email in filtered_emails]
 
         # Cache result
         self.caching_manager.put_query_result(cache_key, result)
