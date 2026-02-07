@@ -12,9 +12,9 @@ import os
 import re
 import sqlite3
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Pattern
 
 from src.core.security import PathValidator
 
@@ -57,6 +57,14 @@ class EmailFilter:
     usage_count: int
     false_positive_rate: float
     performance_metrics: Dict[str, float]
+    _compiled_patterns: Dict[str, List[Pattern]] = field(default_factory=dict, init=False, repr=False)
+
+    def __post_init__(self):
+        """Pre-compile regex patterns for performance."""
+        if "from_patterns" in self.criteria:
+            self._compiled_patterns["from_patterns"] = [
+                re.compile(p, re.IGNORECASE) for p in self.criteria["from_patterns"]
+            ]
 
 
 @dataclass
@@ -379,11 +387,21 @@ class SmartFilterManager:
     def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
-        if "from_patterns" in criteria and not any(
-            re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
-            for p in criteria["from_patterns"]
-        ):
-            return False
+
+        if "from_patterns" in criteria:
+            sender_email = email.get("senderEmail", "")
+
+            # Use pre-compiled patterns if available (from __post_init__)
+            if "from_patterns" in getattr(filter_obj, "_compiled_patterns", {}):
+                if not any(p.search(sender_email) for p in filter_obj._compiled_patterns["from_patterns"]):
+                    return False
+            # Fallback for filters created without __post_init__ or if patterns missing
+            elif not any(
+                re.search(p, sender_email, re.IGNORECASE)
+                for p in criteria["from_patterns"]
+            ):
+                return False
+
         if "subject_keywords" in criteria and not any(
             k.lower() in email.get("subject", "").lower() for k in criteria["subject_keywords"]
         ):
