@@ -8,13 +8,24 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
+
+try:
+    from importlib.metadata import distributions, version as get_version, PackageNotFoundError
+    HAS_IMPORTLIB = True
+except ImportError:
+    HAS_IMPORTLIB = False
+    try:
+        import pkg_resources
+    except ImportError:
+        print("Error: neither importlib.metadata (Python 3.8+) nor setuptools/pkg_resources installed.")
+        print("Please install the package itself with 'pip install -e .'")
+        sys.exit(1)
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,7 +42,16 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    installed = {}
+    if HAS_IMPORTLIB:
+        for dist in distributions():
+            name = dist.metadata['Name']
+            version = dist.version
+            installed[name.lower()] = version
+    else:
+        for pkg in pkg_resources.working_set:
+            installed[pkg.key] = pkg.version
+    return installed
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
