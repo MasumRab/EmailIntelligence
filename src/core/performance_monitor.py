@@ -296,7 +296,7 @@ class OptimizedPerformanceMonitor:
             # Clear aggregated metrics after flushing
             self._aggregated_metrics.clear()
 
-        except Exception as e:
+        except (IOError, OSError) as e:
             logger.error(f"Error flushing metrics to disk: {e}")
 
     def shutdown(self):
@@ -309,7 +309,7 @@ class OptimizedPerformanceMonitor:
         try:
             self._aggregate_metrics()
             self._flush_to_disk()
-        except Exception as e:
+        except (IOError, OSError) as e:
             logger.error(f"Error in final metrics flush: {e}")
 
         if self._processing_thread.is_alive():
@@ -329,7 +329,7 @@ class OptimizedPerformanceMonitor:
                 "disk_usage": disk.percent,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as e:
+        except (psutil.Error, ValueError) as e:
             logger.warning(f"Failed to get system metrics: {e}")
             return {}
 
@@ -385,7 +385,7 @@ def _create_decorator(func, op_name):
 
             try:
                 performance_monitor.log_performance(log_entry)
-            except Exception as e:
+            except (IOError, OSError) as e:
                 logger.warning(f"Failed to log performance: {e}")
 
             return result
@@ -408,7 +408,7 @@ def _create_decorator(func, op_name):
 
             try:
                 performance_monitor.log_performance(log_entry)
-            except Exception as e:
+            except (IOError, OSError) as e:
                 logger.warning(f"Failed to log performance: {e}")
 
             return result
