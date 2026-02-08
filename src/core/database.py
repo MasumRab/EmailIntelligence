@@ -149,6 +149,9 @@ class DatabaseManager(DataSource):
         # Internal Cache for sorted emails
         self._sorted_emails_cache: Optional[List[Dict[str, Any]]] = None
 
+        # Content availability index (optimization to avoid disk I/O in search)
+        self._content_available_index: set[int] = set()
+
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
@@ -254,6 +257,23 @@ class DatabaseManager(DataSource):
             ):
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
+
+        # Build content available index
+        self._content_available_index = set()
+        if os.path.exists(self.email_content_dir):
+            try:
+                with os.scandir(self.email_content_dir) as entries:
+                    for entry in entries:
+                        if entry.is_file() and entry.name.endswith(".json.gz"):
+                            try:
+                                # expected format: {id}.json.gz
+                                email_id = int(entry.name.split('.')[0])
+                                self._content_available_index.add(email_id)
+                            except ValueError:
+                                pass
+            except OSError as e:
+                 logger.warning(f"Could not scan content directory: {self.email_content_dir} - {e}")
+
         logger.info("In-memory indexes built successfully.")
 
     @log_performance(operation="load_data")
@@ -780,6 +800,10 @@ class DatabaseManager(DataSource):
                     filtered_emails.append(email_light)
                 continue
 
+            # Optimization: check if content exists on disk using index
+            if email_id not in self._content_available_index:
+                continue
+
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
                 try:
@@ -829,6 +853,9 @@ class DatabaseManager(DataSource):
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
+
+            # Update index
+            self._content_available_index.add(email_id)
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
