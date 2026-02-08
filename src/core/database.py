@@ -672,6 +672,31 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
+    def _is_email_match(self, email_light: Dict[str, Any], search_term_lower: str) -> bool:
+        """Checks if an email matches the search term in metadata or content."""
+        # Check metadata (subject, sender)
+        if (
+            search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+            or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+            or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+        ):
+            return True
+
+        # Check heavy content on disk
+        email_id = email_light.get(FIELD_ID)
+        content_path = self._get_email_content_path(email_id)
+        if os.path.exists(content_path):
+            try:
+                with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                    heavy_data = json.load(f)
+                    content = heavy_data.get(FIELD_CONTENT, "")
+                    if isinstance(content, str) and search_term_lower in content.lower():
+                        return True
+            except (IOError, json.JSONDecodeError) as e:
+                logger.error(f"Could not search content for email {email_id}: {e}")
+
+        return False
+
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk.
 
@@ -705,27 +730,8 @@ class DatabaseManager(DataSource):
             if len(filtered_emails) >= limit:
                 break
 
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-            )
-            if found_in_light:
+            if self._is_email_match(email_light, search_term_lower):
                 filtered_emails.append(email_light)
-                continue
-
-            # Check heavy content on disk
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
 
         # Add category details to the results
         result = [self._add_category_details(email) for email in filtered_emails]
