@@ -302,6 +302,22 @@ class OptimizedPerformanceMonitor:
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """
+        Log a performance entry to the log file (compatibility wrapper).
+        Maps the old log format to the new record_metric system.
+        """
+        operation = log_entry.get("operation", "unknown")
+        # Ensure duration is in milliseconds
+        duration = log_entry.get("duration_seconds", 0) * 1000
+
+        self.record_metric(
+            name=f"operation_{operation}",
+            value=duration,
+            unit="ms",
+            tags={"operation": operation}
+        )
+
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
     ):
