@@ -727,8 +727,66 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
+    async def _check_content_task(self, content_path: str, search_term_lower: str) -> bool:
+        """Helper to asynchronously check content of a file."""
+        try:
+            heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
+            content = heavy_data.get(FIELD_CONTENT, "")
+            return isinstance(content, str) and search_term_lower in content.lower()
+        except (IOError, json.JSONDecodeError):
+            # Log error if needed, but return False for search purposes
+            return False
+
+    async def _process_search_batch(
+        self, batch: List[Dict[str, Any]], search_term_lower: str
+    ) -> List[Dict[str, Any]]:
+        """Process a batch of emails for search."""
+        tasks = []
+        batch_matches = [False] * len(batch)
+
+        for i, email_light in enumerate(batch):
+            email_id = email_light[FIELD_ID]
+
+            # 1. In-memory search
+            if email_id in self._search_index:
+                if search_term_lower in self._search_index[email_id]:
+                    batch_matches[i] = True
+                    continue
+            else:
+                if (
+                    search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+                    or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+                    or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+                ):
+                    batch_matches[i] = True
+                    continue
+
+            # 2. Content Cache Check
+            cached_content = self.caching_manager.get_email_content(email_id)
+            if cached_content:
+                content = cached_content.get(FIELD_CONTENT, "")
+                if isinstance(content, str) and search_term_lower in content.lower():
+                    batch_matches[i] = True
+                continue
+
+            # 3. Disk Load needed
+            content_path = self._get_email_content_path(email_id)
+            if os.path.exists(content_path):
+                task = asyncio.create_task(self._check_content_task(content_path, search_term_lower))
+                tasks.append((i, task))
+
+        if tasks:
+            results = await asyncio.gather(*[t[1] for t in tasks])
+            for (idx, _), is_match in zip(tasks, results):
+                batch_matches[idx] = is_match
+
+        return [email for i, email in enumerate(batch) if batch_matches[i]]
+
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """
+        Search emails with limit parameter.
+        Searches subject/sender in-memory, and content on-disk in parallel batches.
+        """
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
@@ -748,48 +806,27 @@ class DatabaseManager(DataSource):
         # when we already have enough recent matches.
         source_emails = self._get_sorted_emails()
 
-        logger.info(
-            f"Starting email search for term: '{search_term_lower}'"
-        )
+        logger.info(f"Starting email search for term: '{search_term_lower}'")
 
-        for email_light in source_emails:
-            if len(filtered_emails) >= limit:
+        BATCH_SIZE = 30
+        source_iter = iter(source_emails)
+
+        while len(filtered_emails) < limit:
+            batch = []
+            try:
+                for _ in range(BATCH_SIZE):
+                    batch.append(next(source_iter))
+            except StopIteration:
+                pass
+
+            if not batch:
                 break
 
-            email_id = email_light[FIELD_ID]
+            matched_in_batch = await self._process_search_batch(batch, search_term_lower)
+            filtered_emails.extend(matched_in_batch)
 
-            # Use search index if available for O(1) text access instead of repeated .lower()
-            if email_id in self._search_index:
-                found_in_light = search_term_lower in self._search_index[email_id]
-            else:
-                found_in_light = (
-                    search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                    or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                    or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-                )
-
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
-
-            # Check content cache first to avoid disk I/O
-            cached_content = self.caching_manager.get_email_content(email_id)
-            if cached_content:
-                content = cached_content.get(FIELD_CONTENT, "")
-                if isinstance(content, str) and search_term_lower in content.lower():
-                    filtered_emails.append(email_light)
-                continue
-
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                    content = heavy_data.get(FIELD_CONTENT, "")
-                    if isinstance(content, str) and search_term_lower in content.lower():
-                        filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+            if len(filtered_emails) > limit:
+                filtered_emails = filtered_emails[:limit]
 
         # Results are already sorted because we iterated source_emails (which is sorted)
         results = [self._add_category_details(email) for email in filtered_emails]
