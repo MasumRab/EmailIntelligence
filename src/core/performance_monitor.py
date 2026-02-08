@@ -41,6 +41,11 @@ class PerformanceMetric:
     tags: Dict[str, str]
     sample_rate: float = 1.0  # 1.0 = 100% sampling, 0.1 = 10% sampling
 
+    @property
+    def source(self) -> str:
+        """Backward compatibility for source attribute."""
+        return self.tags.get("source", self.name)
+
 
 @dataclass
 class AggregatedMetric:
@@ -217,6 +222,17 @@ class OptimizedPerformanceMonitor:
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]
 
+    def get_metric_history(
+        self, start_time: float, name: Optional[str] = None
+    ) -> List[PerformanceMetric]:
+        """Get all metrics since start_time, optionally filtered by name."""
+        with self._buffer_lock:
+            return [
+                m
+                for m in self._metrics_buffer
+                if m.timestamp >= start_time and (name is None or m.name == name)
+            ]
+
     def _process_metrics_background(self):
         """Background thread to process and aggregate metrics."""
         while not self._stop_event.is_set():
@@ -301,14 +317,16 @@ class OptimizedPerformanceMonitor:
             self._processing_thread.join(timeout=1.0)
 
     def get_system_metrics(self) -> Dict[str, Any]:
-        """Get current system metrics (CPU, Memory)."""
+        """Get current system metrics (CPU, Memory, Disk)."""
         try:
             cpu_percent = psutil.cpu_percent()
             memory = psutil.virtual_memory()
+            disk = psutil.disk_usage("/")
             return {
                 "cpu_percent": cpu_percent,
                 "memory_percent": memory.percent,
                 "memory_available": memory.available,
+                "disk_usage": disk.percent,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
