@@ -244,8 +244,11 @@ class OptimizedPerformanceMonitor:
                 self._aggregate_metrics()
                 self._flush_to_disk()
 
-            except Exception as e:
-                logger.error(f"Error in metrics processing: {e}")
+            except (IOError, OSError, ValueError) as e:
+                logger.error(f"Expected error in metrics processing: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                # Catch-all to ensure the thread doesn't die silently
+                logger.exception(f"Unexpected error in metrics processing thread: {e}")
 
     def _aggregate_metrics(self):
         """Aggregate metrics in sliding windows."""
