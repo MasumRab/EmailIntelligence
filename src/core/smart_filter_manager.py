@@ -13,7 +13,7 @@ import os
 import re
 import sqlite3
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Union
 from pathlib import Path
@@ -68,6 +68,24 @@ class EmailFilter:
     false_positive_rate: float
     performance_metrics: Dict[str, float]
     is_active: bool = True
+
+    # Pre-computed fields for performance (not stored in DB)
+    _precomputed: Dict[str, Any] = field(default_factory=dict, init=False)
+
+    def __post_init__(self):
+        """Pre-compute lowercase values for faster matching."""
+        # Initialize dictionary to avoid AttributeError if somehow bypassed
+        self._precomputed = {}
+
+        # Pre-compute lowercase values for frequently accessed criteria
+        if "sender_domain" in self.criteria:
+            self._precomputed["sender_domain"] = self.criteria["sender_domain"].lower()
+
+        if "subject_keywords" in self.criteria:
+            self._precomputed["subject_keywords"] = [k.lower() for k in self.criteria["subject_keywords"]]
+
+        if "content_keywords" in self.criteria:
+            self._precomputed["content_keywords"] = [k.lower() for k in self.criteria["content_keywords"]]
 
 
 @dataclass
@@ -634,19 +652,32 @@ class SmartFilterManager:
 
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            if ctx.sender_domain != criteria["sender_domain"]:
+            # Use precomputed value if available
+            target_domain = filter_obj._precomputed.get("sender_domain", criteria["sender_domain"])
+            if ctx.sender_domain != target_domain:
                 return False
 
         # Check subject keywords
         if "subject_keywords" in criteria:
-            # Optimization: check if any keyword matches
-            if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
-                return False
+            # Optimization: use precomputed lowercase keywords
+            keywords = filter_obj._precomputed.get("subject_keywords")
+            if keywords:
+                if not any(keyword in ctx.subject_lower for keyword in keywords):
+                    return False
+            else:
+                # Fallback for filters without precomputed values
+                if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
+                    return False
 
         # Check content keywords
         if "content_keywords" in criteria:
-            if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
-                return False
+            keywords = filter_obj._precomputed.get("content_keywords")
+            if keywords:
+                if not any(keyword in ctx.content_lower for keyword in keywords):
+                    return False
+            else:
+                if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
+                    return False
 
         # Check from patterns
         if "from_patterns" in criteria:
