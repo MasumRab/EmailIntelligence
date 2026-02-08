@@ -7,13 +7,12 @@ and lifecycle management for extensible plugin functionality.
 
 import abc
 import asyncio
-import hashlib
 import importlib.util
 import inspect
 import json
 import logging
-import os
 import sys
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -57,7 +56,7 @@ class PluginMetadata:
     permissions: List[str] = field(default_factory=list)
     security_level: PluginSecurityLevel = PluginSecurityLevel.STANDARD
     tags: List[str] = field(default_factory=list)
-    created_at: float = field(default_factory=lambda: __import__("time").time())
+    created_at: float = field(default_factory=lambda: time.time())
     checksum: Optional[str] = None
 
 
@@ -68,7 +67,7 @@ class PluginInstance:
     metadata: PluginMetadata
     plugin_object: Any
     status: PluginStatus = PluginStatus.ENABLED
-    loaded_at: float = field(default_factory=lambda: __import__("time").time())
+    loaded_at: float = field(default_factory=lambda: time.time())
     config: Dict[str, Any] = field(default_factory=dict)
     hooks: Dict[str, List[Callable]] = field(default_factory=dict)
 
@@ -83,27 +82,22 @@ class PluginInterface(abc.ABC):
     @abc.abstractmethod
     def get_metadata(self) -> PluginMetadata:
         """Return plugin metadata."""
-        pass
 
     @abc.abstractmethod
     async def initialize(self, config: Dict[str, Any]) -> bool:
         """Initialize the plugin with configuration."""
-        pass
 
     @abc.abstractmethod
     async def shutdown(self) -> bool:
         """Shutdown the plugin and cleanup resources."""
-        pass
 
     @abc.abstractmethod
     def get_capabilities(self) -> List[str]:
         """Return list of plugin capabilities/features."""
-        pass
 
     @abc.abstractmethod
     def get_required_permissions(self) -> List[str]:
         """Return list of required permissions."""
-        pass
 
 
 class HookSystem:
@@ -140,7 +134,7 @@ class HookSystem:
     async def unregister_hook(self, hook_id: str) -> bool:
         """Unregister a hook by ID."""
         async with self._lock:
-            for hook_name, hooks in self._hooks.items():
+            for _, hooks in self._hooks.items():
                 for i, hook in enumerate(hooks):
                     if hook["id"] == hook_id:
                         hooks.pop(i)
@@ -162,7 +156,7 @@ class HookSystem:
                         result = hook["callback"](*args, **kwargs)
                     results.append(result)
                 except Exception as e:
-                    logger.error(f"Hook {hook['id']} failed: {e}")
+                    logger.error("Hook %s failed: %s", hook['id'], e)
 
             return results
 
@@ -226,14 +220,16 @@ class SecuritySandbox:
             "execfile",
         }
 
-        for name, obj in __builtins__.items():
-            if isinstance(__builtins__, dict):
-                if name not in dangerous_builtins:
-                    safe_builtins[name] = obj
-            else:
-                # __builtins__ is a module
-                if name not in dangerous_builtins:
-                    safe_builtins[name] = obj
+        # Check if __builtins__ is available and handle it
+        builtins_dict = {}
+        if hasattr(globals_dict.get("__builtins__", {}), "items"):
+            builtins_dict = globals_dict["__builtins__"]
+        elif hasattr(__builtins__, "items"):  # Python 3
+            builtins_dict = __builtins__ if isinstance(__builtins__, dict) else __builtins__.__dict__
+
+        for name, obj in builtins_dict.items():
+            if name not in dangerous_builtins:
+                safe_builtins[name] = obj
 
         globals_dict["__builtins__"] = safe_builtins
 
@@ -241,12 +237,12 @@ class SecuritySandbox:
         try:
             if security_level == PluginSecurityLevel.SANDBOXED:
                 # Very restrictive execution
-                exec(code, globals_dict)
+                exec(code, globals_dict) # pylint: disable=exec-used
             else:
                 # Standard execution with some restrictions
-                exec(code, globals_dict)
+                exec(code, globals_dict) # pylint: disable=exec-used
         except Exception as e:
-            logger.error(f"Sandbox execution failed: {e}")
+            logger.error("Sandbox execution failed: %s", e)
             raise
 
     def validate_file_access(self, file_path: Path, security_level: PluginSecurityLevel) -> bool:
@@ -294,14 +290,14 @@ class PluginRegistry:
 
                 if metadata_file.exists():
                     try:
-                        with open(metadata_file, "r") as f:
+                        with open(metadata_file, "r", encoding="utf-8") as f:
                             data = json.load(f)
                             metadata = PluginMetadata(**data)
                             await self.register_plugin(metadata)
                             discovered.append(plugin_id)
-                            logger.info(f"Discovered plugin: {plugin_id}")
+                            logger.info("Discovered plugin: %s", plugin_id)
                     except Exception as e:
-                        logger.warning(f"Failed to load plugin {plugin_id}: {e}")
+                        logger.warning("Failed to load plugin %s: %s", plugin_id, e)
 
         return discovered
 
@@ -310,10 +306,10 @@ class PluginRegistry:
         try:
             self._registry[metadata.plugin_id] = metadata
             await self._save_metadata(metadata)
-            logger.info(f"Registered plugin: {metadata.plugin_id}")
+            logger.info("Registered plugin: %s", metadata.plugin_id)
             return True
         except Exception as e:
-            logger.error(f"Failed to register plugin {metadata.plugin_id}: {e}")
+            logger.error("Failed to register plugin %s: %s", metadata.plugin_id, e)
             return False
 
     async def load_plugin(
@@ -321,7 +317,7 @@ class PluginRegistry:
     ) -> Optional[PluginInstance]:
         """Load and initialize a plugin."""
         if plugin_id not in self._registry:
-            logger.error(f"Plugin {plugin_id} not found in registry")
+            logger.error("Plugin %s not found in registry", plugin_id)
             return None
 
         if plugin_id in self._instances:
@@ -341,7 +337,7 @@ class PluginRegistry:
             plugin_class = getattr(plugin_module, f"{plugin_id.title()}Plugin", None)
             if not plugin_class:
                 # Try to find any class that implements PluginInterface
-                for name, obj in plugin_module.__dict__.items():
+                for _, obj in plugin_module.__dict__.items():
                     if (
                         inspect.isclass(obj)
                         and issubclass(obj, PluginInterface)
@@ -351,7 +347,7 @@ class PluginRegistry:
                         break
 
             if not plugin_class:
-                logger.error(f"No plugin class found in {plugin_id}")
+                logger.error("No plugin class found in %s", plugin_id)
                 return None
 
             plugin_object = plugin_class()
@@ -366,7 +362,7 @@ class PluginRegistry:
 
             success = await plugin_object.initialize(config)
             if not success:
-                logger.error(f"Plugin {plugin_id} initialization failed")
+                logger.error("Plugin %s initialization failed", plugin_id)
                 return None
 
             # Create instance
@@ -377,11 +373,11 @@ class PluginRegistry:
             # Register plugin hooks
             await self._register_plugin_hooks(instance)
 
-            logger.info(f"Loaded plugin: {plugin_id}")
+            logger.info("Loaded plugin: %s", plugin_id)
             return instance
 
         except Exception as e:
-            logger.error(f"Failed to load plugin {plugin_id}: {e}")
+            logger.error("Failed to load plugin %s: %s", plugin_id, e)
             return None
 
     async def unload_plugin(self, plugin_id: str) -> bool:
@@ -401,11 +397,11 @@ class PluginRegistry:
             # Remove instance
             del self._instances[plugin_id]
 
-            logger.info(f"Unloaded plugin: {plugin_id}")
+            logger.info("Unloaded plugin: %s", plugin_id)
             return True
 
         except Exception as e:
-            logger.error(f"Failed to unload plugin {plugin_id}: {e}")
+            logger.error("Failed to unload plugin %s: %s", plugin_id, e)
             return False
 
     async def enable_plugin(self, plugin_id: str) -> bool:
@@ -414,7 +410,7 @@ class PluginRegistry:
             return False
 
         self._instances[plugin_id].status = PluginStatus.ENABLED
-        logger.info(f"Enabled plugin: {plugin_id}")
+        logger.info("Enabled plugin: %s", plugin_id)
         return True
 
     async def disable_plugin(self, plugin_id: str) -> bool:
@@ -423,7 +419,7 @@ class PluginRegistry:
             return False
 
         self._instances[plugin_id].status = PluginStatus.DISABLED
-        logger.info(f"Disabled plugin: {plugin_id}")
+        logger.info("Disabled plugin: %s", plugin_id)
         return True
 
     def list_plugins(self) -> List[Dict[str, Any]]:
@@ -465,7 +461,7 @@ class PluginRegistry:
             main_file = plugin_dir / f"{metadata.plugin_id}.py"
 
         if not main_file.exists():
-            logger.error(f"No main plugin file found in {plugin_dir}")
+            logger.error("No main plugin file found in %s", plugin_dir)
             return None
 
         try:
@@ -480,7 +476,7 @@ class PluginRegistry:
                 return module
 
         except Exception as e:
-            logger.error(f"Failed to load plugin module: {e}")
+            logger.error("Failed to load plugin module: %s", e)
             return None
 
     def _validate_plugin_security(self, plugin_object: Any, metadata: PluginMetadata) -> bool:
@@ -492,25 +488,25 @@ class PluginRegistry:
             # Check if all required permissions are appropriate for security level
             if security_level == PluginSecurityLevel.SANDBOXED and required_permissions:
                 logger.warning(
-                    f"Sandboxed plugin {metadata.plugin_id} requested permissions: {required_permissions}"
+                    "Sandboxed plugin %s requested permissions: %s",
+                    metadata.plugin_id,
+                    required_permissions
                 )
                 return False
 
             return True
 
         except Exception as e:
-            logger.error(f"Security validation failed for plugin {metadata.plugin_id}: {e}")
+            logger.error("Security validation failed for plugin %s: %s", metadata.plugin_id, e)
             return False
 
     async def _register_plugin_hooks(self, instance: PluginInstance):
         """Register plugin hooks with the hook system."""
         # This would be implemented based on plugin's hook registration needs
-        pass
 
     async def _unregister_plugin_hooks(self, instance: PluginInstance):
         """Unregister plugin hooks."""
         # This would be implemented to clean up hooks
-        pass
 
     async def _save_metadata(self, metadata: PluginMetadata):
         """Save plugin metadata to disk."""
@@ -538,11 +534,11 @@ class PluginRegistry:
                 "checksum": metadata.checksum,
             }
 
-            with open(metadata_file, "w") as f:
+            with open(metadata_file, "w", encoding="utf-8") as f:
                 json.dump(metadata_dict, f, indent=2)
 
         except Exception as e:
-            logger.error(f"Failed to save metadata for {metadata.plugin_id}: {e}")
+            logger.error("Failed to save metadata for %s: %s", metadata.plugin_id, e)
 
     def get_hook_system(self) -> HookSystem:
         """Get the hook system for inter-plugin communication."""

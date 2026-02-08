@@ -7,9 +7,6 @@ including access controls, data sanitization, execution sandboxing, and audit lo
 Also includes security utilities for path validation and sanitization.
 """
 
-import os
-import pathlib
-import asyncio
 import hashlib
 import hmac
 import json
@@ -17,12 +14,12 @@ import logging
 import re
 import secrets
 import time
-from abc import ABC, abstractmethod
+import pathlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
-from uuid import uuid4
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +90,7 @@ class SecurityValidator:
             if any(sensitive in key.lower() for sensitive in sensitive_fields):
                 # For sensitive data, check for elevated permissions
                 if Permission.ADMIN not in context.permissions:
-                    logger.warning(f"Access denied to sensitive field: {key}")
+                    logger.warning("Access denied to sensitive field: %s", key)
                     return False
 
         return True
@@ -112,18 +109,15 @@ def validate_path_safety(
     Returns:
         True if path is safe, False otherwise
     """
-    import pathlib
-
     try:
         path_obj = pathlib.Path(path).resolve()
 
         # Check for directory traversal patterns
         path_str = str(path_obj)
 
-        # Common directory traversal patterns
         # Check for directory traversal attempts by looking for '..' as a path segment
         if any(part == ".." for part in path_obj.parts):
-            logger.warning(f"Potential directory traversal detected in path: {path}")
+            logger.warning("Potential directory traversal detected in path: %s", path)
             return False
 
         # If base_dir is specified, ensure path is within base_dir
@@ -133,21 +127,23 @@ def validate_path_safety(
                 # Check if path is within base_dir
                 path_obj.relative_to(base_obj)
             except ValueError:
-                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
+                logger.warning("Path %s is outside allowed base directory %s", path, base_dir)
                 return False
 
         # Additional safety checks
         if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Potentially dangerous characters detected in path: {path}")
+            logger.warning("Potentially dangerous characters detected in path: %s", path)
             return False
 
         return True
     except Exception as e:
-        logger.warning(f"Error during path validation: {e}")
+        logger.error("Error validating path %s: %s", path, e)
         return False
 
 
-def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
+def sanitize_path(
+    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
+) -> Optional[str]:
     """
     Sanitize a path by removing or encoding potentially dangerous characters.
 
@@ -157,26 +153,34 @@ def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
     Returns:
         Sanitized path string or None if path is invalid
     """
-    import pathlib
-
     try:
         # Convert to string if it's a Path object
         path_str = str(path)
 
-        # Basic sanitization - remove dangerous sequences
-        path_str = path_str.replace("../", "").replace("..\\", "")
+        # Use pathlib's resolve and relative_to for more robust directory traversal prevention
+        # instead of simple string replacement
+        base_path = pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()
+        input_path = pathlib.Path(path_str)
 
-        # Normalize path separators
-        path_str = path_str.replace("\\", "/")
+        # Resolve the path to handle relative paths and symbolic links
+        resolved_path = input_path.resolve()
 
-        # Additional checks to ensure validity
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
+        # Verify that the resolved path is within the allowed base directory
+        if base_dir and not resolved_path.is_relative_to(base_path):
+            logger.warning("Path escapes base directory: %s", path_str)
             return None
 
-        return path_str
+        # Normalize path separators
+        normalized_path = str(resolved_path).replace("\\", "/")
+
+        # Additional checks to ensure validity
+        if any(char in normalized_path for char in ["<", ">", "|", "?", "*"]):
+            logger.warning("Invalid characters in path after sanitization: %s", normalized_path)
+            return None
+
+        return normalized_path
     except Exception as e:
-        logger.warning(f"Error during path sanitization: {e}")
+        logger.warning("Error during path sanitization: %s", e)
         return None
 
 
@@ -265,7 +269,7 @@ class AuditLogger:
             "ip_address": context.ip_address,
             "details": details,
         }
-        self.logger.info(f"ACCESS_ATTEMPT: {json.dumps(log_entry)}")
+        self.logger.info("ACCESS_ATTEMPT: %s", json.dumps(log_entry))
 
     def log_execution(
         self,
@@ -284,7 +288,7 @@ class AuditLogger:
             "ip_address": context.ip_address,
             "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
         }
-        self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
+        self.logger.info("EXECUTION: %s", json.dumps(log_entry))
 
     def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
         """Log a security violation"""
@@ -296,7 +300,7 @@ class AuditLogger:
             "details": details,
             "ip_address": context.ip_address,
         }
-        self.logger.warning(f"SECURITY_VIOLATION: {json.dumps(log_entry)}")
+        self.logger.warning("SECURITY_VIOLATION: %s", json.dumps(log_entry))
 
 
 class ExecutionSandbox:
@@ -440,7 +444,7 @@ class SecurityManager:
             del self.active_sessions[token]
 
         if expired_tokens:
-            logger.info(f"Cleaned up {len(expired_tokens)} expired sessions")
+            logger.info("Cleaned up %d expired sessions", len(expired_tokens))
 
     async def secure_execute_node(
         self, session_token: str, node_type: str, inputs: Dict[str, Any], execute_func
@@ -588,98 +592,6 @@ class PathValidator:
         return sanitized
 
 
-def validate_path_safety(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> bool:
-    """
-    Validate that a path is safe and doesn't contain directory traversal attempts.
-
-    Args:
-        path: The path to validate
-        base_dir: Optional base directory to resolve relative to
-
-    Returns:
-        True if path is safe, False otherwise
-    """
-    import pathlib
-
-    try:
-        path_obj = pathlib.Path(path).resolve()
-
-        # Check for directory traversal patterns
-        path_str = str(path_obj)
-
-        # Check for directory traversal attempts by looking for '..' as a path segment
-        if any(part == ".." for part in path_obj.parts):
-            logger.warning(f"Potential directory traversal detected in path: {path}")
-            return False
-
-        # If base_dir is specified, ensure path is within base_dir
-        if base_dir:
-            base_obj = pathlib.Path(base_dir).resolve()
-            try:
-                # Check if path is within base_dir
-                path_obj.relative_to(base_obj)
-            except ValueError:
-                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
-                return False
-
-        # Additional safety checks
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Potentially dangerous characters detected in path: {path}")
-            return False
-
-        return True
-    except Exception as e:
-        logger.error(f"Error validating path {path}: {e}")
-        return False
-
-
-def sanitize_path(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> Optional[str]:
-    """
-    Sanitize a path by removing or encoding potentially dangerous characters.
-
-    Args:
-        path: The path to sanitize
-
-    Returns:
-        Sanitized path string or None if path is invalid
-    """
-    import pathlib
-
-    try:
-        # Convert to string if it's a Path object
-        path_str = str(path)
-
-        # Use pathlib's resolve and relative_to for more robust directory traversal prevention
-        # instead of simple string replacement
-        base_path = pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()
-        input_path = pathlib.Path(path_str)
-        
-        # Resolve the path to handle relative paths and symbolic links
-        resolved_path = input_path.resolve()
-        
-        # Verify that the resolved path is within the allowed base directory
-        if base_dir and not resolved_path.is_relative_to(base_path):
-            logger.warning(f"Path escapes base directory: {path_str}")
-            return None
-        
-        # Normalize path separators
-        normalized_path = str(resolved_path).replace("\\", "/")
-
-        # Additional checks to ensure validity
-        if any(char in normalized_path for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Invalid characters in path after sanitization: {normalized_path}")
-            return None
-
-        return normalized_path
-    except Exception as e:
-        logger.warning(f"Error during path sanitization: {e}")
-        return None
-
-
 def secure_path_join(
     base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]
 ) -> Optional[pathlib.Path]:
@@ -693,8 +605,6 @@ def secure_path_join(
     Returns:
         Joined path if safe, None otherwise
     """
-    import pathlib
-
     try:
         # Start with base directory
         result_path = pathlib.Path(base_dir)
@@ -709,7 +619,7 @@ def secure_path_join(
 
             # Only allow simple filenames/directories (no absolute paths or traversal)
             if component_path.is_absolute() or ".." in str(component_path):
-                logger.warning(f"Unsafe path component: {path_component}")
+                logger.warning("Unsafe path component: %s", path_component)
                 return None
 
             result_path = result_path / component_path
@@ -718,5 +628,5 @@ def secure_path_join(
         return result_path if validate_path_safety(result_path, base_dir) else None
 
     except Exception as e:
-        logger.error(f"Error joining paths: {e}")
+        logger.error("Error joining paths: %s", e)
         return None
