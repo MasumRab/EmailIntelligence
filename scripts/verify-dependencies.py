@@ -9,7 +9,7 @@ This script checks:
 
 import sys
 import argparse
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Any
 import re
 import os
 
@@ -20,6 +20,7 @@ try:
 except ImportError:
     HAS_PACKAGING = False
     print("Warning: 'packaging' library not found. Some checks may be skipped.")
+    Requirement = Any
 
 # Try to import importlib.metadata (Python 3.8+)
 try:
