@@ -54,7 +54,7 @@ async def test_apply_filters_to_email_context_creation(mock_db_manager):
     # We want to spy on _apply_filter_to_email to check arguments
     # But since it's a method on the instance we're testing, we can wrap it
     original_apply = mock_db_manager._apply_filter_to_email
-    mock_db_manager._apply_filter_to_email = AsyncMock(side_effect=original_apply)
+    mock_db_manager._apply_filter_to_email = MagicMock(side_effect=original_apply)
 
     result = await mock_db_manager.apply_filters_to_email(email_data)
 
@@ -98,7 +98,7 @@ async def test_apply_filter_backward_compatibility(mock_db_manager):
     }
 
     # Pass dict directly
-    result = await mock_db_manager._apply_filter_to_email(filter_obj, email_data)
+    result = mock_db_manager._apply_filter_to_email(filter_obj, email_data)
     assert result is True
 
     # Fail case
@@ -107,7 +107,7 @@ async def test_apply_filter_backward_compatibility(mock_db_manager):
         "subject": "No match",
         "body": "Some content"
     }
-    result_fail = await mock_db_manager._apply_filter_to_email(filter_obj, email_fail)
+    result_fail = mock_db_manager._apply_filter_to_email(filter_obj, email_fail)
     assert result_fail is False
 
 @pytest.mark.asyncio
@@ -151,3 +151,30 @@ async def test_batch_update_filter_usage(mock_db_manager):
 
     # Verify cache invalidation
     assert mock_db_manager.caching_manager.delete.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_filter_compilation(mock_db_manager):
+    """Verify that filters have their patterns compiled."""
+    filter_obj = EmailFilter(
+        filter_id="test_filter",
+        name="Test Filter",
+        description="Test",
+        criteria={"from_patterns": ["^test.*"]},
+        actions={},
+        priority=5,
+        effectiveness_score=0.0,
+        created_at=datetime.now(timezone.utc),
+        last_used=datetime.now(timezone.utc),
+        usage_count=0,
+        false_positive_rate=0.0,
+        performance_metrics={},
+        is_active=True
+    )
+
+    mock_db_manager._compile_filter_patterns(filter_obj)
+
+    assert filter_obj._compiled_patterns is not None
+    assert "from_patterns" in filter_obj._compiled_patterns
+    assert len(filter_obj._compiled_patterns["from_patterns"]) == 1
+    assert filter_obj._compiled_patterns["from_patterns"][0].pattern == "^test.*"

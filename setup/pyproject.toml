@@ -25,6 +25,7 @@ dependencies = [
     # Basic UI (always needed)
     "gradio>=4.0.0",
     "pyngrok>=0.7.0",
+    "markupsafe<3.0.0",
 
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
