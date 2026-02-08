@@ -8,13 +8,27 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Any
 import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+    HAS_PACKAGING = True
+except ImportError:
+    HAS_PACKAGING = False
+    print("Warning: 'packaging' library not found. Some checks may be skipped.")
+    Requirement = Any
+
+# Try to import importlib.metadata (Python 3.8+)
+try:
+    from importlib.metadata import distributions, version as get_version, PackageNotFoundError
+    HAS_IMPORTLIB = True
+except ImportError:
+    HAS_IMPORTLIB = False
+    import pkg_resources
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,7 +45,18 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    if HAS_IMPORTLIB:
+        installed = {}
+        for dist in distributions():
+            try:
+                name = dist.metadata["Name"].lower()
+                version = dist.version
+                installed[name] = version
+            except (KeyError, AttributeError):
+                continue
+        return installed
+    else:
+        return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
@@ -122,6 +147,11 @@ def main():
         return 0
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
+
+    if not HAS_PACKAGING:
+        print("Error: 'packaging' library is required to verify dependencies.")
+        print("Please install it with: pip install packaging")
+        return 1
 
     installed = get_installed_packages()
     requirements = parse_requirements(args.requirements)

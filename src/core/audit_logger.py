@@ -6,6 +6,7 @@ with structured JSON output and configurable log levels.
 """
 
 import atexit
+import asyncio
 import json
 import logging
 import threading
@@ -252,6 +253,9 @@ class AuditLogger:
                     self._event_queue.task_done()
             except asyncio.TimeoutError:
                 pass  # No events available
+            except Exception:
+                # Handle empty queue from standard queue if needed, though get(timeout) raises Empty
+                pass
 
             # Write events
             for event in events_to_process:
@@ -294,7 +298,7 @@ class AuditLogger:
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
-        except asyncio.TimeoutError:
+        except Exception:
             pass
 
         if self._processing_thread.is_alive():
