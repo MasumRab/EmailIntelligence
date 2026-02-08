@@ -12,8 +12,14 @@ import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+    HAS_PACKAGING = True
+except ImportError:
+    HAS_PACKAGING = False
+    print("Warning: 'packaging' library not found. Some checks may be skipped.")
 
 # Try to import importlib.metadata (Python 3.8+)
 try:
@@ -140,6 +146,11 @@ def main():
         return 0
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
+
+    if not HAS_PACKAGING:
+        print("Error: 'packaging' library is required to verify dependencies.")
+        print("Please install it with: pip install packaging")
+        return 1
 
     installed = get_installed_packages()
     requirements = parse_requirements(args.requirements)
