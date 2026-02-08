@@ -688,7 +688,25 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
-        for email_light in self.emails_data:
+
+        # Sort emails by date descending first to enable early exit
+        # This optimization reduces disk I/O significantly when matches are found in recent emails
+        try:
+            sorted_emails_iter = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            sorted_emails_iter = sorted(
+                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
+        for email_light in sorted_emails_iter:
+            # Stop searching if we have enough results
+            if len(filtered_emails) >= limit:
+                break
+
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
@@ -697,6 +715,7 @@ class DatabaseManager(DataSource):
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
+
             email_id = email_light.get(FIELD_ID)
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
@@ -709,7 +728,8 @@ class DatabaseManager(DataSource):
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+        # Add category details to the results
+        result = [self._add_category_details(email) for email in filtered_emails]
 
         # Cache result
         self.caching_manager.put_query_result(cache_key, result)
