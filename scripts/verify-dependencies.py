@@ -8,13 +8,24 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+
+try:
+    from importlib.metadata import distributions
+except ImportError:
+    # Fallback for older python versions if needed, though 3.11+ is required
+    import pkg_resources
+
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+except ImportError:
+    # Allow script to run without packaging if minimal check is requested
+    Requirement = None
+    parse_version = None
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,7 +42,11 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    try:
+        return {dist.metadata['Name'].lower(): dist.version for dist in distributions()}
+    except NameError:
+        # Fallback to pkg_resources
+        return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
@@ -120,6 +135,11 @@ def main():
     if args.minimal:
         print("Minimal dependency check passed.")
         return 0
+
+    if Requirement is None:
+        print("Error: 'packaging' library is required for full dependency verification.")
+        print("Please install it via 'pip install packaging' or use --minimal.")
+        return 1
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
 
