@@ -5,6 +5,7 @@ JSON file storage implementation with in-memory caching and indexing.
 
 import asyncio
 import gzip
+import itertools
 import json
 import logging
 import os
@@ -611,19 +612,24 @@ class DatabaseManager(DataSource):
         category_id: Optional[int] = None,
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
-        """Get emails with pagination and filtering. Optimized to use cached sorted list."""
+        """Get emails with pagination and filtering. Optimized to use generator for memory efficiency."""
         # Use cached sorted list to avoid sorting on every request
         source_emails = self._get_sorted_emails()
 
-        # Apply filters on the already sorted list (preserves order)
-        if category_id is not None:
-            source_emails = [
-                e for e in source_emails if e.get(FIELD_CATEGORY_ID) == category_id
-            ]
-        if is_unread is not None:
-            source_emails = [e for e in source_emails if e.get(FIELD_IS_UNREAD) == is_unread]
+        # Use iterator to filter lazily
+        email_iter = iter(source_emails)
 
-        paginated_emails = source_emails[offset : offset + limit]
+        # Apply filters lazily (generator expressions)
+        if category_id is not None:
+            email_iter = (e for e in email_iter if e.get(FIELD_CATEGORY_ID) == category_id)
+
+        if is_unread is not None:
+            email_iter = (e for e in email_iter if e.get(FIELD_IS_UNREAD) == is_unread)
+
+        # Apply pagination using islice. We consume only what we need.
+        # islice(iter, start, stop). stop is offset + limit.
+        paginated_emails = list(itertools.islice(email_iter, offset, offset + limit))
+
         return [self._add_category_details(email) for email in paginated_emails]
 
     async def update_email_by_message_id(
