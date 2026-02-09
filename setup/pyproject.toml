@@ -29,6 +29,10 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+
+    # Compatibility fixes
+    # markupsafe 3.0.2 lacks wheels for Python 3.11/3.12 on some platforms
+    "markupsafe<3.0.0",
 ]
 
 [project.optional-dependencies]
