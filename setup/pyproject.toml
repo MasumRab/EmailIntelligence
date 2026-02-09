@@ -30,6 +30,14 @@ dependencies = [
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
 
+    # Core Logic
+    "pyjwt>=2.8.0",
+    "pyotp>=2.9.0",
+    "qrcode>=7.0",
+    "networkx>=3.2.1",
+    "argon2-cffi>=23.1.0",
+    "psutil>=5.9.0",
+
     # Compatibility fixes
     # markupsafe 3.0.2 lacks wheels for Python 3.11/3.12 on some platforms
     "markupsafe<3.0.0",
