@@ -2,7 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from .dynamic_model_manager import DynamicModelManager
-import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +165,7 @@ class ModernAIEngine(BaseAIEngine):
         # Check if basic analysis works
         try:
             # Quick test with simple text
-            test_result = await self.analyze_email("test", "test content")
+            await self.analyze_email("test", "test content")
             health_status["components"]["analysis_engine"] = {
                 "status": "healthy",
                 "test_result": "passed",
@@ -442,3 +441,18 @@ class ModernAIEngine(BaseAIEngine):
         # Implementation for model training
         logger.info("Model training requested but not yet implemented")
         pass
+
+
+# Global instance management
+_active_ai_engine: Optional[BaseAIEngine] = None
+
+
+def set_active_ai_engine(engine: BaseAIEngine):
+    """Set the globally active AI engine instance."""
+    global _active_ai_engine
+    _active_ai_engine = engine
+
+
+def get_active_ai_engine() -> Optional[BaseAIEngine]:
+    """Get the globally active AI engine instance."""
+    return _active_ai_engine
