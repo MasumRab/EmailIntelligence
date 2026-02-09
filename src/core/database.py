@@ -173,7 +173,11 @@ class DatabaseManager(DataSource):
     def _read_content_sync(self, content_path: str) -> Dict[str, Any]:
         """Synchronously reads and parses the content file. Helper for asyncio.to_thread."""
         with gzip.open(content_path, "rt", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if not isinstance(data, dict):
+                logger.warning(f"File {content_path} contains invalid data format (expected dict).")
+                return {}
+            return data
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
