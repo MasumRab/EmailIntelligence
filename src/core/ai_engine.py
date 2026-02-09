@@ -442,3 +442,18 @@ class ModernAIEngine(BaseAIEngine):
         # Implementation for model training
         logger.info("Model training requested but not yet implemented")
         pass
+
+
+# Global instance management
+_active_ai_engine: Optional[BaseAIEngine] = None
+
+
+def set_active_ai_engine(engine: BaseAIEngine):
+    """Set the globally active AI engine instance."""
+    global _active_ai_engine
+    _active_ai_engine = engine
+
+
+def get_active_ai_engine() -> Optional[BaseAIEngine]:
+    """Get the globally active AI engine instance."""
+    return _active_ai_engine

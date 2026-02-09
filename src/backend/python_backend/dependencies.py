@@ -18,15 +18,22 @@ from .model_manager import ModelManager  # Assuming this is in the same package 
 from .ai_engine import AdvancedAIEngine  # This might need to be updated to src version
 from .smart_filters import SmartFilterManager  # This might need to be updated to src version
 from .workflow_engine import WorkflowEngine  # This might need to be updated to src version
-from src.plugins.plugin_manager import PluginManager
-from .gmail_service import GmailAIService  # This might be backend-specific
+try:
+    from src.core.plugin_manager import PluginManager
+except ImportError:
+    from src.plugins.plugin_manager import PluginManager
+
+try:
+    from src.backend.python_nlp.gmail_service import GmailAIService
+except ImportError:
+    from .gmail_service import GmailAIService  # This might be backend-specific
 
 if TYPE_CHECKING:
     from .model_manager import ModelManager
     from .ai_engine import AdvancedAIEngine
     from .smart_filters import SmartFilterManager
     from .workflow_engine import WorkflowEngine
-    from src.plugins.plugin_manager import PluginManager
+    from src.core.plugin_manager import PluginManager
     from .gmail_service import GmailAIService
 
 logger = logging.getLogger(__name__)
