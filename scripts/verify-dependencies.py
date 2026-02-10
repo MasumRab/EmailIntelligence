@@ -8,13 +8,28 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Any
 import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+except ImportError:
+    # Minimal fallback if packaging is not installed yet
+    # This allows the script to run in basic mode
+    Requirement = object
+    parse_version = lambda x: x
+
+try:
+    import importlib.metadata as importlib_metadata
+except ImportError:
+    importlib_metadata = None
+
+try:
+    import pkg_resources
+except ImportError:
+    pkg_resources = None
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,7 +46,25 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    installed = {}
+
+    # Try importlib.metadata first (standard in Python 3.8+)
+    if importlib_metadata:
+        for dist in importlib_metadata.distributions():
+            try:
+                name = dist.metadata["Name"].lower()
+                version = dist.version
+                installed[name] = version
+            except (KeyError, AttributeError):
+                continue
+
+    # Fallback to pkg_resources if importlib.metadata missed something or isn't available
+    if pkg_resources:
+        for pkg in pkg_resources.working_set:
+            if pkg.key not in installed:
+                installed[pkg.key] = pkg.version
+
+    return installed
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
