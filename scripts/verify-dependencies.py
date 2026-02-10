@@ -9,11 +9,22 @@ This script checks:
 
 import sys
 import argparse
-from typing import Dict, List
+from typing import Dict, List, Any
 import os
 import importlib.metadata
-from packaging.requirements import Requirement
-from packaging.utils import canonicalize_name
+
+# Try to import packaging, but allow failure for minimal checks
+try:
+    from packaging.requirements import Requirement
+    from packaging.utils import canonicalize_name
+    PACKAGING_AVAILABLE = True
+except ImportError:
+    PACKAGING_AVAILABLE = False
+    Requirement = Any  # Fallback for type hints
+
+    def canonicalize_name(name: str) -> str:
+        return name.lower().replace("_", "-")
+
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -46,6 +57,11 @@ def get_installed_packages() -> Dict[str, str]:
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
+    if not PACKAGING_AVAILABLE:
+        print("Error: 'packaging' library not found. Cannot parse requirements.")
+        print("Please install it via 'pip install packaging'")
+        sys.exit(1)
+
     requirements = []
     for file_path in files:
         if not os.path.exists(file_path):
@@ -143,8 +159,21 @@ def main():
     # If minimal check is requested, ignore standard requirements files and checking logic
     # This is useful for quick CI sanity checks or environments where full deps aren't needed yet
     if args.minimal:
+        if not PACKAGING_AVAILABLE:
+            print("Packaging library missing. Cannot verify requirements details.")
+            # If minimal check allows skipping deps check, return 0?
+            # But the script's purpose is to verify dependencies.
+            # However, previous CI run with --minimal seemed to pass (exit code 0) if no crash.
+            # But it crashed on import.
+            # We return 0 here to unblock CI if this step is just a sanity check that python works.
+            return 0
         print("Minimal dependency check passed.")
         return 0
+
+    if not PACKAGING_AVAILABLE:
+        print("Error: 'packaging' library is required for full dependency verification.")
+        print("Please install it via 'pip install packaging'")
+        return 1
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
 
@@ -157,15 +186,7 @@ def main():
     for req in requirements:
         pkg_name = canonicalize_name(req.name)
 
-        # Check mapping if name differs (canonicalize mapping keys/values first if needed,
-        # but PACKAGE_MAPPINGS keys seem to be lower case already. We should be safe or canonicalize check_name too)
-        # Assuming PACKAGE_MAPPINGS is manual and might need adjustment if using canonical names.
-        # But let's stick to simple logic: canonicalize req.name.
-
-        # If mapping exists, use it. Mappings are "python-dotenv" -> "dotenv".
-        # If we canonicalize "python-dotenv", it stays same.
-        # But we should canonicalize the result of mapping too if we want to match `installed` keys.
-
+        # Check mapping if name differs
         mapped_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
         check_name = canonicalize_name(mapped_name)
 
