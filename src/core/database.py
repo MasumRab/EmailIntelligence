@@ -752,6 +752,41 @@ class DatabaseManager(DataSource):
             f"Starting email search for term: '{search_term_lower}'"
         )
 
+        # Batching setup for parallel content reading
+        batch_size = 20
+        content_check_queue: List[tuple[Dict[str, Any], str]] = []
+
+        async def process_content_batch():
+            """Process the accumulated batch of content checks in parallel."""
+            nonlocal filtered_emails
+            if not content_check_queue:
+                return
+
+            tasks = []
+            for _, path in content_check_queue:
+                tasks.append(asyncio.to_thread(self._read_content_sync, path))
+
+            try:
+                # Run all content reads in parallel
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                # Process results in order to maintain sort order
+                for i, result in enumerate(results):
+                    if len(filtered_emails) >= limit:
+                        break
+
+                    email_light, _ = content_check_queue[i]
+
+                    if isinstance(result, Exception):
+                        logger.error(f"Error reading content for email {email_light.get(FIELD_ID)}: {result}")
+                        continue
+
+                    content = result.get(FIELD_CONTENT, "")
+                    if isinstance(content, str) and search_term_lower in content.lower():
+                        filtered_emails.append(email_light)
+            finally:
+                content_check_queue.clear()
+
         for email_light in source_emails:
             if len(filtered_emails) >= limit:
                 break
@@ -769,12 +804,24 @@ class DatabaseManager(DataSource):
                 )
 
             if found_in_light:
+                # Flush queue to maintain sort order
+                if content_check_queue:
+                    await process_content_batch()
+                    if len(filtered_emails) >= limit:
+                        break
+
                 filtered_emails.append(email_light)
                 continue
 
             # Check content cache first to avoid disk I/O
             cached_content = self.caching_manager.get_email_content(email_id)
             if cached_content:
+                # Flush queue to maintain sort order
+                if content_check_queue:
+                    await process_content_batch()
+                    if len(filtered_emails) >= limit:
+                        break
+
                 content = cached_content.get(FIELD_CONTENT, "")
                 if isinstance(content, str) and search_term_lower in content.lower():
                     filtered_emails.append(email_light)
@@ -782,14 +829,13 @@ class DatabaseManager(DataSource):
 
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
-                try:
-                    # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                    content = heavy_data.get(FIELD_CONTENT, "")
-                    if isinstance(content, str) and search_term_lower in content.lower():
-                        filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+                content_check_queue.append((email_light, content_path))
+                if len(content_check_queue) >= batch_size:
+                    await process_content_batch()
+
+        # Process any remaining items in the queue
+        if content_check_queue and len(filtered_emails) < limit:
+            await process_content_batch()
 
         # Results are already sorted because we iterated source_emails (which is sorted)
         results = [self._add_category_details(email) for email in filtered_emails]
