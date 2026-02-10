@@ -530,6 +530,16 @@ class DatabaseManager(DataSource):
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
+    def _get_email_sort_key(self, email: Dict[str, Any]) -> str:
+        """
+        Helper to get a safe sort key for emails.
+        Returns a string representation of time/created_at to avoid TypeError during sort.
+        """
+        # Prefer 'time', fall back to 'created_at', default to empty string
+        val = email.get(FIELD_TIME) or email.get(FIELD_CREATED_AT) or ""
+        # Ensure it's a string to prevent TypeError during sorting (e.g. mixed types)
+        return str(val)
+
     async def _sort_and_paginate_emails(
         self,
         emails: List[Dict[str, Any]],
@@ -537,19 +547,12 @@ class DatabaseManager(DataSource):
         offset: int = 0,
     ) -> List[Dict[str, Any]]:
         """Sorts and paginates a list of emails."""
-        try:
-            sorted_emails = sorted(
-                emails,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            logger.warning(
-                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
-            )
-            sorted_emails = sorted(
-                emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
+        # Use safe key extraction to avoid try-except block
+        sorted_emails = sorted(
+            emails,
+            key=self._get_email_sort_key,
+            reverse=True,
+        )
         paginated_emails = sorted_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
@@ -689,20 +692,12 @@ class DatabaseManager(DataSource):
         search_term_lower = search_term.lower()
 
         # Sort emails by time descending first (in-memory)
-        # We reuse the sort logic from _sort_and_paginate_emails but apply it to the whole dataset first.
-        try:
-            sorted_emails = sorted(
-                self.emails_data,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            logger.warning(
-                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
-            )
-            sorted_emails = sorted(
-                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
+        # Use safe key extraction to avoid try-except block
+        sorted_emails = sorted(
+            self.emails_data,
+            key=self._get_email_sort_key,
+            reverse=True,
+        )
 
         filtered_emails = []
         match_count = 0
