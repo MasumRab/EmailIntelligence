@@ -40,6 +40,8 @@ jobs:
       
       - name: Verify system dependencies
         run: |
+          # Install setuptools to ensure pkg_resources is available for verification script
+          python -m pip install --upgrade pip setuptools packaging
           python scripts/verify-dependencies.py --check-gpu --system-packages || true
       
       - name: Install dependencies

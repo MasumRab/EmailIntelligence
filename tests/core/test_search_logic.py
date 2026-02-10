@@ -4,6 +4,7 @@ import shutil
 import pytest
 from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID
 
+
 @pytest.fixture
 def temp_db():
     temp_dir = "temp_search_correctness"
@@ -17,6 +18,7 @@ def temp_db():
     yield db
 
     shutil.rmtree(temp_dir)
+
 
 @pytest.mark.asyncio
 async def test_search_correctness_and_pagination(temp_db):
@@ -33,12 +35,14 @@ async def test_search_correctness_and_pagination(temp_db):
 
     for i in range(1, 101):
         content = "even" if i % 2 == 0 else "odd"
-        await db.create_email({
-            "subject": f"Email {i}",
-            "sender": "test@example.com",
-            "content": f"Content {i} {content}",
-            "created_at": f"2023-01-01T{i:02d}:00:00Z" # This might be overwritten by create_email
-        })
+        await db.create_email(
+            {
+                "subject": f"Email {i}",
+                "sender": "test@example.com",
+                "content": f"Content {i} {content}",
+                "created_at": f"2023-01-01T{i:02d}:00:00Z",  # This might be overwritten by create_email
+            }
+        )
 
     # Note: create_email overwrites created_at with current time.
     # Since we await properly, they should be in time order roughly.
