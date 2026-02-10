@@ -16,6 +16,7 @@ from enum import Enum
 from pathlib import Path
 from queue import Queue
 from typing import Any, Dict, List, Optional
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -252,6 +253,9 @@ class AuditLogger:
                     self._event_queue.task_done()
             except asyncio.TimeoutError:
                 pass  # No events available
+            except Exception as e:
+                # Catch queue.Empty (which might be raised if timeout ignored) or other errors
+                pass
 
             # Write events
             for event in events_to_process:
@@ -295,6 +299,8 @@ class AuditLogger:
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
         except asyncio.TimeoutError:
+            pass
+        except Exception:
             pass
 
         if self._processing_thread.is_alive():

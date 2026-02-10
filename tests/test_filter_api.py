@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
-from backend.python_nlp.smart_filters import EmailFilter
+from src.backend.python_nlp.smart_filters import EmailFilter
 from datetime import datetime
 
 
@@ -9,7 +9,7 @@ from datetime import datetime
 def mock_filter_manager():
     """Fixture to mock the SmartFilterManager used in filter routes."""
     with patch(
-        "server.python_backend.filter_routes.filter_manager", new_callable=MagicMock
+        "src.server.python_backend.filter_routes.filter_manager", new_callable=MagicMock
     ) as mock_fm:
         yield mock_fm
 
@@ -18,7 +18,7 @@ def mock_filter_manager():
 def mock_performance_monitor():
     """Fixture to mock the performance monitor."""
     with patch(
-        "server.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
+        "src.server.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
     ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm

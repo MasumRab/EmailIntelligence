@@ -1,6 +1,6 @@
 import pytest
 
-from backend.node_engine.security_manager import SecurityManager
+from src.backend.node_engine.security_manager import SecurityManager
 
 
 # Mock Workflow class for testing
