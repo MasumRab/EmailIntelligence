@@ -419,7 +419,7 @@ def check_critical_files() -> bool:
         "scripts/cleanup_orchestration.sh",
         "scripts/sync_setup_worktrees.sh",
         "scripts/reverse_sync_orchestration.sh",
-        
+
         # Git hooks
         "scripts/hooks/pre-commit",
         "scripts/hooks/post-commit",
@@ -427,14 +427,14 @@ def check_critical_files() -> bool:
         "scripts/hooks/post-merge",
         "scripts/hooks/post-checkout",
         "scripts/hooks/post-push",
-        
+
         # Shared libraries
         "scripts/lib/common.sh",
         "scripts/lib/error_handling.sh",
         "scripts/lib/git_utils.sh",
         "scripts/lib/logging.sh",
         "scripts/lib/validation.sh",
-        
+
         # Setup files
         "setup/launch.py",
         "setup/pyproject.toml",
@@ -443,22 +443,22 @@ def check_critical_files() -> bool:
         "setup/setup_environment_system.sh",
         "setup/setup_environment_wsl.sh",
         "setup/setup_python.sh",
-        
+
         # Configuration files
         ".flake8",
         ".pylintrc",
         ".gitignore",
         ".gitattributes",
-        
+
         # Root wrapper
         "launch.py",
-        
+
         # Deployment files
         "deployment/deploy.py",
         "deployment/test_stages.py",
         "deployment/docker-compose.yml",
     ]
-    
+
     # Critical directories that must exist
     critical_directories = [
         "scripts/",
@@ -468,7 +468,7 @@ def check_critical_files() -> bool:
         "deployment/",
         "docs/",
     ]
-    
+
     # Orchestration documentation files
     orchestration_docs = [
         "docs/orchestration_summary.md",
@@ -495,13 +495,13 @@ def check_critical_files() -> bool:
         full_path = ROOT_DIR / dir_path
         if not full_path.exists():
             missing_dirs.append(dir_path)
-    
+
     # Check for missing orchestration documentation
     for doc_path in orchestration_docs:
         full_path = ROOT_DIR / doc_path
         if not full_path.exists():
             missing_files.append(doc_path)
-    
+
     if missing_files or missing_dirs:
         if missing_files:
             logger.error("Missing critical files:")
@@ -513,7 +513,7 @@ def check_critical_files() -> bool:
                 logger.error(f"  - {dir_path}")
         logger.error("Please restore these critical files for proper orchestration functionality.")
         return False
-    
+
     logger.info("All critical files are present.")
     return True
 
@@ -521,15 +521,15 @@ def check_critical_files() -> bool:
 def validate_orchestration_environment() -> bool:
     """Run comprehensive validation for the orchestration-tools branch."""
     logger.info("Running orchestration environment validation...")
-    
+
     # Check for merge conflicts first
     if not check_for_merge_conflicts():
         return False
-    
+
     # Check critical files
     if not check_critical_files():
         return False
-    
+
     logger.info("Orchestration environment validation passed.")
     return True
 
@@ -1435,7 +1435,7 @@ def _execute_command(command_name: str, args) -> int:
 def _execute_check_command(args) -> int:
     """Execute the check command for orchestration validation."""
     logger.info("Running orchestration checks...")
-    
+
     success = True
     
     # Run critical files check if requested
@@ -1447,12 +1447,12 @@ def _execute_check_command(args) -> int:
     if args.env:
         if not validate_orchestration_environment():
             success = False
-    
+
     # If no specific check was requested, run all checks
     if not args.critical_files and not args.env:
         if not validate_orchestration_environment():
             success = False
-    
+
     if success:
         logger.info("All orchestration checks passed!")
         return 0

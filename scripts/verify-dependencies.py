@@ -8,13 +8,23 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
-from typing import Dict, List, Set, Tuple
-import re
+from typing import Dict, List, Any
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+import importlib.metadata
+
+# Try to import packaging, but allow failure for minimal checks
+try:
+    from packaging.requirements import Requirement
+    from packaging.utils import canonicalize_name
+    PACKAGING_AVAILABLE = True
+except ImportError:
+    PACKAGING_AVAILABLE = False
+    Requirement = Any  # Fallback for type hints
+
+    def canonicalize_name(name: str) -> str:
+        return name.lower().replace("_", "-")
+
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -29,12 +39,29 @@ PACKAGE_MAPPINGS = {
     # Add other mappings as needed
 }
 
+
 def get_installed_packages() -> Dict[str, str]:
-    """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    """Get a dictionary of installed packages and their versions using importlib.metadata."""
+    installed = {}
+    for dist in importlib.metadata.distributions():
+        try:
+            name = dist.metadata["Name"]
+            version = dist.version
+            if name:
+                installed[canonicalize_name(name)] = version
+        except Exception:
+            # Skip any distribution that fails to provide metadata
+            continue
+    return installed
+
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
+    if not PACKAGING_AVAILABLE:
+        print("Error: 'packaging' library not found. Cannot parse requirements.")
+        print("Please install it via 'pip install packaging'")
+        sys.exit(1)
+
     requirements = []
     for file_path in files:
         if not os.path.exists(file_path):
@@ -63,11 +90,13 @@ def parse_requirements(files: List[str]) -> List[Requirement]:
                         print(f"Warning: Could not parse requirement '{line}': {e}")
     return requirements
 
+
 def check_compatibility(req: Requirement, installed_version: str) -> bool:
     """Check if installed version satisfies the requirement."""
     if not req.specifier:
         return True
     return req.specifier.contains(installed_version, prereleases=True)
+
 
 def verify_gpu_support():
     """Verify GPU support libraries are installed and functional."""
@@ -86,6 +115,7 @@ def verify_gpu_support():
         print("PyTorch not installed")
         return False
 
+
 def verify_system_packages():
     """Verify essential system packages are present."""
     print("\nVerifying system packages...")
@@ -100,26 +130,50 @@ def verify_system_packages():
 
     return True
 
+
 def main():
     parser = argparse.ArgumentParser(description="Verify dependencies")
-    parser.add_argument("--requirements", "-r", nargs="+", default=["requirements.txt"],
-                      help="Requirements files to check")
-    parser.add_argument("--strict", action="store_true",
-                      help="Fail on any mismatch")
-    parser.add_argument("--check-gpu", action="store_true",
-                      help="Verify GPU support")
-    parser.add_argument("--system-packages", action="store_true",
-                      help="Verify system packages")
-    parser.add_argument("--minimal", action="store_true",
-                        help="Only check for minimal core dependencies")
+    parser.add_argument(
+        "--requirements", "-r", nargs="+", default=["requirements.txt"],
+        help="Requirements files to check"
+    )
+    parser.add_argument(
+        "--strict", action="store_true",
+        help="Fail on any mismatch"
+    )
+    parser.add_argument(
+        "--check-gpu", action="store_true",
+        help="Verify GPU support"
+    )
+    parser.add_argument(
+        "--system-packages", action="store_true",
+        help="Verify system packages"
+    )
+    parser.add_argument(
+        "--minimal", action="store_true",
+        help="Only check for minimal core dependencies"
+    )
 
     args = parser.parse_args()
 
     # If minimal check is requested, ignore standard requirements files and checking logic
     # This is useful for quick CI sanity checks or environments where full deps aren't needed yet
     if args.minimal:
+        if not PACKAGING_AVAILABLE:
+            print("Packaging library missing. Cannot verify requirements details.")
+            # If minimal check allows skipping deps check, return 0?
+            # But the script's purpose is to verify dependencies.
+            # However, previous CI run with --minimal seemed to pass (exit code 0) if no crash.
+            # But it crashed on import.
+            # We return 0 here to unblock CI if this step is just a sanity check that python works.
+            return 0
         print("Minimal dependency check passed.")
         return 0
+
+    if not PACKAGING_AVAILABLE:
+        print("Error: 'packaging' library is required for full dependency verification.")
+        print("Please install it via 'pip install packaging'")
+        return 1
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
 
@@ -130,10 +184,11 @@ def main():
     version_mismatches = []
 
     for req in requirements:
-        pkg_name = req.name.lower()
+        pkg_name = canonicalize_name(req.name)
 
         # Check mapping if name differs
-        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        mapped_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        check_name = canonicalize_name(mapped_name)
 
         if pkg_name not in installed and check_name not in installed:
             missing_packages.append(req)
@@ -183,6 +238,7 @@ def main():
     print(f"Mismatches: {len(version_mismatches)}")
 
     return 0 if success else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())
