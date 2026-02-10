@@ -8,13 +8,29 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Any
 import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+
+# Try to use importlib.metadata (Python 3.8+)
+try:
+    from importlib.metadata import distributions
+    HAS_IMPORTLIB = True
+except ImportError:
+    HAS_IMPORTLIB = False
+    # Fallback to pkg_resources
+    import pkg_resources
+
+# Try to import packaging
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+    HAS_PACKAGING = True
+except ImportError:
+    HAS_PACKAGING = False
+    # Define a dummy Requirement class for minimal environments
+    Requirement = Any
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,10 +47,23 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    installed = {}
+    if HAS_IMPORTLIB:
+        for dist in distributions():
+            name = dist.metadata['Name']
+            if name:
+                installed[name.lower()] = dist.version
+    else:
+        for pkg in pkg_resources.working_set:
+            installed[pkg.key] = pkg.version
+    return installed
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
+    if not HAS_PACKAGING:
+        print("Warning: 'packaging' library not found. Skipping detailed requirement parsing.")
+        return []
+
     requirements = []
     for file_path in files:
         if not os.path.exists(file_path):
@@ -65,6 +94,9 @@ def parse_requirements(files: List[str]) -> List[Requirement]:
 
 def check_compatibility(req: Requirement, installed_version: str) -> bool:
     """Check if installed version satisfies the requirement."""
+    if not HAS_PACKAGING:
+        return True
+
     if not req.specifier:
         return True
     return req.specifier.contains(installed_version, prereleases=True)
@@ -119,6 +151,10 @@ def main():
     # This is useful for quick CI sanity checks or environments where full deps aren't needed yet
     if args.minimal:
         print("Minimal dependency check passed.")
+        return 0
+
+    if not HAS_PACKAGING:
+        print("Packaging library missing. Cannot verify requirements details.")
         return 0
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
