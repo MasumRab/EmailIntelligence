@@ -672,44 +672,82 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
-    async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+    async def search_emails_with_limit(self, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Search emails with limit parameter.
+        Optimization: Sorts by time FIRST to allow early exit once enough matches are found.
+        """
         if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
+            return await self.get_emails(limit=limit, offset=offset)
 
         # Check cache
-        cache_key = f"search_{search_term}_{limit}"
+        cache_key = f"search_{search_term}_{limit}_{offset}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             return cached_result
 
         search_term_lower = search_term.lower()
+
+        # Sort emails by time descending first (in-memory)
+        # We reuse the sort logic from _sort_and_paginate_emails but apply it to the whole dataset first.
+        try:
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            logger.warning(
+                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+            )
+            sorted_emails = sorted(
+                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
         filtered_emails = []
+        match_count = 0
+        target_count = offset + limit
+
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'. Using Sort-First Early-Exit optimization."
         )
-        for email_light in self.emails_data:
+
+        for email_light in sorted_emails:
+            # Check light data first
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+            is_match = False
+            if found_in_light:
+                is_match = True
+            else:
+                # Check heavy content if not found in light data
+                email_id = email_light.get(FIELD_ID)
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    try:
+                        with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                            heavy_data = json.load(f)
+                            content = heavy_data.get(FIELD_CONTENT, "")
+                            if isinstance(content, str) and search_term_lower in content.lower():
+                                is_match = True
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not search content for email {email_id}: {e}")
+
+            if is_match:
+                filtered_emails.append(email_light)
+                match_count += 1
+                if match_count >= target_count:
+                    break
+
+        # Apply offset and limit
+        paginated_emails = filtered_emails[offset : offset + limit]
+
+        # Add category details
+        result = [self._add_category_details(email) for email in paginated_emails]
 
         # Cache result
         self.caching_manager.put_query_result(cache_key, result)
