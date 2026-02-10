@@ -672,13 +672,13 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
-    async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def search_emails_with_limit(self, search_term: str, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
+            return await self.get_emails(limit=limit, offset=offset)
 
         # Check cache
-        cache_key = f"search_{search_term}_{limit}"
+        cache_key = f"search_{search_term}_{limit}_{offset}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             return cached_result
@@ -688,7 +688,29 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
-        for email_light in self.emails_data:
+
+        # Sort first to enable early exit
+        try:
+            sorted_candidates = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            logger.warning(
+                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+            )
+            sorted_candidates = sorted(
+                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
+        # We need enough matches to satisfy the requested page (offset + limit)
+        target_count = offset + limit
+
+        for email_light in sorted_candidates:
+            if len(filtered_emails) >= target_count:
+                break
+
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
@@ -709,7 +731,7 @@ class DatabaseManager(DataSource):
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit, offset=offset)
 
         # Cache result
         self.caching_manager.put_query_result(cache_key, result)
