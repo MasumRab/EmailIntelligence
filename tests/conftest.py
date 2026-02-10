@@ -1,7 +1,7 @@
 import os
 import sys
 
-# sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Set up test environment immediately on import to handle early imports
 def _setup_test_env_early():
@@ -17,16 +17,8 @@ import subprocess
 from unittest.mock import AsyncMock
 
 import pytest
-try:
-    from fastapi import FastAPI
-    from fastapi.testclient import TestClient
-    import pydantic_settings
-    print(f"pydantic_settings imported successfully: {pydantic_settings.__file__}")
-except ImportError as e:
-    print(f"Failed to import in conftest: {e}")
-    import sys
-    print(f"sys.path: {sys.path}")
-    raise
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 
 # Create a minimal test app without gradio dependencies

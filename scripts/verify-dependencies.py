@@ -9,28 +9,11 @@ This script checks:
 
 import sys
 import argparse
-from typing import Dict, List, Set, Tuple, Any
-import re
+from typing import Dict, List
 import os
-
-# Try to use importlib.metadata (Python 3.8+)
-try:
-    from importlib.metadata import distributions
-    HAS_IMPORTLIB = True
-except ImportError:
-    HAS_IMPORTLIB = False
-    # Fallback to pkg_resources
-    import pkg_resources
-
-# Try to import packaging
-try:
-    from packaging.requirements import Requirement
-    from packaging.version import parse as parse_version
-    HAS_PACKAGING = True
-except ImportError:
-    HAS_PACKAGING = False
-    # Define a dummy Requirement class for minimal environments
-    Requirement = Any
+import importlib.metadata
+from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -45,25 +28,24 @@ PACKAGE_MAPPINGS = {
     # Add other mappings as needed
 }
 
+
 def get_installed_packages() -> Dict[str, str]:
-    """Get a dictionary of installed packages and their versions."""
+    """Get a dictionary of installed packages and their versions using importlib.metadata."""
     installed = {}
-    if HAS_IMPORTLIB:
-        for dist in distributions():
-            name = dist.metadata['Name']
+    for dist in importlib.metadata.distributions():
+        try:
+            name = dist.metadata["Name"]
+            version = dist.version
             if name:
-                installed[name.lower()] = dist.version
-    else:
-        for pkg in pkg_resources.working_set:
-            installed[pkg.key] = pkg.version
+                installed[canonicalize_name(name)] = version
+        except Exception:
+            # Skip any distribution that fails to provide metadata
+            continue
     return installed
+
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
-    if not HAS_PACKAGING:
-        print("Warning: 'packaging' library not found. Skipping detailed requirement parsing.")
-        return []
-
     requirements = []
     for file_path in files:
         if not os.path.exists(file_path):
@@ -92,14 +74,13 @@ def parse_requirements(files: List[str]) -> List[Requirement]:
                         print(f"Warning: Could not parse requirement '{line}': {e}")
     return requirements
 
+
 def check_compatibility(req: Requirement, installed_version: str) -> bool:
     """Check if installed version satisfies the requirement."""
-    if not HAS_PACKAGING:
-        return True
-
     if not req.specifier:
         return True
     return req.specifier.contains(installed_version, prereleases=True)
+
 
 def verify_gpu_support():
     """Verify GPU support libraries are installed and functional."""
@@ -118,6 +99,7 @@ def verify_gpu_support():
         print("PyTorch not installed")
         return False
 
+
 def verify_system_packages():
     """Verify essential system packages are present."""
     print("\nVerifying system packages...")
@@ -132,18 +114,29 @@ def verify_system_packages():
 
     return True
 
+
 def main():
     parser = argparse.ArgumentParser(description="Verify dependencies")
-    parser.add_argument("--requirements", "-r", nargs="+", default=["requirements.txt"],
-                      help="Requirements files to check")
-    parser.add_argument("--strict", action="store_true",
-                      help="Fail on any mismatch")
-    parser.add_argument("--check-gpu", action="store_true",
-                      help="Verify GPU support")
-    parser.add_argument("--system-packages", action="store_true",
-                      help="Verify system packages")
-    parser.add_argument("--minimal", action="store_true",
-                        help="Only check for minimal core dependencies")
+    parser.add_argument(
+        "--requirements", "-r", nargs="+", default=["requirements.txt"],
+        help="Requirements files to check"
+    )
+    parser.add_argument(
+        "--strict", action="store_true",
+        help="Fail on any mismatch"
+    )
+    parser.add_argument(
+        "--check-gpu", action="store_true",
+        help="Verify GPU support"
+    )
+    parser.add_argument(
+        "--system-packages", action="store_true",
+        help="Verify system packages"
+    )
+    parser.add_argument(
+        "--minimal", action="store_true",
+        help="Only check for minimal core dependencies"
+    )
 
     args = parser.parse_args()
 
@@ -151,10 +144,6 @@ def main():
     # This is useful for quick CI sanity checks or environments where full deps aren't needed yet
     if args.minimal:
         print("Minimal dependency check passed.")
-        return 0
-
-    if not HAS_PACKAGING:
-        print("Packaging library missing. Cannot verify requirements details.")
         return 0
 
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
@@ -166,10 +155,19 @@ def main():
     version_mismatches = []
 
     for req in requirements:
-        pkg_name = req.name.lower()
+        pkg_name = canonicalize_name(req.name)
 
-        # Check mapping if name differs
-        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        # Check mapping if name differs (canonicalize mapping keys/values first if needed,
+        # but PACKAGE_MAPPINGS keys seem to be lower case already. We should be safe or canonicalize check_name too)
+        # Assuming PACKAGE_MAPPINGS is manual and might need adjustment if using canonical names.
+        # But let's stick to simple logic: canonicalize req.name.
+
+        # If mapping exists, use it. Mappings are "python-dotenv" -> "dotenv".
+        # If we canonicalize "python-dotenv", it stays same.
+        # But we should canonicalize the result of mapping too if we want to match `installed` keys.
+
+        mapped_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        check_name = canonicalize_name(mapped_name)
 
         if pkg_name not in installed and check_name not in installed:
             missing_packages.append(req)
@@ -219,6 +217,7 @@ def main():
     print(f"Mismatches: {len(version_mismatches)}")
 
     return 0 if success else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

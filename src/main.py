@@ -162,13 +162,10 @@ def create_app() -> FastAPI:
     return app
 
 
-# Create app instance for backward compatibility and non-factory usage
-app = create_app()
-
-
 # For backward compatibility when called directly (non-factory usage)
 if __name__ == "__main__":
     import uvicorn
+    app = create_app()
     uvicorn.run(
         app, 
         host="0.0.0.0", 

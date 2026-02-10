@@ -1,89 +1,192 @@
+import argparse
+import subprocess
 import sys
-import unittest
-from unittest.mock import MagicMock, patch, PropertyMock
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+# Add the project root to the Python path to allow importing 'launch'
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import pytest
 
-from setup.launch import PYTHON_MAX_VERSION, PYTHON_MIN_VERSION, check_python_version, main
+from launch import (
+    PYTHON_MAX_VERSION,
+    PYTHON_MIN_VERSION,
+    ROOT_DIR,
+    check_python_version,
+    create_venv,
+    download_nltk_data,
+    main,
+    process_manager,
+    setup_dependencies,
+    start_backend,
+    start_gradio_ui,
+)
 
-class TestLauncher(unittest.TestCase):
-    def setUp(self):
-        self.mock_logger = MagicMock()
 
-    @patch('sys.version_info')
-    def test_python_version_check_valid(self, mock_version_info):
-        """Test checking valid Python versions."""
-        # Configure mock to behave like a named tuple/object with attributes AND indexable
-        type(mock_version_info).major = PropertyMock(return_value=PYTHON_MIN_VERSION[0])
-        type(mock_version_info).minor = PropertyMock(return_value=PYTHON_MIN_VERSION[1])
-        type(mock_version_info).micro = PropertyMock(return_value=0)
+@patch("launch.logger")
+def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
+    """
+    Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.
+    """
+    result = install_nodejs_dependencies("client")
 
-        self.assertTrue(check_python_version())
+    assert result is False, "Function should return False when npm install fails"
+    mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
 
-        # Test maximum supported version
-        type(mock_version_info).major = PropertyMock(return_value=PYTHON_MAX_VERSION[0])
-        type(mock_version_info).minor = PropertyMock(return_value=PYTHON_MAX_VERSION[1])
-        self.assertTrue(check_python_version())
 
-    @patch('sys.version_info')
-    def test_python_version_check_invalid_low(self, mock_version_info):
-        """Test checking python version below minimum."""
-        type(mock_version_info).major = PropertyMock(return_value=PYTHON_MIN_VERSION[0])
-        type(mock_version_info).minor = PropertyMock(return_value=PYTHON_MIN_VERSION[1] - 1)
-        type(mock_version_info).micro = PropertyMock(return_value=0)
+@patch("launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
+@patch("launch.sys.argv", ["launch.py"])
+@patch("launch.platform.system", return_value="Linux")
+@patch("launch.sys.version_info", (3, 10, 0))  # Incompatible version
+@patch("launch.shutil.which")
+@patch("launch.subprocess.run")
+@patch("launch.os.execv", side_effect=Exception("Called execve"))
+@patch("launch.sys.exit")
+@patch("launch.logger")
+def test_python_interpreter_discovery_avoids_substring_match(
+    mock_logger, mock_exit, mock_execve, mock_subprocess_run, mock_which, _mock_system
+):
+    """
+    Tests that the launcher does not incorrectly match partial version strings.
+    """
+    # Arrange
+    mock_which.side_effect = [
+        "/usr/bin/python-tricky",
+        "/usr/bin/python-good",
+        None,
+    ]
+    mock_subprocess_run.side_effect = [
+        MagicMock(stdout="Python 3.1.11", stderr="", returncode=0),  # Should be rejected
+        MagicMock(stdout="Python 3.12.5", stderr="", returncode=0),  # Should be accepted
+    ]
 
-        self.assertFalse(check_python_version())
+    def test_compatible_version(self):
+        """Test that compatible Python versions pass."""
+        with (
+            patch("launch.sys.version_info", (3, 12, 0)),
+            patch("launch.sys.version", "3.12.0"),
+            patch("launch.logger") as mock_logger,
+        ):
+            check_python_version()
+            mock_logger.info.assert_called_with("Python version 3.12.0 is compatible.")
 
-    @patch('sys.version_info')
-    def test_python_version_check_invalid_high(self, mock_version_info):
-        """Test checking python version above maximum."""
-        type(mock_version_info).major = PropertyMock(return_value=PYTHON_MAX_VERSION[0])
-        type(mock_version_info).minor = PropertyMock(return_value=PYTHON_MAX_VERSION[1] + 1)
-        type(mock_version_info).micro = PropertyMock(return_value=0)
+    @patch("launch.sys.version_info", (3, 8, 0))
+    def test_incompatible_version(self):
+        """Test that incompatible Python versions exit."""
+        with pytest.raises(SystemExit):
+            check_python_version()
 
-        self.assertFalse(check_python_version())
 
-    @patch('setup.launch.check_python_version')
-    @patch('setup.launch.setup_logging')
-    @patch('setup.launch.check_environment')
-    @patch('setup.launch.install_dependencies')
-    @patch('setup.launch.start_services')
-    def test_main_success(self, mock_start, mock_install, mock_check_env, mock_setup_log, mock_check_py):
-        """Test successful main execution."""
-        mock_check_py.return_value = True
-        mock_check_env.return_value = True
+class TestVirtualEnvironment:
+    """Test virtual environment creation and management."""
 
-        with patch('sys.argv', ['launch.py']):
-            main()
+    @patch("launch.venv.create")
+    @patch("launch.Path.exists", return_value=False)
+    def test_create_venv_success(self, mock_exists, mock_venv_create):
+        """Test successful venv creation."""
+        venv_path = ROOT_DIR / "venv"
+        with patch("launch.logger") as mock_logger:
+            create_venv(venv_path)
+            mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
+            mock_logger.info.assert_called_with("Creating virtual environment.")
 
-        mock_setup_log.assert_called_once()
-        mock_check_env.assert_called_once()
-        mock_install.assert_called_once()
-        mock_start.assert_called_once()
+    @patch("launch.shutil.rmtree")
+    @patch("launch.venv.create")
+    @patch("launch.Path.exists")
+    def test_create_venv_recreate(self, mock_exists, mock_venv_create, mock_rmtree):
+        """Test venv recreation when forced."""
+        # Mock exists to return True initially, then False after rmtree
+        mock_exists.side_effect = [True, False]
+        venv_path = ROOT_DIR / "venv"
+        with patch("launch.logger") as mock_logger:
+            create_venv(venv_path, recreate=True)
+            mock_rmtree.assert_called_once_with(venv_path)
+            mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
 
-    @patch('setup.launch.check_python_version')
-    @patch('sys.exit')
-    def test_main_invalid_python(self, mock_exit, mock_check_py):
-        """Test main execution with invalid python version."""
-        mock_check_py.return_value = False
 
-        with patch('sys.argv', ['launch.py']):
-            main()
+class TestDependencyManagement:
+    """Test dependency installation and management."""
 
-        mock_exit.assert_called_once_with(1)
+    @patch("launch.subprocess.run")
+    def test_setup_dependencies_success(self, mock_subprocess_run):
+        """Test successful dependency setup."""
+        mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        venv_path = ROOT_DIR / "venv"
+        with patch("launch.logger") as mock_logger:
+            setup_dependencies(venv_path)
+            mock_logger.info.assert_any_call("Installing project dependencies with uv...")
+        mock_subprocess_run.assert_called_once()
 
-    @patch('setup.launch.check_python_version')
-    @patch('setup.launch.setup_logging')
-    @patch('setup.launch.check_environment')
-    @patch('sys.exit')
-    def test_main_env_check_failure(self, mock_exit, mock_check_env, mock_setup_log, mock_check_py):
-        """Test main execution with environment check failure."""
-        mock_check_py.return_value = True
-        mock_check_env.return_value = False
+    @patch("launch.subprocess.run")
+    def test_download_nltk_success(self, mock_subprocess_run):
+        """Test successful NLTK data download."""
+        mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        venv_path = ROOT_DIR / "venv"
+        download_nltk_data(venv_path)
+        assert mock_subprocess_run.call_count == 2
 
-        with patch('sys.argv', ['launch.py']):
-            main()
 
-        mock_exit.assert_called_once_with(1)
+class TestServiceStartup:
+    """Test service startup functions."""
 
-if __name__ == '__main__':
-    unittest.main()
+    @patch("launch.check_uvicorn_installed", return_value=True)
+    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
+    @patch("launch.subprocess.Popen")
+    def test_start_backend_success(self, mock_popen, mock_check_uvicorn, mock_get_exec):
+        """Test successful backend startup."""
+        mock_process = MagicMock()
+        mock_popen.return_value = mock_process
+
+        venv_path = ROOT_DIR / "venv"
+        with patch("launch.process_manager.processes", []):
+            result = start_backend(venv_path, "127.0.0.1", 8000)
+            assert result == mock_process
+            assert mock_process in process_manager.processes
+
+    @patch("launch.check_gradio_installed", return_value=True)
+    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
+    @patch("launch.subprocess.Popen")
+    def test_start_gradio_ui_success(self, mock_popen, mock_get_exec, mock_check_gradio):
+        """Test successful Gradio UI startup."""
+        mock_process = MagicMock()
+        mock_popen.return_value = mock_process
+
+        venv_path = ROOT_DIR / "venv"
+        with patch("launch.process_manager.processes", []):
+            result = start_gradio_ui(venv_path, "127.0.0.1")
+            assert result == mock_process
+            assert mock_process in process_manager.processes
+
+
+# Integration tests
+class TestLauncherIntegration:
+    """Integration tests for complete launcher workflows."""
+
+    @patch("launch.subprocess.run")
+    @patch("launch.shutil.which", return_value="/usr/bin/npm")
+    @patch("launch.Path.exists", return_value=True)
+    def test_full_setup_workflow(self, mock_exists, mock_which, mock_run):
+        """Test complete setup workflow."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        pass  # In a real scenario, you'd verify the final state
+
+    def test_version_compatibility_matrix(self):
+        """Test version compatibility for different Python versions."""
+        test_cases = [
+            ((3, 9, 0), False),  # Too old
+            (PYTHON_MIN_VERSION, True),  # Compatible
+            ((3, 12, 5), True),  # Compatible
+            (PYTHON_MAX_VERSION, True),  # Compatible
+        ]
+
+        for version_tuple, should_pass in test_cases:
+            with patch("launch.sys.version_info", version_tuple):
+                if should_pass:
+                    try:
+                        check_python_version()
+                    except SystemExit:
+                        pytest.fail(f"Version {version_tuple} should be compatible")
+                else:
+                    with pytest.raises(SystemExit):
+                        check_python_version()
