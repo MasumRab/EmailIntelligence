@@ -8,6 +8,7 @@ ignore-patterns=
     node_modules,
     .eggs,
     .*\.egg,
+    .*\.egg-info,
     build,
     dist,
     .pytest_cache,
