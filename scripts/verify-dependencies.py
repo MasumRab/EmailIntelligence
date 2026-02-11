@@ -8,15 +8,14 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+import importlib.metadata
 
 # Mappings for packages where the import name differs from the package name
+# or where legacy names are used.
 PACKAGE_MAPPINGS = {
     "python-dotenv": "dotenv",
     "python-multipart": "multipart",
@@ -30,11 +29,18 @@ PACKAGE_MAPPINGS = {
 }
 
 def get_installed_packages() -> Dict[str, str]:
-    """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    """Get a dictionary of installed packages and their versions using importlib.metadata."""
+    from packaging.utils import canonicalize_name
+    installed = {}
+    for dist in importlib.metadata.distributions():
+        name = canonicalize_name(dist.metadata["Name"])
+        version = dist.version
+        installed[name] = version
+    return installed
 
-def parse_requirements(files: List[str]) -> List[Requirement]:
+def parse_requirements(files: List[str]) -> List['Requirement']:
     """Parse requirements from multiple files."""
+    from packaging.requirements import Requirement
     requirements = []
     for file_path in files:
         if not os.path.exists(file_path):
@@ -63,7 +69,7 @@ def parse_requirements(files: List[str]) -> List[Requirement]:
                         print(f"Warning: Could not parse requirement '{line}': {e}")
     return requirements
 
-def check_compatibility(req: Requirement, installed_version: str) -> bool:
+def check_compatibility(req: 'Requirement', installed_version: str) -> bool:
     """Check if installed version satisfies the requirement."""
     if not req.specifier:
         return True
@@ -121,28 +127,48 @@ def main():
         print("Minimal dependency check passed.")
         return 0
 
+    # Import here to allow minimal check to run without packaging installed
+    try:
+        from packaging.utils import canonicalize_name
+    except ImportError:
+        print("Error: 'packaging' library is required for dependency verification.")
+        print("Please install it with: pip install packaging")
+        return 1
+
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
 
-    installed = get_installed_packages()
+    try:
+        installed = get_installed_packages()
+    except Exception as e:
+        print(f"Error getting installed packages: {e}")
+        # Graceful fallback if something is very wrong with the environment
+        installed = {}
+
     requirements = parse_requirements(args.requirements)
 
     missing_packages = []
     version_mismatches = []
 
     for req in requirements:
-        pkg_name = req.name.lower()
+        # Use canonical name for comparison
+        pkg_name = canonicalize_name(req.name)
 
-        # Check mapping if name differs
-        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        # Also handle mapped names if needed (though canonicalize usually handles dash/underscore)
+        # We check both to be safe against inconsistent naming in reqs vs metadata
+        raw_name = req.name.lower()
+        mapped_name = PACKAGE_MAPPINGS.get(raw_name)
 
-        if pkg_name not in installed and check_name not in installed:
-            missing_packages.append(req)
-        else:
-            # Get installed version (check both names)
-            installed_ver = installed.get(pkg_name) or installed.get(check_name)
-
+        if pkg_name in installed:
+            installed_ver = installed[pkg_name]
             if not check_compatibility(req, installed_ver):
                 version_mismatches.append((req, installed_ver))
+        elif mapped_name and canonicalize_name(mapped_name) in installed:
+             # Fallback to mapped name
+             installed_ver = installed[canonicalize_name(mapped_name)]
+             if not check_compatibility(req, installed_ver):
+                version_mismatches.append((req, installed_ver))
+        else:
+            missing_packages.append(req)
 
     # Report results
     success = True
