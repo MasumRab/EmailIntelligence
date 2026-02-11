@@ -1,6 +1,6 @@
 import asyncio
 import time
-import random
+import secrets
 import sys
 import os
 
@@ -28,12 +28,12 @@ async def benchmark_cache():
     print(f"Performing {n_ops} random operations (get/set) on full cache...")
     start_time = time.time()
     for _ in range(n_ops):
-        key = f"key_{random.randint(0, n_items-1)}"
+        key = f"key_{secrets.randbelow(n_items)}"
         # Get triggers move to end
         await backend.get(key)
 
         # Set new item triggers eviction since cache is full
-        new_key = f"new_key_{random.randint(0, 1000000)}"
+        new_key = f"new_key_{secrets.randbelow(1000001)}"
         await backend.set(new_key, "value")
 
     ops_time = time.time() - start_time
