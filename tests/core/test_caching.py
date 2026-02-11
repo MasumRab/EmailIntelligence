@@ -117,6 +117,32 @@ class TestMemoryCacheBackend:
         assert stats.misses == 1
         assert stats.deletes == 1
 
+    @pytest.mark.asyncio
+    async def test_lru_eviction(self):
+        """Test LRU eviction policy"""
+        config = CacheConfig(backend=CacheBackend.MEMORY, max_memory_items=3)
+        cache = CacheManager(config)
+
+        # Fill cache
+        await cache.set("k1", "v1")
+        await cache.set("k2", "v2")
+        await cache.set("k3", "v3")
+
+        # Access k1 to make it recently used
+        await cache.get("k1")
+
+        # Add new item, should evict k2 (least recently used)
+        await cache.set("k4", "v4")
+
+        assert await cache.get("k2") is None
+        assert await cache.get("k1") == "v1"
+        assert await cache.get("k3") == "v3"
+        assert await cache.get("k4") == "v4"
+
+        # Verify stats
+        stats = await cache.get_stats()
+        assert stats.evictions == 1
+
 
 class TestRedisCacheBackend:
     """Test Redis cache backend (if available)"""
