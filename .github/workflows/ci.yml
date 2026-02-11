@@ -40,6 +40,8 @@ jobs:
       
       - name: Verify system dependencies
         run: |
+          # Install packaging to ensure verify-dependencies.py works correctly
+          python -m pip install packaging
           python scripts/verify-dependencies.py --check-gpu --system-packages || true
       
       - name: Install dependencies

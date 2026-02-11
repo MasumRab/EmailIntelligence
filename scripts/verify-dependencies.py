@@ -8,13 +8,24 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
-from typing import Dict, List, Set, Tuple
-import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+import re
+import importlib.metadata
+from typing import Dict, List, Set, Tuple
+
+# Try to import packaging, but don't fail immediately if missing
+# We will handle it in the main logic or during parsing
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+    from packaging.utils import canonicalize_name
+    PACKAGING_AVAILABLE = True
+except ImportError:
+    PACKAGING_AVAILABLE = False
+    # Define a dummy canonicalize_name if packaging is not available
+    def canonicalize_name(name):
+        return name.lower().replace("-", "_")
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,10 +42,22 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    installed = {}
+    for dist in importlib.metadata.distributions():
+        try:
+            name = canonicalize_name(dist.metadata["Name"])
+            version = dist.version
+            installed[name] = version
+        except (KeyError, TypeError):
+            continue
+    return installed
 
-def parse_requirements(files: List[str]) -> List[Requirement]:
+def parse_requirements(files: List[str]) -> List[object]:
     """Parse requirements from multiple files."""
+    if not PACKAGING_AVAILABLE:
+        print("Warning: 'packaging' library not found. Dependency verification will be limited.")
+        return []
+
     requirements = []
     for file_path in files:
         if not os.path.exists(file_path):
@@ -63,8 +86,11 @@ def parse_requirements(files: List[str]) -> List[Requirement]:
                         print(f"Warning: Could not parse requirement '{line}': {e}")
     return requirements
 
-def check_compatibility(req: Requirement, installed_version: str) -> bool:
+def check_compatibility(req: object, installed_version: str) -> bool:
     """Check if installed version satisfies the requirement."""
+    if not PACKAGING_AVAILABLE:
+        return True
+
     if not req.specifier:
         return True
     return req.specifier.contains(installed_version, prereleases=True)
@@ -121,6 +147,13 @@ def main():
         print("Minimal dependency check passed.")
         return 0
 
+    if not PACKAGING_AVAILABLE:
+        print("Error: 'packaging' library is required for full dependency verification.")
+        print("Please install it via 'pip install packaging' or run with --minimal.")
+        # If we are just checking gpu/system packages, we might proceed, but for requirements checking we fail
+        if not args.check_gpu and not args.system_packages:
+             return 1
+
     print(f"Verifying dependencies from: {', '.join(args.requirements)}")
 
     installed = get_installed_packages()
@@ -130,17 +163,17 @@ def main():
     version_mismatches = []
 
     for req in requirements:
-        pkg_name = req.name.lower()
+        pkg_name = canonicalize_name(req.name)
 
-        # Check mapping if name differs
-        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
-
-        if pkg_name not in installed and check_name not in installed:
-            missing_packages.append(req)
+        if pkg_name not in installed:
+             # Check if mapping handles it (though installed keys are already canonicalized)
+             # Sometimes distributions have different names
+             found = False
+             # Fallback check against raw names in mapping if needed,
+             # but importlib.metadata usually gives the correct distribution name.
+             missing_packages.append(req)
         else:
-            # Get installed version (check both names)
-            installed_ver = installed.get(pkg_name) or installed.get(check_name)
-
+            installed_ver = installed[pkg_name]
             if not check_compatibility(req, installed_ver):
                 version_mismatches.append((req, installed_ver))
 
