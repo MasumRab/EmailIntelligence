@@ -530,6 +530,12 @@ class DatabaseManager(DataSource):
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
+    def _get_email_sort_key(self, email: Dict[str, Any]) -> str:
+        """Helper to get a consistent sort key for emails."""
+        val = email.get(FIELD_TIME, email.get(FIELD_CREATED_AT, ""))
+        # Ensure we return a string to avoid TypeErrors during sort comparison
+        return str(val) if val is not None else ""
+
     async def _sort_and_paginate_emails(
         self,
         emails: List[Dict[str, Any]],
@@ -537,19 +543,12 @@ class DatabaseManager(DataSource):
         offset: int = 0,
     ) -> List[Dict[str, Any]]:
         """Sorts and paginates a list of emails."""
-        try:
-            sorted_emails = sorted(
-                emails,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            logger.warning(
-                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
-            )
-            sorted_emails = sorted(
-                emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
+        # Use the helper for consistent, error-free sorting
+        sorted_emails = sorted(
+            emails,
+            key=self._get_email_sort_key,
+            reverse=True,
+        )
         paginated_emails = sorted_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
@@ -673,7 +672,8 @@ class DatabaseManager(DataSource):
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk.
+        Optimized with Sort-First Early-Exit strategy."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
@@ -684,36 +684,57 @@ class DatabaseManager(DataSource):
             return cached_result
 
         search_term_lower = search_term.lower()
-        filtered_emails = []
+        result_emails = []
+
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}' with limit {limit}."
         )
-        for email_light in self.emails_data:
+
+        # Optimization: Sort ALL emails by time first to enable early exit
+        # This is fast in memory (O(N log N)) compared to disk I/O
+        sorted_emails = sorted(self.emails_data, key=self._get_email_sort_key, reverse=True)
+
+        for email_light in sorted_emails:
+            # Check metadata first (fast)
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+            if found_in_light:
+                result_emails.append(self._add_category_details(email_light))
+            else:
+                # Check content (slow, potentially involves disk I/O)
+                email_id = email_light.get(FIELD_ID)
+                content_path = self._get_email_content_path(email_id)
+
+                # Check file existence first to avoid thread overhead if file missing
+                if os.path.exists(content_path):
+                    try:
+                        # Optimization: Run blocking I/O in a thread
+                        def check_content():
+                            try:
+                                with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                                    heavy_data = json.load(f)
+                                    content = heavy_data.get(FIELD_CONTENT, "")
+                                    return isinstance(content, str) and search_term_lower in content.lower()
+                            except (IOError, json.JSONDecodeError, OSError):
+                                return False
+
+                        match = await asyncio.to_thread(check_content)
+                        if match:
+                            result_emails.append(self._add_category_details(email_light))
+                    except Exception as e:
+                        logger.error(f"Error checking content for email {email_id}: {e}")
+
+            # Early Exit
+            if len(result_emails) >= limit:
+                break
 
         # Cache result
-        self.caching_manager.put_query_result(cache_key, result)
-        return result
+        self.caching_manager.put_query_result(cache_key, result_emails)
+        return result_emails
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
