@@ -29,6 +29,8 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+    "packaging>=23.0",
+    "psutil>=6.0.0",
 ]
 
 [project.optional-dependencies]
