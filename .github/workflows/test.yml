@@ -35,6 +35,7 @@ jobs:
       
       - name: Verify dependencies
         run: |
+          pip install packaging
           python scripts/verify-dependencies.py --check-gpu --system-packages
       
       - name: Install dependencies

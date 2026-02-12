@@ -8,13 +8,14 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
+import importlib.metadata
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
+from packaging.utils import canonicalize_name
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -31,7 +32,11 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    installed = {}
+    for dist in importlib.metadata.distributions():
+        name = canonicalize_name(dist.metadata["Name"])
+        installed[name] = dist.version
+    return installed
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
@@ -130,10 +135,10 @@ def main():
     version_mismatches = []
 
     for req in requirements:
-        pkg_name = req.name.lower()
+        pkg_name = canonicalize_name(req.name)
 
-        # Check mapping if name differs
-        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        # Check mapping if name differs (legacy support, though canonicalize handles most)
+        check_name = canonicalize_name(PACKAGE_MAPPINGS.get(req.name.lower(), req.name))
 
         if pkg_name not in installed and check_name not in installed:
             missing_packages.append(req)
