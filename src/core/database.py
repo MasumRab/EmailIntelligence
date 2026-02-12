@@ -672,48 +672,114 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
-    async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+    async def search_emails_with_limit(
+        self, search_term: str, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """
+        Search emails with limit and offset.
+        Uses Sort-First Early-Exit strategy and parallel content loading for performance.
+        """
         if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
+            return await self.get_emails(limit=limit, offset=offset)
 
         # Check cache
-        cache_key = f"search_{search_term}_{limit}"
+        cache_key = f"search_{search_term}_{limit}_{offset}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             return cached_result
 
         search_term_lower = search_term.lower()
-        filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting optimized email search for term: '{search_term_lower}' (limit={limit}, offset={offset})"
         )
-        for email_light in self.emails_data:
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-            )
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+        # 1. Sort-First: Create a sorted view of emails (newest first)
+        # This allows us to exit early once we find enough matches
+        try:
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            # Fallback for mixed types, similar to _sort_and_paginate_emails
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: str(e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, ""))),
+                reverse=True,
+            )
+
+        results = []
+        BATCH_SIZE = 20
+        target_count = limit + offset
+
+        # Helper for checking content in a separate thread
+        def _check_content_sync(path: str) -> bool:
+            try:
+                with gzip.open(path, "rt", encoding="utf-8") as f:
+                    heavy_data = json.load(f)
+                    content = heavy_data.get(FIELD_CONTENT, "")
+                    return isinstance(content, str) and search_term_lower in content.lower()
+            except (IOError, json.JSONDecodeError, OSError):
+                return False
+
+        # Iterate in batches to balance I/O parallelization and memory usage
+        for i in range(0, len(sorted_emails), BATCH_SIZE):
+            batch = sorted_emails[i:i + BATCH_SIZE]
+
+            # Prepare tasks for content check
+            emails_checking_content = []
+
+            # First pass: check metadata (fast, in-memory)
+            batch_matches = [False] * len(batch)
+
+            for idx, email in enumerate(batch):
+                found_in_light = (
+                    search_term_lower in email.get(FIELD_SUBJECT, "").lower()
+                    or search_term_lower in email.get(FIELD_SENDER, "").lower()
+                    or search_term_lower in email.get(FIELD_SENDER_EMAIL, "").lower()
+                )
+                if found_in_light:
+                    batch_matches[idx] = True
+                else:
+                    # Check if we should check content
+                    email_id = email.get(FIELD_ID)
+                    content_path = self._get_email_content_path(email_id)
+                    if os.path.exists(content_path):
+                        emails_checking_content.append((idx, content_path))
+
+            # Second pass: check content in parallel (I/O bound)
+            if emails_checking_content:
+                tasks = [
+                    asyncio.to_thread(_check_content_sync, path)
+                    for _, path in emails_checking_content
+                ]
+                content_results = await asyncio.gather(*tasks)
+
+                for (idx, _), is_match in zip(emails_checking_content, content_results):
+                    if is_match:
+                        batch_matches[idx] = True
+
+            # Collect results for this batch, maintaining order
+            for idx, is_match in enumerate(batch_matches):
+                if is_match:
+                    results.append(batch[idx])
+                    if len(results) >= target_count:
+                        break
+
+            # Early Exit
+            if len(results) >= target_count:
+                break
+
+        # Apply pagination
+        paginated_results = results[offset:offset + limit]
+
+        # Add category details (UI requirement)
+        final_results = [self._add_category_details(email) for email in paginated_results]
 
         # Cache result
-        self.caching_manager.put_query_result(cache_key, result)
-        return result
+        self.caching_manager.put_query_result(cache_key, final_results)
+        return final_results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
