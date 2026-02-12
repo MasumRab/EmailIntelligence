@@ -29,6 +29,10 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+
+    # Dependencies with platform-specific constraints
+    # markupsafe 3.0.2 only has wheels for cp313, causing issues on cp311
+    "markupsafe<3.0.0",
 ]
 
 [project.optional-dependencies]
