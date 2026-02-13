@@ -8,13 +8,18 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
-from typing import Dict, List, Set, Tuple
-import re
 import os
-from packaging.requirements import Requirement
-from packaging.version import parse as parse_version
+import re
+from typing import Dict, List, Set, Tuple
+from importlib.metadata import distributions, version, PackageNotFoundError
+
+try:
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+except ImportError:
+    print("Error: 'packaging' library is required. Please install it via 'pip install packaging'.")
+    sys.exit(1)
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
@@ -30,8 +35,14 @@ PACKAGE_MAPPINGS = {
 }
 
 def get_installed_packages() -> Dict[str, str]:
-    """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    """Get a dictionary of installed packages and their versions using importlib.metadata."""
+    installed = {}
+    for dist in distributions():
+        try:
+            installed[dist.metadata['Name'].lower()] = dist.version
+        except Exception:
+            pass
+    return installed
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
@@ -133,15 +144,16 @@ def main():
         pkg_name = req.name.lower()
 
         # Check mapping if name differs
-        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name).lower()
 
+        # Check if package is installed by its PyPI name or mapped import name
         if pkg_name not in installed and check_name not in installed:
             missing_packages.append(req)
         else:
             # Get installed version (check both names)
             installed_ver = installed.get(pkg_name) or installed.get(check_name)
 
-            if not check_compatibility(req, installed_ver):
+            if installed_ver and not check_compatibility(req, installed_ver):
                 version_mismatches.append((req, installed_ver))
 
     # Report results
