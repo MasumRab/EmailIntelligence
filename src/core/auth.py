@@ -11,6 +11,7 @@ import time
 import hashlib
 import secrets
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -103,10 +104,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except argon2.exceptions.VerifyMismatchError:
+    except VerifyMismatchError:
         # Password verification failed
         return False
-    except argon2.exceptions.InvalidHashError:
+    except InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
