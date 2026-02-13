@@ -15,7 +15,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from queue import Queue
+from queue import Queue, Empty
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -247,16 +247,49 @@ class AuditLogger:
 
             # Collect events from queue
             try:
-                while len(events_to_process) < 10:  # Process in batches
-                    event = self._event_queue.get(timeout=1.0)
+                # Optimized batch processing
+                while len(events_to_process) < 50:  # Process in larger batches
+                    # Use a smaller timeout for subsequent items to avoid stalling on partial batches
+                    timeout = 1.0 if not events_to_process else 0.1
+                    event = self._event_queue.get(timeout=timeout)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except asyncio.TimeoutError:
+            except Empty:
                 pass  # No events available
 
             # Write events
-            for event in events_to_process:
-                self._write_event_immediate(event)
+            if events_to_process:
+                self._write_batch(events_to_process)
+
+    def _write_batch(self, events: List[AuditEvent]):
+        """Write a batch of events efficiently."""
+        if not events:
+            return
+
+        try:
+            # Write to text log
+            with open(self.log_file, "a", encoding="utf-8") as f:
+                for event in events:
+                    log_line = (
+                        f"[{event.timestamp}] {event.severity.value.upper()} "
+                        f"{event.event_type.value} user={event.user_id or 'anonymous'} "
+                        f"resource={event.resource or 'unknown'} action='{event.action}' "
+                        f"result={event.result}"
+                    )
+
+                    if event.details:
+                        log_line += f" details={event.details}"
+
+                    f.write(log_line + "\n")
+
+            # Write to JSON log
+            with open(self.json_file, "a", encoding="utf-8") as f:
+                for event in events:
+                    json.dump(event.to_dict(), f, ensure_ascii=False)
+                    f.write("\n")
+
+        except Exception as e:
+            logger.error(f"Failed to write audit batch of {len(events)} events: {e}")
 
     def _write_event_immediate(self, event: AuditEvent):
         """Write a single event immediately."""
@@ -295,7 +328,7 @@ class AuditLogger:
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
-        except asyncio.TimeoutError:
+        except Empty:
             pass
 
         if self._processing_thread.is_alive():
