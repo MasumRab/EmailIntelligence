@@ -9,7 +9,7 @@ url = "https://download.pytorch.org/whl/cpu"
 name = "emailintelligence"
 version = "0.2.0"
 description = "Email Intelligence with optimized dependencies for system-managed Python environments"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 
 # Core dependencies only - always required
 dependencies = [
@@ -29,6 +29,9 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+
+    # System monitoring
+    "psutil>=6.0.0",
 ]
 
 [project.optional-dependencies]
