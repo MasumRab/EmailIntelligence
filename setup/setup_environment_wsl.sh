@@ -213,8 +213,8 @@ python -c "
 import nltk
 import textblob
 try:
-    import pkg_resources
-    tb_version = pkg_resources.get_distribution('textblob').version
+    from importlib.metadata import version
+    tb_version = version('textblob')
 except:
     tb_version = 'unknown'
 print(f'nltk version: {nltk.__version__}')

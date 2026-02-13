@@ -8,11 +8,11 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
+from importlib.metadata import distributions
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
 
@@ -31,7 +31,7 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    return {dist.metadata['Name'].lower(): dist.version for dist in distributions()}
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
