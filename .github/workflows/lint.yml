@@ -29,6 +29,10 @@ jobs:
           python-version: "3.11"
           cache: 'pip'
       
+      - name: Install packaging for verification
+        run: |
+          pip install packaging
+
       - name: Verify dependencies
         run: |
           python scripts/verify-dependencies.py --minimal
