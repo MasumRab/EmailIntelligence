@@ -5,6 +5,7 @@ JSON file storage implementation with in-memory caching and indexing.
 
 import asyncio
 import gzip
+import itertools
 import json
 import logging
 import os
@@ -173,6 +174,17 @@ class DatabaseManager(DataSource):
         """Synchronously reads and parses the content file. Helper for asyncio.to_thread."""
         with gzip.open(content_path, "rt", encoding="utf-8") as f:
             return json.load(f)
+
+    def _read_batch_content_sync(self, file_paths: List[str]) -> List[Any]:
+        """Synchronously reads multiple content files. Helper for batched asyncio.to_thread."""
+        results = []
+        for path in file_paths:
+            try:
+                with gzip.open(path, "rt", encoding="utf-8") as f:
+                    results.append(json.load(f))
+            except Exception as e:
+                results.append(e)
+        return results
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
@@ -752,44 +764,95 @@ class DatabaseManager(DataSource):
             f"Starting email search for term: '{search_term_lower}'"
         )
 
-        for email_light in source_emails:
+        # Batch processing for parallel disk I/O
+        # Using a batch size of 50 to maximize throughput in a single thread task
+        BATCH_SIZE = 50
+
+        def chunked_iterable(iterable, size):
+            it = iter(iterable)
+            while True:
+                chunk = tuple(itertools.islice(it, size))
+                if not chunk:
+                    break
+                yield chunk
+
+        for batch in chunked_iterable(source_emails, BATCH_SIZE):
             if len(filtered_emails) >= limit:
                 break
 
-            email_id = email_light[FIELD_ID]
+            # Store results for this batch: None means not determined yet
+            # We use a list to preserve order
+            batch_results = [None] * len(batch)
+            files_to_read = []
+            indices_to_read = []
 
-            # Use search index if available for O(1) text access instead of repeated .lower()
-            if email_id in self._search_index:
-                found_in_light = search_term_lower in self._search_index[email_id]
-            else:
-                found_in_light = (
-                    search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                    or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                    or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
-                )
+            # 1. In-memory and Cache Checks
+            for i, email_light in enumerate(batch):
+                email_id = email_light[FIELD_ID]
 
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
+                # Check Metadata
+                if email_id in self._search_index:
+                    found = search_term_lower in self._search_index[email_id]
+                else:
+                    found = (
+                        search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+                        or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+                        or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+                    )
 
-            # Check content cache first to avoid disk I/O
-            cached_content = self.caching_manager.get_email_content(email_id)
-            if cached_content:
-                content = cached_content.get(FIELD_CONTENT, "")
-                if isinstance(content, str) and search_term_lower in content.lower():
-                    filtered_emails.append(email_light)
-                continue
+                if found:
+                    batch_results[i] = True
+                    continue
 
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                    content = heavy_data.get(FIELD_CONTENT, "")
+                # Check Content Cache
+                cached_content = self.caching_manager.get_email_content(email_id)
+                if cached_content:
+                    content = cached_content.get(FIELD_CONTENT, "")
                     if isinstance(content, str) and search_term_lower in content.lower():
-                        filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+                        batch_results[i] = True
+                    else:
+                        batch_results[i] = False
+                    continue
+
+                # Needs Disk Read
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    files_to_read.append(content_path)
+                    indices_to_read.append(i)
+                else:
+                    batch_results[i] = False
+
+            # 2. Parallel Disk Reads (Batched Sequential in Thread)
+            if files_to_read:
+                try:
+                    # Run all reads in a single thread to reduce event loop overhead and context switching
+                    read_results = await asyncio.to_thread(self._read_batch_content_sync, files_to_read)
+
+                    for idx_in_batch, result in zip(indices_to_read, read_results):
+                        if isinstance(result, Exception):
+                            # Only log unexpected errors, not simple read failures if any
+                            # But here result is likely IOError or similar if failed
+                            logger.error(
+                                f"Could not search content for email {batch[idx_in_batch][FIELD_ID]}: {result}"
+                            )
+                            batch_results[idx_in_batch] = False
+                            continue
+
+                        content = result.get(FIELD_CONTENT, "")
+                        if isinstance(content, str) and search_term_lower in content.lower():
+                            batch_results[idx_in_batch] = True
+                        else:
+                            batch_results[idx_in_batch] = False
+
+                except Exception as e:
+                    logger.error(f"Error during parallel search: {e}")
+
+            # 3. Aggregation (preserving order)
+            for i, matched in enumerate(batch_results):
+                if matched:
+                    filtered_emails.append(batch[i])
+                    if len(filtered_emails) >= limit:
+                        break
 
         # Results are already sorted because we iterated source_emails (which is sorted)
         results = [self._add_category_details(email) for email in filtered_emails]

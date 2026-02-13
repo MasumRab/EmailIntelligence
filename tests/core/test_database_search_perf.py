@@ -80,8 +80,8 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
         # Verify to_thread was called with the helper
         found_call = False
         for call in mock_to_thread.call_args_list:
-            if call.args and getattr(call.args[0], "__name__", "") == "_read_content_sync":
+            if call.args and getattr(call.args[0], "__name__", "") == "_read_batch_content_sync":
                 found_call = True
                 break
 
-        assert found_call, "asyncio.to_thread should have been called with _read_content_sync"
+        assert found_call, "asyncio.to_thread should have been called with _read_batch_content_sync"
