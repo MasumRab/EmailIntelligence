@@ -520,7 +520,7 @@ class PathValidator:
             return False
 
     @staticmethod
-    def validate_and_resolve_db_path(db_path: Union[str, Path], 
+    def validate_and_resolve_db_path(db_path: Union[str, Path],
                                    allowed_dir: Optional[Union[str, Path]] = None) -> Path:
         """
         Validate and resolve a database path with security checks
@@ -579,12 +579,12 @@ class PathValidator:
         """
         # Remove any path traversal attempts and dangerous characters
         sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
-        
+
         # Also avoid names that might be problematic on various systems
         if sanitized.upper() in ['CON', 'PRN', 'AUX', 'NUL'] or \
            sanitized.upper().startswith(('COM', 'LPT')):
             sanitized = f"_{sanitized}"
-            
+
         return sanitized
 
 
@@ -657,15 +657,15 @@ def sanitize_path(
         # instead of simple string replacement
         base_path = pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()
         input_path = pathlib.Path(path_str)
-        
+
         # Resolve the path to handle relative paths and symbolic links
         resolved_path = input_path.resolve()
-        
+
         # Verify that the resolved path is within the allowed base directory
         if base_dir and not resolved_path.is_relative_to(base_path):
             logger.warning(f"Path escapes base directory: {path_str}")
             return None
-        
+
         # Normalize path separators
         normalized_path = str(resolved_path).replace("\\", "/")
 

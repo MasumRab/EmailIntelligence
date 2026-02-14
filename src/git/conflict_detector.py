@@ -40,14 +40,14 @@ class Conflict:
 
 class GitConflictDetector:
     """Detects git conflicts in a repository"""
-    
+
     def __init__(self, repo_path: str = "."):
         self.repo_path = Path(repo_path)
-    
+
     def detect_conflicts(self) -> List[Conflict]:
         """Detect all conflicts in the repository"""
         conflicts = []
-        
+
         # Look for files with conflict markers
         for file_path in self._get_tracked_files():
             conflict_blocks = self._find_conflict_markers(file_path)
@@ -59,49 +59,49 @@ class GitConflictDetector:
                     severity=self._determine_severity(conflict_blocks)
                 )
                 conflicts.append(conflict)
-        
+
         return conflicts
-    
+
     def _get_tracked_files(self) -> List[Path]:
         """Get list of tracked files in the repository"""
         import subprocess
         try:
             result = subprocess.run(
-                ["git", "ls-files"], 
-                cwd=self.repo_path, 
-                capture_output=True, 
-                text=True, 
+                ["git", "ls-files"],
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True,
                 check=True
             )
             return [self.repo_path / f for f in result.stdout.strip().split('\n') if f]
         except subprocess.CalledProcessError:
             return []
-    
+
     def _find_conflict_markers(self, file_path: Path) -> List[ConflictBlock]:
         """Find conflict markers in a file"""
         if not file_path.exists():
             return []
-        
+
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
         except UnicodeDecodeError:
             # Skip binary files
             return []
-        
+
         conflict_blocks = []
         i = 0
-        
+
         while i < len(lines):
             line = lines[i].strip()
-            
+
             if line.startswith("<<<<<<<"):
                 # Found start of conflict block
                 start_line = i
                 content_before = []
                 content_after = []
                 content_common = []
-                
+
                 # Collect content before conflict
                 j = i + 1
                 while j < len(lines):
@@ -117,7 +117,7 @@ class GitConflictDetector:
                     # Reached end without finding separator
                     i = j
                     continue
-                
+
                 # Collect content after conflict (from ======= to >>>>>>>)
                 k = j + 1
                 while k < len(lines):
@@ -130,7 +130,7 @@ class GitConflictDetector:
                     # Reached end without finding end marker
                     i = k
                     continue
-                
+
                 # Create conflict block
                 conflict_block = ConflictBlock(
                     start_line=start_line,
@@ -141,13 +141,13 @@ class GitConflictDetector:
                     content_common=content_common
                 )
                 conflict_blocks.append(conflict_block)
-                
+
                 i = k + 1  # Move past the conflict block
             else:
                 i += 1
-        
+
         return conflict_blocks
-    
+
     def _determine_severity(self, conflict_blocks: List[ConflictBlock]) -> str:
         """Determine severity based on conflict characteristics"""
         if len(conflict_blocks) > 5:

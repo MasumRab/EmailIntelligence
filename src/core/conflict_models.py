@@ -51,7 +51,7 @@ class Conflict:
     resolution_strategy: str = ""
     affected_components: List[str] = None
     estimated_resolution_time: int = 0  # in minutes
-    
+
     def __post_init__(self):
         if self.affected_components is None:
             self.affected_components = []

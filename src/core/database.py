@@ -157,7 +157,16 @@ class DatabaseManager(DataSource):
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
-        return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
+        # Ensure email_id is treated as string for validation, but it should be numeric.
+        # We validate the resulting path to be safe.
+        filename = f"{email_id}.json.gz"
+        if not validate_path_safety(filename, self.email_content_dir):
+             logger.warning(f"Potentially unsafe path detected for email_id: {email_id}")
+             # Fallback or raise? Raising might break if existing data is weird,
+             # but strictly we shouldn't allow traversal.
+             # Given email_id is usually generated int, sanitize might be enough.
+             filename = sanitize_path(filename)
+        return os.path.join(self.email_content_dir, filename)
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
@@ -178,7 +187,7 @@ class DatabaseManager(DataSource):
                 with gzip.open(content_path, "rt", encoding="utf-8") as f:
                     heavy_data = await asyncio.to_thread(json.load, f)
                     full_email.update(heavy_data)
-                    
+
                     # Cache the content
                     self.caching_manager.put_email_content(email_id, heavy_data)
             except (IOError, json.JSONDecodeError) as e:
@@ -246,6 +255,9 @@ class DatabaseManager(DataSource):
         ]:
             try:
                 if os.path.exists(file_path):
+                    if not validate_path_safety(file_path, self.data_dir):
+                        raise IOError(f"Unsafe file path detected: {file_path}")
+
                     with gzip.open(file_path, "rt", encoding="utf-8") as f:
                         data = await asyncio.to_thread(json.load, f)
                         setattr(self, data_list_attr, data)
@@ -304,6 +316,9 @@ class DatabaseManager(DataSource):
             return
 
         try:
+            if not validate_path_safety(file_path, self.data_dir):
+                raise IOError(f"Unsafe file path detected for save: {file_path}")
+
             with gzip.open(file_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, data_to_save, f, indent=4)
                 await asyncio.to_thread(dump_func)
@@ -333,11 +348,11 @@ class DatabaseManager(DataSource):
         for data_type in list(self._dirty_data):
             await self._save_data_to_file(data_type)
         self._dirty_data.clear()
-        
+
         # Log cache statistics
         cache_stats = self.caching_manager.get_cache_statistics()
         logger.info(f"Cache statistics: {cache_stats}")
-        
+
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
@@ -458,7 +473,7 @@ class DatabaseManager(DataSource):
         cached_email = self.caching_manager.get_email_record(email_id)
         if cached_email is not None and not include_content:
             return self._add_category_details(cached_email.copy())
-        
+
         email_light = self.emails_by_id.get(email_id)
         if not email_light:
             return None
@@ -470,18 +485,18 @@ class DatabaseManager(DataSource):
                 email_full = email_light.copy()
                 email_full.update(cached_content)
                 return self._add_category_details(email_full)
-            
+
             email_full = await self._load_and_merge_content(email_light)
-            
+
             # Cache the content
             heavy_fields = {k: v for k, v in email_full.items() if k in HEAVY_EMAIL_FIELDS}
             if heavy_fields:
                 self.caching_manager.put_email_content(email_id, heavy_fields)
-            
+
             result = self._add_category_details(email_full)
         else:
             result = self._add_category_details(email_light.copy())
-        
+
         # Cache the email record
         self.caching_manager.put_email_record(email_id, email_light)
         return result
@@ -623,10 +638,10 @@ class DatabaseManager(DataSource):
                     await self._update_category_count(original_category_id, decrement=True)
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
-            
+
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
-            
+
             # Clear query cache as data has changed
             self.caching_manager.clear_query_cache()
 
@@ -638,12 +653,12 @@ class DatabaseManager(DataSource):
         """Get email by messageId using in-memory index, with option to load heavy content."""
         if not message_id:
             return None
-            
+
         # Find email_id from message_id to use with caching
         email_light = self.emails_by_message_id.get(message_id)
         if not email_light:
             return None
-            
+
         email_id = email_light.get(FIELD_ID)
         if not email_id:
             # Fallback to original method if no ID
@@ -652,7 +667,7 @@ class DatabaseManager(DataSource):
                 return self._add_category_details(email_full)
             else:
                 return self._add_category_details(email_light.copy())
-        
+
         # Use the enhanced caching with email_id
         return await self.get_email_by_id(email_id, include_content)
 
@@ -672,48 +687,84 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
-    async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+    async def search_emails_with_limit(
+        self, search_term: str, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """
+        Search emails with limit and offset parameter using Sort-First Early-Exit strategy.
+        Searches subject/sender in-memory, and content on-disk.
+        """
         if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
+            return await self.get_emails(limit=limit, offset=offset)
 
         # Check cache
-        cache_key = f"search_{search_term}_{limit}"
+        cache_key = f"search_{search_term}_{limit}_{offset}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             return cached_result
 
         search_term_lower = search_term.lower()
-        filtered_emails = []
-        logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
-        )
-        for email_light in self.emails_data:
+
+        # Sort emails first (Sort-First strategy)
+        try:
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_CREATED_AT, ""),
+                reverse=True
+            )
+
+        result_emails = []
+        skipped_count = 0
+
+        # Generator for light filtering
+        for email_light in sorted_emails:
+            # Stop if we have enough
+            if len(result_emails) >= limit:
+                break
+
+            # Light check (in-memory)
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+            is_match = False
+            if found_in_light:
+                is_match = True
+            else:
+                # Heavy check (on-disk)
+                email_id = email_light.get(FIELD_ID)
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    try:
+                        # Use asyncio.to_thread for I/O to check content without blocking
+                        def check_content():
+                            with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                                heavy_data = json.load(f)
+                                content = heavy_data.get(FIELD_CONTENT, "")
+                                return isinstance(content, str) and search_term_lower in content.lower()
+
+                        if await asyncio.to_thread(check_content):
+                            is_match = True
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not search content for email {email_id}: {e}")
+
+            if is_match:
+                if skipped_count < offset:
+                    skipped_count += 1
+                    continue
+                result_emails.append(self._add_category_details(email_light))
 
         # Cache result
-        self.caching_manager.put_query_result(cache_key, result)
-        return result
+        self.caching_manager.put_query_result(cache_key, result_emails)
+        return result_emails
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -801,7 +852,7 @@ class DatabaseManager(DataSource):
                 email_id = int(email_id)
             except ValueError:
                 return False
-        
+
         email = await self.get_email_by_id(email_id)
         if not email:
             return False
@@ -820,7 +871,7 @@ class DatabaseManager(DataSource):
                 email_id = int(email_id)
             except ValueError:
                 return False
-        
+
         email = await self.get_email_by_id(email_id)
         if not email:
             return False

@@ -13,7 +13,7 @@ def test_context_manager_protocol():
         assert isinstance(manager, WorkflowContextManager)
         manager.start_workflow("test")
         assert manager.current_workflow == "test"
-    
+
     # After exit, it should be cleared
     assert manager.current_workflow is None
 

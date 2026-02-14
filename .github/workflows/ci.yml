@@ -41,7 +41,7 @@ jobs:
       - name: Verify system dependencies
         run: |
           python scripts/verify-dependencies.py --check-gpu --system-packages || true
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

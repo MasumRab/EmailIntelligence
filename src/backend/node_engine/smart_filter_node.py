@@ -14,7 +14,7 @@ from src.backend.python_nlp.smart_filters import SmartFilterManager
 class SmartFilterNode(BaseNode):
     """
     A node that applies smart filtering to emails using the SmartFilterManager.
-    
+
     This node takes a list of emails and applies intelligent filtering based on
     learned patterns and user preferences.
     """
@@ -92,12 +92,12 @@ class SmartFilterNode(BaseNode):
         for email in emails:
             # Apply filters to the email
             filter_result = self.filter_manager.apply_filters_to_email_data(email)
-            
+
             # If the email matches any filters, add it to the filtered list
             if filter_result["filters_matched"]:
                 filtered_emails.append(email)
                 matched_filters.extend(filter_result["filters_matched"])
-        
+
         stats["filtered_emails"] = len(filtered_emails)
         stats["matched_filters_count"] = len(set(matched_filters))  # Count unique matched filters
 

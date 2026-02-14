@@ -128,10 +128,10 @@ class SmartFilterManager:
         self._init_filter_db()
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
-        
+
         # Enhanced caching system
         self.caching_manager = get_cache_manager()
-        
+
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
@@ -318,7 +318,7 @@ class SmartFilterManager:
             A list of the newly created `EmailFilter` objects.
         """
         await self._ensure_initialized()
-        
+
         created_filters = []
         patterns = self._analyze_email_patterns(email_samples)
         template_filters = await self._create_filters_from_templates(patterns)
@@ -407,21 +407,21 @@ class SmartFilterManager:
     async def _create_custom_filters(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
         """Creates custom filters based on frequently observed patterns."""
         filters = []
-        
+
         # Create filter based on frequent sender domains
         for domain, count in patterns["sender_domains"].most_common(3):
             if count >= 3:  # Only create if domain appears in 3+ emails
                 filter_obj = self._create_domain_filter(domain)
                 await self._save_filter_async(filter_obj)
                 filters.append(filter_obj)
-        
+
         # Create filter based on frequent subject keywords
         for keyword, count in patterns["subject_keywords"].most_common(5):
             if count >= 2:  # Only create if keyword appears in 2+ emails
                 filter_obj = self._create_keyword_filter(keyword)
                 await self._save_filter_async(filter_obj)
                 filters.append(filter_obj)
-        
+
         return filters
 
     def _create_domain_filter(self, domain: str) -> EmailFilter:
@@ -485,7 +485,7 @@ class SmartFilterManager:
             The newly created `EmailFilter` object.
         """
         await self._ensure_initialized()
-        
+
         filter_id = f"custom_{name.replace(' ', '_')}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
         new_filter = EmailFilter(
             filter_id=filter_id,
@@ -514,10 +514,10 @@ class SmartFilterManager:
             A dictionary summarizing the results of the pruning process.
         """
         await self._ensure_initialized()
-        
+
         pruned_filters = []
         disabled_filters = []
-        
+
         active_filters = await self.get_active_filters_sorted()
         for filter_obj in active_filters:
             decision = await self._evaluate_filter_for_pruning(filter_obj)
@@ -535,47 +535,47 @@ class SmartFilterManager:
         # Check effectiveness score
         if filter_obj.effectiveness_score < self.pruning_criteria["effectiveness_threshold"]:
             return "disable"
-        
+
         # Check usage count
         if filter_obj.usage_count < self.pruning_criteria["usage_threshold"]:
             # Check age - if filter is old and not used much, consider for pruning
             age_days = (datetime.now(timezone.utc) - filter_obj.created_at).days
             if age_days > self.pruning_criteria["age_threshold_days"]:
                 return "prune"
-        
+
         return "keep"
 
     async def _apply_filter_to_email(self, filter_obj: EmailFilter, email_context: Dict[str, Any]) -> bool:
         """Applies a single filter's criteria to an email using pre-computed context."""
         email = email_context["email"]
         criteria = filter_obj.criteria
-        
+
         # Check sender domain criteria
         if "sender_domain" in criteria:
             if email_context["sender_domain"] != criteria["sender_domain"]:
                 return False
-        
+
         # Check subject keywords
         if "subject_keywords" in criteria:
             # We use pre-computed lowercase subject
             subject = email_context["subject_lower"]
             if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
                 return False
-        
+
         # Check content keywords
         if "content_keywords" in criteria:
             # We use pre-computed lowercase content
             content = email_context["content_lower"]
             if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
                 return False
-        
+
         # Check from patterns
         if "from_patterns" in criteria:
             # We use pre-computed lowercase sender
             sender_email = email_context["sender_lower"]
             if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
                 return False
-        
+
         return True
 
     async def _save_filter_async(self, filter_obj: EmailFilter):
@@ -599,7 +599,7 @@ class SmartFilterManager:
             filter_obj.is_active,
         )
         self._db_execute(query, params)
-        
+
         # Update cache
         cache_key = f"filter_{filter_obj.filter_id}"
         await self.caching_manager.set(cache_key, filter_obj)
@@ -608,7 +608,7 @@ class SmartFilterManager:
     async def get_active_filters_sorted(self) -> List[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
         await self._ensure_initialized()
-        
+
         # Check cache first
         cache_key = "active_filters_sorted"
         cached_result = await self.caching_manager.get(cache_key)
@@ -636,10 +636,10 @@ class SmartFilterManager:
             )
             for row in rows
         ]
-        
+
         # Cache the result
         await self.caching_manager.set(cache_key, filters)
-        
+
         return filters
 
     @log_performance(operation="apply_filters_to_email")
@@ -654,12 +654,12 @@ class SmartFilterManager:
             A dictionary summarizing the matched filters and actions taken.
         """
         await self._ensure_initialized()
-        
+
         summary = {"filters_matched": [], "actions_taken": [], "categories": []}
-        
+
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
-        
+
         # Pre-compute email context for optimization
         # hoisting invariant calculations out of the loop
         sender_email = email_data.get("sender_email", email_data.get("sender", ""))
@@ -682,7 +682,7 @@ class SmartFilterManager:
                         "name": filter_obj.name,
                         "priority": filter_obj.priority
                     })
-                    
+
                     matched_filter_ids.append(filter_obj.filter_id)
 
                     # Execute actions
@@ -696,7 +696,7 @@ class SmartFilterManager:
                         elif action_key == "move_to_folder":
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
-                    
+
             except Exception as e:
                 error_context = create_error_context(
                     component="SmartFilterManager",
@@ -710,14 +710,14 @@ class SmartFilterManager:
                     context=error_context
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
-        
+
         # Batch update usage stats
         if matched_filter_ids:
             await self._batch_update_filter_usage(matched_filter_ids)
 
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
-        
+
         return summary
 
     async def _batch_update_filter_usage(self, filter_ids: List[str]):
@@ -750,7 +750,7 @@ class SmartFilterManager:
         """
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
-        
+
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
 
@@ -758,7 +758,7 @@ class SmartFilterManager:
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
         """Retrieves a specific filter by its ID."""
         await self._ensure_initialized()
-        
+
         # Check cache first
         cache_key = f"filter_{filter_id}"
         cached_result = await self.caching_manager.get(cache_key)
@@ -768,10 +768,10 @@ class SmartFilterManager:
         row = self._db_fetchone(
             "SELECT * FROM email_filters WHERE filter_id = ?", (filter_id,)
         )
-        
+
         if not row:
             return None
-            
+
         filter_obj = EmailFilter(
             filter_id=row["filter_id"],
             name=row["name"],
@@ -787,17 +787,17 @@ class SmartFilterManager:
             performance_metrics=json.loads(row["performance_metrics"]),
             is_active=bool(row["is_active"]),
         )
-        
+
         # Cache the result
         await self.caching_manager.set(cache_key, filter_obj)
-        
+
         return filter_obj
 
     @log_performance(operation="update_filter")
     async def update_filter(self, filter_id: str, **kwargs) -> bool:
         """Updates a filter's properties."""
         await self._ensure_initialized()
-        
+
         # Get the existing filter
         existing_filter = await self.get_filter_by_id(filter_id)
         if not existing_filter:
@@ -810,56 +810,56 @@ class SmartFilterManager:
 
         # Save the updated filter
         await self._save_filter_async(existing_filter)
-        
+
         # Invalidate cache
         await self.caching_manager.delete(f"filter_{filter_id}")
         await self.caching_manager.delete("active_filters_sorted")
-        
+
         return True
 
     @log_performance(operation="update_filter_status")
     async def update_filter_status(self, filter_id: str, is_active: bool) -> bool:
         """Updates a filter's active status."""
         await self._ensure_initialized()
-        
+
         update_query = "UPDATE email_filters SET is_active = ? WHERE filter_id = ?"
         self._db_execute(update_query, (is_active, filter_id))
-        
+
         # Invalidate cache
         await self.caching_manager.delete(f"filter_{filter_id}")
         await self.caching_manager.delete("active_filters_sorted")
-        
+
         return True
 
     @log_performance(operation="delete_filter")
     async def delete_filter(self, filter_id: str) -> bool:
         """Deletes a filter from the system."""
         await self._ensure_initialized()
-        
+
         delete_query = "DELETE FROM email_filters WHERE filter_id = ?"
         self._db_execute(delete_query, (filter_id,))
-        
+
         # Also delete associated performance data
         delete_perf_query = "DELETE FROM filter_performance WHERE filter_id = ?"
         self._db_execute(delete_perf_query, (filter_id,))
-        
+
         # Invalidate cache
         await self.caching_manager.delete(f"filter_{filter_id}")
         await self.caching_manager.delete("active_filters_sorted")
-        
+
         return True
 
     @log_performance(operation="get_filters_by_category")
     async def get_filters_by_category(self, category: str) -> List[EmailFilter]:
         """Retrieves filters that are associated with a specific category."""
         await self._ensure_initialized()
-        
+
         # This looks for filters that have actions related to the category
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE actions LIKE ? AND is_active = 1",
             (f'%{category}%',)
         )
-        
+
         filters = [
             EmailFilter(
                 filter_id=row["filter_id"],
@@ -878,7 +878,7 @@ class SmartFilterManager:
             )
             for row in rows
         ]
-        
+
         return filters
 
     async def cleanup(self):

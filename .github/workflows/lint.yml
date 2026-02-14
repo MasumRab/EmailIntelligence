@@ -32,7 +32,7 @@ jobs:
       - name: Verify dependencies
         run: |
           python scripts/verify-dependencies.py --minimal
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

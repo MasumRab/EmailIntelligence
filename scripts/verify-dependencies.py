@@ -8,11 +8,13 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
+import subprocess
+import importlib.metadata
+from pathlib import Path
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
 
@@ -29,14 +31,46 @@ PACKAGE_MAPPINGS = {
     # Add other mappings as needed
 }
 
+def validate_path_safety(path: str) -> bool:
+    """
+    Validate that a path is safe and doesn't contain directory traversal attempts.
+    """
+    try:
+        path_obj = Path(path).resolve()
+
+        # Check if the path exists (we only read files)
+        if not path_obj.exists():
+            # If it doesn't exist, we can't fully validate it against FS, but we can check logic
+            pass
+
+        # Ensure it's within the current working directory or a subdirectory
+        cwd = Path.cwd().resolve()
+        if not path_obj.is_relative_to(cwd):
+            print(f"Warning: Path {path} is outside current directory")
+            return False
+
+        return True
+    except Exception as e:
+        print(f"Error validating path: {e}")
+        return False
+
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    packages = {}
+    for dist in importlib.metadata.distributions():
+        name = dist.metadata["Name"]
+        if name:
+            packages[name.lower()] = dist.version
+    return packages
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
     requirements = []
     for file_path in files:
+        if not validate_path_safety(file_path):
+            print(f"Warning: Skipping unsafe path: {file_path}")
+            continue
+
         if not os.path.exists(file_path):
             print(f"Warning: Requirements file not found: {file_path}")
             continue
@@ -91,10 +125,10 @@ def verify_system_packages():
     print("\nVerifying system packages...")
 
     # Check for git
-    exit_code = os.system("git --version > /dev/null 2>&1")
-    if exit_code == 0:
+    try:
+        subprocess.run(["git", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         print("git: Installed")
-    else:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         print("git: Missing")
         return False
 
