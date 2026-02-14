@@ -673,7 +673,13 @@ class DatabaseManager(DataSource):
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """
+        Search emails with limit parameter.
+        Optimized strategy: "Sort-First Early-Exit".
+        1. Sort all emails by date (newest first).
+        2. Iterate and match (memory first, then disk).
+        3. Stop as soon as 'limit' matches are found.
+        """
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
@@ -686,34 +692,71 @@ class DatabaseManager(DataSource):
         search_term_lower = search_term.lower()
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'. Using Sort-First Early-Exit strategy."
         )
-        for email_light in self.emails_data:
+
+        # 1. Sort all emails by date (newest first)
+        # This mirrors the logic in _sort_and_paginate_emails
+        try:
+            sorted_candidates = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            sorted_candidates = sorted(
+                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
+        # 2. Iterate and match
+        for email_light in sorted_candidates:
+            # Check early exit condition
+            if len(filtered_emails) >= limit:
+                break
+
+            # Check in-memory fields first
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
+
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
+
+            # Check heavy content on disk (non-blocking)
             email_id = email_light.get(FIELD_ID)
             content_path = self._get_email_content_path(email_id)
+
             if os.path.exists(content_path):
                 try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+                    is_match = await asyncio.to_thread(
+                        self._check_content_match_sync, content_path, search_term_lower
+                    )
+                    if is_match:
+                        filtered_emails.append(email_light)
+                except Exception as e:
+                    # Log but continue searching
+                    logger.debug(f"Error searching content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+        # No need to sort again, we iterated in sorted order.
+        # Just need to add category details.
+        result = [self._add_category_details(email) for email in filtered_emails]
 
         # Cache result
         self.caching_manager.put_query_result(cache_key, result)
         return result
+
+    def _check_content_match_sync(self, content_path: str, search_term_lower: str) -> bool:
+        """Helper to check content match synchronously (run in thread)."""
+        try:
+            with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                heavy_data = json.load(f)
+                content = heavy_data.get(FIELD_CONTENT, "")
+                return isinstance(content, str) and search_term_lower in content.lower()
+        except (IOError, json.JSONDecodeError):
+            return False
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
