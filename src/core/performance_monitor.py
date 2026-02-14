@@ -26,6 +26,13 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import psutil
 
+try:
+    from src.core.security import validate_path_safety
+except ImportError:
+    # Fallback if security module is not available (e.g. during standalone testing)
+    def validate_path_safety(path, base_dir=None):
+        return True
+
 logger = logging.getLogger(__name__)
 
 
@@ -100,7 +107,12 @@ class OptimizedPerformanceMonitor:
 
         # Create logs directory securely
         try:
-            self.log_file.parent.mkdir(parents=True, exist_ok=True)
+            if validate_path_safety(self.log_file):
+                self.log_file.parent.mkdir(parents=True, exist_ok=True)
+            else:
+                logger.error(f"Unsafe log file path: {self.log_file}")
+                # Fallback to a safe location or disable logging
+                self.log_file = Path("performance_metrics.log")
         except OSError as e:
             logger.error(f"Failed to create log directory: {e}")
 
@@ -422,6 +434,11 @@ class OptimizedPerformanceMonitor:
     def _flush_to_disk(self):
         """Flush aggregated metrics to disk."""
         try:
+            # Validate path before opening (security hotspot fix)
+            if not validate_path_safety(self.log_file):
+                logger.error(f"Skipping write to unsafe log file: {self.log_file}")
+                return
+
             with open(self.log_file, "a", encoding="utf-8") as f:
                 for metric in self._aggregated_metrics.values():
                     json.dump(asdict(metric), f, ensure_ascii=False)

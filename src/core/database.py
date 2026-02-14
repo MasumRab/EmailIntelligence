@@ -255,6 +255,9 @@ class DatabaseManager(DataSource):
         ]:
             try:
                 if os.path.exists(file_path):
+                    if not validate_path_safety(file_path, self.data_dir):
+                        raise IOError(f"Unsafe file path detected: {file_path}")
+
                     with gzip.open(file_path, "rt", encoding="utf-8") as f:
                         data = await asyncio.to_thread(json.load, f)
                         setattr(self, data_list_attr, data)
@@ -313,6 +316,9 @@ class DatabaseManager(DataSource):
             return
 
         try:
+            if not validate_path_safety(file_path, self.data_dir):
+                raise IOError(f"Unsafe file path detected for save: {file_path}")
+
             with gzip.open(file_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, data_to_save, f, indent=4)
                 await asyncio.to_thread(dump_func)
