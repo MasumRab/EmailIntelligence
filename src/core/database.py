@@ -157,7 +157,16 @@ class DatabaseManager(DataSource):
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
-        return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
+        # Ensure email_id is treated as string for validation, but it should be numeric.
+        # We validate the resulting path to be safe.
+        filename = f"{email_id}.json.gz"
+        if not validate_path_safety(filename, self.email_content_dir):
+             logger.warning(f"Potentially unsafe path detected for email_id: {email_id}")
+             # Fallback or raise? Raising might break if existing data is weird,
+             # but strictly we shouldn't allow traversal.
+             # Given email_id is usually generated int, sanitize might be enough.
+             filename = sanitize_path(filename)
+        return os.path.join(self.email_content_dir, filename)
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""

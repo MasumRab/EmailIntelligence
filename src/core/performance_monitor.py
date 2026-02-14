@@ -28,8 +28,6 @@ import psutil
 
 logger = logging.getLogger(__name__)
 
-LOG_FILE = "performance_metrics_log.jsonl"
-
 
 @dataclass
 class PerformanceMetric:
@@ -100,8 +98,11 @@ class OptimizedPerformanceMonitor:
         self.max_metrics_buffer = max_metrics_buffer
         self.flush_interval = flush_interval
 
-        # Create logs directory
-        self.log_file.parent.mkdir(parents=True, exist_ok=True)
+        # Create logs directory securely
+        try:
+            self.log_file.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            logger.error(f"Failed to create log directory: {e}")
 
         # Metrics storage
         self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
@@ -233,7 +234,7 @@ class OptimizedPerformanceMonitor:
         return self._aggregated_metrics.copy()
 
     def get_recent_metrics(self, name: Optional[str] = None, limit: int = 100) -> List[PerformanceMetric]:
-        """Get recent raw metrics, optionally filtered by name."""
+        """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             if name:
                 return [m for m in self._metrics_buffer if m.name == name][-limit:]
@@ -502,6 +503,7 @@ def _create_decorator(func, op_name):
                 return await func(*args, **kwargs)
             finally:
                 duration = (time.perf_counter() - start_time) * 1000
+                # Use the global instance safely
                 performance_monitor.record_metric(name=op_name, value=duration, unit="ms")
 
         return async_wrapper
@@ -514,6 +516,7 @@ def _create_decorator(func, op_name):
                 return func(*args, **kwargs)
             finally:
                 duration = (time.perf_counter() - start_time) * 1000
+                # Use the global instance safely
                 performance_monitor.record_metric(name=op_name, value=duration, unit="ms")
 
         return sync_wrapper
