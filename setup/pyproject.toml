@@ -110,7 +110,7 @@ full = [
 
 [dependency-groups]
 dev = [
-    "emailintelligence[dev]",
+    "emailintelligence[full]",
 ]
 
 [build-system]

@@ -920,7 +920,7 @@ viz = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "emailintelligence", extra = ["dev"] },
+    { name = "emailintelligence", extra = ["full"] },
 ]
 
 [package.metadata]
@@ -975,7 +975,7 @@ requires-dist = [
 provides-extras = ["ml", "data", "viz", "db", "google", "dev", "minimal", "full"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "emailintelligence", extras = ["dev"] }]
+dev = [{ name = "emailintelligence", extras = ["full"] }]
 
 [[package]]
 name = "executing"
