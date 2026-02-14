@@ -4,7 +4,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.backend.python_backend.dependencies import _workflow_engine_instance, initialize_services
+from src.backend.python_backend.dependencies import (
+    _workflow_engine_instance,
+    initialize_services,
+)
 from src.backend.python_backend.main import app
 
 

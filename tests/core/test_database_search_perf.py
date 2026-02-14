@@ -1,12 +1,15 @@
 import asyncio
+import gzip
 import os
 import shutil
 import time
+from unittest.mock import MagicMock, patch
+
 import pytest
 import pytest_asyncio
-import gzip
-from unittest.mock import patch, MagicMock
-from src.core.database import DatabaseManager, DatabaseConfig
+
+from src.core.database import DatabaseConfig, DatabaseManager
+
 
 @pytest_asyncio.fixture
 async def db_instance():
@@ -25,6 +28,7 @@ async def db_instance():
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
 
+
 # Helper to check call count on gzip.open
 class GzipOpenSpy:
     def __init__(self):
@@ -36,6 +40,7 @@ class GzipOpenSpy:
         if isinstance(filename, str) and "email_content" in filename and "r" in mode:
             self.call_count += 1
         return self.original_open(filename, mode, *args, **kwargs)
+
 
 @pytest.mark.asyncio
 async def test_search_early_exit(db_instance):
@@ -55,16 +60,18 @@ async def test_search_early_exit(db_instance):
         if i == 0 or i == 49:
             content = f"Content with {target_keyword}"
 
-        await db.create_email({
-            "subject": f"Email {i}",
-            "sender": "sender@example.com",
-            "sender_email": "sender@example.com",
-            "content": content,
-            # Force timestamp to ensure order
-            "created_at": base_time + i
-        })
+        await db.create_email(
+            {
+                "subject": f"Email {i}",
+                "sender": "sender@example.com",
+                "sender_email": "sender@example.com",
+                "content": content,
+                # Force timestamp to ensure order
+                "created_at": base_time + i,
+            }
+        )
         # Update internal timestamp to match loop index for sorting reliability
-        db.emails_data[-1]["created_at"] = (base_time + i)
+        db.emails_data[-1]["created_at"] = base_time + i
 
     spy = GzipOpenSpy()
 
@@ -85,6 +92,7 @@ async def test_search_early_exit(db_instance):
     # We assert it's significantly less than 50
     assert spy.call_count < 10
 
+
 @pytest.mark.asyncio
 async def test_search_sorts_correctly(db_instance):
     """Verify that we still get the correct sorted results even with optimization."""
@@ -95,11 +103,13 @@ async def test_search_sorts_correctly(db_instance):
 
     # Create 10 emails, all matching in content
     for i in range(10):
-        await db.create_email({
-            "subject": f"Email {i}",
-            "content": f"Content with {target_keyword}",
-             "created_at": base_time + i
-        })
+        await db.create_email(
+            {
+                "subject": f"Email {i}",
+                "content": f"Content with {target_keyword}",
+                "created_at": base_time + i,
+            }
+        )
         # Force strict ordering in memory
         db.emails_data[-1]["created_at"] = base_time + i
 

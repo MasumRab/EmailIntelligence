@@ -2,11 +2,11 @@
 
 from pathlib import Path
 from typing import Optional
+
 import git
 
 from .exceptions import EnvironmentDetectionError
 from .logging import get_context_logger
-
 
 logger = get_context_logger()
 

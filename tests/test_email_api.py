@@ -1,8 +1,10 @@
-import pytest
-from unittest.mock import AsyncMock, patch
-from src.core.models import EmailCreate, EmailUpdate
-from src.core.ai_engine import AIAnalysisResult
 from datetime import datetime
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
+from src.core.ai_engine import AIAnalysisResult
+from src.core.models import EmailCreate, EmailUpdate
 
 
 async def _create_mock_email(id: int, subject: str) -> dict:

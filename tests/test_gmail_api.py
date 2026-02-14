@@ -18,7 +18,8 @@ def mock_gmail_service():
 def mock_performance_monitor_gmail():
     """Fixture to mock the PerformanceMonitor used in the gmail routes."""
     with patch(
-        "backend.python_backend.gmail_routes.performance_monitor", new_callable=AsyncMock
+        "backend.python_backend.gmail_routes.performance_monitor",
+        new_callable=AsyncMock,
     ) as mock_pm:
         mock_pm.track = lambda func: func
         mock_pm.record_sync_performance = AsyncMock()
@@ -48,7 +49,9 @@ def test_sync_gmail_success(client, mock_gmail_service, mock_performance_monitor
     mock_performance_monitor_gmail.record_sync_performance.assert_called_once()
 
 
-def test_sync_gmail_api_error(client, mock_gmail_service, mock_performance_monitor_gmail):
+def test_sync_gmail_api_error(
+    client, mock_gmail_service, mock_performance_monitor_gmail
+):
     """Test handling of Google API errors during sync."""
     request_payload = {"maxEmails": 10}
     mock_resp = MagicMock(spec=HTTPResponse)
@@ -65,7 +68,9 @@ def test_sync_gmail_api_error(client, mock_gmail_service, mock_performance_monit
     assert "Gmail API authentication failed" in response.json()["detail"]
 
 
-def test_smart_retrieval_success(client, mock_gmail_service, mock_performance_monitor_gmail):
+def test_smart_retrieval_success(
+    client, mock_gmail_service, mock_performance_monitor_gmail
+):
     """Test successful smart retrieval."""
     request_payload = {"strategies": ["urgent"]}
     mock_retrieval_result = {"success": True, "totalEmails": 50}
@@ -93,7 +98,9 @@ def test_get_retrieval_strategies_success(
     mock_gmail_service.get_retrieval_strategies.assert_called_once()
 
 
-def test_get_gmail_performance_success(client, mock_gmail_service, mock_performance_monitor_gmail):
+def test_get_gmail_performance_success(
+    client, mock_gmail_service, mock_performance_monitor_gmail
+):
     """Test successful retrieval of performance metrics."""
     mock_performance_data = {"status": "healthy", "metrics": {"api_calls": 100}}
     mock_gmail_service.get_performance_metrics.return_value = mock_performance_data

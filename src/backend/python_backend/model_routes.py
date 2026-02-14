@@ -43,7 +43,9 @@ async def load_model(
         return {"message": f"Model '{model_name}' loaded successfully."}
     except Exception as e:
         logger.error(f"Error loading model {model_name}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to load model '{model_name}'")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to load model '{model_name}'"
+        )
 
 
 @router.post("/api/models/{model_name}/unload", response_model=dict)
@@ -61,4 +63,6 @@ async def unload_model(
         return {"message": f"Model '{model_name}' unloaded successfully."}
     except Exception as e:
         logger.error(f"Error unloading model {model_name}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to unload model '{model_name}'")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to unload model '{model_name}'"
+        )

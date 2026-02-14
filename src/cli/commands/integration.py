@@ -122,10 +122,10 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
         Configured CommandRegistry with all commands registered
     """
     from .analyze_command import AnalyzeCommand
-    from .resolve_command import ResolveCommand
-    from .validate_command import ValidateCommand
     from .analyze_history_command import AnalyzeHistoryCommand
     from .plan_rebase_command import PlanRebaseCommand
+    from .resolve_command import ResolveCommand
+    from .validate_command import ValidateCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)

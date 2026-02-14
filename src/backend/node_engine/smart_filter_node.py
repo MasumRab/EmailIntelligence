@@ -7,14 +7,19 @@ to apply intelligent email filtering within node-based workflows.
 
 from typing import Any, Dict, List
 
-from src.backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
+from src.backend.node_engine.node_base import (
+    BaseNode,
+    DataType,
+    ExecutionContext,
+    NodePort,
+)
 from src.backend.python_nlp.smart_filters import SmartFilterManager
 
 
 class SmartFilterNode(BaseNode):
     """
     A node that applies smart filtering to emails using the SmartFilterManager.
-    
+
     This node takes a list of emails and applies intelligent filtering based on
     learned patterns and user preferences.
     """
@@ -23,7 +28,8 @@ class SmartFilterNode(BaseNode):
         super().__init__(
             node_id,
             name or "Smart Filter Node",
-            description or "Applies intelligent filtering to emails using learned patterns",
+            description
+            or "Applies intelligent filtering to emails using learned patterns",
         )
 
         # Define input ports
@@ -40,8 +46,18 @@ class SmartFilterNode(BaseNode):
         # Define output ports
         self.output_ports = [
             NodePort("filtered_emails", DataType.EMAIL_LIST, True, "Filtered emails"),
-            NodePort("filter_stats", DataType.JSON, True, "Statistics about the filtering process"),
-            NodePort("matched_filters", DataType.JSON, True, "Filters that matched the emails"),
+            NodePort(
+                "filter_stats",
+                DataType.JSON,
+                True,
+                "Statistics about the filtering process",
+            ),
+            NodePort(
+                "matched_filters",
+                DataType.JSON,
+                True,
+                "Filters that matched the emails",
+            ),
         ]
 
         # Initialize the smart filter manager
@@ -73,7 +89,9 @@ class SmartFilterNode(BaseNode):
 
         return output
 
-    def _apply_smart_filters(self, emails: List[Dict[str, Any]], criteria: Dict[str, Any]) -> Dict[str, Any]:
+    def _apply_smart_filters(
+        self, emails: List[Dict[str, Any]], criteria: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Applies smart filtering to the provided emails.
 
@@ -87,24 +105,30 @@ class SmartFilterNode(BaseNode):
         # Use the smart filter manager to apply filters
         filtered_emails = []
         matched_filters = []
-        stats = {"total_emails": len(emails), "filtered_emails": 0, "matched_filters_count": 0}
+        stats = {
+            "total_emails": len(emails),
+            "filtered_emails": 0,
+            "matched_filters_count": 0,
+        }
 
         for email in emails:
             # Apply filters to the email
             filter_result = self.filter_manager.apply_filters_to_email_data(email)
-            
+
             # If the email matches any filters, add it to the filtered list
             if filter_result["filters_matched"]:
                 filtered_emails.append(email)
                 matched_filters.extend(filter_result["filters_matched"])
-        
+
         stats["filtered_emails"] = len(filtered_emails)
-        stats["matched_filters_count"] = len(set(matched_filters))  # Count unique matched filters
+        stats["matched_filters_count"] = len(
+            set(matched_filters)
+        )  # Count unique matched filters
 
         return {
             "filtered_emails": filtered_emails,
             "stats": stats,
-            "matched_filters": list(set(matched_filters))  # Unique matched filters
+            "matched_filters": list(set(matched_filters)),  # Unique matched filters
         }
 
 
@@ -156,5 +180,5 @@ def register_node_type(node_library):
                     "description": "Filters that matched the emails",
                 },
             ],
-        }
+        },
     )

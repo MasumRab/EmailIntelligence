@@ -4,8 +4,8 @@ Test runner module for validation.
 
 import asyncio
 import re
-from typing import Dict, Any
 from pathlib import Path
+from typing import Any, Dict
 
 from ..core.conflict_models import ValidationResult, ValidationStatus
 from ..utils.logger import get_logger
@@ -75,7 +75,9 @@ class TestRunner:
         """Parse pytest output for metrics."""
         # Simple regex parsing
         # Example: "=== 15 passed, 2 failed in 0.12s ==="
-        match = re.search(r"===\s+(.*?)\s+===", output.splitlines()[-1] if output else "")
+        match = re.search(
+            r"===\s+(.*?)\s+===", output.splitlines()[-1] if output else ""
+        )
 
         summary = match.group(1) if match else "Unknown"
 

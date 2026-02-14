@@ -6,13 +6,14 @@ of the system. All implementations must adhere to these interfaces.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from .conflict_models import (
-    Conflict,
     AnalysisResult,
+    Conflict,
+    ResolutionPlan,
     ResolutionStrategy,
     ValidationResult,
-    ResolutionPlan,
 )
 
 
@@ -43,7 +44,9 @@ class IConstitutionalAnalyzer(ABC):
     """
 
     @abstractmethod
-    async def analyze_constitutional_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
+    async def analyze_constitutional_compliance(
+        self, code: str, context: Dict[str, Any]
+    ) -> AnalysisResult:
         """
         Analyze code for constitutional compliance.
 
@@ -63,7 +66,9 @@ class IResolutionStrategy(ABC):
     """
 
     @abstractmethod
-    async def generate_resolution_strategy(self, conflicts: List[Conflict]) -> ResolutionStrategy:
+    async def generate_resolution_strategy(
+        self, conflicts: List[Conflict]
+    ) -> ResolutionStrategy:
         """
         Generate a resolution strategy for the given conflicts.
 
@@ -82,7 +87,9 @@ class IValidator(ABC):
     """
 
     @abstractmethod
-    async def validate(self, target: Any, context: Dict[str, Any] = None) -> ValidationResult:
+    async def validate(
+        self, target: Any, context: Dict[str, Any] = None
+    ) -> ValidationResult:
         """
         Validate the target object.
 

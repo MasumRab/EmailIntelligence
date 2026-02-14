@@ -6,11 +6,13 @@ Email service for the Email Intelligence Platform
 Handles all email-related business logic
 """
 
-from typing import List, Optional, Dict, Any
 from datetime import datetime
-from .base_service import BaseService, BaseResponse
-from src.core.models import EmailResponse, EmailCreate, EmailUpdate
+from typing import Any, Dict, List, Optional
+
 from src.core.database import FIELD_ID, FIELD_MESSAGE_ID
+from src.core.models import EmailCreate, EmailResponse, EmailUpdate
+
+from .base_service import BaseResponse, BaseService
 
 
 class EmailService(BaseService):
@@ -75,7 +77,9 @@ class EmailService(BaseService):
             emails = await db.get_emails(
                 limit=limit, offset=offset, category_id=category_id, is_unread=is_unread
             )
-            return BaseResponse(success=True, message="Emails retrieved successfully", data=emails)
+            return BaseResponse(
+                success=True, message="Emails retrieved successfully", data=emails
+            )
         except Exception as e:
             return await self.handle_error(e, "get_all_emails")
 
@@ -86,23 +90,31 @@ class EmailService(BaseService):
             created_email = await db.create_email(email_data)
             if created_email:
                 return BaseResponse(
-                    success=True, message="Email created successfully", data=created_email
+                    success=True,
+                    message="Email created successfully",
+                    data=created_email,
                 )
             else:
                 return BaseResponse(
-                    success=False, message="Failed to create email", error="Email creation failed"
+                    success=False,
+                    message="Failed to create email",
+                    error="Email creation failed",
                 )
         except Exception as e:
             return await self.handle_error(e, "create_email")
 
-    async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> BaseResponse:
+    async def update_email(
+        self, email_id: int, update_data: Dict[str, Any]
+    ) -> BaseResponse:
         """Update an email by its ID"""
         try:
             db = await self.get_db()
             updated_email = await db.update_email(email_id, update_data)
             if updated_email:
                 return BaseResponse(
-                    success=True, message="Email updated successfully", data=updated_email
+                    success=True,
+                    message="Email updated successfully",
+                    data=updated_email,
                 )
             else:
                 return BaseResponse(
@@ -122,7 +134,9 @@ class EmailService(BaseService):
             updated_email = await db.update_email_by_message_id(message_id, update_data)
             if updated_email:
                 return BaseResponse(
-                    success=True, message="Email updated successfully", data=updated_email
+                    success=True,
+                    message="Email updated successfully",
+                    data=updated_email,
                 )
             else:
                 return BaseResponse(

@@ -9,8 +9,7 @@ Using Pydantic Settings for environment-based configuration
 import os
 from typing import Optional
 
-from pydantic import Field
-from pydantic import validator
+from pydantic import Field, validator
 from pydantic_settings import BaseSettings
 
 
@@ -31,7 +30,9 @@ class Settings(BaseSettings):
     api_docs_enabled: bool = True
 
     # Security settings
-    secret_key: str = Field(default=..., env="SECRET_KEY")  # Required - must be set in environment
+    secret_key: str = Field(
+        default=..., env="SECRET_KEY"
+    )  # Required - must be set in environment
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
@@ -58,7 +59,7 @@ class Settings(BaseSettings):
     # Database compression settings
     gzip_compression_level: int = 6  # Default compression level
 
-    @validator('secret_key')
+    @validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v):
         if not v:

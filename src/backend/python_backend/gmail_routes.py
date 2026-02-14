@@ -11,7 +11,10 @@ from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager, get_db
 from .dependencies import get_gmail_service
 from .exceptions import GmailServiceError
-from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
+from .models import (
+    GmailSyncRequest,
+    SmartRetrievalRequest,
+)  # Changed from .main to .models
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)

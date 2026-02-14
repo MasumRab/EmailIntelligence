@@ -5,7 +5,9 @@ from fastapi.testclient import TestClient
 
 
 @pytest.mark.asyncio
-async def test_create_and_get_categories(client: TestClient, mock_db_manager: AsyncMock):
+async def test_create_and_get_categories(
+    client: TestClient, mock_db_manager: AsyncMock
+):
     """
     Tests creating a new category and then retrieving it to ensure the
     categories module is loaded and its API endpoints are working.

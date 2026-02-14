@@ -14,7 +14,11 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-from src.backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
+from src.backend.plugins.base_plugin import (
+    BasePlugin,
+    ProcessingNode,
+    UIComponentPlugin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +55,9 @@ class PluginManager:
                             if issubclass(obj, ProcessingNode):
                                 # Create an instance and register it
                                 plugin_instance = obj()
-                                self._processing_nodes[plugin_instance.name] = plugin_instance
+                                self._processing_nodes[plugin_instance.name] = (
+                                    plugin_instance
+                                )
                                 logger.info(
                                     f"Loaded processing node plugin: {plugin_instance.name}"
                                 )
@@ -59,7 +65,9 @@ class PluginManager:
                                 # Create an instance and register it
                                 plugin_instance = obj()
                                 self._ui_plugins[plugin_instance.name] = plugin_instance
-                                logger.info(f"Loaded UI component plugin: {plugin_instance.name}")
+                                logger.info(
+                                    f"Loaded UI component plugin: {plugin_instance.name}"
+                                )
                             elif issubclass(obj, BasePlugin):
                                 # Create an instance and register it
                                 plugin_instance = obj()

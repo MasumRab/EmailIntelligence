@@ -52,7 +52,9 @@ class EmailNotFoundException(AppException):
             error_code = "EMAIL_NOT_FOUND"
 
         super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND, message=message, error_code=error_code
+            status_code=status.HTTP_404_NOT_FOUND,
+            message=message,
+            error_code=error_code,
         )
 
 
@@ -96,7 +98,9 @@ class UnauthorizedException(AppException):
 
     def __init__(self, message: str = "Unauthorized access"):
         super().__init__(
-            status_code=status.HTTP_401_UNAUTHORIZED, message=message, error_code="UNAUTHORIZED"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            message=message,
+            error_code="UNAUTHORIZED",
         )
 
 
@@ -105,7 +109,9 @@ class ForbiddenException(AppException):
 
     def __init__(self, message: str = "Access forbidden"):
         super().__init__(
-            status_code=status.HTTP_403_FORBIDDEN, message=message, error_code="FORBIDDEN"
+            status_code=status.HTTP_403_FORBIDDEN,
+            message=message,
+            error_code="FORBIDDEN",
         )
 
 
@@ -129,6 +135,8 @@ class GmailServiceError(BaseAppException):
     """Exception for Gmail service related errors."""
 
     def __init__(
-        self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
+        self,
+        detail: str = "An error occurred with the Gmail service.",
+        status_code: int = 502,
     ):
         super().__init__(status_code=status_code, detail=detail)

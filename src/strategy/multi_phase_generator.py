@@ -11,15 +11,16 @@ Features:
 - Phased execution planning with checkpoints
 """
 
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import structlog
 
 from ..resolution.types import (
-    RiskLevel,
     ResolutionStep,
+    RiskLevel,
 )
 
 logger = structlog.get_logger()
@@ -462,7 +463,9 @@ class MultiPhaseStrategyGenerator:
         strategies = []
 
         # Determine appropriate strategy types based on context
-        strategy_types = self._select_strategy_types(conflict_data, context, risk_tolerance)
+        strategy_types = self._select_strategy_types(
+            conflict_data, context, risk_tolerance
+        )
 
         for strategy_type in strategy_types:
             strategy = self._generate_single_strategy(
@@ -474,7 +477,9 @@ class MultiPhaseStrategyGenerator:
 
         # Generate hybrid strategy if multiple viable options exist
         if len(strategies) > 1:
-            hybrid_strategy = self._generate_hybrid_strategy(strategies, conflict_data, context)
+            hybrid_strategy = self._generate_hybrid_strategy(
+                strategies, conflict_data, context
+            )
             if hybrid_strategy:
                 strategies.append(hybrid_strategy)
 
@@ -537,7 +542,9 @@ class MultiPhaseStrategyGenerator:
             type_config = self.strategy_types[strategy_type]
 
             # Create strategy ID
-            strategy_id = f"{strategy_type.value}_{int(datetime.now(timezone.utc).timestamp())}"
+            strategy_id = (
+                f"{strategy_type.value}_{int(datetime.now(timezone.utc).timestamp())}"
+            )
 
             # Calculate estimated time
             base_time = context.get("estimated_resolution_time", 30)
@@ -621,7 +628,9 @@ class MultiPhaseStrategyGenerator:
         preservation_list = []
 
         # Check for feature preservation requirements
-        feature_preservation_required = context.get("feature_preservation_required", False)
+        feature_preservation_required = context.get(
+            "feature_preservation_required", False
+        )
         affected_features = context.get("affected_features", [])
 
         if feature_preservation_required or affected_features:
@@ -629,9 +638,15 @@ class MultiPhaseStrategyGenerator:
                 preservation = EnhancementPreservation(
                     feature_name=feature,
                     source_branch=context.get("source_branch", "unknown"),
-                    preservation_priority=self._determine_preservation_priority(feature, context),
-                    preservation_method=self._select_preservation_method(feature, strategy_type),
-                    estimated_impact=self._estimate_preservation_impact(feature, conflict_data),
+                    preservation_priority=self._determine_preservation_priority(
+                        feature, context
+                    ),
+                    preservation_method=self._select_preservation_method(
+                        feature, strategy_type
+                    ),
+                    estimated_impact=self._estimate_preservation_impact(
+                        feature, conflict_data
+                    ),
                     technical_complexity=self._assess_preservation_complexity(
                         feature, conflict_data
                     ),
@@ -692,7 +707,9 @@ class MultiPhaseStrategyGenerator:
                 )
 
                 # Calculate residual risk
-                residual_risk = probability * impact * 0.5  # Assume 50% reduction from mitigation
+                residual_risk = (
+                    probability * impact * 0.5
+                )  # Assume 50% reduction from mitigation
 
                 risk_factor = RiskFactor(
                     id=f"{category.value}_{len(risk_factors)}",
@@ -771,7 +788,9 @@ class MultiPhaseStrategyGenerator:
             required_outputs=template_checkpoint.required_outputs.copy(),
             success_criteria=template_checkpoint.success_criteria.copy(),
             failure_procedures=template_checkpoint.failure_procedures.copy(),
-            estimated_duration=int(template_checkpoint.estimated_duration * duration_multiplier),
+            estimated_duration=int(
+                template_checkpoint.estimated_duration * duration_multiplier
+            ),
             critical_path=template_checkpoint.critical_path,
             parallel_executable=template_checkpoint.parallel_executable,
             rollback_point=template_checkpoint.rollback_point,
@@ -811,14 +830,16 @@ class MultiPhaseStrategyGenerator:
             all_risks.extend(strategy.risk_factors)
 
         # Merge execution phases
-        merged_phases = self._merge_execution_phases([s.execution_phases for s in strategies])
+        merged_phases = self._merge_execution_phases(
+            [s.execution_phases for s in strategies]
+        )
 
         # Calculate hybrid metrics
         avg_confidence = sum(s.confidence for s in strategies) / len(strategies)
         max_time = max(s.estimated_time for s in strategies)
-        avg_risk_level = sum(self._risk_level_to_numeric(s.risk_level) for s in strategies) / len(
-            strategies
-        )
+        avg_risk_level = sum(
+            self._risk_level_to_numeric(s.risk_level) for s in strategies
+        ) / len(strategies)
 
         hybrid_strategy = MultiPhaseStrategy(
             id=hybrid_id,
@@ -829,7 +850,8 @@ class MultiPhaseStrategyGenerator:
             steps=[],
             pros=list(set(all_pros)),  # Remove duplicates
             cons=list(set(all_cons)),  # Remove duplicates
-            confidence=avg_confidence * 0.9,  # Slight confidence reduction for complexity
+            confidence=avg_confidence
+            * 0.9,  # Slight confidence reduction for complexity
             estimated_time=int(max_time * 1.1),  # Account for coordination overhead
             risk_level=self._numeric_to_risk_level(avg_risk_level),
             resource_requirements={"hybrid_complexity": "high"},
@@ -846,7 +868,9 @@ class MultiPhaseStrategyGenerator:
 
         return hybrid_strategy
 
-    def _rank_strategies(self, strategies: List[MultiPhaseStrategy]) -> List[MultiPhaseStrategy]:
+    def _rank_strategies(
+        self, strategies: List[MultiPhaseStrategy]
+    ) -> List[MultiPhaseStrategy]:
         """Rank strategies by confidence, risk, and time"""
 
         def rank_key(strategy: MultiPhaseStrategy):
@@ -962,7 +986,9 @@ class MultiPhaseStrategyGenerator:
 
         return pros
 
-    def _generate_cons(self, strategy_type: StrategyType, risks: List[RiskFactor]) -> List[str]:
+    def _generate_cons(
+        self, strategy_type: StrategyType, risks: List[RiskFactor]
+    ) -> List[str]:
         """Generate strategy cons"""
         cons = [f"May have {len(risks)} associated risks"]
 
@@ -983,9 +1009,13 @@ class MultiPhaseStrategyGenerator:
                 ]
             )
         elif strategy_type == StrategyType.ARCHITECTURAL_REFACTORING:
-            cons.extend(["High complexity", "Longer timeline", "Significant resources required"])
+            cons.extend(
+                ["High complexity", "Longer timeline", "Significant resources required"]
+            )
         elif strategy_type == StrategyType.FAST_TRACK:
-            cons.extend(["Higher risk", "Limited validation", "May need follow-up work"])
+            cons.extend(
+                ["Higher risk", "Limited validation", "May need follow-up work"]
+            )
 
         return cons
 
@@ -1000,9 +1030,7 @@ class MultiPhaseStrategyGenerator:
 
     def _generate_rollback_strategy(self, strategy_type: StrategyType) -> str:
         """Generate rollback strategy description"""
-        return (
-            f"Rollback strategy for {strategy_type.value} approach with checkpoint-based recovery"
-        )
+        return f"Rollback strategy for {strategy_type.value} approach with checkpoint-based recovery"
 
     def _generate_resource_requirements(
         self, strategy_type: StrategyType, phases: List[ExecutionCheckpoint]
@@ -1021,10 +1049,18 @@ class MultiPhaseStrategyGenerator:
         return any(p.parallel_executable for p in phases)
 
     # Simplified implementations for remaining helper methods
-    def _determine_preservation_priority(self, feature: str, context: Dict[str, Any]) -> str:
-        return "high" if context.get("critical_features", []).__contains__(feature) else "medium"
+    def _determine_preservation_priority(
+        self, feature: str, context: Dict[str, Any]
+    ) -> str:
+        return (
+            "high"
+            if context.get("critical_features", []).__contains__(feature)
+            else "medium"
+        )
 
-    def _select_preservation_method(self, feature: str, strategy_type: StrategyType) -> str:
+    def _select_preservation_method(
+        self, feature: str, strategy_type: StrategyType
+    ) -> str:
         method_map = {
             StrategyType.FEATURE_PRESERVATION: "intelligent_feature_merging",
             StrategyType.CONSERVATIVE_MERGE: "conservative_preservation",
@@ -1059,9 +1095,13 @@ class MultiPhaseStrategyGenerator:
     def _generate_mitigation_strategy(
         self, template: Dict[str, Any], strategy_type: StrategyType, risk_tolerance: str
     ) -> str:
-        return template.get("mitigation_template", "Implement standard mitigation procedures")
+        return template.get(
+            "mitigation_template", "Implement standard mitigation procedures"
+        )
 
-    def _determine_risk_owner(self, category: RiskCategory, context: Dict[str, Any]) -> str:
+    def _determine_risk_owner(
+        self, category: RiskCategory, context: Dict[str, Any]
+    ) -> str:
         owner_map = {
             RiskCategory.TECHNICAL: "Technical Lead",
             RiskCategory.BUSINESS: "Product Manager",

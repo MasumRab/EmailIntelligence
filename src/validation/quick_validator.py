@@ -11,9 +11,10 @@ Features:
 - Fast feedback for iterative development
 """
 
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import structlog
 
 from ..resolution.types import (
@@ -133,7 +134,9 @@ class QuickValidator:
         self.validation_stats["total_validations"] += 1
 
         try:
-            logger.debug("Starting quick validation", conflict_type=type(conflict_data).__name__)
+            logger.debug(
+                "Starting quick validation", conflict_type=type(conflict_data).__name__
+            )
 
             # Perform basic checks
             check_results = await self._perform_basic_checks(
@@ -147,22 +150,30 @@ class QuickValidator:
             quick_issues = self._identify_quick_issues(check_results)
 
             # Generate recommendations
-            recommendations = self._generate_quick_recommendations(check_results, quick_issues)
+            recommendations = self._generate_quick_recommendations(
+                check_results, quick_issues
+            )
 
             # Determine resolution readiness
-            resolution_readiness = self._assess_resolution_readiness(overall_score, quick_issues)
+            resolution_readiness = self._assess_resolution_readiness(
+                overall_score, quick_issues
+            )
 
             # Calculate validation time
             validation_time = time.time() - start_time
 
             # Update statistics
             self._update_validation_stats(
-                ValidationStatus.PASS if overall_score >= 0.7 else ValidationStatus.WARNING
+                ValidationStatus.PASS
+                if overall_score >= 0.7
+                else ValidationStatus.WARNING
             )
 
             result = QuickValidationResult(
                 status=(
-                    ValidationStatus.PASS if overall_score >= 0.7 else ValidationStatus.WARNING
+                    ValidationStatus.PASS
+                    if overall_score >= 0.7
+                    else ValidationStatus.WARNING
                 ),
                 overall_score=overall_score,
                 validation_time=validation_time,
@@ -204,8 +215,8 @@ class QuickValidator:
         check_results = {}
 
         # Check 1: Conflict Identification
-        check_results["conflict_identification"] = await self._check_conflict_identification(
-            conflict_data
+        check_results["conflict_identification"] = (
+            await self._check_conflict_identification(conflict_data)
         )
 
         # Check 2: Basic Resolution Plan
@@ -289,7 +300,10 @@ class QuickValidator:
                 details["has_description"] = False
 
             # Check confidence score
-            if hasattr(resolution_strategy, "confidence") and resolution_strategy.confidence > 0:
+            if (
+                hasattr(resolution_strategy, "confidence")
+                and resolution_strategy.confidence > 0
+            ):
                 score += 0.1
                 details["confidence"] = resolution_strategy.confidence
         else:
@@ -299,7 +313,9 @@ class QuickValidator:
         if hasattr(conflict_data, "estimated_resolution_time"):
             score += 0.1
             details["has_time_estimate"] = True
-            details["estimated_time"] = getattr(conflict_data, "estimated_resolution_time")
+            details["estimated_time"] = getattr(
+                conflict_data, "estimated_resolution_time"
+            )
         else:
             details["has_time_estimate"] = False
 
@@ -330,7 +346,9 @@ class QuickValidator:
                 1
                 for step in resolution_strategy.steps
                 if step.validation_steps
-                and any("test" in validation.lower() for validation in step.validation_steps)
+                and any(
+                    "test" in validation.lower() for validation in step.validation_steps
+                )
             )
 
             if testing_steps > 0:
@@ -342,7 +360,10 @@ class QuickValidator:
                 1
                 for step in resolution_strategy.steps
                 if step.validation_steps
-                and any("review" in validation.lower() for validation in step.validation_steps)
+                and any(
+                    "review" in validation.lower()
+                    for validation in step.validation_steps
+                )
             )
 
             if review_steps > 0:
@@ -427,9 +448,13 @@ class QuickValidator:
 
         for check_name, result in check_results.items():
             if not result["passed"]:
-                check_obj = next((c for c in self.basic_checks if c.name == check_name), None)
+                check_obj = next(
+                    (c for c in self.basic_checks if c.name == check_name), None
+                )
                 if check_obj:
-                    issues.append(f"{check_obj.description} - Score: {result['score']:.2f}")
+                    issues.append(
+                        f"{check_obj.description} - Score: {result['score']:.2f}"
+                    )
 
         return issues
 
@@ -447,7 +472,9 @@ class QuickValidator:
             )
 
         if not check_results.get("basic_resolution_plan", {}).get("passed", False):
-            recommendations.append("Create a structured resolution strategy with clear steps")
+            recommendations.append(
+                "Create a structured resolution strategy with clear steps"
+            )
 
         if not check_results.get("essential_validation", {}).get("passed", False):
             recommendations.append(
@@ -455,7 +482,9 @@ class QuickValidator:
             )
 
         if not check_results.get("rollback_feasibility", {}).get("passed", False):
-            recommendations.append("Define rollback strategy for safe resolution execution")
+            recommendations.append(
+                "Define rollback strategy for safe resolution execution"
+            )
 
         # General recommendations
         if len(issues) > 2:
@@ -463,7 +492,9 @@ class QuickValidator:
 
         return recommendations
 
-    def _assess_resolution_readiness(self, overall_score: float, issues: List[str]) -> str:
+    def _assess_resolution_readiness(
+        self, overall_score: float, issues: List[str]
+    ) -> str:
         """Assess resolution readiness"""
 
         if overall_score >= 0.8 and len(issues) <= 1:
@@ -482,9 +513,13 @@ class QuickValidator:
 
         if status in [ValidationStatus.PASS, ValidationStatus.WARNING]:
             # Assuming warning also counts as acceptable for quick validation
-            new_pass_rate = (current_pass_rate * (total_validations - 1) + 1) / total_validations
+            new_pass_rate = (
+                current_pass_rate * (total_validations - 1) + 1
+            ) / total_validations
         else:
-            new_pass_rate = (current_pass_rate * (total_validations - 1)) / total_validations
+            new_pass_rate = (
+                current_pass_rate * (total_validations - 1)
+            ) / total_validations
 
         self.validation_stats["pass_rate"] = new_pass_rate
 
@@ -514,7 +549,9 @@ class QuickValidator:
                 result = await self.validate_basic_resolution(conflict, strategy)
                 results.append(result)
             except Exception as e:
-                logger.error("Batch validation failed for item", item_index=i, error=str(e))
+                logger.error(
+                    "Batch validation failed for item", item_index=i, error=str(e)
+                )
 
                 # Add error result
                 results.append(
