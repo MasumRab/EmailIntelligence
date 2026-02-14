@@ -29,6 +29,9 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+
+    # Fix for markup issues with system packages
+    "markupsafe<3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -103,6 +106,11 @@ minimal = []
 # Full installation - all features except GPU
 full = [
     "emailintelligence[ml,data,viz,db,google,dev]",
+]
+
+[dependency-groups]
+dev = [
+    "emailintelligence[full]",
 ]
 
 [build-system]
