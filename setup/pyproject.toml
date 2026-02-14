@@ -108,6 +108,11 @@ full = [
     "emailintelligence[ml,data,viz,db,google,dev]",
 ]
 
+[dependency-groups]
+dev = [
+    "emailintelligence[dev]",
+]
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"

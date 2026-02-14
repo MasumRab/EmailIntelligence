@@ -918,6 +918,11 @@ viz = [
     { name = "seaborn" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "emailintelligence", extra = ["dev"] },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "accelerate", marker = "extra == 'ml'", specifier = ">=1.7.0" },
@@ -968,6 +973,9 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.3" },
 ]
 provides-extras = ["ml", "data", "viz", "db", "google", "dev", "minimal", "full"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "emailintelligence", extras = ["dev"] }]
 
 [[package]]
 name = "executing"
