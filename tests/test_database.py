@@ -1,9 +1,7 @@
+import pytest
 import asyncio
 import os
 import time
-
-import pytest
-
 from src.core.database import DatabaseManager
 
 
@@ -82,9 +80,7 @@ async def test_write_behind_cache(db_manager: DatabaseManager):
     assert db_manager._email_write_cache.empty()
 
     async with db_manager.get_cursor() as cur:
-        await cur.execute(
-            "SELECT COUNT(*) FROM emails WHERE message_id = ?", ("test_cache_1",)
-        )
+        await cur.execute("SELECT COUNT(*) FROM emails WHERE message_id = ?", ("test_cache_1",))
         count = await cur.fetchone()
         assert count[0] == 1
 
@@ -108,9 +104,7 @@ async def test_batch_email_creation(db_manager: DatabaseManager):
     await db_manager._flush_email_cache(force=True)
 
     async with db_manager.get_cursor() as cur:
-        await cur.execute(
-            "SELECT COUNT(*) FROM emails WHERE sender = ?", ("batch@test.com",)
-        )
+        await cur.execute("SELECT COUNT(*) FROM emails WHERE sender = ?", ("batch@test.com",))
         count = await cur.fetchone()
         assert count[0] == 5
 
@@ -135,9 +129,7 @@ async def test_batch_email_update(db_manager: DatabaseManager):
     await db_manager._flush_email_cache(force=True)
 
     async with db_manager.get_cursor() as cur:
-        await cur.execute(
-            "SELECT id FROM emails WHERE sender = ?", ("update@test.com",)
-        )
+        await cur.execute("SELECT id FROM emails WHERE sender = ?", ("update@test.com",))
         rows = await cur.fetchall()
         email_ids = [row[0] for row in rows]
 
@@ -147,8 +139,7 @@ async def test_batch_email_update(db_manager: DatabaseManager):
 
     async with db_manager.get_cursor() as cur:
         await cur.execute(
-            "SELECT COUNT(*) FROM emails WHERE sender = ? AND is_read = 1",
-            ("update@test.com",),
+            "SELECT COUNT(*) FROM emails WHERE sender = ? AND is_read = 1", ("update@test.com",)
         )
         count = await cur.fetchone()
         assert count[0] == 3

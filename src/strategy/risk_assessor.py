@@ -4,10 +4,10 @@ Risk assessor for EmailIntelligence CLI
 Implements logic for assessing risks in conflict resolution.
 """
 
-from typing import Any, Dict, List
-
+from typing import List, Dict, Any
 from ..core.conflict_models import Conflict, RiskLevel
 from ..utils.logger import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -23,14 +23,14 @@ class RiskAssessor:
                 "critical": ["auth", "security", "config", "database", "api"],
                 "high": ["model", "core", "engine", "service"],
                 "medium": ["util", "helper", "test"],
-                "low": ["docs", "readme", "example"],
+                "low": ["docs", "readme", "example"]
             },
             "change_type": {
                 "critical": ["delete", "rename"],
                 "high": ["modify", "refactor"],
                 "medium": ["add", "update"],
-                "low": ["comment", "format"],
-            },
+                "low": ["comment", "format"]
+            }
         }
 
     def assess_conflict_risks(self, conflicts: List[Conflict]) -> Dict[str, Any]:
@@ -53,12 +53,10 @@ class RiskAssessor:
             "risk_score": self._calculate_overall_risk_score(conflicts),
             "risk_level": self._determine_overall_risk_level(conflicts),
             "mitigation_strategies": self._generate_mitigation_strategies(conflicts),
-            "recommendations": self._generate_recommendations(conflicts),
+            "recommendations": self._generate_recommendations(conflicts)
         }
 
-        logger.info(
-            f"Risk assessment completed. Overall risk level: {risk_summary['risk_level']}"
-        )
+        logger.info(f"Risk assessment completed. Overall risk level: {risk_summary['risk_level']}")
         return risk_summary
 
     def _categorize_by_severity(self, conflicts: List[Conflict]) -> Dict[str, int]:
@@ -128,9 +126,7 @@ class RiskAssessor:
         else:
             return "low"
 
-    def _generate_mitigation_strategies(
-        self, conflicts: List[Conflict]
-    ) -> List[Dict[str, str]]:
+    def _generate_mitigation_strategies(self, conflicts: List[Conflict]) -> List[Dict[str, str]]:
         """Generate mitigation strategies for the conflicts."""
         strategies = []
 
@@ -138,36 +134,28 @@ class RiskAssessor:
         overall_risk = self._determine_overall_risk_level(conflicts)
 
         if overall_risk in ["critical", "high"]:
-            strategies.append(
-                {
-                    "strategy": "thorough_testing",
-                    "description": "Perform comprehensive testing including unit, integration, and end-to-end tests",
-                }
-            )
-            strategies.append(
-                {
-                    "strategy": "peer_review",
-                    "description": "Require additional peer review before merging",
-                }
-            )
+            strategies.append({
+                "strategy": "thorough_testing",
+                "description": "Perform comprehensive testing including unit, integration, and end-to-end tests"
+            })
+            strategies.append({
+                "strategy": "peer_review",
+                "description": "Require additional peer review before merging"
+            })
 
         if "critical" in [c.severity.value for c in conflicts]:
-            strategies.append(
-                {
-                    "strategy": "staged_rollout",
-                    "description": "Consider staged rollout to minimize impact",
-                }
-            )
+            strategies.append({
+                "strategy": "staged_rollout",
+                "description": "Consider staged rollout to minimize impact"
+            })
 
         # Add file-specific strategies
         critical_files = self._identify_critical_files(conflicts)
         if critical_files:
-            strategies.append(
-                {
-                    "strategy": "security_review",
-                    "description": f"Perform security review for critical files: {', '.join(critical_files)}",
-                }
-            )
+            strategies.append({
+                "strategy": "security_review",
+                "description": f"Perform security review for critical files: {', '.join(critical_files)}"
+            })
 
         return strategies
 
@@ -192,9 +180,7 @@ class RiskAssessor:
 
         # Add general recommendations
         if len(conflicts) > 5:
-            recommendations.append(
-                "Consider breaking changes into smaller, more manageable PRs"
-            )
+            recommendations.append("Consider breaking changes into smaller, more manageable PRs")
 
         if not recommendations:
             recommendations.append("Standard conflict resolution process applies")
@@ -217,7 +203,7 @@ class RiskAssessor:
             "complexity_risk": self._assess_complexity_risk(strategy),
             "time_risk": self._assess_time_risk(strategy),
             "quality_risk": self._assess_quality_risk(strategy),
-            "overall_strategy_risk": self._calculate_strategy_risk_score(strategy),
+            "overall_strategy_risk": self._calculate_strategy_risk_score(strategy)
         }
 
         return strategy_risks
@@ -255,15 +241,9 @@ class RiskAssessor:
     def _calculate_strategy_risk_score(self, strategy: Dict[str, Any]) -> float:
         """Calculate an overall risk score for the strategy."""
         # This is a simplified calculation - in a real system, this would be more sophisticated
-        complexity_risk = {"low": 0.2, "medium": 0.5, "high": 0.8}[
-            self._assess_complexity_risk(strategy)
-        ]
-        time_risk = {"low": 0.1, "medium": 0.4, "high": 0.7}[
-            self._assess_time_risk(strategy)
-        ]
-        quality_risk = {"low": 0.1, "medium": 0.4, "high": 0.8}[
-            self._assess_quality_risk(strategy)
-        ]
+        complexity_risk = {"low": 0.2, "medium": 0.5, "high": 0.8}[self._assess_complexity_risk(strategy)]
+        time_risk = {"low": 0.1, "medium": 0.4, "high": 0.7}[self._assess_time_risk(strategy)]
+        quality_risk = {"low": 0.1, "medium": 0.4, "high": 0.8}[self._assess_quality_risk(strategy)]
 
         # Weighted average
-        return complexity_risk * 0.5 + time_risk * 0.3 + quality_risk * 0.2
+        return (complexity_risk * 0.5 + time_risk * 0.3 + quality_risk * 0.2)

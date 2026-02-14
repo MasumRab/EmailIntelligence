@@ -1,11 +1,12 @@
 """Agent behavior adaptation based on project configuration."""
 
+from typing import Dict, Any, Optional, List
 import inspect
-from typing import Any, Dict, List, Optional
 
-from .logging import get_context_logger
 from .models import AgentContext, ProjectConfig
+from .logging import get_context_logger
 from .project import load_project_config
+
 
 logger = get_context_logger()
 

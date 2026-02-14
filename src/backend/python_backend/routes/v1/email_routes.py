@@ -6,15 +6,14 @@ Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-import logging
 from typing import List, Optional
-
+import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
+from src.core.models import EmailResponse, EmailCreate, EmailUpdate
+from src.backend.python_backend.services.email_service import EmailService
 from src.backend.python_backend.dependencies import get_email_service
 from src.backend.python_backend.exceptions import EmailNotFoundException
-from src.backend.python_backend.services.email_service import EmailService
-from src.core.models import EmailCreate, EmailResponse, EmailUpdate
 from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
@@ -54,25 +53,19 @@ async def get_emails_v1(
         result = await email_service.search_emails(search, limit)
     else:
         # Use get_all_emails with filters
-        result = await email_service.get_all_emails(
-            limit, offset, category_id, is_unread
-        )
+        result = await email_service.get_all_emails(limit, offset, category_id, is_unread)
 
     if result.success:
         return result
     else:
         # If there was an error, return the error response
-        raise EmailNotFoundException(
-            message_id=None, email_id=None
-        )  # This is just a placeholder
+        raise EmailNotFoundException(message_id=None, email_id=None)  # This is just a placeholder
 
 
 @router.get("/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="get_email_v1")
 async def get_email_v1(
-    request: Request,
-    email_id: int,
-    email_service: EmailService = Depends(get_email_service),
+    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
 ):
     """
     Retrieves a specific email by its unique ID.

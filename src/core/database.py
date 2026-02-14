@@ -12,19 +12,18 @@ from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
 
-from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
-from .enhanced_caching import EnhancedCachingManager
-from .enhanced_error_reporting import (
-    ErrorCategory,
-    ErrorSeverity,
-    create_error_context,
-    log_error,
-)
-
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
-from .security import sanitize_path, validate_path_safety
+from .enhanced_caching import EnhancedCachingManager
+from .enhanced_error_reporting import (
+    log_error,
+    ErrorSeverity,
+    ErrorCategory,
+    create_error_context
+)
+from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from .security import validate_path_safety, sanitize_path
 
 logger = logging.getLogger(__name__)
 
@@ -86,21 +85,12 @@ class DatabaseConfig:
             raise ValueError(f"Unsafe data directory path: {self.data_dir}")
 
         self.emails_file = emails_file or os.path.join(self.data_dir, "emails.json.gz")
-        self.categories_file = categories_file or os.path.join(
-            self.data_dir, "categories.json.gz"
-        )
+        self.categories_file = categories_file or os.path.join(self.data_dir, "categories.json.gz")
         self.users_file = users_file or os.path.join(self.data_dir, "users.json.gz")
-        self.email_content_dir = email_content_dir or os.path.join(
-            self.data_dir, "email_content"
-        )
+        self.email_content_dir = email_content_dir or os.path.join(self.data_dir, "email_content")
 
         # Validate all file paths
-        for path_attr in [
-            "emails_file",
-            "categories_file",
-            "users_file",
-            "email_content_dir",
-        ]:
+        for path_attr in ["emails_file", "categories_file", "users_file", "email_content_dir"]:
             path_value = getattr(self, path_attr)
             if not validate_path_safety(path_value, self.data_dir):
                 raise ValueError(f"Unsafe {path_attr} path: {path_value}")
@@ -111,7 +101,6 @@ class DatabaseConfig:
 
 # Import DataSource locally to avoid circular imports
 from .data.data_source import DataSource
-
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
@@ -170,9 +159,7 @@ class DatabaseManager(DataSource):
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
-    async def _load_and_merge_content(
-        self, email_light: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
         full_email = email_light.copy()
         email_id = full_email.get(FIELD_ID)
@@ -198,21 +185,16 @@ class DatabaseManager(DataSource):
                 error_context = create_error_context(
                     component="DatabaseManager",
                     operation="_load_and_merge_content",
-                    additional_context={
-                        "email_id": email_id,
-                        "content_path": content_path,
-                    },
+                    additional_context={"email_id": email_id, "content_path": content_path}
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.WARNING,
                     category=ErrorCategory.DATA,
                     context=error_context,
-                    details={"error_type": type(e).__name__},
+                    details={"error_type": type(e).__name__}
                 )
-                logger.error(
-                    f"Error loading content for email {email_id}: {e}. Error ID: {error_id}"
-                )
+                logger.error(f"Error loading content for email {email_id}: {e}. Error ID: {error_id}")
         return full_email
 
     async def _ensure_initialized(self) -> None:
@@ -236,9 +218,7 @@ class DatabaseManager(DataSource):
             if FIELD_MESSAGE_ID in email
         }
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
-        self.categories_by_name = {
-            cat[FIELD_NAME].lower(): cat for cat in self.categories_data
-        }
+        self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
         for email in self.emails_data:
             cat_id = email.get(FIELD_CATEGORY_ID)
@@ -269,9 +249,7 @@ class DatabaseManager(DataSource):
                     with gzip.open(file_path, "rt", encoding="utf-8") as f:
                         data = await asyncio.to_thread(json.load, f)
                         setattr(self, data_list_attr, data)
-                    logger.info(
-                        f"Loaded {len(data)} items from compressed file: {file_path}"
-                    )
+                    logger.info(f"Loaded {len(data)} items from compressed file: {file_path}")
                 else:
                     setattr(self, data_list_attr, [])
                     await self._save_data_to_file(data_type)
@@ -280,14 +258,14 @@ class DatabaseManager(DataSource):
                 error_context = create_error_context(
                     component="DatabaseManager",
                     operation="_load_data",
-                    additional_context={"data_type": data_type, "file_path": file_path},
+                    additional_context={"data_type": data_type, "file_path": file_path}
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.ERROR,
                     category=ErrorCategory.DATA,
                     context=error_context,
-                    details={"error_type": type(e).__name__},
+                    details={"error_type": type(e).__name__}
                 )
                 logger.error(
                     f"Error loading data from {file_path}: {e}. Error ID: {error_id}. Initializing with empty list."
@@ -298,9 +276,7 @@ class DatabaseManager(DataSource):
         self.caching_manager.clear_query_cache()
 
     @log_performance(operation="save_data_to_file")
-    async def _save_data_to_file(
-        self, data_type: Literal["emails", "categories", "users"]
-    ) -> None:
+    async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
         file_path, data_to_save = "", []
         if data_type == DATA_TYPE_EMAILS:
@@ -316,44 +292,38 @@ class DatabaseManager(DataSource):
             error_context = create_error_context(
                 component="DatabaseManager",
                 operation="_save_data_to_file",
-                additional_context={"data_type": data_type},
+                additional_context={"data_type": data_type}
             )
             error_id = log_error(
                 f"Unknown data type for saving: {data_type}",
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.VALIDATION,
-                context=error_context,
+                context=error_context
             )
-            logger.error(
-                f"Unknown data type for saving: {data_type}. Error ID: {error_id}"
-            )
+            logger.error(f"Unknown data type for saving: {data_type}. Error ID: {error_id}")
             return
 
         try:
             with gzip.open(file_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, data_to_save, f, indent=4)
                 await asyncio.to_thread(dump_func)
-            logger.info(
-                f"Persisted {len(data_to_save)} items to compressed file: {file_path}"
-            )
+            logger.info(f"Persisted {len(data_to_save)} items to compressed file: {file_path}")
         except IOError as e:
             error_context = create_error_context(
                 component="DatabaseManager",
                 operation="_save_data_to_file",
-                additional_context={"data_type": data_type, "file_path": file_path},
+                additional_context={"data_type": data_type, "file_path": file_path}
             )
             error_id = log_error(
                 e,
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.DATA,
                 context=error_context,
-                details={"error_type": type(e).__name__},
+                details={"error_type": type(e).__name__}
             )
             logger.error(f"Error saving data to {file_path}: {e}. Error ID: {error_id}")
 
-    async def _save_data(
-        self, data_type: Literal["emails", "categories", "users"]
-    ) -> None:
+    async def _save_data(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Marks data as dirty for write-behind saving."""
         self._dirty_data.add(data_type)
 
@@ -378,9 +348,7 @@ class DatabaseManager(DataSource):
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
-    def _parse_json_fields(
-        self, row: Dict[str, Any], fields: List[str]
-    ) -> Dict[str, Any]:
+    def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
         """
         Parses fields in a data row that are stored as JSON strings.
         """
@@ -412,9 +380,7 @@ class DatabaseManager(DataSource):
                 email[FIELD_CATEGORY_COLOR] = category.get(FIELD_COLOR)
         return self._parse_json_fields(email, [FIELD_ANALYSIS_METADATA])
 
-    async def _prepare_new_email_record(
-        self, email_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _prepare_new_email_record(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """Prepares a new email record with a generated ID and timestamps."""
         new_id = self._generate_id(self.emails_data)
         now = datetime.now(timezone.utc).isoformat()
@@ -450,15 +416,11 @@ class DatabaseManager(DataSource):
         if message_id:
             self.emails_by_message_id[message_id] = email
 
-    async def create_email(
-        self, email_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
-            logger.warning(
-                f"Email with messageId {message_id} already exists. Updating."
-            )
+            logger.warning(f"Email with messageId {message_id} already exists. Updating.")
             return await self.update_email_by_message_id(message_id, email_data)
 
         full_email_record = await self._prepare_new_email_record(email_data)
@@ -512,9 +474,7 @@ class DatabaseManager(DataSource):
             email_full = await self._load_and_merge_content(email_light)
 
             # Cache the content
-            heavy_fields = {
-                k: v for k, v in email_full.items() if k in HEAVY_EMAIL_FIELDS
-            }
+            heavy_fields = {k: v for k, v in email_full.items() if k in HEAVY_EMAIL_FIELDS}
             if heavy_fields:
                 self.caching_manager.put_email_content(email_id, heavy_fields)
 
@@ -531,13 +491,9 @@ class DatabaseManager(DataSource):
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
-        return sorted(
-            self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, "")
-        )
+        return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ""))
 
-    async def create_category(
-        self, category_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
@@ -566,9 +522,7 @@ class DatabaseManager(DataSource):
     ) -> None:
         """Incrementally update category email count in the cache."""
         if category_id not in self.category_counts:
-            logger.warning(
-                f"Attempted to update count for non-existent category ID: {category_id}"
-            )
+            logger.warning(f"Attempted to update count for non-existent category ID: {category_id}")
             return
         if increment:
             self.category_counts[category_id] += 1
@@ -597,9 +551,7 @@ class DatabaseManager(DataSource):
                 emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
             )
         paginated_emails = sorted_emails[offset : offset + limit]
-        result_emails = [
-            self._add_category_details(email) for email in paginated_emails
-        ]
+        result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
 
     async def get_emails(
@@ -616,9 +568,7 @@ class DatabaseManager(DataSource):
                 e for e in filtered_emails if e.get(FIELD_CATEGORY_ID) == category_id
             ]
         if is_unread is not None:
-            filtered_emails = [
-                e for e in filtered_emails if e.get(FIELD_IS_UNREAD) == is_unread
-            ]
+            filtered_emails = [e for e in filtered_emails if e.get(FIELD_IS_UNREAD) == is_unread]
         return await self._sort_and_paginate_emails(
             filtered_emails, limit=limit, offset=offset
         )
@@ -627,13 +577,9 @@ class DatabaseManager(DataSource):
         self, message_id: str, update_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Update email by messageId, handling separated content."""
-        email_to_update = await self.get_email_by_message_id(
-            message_id, include_content=True
-        )
+        email_to_update = await self.get_email_by_message_id(message_id, include_content=True)
         if not email_to_update:
-            logger.warning(
-                f"Email with {FIELD_MESSAGE_ID} {message_id} not found for update."
-            )
+            logger.warning(f"Email with {FIELD_MESSAGE_ID} {message_id} not found for update.")
             return None
 
         original_category_id = email_to_update.get(FIELD_CATEGORY_ID)
@@ -665,12 +611,7 @@ class DatabaseManager(DataSource):
             self.emails_by_id[email_id] = email_to_update
             self.emails_by_message_id[message_id] = email_to_update
             idx = next(
-                (
-                    i
-                    for i, e in enumerate(self.emails_data)
-                    if e.get(FIELD_ID) == email_id
-                ),
-                -1,
+                (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
             )
             if idx != -1:
                 self.emails_data[idx] = email_to_update
@@ -679,9 +620,7 @@ class DatabaseManager(DataSource):
             new_category_id = email_to_update.get(FIELD_CATEGORY_ID)
             if original_category_id != new_category_id:
                 if original_category_id is not None:
-                    await self._update_category_count(
-                        original_category_id, decrement=True
-                    )
+                    await self._update_category_count(original_category_id, decrement=True)
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
 
@@ -717,9 +656,7 @@ class DatabaseManager(DataSource):
         # Use the enhanced caching with email_id
         return await self.get_email_by_id(email_id, include_content)
 
-    async def get_all_emails(
-        self, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """
         Retrieves all emails with pagination.
         """
@@ -729,105 +666,90 @@ class DatabaseManager(DataSource):
         self, category_id: int, limit: int = 50, offset: int = 0
     ) -> List[Dict[str, Any]]:
         """Get emails by category"""
-        return await self.get_emails(
-            limit=limit, offset=offset, category_id=category_id
-        )
+        return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
     async def search_emails(self, query: str) -> List[Dict[str, Any]]:
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(
-        self, search_term: str, limit: int = 50
+        self, search_term: str, limit: int = 50, offset: int = 0
     ) -> List[Dict[str, Any]]:
         """
-        Search emails with limit parameter.
-        Optimized strategy: "Sort-First Early-Exit".
-        1. Sort all emails by date (newest first).
-        2. Iterate and match (memory first, then disk).
-        3. Stop as soon as 'limit' matches are found.
+        Search emails with limit and offset parameter using Sort-First Early-Exit strategy.
+        Searches subject/sender in-memory, and content on-disk.
         """
         if not search_term:
-            return await self.get_emails(limit=limit, offset=0)
+            return await self.get_emails(limit=limit, offset=offset)
 
         # Check cache
-        cache_key = f"search_{search_term}_{limit}"
+        cache_key = f"search_{search_term}_{limit}_{offset}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             return cached_result
 
         search_term_lower = search_term.lower()
-        filtered_emails = []
-        logger.info(
-            f"Starting email search for term: '{search_term_lower}'. Using Sort-First Early-Exit strategy."
-        )
 
-        # 1. Sort all emails by date (newest first)
-        # This mirrors the logic in _sort_and_paginate_emails
+        # Sort emails first (Sort-First strategy)
         try:
-            sorted_candidates = sorted(
+            sorted_emails = sorted(
                 self.emails_data,
                 key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
                 reverse=True,
             )
         except TypeError:
-            sorted_candidates = sorted(
+            sorted_emails = sorted(
                 self.emails_data,
                 key=lambda e: e.get(FIELD_CREATED_AT, ""),
-                reverse=True,
+                reverse=True
             )
 
-        # 2. Iterate and match
-        for email_light in sorted_candidates:
-            # Check early exit condition
-            if len(filtered_emails) >= limit:
+        result_emails = []
+        skipped_count = 0
+
+        # Generator for light filtering
+        for email_light in sorted_emails:
+            # Stop if we have enough
+            if len(result_emails) >= limit:
                 break
 
-            # Check in-memory fields first
+            # Light check (in-memory)
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
 
+            is_match = False
             if found_in_light:
-                filtered_emails.append(email_light)
-                continue
+                is_match = True
+            else:
+                # Heavy check (on-disk)
+                email_id = email_light.get(FIELD_ID)
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    try:
+                        # Use asyncio.to_thread for I/O to check content without blocking
+                        def check_content():
+                            with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                                heavy_data = json.load(f)
+                                content = heavy_data.get(FIELD_CONTENT, "")
+                                return isinstance(content, str) and search_term_lower in content.lower()
 
-            # Check heavy content on disk (non-blocking)
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
+                        if await asyncio.to_thread(check_content):
+                            is_match = True
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not search content for email {email_id}: {e}")
 
-            if os.path.exists(content_path):
-                try:
-                    is_match = await asyncio.to_thread(
-                        self._check_content_match_sync, content_path, search_term_lower
-                    )
-                    if is_match:
-                        filtered_emails.append(email_light)
-                except Exception as e:
-                    # Log but continue searching
-                    logger.debug(f"Error searching content for email {email_id}: {e}")
-
-        # No need to sort again, we iterated in sorted order.
-        # Just need to add category details.
-        result = [self._add_category_details(email) for email in filtered_emails]
+            if is_match:
+                if skipped_count < offset:
+                    skipped_count += 1
+                    continue
+                result_emails.append(self._add_category_details(email_light))
 
         # Cache result
-        self.caching_manager.put_query_result(cache_key, result)
-        return result
-
-    def _check_content_match_sync(
-        self, content_path: str, search_term_lower: str
-    ) -> bool:
-        """Helper to check content match synchronously (run in thread)."""
-        try:
-            with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                heavy_data = json.load(f)
-                content = heavy_data.get(FIELD_CONTENT, "")
-                return isinstance(content, str) and search_term_lower in content.lower()
-        except (IOError, json.JSONDecodeError):
-            return False
+        self.caching_manager.put_query_result(cache_key, result_emails)
+        return result_emails
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -848,9 +770,7 @@ class DatabaseManager(DataSource):
             email[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
         return changed
 
-    async def _save_heavy_content(
-        self, email_id: int, email_data: Dict[str, Any]
-    ) -> None:
+    async def _save_heavy_content(self, email_id: int, email_data: Dict[str, Any]) -> None:
         """Saves heavy content to a separate file."""
         heavy_data = {
             field: email_data.pop(field)
@@ -926,9 +846,7 @@ class DatabaseManager(DataSource):
         new_tags = list(set(existing_tags + tags))
 
         updated_email = await self.update_email(email_id, {"tags": new_tags})
-        return bool(
-            updated_email
-        )  # Return True if update was successful (not empty dict)
+        return bool(updated_email)  # Return True if update was successful (not empty dict)
 
     async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
         """Removes tags from an email."""
@@ -947,10 +865,7 @@ class DatabaseManager(DataSource):
         updated_tags = [tag for tag in existing_tags if tag not in tags]
 
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
-        return bool(
-            updated_email
-        )  # Return True if update was successful (not empty dict)
-
+        return bool(updated_email)  # Return True if update was successful (not empty dict)
 
 # Factory functions and configuration management
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
@@ -967,7 +882,6 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
 # TODO: Remove this once all code has been migrated to dependency injection
 _db_manager_instance = None
 
-
 async def get_db() -> DatabaseManager:
     """
     DEPRECATED: Provides backward compatibility for existing code.
@@ -977,11 +891,10 @@ async def get_db() -> DatabaseManager:
     been migrated to proper dependency injection yet.
     """
     import warnings
-
     warnings.warn(
         "get_db() is deprecated. Use create_database_manager() with DatabaseConfig instead.",
         DeprecationWarning,
-        stacklevel=2,
+        stacklevel=2
     )
 
     global _db_manager_instance

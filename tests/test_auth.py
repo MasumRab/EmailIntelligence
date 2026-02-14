@@ -1,12 +1,10 @@
 """
 Tests for authentication functionality
 """
-
 import pytest
+from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.testclient import TestClient
-
 from src.core.auth import get_current_active_user, verify_token
 from src.main import app
 
@@ -15,17 +13,13 @@ def test_auth_token_endpoint():
     """Test the token endpoint for authentication"""
     with TestClient(app) as client:
         # Test with valid credentials
-        response = client.post(
-            "/token", data={"username": "admin", "password": "secret"}
-        )
+        response = client.post("/token", data={"username": "admin", "password": "secret"})
         assert response.status_code == 200
         assert "access_token" in response.json()
         assert response.json()["token_type"] == "bearer"
 
         # Test with invalid credentials
-        response = client.post(
-            "/token", data={"username": "invalid", "password": "invalid"}
-        )
+        response = client.post("/token", data={"username": "invalid", "password": "invalid"})
         assert response.status_code == 401
 
 

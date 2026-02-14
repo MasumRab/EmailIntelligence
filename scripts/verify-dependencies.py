@@ -12,6 +12,7 @@ import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
+import subprocess
 import importlib.metadata
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
@@ -35,7 +36,6 @@ def get_installed_packages() -> Dict[str, str]:
     for dist in importlib.metadata.distributions():
         name = dist.metadata["Name"]
         if name:
-            # Use lower case for consistent matching
             packages[name.lower()] = dist.version
     return packages
 
@@ -97,10 +97,10 @@ def verify_system_packages():
     print("\nVerifying system packages...")
 
     # Check for git
-    exit_code = os.system("git --version > /dev/null 2>&1")
-    if exit_code == 0:
+    try:
+        subprocess.run(["git", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         print("git: Installed")
-    else:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         print("git: Missing")
         return False
 

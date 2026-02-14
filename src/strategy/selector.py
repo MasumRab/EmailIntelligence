@@ -2,14 +2,9 @@
 Strategy selection module.
 """
 
-from typing import Any, Dict
+from typing import Dict, Any
 
-from ..core.conflict_models import (
-    AnalysisResult,
-    Conflict,
-    ResolutionStrategy,
-    RiskLevel,
-)
+from ..core.conflict_models import Conflict, AnalysisResult, ResolutionStrategy, RiskLevel
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -29,9 +24,7 @@ class StrategySelector:
         """
         Select the best resolution strategy.
         """
-        logger.info(
-            "Selecting strategy", conflict_id=conflict.id, risk=analysis.risk_level
-        )
+        logger.info("Selecting strategy", conflict_id=conflict.id, risk=analysis.risk_level)
 
         # 1. Critical/High Risk -> Manual
         if analysis.risk_level in [RiskLevel.CRITICAL, RiskLevel.HIGH]:
@@ -106,9 +99,7 @@ class StrategySelector:
             conflict, "Complex conflict requires manual resolution."
         )
 
-    def _create_manual_strategy(
-        self, conflict: Conflict, reason: str
-    ) -> ResolutionStrategy:
+    def _create_manual_strategy(self, conflict: Conflict, reason: str) -> ResolutionStrategy:
         return ResolutionStrategy(
             id=f"strat-manual-{conflict.id}",
             name="Manual Resolution",

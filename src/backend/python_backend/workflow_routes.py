@@ -14,12 +14,8 @@ from pydantic import BaseModel, Field
 # Import node-based workflow components
 from src.backend.node_engine.node_base import Workflow as NodeWorkflow
 from src.backend.node_engine.workflow_engine import WorkflowEngine
-from src.backend.node_engine.workflow_engine import (
-    workflow_engine as node_workflow_engine,
-)
-from src.backend.node_engine.workflow_manager import (
-    workflow_manager as node_workflow_manager,
-)
+from src.backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 from src.core.auth import get_current_active_user
 
 from .dependencies import get_workflow_engine
@@ -77,9 +73,7 @@ async def list_workflows(
     try:
         # Get legacy workflows
         legacy_workflows = (
-            workflow_engine.list_workflows()
-            if hasattr(workflow_engine, "list_workflows")
-            else []
+            workflow_engine.list_workflows() if hasattr(workflow_engine, "list_workflows") else []
         )
 
         # Get node-based workflows
@@ -100,9 +94,7 @@ async def list_workflows(
                     {
                         "name": wf_name,
                         "type": "legacy" if wf in legacy_workflows else "node_based",
-                        "description": (
-                            wf.get("description", "") if isinstance(wf, dict) else ""
-                        ),
+                        "description": wf.get("description", "") if isinstance(wf, dict) else "",
                     }
                 )
 
@@ -125,9 +117,7 @@ async def create_workflow(
     try:
         if workflow_data.workflow_type == "node_based":
             # Handle node-based workflow creation
-            workflow = NodeWorkflow(
-                name=workflow_data.name, description=workflow_data.description
-            )
+            workflow = NodeWorkflow(name=workflow_data.name, description=workflow_data.description)
 
             # Create nodes from the request data
             for node_data in workflow_data.nodes:
@@ -146,25 +136,15 @@ async def create_workflow(
                 )
 
                 if node_type == "EmailSourceNode":
-                    node = EmailSourceNode(
-                        config=node_config, node_id=node_id, name=node_name
-                    )
+                    node = EmailSourceNode(config=node_config, node_id=node_id, name=node_name)
                 elif node_type == "PreprocessingNode":
-                    node = PreprocessingNode(
-                        config=node_config, node_id=node_id, name=node_name
-                    )
+                    node = PreprocessingNode(config=node_config, node_id=node_id, name=node_name)
                 elif node_type == "AIAnalysisNode":
-                    node = AIAnalysisNode(
-                        config=node_config, node_id=node_id, name=node_name
-                    )
+                    node = AIAnalysisNode(config=node_config, node_id=node_id, name=node_name)
                 elif node_type == "FilterNode":
-                    node = FilterNode(
-                        config=node_config, node_id=node_id, name=node_name
-                    )
+                    node = FilterNode(config=node_config, node_id=node_id, name=node_name)
                 elif node_type == "ActionNode":
-                    node = ActionNode(
-                        config=node_config, node_id=node_id, name=node_name
-                    )
+                    node = ActionNode(config=node_config, node_id=node_id, name=node_name)
                 else:
                     raise ValueError(f"Unknown node type: {node_type}")
 
@@ -184,25 +164,20 @@ async def create_workflow(
 
             # Save the workflow using the node workflow manager
             node_workflow_manager.save_workflow(workflow)
-            return {
-                "message": f"Node-based workflow '{workflow_data.name}' created successfully."
-            }
+            return {"message": f"Node-based workflow '{workflow_data.name}' created successfully."}
 
         else:
             # Handle legacy workflow creation (original behavior)
             await workflow_engine.create_and_register_workflow_from_config(
                 workflow_data.model_dump()
             )
-            return {
-                "message": f"Legacy workflow '{workflow_data.name}' created successfully."
-            }
+            return {"message": f"Legacy workflow '{workflow_data.name}' created successfully."}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to create workflow: {e}", exc_info=True)
         raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred while creating the workflow.",
+            status_code=500, detail="An unexpected error occurred while creating the workflow."
         )
 
 
@@ -282,8 +257,7 @@ async def get_workflow(
             node_workflow = node_workflow_manager.load_workflow(workflow_name)
             if not node_workflow:
                 raise HTTPException(
-                    status_code=404,
-                    detail=f"Node-based workflow '{workflow_name}' not found",
+                    status_code=404, detail=f"Node-based workflow '{workflow_name}' not found"
                 )
 
             # Convert to appropriate response format
@@ -324,8 +298,7 @@ async def get_workflow(
             legacy_workflows = workflow_engine.list_workflows()
             if workflow_name not in legacy_workflows:
                 raise HTTPException(
-                    status_code=404,
-                    detail=f"Legacy workflow '{workflow_name}' not found",
+                    status_code=404, detail=f"Legacy workflow '{workflow_name}' not found"
                 )
 
             # Check if this is the active workflow
@@ -342,8 +315,7 @@ async def get_workflow(
     except Exception as e:
         logger.error(f"Failed to get workflow '{workflow_name}': {e}", exc_info=True)
         raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred while retrieving the workflow.",
+            status_code=500, detail="An unexpected error occurred while retrieving the workflow."
         )
 
 
@@ -362,13 +334,10 @@ async def delete_workflow(
             success = node_workflow_manager.delete_workflow(workflow_name)
             if not success:
                 raise HTTPException(
-                    status_code=404,
-                    detail=f"Node-based workflow '{workflow_name}' not found",
+                    status_code=404, detail=f"Node-based workflow '{workflow_name}' not found"
                 )
 
-            return {
-                "message": f"Node-based workflow '{workflow_name}' deleted successfully."
-            }
+            return {"message": f"Node-based workflow '{workflow_name}' deleted successfully."}
         else:
             # For legacy workflows, we may need to implement deletion if not already available
             # For now, we'll note that direct deletion may not be supported in the legacy system
@@ -376,8 +345,7 @@ async def delete_workflow(
             legacy_workflows = workflow_engine.list_workflows()
             if workflow_name not in legacy_workflows:
                 raise HTTPException(
-                    status_code=404,
-                    detail=f"Legacy workflow '{workflow_name}' not found",
+                    status_code=404, detail=f"Legacy workflow '{workflow_name}' not found"
                 )
 
             # Note: Legacy system may not support direct deletion of individual workflows
@@ -390,6 +358,5 @@ async def delete_workflow(
     except Exception as e:
         logger.error(f"Failed to delete workflow '{workflow_name}': {e}", exc_info=True)
         raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred while deleting the workflow.",
+            status_code=500, detail="An unexpected error occurred while deleting the workflow."
         )

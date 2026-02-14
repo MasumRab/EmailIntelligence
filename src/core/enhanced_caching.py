@@ -64,7 +64,7 @@ class LRUCache:
             "size": len(self.cache),
             "hits": self.hits,
             "misses": self.misses,
-            "hit_rate": hit_rate,
+            "hit_rate": hit_rate
         }
 
 
@@ -103,8 +103,7 @@ class QueryResultCache:
         """Remove all expired entries."""
         current_time = time.time()
         expired_keys = [
-            key
-            for key, (_, timestamp) in self.cache.items()
+            key for key, (_, timestamp) in self.cache.items()
             if current_time - timestamp >= self.ttl_seconds
         ]
         for key in expired_keys:
@@ -126,7 +125,7 @@ class QueryResultCache:
             "hits": self.hits,
             "misses": self.misses,
             "hit_rate": hit_rate,
-            "ttl_seconds": self.ttl_seconds,
+            "ttl_seconds": self.ttl_seconds
         }
 
 
@@ -153,7 +152,7 @@ class EnhancedCachingManager:
             "query_result_get": 0,
             "query_result_put": 0,
             "content_get": 0,
-            "content_put": 0,
+            "content_put": 0
         }
 
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
@@ -171,9 +170,7 @@ class EnhancedCachingManager:
         self.cache_operations["category_record_get"] += 1
         return self.category_record_cache.get(f"category_{category_id}")
 
-    def put_category_record(
-        self, category_id: int, category_record: Dict[str, Any]
-    ) -> None:
+    def put_category_record(self, category_id: int, category_record: Dict[str, Any]) -> None:
         """Put category record in cache."""
         self.cache_operations["category_record_put"] += 1
         self.category_record_cache.put(f"category_{category_id}", category_record)
@@ -233,5 +230,5 @@ class EnhancedCachingManager:
             "category_record_cache": self.category_record_cache.get_stats(),
             "query_cache": self.query_cache.get_stats(),
             "email_content_cache": self.email_content_cache.get_stats(),
-            "operations": self.cache_operations.copy(),
+            "operations": self.cache_operations.copy()
         }

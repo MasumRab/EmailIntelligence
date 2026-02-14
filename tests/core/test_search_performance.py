@@ -1,12 +1,9 @@
 import asyncio
+import time
 import os
 import shutil
-import time
-
 import pytest
-
-from src.core.database import DatabaseConfig, DatabaseManager
-
+from src.core.database import DatabaseManager, DatabaseConfig
 
 @pytest.fixture
 def temp_db():
@@ -22,7 +19,6 @@ def temp_db():
 
     shutil.rmtree(temp_dir)
 
-
 @pytest.mark.asyncio
 async def test_search_performance_caching(temp_db):
     db = temp_db
@@ -30,15 +26,13 @@ async def test_search_performance_caching(temp_db):
 
     # Populate with some data
     print("Populating data...")
-    for i in range(100):  # Reduce count for quick test
-        await db.create_email(
-            {
-                "subject": f"Test Email {i}",
-                "sender": "sender@example.com",
-                "sender_email": "sender@example.com",
-                "content": f"This is the content of email {i}. random_keyword_{i % 10}",
-            }
-        )
+    for i in range(100): # Reduce count for quick test
+        await db.create_email({
+            "subject": f"Test Email {i}",
+            "sender": "sender@example.com",
+            "sender_email": "sender@example.com",
+            "content": f"This is the content of email {i}. random_keyword_{i % 10}"
+        })
 
     search_term = "random_keyword_5"
 
@@ -64,12 +58,10 @@ async def test_search_performance_caching(temp_db):
     assert duration2 < 0.01
 
     # Verify cache invalidation
-    await db.create_email(
-        {
-            "subject": "New Email with keyword",
-            "content": f"This is a new email with {search_term}",
-        }
-    )
+    await db.create_email({
+        "subject": "New Email with keyword",
+        "content": f"This is a new email with {search_term}"
+    })
 
     # Third search (Uncached after invalidation)
     start_time = time.perf_counter()

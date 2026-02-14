@@ -1,0 +1,86 @@
+    async def search_emails_with_limit(
+        self, search_term: str, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """
+        Search emails with limit and offset parameter using Sort-First Early-Exit strategy.
+        Searches subject/sender in-memory, and content on-disk.
+        """
+        if not search_term:
+            return await self.get_emails(limit=limit, offset=offset)
+
+        # Check cache
+        cache_key = f"search_{search_term}_{limit}_{offset}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
+        if cached_result is not None:
+            return cached_result
+
+        search_term_lower = search_term.lower()
+
+        # Sort emails first (Sort-First strategy)
+        # We use a generator or iterator to avoid creating full sorted list if possible,
+        # but self._sort_and_paginate_emails usually sorts all.
+        # Ideally, self.emails_data should be kept sorted, but here we sort explicitly.
+        # We sort ALL emails by date desc to assume order.
+        try:
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            sorted_emails = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_CREATED_AT, ""),
+                reverse=True
+            )
+
+        result_emails = []
+        skipped_count = 0
+
+        # Generator for light filtering
+        for email_light in sorted_emails:
+            # Stop if we have enough
+            if len(result_emails) >= limit:
+                break
+
+            # Light check (in-memory)
+            found_in_light = (
+                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
+                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
+                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+            )
+
+            is_match = False
+            if found_in_light:
+                is_match = True
+            else:
+                # Heavy check (on-disk)
+                # Only check content if light check failed (OR logic implies if light matched, we define it as match?)
+                # Wait, usually search is ANY field matches. So if light matched, we don't need to check content.
+                # If light did NOT match, check content.
+                email_id = email_light.get(FIELD_ID)
+                content_path = self._get_email_content_path(email_id)
+                if os.path.exists(content_path):
+                    try:
+                        # Use asyncio.to_thread for I/O
+                        # We optimize by reading only if necessary
+                        def check_content():
+                            with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                                heavy_data = json.load(f)
+                                content = heavy_data.get(FIELD_CONTENT, "")
+                                return isinstance(content, str) and search_term_lower in content.lower()
+
+                        if await asyncio.to_thread(check_content):
+                            is_match = True
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not search content for email {email_id}: {e}")
+
+            if is_match:
+                if skipped_count < offset:
+                    skipped_count += 1
+                    continue
+                result_emails.append(self._add_category_details(email_light))
+
+        # Cache result
+        self.caching_manager.put_query_result(cache_key, result_emails)
+        return result_emails

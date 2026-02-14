@@ -12,18 +12,17 @@ Features:
 - Advanced quality metrics
 """
 
+from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
 import structlog
 
 from ..resolution.constitutional_engine import ConstitutionalEngine
-from ..resolution.types import ResolutionStrategy
-from ..specification.template_generator import (
-    SpecificationPhase,
-    SpecificationTemplateGenerator,
-)
 from ..strategy.multi_phase_generator import MultiPhaseStrategyGenerator
+from ..specification.template_generator import (
+    SpecificationTemplateGenerator,
+    SpecificationPhase,
+)
+from ..resolution.types import ResolutionStrategy
 from .standard_validator import StandardValidator, ValidationLevel, ValidationStatus
 
 logger = structlog.get_logger()
@@ -135,10 +134,8 @@ class ComprehensiveValidator:
             )
 
             # Step 1: Standard validation (inherit from StandardValidator)
-            standard_result = (
-                await self.standard_validator.validate_standard_resolution(
-                    conflict_data, resolution_strategy, specification_data, **kwargs
-                )
+            standard_result = await self.standard_validator.validate_standard_resolution(
+                conflict_data, resolution_strategy, specification_data, **kwargs
             )
 
             # Step 2: Full workflow validation
@@ -297,10 +294,8 @@ class ComprehensiveValidator:
         try:
             # Step 1: Validate specification workflow integration
             if specification_data:
-                spec_workflow_score = (
-                    await self._validate_specification_workflow_integration(
-                        specification_data, resolution_strategy
-                    )
+                spec_workflow_score = await self._validate_specification_workflow_integration(
+                    specification_data, resolution_strategy
                 )
                 workflow_score += spec_workflow_score * 0.3
                 workflow_components["specification_integration"] = spec_workflow_score
@@ -335,23 +330,17 @@ class ComprehensiveValidator:
                 )
 
             # Step 3: Validate parallel execution capabilities
-            parallel_score = self._validate_parallel_execution_capabilities(
-                resolution_strategy
-            )
+            parallel_score = self._validate_parallel_execution_capabilities(resolution_strategy)
             workflow_score += parallel_score * 0.2
             workflow_components["parallel_execution"] = parallel_score
 
             # Step 4: Validate rollback workflow
-            rollback_workflow_score = self._validate_rollback_workflow(
-                resolution_strategy
-            )
+            rollback_workflow_score = self._validate_rollback_workflow(resolution_strategy)
             workflow_score += rollback_workflow_score * 0.15
             workflow_components["rollback_workflow"] = rollback_workflow_score
 
             # Step 5: Validate quality gates workflow
-            quality_gate_score = self._validate_quality_gates_workflow(
-                resolution_strategy
-            )
+            quality_gate_score = self._validate_quality_gates_workflow(resolution_strategy)
             workflow_score += quality_gate_score * 0.1
             workflow_components["quality_gates"] = quality_gate_score
 
@@ -424,9 +413,7 @@ class ComprehensiveValidator:
                     performance_scores.append(score)
 
             overall_performance_score = (
-                sum(performance_scores) / len(performance_scores)
-                if performance_scores
-                else 0.5
+                sum(performance_scores) / len(performance_scores) if performance_scores else 0.5
             )
 
             return {
@@ -454,15 +441,11 @@ class ComprehensiveValidator:
 
         try:
             # Step 1: Complexity metrics
-            complexity_score = self._calculate_complexity_score(
-                conflict_data, resolution_strategy
-            )
+            complexity_score = self._calculate_complexity_score(conflict_data, resolution_strategy)
             metrics["complexity_score"] = complexity_score
 
             # Step 2: Maintainability metrics
-            maintainability_score = self._calculate_maintainability_score(
-                resolution_strategy
-            )
+            maintainability_score = self._calculate_maintainability_score(resolution_strategy)
             metrics["maintainability_score"] = maintainability_score
 
             # Step 3: Testability metrics
@@ -482,9 +465,7 @@ class ComprehensiveValidator:
             metrics["performance_score"] = performance_score
 
             # Step 7: Documentation quality
-            documentation_score = self._calculate_documentation_score(
-                specification_data
-            )
+            documentation_score = self._calculate_documentation_score(specification_data)
             metrics["documentation_score"] = documentation_score
 
             return metrics
@@ -506,9 +487,7 @@ class ComprehensiveValidator:
 
         try:
             # Step 1: Technical risk assessment
-            technical_risk = self._assess_technical_risk(
-                conflict_data, resolution_strategy
-            )
+            technical_risk = self._assess_technical_risk(conflict_data, resolution_strategy)
             risk_factors.append(("technical", technical_risk))
             risk_score += technical_risk * 0.3
 
@@ -539,9 +518,7 @@ class ComprehensiveValidator:
             )  # Reduce risk by mitigation effectiveness
 
             return {
-                "score": max(
-                    0.0, min(1.0, 1.0 - risk_score)
-                ),  # Convert risk to safety score
+                "score": max(0.0, min(1.0, 1.0 - risk_score)),  # Convert risk to safety score
                 "risk_factors": dict(risk_factors),
                 "mitigation_effectiveness": mitigation_score,
             }
@@ -562,13 +539,11 @@ class ComprehensiveValidator:
             project_context = {"organization": {"name": "Test"}}
             team_context = {"experience_level": "intermediate"}
 
-            specification = (
-                await self.template_generator.generate_specification_template(
-                    conflict_data,
-                    project_context,
-                    team_context,
-                    SpecificationPhase.IMPROVED,
-                )
+            specification = await self.template_generator.generate_specification_template(
+                conflict_data,
+                project_context,
+                team_context,
+                SpecificationPhase.IMPROVED,
             )
 
             actual_time = time.time() - start_time
@@ -619,10 +594,8 @@ class ComprehensiveValidator:
             start_time = time.time()
 
             # Simulate validation
-            validation_result = (
-                await self.standard_validator.validate_standard_resolution(
-                    None, resolution_strategy
-                )
+            validation_result = await self.standard_validator.validate_standard_resolution(
+                None, resolution_strategy
             )
 
             actual_time = time.time() - start_time
@@ -653,11 +626,7 @@ class ComprehensiveValidator:
         else:
             complexity_factors.append(0.3)
 
-        return (
-            sum(complexity_factors) / len(complexity_factors)
-            if complexity_factors
-            else 0.5
-        )
+        return sum(complexity_factors) / len(complexity_factors) if complexity_factors else 0.5
 
     def _calculate_maintainability_score(self, resolution_strategy):
         """Calculate maintainability score"""
@@ -696,11 +665,7 @@ class ComprehensiveValidator:
 
             testability_factors.append(step_score)
 
-        return (
-            sum(testability_factors) / len(testability_factors)
-            if testability_factors
-            else 0.5
-        )
+        return sum(testability_factors) / len(testability_factors) if testability_factors else 0.5
 
     def _calculate_security_score(self, resolution_strategy):
         """Calculate security score"""
@@ -726,9 +691,7 @@ class ComprehensiveValidator:
         else:
             security_factors.append(0.4)
 
-        return (
-            sum(security_factors) / len(security_factors) if security_factors else 0.5
-        )
+        return sum(security_factors) / len(security_factors) if security_factors else 0.5
 
     def _calculate_reliability_score(self, resolution_strategy):
         """Calculate reliability score"""
@@ -744,11 +707,7 @@ class ComprehensiveValidator:
         else:
             reliability_factors.append(0.3)
 
-        return (
-            sum(reliability_factors) / len(reliability_factors)
-            if reliability_factors
-            else 0.5
-        )
+        return sum(reliability_factors) / len(reliability_factors) if reliability_factors else 0.5
 
     def _calculate_performance_score(self, resolution_strategy):
         """Calculate performance score"""
@@ -770,11 +729,7 @@ class ComprehensiveValidator:
         else:
             performance_factors.append(0.4)
 
-        return (
-            sum(performance_factors) / len(performance_factors)
-            if performance_factors
-            else 0.5
-        )
+        return sum(performance_factors) / len(performance_factors) if performance_factors else 0.5
 
     def _calculate_documentation_score(self, specification_data):
         """Calculate documentation quality score"""
@@ -800,10 +755,7 @@ class ComprehensiveValidator:
         # Simplified technical risk assessment
         risk_score = 0.5  # Base risk
 
-        if (
-            hasattr(conflict_data, "complexity_score")
-            and conflict_data.complexity_score > 7
-        ):
+        if hasattr(conflict_data, "complexity_score") and conflict_data.complexity_score > 7:
             risk_score += 0.2
 
         if len(resolution_strategy.steps) > 8:
@@ -839,9 +791,7 @@ class ComprehensiveValidator:
             else:
                 resource_factors.append(0.2)
 
-        return (
-            sum(resource_factors) / len(resource_factors) if resource_factors else 0.3
-        )
+        return sum(resource_factors) / len(resource_factors) if resource_factors else 0.3
 
     def _assess_timeline_risk(self, resolution_strategy):
         """Assess timeline risk"""
@@ -888,11 +838,7 @@ class ComprehensiveValidator:
 
         mitigation_factors.append(validation_coverage)
 
-        return (
-            sum(mitigation_factors) / len(mitigation_factors)
-            if mitigation_factors
-            else 0.3
-        )
+        return sum(mitigation_factors) / len(mitigation_factors) if mitigation_factors else 0.3
 
     # Additional helper methods (simplified implementations)
     async def _validate_specification_workflow_integration(
@@ -988,8 +934,7 @@ class ComprehensiveValidator:
             "name": "overall_quality",
             "threshold": self.quality_gates["overall_quality"]["threshold"],
             "score": overall_score,
-            "passed": overall_score
-            >= self.quality_gates["overall_quality"]["threshold"],
+            "passed": overall_score >= self.quality_gates["overall_quality"]["threshold"],
         }
 
         return gates
@@ -1049,16 +994,12 @@ class ComprehensiveValidator:
             if issue.get("type") == "severe_performance_issue":
                 recommendations.append("Optimize performance bottlenecks immediately")
             elif issue.get("type") == "high_risk_assessment":
-                recommendations.append(
-                    "Implement comprehensive risk mitigation strategies"
-                )
+                recommendations.append("Implement comprehensive risk mitigation strategies")
 
         # Performance recommendations
         for component, result in performance_benchmarks.get("benchmarks", {}).items():
             if not result.get("passed", False):
-                recommendations.append(
-                    f"Improve {component} performance to meet targets"
-                )
+                recommendations.append(f"Improve {component} performance to meet targets")
 
         # Workflow recommendations
         workflow_score = workflow_validation.get("score", 0.0)
@@ -1083,9 +1024,7 @@ class ComprehensiveValidator:
         if len(critical_issues) > 0:
             return "not_ready"
 
-        passed_gates = sum(
-            1 for gate in comprehensive_gates.values() if gate.get("passed", False)
-        )
+        passed_gates = sum(1 for gate in comprehensive_gates.values() if gate.get("passed", False))
         total_gates = len(comprehensive_gates)
 
         if passed_gates / total_gates >= 0.9:

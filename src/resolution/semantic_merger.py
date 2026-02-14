@@ -4,10 +4,10 @@ Semantic merger for EmailIntelligence CLI
 Implements intelligent merging of code based on semantic understanding.
 """
 
-from typing import Any, Dict, List, Optional
-
+from typing import List, Dict, Any, Optional
 from ..core.conflict_models import Conflict, ConflictBlock
 from ..utils.logger import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -23,7 +23,7 @@ class SemanticMerger:
             "variable_assignment": self._merge_variable_assignments,
             "import_statements": self._merge_imports,
             "comment_blocks": self._merge_comments,
-            "code_blocks": self._merge_code_blocks,
+            "code_blocks": self._merge_code_blocks
         }
 
     async def merge_conflicts(self, conflicts: List[Conflict]) -> List[Dict[str, Any]]:
@@ -58,7 +58,7 @@ class SemanticMerger:
             "merged_blocks": [],
             "unresolved_blocks": [],
             "success": True,
-            "message": "",
+            "message": ""
         }
 
         for block in conflict.conflict_blocks:
@@ -77,9 +77,7 @@ class SemanticMerger:
 
         return merge_result
 
-    def _merge_conflict_block(
-        self, block: ConflictBlock, file_path: str
-    ) -> Optional[Dict[str, Any]]:
+    def _merge_conflict_block(self, block: ConflictBlock, file_path: str) -> Optional[Dict[str, Any]]:
         """Merge a single conflict block using appropriate strategy."""
         # Determine the type of content in the conflict block
         content_type = self._determine_content_type(block, file_path)
@@ -93,42 +91,27 @@ class SemanticMerger:
     def _determine_content_type(self, block: ConflictBlock, file_path: str) -> str:
         """Determine the type of content in the conflict block."""
         # Check file extension to determine content type
-        if file_path.endswith((".py", ".js", ".ts", ".java", ".cpp", ".c", ".cs")):
+        if file_path.endswith(('.py', '.js', '.ts', '.java', '.cpp', '.c', '.cs')):
             # Check content for specific patterns
-            content_before = " ".join(block.content_before)
-            content_after = " ".join(block.content_after)
+            content_before = ' '.join(block.content_before)
+            content_after = ' '.join(block.content_after)
 
             # Check for function definitions
-            if any(
-                keyword in content_before or keyword in content_after
-                for keyword in [
-                    "def ",
-                    "function",
-                    "def(",
-                    "func ",
-                    "public ",
-                    "private ",
-                    "protected ",
-                ]
-            ):
+            if any(keyword in content_before or keyword in content_after
+                   for keyword in ['def ', 'function', 'def(', 'func ', 'public ', 'private ', 'protected ']):
                 return "function_signature"
 
             # Check for import statements
-            if any(
-                keyword in content_before or keyword in content_after
-                for keyword in ["import ", "from ", "include ", "using "]
-            ):
+            if any(keyword in content_before or keyword in content_after
+                   for keyword in ['import ', 'from ', 'include ', 'using ']):
                 return "import_statements"
 
             # Check for variable assignments
-            if any("=" in line for line in block.content_before + block.content_after):
+            if any('=' in line for line in block.content_before + block.content_after):
                 return "variable_assignment"
 
             # Check for comments
-            if any(
-                line.strip().startswith(("#", "//", "/*", "*"))
-                for line in block.content_before + block.content_after
-            ):
+            if any(line.strip().startswith(('#', '//', '/*', '*')) for line in block.content_before + block.content_after):
                 return "comment_blocks"
 
         return "code_blocks"
@@ -152,7 +135,7 @@ class SemanticMerger:
             "type": "function_signature",
             "merged_content": merged_signature,
             "strategy": "parameter_merge",
-            "confidence": 0.8,
+            "confidence": 0.8
         }
 
     def _extract_function_params(self, content_lines: List[str]) -> List[str]:
@@ -160,29 +143,23 @@ class SemanticMerger:
         params = []
         for line in content_lines:
             # Simple extraction - in reality, this would use proper parsing
-            if "(" in line and ")" in line:
+            if '(' in line and ')' in line:
                 # Extract content between parentheses
-                start = line.find("(")
-                end = line.find(")")
+                start = line.find('(')
+                end = line.find(')')
                 if start != -1 and end != -1 and end > start:
-                    param_str = line[start + 1 : end]
+                    param_str = line[start+1:end]
                     # Split by comma and clean up
-                    params.extend(
-                        [p.strip() for p in param_str.split(",") if p.strip()]
-                    )
+                    params.extend([p.strip() for p in param_str.split(',') if p.strip()])
         return params
 
-    def _merge_parameters(
-        self, before_params: List[str], after_params: List[str]
-    ) -> List[str]:
+    def _merge_parameters(self, before_params: List[str], after_params: List[str]) -> List[str]:
         """Merge function parameters."""
         # Create a set of all parameters
         all_params = list(set(before_params + after_params))
         return all_params
 
-    def _create_merged_function_signature(
-        self, block: ConflictBlock, params: List[str]
-    ) -> List[str]:
+    def _create_merged_function_signature(self, block: ConflictBlock, params: List[str]) -> List[str]:
         """Create a merged function signature."""
         # This is a simplified implementation
         # In a real system, this would reconstruct the function properly
@@ -219,15 +196,15 @@ class SemanticMerger:
             "type": "variable_assignment",
             "merged_content": merged_content,
             "strategy": "value_merge",
-            "confidence": 0.7,
+            "confidence": 0.7
         }
 
     def _extract_variables(self, content_lines: List[str]) -> Dict[str, str]:
         """Extract variable assignments from content."""
         variables = {}
         for line in content_lines:
-            if "=" in line and not line.strip().startswith("#"):
-                parts = line.split("=", 1)
+            if '=' in line and not line.strip().startswith('#'):
+                parts = line.split('=', 1)
                 if len(parts) == 2:
                     var_name = parts[0].strip()
                     var_value = parts[1].strip()
@@ -237,9 +214,7 @@ class SemanticMerger:
     def _merge_variable_values(self, value1: str, value2: str) -> str:
         """Merge two variable values intelligently."""
         # If both are lists or dicts (indicated by brackets/braces), try to merge them
-        if (value1.startswith("[") and value2.startswith("[")) or (
-            value1.startswith("{") and value2.startswith("{")
-        ):
+        if (value1.startswith('[') and value2.startswith('[')) or (value1.startswith('{') and value2.startswith('{')):
             # This is a simplified list/dict merge
             return f"/* TODO: Merge {value1} and {value2} */"
 
@@ -260,7 +235,7 @@ class SemanticMerger:
             "type": "import_statements",
             "merged_content": all_imports,
             "strategy": "union_merge",
-            "confidence": 0.95,
+            "confidence": 0.95
         }
 
     def _extract_imports(self, content_lines: List[str]) -> List[str]:
@@ -268,7 +243,7 @@ class SemanticMerger:
         imports = []
         for line in content_lines:
             line = line.strip()
-            if line.startswith(("import ", "from ", "include ", "using ")):
+            if line.startswith(('import ', 'from ', 'include ', 'using ')):
                 imports.append(line)
         return imports
 
@@ -278,16 +253,8 @@ class SemanticMerger:
         all_comments = []
 
         # Add comments from both sides, avoiding duplicates
-        before_comments = [
-            line
-            for line in block.content_before
-            if line.strip().startswith(("#", "//", "/*", "*"))
-        ]
-        after_comments = [
-            line
-            for line in block.content_after
-            if line.strip().startswith(("#", "//", "/*", "*"))
-        ]
+        before_comments = [line for line in block.content_before if line.strip().startswith(('#', '//', '/*', '*'))]
+        after_comments = [line for line in block.content_after if line.strip().startswith(('#', '//', '/*', '*'))]
 
         # Combine unique comments
         all_comments = list(set(before_comments + after_comments))
@@ -296,7 +263,7 @@ class SemanticMerger:
             "type": "comment_blocks",
             "merged_content": all_comments,
             "strategy": "union_merge",
-            "confidence": 0.9,
+            "confidence": 0.9
         }
 
     def _merge_code_blocks(self, block: ConflictBlock) -> Dict[str, Any]:
@@ -316,12 +283,10 @@ class SemanticMerger:
             "merged_content": combined_lines,
             "strategy": "union_merge_with_review",
             "confidence": 0.5,  # Lower confidence for code blocks
-            "requires_manual_review": True,
+            "requires_manual_review": True
         }
 
-    def validate_merge(
-        self, original_content: str, merged_content: str
-    ) -> Dict[str, Any]:
+    def validate_merge(self, original_content: str, merged_content: str) -> Dict[str, Any]:
         """
         Validate that the merge produced valid content.
 
@@ -336,11 +301,7 @@ class SemanticMerger:
             "is_valid": True,
             "errors": [],
             "warnings": [],
-            "line_count_change": (
-                len(merged_content) - len(original_content.split("\n"))
-                if isinstance(original_content, str)
-                else 0
-            ),
+            "line_count_change": len(merged_content) - len(original_content.split('\n')) if isinstance(original_content, str) else 0
         }
 
         # Add validation logic here

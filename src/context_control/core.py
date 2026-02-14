@@ -1,17 +1,18 @@
 """Core context control functionality for Agent Context Control."""
 
-import hashlib
-import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional, Dict, Any, List
+import json
+import hashlib
 
 from .config import get_current_config
+from .models import ContextProfile, AgentContext, ContextValidationResult
 from .environment import detect_branch, get_current_branch
-from .exceptions import ContextNotFoundError, ContextValidationError
 from .logging import get_context_logger
-from .models import AgentContext, ContextProfile, ContextValidationResult
-from .project import load_project_config
+from .exceptions import ContextNotFoundError, ContextValidationError
 from .storage import ProfileStorage
+from .project import load_project_config
+
 
 logger = get_context_logger()
 
@@ -27,18 +28,9 @@ class ContextController:
         """
         self.config = config or get_current_config()
         # Ensure global config is set for components that need it
-        if (
-            config
-            and not hasattr(get_current_config, "_config")
-            or get_current_config.__globals__.get("_config") is None
-        ):
+        if config and not hasattr(get_current_config, '_config') or get_current_config.__globals__.get('_config') is None:
             from .config import init_config
-
-            init_config(
-                override_config=(
-                    self.config.dict() if hasattr(self.config, "dict") else None
-                )
-            )
+            init_config(override_config=self.config.dict() if hasattr(self.config, 'dict') else None)
         self.storage = ProfileStorage(self.config)
         self._context_cache: Dict[str, AgentContext] = {}
         logger.info("Context controller initialized")
@@ -87,7 +79,6 @@ class ContextController:
         else:
             # Create a project loader with our config
             from .project import ProjectConfigLoader
-
             loader = ProjectConfigLoader(self.config)
             project_config = loader.load_project_config()
 

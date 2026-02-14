@@ -2,13 +2,11 @@
 Redis-based caching layer for the PR Resolution Automation System
 """
 
-import hashlib
-import json
-from typing import Any, Dict, Optional
-
 import redis.asyncio as redis
+import json
 import structlog
-
+import hashlib
+from typing import Any, Optional, Dict
 from ..config.settings import settings
 
 logger = structlog.get_logger()
@@ -279,15 +277,9 @@ class FictionalityCacheManager:
             base_stats = await self.base_manager.get_stats()
 
             # Estimate fictionality cache size by counting keys
-            analysis_keys = await self.base_manager._redis.keys(
-                f"{self.analysis_cache_prefix}*"
-            )
-            content_keys = await self.base_manager._redis.keys(
-                f"{self.content_cache_prefix}*"
-            )
-            strategy_keys = await self.base_manager._redis.keys(
-                f"{self.strategy_cache_prefix}*"
-            )
+            analysis_keys = await self.base_manager._redis.keys(f"{self.analysis_cache_prefix}*")
+            content_keys = await self.base_manager._redis.keys(f"{self.content_cache_prefix}*")
+            strategy_keys = await self.base_manager._redis.keys(f"{self.strategy_cache_prefix}*")
 
             return {
                 **base_stats,

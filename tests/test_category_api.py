@@ -1,6 +1,5 @@
-from unittest.mock import AsyncMock
-
 import pytest
+from unittest.mock import AsyncMock
 
 from src.core.models import CategoryCreate
 
@@ -8,13 +7,7 @@ from src.core.models import CategoryCreate
 async def test_get_categories_success(client, mock_db_manager: AsyncMock):
     """Test successful retrieval of all categories."""
     mock_categories_data = [
-        {
-            "id": 1,
-            "name": "Work",
-            "description": "Work related",
-            "color": "#ff0000",
-            "count": 5,
-        },
+        {"id": 1, "name": "Work", "description": "Work related", "color": "#ff0000", "count": 5},
         {
             "id": 2,
             "name": "Personal",
@@ -46,9 +39,7 @@ async def test_get_categories_empty(client, mock_db_manager: AsyncMock):
 
 async def test_get_categories_db_error(client, mock_db_manager: AsyncMock):
     """Test handling of a database error when fetching categories."""
-    mock_db_manager.get_all_categories.side_effect = Exception(
-        "Database connection error"
-    )
+    mock_db_manager.get_all_categories.side_effect = Exception("Database connection error")
 
     response = client.get("/api/categories")
 
@@ -87,11 +78,7 @@ def test_create_category_validation_error(client):
 
 def test_create_category_db_error(client, mock_db_manager: AsyncMock):
     """Test handling of a database error when creating a category."""
-    category_data = {
-        "name": "Error Category",
-        "description": "Test DB error",
-        "color": "#ABCDEF",
-    }
+    category_data = {"name": "Error Category", "description": "Test DB error", "color": "#ABCDEF"}
     mock_db_manager.create_category.side_effect = Exception("Database write error")
 
     response = client.post("/api/categories", json=category_data)

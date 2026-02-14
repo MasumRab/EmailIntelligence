@@ -1,9 +1,8 @@
 """Base data models for Agent Context Control library."""
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 
 class ProjectConfig(BaseModel):

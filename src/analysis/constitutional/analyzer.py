@@ -4,18 +4,19 @@ Orchestrates the checking of code against constitutional rules.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List, Dict, Any
 
-from ..core.conflict_models import AnalysisResult, Conflict, RiskLevel
 from ..core.interfaces import IConstitutionalAnalyzer
+from ..core.conflict_models import Conflict, AnalysisResult, RiskLevel
 from ..utils.logger import get_logger
 from .requirement_checker import (
-    DocstringChecker,
     ErrorHandlingChecker,
-    RequirementViolation,
-    SecurityChecker,
     TypeHintChecker,
+    DocstringChecker,
+    SecurityChecker,
+    RequirementViolation,
 )
+
 
 logger = get_logger(__name__)
 
@@ -34,9 +35,7 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
             SecurityChecker(),
         ]
 
-    async def analyze_constitutional_compliance(
-        self, code: str, context: Dict[str, Any]
-    ) -> AnalysisResult:
+    async def analyze_constitutional_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
         """
         Analyze code for constitutional compliance.
 
@@ -66,9 +65,7 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
         total_checks = len(self.checkers) * 10  # Assuming each checker runs 10 checks
         failed_checks = len(violations)
 
-        compliance_score = (
-            1.0 - (failed_checks / total_checks) if total_checks > 0 else 1.0
-        )
+        compliance_score = 1.0 - (failed_checks / total_checks) if total_checks > 0 else 1.0
         # Ensure score is between 0 and 1
         compliance_score = max(0.0, min(1.0, compliance_score))
 
@@ -76,12 +73,10 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
             compliance_score=compliance_score,
             violations=[v.description for v in violations],
             recommendations=recommendations,
-            details=details,
+            details=details
         )
 
-        logger.info(
-            f"Constitutional analysis completed with score: {compliance_score:.2f}"
-        )
+        logger.info(f"Constitutional analysis completed with score: {compliance_score:.2f}")
         return analysis_result
 
 
@@ -90,9 +85,7 @@ class RequirementViolation:
     Represents a violation of a constitutional requirement.
     """
 
-    def __init__(
-        self, rule_id: str, description: str, severity: RiskLevel, location: str = None
-    ):
+    def __init__(self, rule_id: str, description: str, severity: RiskLevel, location: str = None):
         self.rule_id = rule_id
         self.description = description
         self.severity = severity

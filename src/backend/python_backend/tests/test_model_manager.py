@@ -43,10 +43,7 @@ def test_discover_models_success(model_manager):
         assert len(model_manager.list_models()) == 2
         assert "sentiment-test" in model_manager._model_metadata
         assert "topic-test" in model_manager._model_metadata
-        assert (
-            model_manager._model_metadata["sentiment-test"]["module"]
-            == "test.sentiment_module"
-        )
+        assert model_manager._model_metadata["sentiment-test"]["module"] == "test.sentiment_module"
 
 
 def test_discover_models_file_not_found(model_manager):

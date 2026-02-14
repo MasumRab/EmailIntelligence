@@ -1,11 +1,9 @@
 from typing import Optional
 
-
 class WorkflowContextManager:
     """
     Manages the state of the user's current workflow context and provides guidance.
     """
-
     def __init__(self):
         self.current_workflow: Optional[str] = None
         self.current_step: Optional[str] = None

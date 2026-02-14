@@ -2,13 +2,11 @@
 Rate limiting utility for API endpoints
 """
 
-import asyncio
 import time
-from collections import defaultdict
-from typing import Any, Dict
-
+import asyncio
 import structlog
-
+from typing import Dict, Any
+from collections import defaultdict
 from ..config.settings import settings
 
 logger = structlog.get_logger()
@@ -44,9 +42,7 @@ class RateLimiter:
 
             # Remove old requests outside the window
             self.requests[client_ip] = [
-                req_time
-                for req_time in self.requests[client_ip]
-                if req_time > window_start
+                req_time for req_time in self.requests[client_ip] if req_time > window_start
             ]
 
             # Check if within limit

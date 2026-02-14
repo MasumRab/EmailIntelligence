@@ -8,10 +8,11 @@ handling command execution, error checking, and output parsing.
 import asyncio
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Tuple, Optional, Dict, Any
 
 from ..core.exceptions import GitOperationError
 from ..utils.logger import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -26,9 +27,7 @@ class RepositoryOperations:
         if not self.repo_path.exists():
             raise ValueError(f"Repository path does not exist: {self.repo_path}")
 
-    async def run_command(
-        self, cmd: List[str], cwd: Optional[Path] = None
-    ) -> Tuple[str, str, int]:
+    async def run_command(self, cmd: List[str], cwd: Optional[Path] = None) -> Tuple[str, str, int]:
         """
         Run a git command asynchronously.
 
@@ -50,7 +49,7 @@ class RepositoryOperations:
                 cwd=working_dir,
                 capture_output=True,
                 text=True,
-                timeout=30,  # 30 second timeout
+                timeout=30  # 30 second timeout
             )
 
             logger.debug(f"Command completed with return code: {result.returncode}")
@@ -66,9 +65,7 @@ class RepositoryOperations:
             logger.error(error_msg)
             raise GitOperationError(error_msg)
 
-    def run_command_sync(
-        self, cmd: List[str], cwd: Optional[Path] = None
-    ) -> Tuple[str, str, int]:
+    def run_command_sync(self, cmd: List[str], cwd: Optional[Path] = None) -> Tuple[str, str, int]:
         """
         Run a git command synchronously.
 
@@ -89,7 +86,7 @@ class RepositoryOperations:
                 cwd=working_dir,
                 capture_output=True,
                 text=True,
-                timeout=30,  # 30 second timeout
+                timeout=30  # 30 second timeout
             )
 
             logger.debug(f"Command completed with return code: {result.returncode}")
@@ -107,9 +104,7 @@ class RepositoryOperations:
 
     async def get_current_branch(self) -> str:
         """Get the current git branch."""
-        stdout, stderr, code = await self.run_command(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"]
-        )
+        stdout, stderr, code = await self.run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
 
         if code != 0:
             raise GitOperationError(f"Failed to get current branch: {stderr}")
@@ -118,9 +113,7 @@ class RepositoryOperations:
 
     def get_current_branch_sync(self) -> str:
         """Get the current git branch synchronously."""
-        stdout, stderr, code = self.run_command_sync(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"]
-        )
+        stdout, stderr, code = self.run_command_sync(["git", "rev-parse", "--abbrev-ref", "HEAD"])
 
         if code != 0:
             raise GitOperationError(f"Failed to get current branch: {stderr}")
@@ -135,9 +128,9 @@ class RepositoryOperations:
             raise GitOperationError(f"Failed to get branches: {stderr}")
 
         branches = []
-        for line in stdout.strip().split("\n"):
+        for line in stdout.strip().split('\n'):
             # Remove leading whitespace and asterisk
-            branch = line.strip().replace("*", "").strip()
+            branch = line.strip().replace('*', '').strip()
             if branch:
                 branches.append(branch)
 
@@ -151,7 +144,7 @@ class RepositoryOperations:
             raise GitOperationError(f"Failed to get uncommitted changes: {stderr}")
 
         changes = []
-        for line in stdout.strip().split("\n"):
+        for line in stdout.strip().split('\n'):
             if line.strip():
                 changes.append(line.strip())
 
@@ -183,9 +176,7 @@ class RepositoryOperations:
         logger.info(f"Successfully checked out branch: {branch_name}")
         return True
 
-    async def merge_branch(
-        self, branch_name: str, strategy: str = ""
-    ) -> Dict[str, Any]:
+    async def merge_branch(self, branch_name: str, strategy: str = "") -> Dict[str, Any]:
         """Merge a branch into the current branch."""
         cmd = ["git", "merge"]
         if strategy:
@@ -199,7 +190,7 @@ class RepositoryOperations:
             "stdout": stdout,
             "stderr": stderr,
             "return_code": code,
-            "has_conflicts": "conflict" in stderr.lower() or code != 0,
+            "has_conflicts": "conflict" in stderr.lower() or code != 0
         }
 
         if result["success"]:
@@ -211,13 +202,7 @@ class RepositoryOperations:
 
     async def get_commit_history(self, limit: int = 10) -> List[Dict[str, str]]:
         """Get commit history."""
-        cmd = [
-            "git",
-            "log",
-            f"--max-count={limit}",
-            "--pretty=format:%H|%s|%an|%ad",
-            "--date=iso",
-        ]
+        cmd = ["git", "log", f"--max-count={limit}", "--pretty=format:%H|%s|%an|%ad", "--date=iso"]
 
         stdout, stderr, code = await self.run_command(cmd)
 
@@ -225,18 +210,16 @@ class RepositoryOperations:
             raise GitOperationError(f"Failed to get commit history: {stderr}")
 
         commits = []
-        for line in stdout.strip().split("\n"):
-            if "|" in line:
-                parts = line.split("|", 3)  # Split into 4 parts max
+        for line in stdout.strip().split('\n'):
+            if '|' in line:
+                parts = line.split('|', 3)  # Split into 4 parts max
                 if len(parts) == 4:
-                    commits.append(
-                        {
-                            "hash": parts[0],
-                            "message": parts[1],
-                            "author": parts[2],
-                            "date": parts[3],
-                        }
-                    )
+                    commits.append({
+                        "hash": parts[0],
+                        "message": parts[1],
+                        "author": parts[2],
+                        "date": parts[3]
+                    })
 
         return commits
 
@@ -252,8 +235,6 @@ class RepositoryOperations:
         stdout, stderr, code = await self.run_command(cmd)
 
         if code != 0:
-            raise GitOperationError(
-                f"Failed to get file {file_path} at revision {revision}: {stderr}"
-            )
+            raise GitOperationError(f"Failed to get file {file_path} at revision {revision}: {stderr}")
 
         return stdout

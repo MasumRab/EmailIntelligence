@@ -1,15 +1,16 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
+from typing import Set, List, Optional, Dict, Any, Pattern
 import fnmatch
 import hashlib
 import os
 import re
-from typing import Any, Dict, List, Optional, Pattern, Set
 
-from .config import get_current_config
-from .exceptions import ContextIsolationError
-from .logging import get_context_logger
 from .models import AgentContext, ContextProfile
+from .logging import get_context_logger
+from .exceptions import ContextIsolationError
+from .config import get_current_config
+
 
 logger = get_context_logger()
 

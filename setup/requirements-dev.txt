@@ -5,7 +5,6 @@ flake8>=7.2.0
 mypy>=1.16.0
 pylint>=3.3.7
 pre-commit>=3.0.0
-packaging
 
 # Test runner
 pytest>=8.4.0
@@ -13,9 +12,6 @@ pytest-asyncio>=0.23.0
 
 # Backend dependencies for tests
 uvicorn[standard]>=0.30.0
-
-# Install runtime dependencies to pass verification and tests
--r requirements.txt
 
 # Install project in editable mode to ensure core deps are present
 -e .

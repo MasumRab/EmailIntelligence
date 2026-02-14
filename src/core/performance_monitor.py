@@ -104,9 +104,7 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(
-            maxlen=max_metrics_buffer
-        )
+        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
         self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
         self.processing_events: List[ProcessingEvent] = []
 
@@ -114,9 +112,7 @@ class OptimizedPerformanceMonitor:
         self._buffer_lock = threading.Lock()
         self._stop_event = threading.Event()
         self._processing_thread = threading.Thread(
-            target=self._process_metrics_background,
-            daemon=True,
-            name="PerformanceMonitor",
+            target=self._process_metrics_background, daemon=True, name="PerformanceMonitor"
         )
 
         # Start background processing
@@ -190,15 +186,9 @@ class OptimizedPerformanceMonitor:
                 try:
                     return func(*args, **kwargs)
                 finally:
-                    duration = (
-                        time.perf_counter() - start_time
-                    ) * 1000  # Convert to milliseconds
+                    duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
                     self.record_metric(
-                        name=name,
-                        value=duration,
-                        unit="ms",
-                        tags=tags,
-                        sample_rate=sample_rate,
+                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
             return wrapper
@@ -222,18 +212,12 @@ class OptimizedPerformanceMonitor:
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
                     self.monitor.record_metric(
-                        name=name,
-                        value=duration,
-                        unit="ms",
-                        tags=tags,
-                        sample_rate=sample_rate,
+                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
             return TimerContext(self)
 
-    def get_aggregated_metrics(
-        self, name: Optional[str] = None
-    ) -> Dict[str, AggregatedMetric]:
+    def get_aggregated_metrics(self, name: Optional[str] = None) -> Dict[str, AggregatedMetric]:
         """
         Get current aggregated metrics.
 
@@ -248,12 +232,12 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(
-        self, name: str, limit: int = 100
-    ) -> List[PerformanceMetric]:
-        """Get recent raw metrics for a specific name."""
+    def get_recent_metrics(self, name: Optional[str] = None, limit: int = 100) -> List[PerformanceMetric]:
+        """Get recent raw metrics, optionally filtered by name."""
         with self._buffer_lock:
-            return [m for m in self._metrics_buffer if m.name == name][-limit:]
+            if name:
+                return [m for m in self._metrics_buffer if m.name == name][-limit:]
+            return list(self._metrics_buffer)[-limit:]
 
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics (compatibility method)"""
@@ -276,6 +260,109 @@ class OptimizedPerformanceMonitor:
         """Record a processing event (compatibility method)"""
         with self._buffer_lock:
             self.processing_events.append(event)
+
+    def record_model_performance(
+        self,
+        model_name: str,
+        execution_time: float,
+        success: bool = True,
+    ) -> None:
+        """Record performance metric for a model execution"""
+        self.record_metric(
+            name=f"model_{model_name}_execution_time",
+            value=execution_time,
+            unit="seconds",
+            tags={"source": "model_execution", "model": model_name}
+        )
+        self.record_metric(
+            name=f"model_{model_name}_success",
+            value=1.0 if success else 0.0,
+            unit="boolean",
+            tags={"source": "model_success", "model": model_name}
+        )
+
+    def record_workflow_execution(
+        self,
+        workflow_name: str,
+        execution_time: float,
+        success: bool = True,
+    ) -> None:
+        """Record performance metric for a workflow execution"""
+        self.record_metric(
+            name=f"workflow_{workflow_name}_execution_time",
+            value=execution_time,
+            unit="seconds",
+            tags={"source": "workflow_execution", "workflow": workflow_name}
+        )
+
+    def record_event(
+        self,
+        event_type: str,
+        model_name: Optional[str] = None,
+        workflow_name: Optional[str] = None,
+        success: bool = True,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Record a processing event"""
+        event = ProcessingEvent(
+            event_type=event_type,
+            model_name=model_name,
+            workflow_name=workflow_name,
+            start_time=time.time(),
+            end_time=None,
+            success=success,
+            details=details or {},
+        )
+        self.record_processing_event(event)
+        return f"event_{int(event.start_time)}"
+
+    def complete_event(self, event_id: str, success: bool = True) -> None:
+        """Complete a processing event (stub for now as we don't index by ID)"""
+        # In a real implementation, we'd need to find the event by ID.
+        # Since ProcessingEvent objects are stored in a list, this would require search.
+        pass
+
+    def get_model_performance(self, model_name: str, minutes: int = 5) -> List[PerformanceMetric]:
+        """Get performance metrics for a specific model."""
+        cutoff_time = time.time() - (minutes * 60)
+        with self._buffer_lock:
+            return [
+                m for m in self._metrics_buffer
+                if m.tags.get("model") == model_name and m.timestamp >= cutoff_time
+            ]
+
+    def get_avg_model_performance(self, model_name: str, minutes: int = 5) -> Optional[float]:
+        """Get average performance for a model."""
+        metrics = self.get_model_performance(model_name, minutes)
+        times = [m.value for m in metrics if "execution_time" in m.name]
+        if not times:
+            return None
+        return sum(times) / len(times)
+
+    def get_system_stats(self) -> Dict[str, float]:
+        """Get current system stats."""
+        metrics = self.get_system_metrics()
+        return {
+            "cpu_usage": metrics.get("cpu_percent", 0.0),
+            "memory_usage": metrics.get("memory_percent", 0.0),
+            "disk_usage": metrics.get("disk_percent", 0.0),
+        }
+
+    def get_error_rate(self, minutes: int = 5) -> float:
+        """Get the error rate in the last specified minutes."""
+        cutoff_time = time.time() - (minutes * 60)
+        with self._buffer_lock:
+            recent_events = [e for e in self.processing_events if e.start_time >= cutoff_time]
+
+        if not recent_events:
+            return 0.0
+
+        failed = [e for e in recent_events if not e.success]
+        return len(failed) / len(recent_events)
+
+    def stop_monitoring(self):
+        """Stop monitoring (alias for shutdown)."""
+        self.shutdown()
 
     def _process_metrics_background(self):
         """Background thread to process and aggregate metrics."""
@@ -415,9 +502,7 @@ def _create_decorator(func, op_name):
                 return await func(*args, **kwargs)
             finally:
                 duration = (time.perf_counter() - start_time) * 1000
-                performance_monitor.record_metric(
-                    name=op_name, value=duration, unit="ms"
-                )
+                performance_monitor.record_metric(name=op_name, value=duration, unit="ms")
 
         return async_wrapper
     else:
@@ -429,9 +514,7 @@ def _create_decorator(func, op_name):
                 return func(*args, **kwargs)
             finally:
                 duration = (time.perf_counter() - start_time) * 1000
-                performance_monitor.record_metric(
-                    name=op_name, value=duration, unit="ms"
-                )
+                performance_monitor.record_metric(name=op_name, value=duration, unit="ms")
 
         return sync_wrapper
 

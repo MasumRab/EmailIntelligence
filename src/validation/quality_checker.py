@@ -2,11 +2,11 @@
 Quality checker module.
 """
 
-from typing import Any, Dict
+from typing import Dict, Any
 
-from ..analysis.code.ast_analyzer import ASTAnalyzer
 from ..core.conflict_models import ValidationResult, ValidationStatus
 from ..utils.logger import get_logger
+from ..analysis.code.ast_analyzer import ASTAnalyzer
 
 logger = get_logger(__name__)
 
@@ -42,9 +42,7 @@ class QualityChecker:
 
             return ValidationResult(
                 component="QualityChecker",
-                status=(
-                    ValidationStatus.PASSED if not issues else ValidationStatus.FAILED
-                ),
+                status=(ValidationStatus.PASSED if not issues else ValidationStatus.FAILED),
                 details={"issues": issues},
                 score=1.0 if not issues else 0.5,
             )

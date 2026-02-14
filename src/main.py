@@ -6,29 +6,27 @@ the remote branch's expectations while preserving all local branch functionality
 and integrating context control patterns from the remote branch.
 """
 
-import hashlib
-import logging
-import os
-import time
-from typing import Optional
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request as StarletteRequest
+import logging
+from typing import Optional
+import time
+import hashlib
+import os
 
 # Import the actual backend implementation from the local branch
 from src.backend.python_backend.main import app as local_backend_app
 
 # Import context control from remote branch architecture
 try:
-    from src.context_control.config import ContextControlConfig
     from src.context_control.core import ContextController
+    from src.context_control.models import ProjectConfig
     from src.context_control.exceptions import ContextNotFoundError
     from src.context_control.isolation import ContextIsolator
-    from src.context_control.models import ProjectConfig
     from src.context_control.validation import ContextValidator
-
+    from src.context_control.config import ContextControlConfig
     CONTEXT_CONTROL_AVAILABLE = True
 except ImportError:
     CONTEXT_CONTROL_AVAILABLE = False
@@ -45,9 +43,7 @@ class ContextControlMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app):
         super().__init__(app)
-        self.context_controller = (
-            ContextController() if CONTEXT_CONTROL_AVAILABLE else None
-        )
+        self.context_controller = ContextController() if CONTEXT_CONTROL_AVAILABLE else None
         self.validator = ContextValidator() if CONTEXT_CONTROL_AVAILABLE else None
 
     async def dispatch(self, request: StarletteRequest, call_next):
@@ -58,9 +54,7 @@ class ContextControlMiddleware(BaseHTTPMiddleware):
         if CONTEXT_CONTROL_AVAILABLE and self.context_controller:
             try:
                 # Create a context for this request
-                context_id = hashlib.sha256(
-                    f"{request.client.host}:{request.url.path}:{time.time()}".encode()
-                ).hexdigest()[:12]
+                context_id = hashlib.sha256(f"{request.client.host}:{request.url.path}:{time.time()}".encode()).hexdigest()[:12]
 
                 # Store context in request state
                 request.state.context_id = context_id
@@ -78,7 +72,7 @@ class ContextControlMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Add context-related headers to response
-        if hasattr(request.state, "context_id"):
+        if hasattr(request.state, 'context_id'):
             response.headers["X-Context-ID"] = request.state.context_id
 
         # Add timing information
@@ -122,8 +116,8 @@ def create_app() -> FastAPI:
         """Health check endpoint compatible with both architectures."""
         health_status = {
             "status": "healthy",
-            "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
-            "context_control_available": CONTEXT_CONTROL_AVAILABLE,
+            "timestamp": __import__('datetime').datetime.utcnow().isoformat(),
+            "context_control_available": CONTEXT_CONTROL_AVAILABLE
         }
 
         # Add context-specific health info if available
@@ -133,7 +127,7 @@ def create_app() -> FastAPI:
                     "available": ContextController is not None,
                     "validator": ContextValidator is not None,
                     "isolator": ContextIsolator is not None,
-                    "config": ContextControlConfig is not None,
+                    "config": ContextControlConfig is not None
                 }
             except:
                 pass
@@ -147,13 +141,19 @@ def create_app() -> FastAPI:
         if CONTEXT_CONTROL_AVAILABLE and ContextControlConfig:
             try:
                 config = ContextControlConfig()
-                return {"config": config.dict(), "context_control_available": True}
+                return {
+                    "config": config.dict(),
+                    "context_control_available": True
+                }
             except Exception as e:
-                return {"context_control_available": True, "config_error": str(e)}
+                return {
+                    "context_control_available": True,
+                    "config_error": str(e)
+                }
         else:
             return {
                 "context_control_available": False,
-                "message": "Context control not available in this environment",
+                "message": "Context control not available in this environment"
             }
 
     # Set up logging as expected by both architectures
@@ -165,8 +165,10 @@ def create_app() -> FastAPI:
 # For backward compatibility when called directly (non-factory usage)
 if __name__ == "__main__":
     import uvicorn
-
     app = create_app()
     uvicorn.run(
-        app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), log_level="info"
+        app,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000)),
+        log_level="info"
     )

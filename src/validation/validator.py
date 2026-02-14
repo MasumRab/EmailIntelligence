@@ -5,10 +5,10 @@ Implements validation functionality for various components.
 """
 
 from typing import Any, Dict, List
-
-from ..core.conflict_models import ValidationResult
 from ..core.interfaces import IValidator
+from ..core.conflict_models import ValidationResult
 from ..utils.logger import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -21,9 +21,7 @@ class Validator(IValidator):
     def __init__(self):
         self.validators = {}
 
-    async def validate(
-        self, target: Any, context: Dict[str, Any] = None
-    ) -> ValidationResult:
+    async def validate(self, target: Any, context: Dict[str, Any] = None) -> ValidationResult:
         """
         Validate the target object.
 
@@ -43,7 +41,7 @@ class Validator(IValidator):
         # Perform basic validation based on target type
         if target is None:
             errors.append("Target cannot be None")
-        elif hasattr(target, "__dict__") or hasattr(target, "__slots__"):
+        elif hasattr(target, '__dict__') or hasattr(target, '__slots__'):
             # Object validation
             errors.extend(self._validate_object(target))
         elif isinstance(target, (list, tuple)):
@@ -59,12 +57,13 @@ class Validator(IValidator):
         is_valid = len(errors) == 0
 
         result = ValidationResult(
-            is_valid=is_valid, errors=errors, warnings=warnings, details=details
+            is_valid=is_valid,
+            errors=errors,
+            warnings=warnings,
+            details=details
         )
 
-        logger.info(
-            f"Validation completed. Valid: {is_valid}, Errors: {len(errors)}, Warnings: {len(warnings)}"
-        )
+        logger.info(f"Validation completed. Valid: {is_valid}, Errors: {len(errors)}, Warnings: {len(warnings)}")
         return result
 
     def _validate_object(self, obj: Any) -> List[str]:
@@ -72,7 +71,7 @@ class Validator(IValidator):
         errors = []
 
         # Check for required attributes if specified
-        if hasattr(obj, "_required_fields"):
+        if hasattr(obj, '_required_fields'):
             for field in obj._required_fields:
                 if not hasattr(obj, field) or getattr(obj, field) is None:
                     errors.append(f"Required field '{field}' is missing or None")
@@ -121,9 +120,7 @@ class ConstitutionalValidator(Validator):
         super().__init__()
         self.constitution_file = constitution_file
 
-    async def validate(
-        self, target: Any, context: Dict[str, Any] = None
-    ) -> ValidationResult:
+    async def validate(self, target: Any, context: Dict[str, Any] = None) -> ValidationResult:
         """
         Validate against constitutional requirements.
         """
@@ -142,15 +139,13 @@ class ConstitutionalValidator(Validator):
             is_valid=len(all_errors) == 0,
             errors=all_errors,
             warnings=base_result.warnings,
-            details=base_result.details,
+            details=base_result.details
         )
 
         logger.info(f"Constitutional validation completed. Valid: {result.is_valid}")
         return result
 
-    def _validate_constitutional(
-        self, target: Any, context: Dict[str, Any] = None
-    ) -> List[str]:
+    def _validate_constitutional(self, target: Any, context: Dict[str, Any] = None) -> List[str]:
         """Perform constitutional validation."""
         errors = []
 

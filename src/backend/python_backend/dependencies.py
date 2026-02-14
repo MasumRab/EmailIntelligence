@@ -6,38 +6,28 @@ Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
 """
 
+from typing import Generator, AsyncGenerator
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator, Generator, Optional
-
+from typing import TYPE_CHECKING, Optional
 from fastapi import Depends
-
-from src.backend.plugins.plugin_manager import PluginManager
-from src.backend.python_backend.services.category_service import CategoryService
-
 # Updated to use the new src architecture where available
 from src.backend.python_backend.services.email_service import EmailService
-from src.backend.python_nlp.gmail_service import (
-    GmailAIService,
-)  # This might be backend-specific
-from src.core.database import DatabaseManager, get_db
-
-from .ai_engine import AdvancedAIEngine  # This might need to be updated to src version
+from src.backend.python_backend.services.category_service import CategoryService
+from src.core.database import get_db, DatabaseManager
 from .model_manager import ModelManager  # Assuming this is in the same package for now
-from .smart_filters import (
-    SmartFilterManager,
-)  # This might need to be updated to src version
-from .workflow_engine import (
-    WorkflowEngine,
-)  # This might need to be updated to src version
+from .ai_engine import AdvancedAIEngine  # This might need to be updated to src version
+from .smart_filters import SmartFilterManager  # This might need to be updated to src version
+from .workflow_engine import WorkflowEngine  # This might need to be updated to src version
+from src.backend.plugins.plugin_manager import PluginManager
+from src.backend.python_nlp.gmail_service import GmailAIService  # This might be backend-specific
 
 if TYPE_CHECKING:
-    from src.backend.plugins.plugin_manager import PluginManager
-    from src.backend.python_nlp.gmail_service import GmailAIService
-
-    from .ai_engine import AdvancedAIEngine
     from .model_manager import ModelManager
+    from .ai_engine import AdvancedAIEngine
     from .smart_filters import SmartFilterManager
     from .workflow_engine import WorkflowEngine
+    from src.backend.plugins.plugin_manager import PluginManager
+    from src.backend.python_nlp.gmail_service import GmailAIService
 
 logger = logging.getLogger(__name__)
 
@@ -149,9 +139,7 @@ async def initialize_services():
     if _workflow_engine_instance is None:
         _workflow_engine_instance = WorkflowEngine()
         await _workflow_engine_instance.discover_workflows(
-            ai_engine=_ai_engine_instance,
-            filter_manager=_filter_manager_instance,
-            db=db,
+            ai_engine=_ai_engine_instance, filter_manager=_filter_manager_instance, db=db
         )
 
     # Initialize Plugin Manager, which may need other managers
@@ -229,21 +217,16 @@ def get_gmail_service(
     global _gmail_service_instance
     if _gmail_service_instance is None:
         ai_engine = get_ai_engine()
-        _gmail_service_instance = GmailAIService(
-            db_manager=db, advanced_ai_engine=ai_engine
-        )
+        _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
-
 
 async def get_email_service() -> "EmailService":
     """Provides an EmailService instance"""
     return EmailService()
 
-
 async def get_category_service() -> "CategoryService":
     """Provides a CategoryService instance"""
     return CategoryService()
-
 
 async def get_database():
     """Provides database instance (for existing code that uses direct database access)"""

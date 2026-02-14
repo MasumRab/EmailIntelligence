@@ -37,7 +37,7 @@ def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
 
         # Create formatter
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
         console_handler.setFormatter(formatter)
 
@@ -64,7 +64,7 @@ def setup_logging(log_file: Optional[str] = None, level: str = "INFO"):
 
     # Create formatter
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
 
     # Console handler

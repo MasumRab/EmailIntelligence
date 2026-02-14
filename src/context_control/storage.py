@@ -1,12 +1,13 @@
 """Storage layer for context profile persistence."""
 
-import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional, Dict, Any
+import json
 
-from .config import get_current_config
-from .logging import get_context_logger
 from .models import ContextProfile
+from .logging import get_context_logger
+from .config import get_current_config
+
 
 logger = get_context_logger()
 

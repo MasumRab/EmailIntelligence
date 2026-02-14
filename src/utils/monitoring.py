@@ -3,11 +3,10 @@ Performance monitoring and metrics collection
 """
 
 import time
-from collections import defaultdict, deque
-from typing import Any, Dict
-
 import psutil
 import structlog
+from typing import Dict, Any
+from collections import defaultdict, deque
 
 logger = structlog.get_logger()
 
@@ -139,9 +138,7 @@ class PerformanceMonitor:
                 "disk_usage_percent": psutil.disk_usage("/").percent,
                 "disk_free_gb": psutil.disk_usage("/").free / 1024 / 1024 / 1024,
                 "load_average": (
-                    list(psutil.getloadavg())
-                    if hasattr(psutil, "getloadavg")
-                    else [0, 0, 0]
+                    list(psutil.getloadavg()) if hasattr(psutil, "getloadavg") else [0, 0, 0]
                 ),
             }
         except Exception as e:

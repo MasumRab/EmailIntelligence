@@ -22,7 +22,6 @@ ERROR_LOG_FILE = "error_log.jsonl"
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
-
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -32,7 +31,6 @@ class ErrorSeverity(Enum):
 
 class ErrorCategory(Enum):
     """Categories of errors."""
-
     VALIDATION = "validation"
     INTEGRATION = "integration"
     PERFORMANCE = "performance"
@@ -61,7 +59,7 @@ class ErrorContext:
             "request_id": self.request_id,
             "component": self.component,
             "operation": self.operation,
-            "additional_context": self.additional_context,
+            "additional_context": self.additional_context
         }
 
 
@@ -91,7 +89,7 @@ class EnhancedErrorReporter:
         severity: ErrorSeverity = ErrorSeverity.ERROR,
         category: ErrorCategory = ErrorCategory.UNKNOWN,
         context: Optional[ErrorContext] = None,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Log an error with structured information.
@@ -115,18 +113,14 @@ class EnhancedErrorReporter:
             "severity": severity.value,
             "category": category.value,
             "message": str(error) if not isinstance(error, str) else error,
-            "type": (
-                type(error).__name__ if not isinstance(error, str) else "StringError"
-            ),
+            "type": type(error).__name__ if not isinstance(error, str) else "StringError",
             "context": context.to_dict() if context else {},
-            "details": details or {},
+            "details": details or {}
         }
 
         # Add traceback if it's an exception
         if isinstance(error, Exception):
-            error_entry["traceback"] = traceback.format_exception(
-                type(error), error, error.__traceback__
-            )
+            error_entry["traceback"] = traceback.format_exception(type(error), error, error.__traceback__)
 
         # Log to file
         try:
@@ -142,7 +136,7 @@ class EnhancedErrorReporter:
         logger.log(
             getattr(logging, severity.value.upper(), logging.ERROR),
             f"Error {error_id}: {error_entry['message']}",
-            extra={"error_id": error_id},
+            extra={"error_id": error_id}
         )
 
         return error_id
@@ -166,7 +160,7 @@ class EnhancedErrorReporter:
         return {
             "error_counts": self.error_counts,
             "error_categories": self.error_categories,
-            "error_components": self.error_components,
+            "error_components": self.error_components
         }
 
     def get_recent_errors(self, limit: int = 100) -> List[Dict[str, Any]]:
@@ -193,16 +187,12 @@ class EnhancedErrorReporter:
     def get_errors_by_category(self, category: ErrorCategory) -> List[Dict[str, Any]]:
         """Get errors by category."""
         all_errors = self.get_recent_errors()
-        return [
-            error for error in all_errors if error.get("category") == category.value
-        ]
+        return [error for error in all_errors if error.get("category") == category.value]
 
     def get_errors_by_severity(self, severity: ErrorSeverity) -> List[Dict[str, Any]]:
         """Get errors by severity."""
         all_errors = self.get_recent_errors()
-        return [
-            error for error in all_errors if error.get("severity") == severity.value
-        ]
+        return [error for error in all_errors if error.get("severity") == severity.value]
 
 
 # Global enhanced error reporter instance
@@ -214,7 +204,7 @@ def log_error(
     severity: ErrorSeverity = ErrorSeverity.ERROR,
     category: ErrorCategory = ErrorCategory.UNKNOWN,
     context: Optional[ErrorContext] = None,
-    details: Optional[Dict[str, Any]] = None,
+    details: Optional[Dict[str, Any]] = None
 ) -> str:
     """
     Log an error with structured information.
@@ -229,9 +219,7 @@ def log_error(
     Returns:
         A unique error ID
     """
-    return enhanced_error_reporter.log_error(
-        error, severity, category, context, details
-    )
+    return enhanced_error_reporter.log_error(error, severity, category, context, details)
 
 
 def create_error_context(
@@ -240,7 +228,7 @@ def create_error_context(
     request_id: Optional[str] = None,
     component: Optional[str] = None,
     operation: Optional[str] = None,
-    additional_context: Optional[Dict[str, Any]] = None,
+    additional_context: Optional[Dict[str, Any]] = None
 ) -> ErrorContext:
     """Create an error context object."""
     context = ErrorContext()
@@ -271,7 +259,5 @@ def get_errors_by_category(category: ErrorCategory) -> List[Dict[str, Any]]:
 def get_errors_by_severity(severity: ErrorSeverity) -> List[Dict[str, Any]]:
     """Get errors by severity."""
     return enhanced_error_reporter.get_errors_by_severity(severity)
-
-
 # Alias for backward compatibility
 ErrorReporter = EnhancedErrorReporter

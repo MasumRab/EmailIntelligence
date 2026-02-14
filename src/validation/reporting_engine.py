@@ -12,20 +12,19 @@ Features:
 - Performance benchmarking reports
 """
 
-import json
-import os
-from dataclasses import asdict, dataclass
+from typing import Dict, List, Any, Optional
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-
+from dataclasses import dataclass, asdict
+import json
 import structlog
+import os
 
+from .quick_validator import QuickValidator, QuickValidationResult
+from .standard_validator import StandardValidator, StandardValidationResult
 from .comprehensive_validator import (
-    ComprehensiveValidationResult,
     ComprehensiveValidator,
+    ComprehensiveValidationResult,
 )
-from .quick_validator import QuickValidationResult, QuickValidator
-from .standard_validator import StandardValidationResult, StandardValidator
 
 logger = structlog.get_logger()
 
@@ -66,9 +65,7 @@ class ValidationReportingEngine:
         # Ensure output directory exists
         os.makedirs(output_directory, exist_ok=True)
 
-        logger.info(
-            f"Validation reporting engine initialized, output: {output_directory}"
-        )
+        logger.info(f"Validation reporting engine initialized, output: {output_directory}")
 
     def generate_quick_validation_report(
         self,
@@ -130,15 +127,11 @@ class ValidationReportingEngine:
                     "level": "Low",
                     "description": "Quick validation with minimal risk assessment",
                 },
-                executive_summary=self._generate_quick_executive_summary(
-                    validation_result
-                ),
+                executive_summary=self._generate_quick_executive_summary(validation_result),
             )
 
             # Generate report in requested format
-            report_path = self._generate_report_file(
-                report_data, output_format, report_id
-            )
+            report_path = self._generate_report_file(report_data, output_format, report_id)
 
             logger.info(f"Quick validation report generated: {report_path}")
             return report_path
@@ -169,9 +162,7 @@ class ValidationReportingEngine:
 
         try:
             # Generate report ID
-            report_id = (
-                f"standard_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            report_id = f"standard_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
             # Create comprehensive report data
             report_data = ValidationReport(
@@ -214,19 +205,14 @@ class ValidationReportingEngine:
                 risk_assessment={
                     "level": "Medium",
                     "constitutional_risk": 1.0 - validation_result.constitutional_score,
-                    "preservation_risk": 1.0
-                    - validation_result.feature_preservation_score,
+                    "preservation_risk": 1.0 - validation_result.feature_preservation_score,
                     "overall_risk": 1.0 - validation_result.overall_score,
                 },
-                executive_summary=self._generate_standard_executive_summary(
-                    validation_result
-                ),
+                executive_summary=self._generate_standard_executive_summary(validation_result),
             )
 
             # Generate report in requested format
-            report_path = self._generate_report_file(
-                report_data, output_format, report_id
-            )
+            report_path = self._generate_report_file(report_data, output_format, report_id)
 
             logger.info(f"Standard validation report generated: {report_path}")
             return report_path
@@ -259,9 +245,7 @@ class ValidationReportingEngine:
 
         try:
             # Generate report ID
-            report_id = (
-                f"comprehensive_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            report_id = f"comprehensive_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
             # Create comprehensive report data
             report_data = ValidationReport(
@@ -295,36 +279,26 @@ class ValidationReportingEngine:
                 },
                 recommendations=validation_result.recommendations,
                 quality_gates=validation_result.quality_gates,
-                performance_metrics=self._format_performance_context(
-                    performance_context
-                ),
+                performance_metrics=self._format_performance_context(performance_context),
                 risk_assessment={
                     "level": "Comprehensive",
-                    "risk_factors": validation_result.workflow_validation.get(
-                        "risk_factors", {}
-                    ),
+                    "risk_factors": validation_result.workflow_validation.get("risk_factors", {}),
                     "mitigation_effectiveness": validation_result.performance_benchmarks.get(
                         "mitigation_effectiveness", 0.0
                     ),
                     "overall_risk_score": 1.0 - validation_result.overall_score,
                 },
-                executive_summary=self._generate_comprehensive_executive_summary(
-                    validation_result
-                ),
+                executive_summary=self._generate_comprehensive_executive_summary(validation_result),
             )
 
             # Generate report in requested format
-            report_path = self._generate_report_file(
-                report_data, output_format, report_id
-            )
+            report_path = self._generate_report_file(report_data, output_format, report_id)
 
             logger.info(f"Comprehensive validation report generated: {report_path}")
             return report_path
 
         except Exception as e:
-            logger.error(
-                "Failed to generate comprehensive validation report", error=str(e)
-            )
+            logger.error("Failed to generate comprehensive validation report", error=str(e))
             raise
 
     def generate_comparative_validation_report(
@@ -346,9 +320,7 @@ class ValidationReportingEngine:
         """
 
         try:
-            report_id = (
-                f"comparative_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            report_id = f"comparative_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
             # Analyze validation results
             comparative_analysis = self._analyze_validation_results(validation_results)
@@ -361,18 +333,12 @@ class ValidationReportingEngine:
                 "timestamp": datetime.now().isoformat(),
                 "overall_summary": {
                     "total_validations": len(validation_results),
-                    "validation_types": [
-                        type(result).__name__ for result in validation_results
-                    ],
+                    "validation_types": [type(result).__name__ for result in validation_results],
                     "comparative_analysis": comparative_analysis,
                 },
-                "detailed_comparison": self._generate_detailed_comparison(
-                    validation_results
-                ),
+                "detailed_comparison": self._generate_detailed_comparison(validation_results),
                 "trend_analysis": self._generate_trend_analysis(validation_results),
-                "recommendations": self._generate_comparative_recommendations(
-                    validation_results
-                ),
+                "recommendations": self._generate_comparative_recommendations(validation_results),
                 "executive_summary": self._generate_comparative_executive_summary(
                     comparative_analysis
                 ),
@@ -387,9 +353,7 @@ class ValidationReportingEngine:
             return report_path
 
         except Exception as e:
-            logger.error(
-                "Failed to generate comparative validation report", error=str(e)
-            )
+            logger.error("Failed to generate comparative validation report", error=str(e))
             raise
 
     def _generate_report_file(
@@ -507,9 +471,7 @@ class ValidationReportingEngine:
                 for check_name, check_result in report_data.detailed_results[
                     "basic_checks"
                 ].items():
-                    status = (
-                        "✅ PASS" if check_result.get("passed", False) else "❌ FAIL"
-                    )
+                    status = "✅ PASS" if check_result.get("passed", False) else "❌ FAIL"
                     score = check_result.get("score", 0.0)
                     md_content += (
                         f"- **{check_name.replace('_', ' ').title()}**: {status} "
@@ -543,7 +505,9 @@ class ValidationReportingEngine:
                     actual = result.get("actual_time", 0.0)
                     target = result.get("target_time", 0.0)
                     passed = "✅ PASS" if result.get("passed", False) else "❌ FAIL"
-                    md_content += f"- **{component.title()}**: {passed} ({actual:.2f}s / {target:.2f}s)\n"
+                    md_content += (
+                        f"- **{component.title()}**: {passed} ({actual:.2f}s / {target:.2f}s)\n"
+                    )
 
         md_content += "\n---\n\n"
         md_content += f"*Report generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC*\n"
@@ -685,22 +649,16 @@ class ValidationReportingEngine:
         )
 
         if result.quick_issues:
-            summary += (
-                f"- {len(result.quick_issues)} areas identified for improvement\n"
-            )
+            summary += f"- {len(result.quick_issues)} areas identified for improvement\n"
 
         summary += f"- Validation completed in {result.validation_time:.2f} seconds\n"
 
         if result.recommendations:
-            summary += (
-                f"- {len(result.recommendations)} specific recommendations provided\n"
-            )
+            summary += f"- {len(result.recommendations)} specific recommendations provided\n"
 
         return summary
 
-    def _generate_standard_executive_summary(
-        self, result: StandardValidationResult
-    ) -> str:
+    def _generate_standard_executive_summary(self, result: StandardValidationResult) -> str:
         """Generate executive summary for standard validation"""
 
         const_score = result.constitutional_score
@@ -726,10 +684,14 @@ class ValidationReportingEngine:
         )
 
         if result.compliance_issues:
-            summary += f"- {len(result.compliance_issues)} constitutional compliance issues identified\n"
+            summary += (
+                f"- {len(result.compliance_issues)} constitutional compliance issues identified\n"
+            )
 
         if result.preservation_issues:
-            summary += f"- {len(result.preservation_issues)} feature preservation concerns identified\n"
+            summary += (
+                f"- {len(result.preservation_issues)} feature preservation concerns identified\n"
+            )
 
         summary += f"- Validation completed in {result.validation_time:.2f} seconds\n"
 
@@ -775,14 +737,14 @@ class ValidationReportingEngine:
         )
 
         if result.critical_issues:
-            summary += f"- {len(result.critical_issues)} critical issues require immediate attention\n"
+            summary += (
+                f"- {len(result.critical_issues)} critical issues require immediate attention\n"
+            )
 
         summary += f"- Validation completed in {result.validation_time:.2f} seconds\n"
 
         if result.recommendations:
-            summary += (
-                f"- {len(result.recommendations)} actionable recommendations provided\n"
-            )
+            summary += f"- {len(result.recommendations)} actionable recommendations provided\n"
 
         return summary
 
@@ -808,12 +770,8 @@ class ValidationReportingEngine:
             "average_score": sum(scores) / len(scores) if scores else 0.0,
             "max_score": max(scores) if scores else 0.0,
             "min_score": min(scores) if scores else 0.0,
-            "score_variance": (
-                self._calculate_variance(scores) if len(scores) > 1 else 0.0
-            ),
-            "status_distribution": {
-                status: statuses.count(status) for status in set(statuses)
-            },
+            "score_variance": (self._calculate_variance(scores) if len(scores) > 1 else 0.0),
+            "status_distribution": {status: statuses.count(status) for status in set(statuses)},
             "validation_types": list(set(types)),
         }
 
@@ -829,9 +787,7 @@ class ValidationReportingEngine:
                 "validation_number": i,
                 "validation_type": type(result).__name__,
                 "status": (
-                    getattr(result, "status", {}).value
-                    if hasattr(result, "status")
-                    else "unknown"
+                    getattr(result, "status", {}).value if hasattr(result, "status") else "unknown"
                 ),
                 "overall_score": getattr(result, "overall_score", 0.0),
                 "validation_time": getattr(result, "validation_time", 0.0),
@@ -841,9 +797,7 @@ class ValidationReportingEngine:
             if hasattr(result, "constitutional_score"):
                 comparison_item["constitutional_score"] = result.constitutional_score
             if hasattr(result, "feature_preservation_score"):
-                comparison_item["feature_preservation_score"] = (
-                    result.feature_preservation_score
-                )
+                comparison_item["feature_preservation_score"] = result.feature_preservation_score
             if hasattr(result, "workflow_score"):
                 comparison_item["workflow_score"] = result.workflow_score
             if hasattr(result, "performance_score"):
@@ -868,9 +822,7 @@ class ValidationReportingEngine:
         if len(scores) >= 3:
             # Check if scores are generally improving or declining
             recent_avg = sum(scores[-3:]) / 3
-            earlier_avg = (
-                sum(scores[:-3]) / len(scores[:-3]) if len(scores) > 3 else scores[0]
-            )
+            earlier_avg = sum(scores[:-3]) / len(scores[:-3]) if len(scores) > 3 else scores[0]
 
             if recent_avg > earlier_avg + 0.05:
                 trend = "improving"
@@ -894,7 +846,9 @@ class ValidationReportingEngine:
             # For 2 results, just compare
             if scores[-1] > scores[0]:
                 trend = "improving"
-                message = f"Second validation shows improvement ({scores[0]:.3f} → {scores[-1]:.3f})"
+                message = (
+                    f"Second validation shows improvement ({scores[0]:.3f} → {scores[-1]:.3f})"
+                )
             elif scores[-1] < scores[0]:
                 trend = "declining"
                 message = f"Second validation shows decline ({scores[0]:.3f} → {scores[-1]:.3f})"
@@ -926,9 +880,7 @@ class ValidationReportingEngine:
                 recommendations.append(
                     "Significant range in validation scores indicates optimization opportunities"
                 )
-                recommendations.append(
-                    "Analyze highest-scoring approach for lessons learned"
-                )
+                recommendations.append("Analyze highest-scoring approach for lessons learned")
 
         if any(getattr(result, "status", {}).value == "fail" for result in results):
             recommendations.append(
@@ -960,9 +912,7 @@ class ValidationReportingEngine:
         if score_variance > 0.05:
             summary += f"- High variance ({score_variance:.3f}) indicates inconsistent quality\n"
         else:
-            summary += (
-                f"- Consistent quality with low variance ({score_variance:.3f})\n"
-            )
+            summary += f"- Consistent quality with low variance ({score_variance:.3f})\n"
 
         status_dist = analysis.get("status_distribution", {})
         pass_count = status_dist.get("pass", 0) + status_dist.get("warning", 0)
@@ -996,14 +946,12 @@ class ValidationReportingEngine:
             # Add comparative analysis
             analysis = report_data["overall_summary"]["comparative_analysis"]
             md_content += "## Comparative Analysis\n\n"
-            md_content += (
-                f"- Total Validations: {analysis.get('total_validations', 0)}\n"
-            )
+            md_content += f"- Total Validations: {analysis.get('total_validations', 0)}\n"
             md_content += f"- Average Score: {analysis.get('average_score', 0.0):.3f}\n"
+            md_content += f"- Score Variance: {analysis.get('score_variance', 0.0):.3f}\n"
             md_content += (
-                f"- Score Variance: {analysis.get('score_variance', 0.0):.3f}\n"
+                f"- Validation Types: {', '.join(analysis.get('validation_types', []))}\n\n"
             )
-            md_content += f"- Validation Types: {', '.join(analysis.get('validation_types', []))}\n\n"
 
             # Add detailed comparison table
             detailed = report_data["detailed_comparison"]
@@ -1031,15 +979,15 @@ class ValidationReportingEngine:
             for i, rec in enumerate(recommendations, 1):
                 md_content += f"{i}. {rec}\n"
 
-            md_content += f"\n\n*Report generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC*\n"
+            md_content += (
+                f"\n\n*Report generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC*\n"
+            )
 
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(md_content)
 
         else:
-            raise ValueError(
-                f"Unsupported output format for comparative report: {output_format}"
-            )
+            raise ValueError(f"Unsupported output format for comparative report: {output_format}")
 
         return filepath
 

@@ -11,13 +11,12 @@ Features:
 - Structured validation reporting
 """
 
+from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
 import structlog
 
 from ..resolution.constitutional_engine import ConstitutionalEngine
-from ..resolution.types import ResolutionStep, ResolutionStrategy
+from ..resolution.types import ResolutionStrategy, ResolutionStep
 from .quick_validator import QuickValidator, ValidationLevel, ValidationStatus
 
 logger = structlog.get_logger()
@@ -155,9 +154,7 @@ class StandardValidator:
 
             result = StandardValidationResult(
                 status=(
-                    ValidationStatus.PASS
-                    if overall_score >= 0.75
-                    else ValidationStatus.WARNING
+                    ValidationStatus.PASS if overall_score >= 0.75 else ValidationStatus.WARNING
                 ),
                 overall_score=overall_score,
                 validation_time=validation_time,
@@ -226,9 +223,7 @@ class StandardValidator:
 
             # Step 2: Validate strategy steps against constitutional requirements
             if resolution_strategy.steps:
-                step_compliance_score = self._validate_steps_compliance(
-                    resolution_strategy.steps
-                )
+                step_compliance_score = self._validate_steps_compliance(resolution_strategy.steps)
                 score_components.append(step_compliance_score)
 
                 if step_compliance_score < 0.7:
@@ -269,21 +264,15 @@ class StandardValidator:
 
             # Calculate overall constitutional score
             constitutional_score = (
-                sum(score_components) / len(score_components)
-                if score_components
-                else 0.5
+                sum(score_components) / len(score_components) if score_components else 0.5
             )
 
             return {
                 "score": constitutional_score,
                 "issues": issues,
                 "components": {
-                    "strategy_compliance": (
-                        score_components[0] if score_components else 0.5
-                    ),
-                    "step_compliance": (
-                        score_components[1] if len(score_components) > 1 else 0.5
-                    ),
+                    "strategy_compliance": (score_components[0] if score_components else 0.5),
+                    "step_compliance": (score_components[1] if len(score_components) > 1 else 0.5),
                     "rollback_compliance": (
                         score_components[2] if len(score_components) > 2 else 0.5
                     ),
@@ -409,17 +398,11 @@ class StandardValidator:
                     # Analyze preservation quality
                     for preservation in enhancement_preservation:
                         if hasattr(preservation, "preservation_score"):
-                            preservation_indicators.append(
-                                preservation.preservation_score
-                            )
+                            preservation_indicators.append(preservation.preservation_score)
                         else:
-                            preservation_indicators.append(
-                                0.6
-                            )  # Default for missing score
+                            preservation_indicators.append(0.6)  # Default for missing score
                 else:
-                    preservation_indicators.append(
-                        0.3
-                    )  # Low score for no enhancement preservation
+                    preservation_indicators.append(0.3)  # Low score for no enhancement preservation
             else:
                 preservation_indicators.append(0.5)  # Neutral for missing information
 
@@ -443,16 +426,11 @@ class StandardValidator:
                 preservation_indicators.append(
                     min(
                         1.0,
-                        preservation_validation_steps
-                        / len(resolution_strategy.steps)
-                        * 0.7
-                        + 0.3,
+                        preservation_validation_steps / len(resolution_strategy.steps) * 0.7 + 0.3,
                     )
                 )
             else:
-                preservation_indicators.append(
-                    0.2
-                )  # Low score for no preservation validation
+                preservation_indicators.append(0.2)  # Low score for no preservation validation
 
             # Step 3: Check rollback strategy for feature preservation
             if resolution_strategy.rollback_strategy:
@@ -478,9 +456,7 @@ class StandardValidator:
                     preservation_indicators.append(0.4)
 
             # Calculate overall preservation score
-            preservation_score = sum(preservation_indicators) / len(
-                preservation_indicators
-            )
+            preservation_score = sum(preservation_indicators) / len(preservation_indicators)
 
             # Identify preservation issues
             if preservation_score < 0.7:
@@ -512,19 +488,13 @@ class StandardValidator:
                         preservation_indicators[0] if preservation_indicators else 0.5
                     ),
                     "validation_steps": (
-                        preservation_indicators[1]
-                        if len(preservation_indicators) > 1
-                        else 0.5
+                        preservation_indicators[1] if len(preservation_indicators) > 1 else 0.5
                     ),
                     "rollback_strategy": (
-                        preservation_indicators[2]
-                        if len(preservation_indicators) > 2
-                        else 0.5
+                        preservation_indicators[2] if len(preservation_indicators) > 2 else 0.5
                     ),
                     "strategy_confidence": (
-                        preservation_indicators[3]
-                        if len(preservation_indicators) > 3
-                        else 0.5
+                        preservation_indicators[3] if len(preservation_indicators) > 3 else 0.5
                     ),
                 },
             }
@@ -566,8 +536,7 @@ class StandardValidator:
             "name": "feature_preservation",
             "threshold": self.quality_gates["feature_preservation"]["threshold"],
             "score": preservation_score,
-            "passed": preservation_score
-            >= self.quality_gates["feature_preservation"]["threshold"],
+            "passed": preservation_score >= self.quality_gates["feature_preservation"]["threshold"],
         }
         quality_gates["feature_preservation"] = preservation_gate
 
@@ -576,15 +545,14 @@ class StandardValidator:
             "name": "overall_quality",
             "threshold": self.quality_gates["overall_quality"]["threshold"],
             "score": overall_score,
-            "passed": overall_score
-            >= self.quality_gates["overall_quality"]["threshold"],
+            "passed": overall_score >= self.quality_gates["overall_quality"]["threshold"],
         }
         quality_gates["overall_quality"] = overall_gate
 
         # Calculate overall gate compliance
-        gate_compliance = sum(
-            1 for gate in quality_gates.values() if gate["passed"]
-        ) / len(quality_gates)
+        gate_compliance = sum(1 for gate in quality_gates.values() if gate["passed"]) / len(
+            quality_gates
+        )
         quality_gates["overall_compliance"] = gate_compliance
 
         return quality_gates
@@ -601,9 +569,7 @@ class StandardValidator:
 
         # Constitutional recommendations
         if not quality_gates.get("constitutional_compliance", {}).get("passed", False):
-            recommendations.append(
-                "Address constitutional compliance issues before proceeding"
-            )
+            recommendations.append("Address constitutional compliance issues before proceeding")
             recommendations.append(
                 "Review resolution strategy against organizational constitutional rules"
             )
@@ -629,13 +595,9 @@ class StandardValidator:
 
         for issue in preservation_result.get("issues", []):
             if issue.get("type") == "low_feature_preservation":
-                recommendations.append(
-                    "Develop comprehensive feature preservation analysis"
-                )
+                recommendations.append("Develop comprehensive feature preservation analysis")
             elif issue.get("type") == "missing_preservation_analysis":
-                recommendations.append(
-                    "Include explicit feature preservation validation"
-                )
+                recommendations.append("Include explicit feature preservation validation")
 
         return recommendations
 
@@ -649,26 +611,16 @@ class StandardValidator:
 
         passed_gates = quality_gates.get("overall_compliance", 0.0)
 
-        if (
-            constitutional_score >= 0.8
-            and preservation_score >= 0.8
-            and passed_gates >= 0.8
-        ):
+        if constitutional_score >= 0.8 and preservation_score >= 0.8 and passed_gates >= 0.8:
             return "ready_for_implementation"
-        elif (
-            constitutional_score >= 0.7
-            and preservation_score >= 0.7
-            and passed_gates >= 0.6
-        ):
+        elif constitutional_score >= 0.7 and preservation_score >= 0.7 and passed_gates >= 0.6:
             return "needs_minor_improvements"
         elif constitutional_score >= 0.6 and preservation_score >= 0.6:
             return "needs_focused_improvements"
         else:
             return "requires_comprehensive_revision"
 
-    def _update_standard_stats(
-        self, constitutional_score: float, preservation_score: float
-    ):
+    def _update_standard_stats(self, constitutional_score: float, preservation_score: float):
         """Update standard validation statistics"""
 
         total = self.validation_stats["total_validations"]
@@ -685,10 +637,7 @@ class StandardValidator:
         ) / total
 
         # Update pass rates
-        if (
-            constitutional_score
-            >= self.quality_gates["constitutional_compliance"]["threshold"]
-        ):
+        if constitutional_score >= self.quality_gates["constitutional_compliance"]["threshold"]:
             current_pass_rate = self.validation_stats["compliance_pass_rate"]
             self.validation_stats["compliance_pass_rate"] = (
                 current_pass_rate * (total - 1) + 1
@@ -699,10 +648,7 @@ class StandardValidator:
                 current_pass_rate * (total - 1)
             ) / total
 
-        if (
-            preservation_score
-            >= self.quality_gates["feature_preservation"]["threshold"]
-        ):
+        if preservation_score >= self.quality_gates["feature_preservation"]["threshold"]:
             current_pass_rate = self.validation_stats["preservation_pass_rate"]
             self.validation_stats["preservation_pass_rate"] = (
                 current_pass_rate * (total - 1) + 1

@@ -1,10 +1,7 @@
 import asyncio
 import time
-
 import pytest
-
 from src.core.ai_engine import ModernAIEngine
-
 
 @pytest.mark.asyncio
 async def test_ai_engine_analysis_correctness():
@@ -13,25 +10,17 @@ async def test_ai_engine_analysis_correctness():
     engine.initialize()
 
     # Test Sentiment
-    result = await engine.analyze_email(
-        "Good news", "I am very happy with the project progress."
-    )
+    result = await engine.analyze_email("Good news", "I am very happy with the project progress.")
     assert result.sentiment == "positive"
 
-    result = await engine.analyze_email(
-        "Bad news", "I have a terrible problem with the code."
-    )
+    result = await engine.analyze_email("Bad news", "I have a terrible problem with the code.")
     assert result.sentiment == "negative"
 
     # Test Topic
-    result = await engine.analyze_email(
-        "Meeting", "Let's schedule a meeting about the project deadline."
-    )
+    result = await engine.analyze_email("Meeting", "Let's schedule a meeting about the project deadline.")
     assert "work" in result.categories
 
-    result = await engine.analyze_email(
-        "Invoice", "Please pay the invoice for the consultation."
-    )
+    result = await engine.analyze_email("Invoice", "Please pay the invoice for the consultation.")
     assert "finance" in result.categories
 
     # Test Intent
@@ -48,7 +37,6 @@ async def test_ai_engine_analysis_correctness():
     result = await engine.analyze_email("Update", "Just a regular update.")
     assert result.urgency == "low"
 
-
 @pytest.mark.asyncio
 async def test_ai_engine_benchmark():
     """Benchmark the AI engine analysis performance."""
@@ -57,13 +45,9 @@ async def test_ai_engine_benchmark():
 
     # Create a reasonably long email content
     subject = "Project Update and Urgent Issues"
-    content = (
-        " ".join(["We need to discuss the project deadline."] * 100)
-        + " ".join(
-            ["I am very happy with the progress but we have a critical bug."] * 100
-        )
-        + " ".join(["Please review the attached invoice."] * 100)
-    )
+    content = " ".join(["We need to discuss the project deadline."] * 100) + \
+              " ".join(["I am very happy with the progress but we have a critical bug."] * 100) + \
+              " ".join(["Please review the attached invoice."] * 100)
 
     # Warm up
     await engine.analyze_email(subject, content)

@@ -74,22 +74,16 @@ class TestDatabaseOptimizations:
         promo_cat = await fresh_db.create_category({"name": "Promotions"})
         promo_cat_id = promo_cat["id"]
 
-        await fresh_db.create_email(
-            {"message_id": "promo1", "category_id": promo_cat_id}
-        )
+        await fresh_db.create_email({"message_id": "promo1", "category_id": promo_cat_id})
         assert fresh_db.category_counts[promo_cat_id] == 1
 
-        email_to_update = await fresh_db.get_email_by_message_id(
-            "promo1", include_content=False
-        )
+        email_to_update = await fresh_db.get_email_by_message_id("promo1", include_content=False)
         await fresh_db.update_email(email_to_update["id"], {"category_id": None})
         assert fresh_db.category_counts[promo_cat_id] == 0
 
     async def test_write_behind_cache(self, fresh_db: DatabaseManager):
         """Test the write-behind caching mechanism."""
-        with patch.object(
-            fresh_db, "_save_data_to_file", new_callable=AsyncMock
-        ) as mock_save:
+        with patch.object(fresh_db, "_save_data_to_file", new_callable=AsyncMock) as mock_save:
             await fresh_db.create_category({"name": "Dirty Category"})
             mock_save.assert_not_called()
             await fresh_db.shutdown()
@@ -123,9 +117,7 @@ class TestDatabaseOptimizations:
             content_from_file = json.load(f)
         assert content_from_file["content"] == "This is the heavy content."
 
-    async def test_hybrid_storage_and_on_demand_loading(
-        self, fresh_db: DatabaseManager
-    ):
+    async def test_hybrid_storage_and_on_demand_loading(self, fresh_db: DatabaseManager):
         """Test separation of heavy/light content and on-demand loading."""
         email_data = {
             "message_id": "hybrid_123",
@@ -144,9 +136,7 @@ class TestDatabaseOptimizations:
         content_path = fresh_db._get_email_content_path(email_id)
         assert os.path.exists(content_path)
 
-        retrieved_light = await fresh_db.get_email_by_id(
-            email_id, include_content=False
-        )
+        retrieved_light = await fresh_db.get_email_by_id(email_id, include_content=False)
         assert retrieved_light is not None
         for field in HEAVY_EMAIL_FIELDS:
             assert field not in retrieved_light
@@ -158,15 +148,11 @@ class TestDatabaseOptimizations:
 
     async def test_performance_logging(self, fresh_db: DatabaseManager):
         """Verify that the log_performance decorator writes to the log file."""
-        with patch(
-            "backend.python_backend.performance_monitor.open", mock_open()
-        ) as mocked_file:
+        with patch("backend.python_backend.performance_monitor.open", mock_open()) as mocked_file:
             await fresh_db.search_emails("test")
 
             handle = mocked_file()
-            written_content = handle.write.call_args[0][
-                0
-            ]  # The write call is the JSON + \n
+            written_content = handle.write.call_args[0][0]  # The write call is the JSON + \n
             log_data = json.loads(written_content.rstrip("\n"))
 
             assert log_data["operation"] == "search_emails"

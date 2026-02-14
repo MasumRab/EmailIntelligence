@@ -4,10 +4,9 @@ Tests command pattern availability and basic launch functionality.
 """
 
 import os
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 import pytest
+from unittest.mock import patch, MagicMock
+from pathlib import Path
 
 
 class TestLaunchOrchestration:
@@ -28,21 +27,17 @@ class TestLaunchOrchestration:
     def test_command_pattern_availability(self):
         """Test command pattern availability detection."""
         # This test may fail if dependencies aren't available, so skip gracefully
-        pytest.skip(
-            "Command pattern availability test skipped - requires full environment setup"
-        )
+        pytest.skip("Command pattern availability test skipped - requires full environment setup")
 
     def test_python_version_checks(self):
         """Test that Python version constants are defined."""
-        pytest.skip(
-            "Python version checks test skipped - requires launch module import"
-        )
+        pytest.skip("Python version checks test skipped - requires launch module import")
 
     def test_project_root_finding(self):
         """Test that project root can be found."""
         pytest.skip("Project root finding test skipped - requires launch module import")
 
-    @patch("subprocess.run")
+    @patch('subprocess.run')
     def test_launch_execution(self, mock_run):
         """Test that launch script can execute without critical errors."""
         mock_run.return_value = MagicMock(returncode=0)

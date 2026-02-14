@@ -7,22 +7,22 @@ including access controls, data sanitization, execution sandboxing, and audit lo
 Also includes security utilities for path validation and sanitization.
 """
 
+import os
+import pathlib
 import asyncio
 import hashlib
 import hmac
 import json
 import logging
-import os
-import pathlib
 import re
 import secrets
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +64,7 @@ class SecurityValidator:
     """Validates security requirements for operations"""
 
     @staticmethod
-    def validate_access(
-        context: SecurityContext, resource: str, permission: Permission
-    ) -> bool:
+    def validate_access(context: SecurityContext, resource: str, permission: Permission) -> bool:
         """
         Validate if a security context has permission to access a resource
         """
@@ -135,9 +133,7 @@ def validate_path_safety(
                 # Check if path is within base_dir
                 path_obj.relative_to(base_obj)
             except ValueError:
-                logger.warning(
-                    f"Path {path} is outside allowed base directory {base_dir}"
-                )
+                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
                 return False
 
         # Additional safety checks
@@ -194,15 +190,13 @@ class DataSanitizer:
         """
         if isinstance(data, str):
             # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript-"
-            )
+            sanitized = data.replace("<script", "&lt;script").replace("javascript:", "javascript-")
             return sanitized
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
-                sanitized_dict[DataSanitizer.sanitize_input(key)] = (
-                    DataSanitizer.sanitize_input(value)
+                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(
+                    value
                 )
             return sanitized_dict
         elif isinstance(data, list):
@@ -234,8 +228,7 @@ class DataSanitizer:
             for key, value in data.items():
                 # Redact sensitive fields
                 if any(
-                    sensitive in key.lower()
-                    for sensitive in ["password", "token", "key", "secret"]
+                    sensitive in key.lower() for sensitive in ["password", "token", "key", "secret"]
                 ):
                     sanitized_dict[key] = "[REDACTED]"
                 else:
@@ -289,15 +282,11 @@ class AuditLogger:
             "node_type": node_type,
             "execution_id": str(uuid4()),
             "ip_address": context.ip_address,
-            "input_keys": (
-                list(inputs.keys()) if isinstance(inputs, dict) else "unknown"
-            ),
+            "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
         }
         self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
 
-    def log_security_violation(
-        self, context: SecurityContext, violation_type: str, details: str
-    ):
+    def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
         """Log a security violation"""
         log_entry = {
             "timestamp": time.time(),
@@ -324,11 +313,7 @@ class ExecutionSandbox:
         # Log the execution attempt
         self.audit_logger.log_execution(
             context=self.context,
-            node_type=(
-                execute_func.__name__
-                if hasattr(execute_func, "__name__")
-                else "unknown"
-            ),
+            node_type=execute_func.__name__ if hasattr(execute_func, "__name__") else "unknown",
             inputs=kwargs,
             outputs={},
         )
@@ -344,9 +329,7 @@ class ExecutionSandbox:
 
         # Sanitize inputs
         sanitized_args = [DataSanitizer.sanitize_input(arg) for arg in args]
-        sanitized_kwargs = {
-            k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()
-        }
+        sanitized_kwargs = {k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()}
 
         try:
             # Execute the function in a controlled environment
@@ -374,9 +357,7 @@ class SecurityManager:
         self.sanitizer = DataSanitizer()
         self.audit_logger = AuditLogger()
         self.active_sessions: Dict[str, SecurityContext] = {}
-        self.secret_key = secrets.token_urlsafe(
-            32
-        )  # In production, load from secure storage
+        self.secret_key = secrets.token_urlsafe(32)  # In production, load from secure storage
 
     def create_session(
         self,
@@ -517,9 +498,7 @@ class PathValidator:
     """Secure path validation to prevent directory traversal attacks"""
 
     @staticmethod
-    def is_safe_path(
-        base_path: Union[str, Path], requested_path: Union[str, Path]
-    ) -> bool:
+    def is_safe_path(base_path: Union[str, Path], requested_path: Union[str, Path]) -> bool:
         """
         Check if a requested path is safe (doesn't escape the base directory)
 
@@ -541,9 +520,8 @@ class PathValidator:
             return False
 
     @staticmethod
-    def validate_and_resolve_db_path(
-        db_path: Union[str, Path], allowed_dir: Optional[Union[str, Path]] = None
-    ) -> Path:
+    def validate_and_resolve_db_path(db_path: Union[str, Path],
+                                   allowed_dir: Optional[Union[str, Path]] = None) -> Path:
         """
         Validate and resolve a database path with security checks
 
@@ -580,12 +558,10 @@ class PathValidator:
         if allowed_dir:
             allowed_dir = Path(allowed_dir).resolve()
             if not resolved_path.is_relative_to(allowed_dir):
-                raise ValueError(
-                    f"Database path escapes allowed directory: {allowed_dir}"
-                )
+                raise ValueError(f"Database path escapes allowed directory: {allowed_dir}")
 
         # Additional security checks
-        if any(part.startswith(".") for part in resolved_path.parts):
+        if any(part.startswith('.') for part in resolved_path.parts):
             raise ValueError("Database path contains hidden files/directories")
 
         return resolved_path
@@ -602,15 +578,11 @@ class PathValidator:
             Sanitized filename
         """
         # Remove any path traversal attempts and dangerous characters
-        sanitized = re.sub(r'[<>:"/\\|?*]', "_", filename)
+        sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
 
         # Also avoid names that might be problematic on various systems
-        if sanitized.upper() in [
-            "CON",
-            "PRN",
-            "AUX",
-            "NUL",
-        ] or sanitized.upper().startswith(("COM", "LPT")):
+        if sanitized.upper() in ['CON', 'PRN', 'AUX', 'NUL'] or \
+           sanitized.upper().startswith(('COM', 'LPT')):
             sanitized = f"_{sanitized}"
 
         return sanitized
@@ -649,9 +621,7 @@ def validate_path_safety(
                 # Check if path is within base_dir
                 path_obj.relative_to(base_obj)
             except ValueError:
-                logger.warning(
-                    f"Path {path} is outside allowed base directory {base_dir}"
-                )
+                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
                 return False
 
         # Additional safety checks
@@ -701,9 +671,7 @@ def sanitize_path(
 
         # Additional checks to ensure validity
         if any(char in normalized_path for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(
-                f"Invalid characters in path after sanitization: {normalized_path}"
-            )
+            logger.warning(f"Invalid characters in path after sanitization: {normalized_path}")
             return None
 
         return normalized_path
