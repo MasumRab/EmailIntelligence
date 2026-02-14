@@ -5,3 +5,7 @@
 ## 2026-01-24 - [Batched Smart Filter Updates]
 **Learning:** `SmartFilterManager.apply_filters_to_email` was performing N database updates and N cache invalidations for N matching filters, causing unnecessary overhead. Consolidating updates into a single batch operation reduced DB roundtrips and cache thrashing.
 **Action:** Always batch database updates (especially `UPDATE ... WHERE id IN (...)`) and cache invalidations when processing multiple items in a single logical operation.
+
+## 2024-05-22 - Manual LRU List Management vs OrderedDict
+**Learning:** Manual list management for LRU cache (remove+append) is O(N) and becomes a significant bottleneck even with moderate cache sizes (10k items).
+**Action:** Always prefer `collections.OrderedDict` or `functools.lru_cache` for LRU implementations in Python. `OrderedDict.move_to_end` and `popitem(last=False)` are O(1).
