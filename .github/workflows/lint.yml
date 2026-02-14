@@ -23,34 +23,34 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
           cache: 'pip'
       
-      - name: Verify dependencies
-        run: |
-          python scripts/verify-dependencies.py --minimal
-      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
-          pip install flake8 pylint black isort
-      
-      - name: Run black formatter check
+          pip install packaging
+
+      - name: Verify dependencies
         run: |
-          black --check src/ tests/ || true
+          python scripts/verify-dependencies.py --check-gpu --system-packages
       
-      - name: Run isort import checker
+      - name: Check code formatting with black
         run: |
-          isort --check-only src/ tests/ || true
+          black --check src/ tests/
       
-      - name: Run flake8
+      - name: Check import sorting with isort
         run: |
-          flake8 src/ tests/ --max-line-length=120 --extend-ignore=E203,W503 || true
+          isort --check-only src/ tests/
+      
+      - name: Run flake8 linting
+        run: |
+          flake8 src/ tests/ --max-line-length=120 --extend-ignore=E203,W503
       
       - name: Run pylint
         run: |
-          pylint src/ --disable=C0111,C0103,R0913,R0914 || true
+          pylint src/ --disable=C0111,C0103,R0913,R0914
