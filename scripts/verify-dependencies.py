@@ -8,30 +8,78 @@ This script checks:
 """
 
 import sys
-import pkg_resources
 import argparse
-from typing import Dict, List, Set, Tuple
-import re
+from typing import Dict, List, Set, Optional
 import os
+import importlib.metadata
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
 
+# Try to import toml for pyproject.toml parsing
+try:
+    import toml
+    TOML_AVAILABLE = True
+except ImportError:
+    TOML_AVAILABLE = False
+
 # Mappings for packages where the import name differs from the package name
+# or where legacy mappings are needed.
+# Note: importlib.metadata usually handles standard names correctly.
 PACKAGE_MAPPINGS = {
-    "python-dotenv": "dotenv",
-    "python-multipart": "multipart",
-    "pyyaml": "yaml",
-    "beautifulsoup4": "bs4",
-    "pillow": "PIL",
-    "scikit-learn": "sklearn",
-    "google-auth": "google.auth",
-    "google-api-python-client": "googleapiclient",
-    # Add other mappings as needed
+    "python-dotenv": "python-dotenv",
+    "python-multipart": "python-multipart",
+    "pyyaml": "PyYAML",
+    "beautifulsoup4": "beautifulsoup4",
+    "pillow": "Pillow",
+    "scikit-learn": "scikit-learn",
+    "google-auth": "google-auth",
+    "google-api-python-client": "google-api-python-client",
+    "typing-extensions": "typing-extensions",
 }
 
 def get_installed_packages() -> Dict[str, str]:
-    """Get a dictionary of installed packages and their versions."""
-    return {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    """Get a dictionary of installed packages and their versions using importlib.metadata."""
+    installed = {}
+    for dist in importlib.metadata.distributions():
+        try:
+            name = dist.metadata["Name"]
+            version = dist.version
+            if name:
+                installed[name.lower()] = version
+        except Exception:
+            continue
+    return installed
+
+def get_optional_dependencies() -> Set[str]:
+    """Extract optional dependencies from pyproject.toml."""
+    optional_deps = set()
+    if not TOML_AVAILABLE:
+        return optional_deps
+
+    # Find pyproject.toml relative to script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Assuming script is in scripts/, go up one level
+    root_dir = os.path.dirname(script_dir)
+    pyproject_path = os.path.join(root_dir, "pyproject.toml")
+
+    if not os.path.exists(pyproject_path):
+        return optional_deps
+
+    try:
+        data = toml.load(pyproject_path)
+        opt_deps = data.get("project", {}).get("optional-dependencies", {})
+        for group, deps in opt_deps.items():
+            for dep in deps:
+                try:
+                    # Parse the requirement string to get the name
+                    req = Requirement(dep)
+                    optional_deps.add(req.name.lower())
+                except Exception:
+                    continue
+    except Exception as e:
+        print(f"Warning: Failed to parse pyproject.toml: {e}")
+
+    return optional_deps
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""
@@ -105,7 +153,7 @@ def main():
     parser.add_argument("--requirements", "-r", nargs="+", default=["requirements.txt"],
                       help="Requirements files to check")
     parser.add_argument("--strict", action="store_true",
-                      help="Fail on any mismatch")
+                      help="Fail on any mismatch, even for optional dependencies")
     parser.add_argument("--check-gpu", action="store_true",
                       help="Verify GPU support")
     parser.add_argument("--system-packages", action="store_true",
@@ -116,7 +164,6 @@ def main():
     args = parser.parse_args()
 
     # If minimal check is requested, ignore standard requirements files and checking logic
-    # This is useful for quick CI sanity checks or environments where full deps aren't needed yet
     if args.minimal:
         print("Minimal dependency check passed.")
         return 0
@@ -125,22 +172,46 @@ def main():
 
     installed = get_installed_packages()
     requirements = parse_requirements(args.requirements)
+    optional_packages = get_optional_dependencies()
 
     missing_packages = []
     version_mismatches = []
+    optional_missing = []
 
     for req in requirements:
         pkg_name = req.name.lower()
 
-        # Check mapping if name differs
-        check_name = PACKAGE_MAPPINGS.get(pkg_name, pkg_name)
+        # Check if package is installed
+        is_installed = pkg_name in installed
 
-        if pkg_name not in installed and check_name not in installed:
-            missing_packages.append(req)
+        # Try mappings if not found
+        if not is_installed and pkg_name in PACKAGE_MAPPINGS:
+             mapped_name = PACKAGE_MAPPINGS[pkg_name].lower()
+             is_installed = mapped_name in installed
+             if is_installed:
+                 pkg_name = mapped_name
+
+        if not is_installed:
+            # Last ditch effort: replace hyphens with underscores and vice versa
+            if '-' in pkg_name:
+                alt_name = pkg_name.replace('-', '_')
+                if alt_name in installed:
+                    pkg_name = alt_name
+                    is_installed = True
+            elif '_' in pkg_name:
+                alt_name = pkg_name.replace('_', '-')
+                if alt_name in installed:
+                    pkg_name = alt_name
+                    is_installed = True
+
+        if not is_installed:
+            # Check if it is optional
+            if pkg_name in optional_packages and not args.strict:
+                optional_missing.append(req)
+            else:
+                missing_packages.append(req)
         else:
-            # Get installed version (check both names)
-            installed_ver = installed.get(pkg_name) or installed.get(check_name)
-
+            installed_ver = installed[pkg_name]
             if not check_compatibility(req, installed_ver):
                 version_mismatches.append((req, installed_ver))
 
@@ -153,6 +224,11 @@ def main():
             print(f"  - {req}")
         success = False
 
+    if optional_missing:
+        print("\nOptional packages missing (skipped):")
+        for req in optional_missing:
+            print(f"  - {req}")
+
     if version_mismatches:
         print("\nVersion mismatches:")
         for req, ver in version_mismatches:
@@ -160,7 +236,7 @@ def main():
         success = False
 
     if not missing_packages and not version_mismatches:
-        print("\nAll dependencies satisfied!")
+        print("\nAll required dependencies satisfied!")
 
     # Additional checks
     if args.check_gpu:
@@ -175,11 +251,13 @@ def main():
             if args.strict:
                 success = False
 
-    # Summary with newline variable to avoid backslash in f-string
+    # Summary
     newline = "\n"
     print(f"{newline}Summary:")
     print(f"Checked {len(requirements)} requirements")
     print(f"Missing: {len(missing_packages)}")
+    if optional_missing:
+        print(f"Optional Missing (Skipped): {len(optional_missing)}")
     print(f"Mismatches: {len(version_mismatches)}")
 
     return 0 if success else 1
