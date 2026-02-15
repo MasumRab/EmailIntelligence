@@ -64,7 +64,7 @@ def setup_test_environment():
 
 
 # from src.core.database import get_db  # FIXME: get_db function doesn't exist
-from src.core.factory import get_data_source
+# from src.core.factory import get_data_source  # Avoid top-level import to prevent circular dependency
 
 # Use the test app instead of the main app
 # Use the create_test_app function defined above
@@ -151,6 +151,8 @@ def client(mock_db_manager: AsyncMock):
     Provides a TestClient with the database dependency overridden.
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
+    from src.core.factory import get_data_source  # Import here to avoid circular dependency
+
     app = create_app()
     # app.dependency_overrides[get_db] = lambda: mock_db_manager  # FIXME: get_db doesn't exist
     app.dependency_overrides[get_data_source] = lambda: mock_db_manager
