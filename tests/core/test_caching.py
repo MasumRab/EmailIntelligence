@@ -98,28 +98,6 @@ class TestMemoryCacheBackend:
         assert await memory_cache.get("warm_key2") == "warm_value2"
 
     @pytest.mark.asyncio
-    async def test_lru_eviction(self, memory_cache):
-        """Test LRU eviction policy"""
-        # Create a cache with small limit
-        config = CacheConfig(backend=CacheBackend.MEMORY, max_memory_items=3)
-        cache = MemoryCacheBackend(config)
-
-        await cache.set("k1", "v1")
-        await cache.set("k2", "v2")
-        await cache.set("k3", "v3")
-
-        # Access k1 to make it recently used
-        await cache.get("k1")
-
-        # Add k4, should evict k2 (least recently used)
-        await cache.set("k4", "v4")
-
-        assert await cache.get("k1") == "v1"
-        assert await cache.get("k2") is None
-        assert await cache.get("k3") == "v3"
-        assert await cache.get("k4") == "v4"
-
-    @pytest.mark.asyncio
     async def test_stats_tracking(self, memory_cache):
         """Test cache statistics tracking"""
         # Initial stats

@@ -34,6 +34,9 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "pyotp>=2.9.0",
     "qrcode>=7.4.2",
+
+    # Utilities
+    "psutil>=6.0.0",
 ]
 
 [project.optional-dependencies]
