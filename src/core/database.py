@@ -673,7 +673,14 @@ class DatabaseManager(DataSource):
         return await self.search_emails_with_limit(query, limit=50)
 
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
+        """
+        Search emails with limit parameter.
+        Uses a 'Sort-First Early-Exit' strategy:
+        1. Sort candidates by date descending.
+        2. Iterate and check metadata (fast).
+        3. If not in metadata, check disk content using optimized scan.
+        4. Stop when limit is reached.
+        """
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
@@ -684,36 +691,82 @@ class DatabaseManager(DataSource):
             return cached_result
 
         search_term_lower = search_term.lower()
+
+        # Sort candidates by date descending first to enable early exit
+        sorted_candidates = sorted(
+            self.emails_data,
+            key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+            reverse=True
+        )
+
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'. Using optimized scan."
         )
-        for email_light in self.emails_data:
+
+        # Counter for yielding control to the event loop
+        files_checked = 0
+
+        for email_light in sorted_candidates:
+            if len(filtered_emails) >= limit:
+                break
+
+            # Yield control every 10 file checks to prevent blocking the event loop for too long
+            if files_checked >= 10:
+                await asyncio.sleep(0)
+                files_checked = 0
+
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
+
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
+
             email_id = email_light.get(FIELD_ID)
             content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+            if os.path.exists(content_path):
+                files_checked += 1
+                # Optimization: Scan raw file content synchronously but yield periodically.
+                # Avoids thread overhead for small files while keeping the loop responsive.
+                potential_match = self._scan_content_for_term(content_path, search_term_lower)
+
+                if potential_match:
+                    # Verify it's actually in the content field (avoid false positives from other fields)
+                    try:
+                        with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                            heavy_data = json.load(f)
+                            content = heavy_data.get(FIELD_CONTENT, "")
+                            if isinstance(content, str) and search_term_lower in content.lower():
+                                filtered_emails.append(email_light)
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not verify content for email {email_id}: {e}")
+
+        # Result is already sorted by date due to candidate sorting
+        # We just need to add category details
+        result = [self._add_category_details(email) for email in filtered_emails]
 
         # Cache result
         self.caching_manager.put_query_result(cache_key, result)
         return result
+
+    def _scan_content_for_term(self, content_path: str, search_term_lower: str) -> bool:
+        """
+        Efficiently scans a gzipped file for a search term without full JSON parsing.
+        Reads line-by-line to handle large files gracefully.
+        """
+        try:
+            with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                for line in f:
+                    if search_term_lower in line.lower():
+                        return True
+            return False
+        except (IOError, OSError):
+            return False
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
