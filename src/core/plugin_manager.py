@@ -7,7 +7,6 @@ marketplace integration, and runtime monitoring for extensible functionality.
 
 import asyncio
 import hashlib
-import json
 import logging
 import shutil
 import tempfile
@@ -21,7 +20,6 @@ from urllib.request import urlopen
 from .plugin_base import (
     HookSystem,
     PluginInstance,
-    PluginInterface,
     PluginMetadata,
     PluginRegistry,
     PluginSecurityLevel,

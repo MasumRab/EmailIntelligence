@@ -79,7 +79,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         else:
             cmd = ["npm", "install"]
 
-        result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True)
+        result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True, check=True)
         if result.returncode == 0:
             logger.info(f"Node.js dependencies installed successfully in {directory}")
             return True
@@ -272,7 +272,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)
+            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True, check=True)
             if result.returncode == 0:
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:
