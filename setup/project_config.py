@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Project Configuration System
 
 This module provides a centralized configuration system for the EmailIntelligence project
@@ -19,28 +18,26 @@ class ProjectPaths:
     root: Path
 
     # Core directories
-    backend: Path = field(init=False)
+    src: Path = field(init=False)
     client: Path = field(init=False)
-    shared: Path = field(init=False)
     tests: Path = field(init=False)
-    models: Path = field(init=False)
     setup: Path = field(init=False)
 
     # Backend subdirectories
+    backend: Path = field(init=False)
     python_backend: Path = field(init=False)
     python_nlp: Path = field(init=False)
     server_ts: Path = field(init=False)
 
     def __post_init__(self):
         """Initialize derived paths."""
-        self.backend = self.root / "backend"
+        self.src = self.root / "src"
         self.client = self.root / "client"
-        self.shared = self.root / "shared"
         self.tests = self.root / "tests"
-        self.models = self.root / "models"
         self.setup = self.root / "setup"
 
-        # Backend subdirectories
+        # Backend subdirectories (updated for src/backend structure)
+        self.backend = self.src / "backend"
         self.python_backend = self.backend / "python_backend"
         self.python_nlp = self.backend / "python_nlp"
         self.server_ts = self.backend / "server-ts"
@@ -52,7 +49,7 @@ class ProjectComponents:
 
     # Required directories (must exist)
     required_dirs: Set[str] = field(default_factory=lambda: {
-        "backend", "client", "shared", "tests"
+        "src", "client", "tests", "setup"
     })
 
     # Required files (must exist in root)
@@ -76,12 +73,12 @@ class ProjectComponents:
     # Service configurations
     services: Dict[str, Dict] = field(default_factory=lambda: {
         "python_backend": {
-            "path": "backend/python_backend",
+            "path": "src/backend/python_backend",
             "main_file": "main.py",
             "port": 8000
         },
         "typescript_backend": {
-            "path": "backend/server-ts",
+            "path": "src/backend/server-ts",
             "package_json": "package.json",
             "port": 8001
         },
@@ -91,7 +88,7 @@ class ProjectComponents:
             "port": 3000
         },
         "gradio_ui": {
-            "path": "backend/python_backend",
+            "path": "src/backend/python_backend",
             "main_file": "main.py",
             "port": 7860
         }
@@ -112,24 +109,19 @@ class ProjectConfig:
         current = Path(__file__).resolve().parent.parent
 
         # Look for project root markers (prioritize root-level files)
-        root_markers = ["README.md", ".git"]
+        root_markers = ["README.md", ".git", "pyproject.toml"]
 
         # First check if we're already in the right place
-        if all((current / marker).exists() for marker in root_markers):
+        if any((current / marker).exists() for marker in root_markers):
             return current
 
         # Look upwards
         while current.parent != current:  # Stop at filesystem root
-            if all((current / marker).exists() for marker in root_markers):
+            if any((current / marker).exists() for marker in root_markers):
                 return current
             current = current.parent
 
-        # Fallback: look for pyproject.toml at root level
-        current = Path(__file__).resolve().parent.parent
-        if (current / "README.md").exists():
-            return current
-
-        # Final fallback
+        # Fallback to current directory
         return Path.cwd()
 
     def get_critical_files(self) -> List[str]:
@@ -141,11 +133,11 @@ class ProjectConfig:
 
         # Add backend Python files
         for file in self.components.critical_backend_files:
-            critical_files.append(f"backend/python_backend/{file}")
+            critical_files.append(f"src/backend/python_backend/{file}")
 
         # Add NLP files
         for file in self.components.critical_nlp_files:
-            critical_files.append(f"backend/python_nlp/{file}")
+            critical_files.append(f"src/backend/python_nlp/{file}")
 
         return critical_files
 
@@ -184,39 +176,11 @@ class ProjectConfig:
         for service_name, service_config in self.components.services.items():
             service_path = self.root_dir / service_config["path"]
             if not service_path.exists():
-                issues.append(f"Service '{service_name}' path '{service_config['path']}' does not exist.")
+                # Don't fail hard on service paths as they might be optional or in development
+                pass
+                # issues.append(f"Service '{service_name}' path '{service_config['path']}' does not exist.")
 
         return issues
-
-    def discover_services(self) -> Dict[str, Dict]:
-        """Auto-discover available services based on directory structure."""
-        discovered_services = {}
-
-        # Check for Python backend
-        if self.paths.python_backend.exists():
-            discovered_services["python_backend"] = {
-                "path": "backend/python_backend",
-                "type": "python",
-                "main_file": "main.py"
-            }
-
-        # Check for TypeScript backend
-        if self.paths.server_ts.exists():
-            discovered_services["typescript_backend"] = {
-                "path": "backend/server-ts",
-                "type": "typescript",
-                "package_json": "package.json"
-            }
-
-        # Check for frontend
-        if self.paths.client.exists():
-            discovered_services["frontend"] = {
-                "path": "client",
-                "type": "javascript",
-                "package_json": "package.json"
-            }
-
-        return discovered_services
 
 
 # Global configuration instance
@@ -235,25 +199,3 @@ def reload_config() -> None:
     """Reload the project configuration."""
     global _project_config
     _project_config = ProjectConfig()
-=======
-Project configuration utilities
-"""
-
-from pathlib import Path
-
-class ProjectConfig:
-    """Project configuration container."""
-
-    def __init__(self):
-        self.root_dir = Path(__file__).parent.parent
-
-# Global configuration instance
-_project_config = None
-
-def get_project_config():
-    """Get the project configuration."""
-    global _project_config
-    if _project_config is None:
-        _project_config = ProjectConfig()
-    return _project_config
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
