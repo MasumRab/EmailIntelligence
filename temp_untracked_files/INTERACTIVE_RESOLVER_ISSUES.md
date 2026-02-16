@@ -38,10 +38,7 @@ show_stash_info "$STASH_REF"  # Fails silently or with confusing error
 **Problem:** `sed` command only removes marker lines, not conflict content
 ```bash
 sed -i '/^<<<<<<< /d; /^=======/d; /^>>>>>>> /d' "$file"
-# Removes: <<<<<<< HEAD
-#          =======
-#          >>>>>>> branch
-# BUT: Keeps both conflicting sections, just without markers
+# Removes: #          # BUT: Keeps both conflicting sections, just without markers
 ```
 
 **Impact:** Keeps both versions of conflicting code without markers, creating broken file
