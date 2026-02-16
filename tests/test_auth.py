@@ -17,7 +17,11 @@ def test_auth_token_endpoint():
         assert response.status_code == 200
         assert "access_token" in response.json()
         assert response.json()["token_type"] == "bearer"
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         # Test with invalid credentials
         response = client.post("/token", data={"username": "invalid", "password": "invalid"})
         assert response.status_code == 401
@@ -29,6 +33,10 @@ def test_protected_endpoint_requires_auth():
         # Try to access a protected endpoint without authentication
         response = client.get("/api/emails")
         assert response.status_code == 401  # Unauthorized
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         # Should work with valid token (after proper setup)
         # This test would require a valid token which is complex to set up in this context

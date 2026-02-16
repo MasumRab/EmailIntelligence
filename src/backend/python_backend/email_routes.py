@@ -4,7 +4,11 @@ from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
+<<<<<<< HEAD
 from src.backend.node_engine.workflow_engine import WorkflowEngine
+=======
+from backend.node_engine.workflow_engine import WorkflowEngine
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 from src.core.auth import get_current_active_user
 
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import

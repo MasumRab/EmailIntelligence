@@ -13,9 +13,15 @@ from typing import Any, Dict, List, Optional
 
 import gradio as gr
 
+<<<<<<< HEAD
 from src.backend.node_engine.node_base import Connection, Workflow
 from src.backend.node_engine.workflow_manager import workflow_manager
 from src.backend.plugins.plugin_manager import plugin_manager
+=======
+from backend.node_engine.node_base import Connection, Workflow
+from backend.node_engine.workflow_manager import get_workflow_manager
+from backend.plugins.plugin_manager import plugin_manager
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 # Try to import security manager if available
 try:
@@ -30,10 +36,14 @@ def create_workflow_editor_ui():
     """
     Creates a Gradio interface for editing node-based workflows
     """
+<<<<<<< HEAD
     workflow_manager_instance = workflow_manager
     # Also get the node library to access node types
     from src.backend.node_engine.node_library import NodeLibrary
     node_library = NodeLibrary()
+=======
+    workflow_manager = get_workflow_manager()
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
     with gr.Blocks(title="Email Intelligence - Workflow Editor") as workflow_editor:
         gr.Markdown("## 🔄 Node-Based Workflow Editor")
@@ -49,11 +59,19 @@ def create_workflow_editor_ui():
 
                 # Available node types
                 available_nodes = gr.Dropdown(
+<<<<<<< HEAD
                     choices=node_library.get_node_types(),
                     label="Available Node Types",
                     value=(
                         node_library.get_node_types()[0]
                         if node_library.get_node_types()
+=======
+                    choices=workflow_manager.get_registered_node_types(),
+                    label="Available Node Types",
+                    value=(
+                        workflow_manager.get_registered_node_types()[0]
+                        if workflow_manager.get_registered_node_types()
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                         else None
                     ),
                 )
@@ -176,7 +194,11 @@ def create_workflow_editor_ui():
             workflow_data = {
                 "nodes": [
                     {
+<<<<<<< HEAD
                         "id": f"node_{len(node_library.get_node_types())}",
+=======
+                        "id": f"node_{len(workflow_manager.get_registered_node_types())}",
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                         "type": node_type,
                         "position": {"x": 100, "y": 100},
                         "parameters": {},
@@ -294,7 +316,11 @@ def create_advanced_workflow_ui():
 
             with gr.TabItem("Node Gallery"):
                 gr.Markdown("### Available Processing Nodes")
+<<<<<<< HEAD
                 registered_nodes = node_library.get_node_types()
+=======
+                registered_nodes = get_workflow_manager().get_registered_node_types()
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                 for node_type in registered_nodes:
                     gr.Markdown(f"- **{node_type}**")
 
@@ -321,6 +347,11 @@ def create_advanced_workflow_ui():
     return advanced_ui
 
 
+<<<<<<< HEAD
+=======
+# Initialize the workflow system when this module is loaded
+initialize_workflow_system()
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 if __name__ == "__main__":
     # For testing the workflow editor UI

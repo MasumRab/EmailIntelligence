@@ -19,10 +19,13 @@
 #
 # AUTHOR: Orchestration Team
 # VERSION: 2.1.0
+<<<<<<< HEAD
 #
 # NOTE: When orchestration files are updated, run this script to ensure
 # all hooks are properly installed. See docs/orchestration_hook_management.md
 # for complete update procedures.
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 # Source common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -41,7 +44,12 @@ REQUIRED_HOOKS=(
 
 # Parse command line arguments
 parse_install_args() {
+<<<<<<< HEAD
     HELP_REQUESTED=false
+=======
+    FORCE=false
+    VERBOSE=false
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -57,8 +65,12 @@ parse_install_args() {
             --help|-h)
                 echo "Usage: $0 [--force] [--verbose]"
                 echo "Install Git hooks from orchestration-tools branch"
+<<<<<<< HEAD
                 HELP_REQUESTED=true
                 return 0 # Return from parse_install_args
+=======
+                exit 0
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                 ;;
             *)
                 log_error "Unknown option: $1"
@@ -129,10 +141,13 @@ main() {
 
     parse_install_args "$@"
 
+<<<<<<< HEAD
     if $HELP_REQUESTED; then
         return 0
     fi
 
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     log_info "Installing Git hooks from remote $ORCHESTRATION_BRANCH branch..."
 
     # Validate environment
@@ -164,4 +179,8 @@ main() {
 }
 
 # Run main function
+<<<<<<< HEAD
 main "$@"
+=======
+main "$@"
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

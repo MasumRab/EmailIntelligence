@@ -107,4 +107,7 @@ AC: 7/7 checked
 ## task-medium.5: Standardize Dependency Management System
 Status: Done
 AC: 6/6 checked
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

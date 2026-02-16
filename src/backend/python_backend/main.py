@@ -31,6 +31,10 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
+<<<<<<< HEAD
+=======
+    action_routes,
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -108,7 +112,11 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                         "success": False,
                         "message": "An internal error occurred",
                         "error_code": "INTERNAL_ERROR",
+<<<<<<< HEAD
                         "details": str(exc),
+=======
+                        "details": None,
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                         "request_id": request_id,
                     }
                     status_code = exc.status_code
@@ -117,7 +125,11 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "success": False,
                     "message": "Validation error",
                     "error_code": "VALIDATION_ERROR",
+<<<<<<< HEAD
                     "details": str(exc),
+=======
+                    "details": None,  # Do not expose internal error message
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                     "request_id": request_id,
                 }
                 status_code = 422
@@ -126,7 +138,11 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "success": False,
                     "message": "An unexpected error occurred",
                     "error_code": "INTERNAL_ERROR",
+<<<<<<< HEAD
                     "details": str(exc) if settings.debug else None,
+=======
+                    "details": None,  # Never expose internal error in response
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                     "request_id": request_id,
                 }
                 status_code = 500
@@ -248,7 +264,11 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 # or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
+<<<<<<< HEAD
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes and other AI-related routes
+=======
+ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
 from .routes.v1.category_routes import router as category_router_v1
@@ -269,6 +289,10 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
+<<<<<<< HEAD
+=======
+app.include_router(action_routes.router)
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
@@ -383,6 +407,7 @@ env = os.getenv("NODE_ENV", "development")
 host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
 reload = env == "development"
 # Use string app path to support reload
+<<<<<<< HEAD
 if __name__ == "__main__":
     import uvicorn
 
@@ -392,3 +417,6 @@ if __name__ == "__main__":
     reload = env == "development"
     # Use string app path to support reload
     uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+=======
+uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

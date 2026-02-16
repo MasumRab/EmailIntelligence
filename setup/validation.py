@@ -1,5 +1,8 @@
 """
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 Validation functions for the launch system.
 
 This module handles validation of environment, components, and configuration.
@@ -32,6 +35,7 @@ def check_python_version():
         )
         sys.exit(1)
     logger.info(f"Python version {current_version} is compatible.")
+<<<<<<< HEAD
 =======
 Validation utilities for EmailIntelligence launcher
 """
@@ -63,12 +67,17 @@ def check_python_version():
         sys.exit(1)
     logger.info(f"Python version {platform.python_version()} is compatible.")
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 
 def check_for_merge_conflicts() -> bool:
     """Check for unresolved merge conflict markers in critical files."""
     conflict_markers = ["<<<<<<< ", "======= ", ">>>>>>> "]
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
     # Get critical files from project configuration
     config = get_project_config()
@@ -77,6 +86,7 @@ def check_for_merge_conflicts() -> bool:
     # Add additional files that aren't automatically discovered
     additional_files = ["README.md", "requirements-dev.txt"]
     critical_files.extend(additional_files)
+<<<<<<< HEAD
 =======
     critical_files = [
         "backend/python_backend/main.py",
@@ -101,6 +111,8 @@ def check_for_merge_conflicts() -> bool:
         "requirements-dev.txt",
     ]
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
     conflicts_found = False
     for file_path in critical_files:
@@ -109,6 +121,9 @@ def check_for_merge_conflicts() -> bool:
             try:
                 with open(full_path, "r", encoding="utf-8") as f:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                     content = f.read()
                     for marker in conflict_markers:
                         if marker in content:
@@ -116,6 +131,7 @@ def check_for_merge_conflicts() -> bool:
                                 f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
                             )
                             conflicts_found = True
+<<<<<<< HEAD
 =======
                     # Optimized to read line-by-line instead of loading entire file
                     for line_num, line in enumerate(f, 1):
@@ -131,6 +147,8 @@ def check_for_merge_conflicts() -> bool:
                                 # Since we want to report errors, finding one is enough to mark the file as bad,
                                 # but printing all is helpful. We'll set the flag and continue.
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
             except Exception as e:
                 logger.warning(f"Could not check {file_path} for conflicts: {e}")
 
@@ -154,10 +172,14 @@ def check_required_components() -> bool:
         )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     # Get project configuration and validate structure
     config = get_project_config()
     structure_issues = config.validate_structure()
     issues.extend(structure_issues)
+<<<<<<< HEAD
 =======
     # Check key directories
     required_dirs = ["backend", "client", "shared", "tests"]
@@ -171,6 +193,8 @@ def check_required_components() -> bool:
         if not (ROOT_DIR / file_name).exists():
             issues.append(f"Required file '{file_name}' is missing.")
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
     # Check AI models directory
     models_dir = ROOT_DIR / "models"
@@ -181,12 +205,16 @@ def check_required_components() -> bool:
             logger.info("AI models directory created successfully.")
         except Exception as e:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
             issues.append(f"Could not create AI models directory: {e}")
 
     if issues:
         logger.error("Component validation failed:")
         for issue in issues:
             logger.error(f"  - {issue}")
+<<<<<<< HEAD
 =======
             logger.error(f"Failed to create models directory: {e}")
             issues.append("Failed to create models directory")
@@ -195,6 +223,8 @@ def check_required_components() -> bool:
         for issue in issues:
             logger.error(issue)
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         return False
 
     logger.info("All required components are present.")
@@ -203,6 +233,9 @@ def check_required_components() -> bool:
 
 def validate_environment() -> bool:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     """Validate the overall environment for running the application."""
     logger.info("Validating environment...")
 
@@ -241,6 +274,7 @@ def validate_host(host: str) -> str:
     if not host or not isinstance(host, str):
         raise ValueError(f"Invalid host: {host}")
     # Basic validation - could be enhanced
+<<<<<<< HEAD
     return host
 =======
     """Run comprehensive environment validation."""
@@ -271,3 +305,6 @@ def validate_host(host: str) -> bool:
         return False
     return True
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+    return host
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

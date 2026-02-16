@@ -10,7 +10,11 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
+<<<<<<< HEAD
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
+=======
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 from src.core.auth import get_current_active_user
 

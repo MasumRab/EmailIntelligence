@@ -719,7 +719,10 @@ async def initialize_db():
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
+<<<<<<< HEAD
 
 
 # Create a global instance for backward compatibility
 db_manager = DatabaseManager()
+=======
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

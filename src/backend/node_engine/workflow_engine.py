@@ -14,16 +14,29 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+<<<<<<< HEAD
 from src.backend.node_engine.node_base import (
+=======
+from backend.node_engine.node_base import (
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     BaseNode,
     Connection,
     DataType,
     ExecutionContext,
+<<<<<<< HEAD
     SecurityContext,
     Workflow,
 )
 from src.backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
 from src.backend.node_engine.security_manager import (
+=======
+    GenericType,
+    SecurityContext,
+    Workflow,
+)
+from backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
+from backend.node_engine.security_manager import (
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,
@@ -341,6 +354,13 @@ class WorkflowEngine:
         self, source_type: "DataType", target_type: "DataType"
     ) -> bool:
         """Validate if source and target types are compatible."""
+<<<<<<< HEAD
+=======
+        # Handle GenericType comparisons
+        if isinstance(source_type, GenericType) or isinstance(target_type, GenericType):
+            return self._validate_generic_compatibility(source_type, target_type)
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         if target_type == DataType.ANY:
             return True
         if source_type == target_type:
@@ -359,6 +379,52 @@ class WorkflowEngine:
         # Add more type compatibility rules as needed
         return False
 
+<<<<<<< HEAD
+=======
+    def _validate_generic_compatibility(
+        self,
+        source_type: "DataType | GenericType",
+        target_type: "DataType | GenericType",
+    ) -> bool:
+        """Helper to validate compatibility involving generic types."""
+        # If target is ANY, it accepts anything
+        if target_type == DataType.ANY:
+            return True
+
+        # If both are GenericType
+        if isinstance(source_type, GenericType) and isinstance(target_type, GenericType):
+            if source_type.base_type != target_type.base_type:
+                return False
+
+            if len(source_type.type_parameters) != len(target_type.type_parameters):
+                return False
+
+            # Recursively check parameters
+            for src_param, tgt_param in zip(
+                source_type.type_parameters, target_type.type_parameters
+            ):
+                if not self._validate_type_compatibility(src_param, tgt_param):
+                    return False
+            return True
+
+        # Handle backward compatibility: EMAIL_LIST is equivalent to List[Email]
+        if source_type == DataType.EMAIL_LIST:
+             if isinstance(target_type, GenericType) and target_type.base_type == DataType.LIST:
+                 if len(target_type.type_parameters) > 0 and target_type.type_parameters[0] == DataType.EMAIL:
+                     return True
+
+        if target_type == DataType.EMAIL_LIST:
+             if isinstance(source_type, GenericType) and source_type.base_type == DataType.LIST:
+                 if len(source_type.type_parameters) > 0 and source_type.type_parameters[0] == DataType.EMAIL:
+                     return True
+
+        # Direct match check (though should be handled by earlier checks if not generic)
+        if source_type == target_type:
+            return True
+
+        return False
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations
     # Pseudo code for expanded type compatibility:
     # - Add compatibility matrix for all DataType combinations

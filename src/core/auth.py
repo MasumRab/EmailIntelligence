@@ -7,6 +7,10 @@ This module implements JWT-based authentication for API endpoints and integrates
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
+<<<<<<< HEAD
+=======
+import time
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 import hashlib
 import secrets
 from argon2 import PasswordHasher
@@ -56,11 +60,19 @@ security = HTTPBearer()
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a JWT access token with the provided data.
+<<<<<<< HEAD
     
     Args:
         data: Dictionary containing the data to encode in the token
         expires_delta: Optional timedelta for token expiration
         
+=======
+
+    Args:
+        data: Dictionary containing the data to encode in the token
+        expires_delta: Optional timedelta for token expiration
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Returns:
         Encoded JWT token as a string
     """
@@ -118,19 +130,44 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Args:
         username: Username to authenticate
         password: Password to verify
         db: Database connection
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Returns:
         User data if authentication is successful, None otherwise
     """
     try:
         # Try to get user from database
         user_data = await db.get_user_by_username(username)
+<<<<<<< HEAD
         if user_data and verify_password(password, user_data.get("hashed_password", "")):
+=======
+
+        # Mitigate timing attacks: Always perform password verification
+        # If user not found, verify a dummy hash to equalize timing
+        if user_data:
+            stored_hash = user_data.get("hashed_password", "")
+        else:
+            # This is a valid Argon2 hash for "dummy" to prevent early exit
+            # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
+            # Ideally this should be pre-calculated.
+            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+
+        is_valid = verify_password(password, stored_hash)
+
+        if user_data and is_valid:
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
             return user_data
         return None
     except Exception as e:
@@ -141,12 +178,20 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
 async def create_user(username: str, password: str, db) -> bool:
     """
     Create a new user in the database.
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Args:
         username: Username for the new user
         password: Password for the new user
         db: Database connection
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Returns:
         True if user was created successfully, False if user already exists or on error
     """
@@ -155,16 +200,27 @@ async def create_user(username: str, password: str, db) -> bool:
         existing_user = await db.get_user_by_username(username)
         if existing_user:
             return False
+<<<<<<< HEAD
             
         # Hash the password
         hashed_password = hash_password(password)
         
+=======
+
+        # Hash the password
+        hashed_password = hash_password(password)
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         # Create user in database
         user_data = {
             "username": username,
             "hashed_password": hashed_password
         }
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         await db.create_user(user_data)
         return True
     except Exception as e:
@@ -177,6 +233,7 @@ async def verify_token(
 ) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
+<<<<<<< HEAD
     
     This function checks if the provided token is valid and returns the token data.
     If the token is invalid or expired, it raises an HTTPException.
@@ -187,6 +244,18 @@ async def verify_token(
     Returns:
         TokenData containing the username and role from the token
         
+=======
+
+    This function checks if the provided token is valid and returns the token data.
+    If the token is invalid or expired, it raises an HTTPException.
+
+    Args:
+        credentials: HTTP authorization credentials containing the bearer token
+
+    Returns:
+        TokenData containing the username and role from the token
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Raises:
         HTTPException: If token is invalid or expired
     """
@@ -197,8 +266,13 @@ async def verify_token(
     )
     try:
         payload = jwt.decode(
+<<<<<<< HEAD
             credentials.credentials, 
             settings.secret_key, 
+=======
+            credentials.credentials,
+            settings.secret_key,
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
             algorithms=[settings.algorithm]
         )
         username: str = payload.get("sub")
@@ -217,19 +291,32 @@ async def verify_token(
     except Exception as e:
         logger.error(f"Unexpected error during token verification: {e}")
         raise credentials_exception
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     return token_data
 
 
 def get_current_active_user(token_data: TokenData = Depends(verify_token)) -> TokenData:
     """
     Get the current authenticated user from the token.
+<<<<<<< HEAD
     
     This function can be used as a dependency to protect endpoints.
     
     Args:
         token_data: Token data from verified JWT token
         
+=======
+
+    This function can be used as a dependency to protect endpoints.
+
+    Args:
+        token_data: Token data from verified JWT token
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Returns:
         TokenData containing username and role of the authenticated user
     """
@@ -241,10 +328,17 @@ def get_current_active_user(token_data: TokenData = Depends(verify_token)) -> To
 def require_role(required_role: UserRole):
     """
     Dependency to require a specific role for accessing an endpoint.
+<<<<<<< HEAD
     
     Args:
         required_role: The role required to access the endpoint
         
+=======
+
+    Args:
+        required_role: The role required to access the endpoint
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Returns:
         A dependency function that checks the user's role
     """
@@ -263,10 +357,17 @@ def require_role(required_role: UserRole):
 def require_any_role(required_roles: List[UserRole]):
     """
     Dependency to require any of the specified roles for accessing an endpoint.
+<<<<<<< HEAD
     
     Args:
         required_roles: List of roles that can access the endpoint
         
+=======
+
+    Args:
+        required_roles: List of roles that can access the endpoint
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Returns:
         A dependency function that checks the user's role
     """
@@ -285,28 +386,53 @@ def require_any_role(required_roles: List[UserRole]):
 def create_security_context_for_user(username: str) -> SecurityContext:
     """
     Create a security context for an authenticated user.
+<<<<<<< HEAD
     
     This integrates with the existing security framework.
     
     Args:
         username: Username of the authenticated user
         
+=======
+
+    This integrates with the existing security framework.
+
+    Args:
+        username: Username of the authenticated user
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     Returns:
         SecurityContext for the user
     """
     # In a production system, you would fetch user permissions from the database
     # For now, we'll give standard permissions
     permissions = [Permission.READ, Permission.WRITE]
+<<<<<<< HEAD
     
     # Create a session token (in a real system, this would be linked to the JWT)
     session_token = secrets.token_urlsafe(32)
     
+=======
+
+    # Create a session token (in a real system, this would be linked to the JWT)
+    session_token = secrets.token_urlsafe(32)
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     context = SecurityContext(
         user_id=username,
         permissions=permissions,
         security_level=SecurityLevel.INTERNAL,
+<<<<<<< HEAD
         session_id=session_token,
         allowed_resources=["*"],  # All resources allowed for now
     )
     
+=======
+        session_token=session_token,
+        created_at=time.time(),
+        expires_at=time.time() + 3600,  # 1 hour expiration
+        allowed_resources=["*"],  # All resources allowed for now
+    )
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     return context

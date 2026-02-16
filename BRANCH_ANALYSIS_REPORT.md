@@ -1,8 +1,14 @@
 # 📊 Git Branch Analysis & Classification Report
 
+<<<<<<< HEAD
 **Analysis Date:** October 31, 2025  
 **Repository:** EmailIntelligence  
 **Total Branches Analyzed:** 51 local branches  
+=======
+**Analysis Date:** October 31, 2025
+**Repository:** EmailIntelligence
+**Total Branches Analyzed:** 51 local branches
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 ## 📈 Executive Summary
 
@@ -211,7 +217,12 @@
 
 ---
 
+<<<<<<< HEAD
 **Report Generated:** October 31, 2025  
 **Analysis Tool:** Custom Python branch analyzer  
+=======
+**Report Generated:** October 31, 2025
+**Analysis Tool:** Custom Python branch analyzer
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 **Next Review:** November 7, 2025</content>
 </xai:function_call">Create comprehensive branch analysis report

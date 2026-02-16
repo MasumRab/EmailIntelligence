@@ -15,7 +15,11 @@ This document outlines the alignment plan for feature branches with the scientif
 
 ### 2. fix/import-error-corrections
 - Purpose: Import error fixes and circular dependency resolution
+<<<<<<< HEAD
 - Alignment Priority: High 
+=======
+- Alignment Priority: High
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 - Dependencies: None
 - Status: Already integrated (this branch may be obsolete)
 

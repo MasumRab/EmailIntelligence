@@ -43,8 +43,13 @@ export function useAuth() {
         headers: {
           'Content-Type': 'application/json',
         },
+<<<<<<< HEAD
         body: JSON.stringify({ 
           username, 
+=======
+        body: JSON.stringify({
+          username,
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
           password,
           mfa_token: mfaToken
         }),
@@ -64,7 +69,11 @@ export function useAuth() {
           return { success: false, mfaRequired: true };
         }
       }
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
       const errorData = await response.json();
       return { success: false, error: errorData.detail || 'Login failed' };
     } catch (error) {

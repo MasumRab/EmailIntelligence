@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # EmailIntelligence - Unified Development Environment
 =======
 # Orchestration Tools Branch
@@ -39,6 +40,38 @@ The application uses a modular architecture with a unified launcher system (`lau
   - `hooks/` - Git hook source files (pre-commit, post-checkout, post-commit, post-merge, post-push)
 
 <<<<<<< HEAD
+=======
+# EmailIntelligence - Unified Development Environment
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+  - [AI Models Setup](#ai-models-setup)
+  - [Database Setup for Development](#database-setup-for-development)
+- [Configuration](#configuration)
+- [Security Considerations](#security-considerations)
+- [Gmail API Integration Setup](#gmail-api-integration-setup)
+- [Running the Application](#running-the-application)
+- [AI System Overview](#ai-system-overview)
+- [Building for Production](#building-for-production)
+- [Database](#database)
+- [Extension System](#extension-system)
+- [Debugging Hangs](#debugging-hangs)
+
+## Project Overview
+
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+
+The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
+
+The Gradio UI acts as a full-featured client to the FastAPI backend.
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 ```
 Gradio UI (gradio_app.py)
 =========================
@@ -175,6 +208,7 @@ You can run any combination of services by using the launcher scripts:
     ```bash
     python launch.py --conda-env myenv
     ```
+<<<<<<< HEAD
 =======
 ### Setup & Environment Management
 - `setup/` - Launch scripts and environment setup
@@ -241,6 +275,13 @@ The following files are NOT needed in this orchestration-focused branch and can 
 ## Git Hook Behavior
 
 <<<<<<< HEAD
+=======
+
+Use `python launch.py --help` to see all available options.
+
+## Development Notes
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 -   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
 -   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
 -   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
@@ -271,6 +312,7 @@ The following files are NOT needed in this orchestration-focused branch and can 
     *   Start the Vite development server for the frontend, which by default runs on `http://127.0.0.1:5173`.
 
 ## Data Storage
+<<<<<<< HEAD
 =======
 ### `pre-commit` Hook
 - **Purpose**: Prevent accidental changes to orchestration-managed files
@@ -342,6 +384,29 @@ rm -f *.db *.sqlite*
 ### Phase 3: Clean Documentation
 ```bash
 <<<<<<< HEAD
+=======
+
+The fastest way to get EmailIntelligence running locally for development is by using the unified launcher. This process involves a few key steps:
+
+**Step 1: Clone the Repository**
+```bash
+git clone <repository_url> # Replace <repository_url> with the actual URL
+cd EmailIntelligence
+```
+
+**Step 2: Install Node.js Dependencies**
+Before running the launcher for the first time, or if frontend/Node.js backend dependencies change, install them:
+```bash
+npm install
+```
+This command should be run in the project's root directory (where `package.json` is located).
+
+**Step 3: Database Setup**
+The application now uses SQLite. The database file (e.g., `sqlite.db`) will typically be created in the `backend` directory when the application starts or when database operations are first performed. Ensure the `backend` directory is writable.
+
+**Step 4: Run the Application using the Launcher**
+```bash
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 # For Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev
 
@@ -579,6 +644,7 @@ To connect to your Gmail account, configure Gmail API access:
 Once [Setup](#setup) is complete (including Node.js dependencies, database, and consideration for AI models):
 
 The recommended way to run the application for development is using the unified launcher:
+<<<<<<< HEAD
 =======
 # Keep orchestration docs, remove application-specific documentation
 # Keep: docs/orchestration_*.md, docs/env_management.md, docs/git_workflow_plan.md, 
@@ -633,3 +699,145 @@ Keep:
 - These agent integration files are synchronized across all branches via the post-checkout hook to ensure consistent agent access control and task management
 - Context control profiles ensure agents have appropriate access per branch (e.g., scientific branch agents don't see orchestration scripts)
 - Task Master configurations are used for centralized task tracking and workflow automation across branches
+=======
+```bash
+# Windows (recommended - handles conda/venv automatically)
+launch.bat --stage dev
+
+# Linux/macOS
+./launch.sh --stage dev
+
+# Or use Python directly
+python launch.py --stage dev
+```
+This typically starts:
+- Python FastAPI AI Server (default: port 8000)
+- React Frontend Development Server (default: port 5173, served by Vite)
+
+**Environment Support:**
+- **Conda**: Automatically detected and used if available
+- **Virtual Environment**: Created automatically if conda not found
+- **Custom Conda Environment**: Use `--conda-env <name>` to specify
+
+For other modes (e.g., API-only, frontend-only) and advanced options, see the [Launcher Guide](docs/launcher_guide.md).
+For information on running in Docker, staging, or production environments, see the [Deployment Guide](docs/deployment_guide.md).
+
+### Running the Gradio Scientific UI
+
+For scientific exploration, direct AI model interaction, or testing specific UI components, a Gradio-based interface is available. This is a Python-only, non-Dockerized deployment that runs independently of the main FastAPI backend and React frontend.
+
+To launch the Gradio UI, use the `--gradio-ui` flag with the launcher script:
+
+-   On Linux/macOS:
+    ```bash
+    ./launch.sh --gradio-ui
+    ```
+-   On Windows:
+    ```bash
+    launch.bat --gradio-ui
+    ```
+-   Or directly with Python:
+    ```bash
+    python launch.py --gradio-ui
+    ```
+
+You can also specify the host, port, and enable debug or sharing mode using the standard launcher arguments:
+    ```bash
+    python launch.py --gradio-ui --host 0.0.0.0 --port 7860 --debug --share
+    ```
+This will start the Gradio interface, typically accessible at the specified host and port (Gradio's default is 7860 if `--port` is not provided). The launcher automatically handles conda/venv environment detection.
+
+## AI System Overview
+
+The AI and NLP capabilities are primarily based on:
+*   Locally trained classification models (e.g., Naive Bayes, Logistic Regression using `scikit-learn` or similar, saved as `.pkl` files) located in `backend/python_nlp/`. The training framework for these is in `backend/python_nlp/ai_training.py`.
+*   Rule-based systems and heuristics can also be part of the NLP pipeline.
+The system does not use external Large Language Models (LLMs) by default for its core classification tasks but includes a `PromptEngineer` class in `ai_training.py` which suggests capabilities for LLM interaction if developed further.
+
+## Building for Production
+
+To build the frontend for production:
+```bash
+npm run build
+```
+This command typically uses Vite to build the client, placing outputs in a `dist/` directory.
+
+The Python server needs to be run separately in a production environment, typically using a WSGI/ASGI server like Gunicorn or Uvicorn.
+
+For comprehensive information on building and deploying for production, including Docker builds and different environment strategies, please refer to the [Deployment Guide](docs/deployment_guide.md).
+
+## Deployment with Docker
+
+The project includes Dockerfiles and a `deploy.py` script to simplify building and deploying the application using Docker Compose.
+
+### Prerequisites
+- Docker and Docker Compose installed.
+
+### Usage
+Use the `deployment/deploy.py` script to manage your Docker deployments. It supports `dev` and `prod` environments.
+
+**Build Images:**
+```bash
+python deployment/deploy.py <environment> build
+# Example: python deployment/deploy.py prod build
+```
+
+**Start Services:**
+```bash
+python deployment/deploy.py <environment> up
+# Example: python deployment/deploy.py dev up -d
+```
+
+**Stop Services:**
+```bash
+python deployment/deploy.py <environment> down
+```
+
+**View Logs:**
+```bash
+python deployment/deploy.py <environment> logs
+```
+
+For more details, refer to `deployment/README.md`.
+
+## Database
+
+The application now uses an SQLite database (e.g., `sqlite.db` in the `backend` directory).
+- If `DATABASE_URL` is used, it should be set for SQLite (e.g., `sqlite:backend/sqlite.db`). Otherwise, the application defaults to a local file path.
+
+## Extension System
+
+EmailIntelligence features an extension system for adding custom functionality.
+- Manage extensions using `launch.py` (e.g., `--list-extensions`, `--install-extension`).
+- For developing extensions and more details, see the [Extensions Guide](docs/extensions_guide.md) and the [Environment Management Guide](docs/env_management.md#extension-system).
+
+## Debugging Hangs
+
+### Debugging Pytest Hangs
+*   Use `pytest -vvv` or `pytest --capture=no`.
+*   Isolate tests: `pytest path/to/test_file.py::test_name`.
+*   Use `breakpoint()` or `import pdb; pdb.set_trace()`.
+*   Check for timeouts logged by `deployment/run_tests.py`.
+
+### Debugging NPM/Build Hangs
+*   Examine verbose output (e.g., Vite's `--debug`, esbuild's `--log-level=verbose`).
+*   Use `node --inspect-brk your_script.js`.
+*   Check resource limits (memory, CPU).
+*   Try cleaning cache/modules: `npm cache clean --force`, remove `node_modules` & `package-lock.json`, then `npm install`.
+
+### General Debugging on Linux
+*   Monitor resources: `top`, `htop`, `vmstat`.
+*   Trace system calls: `strace -p <PID>`.
+*   Check kernel messages: `dmesg -T`.
+*   Ensure adequate disk space.
+
+For more detailed guides and specific component documentation, please refer to the [Documentation](#documentation) section.
+
+## Known Vulnerabilities
+
+- Four moderate severity vulnerabilities related to `esbuild` persist as of the last audit.
+- These vulnerabilities are due to `drizzle-kit` (and its transitive dependencies like `@esbuild-kit/core-utils`) requiring older, vulnerable versions of `esbuild`. Specifically, `drizzle-kit`'s dependency tree pulls in `esbuild@0.18.20` and `esbuild@0.19.12`, both of which are vulnerable (<=0.24.2).
+- Attempts to override these nested `esbuild` versions to a non-vulnerable version (e.g., `^0.25.5`, which is used by other parts of this project like Vite) using npm's `overrides` feature in `package.json` were made. However, these overrides were not fully effective, with `npm list` indicating version incompatibilities for the overridden packages. `npm audit` continued to report the vulnerabilities.
+- These `esbuild` vulnerabilities cannot be fully remediated without an update to `drizzle-kit` itself that addresses its `esbuild` dependency requirements, particularly for the deprecated `@esbuild-kit/*` packages.
+- On a related note, `vite` and `@vitejs/plugin-react` were successfully updated to their latest compatible versions (`vite@6.3.5` and `@vitejs/plugin-react@4.5.2` respectively) during the audit process to address other potential issues and ensure compatibility.
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

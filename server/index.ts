@@ -44,7 +44,22 @@ app.use((req, res, next) => {
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
   // CORS headers for API routes
+<<<<<<< HEAD
   res.setHeader('Access-Control-Allow-Origin', '*');
+=======
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:8001',
+    'http://127.0.0.1:8001',
+    'http://localhost:7860',
+    'http://127.0.0.1:7860'
+  ];
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-User-ID');
 

@@ -51,7 +51,11 @@ export default function Dashboard() {
         method: "POST",
         credentials: "include",
       });
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
       if (response.ok) {
         const result = await response.json();
         toast({
@@ -95,7 +99,11 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden bg-gmail-bg">
       <Sidebar categories={categories} />
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
         <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -117,21 +125,34 @@ export default function Dashboard() {
             {/* User Actions */}
             <div className="flex items-center space-x-4">
               {/* Advanced Filters Button */}
+<<<<<<< HEAD
               <Button 
                 variant="outline" 
+=======
+              <Button
+                variant="outline"
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 className="flex items-center"
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Advanced Filters
               </Button>
+<<<<<<< HEAD
               
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
               {/* Connection Status */}
               <Badge variant="secondary" className="bg-green-50 text-green-700 hover:bg-green-50">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                 Gmail Connected
               </Badge>
+<<<<<<< HEAD
               
+=======
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
               {/* Profile */}
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -175,12 +196,21 @@ export default function Dashboard() {
             {/* Left Column: Advanced Filter Panel and Email List */}
             <div className="w-2/3 flex flex-col gap-6">
               {showAdvancedFilters && (
+<<<<<<< HEAD
                 <AdvancedFilterPanel 
                   categories={categories} 
                   onApplyFilters={handleApplyFilters} 
                 />
               )}
               
+=======
+                <AdvancedFilterPanel
+                  categories={categories}
+                  onApplyFilters={handleApplyFilters}
+                />
+              )}
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex items-center justify-between">

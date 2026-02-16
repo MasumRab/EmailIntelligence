@@ -42,7 +42,11 @@ get_priority() {
         "In Progress") echo 3 ;;
         "To Do") echo 2 ;;
         "") echo 1 ;;  # Empty status gets lowest priority
+<<<<<<< HEAD
         "Not Started") echo 1 ;;  # Explicitly handle Not Started as low priority 
+=======
+        "Not Started") echo 1 ;;  # Explicitly handle Not Started as low priority
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         *) echo 1 ;;  # Any other unrecognized status gets low priority
     esac
 }

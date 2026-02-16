@@ -32,15 +32,24 @@ class DynamicModelManager:
     - API endpoints for model operations
     """
 
+<<<<<<< HEAD
     def __init__(self, models_dir: Path = None):
         self.registry = ModelRegistry(models_dir)
+=======
+    def __init__(self, registry: ModelRegistry):
+        self.registry = registry
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
         self._health_check_interval = 300  # 5 minutes
         self._memory_optimization_interval = 600  # 10 minutes
         self._health_monitor_task: Optional[asyncio.Task] = None
         self._memory_optimizer_task: Optional[asyncio.Task] = None
         self._initialized = False
 
+<<<<<<< HEAD
         logger.info("DynamicModelManager initialized")
+=======
+        logger.info("DynamicModelManager initialized with a ModelRegistry")
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
     async def initialize(self):
         """Initialize the model manager and start background tasks."""

@@ -64,11 +64,19 @@ def setup_and_teardown_mock_log():
     # Setup: create a mock performance log file in the project root
     import os
     from pathlib import Path
+<<<<<<< HEAD
     
     # Get the project root directory (two levels up from this test file)
     project_root = Path(__file__).parent.parent.parent.parent
     log_file_path = project_root / "performance_metrics_log.jsonl"
     
+=======
+
+    # Get the project root directory (two levels up from this test file)
+    project_root = Path(__file__).parent.parent.parent.parent
+    log_file_path = project_root / "performance_metrics_log.jsonl"
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     with open(log_file_path, "w") as f:
         for entry in mock_performance_log:
             f.write(json.dumps(entry) + "\n")

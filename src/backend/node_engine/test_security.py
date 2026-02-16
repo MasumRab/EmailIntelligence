@@ -7,6 +7,10 @@ Test module for security and scalability features of the node-based workflow sys
 
 import asyncio
 from datetime import datetime
+<<<<<<< HEAD
+=======
+import pytest
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 from backend.node_engine.email_nodes import (
     ActionNode,
@@ -30,6 +34,10 @@ from backend.node_engine.workflow_manager import workflow_manager
 # TODO(P2, 2h): Add missing type hints to all test functions
 
 
+<<<<<<< HEAD
+=======
+@pytest.mark.asyncio
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 async def test_security_features():
     """Test security features of the workflow system."""
     print("Testing security features...")
@@ -58,8 +66,13 @@ async def test_security_features():
     # TODO(P2, 2h): Implement negative test cases for security validation
 
     # Test that trusted nodes can execute
+<<<<<<< HEAD
     print(f"EmailSourceNode trusted: {security_manager.is_trusted_node('EmailSourceNode')}")
     print(f"PreprocessingNode trusted: {security_manager.is_trusted_node('PreprocessingNode')}")
+=======
+    print(f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {{}})}")
+    print(f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {{}})}")
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
     # Execute workflow with security
     try:
@@ -73,6 +86,10 @@ async def test_security_features():
     return success
 
 
+<<<<<<< HEAD
+=======
+@pytest.mark.asyncio
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 async def test_resource_limits():
     """Test resource management features."""
     print("\nTesting resource management...")
@@ -107,6 +124,10 @@ async def test_resource_limits():
     return completed_count > 0  # At least one should complete
 
 
+<<<<<<< HEAD
+=======
+@pytest.mark.asyncio
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 async def test_audit_logging():
     """Test audit logging functionality."""
     print("\nTesting audit logging...")
@@ -128,6 +149,10 @@ async def test_audit_logging():
         return False
 
 
+<<<<<<< HEAD
+=======
+@pytest.mark.asyncio
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 async def test_input_sanitization():
     """Test input sanitization."""
     print("\nTesting input sanitization...")
@@ -152,6 +177,10 @@ async def test_input_sanitization():
         return False
 
 
+<<<<<<< HEAD
+=======
+@pytest.mark.asyncio
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 async def test_scalability():
     """Test scalability with multiple concurrent workflows."""
     print("\nTesting scalability...")

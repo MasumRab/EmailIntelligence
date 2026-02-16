@@ -1,0 +1,22 @@
+Verifying dependencies from: requirements.txt
+
+Missing packages:
+  - transformers>=4.40.0
+  - accelerate>=0.30.0
+  - nltk>=3.9.1
+  - textblob>=0.19.0
+  - pydantic-settings>=2.0.0
+  - scikit-learn>=1.5.0
+  - joblib>=1.5.1
+  - redis>=5.0.0
+  - google-api-python-client>=2.172.0
+  - google-auth>=2.40.3
+  - google-auth-oauthlib>=1.2.2
+  - bleach>=6.0.0
+  - pyotp>=2.9.0
+  - qrcode>=7.4.2
+
+Summary:
+Checked 28 requirements
+Missing: 14
+Mismatches: 0

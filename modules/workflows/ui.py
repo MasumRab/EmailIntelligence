@@ -11,8 +11,13 @@ from src.core.advanced_workflow_engine import (
     get_workflow_manager
 )
 from src.core.advanced_workflow_engine import (
+<<<<<<< HEAD
     EmailInputNode, 
     NLPProcessorNode, 
+=======
+    EmailInputNode,
+    NLPProcessorNode,
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
     EmailOutputNode,
     BaseNode
 )
@@ -100,7 +105,11 @@ async def run_workflow_from_json(workflow_json: str, initial_context_json: str) 
         # Run the workflow using the new Node Engine
         workflow_manager = get_workflow_manager()  # Use the global workflow manager
         execution_result = await workflow_manager.execute_workflow(
+<<<<<<< HEAD
             workflow.workflow_id, 
+=======
+            workflow.workflow_id,
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
             initial_inputs=initial_context
         )
 

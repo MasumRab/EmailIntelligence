@@ -142,7 +142,11 @@ Email Data → AI Engine → Analysis Models → Results Aggregation → Storage
 **Step-by-step**:
 1. **Email Data**: Email content is passed to AI engine
 2. **AI Engine**: Engine coordinates multiple analysis models
+<<<<<<< HEAD
 3. **Analysis Models**: 
+=======
+3. **Analysis Models**:
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
    - Sentiment analysis model
    - Topic classification model
    - Intent recognition model

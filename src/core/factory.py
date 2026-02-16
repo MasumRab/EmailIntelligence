@@ -7,6 +7,12 @@ from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
+<<<<<<< HEAD
+=======
+from .dynamic_model_manager import DynamicModelManager
+from .model_registry import ModelRegistry
+from .smart_filter_manager import SmartFilterManager
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 # Optional import for NotmuchDataSource
 try:
@@ -23,6 +29,7 @@ _email_repository_instance = None
 @asynccontextmanager
 async def get_ai_engine() -> AsyncGenerator[ModernAIEngine, None]:
     """
+<<<<<<< HEAD
     Provides a ModernAIEngine instance with SOTA async generator pattern.
 
     This implementation provides:
@@ -56,6 +63,30 @@ async def get_ai_engine() -> AsyncGenerator[ModernAIEngine, None]:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.warning(f"Error during AI engine cleanup: {e}")
+=======
+    Provides a ModernAIEngine instance with proper dependency injection.
+    """
+    model_registry = ModelRegistry()
+    model_manager = DynamicModelManager(registry=model_registry)
+    engine = ModernAIEngine(model_manager=model_manager)
+
+    try:
+        await engine.initialize()
+        yield engine
+    finally:
+        engine.cleanup()
+
+@asynccontextmanager
+async def get_smart_filter_manager() -> AsyncGenerator[SmartFilterManager, None]:
+    """
+    Provides a SmartFilterManager instance.
+    """
+    manager = SmartFilterManager()
+    try:
+        yield manager
+    finally:
+        await manager.close()
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 
 async def get_data_source() -> DataSource:

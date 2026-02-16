@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 # Crush IDE-Specific Instructions
 
 <<<<<<< HEAD
+=======
+# EmailIntelligence Agent Guidelines
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 ## Build/Lint/Test Commands
 ### Python Backend
 - **Test all**: `pytest`
@@ -15,6 +20,7 @@
 - **Build**: `npm run build` (from client/)
 - **Lint**: `npm run lint` (from client/)
 - **Dev server**: `npm run dev` (from client/)
+<<<<<<< HEAD
 =======
 > **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Crush IDE-specific features and integrations.
 
@@ -24,6 +30,17 @@
 Configure Task Master MCP server in your Crush workspace configuration:
 
 <<<<<<< HEAD
+=======
+
+## Code Style Guidelines
+### Python
+- **Formatting**: Black (line length 100), isort (black profile)
+- **Naming**: `snake_case` (functions/vars), `CapWords` (classes), `UPPER_CASE` (constants)
+- **Types**: Type hints required for all parameters/returns
+- **Docstrings**: Google-style for public functions/classes
+- **Error handling**: Specific exceptions, meaningful messages, logging
+
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 ### TypeScript/React
 - **Strict mode**: Enabled (noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch)
 - **JSX**: react-jsx transform
@@ -51,6 +68,7 @@ Configure Task Master MCP server in your Crush workspace configuration:
 - Strict typing (full annotations)
 - Consistent naming conventions
 - Security: Never expose or log sensitive data
+<<<<<<< HEAD
 - Global State: Use dependency injection over global state
 =======
 ```json
@@ -138,3 +156,6 @@ As a Crush IDE assistant with Task Master:
 
 *See AGENTS.md for complete Task Master commands, workflows, and best practices.*
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+- Global State: Use dependency injection over global state
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

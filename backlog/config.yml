@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 project_name: "EmailIntelligenceAuto"
+=======
+project_name: "EmailIntelligence"
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 default_status: "To Do"
 statuses: ["To Do", "In Progress", "Done"]
 labels: []

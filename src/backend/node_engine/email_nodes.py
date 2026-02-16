@@ -12,8 +12,13 @@ import asyncio
 from datetime import datetime
 from typing import Any, Dict, List
 
+<<<<<<< HEAD
 from src.backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
 from src.backend.node_engine.workflow_engine import workflow_engine
+=======
+from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
+from backend.node_engine.workflow_engine import workflow_engine
+>>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c
 
 # Temporarily using a simplified NLP engine to avoid merge conflicts in original file
 
