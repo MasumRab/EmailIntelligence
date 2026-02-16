@@ -7,20 +7,33 @@ including access controls, data sanitization, execution sandboxing, and audit lo
 Also includes security utilities for path validation and sanitization.
 """
 
+<<<<<<< HEAD
 import os
 import pathlib
 import asyncio
 import hashlib
+=======
+import pathlib
+import hashlib
+import html
+>>>>>>> origin/main
 import hmac
 import json
 import logging
 import re
 import secrets
 import time
+<<<<<<< HEAD
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
+=======
+import os
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+>>>>>>> origin/main
 from uuid import uuid4
 from pathlib import Path
 
@@ -64,7 +77,13 @@ class SecurityValidator:
     """Validates security requirements for operations"""
 
     @staticmethod
+<<<<<<< HEAD
     def validate_access(context: SecurityContext, resource: str, permission: Permission) -> bool:
+=======
+    def validate_access(
+        context: SecurityContext, resource: str, permission: Permission
+    ) -> bool:
+>>>>>>> origin/main
         """
         Validate if a security context has permission to access a resource
         """
@@ -112,6 +131,7 @@ def validate_path_safety(
     Returns:
         True if path is safe, False otherwise
     """
+<<<<<<< HEAD
     import pathlib
 
     try:
@@ -179,6 +199,64 @@ def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
         logger.warning(f"Error during path sanitization: {e}")
         return None
 
+=======
+    if base_dir is None:
+        # Without a base_dir, perform strict validation of the path structure
+        str_path = str(path).replace('\\', '/')
+
+        # Check for dangerous characters (cross-platform)
+        if re.search(r'[<>"|?*]', str_path):
+            return False
+
+        # Reject UNC-like paths (starting with //)
+        if str_path.startswith('//'):
+             return False
+
+        # Split path into components to check for traversal and dot segments
+        parts = str_path.split('/')
+
+        # Check for traversal components
+        if '..' in parts:
+            return False
+
+        # Reject absolute paths containing '.' segments (e.g. /./etc/passwd)
+        # This is often used for obfuscation.
+        if str_path.startswith('/') and '.' in parts:
+            return False
+
+        return True
+
+    try:
+        base_path = pathlib.Path(base_dir).resolve()
+        # Ensure we don't accidentally resolve relative paths against CWD implicitly if not intended,
+        # but here we join with base_path, so relative paths are resolved against base_path.
+        requested_path = (base_path / path).resolve()
+        return requested_path.is_relative_to(base_path)
+    except (ValueError, TypeError):
+        return False
+
+
+def sanitize_path(
+    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
+) -> Optional[pathlib.Path]:
+    """
+    Sanitize a path by resolving it and ensuring it's within a base directory.
+
+    Args:
+        path: The path to sanitize
+        base_dir: The base directory to confine the path to. If None, the CWD is used.
+
+    Returns:
+        A resolved, safe Path object or None if the path is unsafe.
+    """
+    if not validate_path_safety(path, base_dir):
+        return None
+
+    base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
+    return (base_path / path).resolve()
+
+
+>>>>>>> origin/main
 
 class DataSanitizer:
     """Sanitizes data to prevent injection and other security issues"""
@@ -189,6 +267,7 @@ class DataSanitizer:
         Sanitize input data to prevent injection attacks
         """
         if isinstance(data, str):
+<<<<<<< HEAD
             # Basic sanitization - in production, use a library like bleach
             sanitized = data.replace("<script", "&lt;script").replace("javascript:", "javascript-")
             return sanitized
@@ -197,6 +276,15 @@ class DataSanitizer:
             for key, value in data.items():
                 sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(
                     value
+=======
+            # Use html.escape to prevent XSS by escaping all HTML characters
+            return html.escape(data)
+        elif isinstance(data, dict):
+            sanitized_dict = {}
+            for key, value in data.items():
+                sanitized_dict[DataSanitizer.sanitize_input(key)] = (
+                    DataSanitizer.sanitize_input(value)
+>>>>>>> origin/main
                 )
             return sanitized_dict
         elif isinstance(data, list):
@@ -214,10 +302,28 @@ class DataSanitizer:
             # This regex looks for common sensitive keys followed by a colon and captures the value.
             sensitive_keys = ["password", "token", "key", "secret", "auth"]
             for key in sensitive_keys:
+<<<<<<< HEAD
                 # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
                 # It handles optional whitespace and stops at the next comma or end of string.
                 data = re.sub(
                     rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
+=======
+                # Improved regex:
+                # 1. Key part: Matches optional quotes, then any word characters surrounding the sensitive key
+                #    e.g. "api_key", 'auth_token', password
+                # 2. Value part: Matches either quoted string (simple) or unquoted characters until separator
+                pattern = (
+                    rf'((?:["\']?[\w-]*{re.escape(key)}[\w-]*["\']?)\s*:\s*)'  # Capture group 1: Key + colon
+                    r'(?:'
+                    r'(?:"[^"]*")|'      # Double quoted value
+                    r"(?:'[^']*')|"      # Single quoted value
+                    r'[^,\s}]+'          # Unquoted value
+                    r')'
+                )
+
+                data = re.sub(
+                    pattern,
+>>>>>>> origin/main
                     r"\1[REDACTED]",
                     data,
                     flags=re.IGNORECASE,
@@ -228,7 +334,12 @@ class DataSanitizer:
             for key, value in data.items():
                 # Redact sensitive fields
                 if any(
+<<<<<<< HEAD
                     sensitive in key.lower() for sensitive in ["password", "token", "key", "secret"]
+=======
+                    sensitive in key.lower()
+                    for sensitive in ["password", "token", "key", "secret"]
+>>>>>>> origin/main
                 ):
                     sanitized_dict[key] = "[REDACTED]"
                 else:
@@ -282,11 +393,23 @@ class AuditLogger:
             "node_type": node_type,
             "execution_id": str(uuid4()),
             "ip_address": context.ip_address,
+<<<<<<< HEAD
             "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
         }
         self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
 
     def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
+=======
+            "input_keys": list(inputs.keys())
+            if isinstance(inputs, dict)
+            else "unknown",
+        }
+        self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
+
+    def log_security_violation(
+        self, context: SecurityContext, violation_type: str, details: str
+    ):
+>>>>>>> origin/main
         """Log a security violation"""
         log_entry = {
             "timestamp": time.time(),
@@ -313,7 +436,13 @@ class ExecutionSandbox:
         # Log the execution attempt
         self.audit_logger.log_execution(
             context=self.context,
+<<<<<<< HEAD
             node_type=execute_func.__name__ if hasattr(execute_func, "__name__") else "unknown",
+=======
+            node_type=execute_func.__name__
+            if hasattr(execute_func, "__name__")
+            else "unknown",
+>>>>>>> origin/main
             inputs=kwargs,
             outputs={},
         )
@@ -329,7 +458,13 @@ class ExecutionSandbox:
 
         # Sanitize inputs
         sanitized_args = [DataSanitizer.sanitize_input(arg) for arg in args]
+<<<<<<< HEAD
         sanitized_kwargs = {k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()}
+=======
+        sanitized_kwargs = {
+            k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()
+        }
+>>>>>>> origin/main
 
         try:
             # Execute the function in a controlled environment
@@ -357,7 +492,13 @@ class SecurityManager:
         self.sanitizer = DataSanitizer()
         self.audit_logger = AuditLogger()
         self.active_sessions: Dict[str, SecurityContext] = {}
+<<<<<<< HEAD
         self.secret_key = secrets.token_urlsafe(32)  # In production, load from secure storage
+=======
+        self.secret_key = secrets.token_urlsafe(
+            32
+        )  # In production, load from secure storage
+>>>>>>> origin/main
 
     def create_session(
         self,
@@ -498,7 +639,13 @@ class PathValidator:
     """Secure path validation to prevent directory traversal attacks"""
 
     @staticmethod
+<<<<<<< HEAD
     def is_safe_path(base_path: Union[str, Path], requested_path: Union[str, Path]) -> bool:
+=======
+    def is_safe_path(
+        base_path: Union[str, Path], requested_path: Union[str, Path]
+    ) -> bool:
+>>>>>>> origin/main
         """
         Check if a requested path is safe (doesn't escape the base directory)
 
@@ -520,8 +667,14 @@ class PathValidator:
             return False
 
     @staticmethod
+<<<<<<< HEAD
     def validate_and_resolve_db_path(db_path: Union[str, Path], 
                                    allowed_dir: Optional[Union[str, Path]] = None) -> Path:
+=======
+    def validate_and_resolve_db_path(
+        db_path: Union[str, Path], allowed_dir: Optional[Union[str, Path]] = None
+    ) -> Path:
+>>>>>>> origin/main
         """
         Validate and resolve a database path with security checks
 
@@ -558,10 +711,19 @@ class PathValidator:
         if allowed_dir:
             allowed_dir = Path(allowed_dir).resolve()
             if not resolved_path.is_relative_to(allowed_dir):
+<<<<<<< HEAD
                 raise ValueError(f"Database path escapes allowed directory: {allowed_dir}")
 
         # Additional security checks
         if any(part.startswith('.') for part in resolved_path.parts):
+=======
+                raise ValueError(
+                    f"Database path escapes allowed directory: {allowed_dir}"
+                )
+
+        # Additional security checks
+        if any(part.startswith(".") for part in resolved_path.parts):
+>>>>>>> origin/main
             raise ValueError("Database path contains hidden files/directories")
 
         return resolved_path
@@ -578,6 +740,7 @@ class PathValidator:
             Sanitized filename
         """
         # Remove any path traversal attempts and dangerous characters
+<<<<<<< HEAD
         sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
         
         # Also avoid names that might be problematic on various systems
@@ -680,6 +843,22 @@ def sanitize_path(
         return None
 
 
+=======
+        sanitized = re.sub(r'[<>:"/\\|?*]', "_", filename)
+
+        # Also avoid names that might be problematic on various systems
+        if sanitized.upper() in [
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+        ] or sanitized.upper().startswith(("COM", "LPT")):
+            sanitized = f"_{sanitized}"
+
+        return sanitized
+
+
+>>>>>>> origin/main
 def secure_path_join(
     base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]
 ) -> Optional[pathlib.Path]:
@@ -697,6 +876,7 @@ def secure_path_join(
 
     try:
         # Start with base directory
+<<<<<<< HEAD
         result_path = pathlib.Path(base_dir)
 
         # Join each path component securely
@@ -716,6 +896,17 @@ def secure_path_join(
 
         # Final validation
         return result_path if validate_path_safety(result_path, base_dir) else None
+=======
+        result_path = pathlib.Path(base_dir).resolve()
+
+        # Join each path component securely
+        for path_component in paths:
+            if not validate_path_safety(path_component, result_path):
+                return None
+            result_path = (result_path / path_component).resolve()
+
+        return result_path
+>>>>>>> origin/main
 
     except Exception as e:
         logger.error(f"Error joining paths: {e}")

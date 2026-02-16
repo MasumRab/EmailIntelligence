@@ -4,7 +4,11 @@
 
 ### 1. Main Application (`src/main.py`)
 - **Depends on**: FastAPI, Gradio, ModuleManager
+<<<<<<< HEAD
 - **Responsibilities**: 
+=======
+- **Responsibilities**:
+>>>>>>> origin/main
   - Creates and configures the main FastAPI application
   - Integrates Gradio UI with FastAPI
   - Initializes and loads modules
@@ -31,7 +35,11 @@
 ### 4. Repository Pattern (`src/core/data/repository.py`)
 - **EmailRepository**: Abstract interface for email data operations
 - **DatabaseEmailRepository**: Implementation that delegates to DataSource
+<<<<<<< HEAD
 - **Relationships**: 
+=======
+- **Relationships**:
+>>>>>>> origin/main
   - Depends on DataSource interface
   - Used by API routes and services
 

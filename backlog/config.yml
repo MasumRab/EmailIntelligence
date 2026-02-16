@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 project_name: "EmailIntelligenceAuto"
+=======
+project_name: "EmailIntelligence"
+>>>>>>> origin/main
 default_status: "To Do"
 statuses: ["To Do", "In Progress", "Done"]
 labels: []

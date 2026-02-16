@@ -88,7 +88,11 @@ class SmartRetrievalManager:
         finally:
             if conn:
                 conn.close()
+<<<<<<< HEAD
 # 
+=======
+#
+>>>>>>> origin/main
     def _store_credentials(self, creds: Credentials):
         try:
             with open(TOKEN_JSON_PATH, "w") as token_file:
@@ -181,8 +185,13 @@ class SmartRetrievalManager:
         finally:
             if conn:
                 conn.close()
+<<<<<<< HEAD
 # 
 # 
+=======
+#
+#
+>>>>>>> origin/main
 # async def main_cli():
 #     """Provides a command-line interface for the SmartGmailRetriever."""
 #     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
@@ -191,6 +200,7 @@ class SmartRetrievalManager:
 #     parser.add_argument("--time-budget", type=int, default=30, help="Time budget in minutes")
 #     parser.add_argument("--output", help="Output file path (JSON format)")
 #     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+<<<<<<< HEAD
 #     
 #     args = parser.parse_args()
 #     
@@ -202,6 +212,19 @@ class SmartRetrievalManager:
 #         # Initialize SmartRetrievalManager
 #         retriever = SmartRetrievalManager()
 #     
+=======
+#
+#     args = parser.parse_args()
+#
+#     # Set up logging based on verbose flag
+#     log_level = logging.DEBUG if args.verbose else logging.INFO
+#     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
+#
+#     try:
+#         # Initialize SmartRetrievalManager
+#         retriever = SmartRetrievalManager()
+#
+>>>>>>> origin/main
 #         # Parse strategies if provided (for now, just use defaults)
 #         strategies = None
 #         if args.strategies:
@@ -219,14 +242,22 @@ class SmartRetrievalManager:
 #                     exclude_folders=[],
 #                         date_range_days=30
 #                 ))
+<<<<<<< HEAD
 #     
+=======
+#
+>>>>>>> origin/main
 #             # Execute smart retrieval
 #             result = await retriever.execute_smart_retrieval(
 #                 strategies=strategies,
 #                 max_api_calls=args.max_api_calls,
 #                 time_budget_minutes=args.time_budget
 #             )
+<<<<<<< HEAD
 #     
+=======
+#
+>>>>>>> origin/main
 #             # Handle output
 #             if args.output:
 #                 # Save to JSON file
@@ -236,14 +267,23 @@ class SmartRetrievalManager:
 #             else:
 #                 # Print to console
 #                 print(json.dumps(result, indent=2, default=str))
+<<<<<<< HEAD
 #     
+=======
+#
+>>>>>>> origin/main
 #     except Exception as e:
 #         print(f"Error: {e}", file=sys.stderr)
 #         if args.verbose:
 #             import traceback
 #             traceback.print_exc()
 #         sys.exit(1)
+<<<<<<< HEAD
 #     
 #     
+=======
+#
+#
+>>>>>>> origin/main
 #     if __name__ == "__main__":
 #     asyncio.run(main_cli())

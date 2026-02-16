@@ -10,15 +10,23 @@ by the Gradio UI to allow users to build node-based workflows.
 
 from typing import Any, Dict, List
 
+<<<<<<< HEAD
 from src.backend.node_engine.email_nodes import (
+=======
+from backend.node_engine.email_nodes import (
+>>>>>>> origin/main
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
+<<<<<<< HEAD
 from src.backend.node_engine.smart_filter_node import SmartFilterNode
 from src.backend.node_engine.node_base import DataType, NodePort
+=======
+from backend.node_engine.node_base import DataType, NodePort
+>>>>>>> origin/main
 
 
 class NodeLibrary:
@@ -83,6 +91,7 @@ class NodeLibrary:
             ],
         }
 
+<<<<<<< HEAD
         # Register SmartFilterNode
         self._nodes["SmartFilterNode"] = {
             "class": SmartFilterNode,
@@ -125,6 +134,8 @@ class NodeLibrary:
             ],
         }
 
+=======
+>>>>>>> origin/main
         # Register AIAnalysisNode
         self._nodes["AIAnalysisNode"] = {
             "class": AIAnalysisNode,

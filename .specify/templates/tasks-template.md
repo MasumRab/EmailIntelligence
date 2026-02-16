@@ -11,10 +11,14 @@ description: "Task list template for feature implementation"
 **Constitution Compliance**: All tasks must adhere to Orchestration Tools Verification and Review Constitution principles including verification-first development, goal-task consistency, role-based access control with multiple permission levels (appropriate authentication for deployment context), observability requirements, multi-branch validation strategy, context contamination prevention, and performance efficiency measures.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Tests**: Test-Driven Development (TDD) is MANDATORY. All new feature development and bug fixes MUST include comprehensive tests as outlined in the Constitution.
 =======
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 >>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
+=======
+**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+>>>>>>> origin/main
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 

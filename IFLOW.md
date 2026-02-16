@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Iflow Cursor Integration Guide
 
 > **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains Iflow cursor-specific features and integrations.
@@ -17,6 +18,20 @@ Iflow is a cursor-extension-based development environment providing inline AI su
 Configure Task Master MCP server in your Iflow/Cursor configuration:
 
 <<<<<<< HEAD
+=======
+# EmailIntelligence - Unified Development Environment (iFlow Context)
+
+## Project Overview
+
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+
+The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
+
+## iFlow CLI Overview
+
+iFlow CLI is an interactive command-line interface agent designed to assist with software engineering tasks in the EmailIntelligence project. It specializes in helping developers with code understanding, refactoring, testing, and implementation while strictly following project conventions.
+
+>>>>>>> origin/main
 ## Key Technologies
 
 - **Backend**: Python 3.12+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
@@ -55,6 +70,7 @@ EmailIntelligence/
 ```
 
 ## Building and Running
+<<<<<<< HEAD
 =======
 ```json
 {
@@ -143,6 +159,37 @@ As an Iflow Cursor assistant with Task Master:
 **Key Principle:** Iflow Cursor is about intelligent, non-intrusive assistance. Task Master integrates for structured task management within this flow-based workflow.
 
 <<<<<<< HEAD
+=======
+
+### Prerequisites
+
+- Python 3.12 or later
+- Node.js 18 or later
+- Git
+
+### Quick Start
+
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd EmailIntelligence
+   ```
+
+2. Install Node.js dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Run the application using the launcher:
+   ```bash
+   # Windows
+   launch.bat --stage dev
+
+   # Linux/macOS
+   ./launch.sh --stage dev
+   ```
+
+>>>>>>> origin/main
 This will:
 - Set up the Python virtual environment or conda environment
 - Install Python dependencies using uv
@@ -150,6 +197,7 @@ This will:
 - Create placeholder AI model files
 - Start the Python FastAPI server (default: port 8000)
 - Start the React frontend development server (default: port 5173)
+<<<<<<< HEAD
 =======
 ---
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
@@ -163,6 +211,13 @@ This will:
 - Reference loaded files implicitly (Iflow tracks them)
 
 <<<<<<< HEAD
+=======
+
+### Launcher Usage
+
+The `launch.py` script is the central tool for managing the development environment:
+
+>>>>>>> origin/main
 - Setup: `python launch.py --setup`
 - Run all services: `python launch.py`
 - Run specific services:
@@ -402,9 +457,13 @@ The project is currently undergoing a migration from a monolithic structure to a
 - Never hard-code paths or expose secrets
 - Use dependency injection over global state
 - Check existing dependencies before adding new libraries
+<<<<<<< HEAD
 - Follow security best practices
 =======
 ---
 
 *See AGENTS.md for complete Task Master commands, workflows, and best practices.*
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+- Follow security best practices
+>>>>>>> origin/main

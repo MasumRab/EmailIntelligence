@@ -7,7 +7,10 @@ marketplace integration, and runtime monitoring for extensible functionality.
 
 import asyncio
 import hashlib
+<<<<<<< HEAD
 import json
+=======
+>>>>>>> origin/main
 import logging
 import shutil
 import tempfile
@@ -16,18 +19,31 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
+<<<<<<< HEAD
 from urllib.request import urlopen
+=======
+from urllib.parse import urlparse
+
+import httpx
+>>>>>>> origin/main
 
 from .plugin_base import (
     HookSystem,
     PluginInstance,
+<<<<<<< HEAD
     PluginInterface,
+=======
+>>>>>>> origin/main
     PluginMetadata,
     PluginRegistry,
     PluginSecurityLevel,
     PluginStatus,
     SecuritySandbox,
 )
+<<<<<<< HEAD
+=======
+from .security import validate_path_safety
+>>>>>>> origin/main
 
 logger = logging.getLogger(__name__)
 
@@ -334,6 +350,15 @@ class PluginManager:
                 extract_path.mkdir()
 
                 with zipfile.ZipFile(download_path, "r") as zip_ref:
+<<<<<<< HEAD
+=======
+                    # Secure extraction - validate all paths first
+                    for member in zip_ref.infolist():
+                        if not validate_path_safety(member.filename, extract_path):
+                            raise SecurityError(f"Malicious file path detected in plugin archive: {member.filename}")
+
+                    # Safe to extract
+>>>>>>> origin/main
                     zip_ref.extractall(extract_path)
 
                 # Move to plugins directory
@@ -370,9 +395,25 @@ class PluginManager:
     async def _download_file(self, url: str, dest_path: Path):
         """Download a file from URL."""
         try:
+<<<<<<< HEAD
             with urlopen(url) as response:
                 with open(dest_path, "wb") as f:
                     f.write(response.read())
+=======
+            # Enforce URL scheme validation (SSRF protection)
+            parsed_url = urlparse(url)
+            if parsed_url.scheme not in ('http', 'https'):
+                raise SecurityError(f"Invalid URL scheme: {parsed_url.scheme}. Only http and https are allowed.")
+
+            # Use asynchronous client with timeout (DoS protection)
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                async with client.stream("GET", url, follow_redirects=True) as response:
+                    response.raise_for_status()
+                    # Stream content to file to avoid memory issues with large files
+                    with open(dest_path, "wb") as f:
+                        async for chunk in response.aiter_bytes():
+                            f.write(chunk)
+>>>>>>> origin/main
         except Exception as e:
             logger.error(f"Failed to download file from {url}: {e}")
             raise

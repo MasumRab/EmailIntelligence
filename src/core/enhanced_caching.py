@@ -16,13 +16,21 @@ logger = logging.getLogger(__name__)
 
 class LRUCache:
     """LRU (Least Recently Used) Cache implementation for frequently accessed data."""
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def __init__(self, capacity: int = 100):
         self.capacity = capacity
         self.cache = OrderedDict()
         self.hits = 0
         self.misses = 0
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache, marking it as recently used."""
         if key in self.cache:
@@ -32,7 +40,11 @@ class LRUCache:
             return self.cache[key]
         self.misses += 1
         return None
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def put(self, key: str, value: Any) -> None:
         """Put value in cache, evicting oldest if necessary."""
         if key in self.cache:
@@ -41,20 +53,34 @@ class LRUCache:
         elif len(self.cache) >= self.capacity:
             # Remove least recently used item
             self.cache.popitem(last=False)
+<<<<<<< HEAD
         
         self.cache[key] = value
     
+=======
+
+        self.cache[key] = value
+
+>>>>>>> origin/main
     def invalidate(self, key: str) -> None:
         """Remove a specific key from cache."""
         if key in self.cache:
             del self.cache[key]
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def clear(self) -> None:
         """Clear all cache entries."""
         self.cache.clear()
         self.hits = 0
         self.misses = 0
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         total = self.hits + self.misses
@@ -70,13 +96,21 @@ class LRUCache:
 
 class QueryResultCache:
     """Cache for query results with TTL (Time To Live) support."""
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def __init__(self, ttl_seconds: int = 300):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
         self.cache: Dict[str, Tuple[Any, float]] = {}  # (value, timestamp)
         self.hits = 0
         self.misses = 0
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache if not expired."""
         if key in self.cache:
@@ -89,16 +123,28 @@ class QueryResultCache:
                 del self.cache[key]
         self.misses += 1
         return None
+<<<<<<< HEAD
     
     def put(self, key: str, value: Any) -> None:
         """Put value in cache with current timestamp."""
         self.cache[key] = (value, time.time())
     
+=======
+
+    def put(self, key: str, value: Any) -> None:
+        """Put value in cache with current timestamp."""
+        self.cache[key] = (value, time.time())
+
+>>>>>>> origin/main
     def invalidate(self, key: str) -> None:
         """Remove a specific key from cache."""
         if key in self.cache:
             del self.cache[key]
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def clear_expired(self) -> None:
         """Remove all expired entries."""
         current_time = time.time()
@@ -108,13 +154,21 @@ class QueryResultCache:
         ]
         for key in expired_keys:
             del self.cache[key]
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def clear(self) -> None:
         """Clear all cache entries."""
         self.cache.clear()
         self.hits = 0
         self.misses = 0
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         total = self.hits + self.misses
@@ -131,11 +185,16 @@ class QueryResultCache:
 
 class EnhancedCachingManager:
     """Enhanced caching manager that integrates with DatabaseManager."""
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def __init__(self):
         # LRU cache for frequently accessed individual records
         self.email_record_cache = LRUCache(capacity=200)
         self.category_record_cache = LRUCache(capacity=50)
+<<<<<<< HEAD
         
         # Query result cache for complex queries
         self.query_cache = QueryResultCache(ttl_seconds=300)  # 5 minutes
@@ -143,6 +202,15 @@ class EnhancedCachingManager:
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
         
+=======
+
+        # Query result cache for complex queries
+        self.query_cache = QueryResultCache(ttl_seconds=300)  # 5 minutes
+
+        # Cache for email content (heavy data)
+        self.email_content_cache = LRUCache(capacity=100)
+
+>>>>>>> origin/main
         # Statistics tracking
         self.cache_operations = {
             "email_record_get": 0,
@@ -154,51 +222,88 @@ class EnhancedCachingManager:
             "content_get": 0,
             "content_put": 0
         }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email record from cache."""
         self.cache_operations["email_record_get"] += 1
         return self.email_record_cache.get(f"email_{email_id}")
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def put_email_record(self, email_id: int, email_record: Dict[str, Any]) -> None:
         """Put email record in cache."""
         self.cache_operations["email_record_put"] += 1
         self.email_record_cache.put(f"email_{email_id}", email_record)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get_category_record(self, category_id: int) -> Optional[Dict[str, Any]]:
         """Get category record from cache."""
         self.cache_operations["category_record_get"] += 1
         return self.category_record_cache.get(f"category_{category_id}")
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def put_category_record(self, category_id: int, category_record: Dict[str, Any]) -> None:
         """Put category record in cache."""
         self.cache_operations["category_record_put"] += 1
         self.category_record_cache.put(f"category_{category_id}", category_record)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get_query_result(self, query_key: str) -> Optional[Any]:
         """Get query result from cache."""
         self.cache_operations["query_result_get"] += 1
         return self.query_cache.get(query_key)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def put_query_result(self, query_key: str, result: Any) -> None:
         """Put query result in cache."""
         self.cache_operations["query_result_put"] += 1
         self.query_cache.put(query_key, result)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def get_email_content(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email content from cache."""
         self.cache_operations["content_get"] += 1
         return self.email_content_cache.get(f"content_{email_id}")
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def put_email_content(self, email_id: int, content: Dict[str, Any]) -> None:
         """Put email content in cache."""
         self.cache_operations["content_put"] += 1
         self.email_content_cache.put(f"content_{email_id}", content)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     def invalidate_email_record(self, email_id: int) -> None:
         """Invalidate email record cache."""
         self.email_record_cache.invalidate(f"email_{email_id}")
         self.email_content_cache.invalidate(f"content_{email_id}")
+<<<<<<< HEAD
     
     def invalidate_category_record(self, category_id: int) -> None:
         """Invalidate category record cache."""
@@ -208,17 +313,40 @@ class EnhancedCachingManager:
         """Invalidate query result cache."""
         self.query_cache.invalidate(query_key)
     
+=======
+
+    def invalidate_category_record(self, category_id: int) -> None:
+        """Invalidate category record cache."""
+        self.category_record_cache.invalidate(f"category_{category_id}")
+
+    def invalidate_query_result(self, query_key: str) -> None:
+        """Invalidate query result cache."""
+        self.query_cache.invalidate(query_key)
+
+    def clear_query_cache(self) -> None:
+        """Clear query result cache."""
+        self.query_cache.clear()
+
+>>>>>>> origin/main
     def clear_all_caches(self) -> None:
         """Clear all caches."""
         self.email_record_cache.clear()
         self.category_record_cache.clear()
         self.query_cache.clear()
         self.email_content_cache.clear()
+<<<<<<< HEAD
         
         # Reset statistics
         for key in self.cache_operations:
             self.cache_operations[key] = 0
     
+=======
+
+        # Reset statistics
+        for key in self.cache_operations:
+            self.cache_operations[key] = 0
+
+>>>>>>> origin/main
     def get_cache_statistics(self) -> Dict[str, Any]:
         """Get comprehensive cache statistics."""
         return {

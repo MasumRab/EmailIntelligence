@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -16,13 +17,22 @@ develop-eggs/
 **/node_modules/
 dist/
 **/*.DS_Store
+=======
+# Node.js
+node_modules/
+dist/
+.DS_Store
+>>>>>>> origin/main
 server/public/
 vite.config.ts.*
 *.tar.gz
 
 # Python virtual environment
 venv/
+<<<<<<< HEAD
 .venv/
+=======
+>>>>>>> origin/main
 .env
 .env.*
 *.env
@@ -37,6 +47,7 @@ jsons/*
 
 # Build / packaging artifacts
 build/
+<<<<<<< HEAD
 >>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 dist/
 *.egg-info/
@@ -58,6 +69,11 @@ htmlcov/
 .tox/
 .nox/
 =======
+=======
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+>>>>>>> origin/main
 *.whl
 
 # Databases
@@ -66,13 +82,17 @@ htmlcov/
 *.db-journal
 
 # Test and coverage reports
+<<<<<<< HEAD
 >>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
+=======
+>>>>>>> origin/main
 .coverage
 .coverage.*
 coverage.xml
 coverage/
 *.cover
 .pytest_cache/
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 # Translations
@@ -153,6 +173,10 @@ dmypy.json
 
 # IDEs / editor-specific
 >>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
+=======
+
+# IDEs / editor-specific
+>>>>>>> origin/main
 .vscode/
 .idea/
 *.iml
@@ -160,6 +184,7 @@ dmypy.json
 *.sublime-workspace
 .history
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 # Project-specific ignores
 .orchestration-disabled
@@ -181,6 +206,9 @@ worktrees/
 =======
 # Misc
 diagnosis_message.txt
+=======
+# Misc
+>>>>>>> origin/main
 logs/
 
 # Ignore configuration and local environment files
@@ -188,6 +216,7 @@ logs/
 *.local.json
 *.local.yaml
 *.local.yml
+<<<<<<< HEAD
 jsons/client_id.json
 credentials.json
 jsons/apikey.json
@@ -195,10 +224,19 @@ config.local.*
 config/llm_guidelines.local.json
 
 # Ignore hidden files and directories, with exceptions
+=======
+config.local.*
+config/llm_guidelines.local.json
+
+<<<<<<< HEAD
+# Ignore hidden files and directories, with exceptions
+.*
+>>>>>>> origin/main
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
 !.git/hooks/
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 !.git/info/exclude
@@ -222,12 +260,24 @@ models/*.pkl
 worktrees/
 
 <<<<<<< HEAD
+=======
+
+# Python cache
+__pycache__/
+
+# Miscellaneous
+performance_metrics_log.jsonl
+models/*.pkl
+worktrees/
+
+>>>>>>> origin/main
 # Backup files
 *.bak
 *~
 *.backup
 backlog/config.yml.bak
 original_readme.md
+<<<<<<< HEAD
 =======
 
 # Centralized Agent Markdown Files
@@ -244,3 +294,18 @@ original_readme.md
 terminal-jarvis_AGENTS.md
 cognee-AGENTS.md
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+scripts/hooks/
+
+# Hidden files/directories (exceptions below)
+.aider.tags.cache.v4/
+.aider.chat.history.md
+.aider.conf.yml
+.aider.input.history
+.curl/
+.npm/
+.npm-*
+.python-version
+.ruby-version
+.tool-versions
+>>>>>>> origin/main

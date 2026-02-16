@@ -1,10 +1,17 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
+<<<<<<< HEAD
 from typing import Set, List, Optional, Dict, Any, Pattern
 import fnmatch
 import hashlib
 import os
 import re
+=======
+from pathlib import Path
+from typing import Set, List, Optional, Dict, Any
+import fnmatch
+import hashlib
+>>>>>>> origin/main
 
 from .models import AgentContext, ContextProfile
 from .logging import get_context_logger
@@ -28,6 +35,7 @@ class ContextIsolator:
         self.context = context
         self.config = config or get_current_config()
         self._access_log: List[Dict[str, Any]] = []
+<<<<<<< HEAD
 
         # Pre-compile patterns for performance
         self._restricted_patterns = self._compile_patterns(context.restricted_files)
@@ -69,6 +77,10 @@ class ContextIsolator:
             logger.error(f"Failed to compile combined patterns: {e}")
             return None
 
+=======
+        logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
+
+>>>>>>> origin/main
     def is_file_accessible(self, file_path: str) -> bool:
         """Check if a file is accessible within the current context.
 
@@ -82,12 +94,20 @@ class ContextIsolator:
         normalized_path = self._normalize_path(file_path)
 
         # Check blocked files first (deny list)
+<<<<<<< HEAD
         if self._matches_patterns(normalized_path, self._restricted_patterns):
+=======
+        if self._matches_patterns(normalized_path, self.context.restricted_files):
+>>>>>>> origin/main
             self._log_access(normalized_path, False, "blocked")
             return False
 
         # Check allowed files (allow list)
+<<<<<<< HEAD
         if self._matches_patterns(normalized_path, self._accessible_patterns):
+=======
+        if self._matches_patterns(normalized_path, self.context.accessible_files):
+>>>>>>> origin/main
             self._log_access(normalized_path, True, "allowed")
             return True
 
@@ -167,16 +187,28 @@ class ContextIsolator:
         Returns:
             Normalized path string
         """
+<<<<<<< HEAD
         # Get relative path from repository root if possible
         try:
             # Optimize: Use os.path.realpath instead of Path.resolve() for performance
             # This is a simplified approach - in practice, you'd want to
             # resolve relative to the actual repository root
             return os.path.realpath(file_path)
+=======
+        # Convert to Path object for normalization
+        path_obj = Path(file_path)
+
+        # Get relative path from repository root if possible
+        try:
+            # This is a simplified approach - in practice, you'd want to
+            # resolve relative to the actual repository root
+            return str(path_obj.resolve())
+>>>>>>> origin/main
         except Exception:
             # Fallback to original path
             return file_path
 
+<<<<<<< HEAD
     def _matches_patterns(self, file_path: str, pattern: Optional[Pattern]) -> bool:
         """Check if a file path matches the compiled pattern.
 
@@ -204,6 +236,31 @@ class ContextIsolator:
 
         except Exception:
             return False
+=======
+    def _matches_patterns(self, file_path: str, patterns: List[str]) -> bool:
+        """Check if a file path matches any of the given patterns.
+
+        Args:
+            file_path: File path to check
+            patterns: List of glob patterns
+
+        Returns:
+            True if any pattern matches, False otherwise
+        """
+        for pattern in patterns:
+            try:
+                if fnmatch.fnmatch(file_path, pattern):
+                    return True
+
+                # Also try matching against just the filename
+                filename = Path(file_path).name
+                if fnmatch.fnmatch(filename, pattern):
+                    return True
+
+            except Exception:
+                # Skip invalid patterns
+                continue
+>>>>>>> origin/main
 
         return False
 
