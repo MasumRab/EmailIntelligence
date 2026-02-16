@@ -21,12 +21,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from setup.validation import (
-    check_python_version, check_for_merge_conflicts, check_required_components,
+    check_python_version, check_for_merge_conflicts,
     validate_environment, validate_port, validate_host
 )
-from setup.services import (
-    start_services, start_backend, start_node_service, start_gradio_ui, validate_services
-)
+from setup.services import start_services
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
@@ -212,39 +210,6 @@ def validate_orchestration_environment() -> bool:
 
     logger.info("Orchestration environment validation passed.")
     return True
-
-
-def handle_test_stage(args):
-    """Handles the test stage execution."""
-    logger.info("Starting test stage...")
-    results = []
-    if args.unit:
-        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
-    if args.integration:
-        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
-    if args.e2e:
-        results.append(test_stages.run_e2e_tests(headless=not args.debug, debug=args.debug))
-    if args.performance:
-        results.append(test_stages.run_performance_tests(duration=300, users=10, debug=args.debug))
-    if args.security:
-        results.append(
-            test_stages.run_security_tests(
-                target_url=f"http://{args.host}:{args.port}", debug=args.debug
-            )
-        )
-
-    # If no specific test type is selected, run a default set (e.g., unit and integration)
-    if not any([args.unit, args.integration, args.e2e, args.performance, args.security]):
-        logger.info("No specific test type selected, running unit and integration tests.")
-        results.append(test_stages.run_unit_tests(args.coverage, args.debug))
-        results.append(test_stages.run_integration_tests(args.coverage, args.debug))
-
-    if all(results):
-        logger.info("All tests passed successfully.")
-        sys.exit(0)
-    else:
-        logger.error("Some tests failed.")
-        sys.exit(1)
 
 
 def main():

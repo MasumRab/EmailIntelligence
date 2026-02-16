@@ -334,7 +334,7 @@ def validate_services() -> Dict[str, bool]:
         available_services["typescript_backend"] = ts_path.exists() and package_json.exists()
 
     # Check frontend
-    frontend_config = config.get_service_config("frontend")
+    # frontend_config = config.get_service_config("frontend")
     if frontend_config:
         frontend_path = config.get_service_path("frontend")
         package_json = frontend_path / frontend_config.get("package_json", "package.json")
@@ -371,6 +371,6 @@ def start_services(args):
 
         # Start frontend if configured and available
         if available_services.get("frontend", False):
-            frontend_config = config.get_service_config("frontend")
+            # frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
