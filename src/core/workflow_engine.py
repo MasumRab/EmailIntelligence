@@ -308,6 +308,35 @@ class WorkflowRunner:
                 "stats": self.execution_stats,
             }
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Build the execution context for a specific node by resolving its inputs
+        from the outputs of previous nodes or the initial context.
+        """
+        node_context = {}
+        node = self.workflow.nodes[node_id]
+
+        # Check explicit connections first
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                input_name = conn["to"]["input"]
+                source_node_id = conn["from"]["node_id"]
+                output_name = conn["from"]["output"]
+
+                # Get value from source node results
+                if source_node_id in self.node_results:
+                    source_result = self.node_results[source_node_id]
+                    if output_name in source_result:
+                        node_context[input_name] = source_result[output_name]
+
+        # Also check global execution context for any inputs not yet satisfied
+        # This allows passing initial_context variables directly to nodes if names match
+        for input_name in node.inputs:
+            if input_name not in node_context and input_name in self.execution_context:
+                node_context[input_name] = self.execution_context[input_name]
+
+        return node_context
+
     def _run_sequential(self, execution_order, cleanup_schedule):
         """Execute workflow nodes sequentially"""
         for node_id in execution_order:
