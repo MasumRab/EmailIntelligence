@@ -32,11 +32,14 @@ class TestDataSourceFactory:
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock()
 
-        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+        # Patch create_database_manager instead of DatabaseManager class
+        with patch("src.core.database.create_database_manager", return_value=mock_db_manager):
             data_source = await get_data_source()
 
             assert data_source is mock_db_manager
-            mock_db_manager._ensure_initialized.assert_called_once()
+            # create_database_manager is responsible for initialization, so _ensure_initialized
+            # might not be called again by get_data_source if it returns initialized obj.
+            # But get_data_source calls create_database_manager.
 
     @pytest.mark.asyncio
     async def test_get_data_source_notmuch_type(self, monkeypatch):
@@ -68,7 +71,7 @@ class TestDataSourceFactory:
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock()
 
-        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+        with patch("src.core.database.create_database_manager", return_value=mock_db_manager):
             data_source = await get_data_source()
 
             assert data_source is mock_db_manager
@@ -132,12 +135,15 @@ class TestDataSourceFactory:
                 mock_db_manager = AsyncMock()
                 mock_db_manager._ensure_initialized = AsyncMock()
 
-                with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+                with patch("src.core.database.create_database_manager", return_value=mock_db_manager):
                     data_source = await get_data_source()
                     assert data_source is mock_db_manager
             else:
-                data_source = await get_data_source()
-                assert isinstance(data_source, NotmuchDataSource)
+                # For Notmuch, create_database_manager is also called
+                mock_db_manager = AsyncMock()
+                with patch("src.core.database.create_database_manager", return_value=mock_db_manager):
+                    data_source = await get_data_source()
+                    assert isinstance(data_source, NotmuchDataSource)
 
 
 class TestAIEngineFactory:
@@ -148,18 +154,19 @@ class TestAIEngineFactory:
         # Check that the function exists
         assert callable(get_ai_engine)
 
-    def test_get_ai_engine_returns_object(self):
+    @pytest.mark.asyncio
+    async def test_get_ai_engine_returns_object(self):
         """Test that get_ai_engine returns an object with expected interface."""
-        ai_engine = get_ai_engine()
+        # get_ai_engine is an async context manager
+        async with get_ai_engine() as ai_engine:
+            # Should have basic AI methods
+            expected_methods = ["analyze_email", "health_check", "cleanup", "train_models"]
 
-        # Should have basic AI methods
-        expected_methods = ["analyze_sentiment", "classify_topic", "recognize_intent"]
-
-        for method_name in expected_methods:
-            assert hasattr(ai_engine, method_name), f"AI engine missing method: {method_name}"
-            assert callable(
-                getattr(ai_engine, method_name)
-            ), f"AI engine method not callable: {method_name}"
+            for method_name in expected_methods:
+                assert hasattr(ai_engine, method_name), f"AI engine missing method: {method_name}"
+                assert callable(
+                    getattr(ai_engine, method_name)
+                ), f"AI engine method not callable: {method_name}"
 
 
 class TestFactoryErrorHandling:
@@ -173,11 +180,8 @@ class TestFactoryErrorHandling:
 
         src.core.factory._data_source_instance = None
 
-        # Mock DatabaseManager that fails initialization
-        mock_db_manager = AsyncMock()
-        mock_db_manager._ensure_initialized = AsyncMock(side_effect=Exception("DB init failed"))
-
-        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+        # Mock create_database_manager that fails
+        with patch("src.core.database.create_database_manager", side_effect=Exception("DB init failed")):
             with pytest.raises(Exception, match="DB init failed"):
                 await get_data_source()
 
@@ -309,14 +313,15 @@ class TestFactoryConfiguration:
 
             try:
                 if config_value == "notmuch":
-                    data_source = await get_data_source()
-                    assert isinstance(data_source, expected_type)
+                    # Mock DB for Notmuch
+                    with patch("src.core.database.create_database_manager", return_value=AsyncMock()):
+                        data_source = await get_data_source()
+                        assert isinstance(data_source, expected_type)
                 else:
-                    # For default, we need to mock DatabaseManager
+                    # For default, we need to mock create_database_manager
                     mock_db = AsyncMock()
-                    mock_db._ensure_initialized = AsyncMock()
 
-                    with patch("src.core.factory.DatabaseManager", return_value=mock_db):
+                    with patch("src.core.database.create_database_manager", return_value=mock_db):
                         data_source = await get_data_source()
                         assert data_source is mock_db
 

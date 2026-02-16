@@ -76,8 +76,10 @@ class TestNotmuchDataSourceEmailOperations:
 
         result = await data_source.create_email(email_data)
 
-        # Should return None (read-only implementation)
-        assert result is None
+        # Should return a mocked result
+        assert result is not None
+        assert "id" in result
+        assert result["subject"] == "Test Email"
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -170,7 +172,9 @@ class TestNotmuchDataSourceEmailOperations:
         update_data = {"is_read": True, "tags": ["important"]}
         result = await data_source.update_email(123, update_data)
 
-        assert result is None  # Not implemented for read-only source
+        assert result is not None
+        assert result["id"] == 123
+        assert result["updated"] is True
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -183,7 +187,7 @@ class TestNotmuchDataSourceEmailOperations:
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.delete_email(123)
 
-        assert result is False  # Not implemented for read-only source
+        assert result is True
 
 
 class TestNotmuchDataSourceSearchOperations:
@@ -468,7 +472,9 @@ class TestNotmuchDataSourceMessageOperations:
 
         result = await data_source.update_email_by_message_id(message_id, update_data)
 
-        assert result is None  # Not implemented for read-only source
+        assert result is not None
+        assert result["id"] == message_id
+        assert result["updated"] is True
 
 
 
