@@ -265,6 +265,17 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Compatibility method for legacy log_performance decorator."""
+        # Extract fields from log_entry to map to record_metric
+        operation = log_entry.get("operation", "unknown_operation")
+        duration_ms = log_entry.get("duration_seconds", 0) * 1000
+        self.record_metric(
+            name=operation,
+            value=duration_ms,
+            unit="ms"
+        )
+
     def record_metric(
         self,
         name: str,
@@ -301,6 +312,17 @@ class OptimizedPerformanceMonitor:
         # Add to buffer (thread-safe)
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
+
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Compatibility method for legacy log_performance decorator."""
+        operation = log_entry.get("operation", "unknown")
+        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
+        self.record_metric(
+            name=f"operation_duration_{operation}",
+            value=duration,
+            unit="ms",
+            tags={"operation": operation},
+        )
 
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0

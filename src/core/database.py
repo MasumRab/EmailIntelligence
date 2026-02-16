@@ -5,6 +5,7 @@ JSON file storage implementation with in-memory caching and indexing.
 
 import asyncio
 import gzip
+import itertools
 import json
 import logging
 import os
@@ -149,6 +150,9 @@ class DatabaseManager(DataSource):
         # Internal Cache for sorted emails
         self._sorted_emails_cache: Optional[List[Dict[str, Any]]] = None
 
+        # Index of email IDs that have content files on disk
+        self._content_available_index: set[int] = set()
+
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
@@ -172,7 +176,11 @@ class DatabaseManager(DataSource):
     def _read_content_sync(self, content_path: str) -> Dict[str, Any]:
         """Synchronously reads and parses the content file. Helper for asyncio.to_thread."""
         with gzip.open(content_path, "rt", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if not isinstance(data, dict):
+                logger.warning(f"File {content_path} contains invalid data format (expected dict).")
+                return {}
+            return data
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
@@ -254,6 +262,22 @@ class DatabaseManager(DataSource):
             ):
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
+
+        # Build content availability index
+        # This allows us to skip os.path.exists checks during search
+        self._content_available_index = set()
+        try:
+            if os.path.exists(self.email_content_dir):
+                for filename in os.listdir(self.email_content_dir):
+                    if filename.endswith(".json.gz"):
+                        try:
+                            email_id = int(filename.split(".")[0])
+                            self._content_available_index.add(email_id)
+                        except ValueError:
+                            pass
+        except Exception as e:
+            logger.error(f"Error building content availability index: {e}")
+
         logger.info("In-memory indexes built successfully.")
 
     @log_performance(operation="load_data")
@@ -472,8 +496,9 @@ class DatabaseManager(DataSource):
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
 
-        # Invalidate sorted cache
+        # Invalidate sorted cache and query cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(light_email_record)
 
@@ -610,19 +635,24 @@ class DatabaseManager(DataSource):
         category_id: Optional[int] = None,
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
-        """Get emails with pagination and filtering. Optimized to use cached sorted list."""
+        """Get emails with pagination and filtering. Optimized to use generator for memory efficiency."""
         # Use cached sorted list to avoid sorting on every request
         source_emails = self._get_sorted_emails()
 
-        # Apply filters on the already sorted list (preserves order)
-        if category_id is not None:
-            source_emails = [
-                e for e in source_emails if e.get(FIELD_CATEGORY_ID) == category_id
-            ]
-        if is_unread is not None:
-            source_emails = [e for e in source_emails if e.get(FIELD_IS_UNREAD) == is_unread]
+        # Use iterator to filter lazily
+        email_iter = iter(source_emails)
 
-        paginated_emails = source_emails[offset : offset + limit]
+        # Apply filters lazily (generator expressions)
+        if category_id is not None:
+            email_iter = (e for e in email_iter if e.get(FIELD_CATEGORY_ID) == category_id)
+
+        if is_unread is not None:
+            email_iter = (e for e in email_iter if e.get(FIELD_IS_UNREAD) == is_unread)
+
+        # Apply pagination using islice. We consume only what we need.
+        # islice(iter, start, stop). stop is offset + limit.
+        paginated_emails = list(itertools.islice(email_iter, offset, offset + limit))
+
         return [self._add_category_details(email) for email in paginated_emails]
 
     async def update_email_by_message_id(
@@ -680,8 +710,9 @@ class DatabaseManager(DataSource):
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
             
-            # Invalidate sorted cache
+            # Invalidate sorted cache and query cache
             self._sorted_emails_cache = None
+            self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
@@ -730,6 +761,14 @@ class DatabaseManager(DataSource):
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
+        # Check query cache
+        # Normalize search term to lower case for consistent caching
+        cache_key = f"search:{search_term.lower()}:{limit}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
+        if cached_result is not None:
+            logger.info(f"Query cache hit for term: '{search_term}'")
+            return cached_result
+
         search_term_lower = search_term.lower()
         filtered_emails = []
 
@@ -770,19 +809,31 @@ class DatabaseManager(DataSource):
                     filtered_emails.append(email_light)
                 continue
 
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                    content = heavy_data.get(FIELD_CONTENT, "")
-                    if isinstance(content, str) and search_term_lower in content.lower():
-                        filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+            # Check content availability index first to avoid unnecessary os.path.exists calls
+            # This is a significant optimization when many emails don't have content loaded
+            if email_id in self._content_available_index:
+                content_path = self._get_email_content_path(email_id)
+                # Double check existence just in case (race condition or manual deletion),
+                # but we trust the index for the negative case (if NOT in index, definitely no content)
+                if os.path.exists(content_path):
+                    try:
+                        # Offload synchronous file I/O to a thread to prevent blocking the event loop
+                        heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
+                        content = heavy_data.get(FIELD_CONTENT, "")
+                        if isinstance(content, str) and search_term_lower in content.lower():
+                            filtered_emails.append(email_light)
+                    except (IOError, json.JSONDecodeError) as e:
+                        logger.error(f"Could not search content for email {email_id}: {e}")
+                else:
+                    # Index out of sync, remove it
+                    self._content_available_index.discard(email_id)
 
         # Results are already sorted because we iterated source_emails (which is sorted)
-        return [self._add_category_details(email) for email in filtered_emails]
+        results = [self._add_category_details(email) for email in filtered_emails]
+
+        # Cache the results
+        self.caching_manager.put_query_result(cache_key, results)
+        return results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -815,6 +866,10 @@ class DatabaseManager(DataSource):
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
+
+            # Update content availability index
+            self._content_available_index.add(email_id)
+
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
@@ -862,8 +917,9 @@ class DatabaseManager(DataSource):
 
         self.caching_manager.invalidate_email_record(email_id)
 
-        # Invalidate sorted cache
+        # Invalidate sorted cache and query cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
