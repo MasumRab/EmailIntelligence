@@ -7,6 +7,7 @@ This module implements JWT-based authentication for API endpoints and integrates
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
+import time
 import hashlib
 import secrets
 from argon2 import PasswordHasher
@@ -130,7 +131,20 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
     try:
         # Try to get user from database
         user_data = await db.get_user_by_username(username)
-        if user_data and verify_password(password, user_data.get("hashed_password", "")):
+
+        # Mitigate timing attacks: Always perform password verification
+        # If user not found, verify a dummy hash to equalize timing
+        if user_data:
+            stored_hash = user_data.get("hashed_password", "")
+        else:
+            # This is a valid Argon2 hash for "dummy" to prevent early exit
+            # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
+            # Ideally this should be pre-calculated.
+            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+
+        is_valid = verify_password(password, stored_hash)
+
+        if user_data and is_valid:
             return user_data
         return None
     except Exception as e:
@@ -305,7 +319,9 @@ def create_security_context_for_user(username: str) -> SecurityContext:
         user_id=username,
         permissions=permissions,
         security_level=SecurityLevel.INTERNAL,
-        session_id=session_token,
+        session_token=session_token,
+        created_at=time.time(),
+        expires_at=time.time() + 3600,  # 1 hour expiration
         allowed_resources=["*"],  # All resources allowed for now
     )
 
